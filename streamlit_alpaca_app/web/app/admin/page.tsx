@@ -1,6 +1,8 @@
 "use client";
 
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { LLMSettingsEditor, type LLMSettings } from "@/components/admin/llm-settings";
+import { OperationalHealth } from "@/components/admin/operational-health";
 import { DataPlot } from "@/components/visualizations/data-plot";
 import { DataTable, MetricStrip, WorkbookTabs } from "@/components/workbook";
 import { responseError, secureMutation } from "@/lib/client/api";
@@ -9,7 +11,7 @@ import { useAuthenticatedSession } from "@/lib/client/session";
 type Rows = Array<Record<string, unknown>>;
 type AdminView = {
   users: Rows; invites: Rows; access: Record<string, unknown> & { summary?: Record<string, unknown>; user_usage?: Rows; section_usage?: Rows; active_sessions?: Rows; recent_security_events?: Rows; access_ips?: Rows };
-  llm: { runtime: Record<string, unknown> | null; prompts: Rows; parameters: Rows };
+  llm: LLMSettings;
   agent_keys: Rows;
   system: { job_status: Rows; dataset_status: Rows; job_history: Rows; dataset_history: Rows; connector_calls: Rows; model_calls: Rows };
   auth: { email_delivery: Record<string, unknown>; scopes: string[] };
@@ -83,8 +85,9 @@ export default function AdminPage() {
   if (!session?.authenticated) return <div className="page-shell"><p className="loading-label">Checking session…</p></div>;
   return (
     <div className="page-shell workbook-page wide-workbook">
-      <header className="artifact-header workbook-heading"><div><p className="breadcrumb">Control plane <span>/</span> Administration</p><h1>Admin</h1></div><label className="compact-control">History<select onChange={(event) => setDays(Number(event.target.value))} value={days}>{[3, 7, 14, 30].map((value) => <option key={value} value={value}>{value} days</option>)}</select></label></header>
-      <WorkbookTabs active={tab} items={[{ key: "users", label: "Users" }, { key: "access", label: "Usage & Security" }, { key: "llm", label: "LLM" }, { key: "keys", label: "API Keys" }, { key: "system", label: "System" }]} label="Admin sections" onChange={setTab} />
+      <header className="artifact-header workbook-heading"><div><h1>Admin</h1></div>{!["llm", "health"].includes(tab) ? <label className="compact-control">History<select onChange={(event) => setDays(Number(event.target.value))} value={days}>{[3, 7, 14, 30].map((value) => <option key={value} value={value}>{value} days</option>)}</select></label> : null}</header>
+      <WorkbookTabs active={tab} items={[{ key: "users", label: "Users" }, { key: "access", label: "Usage & Security" }, { key: "llm", label: "LLM" }, { key: "keys", label: "API Keys" }, { key: "system", label: "System" }, { key: "health", label: "Health" }]} label="Admin sections" onChange={setTab} />
+      {tab === "health" ? <OperationalHealth /> : null}
       {sessionError || error ? <p className="subtle-error" role="alert">{sessionError || error}</p> : null}
       {notice ? <p className="admin-notice" role="status">{notice}</p> : null}
       {loading && !view ? <p className="loading-label">Loading admin workspace…</p> : null}
@@ -116,13 +119,7 @@ export default function AdminPage() {
         <section className="workbook-panel"><header className="panel-header"><div><p className="section-label">Security</p><h2>Recent events</h2></div><span>{access?.recent_security_events?.length || 0}</span></header><DataTable columns={[{ key: "created_at", label: "Time", render: date }, { key: "email", label: "User" }, { key: "event_type", label: "Event" }, { key: "event_category", label: "Category" }, { key: "section_name", label: "Workspace" }, { key: "ip_address", label: "IP" }]} rowKey={(row, index) => String(row.id || index)} rows={(access?.recent_security_events || []).slice(0, 100)} /></section>
       </> : null}
       {view && tab === "llm" ? <>
-        <MetricStrip items={[
-          { label: "Provider", value: String(view.llm.runtime?.provider || "—") }, { label: "Model", value: String(view.llm.runtime?.model || "—") },
-          { label: "Temperature", value: String(view.llm.runtime?.temperature ?? "—") }, { label: "Prompts", value: view.llm.prompts.length },
-          { label: "Overrides", value: view.llm.prompts.filter((row) => row.is_override).length },
-        ]} />
-        <section className="workbook-panel"><header className="panel-header"><div><p className="section-label">Runtime</p><h2>Tuning parameters</h2></div></header><DataTable columns={[{ key: "group", label: "Group" }, { key: "name", label: "Parameter" }, { key: "value", label: "Active", align: "right" }, { key: "default", label: "Default", align: "right" }, { key: "description", label: "Description" }]} rowKey={(row, index) => String(row.key || index)} rows={view.llm.parameters} /></section>
-        <section className="prompt-list"><header className="panel-header"><div><p className="section-label">Narrative system</p><h2>Prompts</h2></div><span>{view.llm.prompts.length}</span></header>{view.llm.prompts.map((prompt, index) => <details className="workbook-panel" key={String(prompt.key || index)}><summary><span>{String(prompt.name || "Prompt")}</span><small>{String(prompt.group || "")}{prompt.is_override ? " · overridden" : ""}</small></summary><p className="prompt-file">{String(prompt.file || "")}</p><pre>{String(prompt.prompt || "")}</pre></details>)}</section>
+        <LLMSettingsEditor settings={view.llm} onSaved={(llm) => setView((current) => current ? { ...current, llm } : current)} />
       </> : null}
       {view && tab === "keys" ? <section className="workbook-panel"><header className="panel-header"><div><p className="section-label">Agent access</p><h2>API keys</h2></div><span>{view.agent_keys.length}</span></header><DataTable columns={[{ key: "name", label: "Name" }, { key: "key_prefix", label: "Prefix" }, { key: "scopes", label: "Scopes", render: (value) => Array.isArray(value) ? value.join(", ") : String(value || "") }, { key: "status", label: "Status" }, { key: "created_at", label: "Created", render: date }, { key: "last_used_at", label: "Last used", render: date }, { key: "expires_at", label: "Expires", render: date }]} rowKey={(row, index) => String(row.id || index)} rows={view.agent_keys} /></section> : null}
       {view && tab === "system" ? <>

@@ -1,2 +1,2 @@
-// Release intentionally uses the same development service until production is approved.
+// Release uses the existing live workbench gateway.
 SWIFT_COMPILATION_MODE = wholemodule

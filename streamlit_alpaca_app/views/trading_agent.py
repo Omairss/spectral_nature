@@ -18,6 +18,7 @@ from services.pipeline_store import (
 )
 from services.trading_agent import (
     TRADING_AGENT_NARRATIVE_CONTRACT_VERSION,
+    TRADING_AGENT_LEGACY_NARRATIVE_CONTRACTS,
     normalize_trading_agent_candidate,
 )
 from views._shared import (
@@ -578,6 +579,15 @@ def _render_trading_agent_candidate_card(
         if hypothesis:
             st.markdown(f"**Thesis:** {hypothesis}")
 
+        forecast = candidate.get("forecast") or {}
+        if show_narrative and forecast:
+            st.markdown("**At this price**")
+            st.write(forecast.get("pricing_assessment") or "")
+            with st.expander("Assumptions and opposing case"):
+                for assumption in forecast.get("assumptions") or []:
+                    st.write(assumption)
+                st.write(forecast.get("opposing_case") or "")
+
         evidence = [
             _trading_agent_text(item)
             for item in to_list(candidate.get("evidence"))
@@ -633,7 +643,7 @@ def _render_trading_agent_candidate_card(
         candidate_id = _trading_agent_text(candidate.get("candidate_id"))
         latest_action = _trading_agent_text((action_state or {}).get("action"))
         action_label = ""
-        if latest_action == "place_requested":
+        if latest_action in {"place_requested", "approved"}:
             action_label = "Approved"
         elif latest_action == "rejected":
             action_label = "Rejected"
@@ -641,12 +651,12 @@ def _render_trading_agent_candidate_card(
             st.caption(f"Decision: {action_label}")
 
         action_cols = _responsive_columns([1.0, 1.0, 2.4])
-        action_recorded = bool(latest_action in {"place_requested", "rejected"})
+        action_recorded = bool(latest_action in {"place_requested", "approved", "rejected"})
         place_disabled = action_recorded or not candidate_id or stance not in {"long", "short"}
         reject_disabled = action_recorded or not candidate_id
         with action_cols[0]:
             if st.button(
-                "Approve",
+                "Approve and track",
                 key=f"trading_agent_approve_{idx}_{candidate_id or ticker}",
                 use_container_width=True,
                 disabled=place_disabled,
@@ -843,6 +853,43 @@ def _trading_agent_horizon_sort_key(value: object) -> int:
     order = {"1w": 0, "1m": 1, "3m": 2, "1y": 3, "5y": 4}
     return order.get(_trading_agent_text(value), 99)
 
+def _render_approved_call_performance() -> None:
+    from services.trading_call_tracking import tracking_view
+    user = _current_user_context()
+    try:
+        calls = tracking_view(owner_id=str(user.user_id))["calls"]
+        if not calls:
+            st.write("Approve a call to track its performance.")
+            return
+        by_id = {row["tracking_id"]: row for row in calls}
+        selected = st.selectbox("Approved call", list(by_id), format_func=lambda key: " · ".join(
+            str(by_id[key].get(field) or "") for field in ("ticker", "stance", "horizon_label", "approved_at_utc")))
+        row = tracking_view(owner_id=str(user.user_id), tracking_id=selected)["calls"][0]
+    except Exception:
+        st.error("Call tracking is unavailable.")
+        return
+    benchmark = "SPY short" if row["stance"] == "short" else "SPY long"
+    columns = _responsive_columns(3)
+    for column, label, key in zip(columns, ("Return", f"Vs {benchmark}", "Drawdown"), ("return_pct", "excess_return_pct", "max_drawdown_pct")):
+        column.metric(label, _trading_agent_pct(row.get(key)))
+    if row["status"] == "pending_entry":
+        st.write("Entry at the next trading day's close.")
+    elif row["status"] == "price_unavailable":
+        st.write("Price data is unavailable.")
+    path = pd.DataFrame(row.get("path") or [])
+    if not path.empty:
+        figure = go.Figure()
+        figure.add_trace(go.Scatter(x=pd.to_datetime(path["date"]), y=path["return_pct"], name="Call", mode="lines"))
+        figure.add_trace(go.Scatter(x=pd.to_datetime(path["date"]), y=path["benchmark_return_pct"], name=benchmark, mode="lines", connectgaps=False))
+        figure.update_layout(yaxis_title="Return (%)", xaxis_title=None)
+        st.plotly_chart(figure, use_container_width=True, key=f"approved_call_{selected}")
+    if row.get("entry_date"):
+        st.caption(f"Entry {row['entry_date']} · Target {row.get('target_date')} · Prices through {row.get('last_price_date')}")
+    if row.get("hypothesis"):
+        st.markdown(row["hypothesis"])
+    st.dataframe(pd.DataFrame(calls)[["ticker", "stance", "horizon_label", "approved_at_utc", "status", *(["return_pct"] if any("return_pct" in call for call in calls) else [])]], hide_index=True, use_container_width=True)
+
+
 def _render_trading_agent_section(
     cfg: AppConfig,
     *,
@@ -853,9 +900,16 @@ def _render_trading_agent_section(
         return
 
     st.title(TRADING_AGENT_SECTION)
+    section = st.segmented_control("Trading view", ["Calls", "Paper performance"], default="Calls", key="trading_view_section")
+    if section == "Paper performance":
+        _render_approved_call_performance()
+        return
     _render_robinhood_connection_panel()
 
     runs, candidates_frame, actions, metadata = _load_latest_trading_agent_output()
+    user = _current_user_context()
+    if not actions.empty:
+        actions = actions[actions["requested_by"].astype(str).eq(str(user.user_id))].copy()
     asof_time = _trading_agent_time_label(getattr(metadata, "asof_time_utc", "")) if metadata is not None else ""
     if asof_time:
         st.caption(f"As of {asof_time}")
@@ -917,7 +971,7 @@ def _render_trading_agent_section(
 
     show_narrative = (
         _trading_agent_text(result.get("narrative_contract_version"))
-        == TRADING_AGENT_NARRATIVE_CONTRACT_VERSION
+        in {TRADING_AGENT_NARRATIVE_CONTRACT_VERSION, *TRADING_AGENT_LEGACY_NARRATIVE_CONTRACTS}
     )
     if not show_narrative:
         st.info("Analysis unavailable for this horizon.")
@@ -1008,7 +1062,7 @@ def _render_trading_agent_section(
             display_actions = actions.copy()
             if "action" in display_actions.columns:
                 display_actions["Decision"] = display_actions["action"].map(
-                    {"place_requested": "Approved", "rejected": "Rejected"}
+                    {"place_requested": "Approved", "approved": "Approved", "rejected": "Rejected"}
                 ).fillna(display_actions["action"])
             display_actions = display_actions.rename(
                 columns={

@@ -9,7 +9,9 @@ import uuid
 
 from . import pipeline_store
 from .json_utils import to_jsonable
+from .llm import apply_narrative_style, get_active_narrative_style_rule, llm_request_deadline, llm_settings_scope
 from .zopedia_runtime import zopedia_surface_from_client
+from .llm_execution import model_call_context
 
 
 _ALLOWED_CALL_TYPES = {
@@ -113,10 +115,11 @@ def _record_gateway_call(
     schema_hash: str,
     metadata: dict[str, Any],
     error: BaseException | None = None,
+    provider_reported_model: str = "",
 ) -> None:
     requested_model = _client_config_value(llm_client, "model")
     deployment = _client_config_value(llm_client, "deployment")
-    resolved_model = deployment or requested_model
+    resolved_model = provider_reported_model or deployment or requested_model
     safe_metadata = {
         **dict(metadata),
         "client_surface": zopedia_surface_from_client(llm_client),
@@ -131,7 +134,7 @@ def _record_gateway_call(
             provider=_client_provider(llm_client),
             requested_model=requested_model,
             resolved_model=resolved_model,
-            provider_reported_model="",
+            provider_reported_model=provider_reported_model,
             status=status,
             started_at_utc=started_at_utc,
             duration_ms=duration_ms,
@@ -157,6 +160,10 @@ def generate_json_via_aql_zopedia_gateway(
     schema_name: str,
     schema: dict[str, Any],
     metadata: dict[str, Any] | None = None,
+    deadline_monotonic: float | None = None,
+    inference_effort: str = "",
+    literal_output: bool = False,
+    stage: str = "",
 ) -> dict[str, Any]:
     """Run a JSON model call through the enforceable AQL/Zopedia boundary.
 
@@ -177,10 +184,18 @@ def generate_json_via_aql_zopedia_gateway(
     if llm_client is None or not hasattr(llm_client, "generate_json"):
         raise ValueError("AQL/Zopedia model call requires an LLM client with generate_json")
 
+    from .llm_flow import stage_client, DEEP_REASONING_PROMPT
+    resolved_stage = stage or {"utility": "summary", "schema_repair": "repair"}.get(clean_call_type, "synthesis")
+    llm_client, route = stage_client(llm_client, resolved_stage)
+    if resolved_stage == "reasoning":
+        from .llm import get_prompt
+        system_prompt += "\n\n" + get_prompt(DEEP_REASONING_PROMPT)
+    inference_effort = route["thinking"]
     model_call_id = f"aqlzmc_{uuid.uuid4().hex}"
     started_at = datetime.now(timezone.utc)
     t0 = time.perf_counter()
-    prompt_hash = _hash_text(f"{system_prompt}\n\n{user_prompt}")
+    effective_system = system_prompt if literal_output else apply_narrative_style(system_prompt)
+    prompt_hash = _hash_text(f"{effective_system}\n\n{user_prompt}")
     schema_hash = _hash_json(schema)
     safe_metadata = _safe_metadata(metadata or {})
     if not isinstance(safe_metadata, dict):
@@ -189,16 +204,24 @@ def generate_json_via_aql_zopedia_gateway(
         {
             "model_call_id": model_call_id,
             "schema_name": clean_schema_name,
+            "language_policy_hash": _hash_text(get_active_narrative_style_rule()),
+            "settings_scope": llm_settings_scope(),
+            **route,
         }
     )
 
     try:
-        payload = llm_client.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            schema_name=clean_schema_name,
-            schema=schema,
-        )
+        with llm_request_deadline(deadline_monotonic), model_call_context(**{
+            **safe_metadata, "surface": clean_surface, "purpose": clean_purpose,
+            "literal_output": literal_output,
+            **({"inference_effort": inference_effort} if inference_effort else {}),
+        }):
+            payload = llm_client.generate_json(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                schema_name=clean_schema_name,
+                schema=schema,
+            )
     except Exception as exc:
         _record_gateway_call(
             model_call_id=model_call_id,
@@ -217,10 +240,12 @@ def generate_json_via_aql_zopedia_gateway(
         )
         raise
 
+    response_metadata = getattr(payload, "response_metadata", {})
     if isinstance(payload, dict) and "__reasoning_content" in payload:
         payload = dict(payload)
         payload.pop("__reasoning_content", None)
     result_metadata = dict(safe_metadata)
+    result_metadata["provider_response"] = response_metadata
     if isinstance(payload, dict):
         result_metadata["response_keys"] = sorted(_clean(key) for key in payload.keys())[:50]
     _record_gateway_call(
@@ -236,6 +261,7 @@ def generate_json_via_aql_zopedia_gateway(
         prompt_hash=prompt_hash,
         schema_hash=schema_hash,
         metadata=result_metadata,
+        provider_reported_model=_clean(response_metadata.get("provider_reported_model")),
     )
     return payload
 

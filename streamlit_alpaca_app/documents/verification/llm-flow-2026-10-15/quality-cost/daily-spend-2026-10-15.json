@@ -1,0 +1,403 @@
+{
+  "snapshot_utc": "2026-10-16T04:18:18.746239+00:00",
+  "provider_dashboard": {
+    "source": "Observed Safari platform.deepseek.com/usage",
+    "api_key_filter": "Spectral Nature",
+    "time_filter": "Today",
+    "time_zone_label": "PDT / MST",
+    "cost_usd": 37.21,
+    "requests": 3109,
+    "tokens": 267604756,
+    "models": {
+      "deepseek-flash": {
+        "requests": 3056,
+        "tokens": 267064473
+      },
+      "deepseek-v4-pro": {
+        "requests": 53,
+        "tokens": 540283
+      }
+    }
+  },
+  "summary": {
+    "attempts": 3079,
+    "input_tokens": 248081490,
+    "output_tokens": 12722049,
+    "cached_input_tokens": 67737856,
+    "reasoning_tokens": 6349172,
+    "priced_attempts": 2999,
+    "unpriced_attempts": 80,
+    "unfinished_attempts": 2,
+    "failed_attempts": 78,
+    "common_offpeak_usd": 35.05698594599998,
+    "calendar_rate_usd": 35.63918773799998,
+    "peak_attempts": 37
+  },
+  "by_job": [
+    {
+      "job_name": "news-ingest-and-features",
+      "attempts": 1506,
+      "input_tokens": 181178958,
+      "output_tokens": 8525675,
+      "cached_input_tokens": 35793920,
+      "reasoning_tokens": 4019007,
+      "priced_attempts": 1490,
+      "unpriced_attempts": 16,
+      "unfinished_attempts": 0,
+      "failed_attempts": 16,
+      "common_offpeak_usd": 27.03054246000002,
+      "calendar_rate_usd": 27.03054246000002,
+      "peak_attempts": 0
+    },
+    {
+      "job_name": "attention-home-build",
+      "attempts": 1038,
+      "input_tokens": 49410539,
+      "output_tokens": 3170853,
+      "cached_input_tokens": 23069056,
+      "reasoning_tokens": 1693759,
+      "priced_attempts": 995,
+      "unpriced_attempts": 43,
+      "unfinished_attempts": 0,
+      "failed_attempts": 43,
+      "common_offpeak_usd": 5.922941418000007,
+      "calendar_rate_usd": 5.922941418000007,
+      "peak_attempts": 0
+    },
+    {
+      "job_name": "research-run-execute",
+      "attempts": 45,
+      "input_tokens": 13572187,
+      "output_tokens": 93291,
+      "cached_input_tokens": 7579648,
+      "reasoning_tokens": 50537,
+      "priced_attempts": 42,
+      "unpriced_attempts": 3,
+      "unfinished_attempts": 0,
+      "failed_attempts": 3,
+      "common_offpeak_usd": 0.977594394,
+      "calendar_rate_usd": 1.4762868660000001,
+      "peak_attempts": 20
+    },
+    {
+      "job_name": "trading-agent-build",
+      "attempts": 361,
+      "input_tokens": 2155003,
+      "output_tokens": 635580,
+      "cached_input_tokens": 839296,
+      "reasoning_tokens": 398107,
+      "priced_attempts": 351,
+      "unpriced_attempts": 10,
+      "unfinished_attempts": 0,
+      "failed_attempts": 10,
+      "common_offpeak_usd": 0.5812219380000001,
+      "calendar_rate_usd": 0.5812219380000001,
+      "peak_attempts": 0
+    },
+    {
+      "job_name": "(none)",
+      "attempts": 56,
+      "input_tokens": 205001,
+      "output_tokens": 151469,
+      "cached_input_tokens": 16000,
+      "reasoning_tokens": 114534,
+      "priced_attempts": 54,
+      "unpriced_attempts": 2,
+      "unfinished_attempts": 2,
+      "failed_attempts": 0,
+      "common_offpeak_usd": 0.288277428,
+      "calendar_rate_usd": 0.3717867480000001,
+      "peak_attempts": 17
+    },
+    {
+      "job_name": "macro-fred-daily",
+      "attempts": 11,
+      "input_tokens": 962997,
+      "output_tokens": 42094,
+      "cached_input_tokens": 179200,
+      "reasoning_tokens": 24173,
+      "priced_attempts": 11,
+      "unpriced_attempts": 0,
+      "unfinished_attempts": 0,
+      "failed_attempts": 0,
+      "common_offpeak_usd": 0.14336354999999998,
+      "calendar_rate_usd": 0.14336354999999998,
+      "peak_attempts": 0
+    },
+    {
+      "job_name": "zopedia-learning",
+      "attempts": 62,
+      "input_tokens": 596805,
+      "output_tokens": 103087,
+      "cached_input_tokens": 260736,
+      "reasoning_tokens": 49055,
+      "priced_attempts": 56,
+      "unpriced_attempts": 6,
+      "unfinished_attempts": 0,
+      "failed_attempts": 6,
+      "common_offpeak_usd": 0.113044758,
+      "calendar_rate_usd": 0.113044758,
+      "peak_attempts": 0
+    }
+  ],
+  "by_scope": [
+    {
+      "settings_scope": "production",
+      "attempts": 3022,
+      "input_tokens": 247869254,
+      "output_tokens": 12568621,
+      "cached_input_tokens": 67721600,
+      "reasoning_tokens": 6233399,
+      "priced_attempts": 2944,
+      "unpriced_attempts": 78,
+      "unfinished_attempts": 0,
+      "failed_attempts": 78,
+      "common_offpeak_usd": 34.766485499999966,
+      "calendar_rate_usd": 35.265177971999954,
+      "peak_attempts": 20
+    },
+    {
+      "settings_scope": "llm-flow-review-20261014",
+      "attempts": 56,
+      "input_tokens": 205001,
+      "output_tokens": 151469,
+      "cached_input_tokens": 16000,
+      "reasoning_tokens": 114534,
+      "priced_attempts": 54,
+      "unpriced_attempts": 2,
+      "unfinished_attempts": 2,
+      "failed_attempts": 0,
+      "common_offpeak_usd": 0.288277428,
+      "calendar_rate_usd": 0.3717867480000001,
+      "peak_attempts": 17
+    },
+    {
+      "settings_scope": "development",
+      "attempts": 1,
+      "input_tokens": 7235,
+      "output_tokens": 1959,
+      "cached_input_tokens": 256,
+      "reasoning_tokens": 1239,
+      "priced_attempts": 1,
+      "unpriced_attempts": 0,
+      "unfinished_attempts": 0,
+      "failed_attempts": 0,
+      "common_offpeak_usd": 0.002223018,
+      "calendar_rate_usd": 0.002223018,
+      "peak_attempts": 0
+    }
+  ],
+  "by_model": [
+    {
+      "reported_model": "deepseek-flash",
+      "requested_model": "deepseek-reasoner",
+      "attempts": 2945,
+      "input_tokens": 247876489,
+      "output_tokens": 12570580,
+      "cached_input_tokens": 67721856,
+      "reasoning_tokens": 6234638,
+      "priced_attempts": 2945,
+      "unpriced_attempts": 0,
+      "unfinished_attempts": 0,
+      "failed_attempts": 0,
+      "common_offpeak_usd": 34.76870851799997,
+      "calendar_rate_usd": 35.267400989999956,
+      "peak_attempts": 20
+    },
+    {
+      "reported_model": "deepseek-v4-pro",
+      "requested_model": "deepseek-v4-pro",
+      "attempts": 20,
+      "input_tokens": 102901,
+      "output_tokens": 87576,
+      "cached_input_tokens": 8832,
+      "reasoning_tokens": 76726,
+      "priced_attempts": 20,
+      "unpriced_attempts": 0,
+      "unfinished_attempts": 0,
+      "failed_attempts": 0,
+      "common_offpeak_usd": 0.235680324,
+      "calendar_rate_usd": 0.301805064,
+      "peak_attempts": 6
+    },
+    {
+      "reported_model": "deepseek-flash",
+      "requested_model": "deepseek-flash",
+      "attempts": 34,
+      "input_tokens": 102100,
+      "output_tokens": 63893,
+      "cached_input_tokens": 7168,
+      "reasoning_tokens": 37808,
+      "priced_attempts": 34,
+      "unpriced_attempts": 0,
+      "unfinished_attempts": 0,
+      "failed_attempts": 0,
+      "common_offpeak_usd": 0.052597104,
+      "calendar_rate_usd": 0.069981684,
+      "peak_attempts": 11
+    },
+    {
+      "reported_model": "(none)",
+      "requested_model": "deepseek-v4-pro",
+      "attempts": 2,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cached_input_tokens": 0,
+      "reasoning_tokens": 0,
+      "priced_attempts": 0,
+      "unpriced_attempts": 2,
+      "unfinished_attempts": 2,
+      "failed_attempts": 0,
+      "common_offpeak_usd": 0.0,
+      "calendar_rate_usd": 0.0,
+      "peak_attempts": 0
+    },
+    {
+      "reported_model": "(none)",
+      "requested_model": "deepseek-reasoner",
+      "attempts": 78,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cached_input_tokens": 0,
+      "reasoning_tokens": 0,
+      "priced_attempts": 0,
+      "unpriced_attempts": 78,
+      "unfinished_attempts": 0,
+      "failed_attempts": 78,
+      "common_offpeak_usd": 0.0,
+      "calendar_rate_usd": 0.0,
+      "peak_attempts": 0
+    }
+  ],
+  "archive_events": 161,
+  "archive_new_ids": 161,
+  "archive_terminal_updates": 0,
+  "nonproduction_archive_new_ids": 1,
+  "provider_minus_attributed_usd": 1.5708122620000182,
+  "provider_minus_known_tokens": 6801217,
+  "known_fraction_of_provider_cost": 0.9577852119860247,
+  "date": "2026-10-15",
+  "time_zone": "America/Los_Angeles",
+  "scope": "Actual observed daily DeepSeek API-key usage and read-only attribution, not the earlier hypothetical mix. Snapshot excludes later provider work.",
+  "provider_dashboard_observation": "Safari existing authenticated platform.deepseek.com/usage; API key Spectral Nature; Today; local PDT/MST. Read actual rendered totals. No account balance/profile information retained.",
+  "attribution_method": "Read-only SQL provider-attempt query; merge pre-existing production blob outbox receipts by immutable attempt_id; prefer terminal receipts; no archive reconciliation, SQL write or blob deletion. Common saved rates verified against official pricing on October 16 UTC, with weekday UTC peak bands. No inference or pipeline execution.",
+  "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+  "pricing_version": "published-prices-verified-2026-10-12",
+  "news_application_runs": [
+    {
+      "run_id": "6824bf77-75c7-422e-bb56-8c0cf9d602e7",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-15 14:05:29.381028+00:00",
+      "end_time_utc": "2026-10-15 15:50:21.867934+00:00",
+      "status": "Succeeded",
+      "platform_execution_name": "news-ingest-and-features-29867885",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "attributed_calendar_rate_usd": 5.464824383999999,
+      "known_input_tokens": 38403544,
+      "known_output_tokens": 1638098
+    },
+    {
+      "run_id": "4e490042-de70-4f63-a546-45d900237e85",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-15 16:05:33.338436+00:00",
+      "end_time_utc": "2026-10-15 17:49:54.966410+00:00",
+      "status": "Succeeded",
+      "platform_execution_name": "news-ingest-and-features-29868005",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "attributed_calendar_rate_usd": 4.984096176000001,
+      "known_input_tokens": 32164020,
+      "known_output_tokens": 1740181
+    },
+    {
+      "run_id": "4e141e24-d8cd-4a40-b449-f774d257f754",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-15 18:05:32.263948+00:00",
+      "end_time_utc": "2026-10-15 19:42:00.895141+00:00",
+      "status": "Failed",
+      "platform_execution_name": "news-ingest-and-features-29868125",
+      "error_summary": "RuntimeError: News research completed with missing required narratives: {'news interpretations': 1}",
+      "progress_stage": "failed",
+      "attributed_calendar_rate_usd": 5.493173513999997,
+      "known_input_tokens": 36049251,
+      "known_output_tokens": 1811987
+    },
+    {
+      "run_id": "b8e5bea0-52f5-442f-b89d-0e055ac3fa3c",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-15 19:42:36.108457+00:00",
+      "end_time_utc": "2026-10-15 21:30:33.951158+00:00",
+      "status": "Failed",
+      "platform_execution_name": "news-ingest-and-features-29868125",
+      "error_summary": "Azure execution news-ingest-and-features-29868125 ended with status Failed; the process did not finalize its database run.",
+      "progress_stage": "platform_terminated",
+      "attributed_calendar_rate_usd": 4.191668412000002,
+      "known_input_tokens": 26237522,
+      "known_output_tokens": 1523330
+    },
+    {
+      "run_id": "e3c173e8-5a4c-4687-9238-5674c707fe48",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-15 20:05:33.029500+00:00",
+      "end_time_utc": "2026-10-15 21:48:39.527067+00:00",
+      "status": "Succeeded",
+      "platform_execution_name": "news-ingest-and-features-29868245",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "attributed_calendar_rate_usd": 6.896779973999996,
+      "known_input_tokens": 48324621,
+      "known_output_tokens": 1812079
+    }
+  ],
+  "news_current_azure_configuration": {
+    "available": true,
+    "configuration": {
+      "cron": "5 14,16,18,20 * * 1-5",
+      "replicaRetryLimit": 1,
+      "replicaTimeout": 10800
+    }
+  },
+  "local_logical_call_crosscheck": {
+    "logical_calls": 2819,
+    "without_matching_attempt": 33,
+    "usage_bearing_unmatched": 0
+  },
+  "accounting_limits": [
+    "Dashboard actual cost is authoritative; per-job amounts are estimates from known usage, not provider line items.",
+    "Remaining $1.570812262 is unassigned. No reason is asserted for it.",
+    "80 merged attempts have no priced usage; two are unfinished and 78 failed. Do not count unknown spend as zero.",
+    "Provider has 3109 requests and 267604756 tokens; merged ledger has 3079 attempt IDs and 260803539 known generation tokens. Exact missing-request matching is not established.",
+    "API-key identity is selected in the provider UI; existing attempt schema does not record a comparable API-key fingerprint.",
+    "Provider cost can update; snapshots and unpriced work remain explicit."
+  ],
+  "read_only": true,
+  "new_provider_calls": 0,
+  "deployed_or_changed_settings": false,
+  "source_files": [
+    {
+      "path": "tmp/daily-spend-20261015/recorded-usage.private.json",
+      "sha256": "e17f3af9f8f4f1acd5b273c0eaee654b2bc79f7824be79846e869a37765f91fb"
+    },
+    {
+      "path": "tmp/daily-spend-20261015/pending-receipts.private.json",
+      "sha256": "898d4e86db5eb4c5c1f3f7a9bac2f5838f0784541ccbd63f59bdc0ca7ec893d8"
+    },
+    {
+      "path": "tmp/daily-spend-20261015/other-pending-receipts.private.json",
+      "sha256": "dda2a11f769af9c21ceedc4d9685d2df03b661d97dcb08c2c91057f9dcd79821"
+    },
+    {
+      "path": "tmp/daily-spend-20261015/run-attribution.private.json",
+      "sha256": "d3599f681cdb7edeb8bfde49f57913f50a1ac5a8a3ad2254dc0d216cb186f7c5"
+    },
+    {
+      "path": "tmp/daily-spend-20261015/failure-details.private.json",
+      "sha256": "94c3b4c1a1d40f7441e9c3dbb34857ce81450a274950c33c1ece1b06e2796d4d"
+    },
+    {
+      "path": "tmp/daily-spend-20261015/news-schedule-retry.json",
+      "sha256": "e0fa3e1b096f0df38e9d69638d6a64750dc563131b549e9211118601c9c559a0"
+    }
+  ]
+}

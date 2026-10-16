@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from functools import cached_property
 import json
 import os
 import re
-from typing import Any
+from typing import Any, Callable
 
 import pandas as pd
 
@@ -479,71 +480,37 @@ ATTENTION_TRACE_DATASETS = (
     "attention_bundle_snapshots",
 )
 
-LEGACY_ATTENTION_TEXT_SNIPPETS = (
-    "market-wide relief read",
-    "renewed market stress",
-    "rates-relief move broadens across market activity",
-    "rates scare spreads across risk assets",
-    "defensive bid strengthens",
-    "defensive bid fades",
-    "broad risk-on move takes hold",
-    "broad risk-off move takes hold",
-)
-
-_ATTENTION_STAT_FIELDS = (
-    "what_happened_text",
-    "why_happened_text",
-    "affected_assets_summary_text",
-    "what_changed_text",
-    "why_now_text",
-    "what_else_moved_text",
-    "surface_summary_text",
-    "surface_what_changed_text",
-    "surface_why_text",
-    "surface_what_else_moved_text",
-)
-
-_ATTENTION_PRIMARY_NARRATIVE_FIELDS = (
-    "what_happened_text",
-    "why_happened_text",
-    "what_changed_text",
-    "why_now_text",
-    "surface_summary_text",
-    "surface_what_changed_text",
-    "surface_why_text",
-)
-
-_ATTENTION_SECONDARY_CONTEXT_FIELDS = (
-    "affected_assets_summary_text",
-    "what_else_moved_text",
-    "surface_what_else_moved_text",
-)
-
-_ATTENTION_CAUSAL_PATTERNS = (
-    r"\bbecause\b",
-    r"\bdue to\b",
-    r"\bafter\b",
-    r"\bamid\b",
-    r"\bdriven by\b",
-    r"\bwhich (?:lifted|helped|pressured|hurt|weighed|boosted)\b",
-    r"\bmargins?\b",
-    r"\bdemand\b",
-    r"\binflation\b",
-    r"\bsupply\b",
-    r"\bpricing\b",
-    r"\bguidance\b",
-)
-
-
 @dataclass(frozen=True)
 class DataAccessLayer:
     cfg: AppConfig | None = None
     fred_api_key: str | None = None
     materialized_only: bool = False
+    _config_loader: Callable[[], AppConfig | None] | None = field(
+        default=None, repr=False, compare=False
+    )
+    _fred_key_loader: Callable[[], str] | None = field(
+        default=None, repr=False, compare=False
+    )
+
+    @cached_property
+    def resolved_config(self) -> AppConfig | None:
+        return (
+            self.cfg
+            if self.cfg is not None
+            else self._config_loader() if self._config_loader else None
+        )
+
+    @cached_property
+    def resolved_fred_key(self) -> str | None:
+        return (
+            self.fred_api_key
+            if self.fred_api_key is not None
+            else self._fred_key_loader() if self._fred_key_loader else None
+        )
 
     @classmethod
     def from_environment(cls) -> "DataAccessLayer":
-        return cls(cfg=load_config(), fred_api_key=load_fred_api_key())
+        return cls(_config_loader=load_config, _fred_key_loader=load_fred_api_key)
 
     def _resolved(self, payload: Any, *, mode: str, datasets: tuple[str, ...], details: dict[str, Any] | None = None) -> ResolvedPayload:
         return ResolvedPayload(payload=payload, provenance=DataProvenance(mode=mode, datasets=datasets, details=details or {}))
@@ -804,97 +771,6 @@ class DataAccessLayer:
             out.append((frame, _pipeline_details(metadata)))
         return out
 
-    def _contains_legacy_attention_text(self, value: Any) -> bool:
-        text = str(value or "").strip().lower()
-        if not text:
-            return False
-        return any(snippet in text for snippet in LEGACY_ATTENTION_TEXT_SNIPPETS)
-
-    def _has_causal_language(self, value: Any) -> bool:
-        text = str(value or "").strip().lower()
-        if not text:
-            return False
-        return any(re.search(pattern, text) for pattern in _ATTENTION_CAUSAL_PATTERNS)
-
-    def _looks_like_attention_stat_dump(self, value: Any) -> bool:
-        text = str(value or "").strip()
-        if not text:
-            return False
-        lowered = text.lower()
-        pct_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", text))
-        bps_count = len(re.findall(r"[+\-]?\d+(?:\.\d+)?\s*bps\b", lowered))
-        ticker_count = len(re.findall(r"\b[A-Z]{2,5}\b", text))
-        ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", text))
-        if re.search(r"\bup:\b|\bdown:\b", lowered):
-            return True
-        if ticker_pct_pairs >= 2:
-            return True
-        if pct_count + bps_count >= 4:
-            return True
-        if ticker_count >= 4 and pct_count + bps_count >= 3:
-            return True
-        if "treasury yields" in lowered and pct_count + bps_count >= 4 and not self._has_causal_language(text):
-            return True
-        return False
-
-    def _looks_like_raw_attention_tool_dump(self, value: Any) -> bool:
-        text = str(value or "").strip().lower()
-        if not text:
-            return False
-        raw_markers = (
-            "evidence collected:",
-            "dataset with",
-            "research object keys=",
-            "columns=",
-            "sample=[",
-            "llm_context_text",
-            "i collected tool output",
-        )
-        return any(marker in text for marker in raw_markers)
-
-    def _payload_uses_stat_dump_text(self, payload: dict[str, Any]) -> bool:
-        if not isinstance(payload, dict) or not payload:
-            return False
-        for section in ("top_events", "must_read_movers", "unresolved_large_moves"):
-            for item in list(payload.get(section) or []):
-                if not isinstance(item, dict):
-                    continue
-                for key in _ATTENTION_PRIMARY_NARRATIVE_FIELDS:
-                    if self._looks_like_attention_stat_dump(item.get(key)):
-                        return True
-                for key in _ATTENTION_SECONDARY_CONTEXT_FIELDS:
-                    if self._looks_like_raw_attention_tool_dump(item.get(key)):
-                        return True
-        return False
-
-    def _payload_uses_legacy_attention_titles(self, payload: dict[str, Any]) -> bool:
-        if not isinstance(payload, dict) or not payload:
-            return False
-        for event in list(payload.get("top_events") or []):
-            if self._contains_legacy_attention_text(event.get("event_title")):
-                return True
-            if self._contains_legacy_attention_text(event.get("headline")):
-                return True
-        for mover in list(payload.get("must_read_movers") or []):
-            if self._contains_legacy_attention_text(mover.get("headline")):
-                return True
-        return False
-
-    def _bundle_uses_legacy_attention_titles(self, payload: dict[str, Any]) -> bool:
-        if not isinstance(payload, dict) or not payload:
-            return False
-        return any(
-            self._contains_legacy_attention_text(payload.get(key))
-            for key in ("event_title", "headline", "surface_summary_text", "why_happened_text", "why_now_text")
-        )
-
-    def _bundle_uses_stat_dump_text(self, payload: dict[str, Any]) -> bool:
-        if not isinstance(payload, dict) or not payload:
-            return False
-        if any(self._looks_like_attention_stat_dump(payload.get(key)) for key in _ATTENTION_PRIMARY_NARRATIVE_FIELDS):
-            return True
-        return any(self._looks_like_raw_attention_tool_dump(payload.get(key)) for key in _ATTENTION_SECONDARY_CONTEXT_FIELDS)
-
     def _user_share_fraction(self, user_context: Any | None) -> float:
         if isinstance(user_context, dict):
             return normalize_share_fraction(user_context.get("share_fraction"))
@@ -925,14 +801,14 @@ class DataAccessLayer:
 
         if self.materialized_only:
             return []
-        if self.cfg is None:
+        if self.resolved_config is None:
             return []
 
         frame = cached_frame(
             "attention_home_equity_universe",
-            f"{_alpaca_cache_scope(self.cfg)}__liquidity_1500",
+            f"{_alpaca_cache_scope(self.resolved_config)}__liquidity_1500",
             lambda: build_liquidity_ranked_equity_universe(
-                _make_api(self.cfg),
+                _make_api(self.resolved_config),
                 target_size=1500,
             ),
             force_refresh=force_refresh,
@@ -1136,8 +1012,12 @@ class DataAccessLayer:
             return materialized_only
         frame = cached_scalar_dict(
             "account",
-            _alpaca_cache_scope(self.cfg) if self.cfg is not None else "missing-config",
-            lambda: _make_api(self.cfg).get_account(),
+            (
+                _alpaca_cache_scope(self.resolved_config)
+                if self.resolved_config is not None
+                else "missing-config"
+            ),
+            lambda: _make_api(self.resolved_config).get_account(),
             force_refresh=force_refresh,
         )
         return self._resolved(frame, mode="on_demand", datasets=("account",))
@@ -1162,8 +1042,12 @@ class DataAccessLayer:
             return materialized_only
         frame = cached_frame(
             "positions",
-            _alpaca_cache_scope(self.cfg) if self.cfg is not None else "missing-config",
-            lambda: _make_api(self.cfg).get_positions(),
+            (
+                _alpaca_cache_scope(self.resolved_config)
+                if self.resolved_config is not None
+                else "missing-config"
+            ),
+            lambda: _make_api(self.resolved_config).get_positions(),
             force_refresh=force_refresh,
         )
         return self._resolved(frame, mode="on_demand", datasets=("positions",))
@@ -1195,8 +1079,12 @@ class DataAccessLayer:
             return materialized_only
         frame = cached_frame(
             "portfolio_timeseries",
-            f"{_alpaca_cache_scope(self.cfg)}__period_{period}" if self.cfg is not None else f"missing-config__period_{period}",
-            lambda: build_portfolio_timeseries(_make_api(self.cfg), period),
+            (
+                f"{_alpaca_cache_scope(self.resolved_config)}__period_{period}"
+                if self.resolved_config is not None
+                else f"missing-config__period_{period}"
+            ),
+            lambda: build_portfolio_timeseries(_make_api(self.resolved_config), period),
             force_refresh=force_refresh,
         )
         return self._resolved(frame, mode="on_demand", datasets=("portfolio_timeseries",), details={"period": period})
@@ -1244,8 +1132,14 @@ class DataAccessLayer:
         symbol_scope = dataset_scope("symbols", ",".join(normalized_symbols))
         frame = cached_frame(
             "holding_roc",
-            f"{_alpaca_cache_scope(self.cfg)}__{symbol_scope}__{days}d" if self.cfg is not None else f"missing-config__{symbol_scope}__{days}d",
-            lambda: compute_holding_roc(_make_api(self.cfg), normalized_symbols, days=days),
+            (
+                f"{_alpaca_cache_scope(self.resolved_config)}__{symbol_scope}__{days}d"
+                if self.resolved_config is not None
+                else f"missing-config__{symbol_scope}__{days}d"
+            ),
+            lambda: compute_holding_roc(
+                _make_api(self.resolved_config), normalized_symbols, days=days
+            ),
             force_refresh=force_refresh,
         )
         return self._resolved(frame, mode="on_demand", datasets=("holding_roc",), details={"days": days, "symbols": normalized_symbols})
@@ -1337,8 +1231,14 @@ class DataAccessLayer:
         symbol_scope = dataset_scope("market-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
         frame = cached_frame(
             "daily_movers",
-            f"{_alpaca_cache_scope(self.cfg)}__{symbol_scope}" if self.cfg is not None else f"missing-config__{symbol_scope}",
-            lambda: scan_daily_movers(_make_api(self.cfg), symbols=universe),
+            (
+                f"{_alpaca_cache_scope(self.resolved_config)}__{symbol_scope}"
+                if self.resolved_config is not None
+                else f"missing-config__{symbol_scope}"
+            ),
+            lambda: scan_daily_movers(
+                _make_api(self.resolved_config), symbols=universe
+            ),
             force_refresh=force_refresh,
         )
         resolved_details = {
@@ -1367,12 +1267,16 @@ class DataAccessLayer:
     ) -> ResolvedPayload:
         clean_symbols = sorted({str(s).upper().strip() for s in symbols if str(s).strip()})
         symbol_scope = dataset_scope("event-sig", ",".join(clean_symbols) + f"_{event_date}_{pre_window_days}_{post_window_days}")
-        cache_key = f"{_alpaca_cache_scope(self.cfg)}__{symbol_scope}" if self.cfg is not None else f"missing-config__{symbol_scope}"
+        cache_key = (
+            f"{_alpaca_cache_scope(self.resolved_config)}__{symbol_scope}"
+            if self.resolved_config is not None
+            else f"missing-config__{symbol_scope}"
+        )
         frame = cached_frame(
             "event_significance",
             cache_key,
             lambda: scan_event_significance(
-                _make_api(self.cfg),
+                _make_api(self.resolved_config),
                 event_date=event_date,
                 symbols=clean_symbols,
                 pre_window_days=pre_window_days,
@@ -1449,8 +1353,14 @@ class DataAccessLayer:
         symbol_scope = dataset_scope("market-universe", ",".join(sorted({str(symbol).upper() for symbol in universe})))
         frame = cached_frame(
             "momentum_profiles",
-            f"{_alpaca_cache_scope(self.cfg)}__{days}d__{symbol_scope}" if self.cfg is not None else f"missing-config__{days}d__{symbol_scope}",
-            lambda: scan_momentum_profiles(_make_api(self.cfg), symbols=universe, days=days),
+            (
+                f"{_alpaca_cache_scope(self.resolved_config)}__{days}d__{symbol_scope}"
+                if self.resolved_config is not None
+                else f"missing-config__{days}d__{symbol_scope}"
+            ),
+            lambda: scan_momentum_profiles(
+                _make_api(self.resolved_config), symbols=universe, days=days
+            ),
             force_refresh=force_refresh,
             version=5,
         )
@@ -1537,15 +1447,17 @@ class DataAccessLayer:
         payload = cached_frame_dict(
             "correlation_phase_shift",
             (
-                f"{_alpaca_cache_scope(self.cfg)}__{benchmark.upper()}__{days}d__corr_{corr_window}"
-                f"__roc_{roc_window}__mom_{momentum_window}__{symbol_scope}"
-            )
-            if self.cfg is not None
-            else f"missing-config__{benchmark.upper()}__{days}d__corr_{corr_window}__roc_{roc_window}__mom_{momentum_window}__{symbol_scope}",
+                (
+                    f"{_alpaca_cache_scope(self.resolved_config)}__{benchmark.upper()}__{days}d__corr_{corr_window}"
+                    f"__roc_{roc_window}__mom_{momentum_window}__{symbol_scope}"
+                )
+                if self.resolved_config is not None
+                else f"missing-config__{benchmark.upper()}__{days}d__corr_{corr_window}__roc_{roc_window}__mom_{momentum_window}__{symbol_scope}"
+            ),
             lambda: {
                 key: value
                 for key, value in scan_correlation_phase_shifts(
-                    _make_api(self.cfg),
+                    _make_api(self.resolved_config),
                     symbols=universe,
                     benchmark=benchmark,
                     days=days,
@@ -1639,15 +1551,17 @@ class DataAccessLayer:
         payload = cached_frame_dict(
             "commodity_regime",
             (
-                f"{_alpaca_cache_scope(self.cfg)}__{days}d__corr_{corr_window}__roc_{roc_window}"
-                f"__mom_{momentum_window}__{symbol_scope}__{commodity_scope}"
-            )
-            if self.cfg is not None
-            else f"missing-config__{days}d__corr_{corr_window}__roc_{roc_window}__mom_{momentum_window}__{symbol_scope}__{commodity_scope}",
+                (
+                    f"{_alpaca_cache_scope(self.resolved_config)}__{days}d__corr_{corr_window}__roc_{roc_window}"
+                    f"__mom_{momentum_window}__{symbol_scope}__{commodity_scope}"
+                )
+                if self.resolved_config is not None
+                else f"missing-config__{days}d__corr_{corr_window}__roc_{roc_window}__mom_{momentum_window}__{symbol_scope}__{commodity_scope}"
+            ),
             lambda: {
                 key: value
                 for key, value in scan_commodity_regimes(
-                    _make_api(self.cfg),
+                    _make_api(self.resolved_config),
                     symbols=universe,
                     commodity_symbols=commodity_symbols,
                     days=days,
@@ -1698,8 +1612,14 @@ class DataAccessLayer:
             return materialized_only
         frame = cached_frame(
             "price_history",
-            f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}__{days}d" if self.cfg is not None else f"missing-config__{ticker.upper()}__{days}d",
-            lambda: load_price_history(_make_api(self.cfg), ticker, days=days),
+            (
+                f"{_alpaca_cache_scope(self.resolved_config)}__{ticker.upper()}__{days}d"
+                if self.resolved_config is not None
+                else f"missing-config__{ticker.upper()}__{days}d"
+            ),
+            lambda: load_price_history(
+                _make_api(self.resolved_config), ticker, days=days
+            ),
             force_refresh=force_refresh,
         )
         return self._resolved(frame, mode="on_demand", datasets=("price_history",), details={"ticker": ticker.upper(), "days": days})
@@ -1887,8 +1807,14 @@ class DataAccessLayer:
         expiration_scope = expiration or "expirations"
         payload = cached_option_chain(
             "option_chain",
-            f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}__{expiration_scope}" if self.cfg is not None else f"missing-config__{ticker.upper()}__{expiration_scope}",
-            lambda: load_option_chain(_make_api(self.cfg), ticker, expiration),
+            (
+                f"{_alpaca_cache_scope(self.resolved_config)}__{ticker.upper()}__{expiration_scope}"
+                if self.resolved_config is not None
+                else f"missing-config__{ticker.upper()}__{expiration_scope}"
+            ),
+            lambda: load_option_chain(
+                _make_api(self.resolved_config), ticker, expiration
+            ),
             force_refresh=force_refresh,
         )
         return self._resolved(payload, mode="on_demand", datasets=("option_chain",), details={"ticker": ticker.upper(), "expiration": expiration})
@@ -1928,13 +1854,15 @@ class DataAccessLayer:
         frame = cached_frame(
             "option_surface",
             (
-                f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}__exp_{expected_price:.2f}"
-                f"__h_{int(horizon_days)}__spot_{underlying_price:.2f}"
-            )
-            if self.cfg is not None
-            else f"missing-config__{ticker.upper()}__exp_{expected_price:.2f}__h_{int(horizon_days)}__spot_{underlying_price:.2f}",
+                (
+                    f"{_alpaca_cache_scope(self.resolved_config)}__{ticker.upper()}__exp_{expected_price:.2f}"
+                    f"__h_{int(horizon_days)}__spot_{underlying_price:.2f}"
+                )
+                if self.resolved_config is not None
+                else f"missing-config__{ticker.upper()}__exp_{expected_price:.2f}__h_{int(horizon_days)}__spot_{underlying_price:.2f}"
+            ),
             lambda: load_option_surface(
-                _make_api(self.cfg),
+                _make_api(self.resolved_config),
                 ticker,
                 underlying_price=underlying_price,
                 expected_price=expected_price,
@@ -2047,8 +1975,12 @@ class DataAccessLayer:
             return materialized_only
         payload = cached_scalar_dict(
             "asset_metadata",
-            f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}" if self.cfg is not None else f"missing-config__{ticker.upper()}",
-            lambda: load_asset_metadata(_make_api(self.cfg), ticker),
+            (
+                f"{_alpaca_cache_scope(self.resolved_config)}__{ticker.upper()}"
+                if self.resolved_config is not None
+                else f"missing-config__{ticker.upper()}"
+            ),
+            lambda: load_asset_metadata(_make_api(self.resolved_config), ticker),
             force_refresh=force_refresh,
         )
         return self._resolved(payload, mode="on_demand", datasets=("asset_metadata",), details={"ticker": ticker.upper()})
@@ -2132,7 +2064,7 @@ class DataAccessLayer:
         )
         if materialized_only is not None:
             return materialized_only
-        if self.cfg is None:
+        if self.resolved_config is None:
             return self._resolved(
                 {"articles": pd.DataFrame(), "fallback_summary": None, "source": None},
                 mode="on_demand",
@@ -2141,8 +2073,14 @@ class DataAccessLayer:
             )
         payload = cached_news_payload(
             "recent_news",
-            f"{_alpaca_cache_scope(self.cfg)}__{ticker.upper()}__{days}d__{limit}" if self.cfg is not None else f"missing-config__{ticker.upper()}__{days}d__{limit}",
-            lambda: load_recent_news(_make_api(self.cfg), ticker, days=days, limit=limit),
+            (
+                f"{_alpaca_cache_scope(self.resolved_config)}__{ticker.upper()}__{days}d__{limit}"
+                if self.resolved_config is not None
+                else f"missing-config__{ticker.upper()}__{days}d__{limit}"
+            ),
+            lambda: load_recent_news(
+                _make_api(self.resolved_config), ticker, days=days, limit=limit
+            ),
             force_refresh=force_refresh,
         )
         return self._resolved(payload, mode="on_demand", datasets=("recent_news",), details={"ticker": ticker.upper(), "days": days, "limit": limit})
@@ -2494,20 +2432,6 @@ class DataAccessLayer:
             dataset_name, frame, details = materialized
             payload = deserialize_attention_home_payload(frame)
             if payload:
-                quality_warning = ""
-                if self._payload_uses_legacy_attention_titles(payload):
-                    quality_warning = "attention_home_materialized_legacy_titles"
-                elif self._payload_uses_stat_dump_text(payload):
-                    quality_warning = "attention_home_materialized_stat_dump_text"
-                if quality_warning:
-                    details = dict(details or {})
-                    details["warning"] = quality_warning
-                    return self._resolved(
-                        {},
-                        mode="materialized",
-                        datasets=(dataset_name,),
-                        details=details,
-                    )
                 return self._resolved(
                     payload,
                     mode="materialized",
@@ -2679,11 +2603,7 @@ class DataAccessLayer:
         if materialized is not None:
             dataset_name, frame, details = materialized
             payload = deserialize_attention_research_bundle_frame(frame, normalized_bundle_id)
-            if (
-                payload
-                and not self._bundle_uses_legacy_attention_titles(payload)
-                and not self._bundle_uses_stat_dump_text(payload)
-            ):
+            if payload:
                 materialized_payload = payload
                 materialized_dataset_name = dataset_name
                 materialized_details = {**details, "bundle_id": normalized_bundle_id}
@@ -2751,147 +2671,22 @@ class DataAccessLayer:
         limit: int = 20,
         force_refresh: bool = False,
     ) -> ResolvedPayload:
-        materialized = self._try_pipeline_frame("attention_evidence_chunks", force_refresh=force_refresh)
-        if materialized is None:
-            return self._resolved(
-                pd.DataFrame(),
-                mode="materialized" if self.materialized_only else "on_demand",
-                datasets=("attention_evidence_chunks",),
-                details={"warning": "attention_evidence_chunks unavailable"},
-            )
-
-        frame, details = materialized
-        if frame.empty:
-            return self._resolved(
-                frame.reset_index(drop=True),
-                mode="materialized",
-                datasets=("attention_evidence_chunks",),
-                details={**details, "filters": {"query": _coerce_text(query)}},
-            )
-
-        out = frame.copy()
-        for column in (
-            "bundle_subject",
-            "title",
-            "display_excerpt",
-            "chunk_text",
-            "source_kind",
-            "source_provider",
-            "search_provider",
-            "research_scope",
-            "mentioned_tickers_key",
-            "mentioned_commodities_key",
-            "event_tags_key",
-        ):
-            if column not in out.columns:
-                out[column] = ""
-
-        exact_dates = _dedupe_text_items([_coerce_text(value) for value in list(dates or []) if _coerce_text(value)])
-        parsed_start = pd.to_datetime(start_date, utc=True, errors="coerce") if _coerce_text(start_date) else pd.NaT
-        parsed_end = pd.to_datetime(end_date, utc=True, errors="coerce") if _coerce_text(end_date) else pd.NaT
-        parsed_start = None if pd.isna(parsed_start) else parsed_start
-        parsed_end = None if pd.isna(parsed_end) else parsed_end
-
-        normalized_run_id = _coerce_text(run_id)
-        if normalized_run_id and "run_id" in out.columns:
-            out = out[out["run_id"].astype(str) == normalized_run_id].copy()
-
-        normalized_scopes = [_coerce_text(value).lower() for value in list(research_scopes or []) if _coerce_text(value)]
-        if normalized_scopes:
-            out = out[out["research_scope"].astype(str).str.lower().isin(set(normalized_scopes))].copy()
-
-        normalized_source_kinds = [_coerce_text(value).lower() for value in list(source_kinds or []) if _coerce_text(value)]
-        if normalized_source_kinds:
-            out = out[out["source_kind"].astype(str).str.lower().isin(set(normalized_source_kinds))].copy()
-
-        normalized_providers = [_coerce_text(value).lower() for value in list(providers or []) if _coerce_text(value)]
-        if normalized_providers:
-            provider_series = out["source_provider"].astype(str).str.lower()
-            search_provider_series = out["search_provider"].astype(str).str.lower()
-            out = out[provider_series.isin(set(normalized_providers)) | search_provider_series.isin(set(normalized_providers))].copy()
-
-        normalized_tickers = [_coerce_text(value).upper() for value in list(tickers or []) if _coerce_text(value)]
-        if normalized_tickers:
-            out = out[
-                out["bundle_subject"].astype(str).str.upper().isin(set(normalized_tickers))
-                | out["mentioned_tickers_key"].map(lambda value: _key_contains_any(value, normalized_tickers))
-            ].copy()
-
-        normalized_commodities = [_coerce_text(value).lower() for value in list(commodities or []) if _coerce_text(value)]
-        if normalized_commodities:
-            out = out[out["mentioned_commodities_key"].map(lambda value: _key_contains_any(str(value).lower(), normalized_commodities))].copy()
-
-        normalized_event_tags = [_coerce_text(value).lower() for value in list(event_tags or []) if _coerce_text(value)]
-        if normalized_event_tags:
-            out = out[out["event_tags_key"].map(lambda value: _key_contains_any(str(value).lower(), normalized_event_tags))].copy()
-
-        if exact_dates or parsed_start is not None or parsed_end is not None:
-            out = out[out.apply(lambda row: _dates_match_filters(row, exact_dates=exact_dates, start_date=parsed_start, end_date=parsed_end), axis=1)].copy()
-
-        query_text = _coerce_text(query)
-        query_tokens = _query_tokens(query_text)
-        out["search_score"] = 0.0
-        if query_tokens:
-            out["_search_blob"] = (
-                out["title"].astype(str)
-                + " "
-                + out["display_excerpt"].astype(str)
-                + " "
-                + out["chunk_text"].astype(str)
-            ).str.lower()
-            token_scores = sum(out["_search_blob"].str.contains(token, regex=False).astype(int) for token in query_tokens)
-            phrase_bonus = out["_search_blob"].str.contains(query_text.lower(), regex=False).astype(int) * 4
-            out["search_score"] = out["search_score"] + token_scores.astype(float) * 6.0 + phrase_bonus.astype(float)
-            out = out[(token_scores + phrase_bonus) > 0].copy()
-
-        if normalized_tickers:
-            out["search_score"] = (
-                out["search_score"]
-                + out["bundle_subject"].astype(str).str.upper().isin(set(normalized_tickers)).astype(float) * 8.0
-                + out["mentioned_tickers_key"].map(lambda value: 4.0 if _key_contains_any(value, normalized_tickers) else 0.0)
-            )
-        if normalized_commodities:
-            out["search_score"] = out["search_score"] + out["mentioned_commodities_key"].map(lambda value: 3.0 if _key_contains_any(str(value).lower(), normalized_commodities) else 0.0)
-        if normalized_event_tags:
-            out["search_score"] = out["search_score"] + out["event_tags_key"].map(lambda value: 3.0 if _key_contains_any(str(value).lower(), normalized_event_tags) else 0.0)
-
-        out["search_score"] = out["search_score"] + (4 - pd.to_numeric(out.get("authority_rank"), errors="coerce").fillna(3)).clip(lower=0, upper=4)
-        out["published_at"] = pd.to_datetime(out.get("published_at"), utc=True, errors="coerce")
-        out = out.sort_values(
-            by=["search_score", "published_at", "authority_rank"],
-            ascending=[False, False, True],
-            na_position="last",
-        ).head(max(int(limit), 1)).reset_index(drop=True)
-
-        out["mentioned_tickers"] = out.get("mentioned_tickers_json", pd.Series(dtype=object)).map(parse_json_list)
-        out["mentioned_commodities"] = out.get("mentioned_commodities_json", pd.Series(dtype=object)).map(parse_json_list)
-        out["event_tags"] = out.get("event_tags_json", pd.Series(dtype=object)).map(parse_json_list)
-        out["mentioned_dates"] = out.get("mentioned_dates_json", pd.Series(dtype=object)).map(parse_json_list)
-        drop_columns = [column for column in ("mentioned_tickers_key", "mentioned_commodities_key", "event_tags_key", "mentioned_dates_key", "_search_blob") if column in out.columns]
-        if drop_columns:
-            out = out.drop(columns=drop_columns)
-
-        return self._resolved(
-            out,
-            mode="materialized",
-            datasets=("attention_evidence_chunks",),
-            details={
-                **details,
-                "filters": {
-                    "query": query_text,
-                    "tickers": normalized_tickers,
-                    "commodities": normalized_commodities,
-                    "event_tags": normalized_event_tags,
-                    "dates": exact_dates,
-                    "start_date": _coerce_text(start_date),
-                    "end_date": _coerce_text(end_date),
-                    "source_kinds": normalized_source_kinds,
-                    "providers": normalized_providers,
-                    "research_scopes": normalized_scopes,
-                    "run_id": normalized_run_id,
-                    "limit": max(int(limit), 1),
-                },
-            },
+        # Home and Zopedia search the same retained corpus. A materialized Home
+        # frame is a publication snapshot, not a substitute for source retrieval.
+        return self.resolve_saa_chunk_search(
+            query=query,
+            tickers=tickers,
+            commodities=commodities,
+            event_tags=event_tags,
+            dates=dates,
+            start_date=start_date,
+            end_date=end_date,
+            source_kinds=source_kinds,
+            providers=providers,
+            research_scopes=research_scopes,
+            run_id=run_id,
+            limit=limit,
+            use_semantic=True,
         )
 
     def resolve_saa_document_search(
@@ -3260,7 +3055,7 @@ class DataAccessLayer:
         return self._resolved(out.reset_index(drop=True), mode="materialized", datasets=(dataset_key,), details=details)
 
     def resolve_fred_dashboard(self, *, years: int, force_refresh: bool = False) -> ResolvedPayload:
-        api_key = (self.fred_api_key or "").strip()
+        api_key = (self.resolved_fred_key or "").strip()
         materialized = self._try_pipeline_frames(
             ("fred_summary", "fred_observations"),
             force_refresh=force_refresh,

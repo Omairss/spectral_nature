@@ -1,0 +1,513 @@
+{
+  "query": "Today is October 8, 2026. Investigate the reporting that OpenAI's annualized revenue is approaching $50 billion rather than the roughly $70 billion previously reported. Read the original reporting or reliable coverage and compare with the September reports. Resolve the metric, gross/net or partner-accounting distinction, dates, and whether this establishes a real decline in sales. Explain why the distinction matters for interpreting today's AI-stock selloff. Starting leads, to verify rather than assume: https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a and https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting . Provide useful context with links.",
+  "elapsed_seconds": 201.49189091613516,
+  "result": {
+    "run_id": "agrun_8cac0d8180",
+    "status": "completed",
+    "mode": "sync",
+    "provider": "deepseek",
+    "model": "deepseek-reasoner",
+    "synthesis_model": "deepseek-reasoner",
+    "tool_calls": [
+      {
+        "tool_call_id": "agtc_1",
+        "tool_name": "research.live_event_evidence",
+        "arguments": {
+          "query": "OpenAI annualized revenue approaching $50 billion versus $70 billion previously reported ARR",
+          "focus_symbols": [
+            "MSFT",
+            "NVDA",
+            "ORCL",
+            "AMD"
+          ],
+          "max_results": 12,
+          "force_refresh": true
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "web_research",
+              "attention_search_results"
+            ],
+            "details": {
+              "tool_name": "research.live_event_evidence"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 3,
+            "columns": [
+              "scope",
+              "symbol",
+              "headline",
+              "summary_text",
+              "source",
+              "published_at",
+              "url"
+            ],
+            "sample": [
+              {
+                "scope": "symbol",
+                "symbol": "NVDA",
+                "headline": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)",
+                "summary_text": "Nvidia's valuation has undergone a significant reset, with its forward multiple near decade lows even as revenue and earnings expectations...",
+                "source": "Seeking Alpha",
+                "published_at": "2026-10-08T14:17:00.688163+00:00",
+                "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale"
+              },
+              {
+                "scope": "symbol",
+                "symbol": "ORCL",
+                "headline": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+                "summary_text": "Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%...",
+                "source": "Seeking Alpha",
+                "published_at": "2026-10-07T20:17:02.890475+00:00",
+                "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in"
+              },
+              {
+                "scope": "symbol",
+                "symbol": "MSFT",
+                "headline": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+                "summary_text": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+                "source": "Investor's Business Daily",
+                "published_at": "2026-10-07T20:16:58.143170+00:00",
+                "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/"
+              }
+            ]
+          },
+          "preview_text": "research summary with 3 rows; columns=scope, symbol, headline, summary_text, source, published_at, url; sample=[{\"headline\": \"Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)\", \"published_at\": \"2026-10-08T14:17:00.688163+00:00\", \"scope\": \"symbol\", \"source\": \"Seeking Alpha\", \"summary_text\": \"Nvidia's valuation has undergone a significant reset, with its forward multiple near decade lows even as revenue and earnings expectations...\", \"symbol\": \"NVDA\", \"url\": \"https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale\"}, {\"headline\": \"Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)\", \"published_at\": \"2026-10-07T20:17:02.890475+00:00\", \"scope\": \"symbol\", \"source\": \"Seeking Alpha\", \"summary_text\": \"Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%...\", \"symbol\": \"ORCL\", \"url\": \"https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in\"}, {\"headline\": \"As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists\", \"published_at\": \"2026-10-07T20:16:58.143170+00:00\", \"scope\": \"symbol\", \"source\": \"Investor's Business Daily\", \"summary_text\": \"As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists\", \"symbol\": \"MSFT\", \"url\": \"https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/\"}]",
+          "user_preview": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, NVDA, ORCL, AMD. Live evidence warnings: live...",
+          "render_payload": null,
+          "llm_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, NVDA, ORCL, AMD. Live evidence warnings: live_event_impact_map timed out after 4s; Skipped remaining symbol news searches because the live-event budget was exhausted.. NVDA: Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA) | snippet=Nvidia's valuation has undergone a significant reset, with its forward multiple near decade lows even as revenue and earnings expectations... | source=Seeking Alpha | published_at=2026-10-08T14:17:00.688163+00:00 | url=https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale ORCL: Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) | snippet=Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%... | source=Seeking Alpha | published_at=2026-10-07T20:17:02.890475+00:00 | url=https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in MSFT: As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists | snippet=As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists | source=Investor's Business Daily | published_at=2026-10-07T20:16:58.143170+00:00 | url=https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/ Tool messages: - live_event_impact_map timed out after 4s - Skipped remaining symbol news searches because the live-event budget was exhausted.",
+          "evidence_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, NVDA, ORCL, AMD. Live evidence warnings: live_event_impact_map timed out after 4s; Skipped remaining symbol news searches because the live-event budget was exhausted.. NVDA: Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA) | snippet=Nvidia's valuation has undergone a significant reset, with its forward multiple near decade lows even as revenue and earnings expectations... | source=Seeking Alpha | published_at=2026-10-08T14:17:00.688163+00:00 | url=https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale ORCL: Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) | snippet=Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%... | source=Seeking Alpha | published_at=2026-10-07T20:17:02.890475+00:00 | url=https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in MSFT: As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists | snippet=As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists | source=Investor's Business Daily | published_at=2026-10-07T20:16:58.143170+00:00 | url=https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/\nTool messages:\nlive_event_impact_map timed out after 4s\nSkipped remaining symbol news searches because the live-event budget was exhausted.",
+          "source_links": [
+            {
+              "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale",
+              "label": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA) (Seeking Alpha)"
+            },
+            {
+              "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+              "label": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) (Seeking Alpha)"
+            },
+            {
+              "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/",
+              "label": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists (Investor's Business Daily)"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)",
+              "source": "Seeking Alpha",
+              "published_date": "2026-10-08T14:17:00.688163+00:00",
+              "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale"
+            },
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+              "source": "Seeking Alpha",
+              "published_date": "2026-10-07T20:17:02.890475+00:00",
+              "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in"
+            },
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+              "source": "Investor's Business Daily",
+              "published_date": "2026-10-07T20:16:58.143170+00:00",
+              "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/"
+            }
+          ]
+        }
+      },
+      {
+        "tool_call_id": "agtc_2",
+        "tool_name": "research.open_page",
+        "arguments": {
+          "url": "https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting",
+          "require_main_content": true
+        },
+        "status": "failed",
+        "error": "TimeoutError: research.open_page timed out after 40s.",
+        "result_summary": {
+          "preview_text": "TimeoutError: research.open_page timed out after 40s.",
+          "result_type": "error",
+          "provenance": null,
+          "preview": {
+            "kind": "error"
+          }
+        }
+      },
+      {
+        "tool_call_id": "agtc_3",
+        "tool_name": "research.open_page",
+        "arguments": {
+          "url": "https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a",
+          "max_chars": 6000,
+          "require_main_content": true
+        },
+        "status": "failed",
+        "error": "TimeoutError: research.open_page timed out after 40s.",
+        "result_summary": {
+          "preview_text": "TimeoutError: research.open_page timed out after 40s.",
+          "result_type": "error",
+          "provenance": null,
+          "preview": {
+            "kind": "error"
+          }
+        }
+      }
+    ],
+    "answer_markdown": "**This run cannot confirm the premise: both starting leads timed out, so the collected evidence cannot verify that OpenAI's annualized revenue is near $50 billion, cannot resolve the metric or accounting basis, and cannot connect any such report to an AI-stock selloff.**\n\n### What the tools returned\n\n- **agt_2** (`research.open_page` on the Axios URL) failed with `TimeoutError: research.open_page timed out after 40s`.\n- **agt_3** (`research.open_page` on the FT URL) failed with `TimeoutError: research.open_page timed out after 40s`.\n- **agt_1** (`research.live_event_evidence`) completed, but returned only provider headlines and snippets, not article bodies. It also reported `live_event_impact_map timed out after 4s` and `Skipped remaining symbol news searches because the live-event budget was exhausted.`\n\nNo OpenAI revenue figure was read at source. The ~$70 billion September figure and the ~$50 billion October figure remain user-supplied claims in this run.\n\n### Metric and accounting distinctions that matter\n\nThe gap between an old and a new revenue number can come from four different causes. Each cause has a different meaning.\n\n- **Annualized run-rate (ARR)** is a snapshot: a recent month or quarter multiplied by twelve. It is not audited revenue and not a forecast. A change of base month alone can move the number.\n- **Gross versus net basis.** Gross counts the full value of usage that flows through the product. Net counts only the company's own share after payments to cloud hosts, model partners, or publishers. A move from gross to net lowers the headline without lowering cash collected.\n- **Partner or reseller accounting.** Revenue may be booked when a cloud marketplace or reseller bills the end customer, or when the end customer pays. Whether the partner markup is included also changes the total.\n- **Definition change.** A switch from annualized to trailing, or from a full-year estimate to a current run-rate, produces two numbers that are not comparable.\n\nOnly a change in the same metric, on the same basis, over the same window shows a real sales decline. The current evidence does not allow that test.\n\n### Market check: the selloff claim is not measured\n\nNo price series, daily movers table, or index move was collected in this run. The only current item is a Seeking Alpha headline dated **2026-10-08**, \"Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)\", whose snippet says the forward multiple is near decade lows. A second item (Seeking Alpha, **2026-10-07**) covers **ORCL** earnings acceleration, and a third (Investor's Business Daily, **2026-10-07**) covers **MSFT** sales and profit growth. These are headline fragments, not observed market data. The run has not collected enough current evidence to state that an AI-stock selloff is under way today, let alone to attribute it to the OpenAI report.\n\n### Why the distinction could matter, if confirmed\n\nGross-to-net restatement is a reporting change, not a demand change. It would lower the headline figure while customer spend stays flat. A real decline would appear as lower bookings, lower usage, or lower cash receipts on a consistent basis. An investor who treats a restated number as lost sales would misprice the news. An investor who dismisses it without checking the basis could miss a genuine slowdown. The current evidence does not separate these cases.\n\n### What to check next\n\n- Read the FT article (https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a) and the Axios article (https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting) directly. Record the exact metric label, the basis (gross or net), and the base month for each figure.\n- Check whether the September ~$70 billion figure was an ARR, a full-year 2026 estimate, or a forward projection. Different definitions can explain the gap without any demand change.\n- Pull same-day index and single-stock price data for **NVDA**, **MSFT**, **ORCL**, and **AMD** before linking the report to a selloff.\n- Ask OpenAI or its partners for a statement on accounting basis and partner-revenue treatment.\n\n**Takeaway: treat the $50 billion versus $70 billion comparison as unresolved. The source reads and the price data are missing from this run.**",
+    "confidence": "low",
+    "limitations": [
+      "research.open_page failed twice with TimeoutError, so no article body was read.",
+      "Both requested sources (FT and Axios) timed out after 40s.",
+      "The live-event search returned only provider headlines and snippets; the impact map timed out after 4s and the symbol news budget was exhausted.",
+      "No OpenAI revenue figure, metric label, accounting basis, or base month was verified from any source.",
+      "No price history, daily movers, or index data was collected, so the AI-stock selloff claim is unmeasured.",
+      "No Zopedia memory page was returned for this topic; all external evidence is headline metadata only."
+    ],
+    "quality_review": {
+      "status": "completed",
+      "verdict": "insufficient",
+      "critique_summary": "The draft is well aligned with the collected evidence. Both requested source reads failed with timeouts, and the live-event search returned only provider headlines and snippets, so no OpenAI revenue figure, metric label, accounting basis, or base month was verified. The draft correctly avoids naming a precise driver for any AI-stock move and correctly states that no price or mover evidence was collected. Because the core question (resolve the $50 billion versus $70 billion reporting and its link to today's selloff) cannot be answered from the evidence, the appropriate verdict is insufficient, with the draft kept as the best cautious answer. No malformed tables are present.",
+      "confidence": "low",
+      "limitations": [
+        "research.open_page failed twice with TimeoutError, so no article body was read.",
+        "Both requested sources (FT and Axios) timed out after 40s.",
+        "The live-event search returned only provider headlines and snippets; the impact map timed out after 4s and the symbol news budget was exhausted.",
+        "No OpenAI revenue figure, metric label, accounting basis, or base month was verified from any source.",
+        "No price history, daily movers, or index data was collected, so the AI-stock selloff claim is unmeasured.",
+        "No Zopedia memory page was returned for this topic; all external evidence is headline metadata only."
+      ],
+      "unsupported_claims": [
+        "Both revenue figures (~$50 billion and ~$70 billion) come from the user question and are unverified in this run.",
+        "The existence of a September report stating ~$70 billion is a user-supplied premise, not confirmed evidence."
+      ],
+      "evidence_gaps": [
+        "FT article body (https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a) was not retrieved.",
+        "Axios article body (https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting) was not retrieved.",
+        "The September OpenAI revenue figure and its metric definition were not located.",
+        "Same-day price and mover data for NVDA, MSFT, ORCL, and AMD were not collected, so no market impact can be measured."
+      ],
+      "revised_answer_applied": true
+    },
+    "answer_status": "reviewed",
+    "memory_update": {
+      "status": "not_run"
+    },
+    "trajectory_reviews": [
+      {
+        "decision": "double_down",
+        "reason": "The planned research.live_event_evidence call is on contract. It targets the OpenAI annualized revenue question and adds AI-stock context that can help explain the selloff. The thread has not swapped its primary subject, fabricated evidence, or entered a loop. The named FT and Axios pages should still be opened before synthesis.",
+        "corrective_instruction": "Run the planned live-evidence search, then open the FT and Axios leads with research.open_page and use research.search_evidence or zopedia.read_source to retrieve September revenue baselines. Keep OpenAI as the center of gravity and label gross, net, and partner-accounting distinctions before interpreting the selloff.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No page-level evidence yet from the FT or Axios URLs.",
+          "No September revenue baseline or prior $70 billion ARR source has been retrieved.",
+          "The gross versus net and partner-accounting definitions are not yet resolved.",
+          "The link between the OpenAI revenue revision and today's AI-stock selloff is not yet evidenced beyond the planned search."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The newest planned tool call opens the Axios lead named by the user. That is on-contract because the task needs the original ARR figures, the accounting distinction, and the September comparison. The earlier live-evidence step was weak and off-target: it returned MSFT, NVDA, ORCL, and AMD headlines, not OpenAI revenue reporting. The thread can recover by reading the named source before synthesis.",
+        "corrective_instruction": "Run research.open_page on the Axios URL now. Then open the FT lead with research.open_page or research.search_evidence to locate the original report and the September figure. Extract the exact ARR or revenue definition, gross versus net treatment, partner pass-through treatment, reporting period, publication date, and comparison base. Do not conclude that a real sales decline exists until those facts have source traces.",
+        "off_contract_signals": [
+          "The first live-event search used focus_symbols MSFT, NVDA, ORCL, and AMD while the user question centers on OpenAI revenue accounting.",
+          "The live-evidence result contained only provider snippets and no OpenAI primary-source evidence."
+        ],
+        "evidence_gaps": [
+          "No opened article body for either the Axios lead or the FT lead.",
+          "No source trace for the roughly $70 billion prior figure or the September reports that contained it.",
+          "No confirmed definition of the $50 billion metric: annualized revenue, ARR, gross revenue, net revenue, or partner-accounted revenue.",
+          "No confirmed treatment of partner pass-through, compute resale, or gross-versus-net accounting.",
+          "No confirmed dates for the old and new revenue figures, so the comparison window is unclear.",
+          "No evidence yet that separates a real sales slowdown from an accounting or metric-definition change.",
+          "No market-impact map or direct evidence tying today's AI-stock selloff to the OpenAI revenue report. The live_event_impact_map timed out, and remaining symbol news searches were skipped."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The thread is anchored to the requested OpenAI revenue-reporting question. It tried a direct Axios lead, but that tool timed out. The first live search returned adjacent AI-stock headlines, not OpenAI ARR evidence. This is an evidence gap, not an off-contract failure. Four tool calls remain, and source-reading tools are available. Continue with targeted article reading and keep AI-stock context secondary.",
+        "corrective_instruction": "Continue by reading the FT and Axios leads with research.open_page or zopedia.read_page. If a URL times out, use research.search_evidence or tools.search to find the same OpenAI ARR reporting, then open the best source. Extract the $50B and $70B figures, their metric definitions, gross/net and partner-accounting treatment, report dates, September comparison, and the link to the AI-stock selloff. Keep MSFT/NVDA/ORCL/AMD context labeled as adjacent.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "FT article body not read",
+          "Axios article body not read because research.open_page timed out",
+          "Exact OpenAI ARR figure and whether it is gross, net, annualized revenue, bookings, or partner-accounted",
+          "September baseline report date, figure, and metric",
+          "Anthropic revenue-accounting comparison not verified",
+          "Direct evidence tying the reporting to today's AI-stock selloff not collected"
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The thread stays on the requested subject: the OpenAI annualized-revenue gap ($50B versus ~$70B), the start of a real decline in sales, and the link to today's AI-stock selloff. The planned step opens the FT article that the user named as a starting lead. This is the correct first source, and the tool is available within budget. Earlier live evidence returned only MSFT, NVDA, and ORCL headlines, so article reading is still the right next move. No evidence of subject swap, looping, fabricated numbers, or unsupported synthesis.",
+        "corrective_instruction": "Continue the planned research.open_page call on the FT URL with require_main_content and max_chars near 6000. After that page, retry the Axios URL or use research.search_evidence and zopedia.search_pages to collect the September OpenAI revenue reports for a date-by-date comparison of the metric.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No article body has been read yet: the Axios page open timed out and the FT page open has not run.",
+          "The exact metric is unresolved: annualized revenue, annual recurring revenue (ARR), bookings, or gross merchandise value.",
+          "The gross-versus-net revenue definition and any partner or cloud-revenue accounting treatment are not yet sourced.",
+          "The September 2026 OpenAI revenue reports are not yet retrieved for comparison of dates and figures.",
+          "No primary statement from OpenAI or its accountants is in the trace.",
+          "Today's AI-stock selloff has no price, breadth, or index evidence in the trace; the live evidence step returned only MSFT, NVDA, and ORCL headlines.",
+          "The live-event budget warning shows some symbol-news searches were skipped, so current-market coverage is incomplete."
+        ],
+        "status": "completed"
+      }
+    ],
+    "error": null,
+    "query": "Today is October 8, 2026. Investigate the reporting that OpenAI's annualized revenue is approaching $50 billion rather than the roughly $70 billion previously reported. Read the original reporting or reliable coverage and compare with the September reports. Resolve the metric, gross/net or partner-accounting distinction, dates, and whether this establishes a real decline in sales. Explain why the distinction matters for interpreting today's AI-stock selloff. Starting leads, to verify rather than assume: https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a and https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting . Provide useful context with links.",
+    "original_query": "Today is October 8, 2026. Investigate the reporting that OpenAI's annualized revenue is approaching $50 billion rather than the roughly $70 billion previously reported. Read the original reporting or reliable coverage and compare with the September reports. Resolve the metric, gross/net or partner-accounting distinction, dates, and whether this establishes a real decline in sales. Explain why the distinction matters for interpreting today's AI-stock selloff. Starting leads, to verify rather than assume: https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a and https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting . Provide useful context with links.",
+    "followup_resolved": false,
+    "write_policy": "none",
+    "aql_evidence_pack": {
+      "schema_version": "aql_evidence_pack_v1",
+      "evidence_pack_id": "aqlpack::f0fe33ebe075bc219e1935cd",
+      "run_id": "agrun_8cac0d8180",
+      "surface": "zopedia_agent",
+      "query": "Today is October 8, 2026. Investigate the reporting that OpenAI's annualized revenue is approaching $50 billion rather than the roughly $70 billion previously reported. Read the original reporting or reliable coverage and compare with the September reports. Resolve the metric, gross/net or partner-accounting distinction, dates, and whether this establishes a real decline in sales. Explain why the distinction matters for interpreting today's AI-stock selloff. Starting leads, to verify rather than assume: https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a and https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting . Provide useful context with links.",
+      "original_query": "Today is October 8, 2026. Investigate the reporting that OpenAI's annualized revenue is approaching $50 billion rather than the roughly $70 billion previously reported. Read the original reporting or reliable coverage and compare with the September reports. Resolve the metric, gross/net or partner-accounting distinction, dates, and whether this establishes a real decline in sales. Explain why the distinction matters for interpreting today's AI-stock selloff. Starting leads, to verify rather than assume: https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a and https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting . Provide useful context with links.",
+      "status": "completed",
+      "model": "deepseek-reasoner",
+      "entities": [],
+      "retained_chunks": [],
+      "source_documents": [
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)",
+          "source": "Seeking Alpha",
+          "published_date": "2026-10-08T14:17:00.688163+00:00",
+          "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+          "source": "Seeking Alpha",
+          "published_date": "2026-10-07T20:17:02.890475+00:00",
+          "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+          "source": "Investor's Business Daily",
+          "published_date": "2026-10-07T20:16:58.143170+00:00",
+          "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        }
+      ],
+      "zopedia_pages": [],
+      "kg_paths": [],
+      "live_evidence": [
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)",
+          "source": "Seeking Alpha",
+          "published_date": "2026-10-08T14:17:00.688163+00:00",
+          "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+          "source": "Seeking Alpha",
+          "published_date": "2026-10-07T20:17:02.890475+00:00",
+          "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+          "source": "Investor's Business Daily",
+          "published_date": "2026-10-07T20:16:58.143170+00:00",
+          "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        }
+      ],
+      "citations": [
+        {
+          "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale",
+          "label": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA) (Seeking Alpha)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+          "label": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) (Seeking Alpha)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/",
+          "label": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists (Investor's Business Daily)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        }
+      ],
+      "data_gaps": [
+        "research.open_page failed twice with TimeoutError, so no article body was read.",
+        "Both requested sources (FT and Axios) timed out after 40s.",
+        "The live-event search returned only provider headlines and snippets; the impact map timed out after 4s and the symbol news budget was exhausted.",
+        "No OpenAI revenue figure, metric label, accounting basis, or base month was verified from any source.",
+        "No price history, daily movers, or index data was collected, so the AI-stock selloff claim is unmeasured.",
+        "No Zopedia memory page was returned for this topic; all external evidence is headline metadata only."
+      ],
+      "critique_findings": [],
+      "proposals": [],
+      "mutations": [],
+      "trace": [
+        {
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence",
+          "status": "completed",
+          "arguments": {
+            "query": "OpenAI annualized revenue approaching $50 billion versus $70 billion previously reported ARR",
+            "focus_symbols": [
+              "MSFT",
+              "NVDA",
+              "ORCL",
+              "AMD"
+            ],
+            "max_results": 12,
+            "force_refresh": true
+          },
+          "preview_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, NVDA, ORCL, AMD. Live evidence warnings: live...",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_2",
+          "tool_name": "research.open_page",
+          "status": "failed",
+          "arguments": {
+            "url": "https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting",
+            "require_main_content": true
+          },
+          "preview_text": "TimeoutError: research.open_page timed out after 40s.",
+          "result_type": "error",
+          "error": "TimeoutError: research.open_page timed out after 40s."
+        },
+        {
+          "tool_call_id": "agtc_3",
+          "tool_name": "research.open_page",
+          "status": "failed",
+          "arguments": {
+            "url": "https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a",
+            "max_chars": 6000,
+            "require_main_content": true
+          },
+          "preview_text": "TimeoutError: research.open_page timed out after 40s.",
+          "result_type": "error",
+          "error": "TimeoutError: research.open_page timed out after 40s."
+        }
+      ],
+      "error": ""
+    },
+    "aql_evidence_pack_id": "aqlpack::f0fe33ebe075bc219e1935cd",
+    "runtime": {
+      "run_id": "agrun_8cac0d8180",
+      "event_count": 55,
+      "durable_event_log": false,
+      "resumable": false
+    },
+    "engine": {
+      "name": "aql_zopedia",
+      "task": "home_discovery_audit",
+      "surface": "attention_home.discovery_audit",
+      "write_policy": "none",
+      "max_tool_calls": 6,
+      "tool_call_timeout_seconds": 40,
+      "llm_step_timeout_seconds": 90,
+      "prefetch_timeout_seconds": 40
+    }
+  }
+}

@@ -4,43 +4,53 @@ import UniformTypeIdentifiers
 struct ResearchContext: ViewModifier {
   let context: String
   @EnvironmentObject private var session: AppSession
-  @State private var showingResearch = false
   func body(content: Content) -> some View {
     content.toolbar {
       ToolbarItem(placement: .topBarTrailing) {
         Button {
-          if session.authenticated { showingResearch = true } else { session.showingLogin = true }
+          if session.authenticated { session.research.present(context: context) } else { session.showingLogin = true }
         } label: {
-          Image(systemName: "bubble.left.and.text.bubble.right")
-        }.accessibilityLabel("Research this view")
+          Image(systemName: "bubble.left.and.text.bubble.right").foregroundStyle(Theme.teal).frame(width: 32, height: 32)
+        }.accessibilityLabel("Research")
       }
     }
-    .sheet(isPresented: $showingResearch) { ResearchSheet(context: context) }
   }
 }
 
 struct ResearchSheet: View {
   let context: String
-  var parentRunId: String = ""
-  @Environment(\.dismiss) private var dismiss
+  var initialRunID = ""
+  @EnvironmentObject private var activity: ResearchActivityStore
   @State private var path: [String] = []
+  @State private var navigated = false
   var body: some View {
-    NavigationStack(path: $path) {
-      VStack(alignment: .leading, spacing: 20) {
-        Text(context).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
-        ResearchComposer(context: context, parentRunId: parentRunId) { path.append($0.runId) }
-        Spacer()
-      }.padding(20).navigationTitle("Research").navigationBarTitleDisplayMode(.inline)
-        .workbench()
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { dismiss() } } }
-        .navigationDestination(for: String.self) { ResearchRunView(runId: $0) }
-    }.tint(Theme.teal).preferredColorScheme(.dark)
+    VStack(spacing: 0) {
+      ResearchCompletionBanner(activity: activity)
+      NavigationStack(path: $path) {
+        ResearchView(context: context)
+          .navigationDestination(for: String.self) { ResearchRunView(runId: $0) }
+          .task { if !navigated { navigated = true; if !initialRunID.isEmpty { path = [initialRunID] } } }
+      }
+    }.background(Theme.background).tint(Theme.teal).preferredColorScheme(.dark)
+
+  }
+}
+
+private struct ResearchSheetControls: ViewModifier {
+  @EnvironmentObject private var activity: ResearchActivityStore
+  func body(content: Content) -> some View {
+    content.toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button("Close") { activity.presentation = nil }
+      }
+    }
   }
 }
 
 struct ResearchComposer: View {
   var context = ""
   var parentRunId = ""
+  var conversationId = ""
   let onCreated: (ResearchRun) -> Void
   @EnvironmentObject private var session: AppSession
   @State private var query = ""
@@ -53,7 +63,7 @@ struct ResearchComposer: View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(alignment: .bottom, spacing: 12) {
         TextField(
-          parentRunId.isEmpty ? "Ask Zopedia" : "Ask a follow-up", text: $query, axis: .vertical
+          parentRunId.isEmpty && conversationId.isEmpty ? "Ask Zopedia" : "Message Zopedia", text: $query, axis: .vertical
         )
         .lineLimit(2...6).focused($focused).accessibilityIdentifier("research.query")
         Button(action: submit) {
@@ -63,8 +73,8 @@ struct ResearchComposer: View {
             Image(systemName: "arrow.up").fontWeight(.semibold).frame(width: 24, height: 24)
           }
         }.buttonStyle(.borderedProminent).disabled(
-          submitting || query.trimmingCharacters(in: .whitespacesAndNewlines).count < 3
-            || query.count + context.count > 3900
+          submitting || query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || query.count > 4000
         )
         .accessibilityLabel("Start research").accessibilityIdentifier("research.submit")
       }.padding(14).background(Theme.panel, in: RoundedRectangle(cornerRadius: 14)).overlay(
@@ -75,8 +85,8 @@ struct ResearchComposer: View {
   private func submit() {
     guard !submitting else { return }
     let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard text.count >= 3 else { return }
-    let request = context.isEmpty ? text : "\(text)\n\nCurrent workspace: \(context)"
+    guard !text.isEmpty else { return }
+    let request = text
     if request != pendingQuery {
       pendingQuery = request
       idempotencyKey = "ios:\(UUID().uuidString)"
@@ -86,13 +96,17 @@ struct ResearchComposer: View {
     focused = false
     Task {
       do {
+        var body: [String: JSONValue] = ["query": .string(request), "parent_run_id": .string(parentRunId),
+          "conversation_id": .string(conversationId), "timezone": .string(TimeZone.current.identifier)]
+        if !context.isEmpty {
+          body["visible_artifacts"] = .array([.object(["kind": .string("workspace"), "summary": .string(context)])])
+        }
         let run: ResearchRun = try await session.api.post(
-          "/api/research-runs",
-          body: ["query": .string(request), "parent_run_id": .string(parentRunId)],
-          key: idempotencyKey)
+          "/api/research-runs", body: body, key: idempotencyKey)
         query = ""
         pendingQuery = ""
         idempotencyKey = ""
+        session.research.watch(run)
         onCreated(run)
       } catch { self.error = error.localizedDescription }
       submitting = false
@@ -101,10 +115,12 @@ struct ResearchComposer: View {
 }
 
 struct ResearchView: View {
+  var context = ""
   @EnvironmentObject private var session: AppSession
-  @StateObject private var threads = Resource<[ResearchRun]>()
+  @StateObject private var threads = Resource<[ResearchConversationSummary]>()
   @State private var tab = "threads"
   @State private var selectedRun: ResearchRun?
+  @State private var selectedConversation: ResearchConversationSummary?
   @State private var threadSearch = ""
   var body: some View {
     VStack(spacing: 0) {
@@ -118,23 +134,23 @@ struct ResearchView: View {
       } else {
         ScrollView {
           LazyVStack(alignment: .leading, spacing: 20) {
-            ResearchComposer { selectedRun = $0 }
+            ResearchComposer(context: context) { selectedRun = $0 }
             ResourceStatus(resource: threads) { Task { await load() } }
             TextField("Search conversations", text: $threadSearch).textFieldStyle(.roundedBorder)
             ForEach(
               (threads.value ?? []).filter {
-                threadSearch.isEmpty || $0.query.localizedCaseInsensitiveContains(threadSearch)
+                threadSearch.isEmpty || $0.title.localizedCaseInsensitiveContains(threadSearch)
               }
             ) { run in
               Button {
-                selectedRun = run
+                selectedConversation = run
               } label: {
                 VStack(alignment: .leading, spacing: 8) {
-                  Text(run.query).font(.subheadline.weight(.medium)).foregroundStyle(.primary)
+                  Text(run.title).font(.subheadline.weight(.medium)).foregroundStyle(Theme.text)
                     .lineLimit(3)
                   HStack {
                     Text(run.status.replacingOccurrences(of: "_", with: " ")).foregroundStyle(
-                      run.isTerminal ? .secondary : Theme.teal)
+                      ["completed", "failed", "cancelled"].contains(run.status) ? .secondary : Theme.teal)
                     Spacer()
                     if let date = Format.date(run.updatedAt) {
                       Text(date, style: .relative).foregroundStyle(.secondary)
@@ -149,126 +165,150 @@ struct ResearchView: View {
         }.refreshable { await load() }
       }
     }
-    .navigationTitle("Zopedia").workbench().task { await load() }
+    .navigationTitle("Zopedia").navigationBarTitleDisplayMode(.inline).workbench().modifier(ResearchSheetControls()).task { await load() }
     .navigationDestination(item: $selectedRun) { run in ResearchRunView(runId: run.runId) }
+    .navigationDestination(item: $selectedConversation) { item in ResearchRunView(conversationId: item.conversationId) }
   }
   private func load() async {
-    await threads.load { try await session.api.get("/api/research-runs", query: ["limit": "60"]) }
+    await threads.load { try await session.api.get("/api/research-conversations", query: ["limit": "60"]) }
   }
 }
 
 struct ResearchRunView: View {
-  let runId: String
+  var runId = ""
+  var conversationId = ""
   @EnvironmentObject private var session: AppSession
-  @Environment(\.scenePhase) private var scenePhase
-  @State private var run: ResearchRun?
-  @State private var events: [ResearchEvent] = []
-  @State private var sequence = 0
+  @EnvironmentObject private var activity: ResearchActivityStore
+  @State private var resolvedId = ""
   @State private var error = ""
   @State private var cancelling = false
-  @State private var followUp = false
-  @State private var pollingRevision = 0
+  @State private var revision = 0
+  private var conversation: ResearchConversation? { activity.conversations[resolvedId] }
+  private var activeRun: ResearchRun? {
+    conversation?.turns.flatMap(\.attempts).map { activity.runs[$0.runId] ?? $0 }.first { !$0.isTerminal }
+  }
   var body: some View {
     ScrollView {
-      LazyVStack(alignment: .leading, spacing: 20) {
-        if let run {
-          Text(run.query).font(.title3.weight(.medium)).textSelection(.enabled)
-          Text(run.status.replacingOccurrences(of: "_", with: " ")).font(.caption).foregroundStyle(
-            Theme.teal)
-          if !run.isTerminal {
-            Panel {
-              ProgressView(value: min(1, max(0, events.last?.progress ?? 0)))
-              Text(events.last?.message ?? "Queued").font(.subheadline)
-              Button("Cancel research", role: .destructive) { Task { await cancel() } }.disabled(
-                cancelling || run.status == "cancel_requested")
-            }
-          }
-          if let result = run.result {
-            if !result.answerMarkdown.isEmpty { MarkdownView(text: result.answerMarkdown) }
-            if !result.error.isEmpty { Failure(message: result.error) }
-            DisclosureGroup("Research details") {
-              Metrics(items: [
-                ("Provider", result.provider ?? "—"), ("Model", result.model ?? "—"),
-                ("Confidence", result.confidence ?? "—"),
-              ])
-              ForEach(result.limitations ?? [], id: \.self) {
-                Text($0).font(.caption).textSelection(.enabled)
-              }
-            }.font(.subheadline)
-            if !result.citations.isEmpty {
-              Panel("Sources") {
-                ForEach(result.citations) { source in
-                  if let url = URL(string: source.url),
-                    ["http", "https"].contains(url.scheme ?? "")
-                  {
-                    Link(destination: url) {
-                      Label(
-                        source.label.isEmpty ? url.host ?? "Source" : source.label,
-                        systemImage: "arrow.up.right"
-                      ).font(.subheadline)
-                    }
+      LazyVStack(alignment: .leading, spacing: 28) {
+        if let conversation {
+          ForEach(conversation.turns) { turn in
+            VStack(alignment: .leading, spacing: 16) {
+              Text(turn.query).font(.subheadline.weight(.medium)).textSelection(.enabled)
+                .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.panel, in: RoundedRectangle(cornerRadius: 14))
+              if let attempt = turn.attempts.last {
+                let run = activity.runs[attempt.runId] ?? attempt
+                ResearchActivityView(events: activity.journals[run.runId] ?? [], active: !run.isTerminal,
+                  status: run.status, checkedAt: activity.checkedAt[run.runId])
+                if let message = activity.errors[run.runId] { Text(message).font(.caption).foregroundStyle(Theme.coral) }
+                if let result = run.result, !result.answerMarkdown.isEmpty {
+                  MarkdownView(text: result.answerMarkdown)
+                  if !result.citations.isEmpty {
+                    DisclosureGroup("Sources · \(result.citations.count)") {
+                      ForEach(result.citations) { source in
+                        if let url = URL(string: source.url), ["http", "https"].contains(url.scheme ?? "") {
+                          Link(source.label.isEmpty ? url.host ?? "Source" : source.label, destination: url).font(.caption)
+                        }
+                      }
+                    }.font(.caption)
                   }
+                } else if run.isTerminal {
+                  Text(run.status == "cancelled" ? "Research cancelled." : "This reply did not complete. You can continue below.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                }
+                if !run.isTerminal {
+                  Button("Stop") { Task { await cancel(run) } }.font(.caption)
+                    .disabled(cancelling || run.status == "cancel_requested")
                 }
               }
             }
           }
-          if !events.isEmpty {
-            DisclosureGroup("Research journal · \(events.count)") {
-              VStack(alignment: .leading, spacing: 16) {
-                ForEach(events) { event in
-                  HStack(alignment: .top, spacing: 12) {
-                    Text("\(event.sequence)").font(.caption2.monospacedDigit()).foregroundStyle(
-                      .secondary
-                    ).frame(width: 24, alignment: .trailing)
-                    Text(event.message).font(.caption).textSelection(.enabled)
-                  }
-                }
-              }.padding(.top, 16)
-            }.font(.subheadline)
-          }
-          Button("Follow up") { followUp = true }.buttonStyle(.bordered)
-        } else if error.isEmpty {
-          ProgressView().frame(maxWidth: .infinity)
-        }
-        if !error.isEmpty { Failure(message: error, retry: { pollingRevision += 1 }) }
+        } else if error.isEmpty { ProgressView().frame(maxWidth: .infinity) }
+        if !error.isEmpty { Failure(message: error, retry: { revision += 1 }) }
       }.padding(20)
-    }
-    .navigationTitle("Research").navigationBarTitleDisplayMode(.inline).workbench()
-    .task(id: "\(runId)|\(scenePhase == .active)|\(pollingRevision)") {
-      guard scenePhase == .active else { return }
-      while !Task.isCancelled {
-        do {
-          try await refresh()
-          if run?.isTerminal == true { return }
-          try await Task.sleep(for: .milliseconds(1800))
-        } catch is CancellationError { return } catch {
-          if !Task.isCancelled { self.error = error.localizedDescription }
-          return
-        }
+    }.safeAreaInset(edge: .bottom) {
+      if !resolvedId.isEmpty {
+        ResearchComposer(conversationId: resolvedId) { _ in revision += 1 }
+          .disabled(activeRun != nil).padding(.horizontal, 16).padding(.vertical, 10).background(Theme.background)
       }
-    }
-    .refreshable { do { try await refresh() } catch { self.error = error.localizedDescription } }
-    .sheet(isPresented: $followUp) { ResearchSheet(context: "", parentRunId: runId) }
+    }.navigationTitle("Conversation").navigationBarTitleDisplayMode(.inline).workbench().modifier(ResearchSheetControls())
+      .task(id: "\(runId)|\(conversationId)|\(revision)") { await load() }
+      .refreshable { await load() }
   }
-  private func refresh() async throws {
-    let next: ResearchRun = try await session.api.get("/api/research-runs/\(runId)")
-    try Task.checkCancellation()
-    run = next
-    let journal: ResearchEvents = try await session.api.get(
-      "/api/research-runs/\(runId)/events", query: ["after_sequence": String(sequence)])
-    try Task.checkCancellation()
-    let known = Set(events.map(\.eventId))
-    events.append(contentsOf: journal.events.filter { !known.contains($0.eventId) })
-    events.sort { $0.sequence < $1.sequence }
-    sequence = max(sequence, journal.lastEventSequence)
-    error = ""
+  private func load() async {
+    do {
+      resolvedId = try await activity.loadConversation(id: conversationId.isEmpty ? resolvedId : conversationId, runID: runId)
+      error = ""
+    } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
   }
-  private func cancel() async {
+  private func cancel(_ run: ResearchRun) async {
     cancelling = true
-    do { run = try await session.api.post("/api/research-runs/\(runId)/cancel") } catch {
-      self.error = error.localizedDescription
-    }
+    do {
+      let next: ResearchRun = try await session.api.post("/api/research-runs/\(run.runId)/cancel")
+      activity.watch(next)
+    } catch { self.error = error.localizedDescription }
     cancelling = false
+  }
+}
+
+struct ResearchActivityView: View {
+  @State private var expanded = false
+  let events: [ResearchEvent]
+  let active: Bool
+  var status = "running"
+  var checkedAt: Date? = nil
+  private var updates: [ResearchEvent] {
+    events.filter { $0.payload.publicUpdate != nil }
+  }
+  private var sources: [ResearchRun.Result.Citation] {
+    var seen = Set<String>()
+    return events.flatMap { $0.payload.sourceLinks ?? [] }.filter { seen.insert($0.url).inserted }
+  }
+  private var activity: String {
+    events.reversed().compactMap { $0.payload.activityLabel }.first ?? "Researching"
+  }
+  var body: some View {
+    if active {
+      VStack(alignment: .leading, spacing: 10) {
+        HStack {
+          ProgressView().controlSize(.small)
+          Text(updates.isEmpty ? (status == "queued" ? "Queued" : activity) : activity).font(.subheadline.weight(.medium))
+          Spacer()
+          if let checkedAt { Text(checkedAt, format: .dateTime.hour().minute().second()).font(.caption2).monospacedDigit().foregroundStyle(.secondary) }
+        }
+        if let update = updates.last?.payload.publicUpdate {
+          if !update.summary.isEmpty { Text(update.summary).font(.subheadline) }
+          if !update.finding.isEmpty { Text(update.finding).font(.subheadline) }
+          if !update.nextStep.isEmpty { Text(update.nextStep).font(.caption).foregroundStyle(.secondary) }
+        }
+        if !sources.isEmpty {
+          Text("\(sources.count) \(sources.count == 1 ? "source" : "sources") · \(updates.count) updates")
+            .font(.caption2).foregroundStyle(.secondary)
+        }
+      }.padding(14).background(Theme.panel, in: RoundedRectangle(cornerRadius: 12))
+    }
+    if !updates.isEmpty {
+      DisclosureGroup("Research activity", isExpanded: $expanded) {
+        VStack(alignment: .leading, spacing: 14) {
+          ForEach(updates) { event in
+            if let update = event.payload.publicUpdate {
+              VStack(alignment: .leading, spacing: 6) {
+                if !update.summary.isEmpty { Text(update.summary).foregroundStyle(.secondary) }
+                if !update.finding.isEmpty { Text(update.finding) }
+              }.font(.caption).textSelection(.enabled)
+            }
+          }
+          if active, let next = updates.last?.payload.publicUpdate?.nextStep, !next.isEmpty {
+            Text(next).font(.caption).foregroundStyle(.secondary)
+          }
+          ForEach(sources) { source in
+            if let url = URL(string: source.url), ["http", "https"].contains(url.scheme ?? "") {
+              Link(source.label.isEmpty ? url.host ?? "Source" : source.label, destination: url).font(.caption)
+            }
+          }
+        }.padding(.top, 12)
+      }.font(.caption).tint(Theme.teal)
+    }
   }
 }
 
@@ -339,7 +379,7 @@ struct KnowledgeView: View {
               KnowledgeReader(pageId: page.pageId)
             } label: {
               VStack(alignment: .leading, spacing: 6) {
-                Text(page.title).font(.subheadline.weight(.medium)).foregroundStyle(.primary)
+                Text(page.title).font(.subheadline.weight(.medium)).foregroundStyle(Theme.text)
                 if !page.summary.isEmpty {
                   Text(page.summary).font(.caption).foregroundStyle(.secondary).lineLimit(3)
                 }
@@ -430,7 +470,7 @@ struct KnowledgeView: View {
     return candidates.filter { seen.insert($0.pageId).inserted }
   }
   private func load() async {
-    await resource.load(key: key) {
+    await resource.load(key: key, clearBeforeLoad: true, clearOnFailure: true) {
       try await session.api.get(
         "/api/zopedia/workspace",
         query: ["q": search, "folder": folder, "offset": String(offset), "limit": "60"])

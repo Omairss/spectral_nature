@@ -246,17 +246,27 @@ def _llm_extract_tags(
         return source_event_tags, commodity_tags
     excerpt = text[:1200]
     try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "Extract financial event and commodity tags from news text. "
-                f"Valid event tags: {', '.join(sorted(_KNOWN_EVENT_TAGS))}. "
-                f"Valid commodity tags: {', '.join(sorted(_KNOWN_COMMODITY_TAGS))}. "
-                "Return only tags clearly present in the text. Return empty arrays if nothing applies."
-            ),
-            user_prompt=f"Text: {excerpt}",
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=f"Text: {excerpt}",
+            instructions=f"Extract financial event and commodity tags from news text. Valid event tags: {', '.join(sorted(_KNOWN_EVENT_TAGS))}. Valid commodity tags: {', '.join(sorted(_KNOWN_COMMODITY_TAGS))}. Return only tags clearly present in the text. Return empty arrays if nothing applies.",
             schema_name="tag_extraction",
             schema=_TAG_EXTRACTION_SCHEMA,
+            task="tag_extraction", stage="summary",
+            surface="services.aql.evidence_index",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        result = engine_operation["payload"]
     except (LLMAPIError, Exception):
         return source_event_tags, commodity_tags
     raw_event_tags = [str(t).strip() for t in result.get("event_tags") or []]

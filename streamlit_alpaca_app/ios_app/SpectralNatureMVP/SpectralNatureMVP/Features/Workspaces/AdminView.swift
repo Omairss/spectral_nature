@@ -173,6 +173,16 @@ struct AdminView: View {
       ("Temperature", runtime["temperature"].string),
       ("Prompts", String(value["prompts"].records.count)),
     ])
+    if !value["style"]["key"].string.isEmpty {
+      NavigationLink("Edit model, prompts & parameters") {
+        LLMSettingsEditor(settings: value) { settings in
+          if var updated = resource.value?.dictionaryValue {
+            updated["llm"] = settings
+            resource.value = .object(updated)
+          }
+        }
+      }.buttonStyle(.borderedProminent)
+    }
     if let record = runtime.dictionaryValue { Panel("Runtime") { RecordDetails(record: record) } }
     table(
       "Tuning parameters", value["parameters"].records,
@@ -289,5 +299,195 @@ struct AdminView: View {
         result, link: "reset_url", sent: "Password reset sent.", created: "Password reset issued.")
       resetEmail = ""
     } catch { actionError = error.localizedDescription }
+  }
+}
+
+private struct LLMSettingsEditor: View {
+  @EnvironmentObject private var session: AppSession
+  @State private var settings: JSONValue
+  @State private var changes: Record = [:]
+  @State private var saving = false
+  @State private var error = ""
+  @State private var notice = ""
+  let onSaved: (JSONValue) -> Void
+  init(settings: JSONValue, onSaved: @escaping (JSONValue) -> Void) {
+    _settings = State(initialValue: settings)
+    self.onSaved = onSaved
+  }
+  var body: some View {
+    Form {
+      if !error.isEmpty { Section { Failure(message: error) } }
+      if !notice.isEmpty { Section { Text(notice).foregroundStyle(Theme.teal) } }
+      if !changes.isEmpty {
+        Section {
+          Button("Discard changes", role: .destructive) {
+            changes = [:]
+            notice = ""
+          }
+        }
+      }
+      if let runtime = settings["runtime"].dictionaryValue {
+        runtimeSection(runtime)
+      }
+      let style = settings["style"]
+      Section("Language rule") {
+        promptEditor(
+          title: "Language rule", key: style["key"].string, active: style["value"],
+          fallback: style["default"])
+      }
+      Section("Prompts") {
+        ForEach(Array(settings["prompts"].records.enumerated()), id: \.offset) { _, prompt in
+          promptEditor(
+            title: prompt.text("name"), key: prompt.text("key"),
+            active: prompt["prompt"] ?? .null, fallback: prompt["default"] ?? .null)
+        }
+      }
+      Section("Tuning parameters") {
+        ForEach(Array(settings["parameters"].records.enumerated()), id: \.offset) { _, parameter in
+          let key = parameter.text("key")
+          let active = parameter["value"] ?? .null
+          let fallback = parameter["default"] ?? .null
+          VStack(alignment: .leading, spacing: 10) {
+            let choices = parameter["choices"]?.array.map(\.string) ?? []
+            if !choices.isEmpty {
+              Picker(parameter.text("name"), selection: binding(key, active, fallback)) {
+                ForEach(choices, id: \.self) { Text($0).tag($0) }
+              }
+            } else {
+              field(
+                parameter.text("name"), key: key, active: active, fallback: fallback,
+                numeric: fallback.number != nil)
+            }
+            if !parameter.text("description").isEmpty {
+              Text(parameter.text("description")).font(.caption).foregroundStyle(.secondary)
+            }
+            Button("Use default (\(text(fallback)))") { reset(key) }.font(.caption)
+          }.padding(.vertical, 4)
+        }
+      }
+      if !settings["scope"].string.isEmpty {
+        Section { LabeledContent("Environment", value: settings["scope"].string) }
+      }
+    }.disabled(saving).scrollContentBackground(.hidden).workbench()
+      .navigationTitle("LLM settings").navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .topBarTrailing) {
+          Button("Save") { Task { await save() } }.disabled(saving || changes.isEmpty)
+        }
+      }
+      .interactiveDismissDisabled(saving)
+  }
+  @ViewBuilder private func runtimeSection(_ runtime: Record) -> some View {
+    let provider = runtime.text("provider")
+    let prefix = "runtime:\(provider):"
+    Section("Model") {
+      LabeledContent("Provider", value: provider)
+      field("Model", key: prefix + "model", active: runtime["model"] ?? .null)
+        .disabled(runtime["model_editable"] != .bool(true))
+      field(
+        "Temperature", key: prefix + "temperature", active: runtime["temperature"] ?? .null,
+        numeric: true)
+      field(
+        "Timeout, seconds", key: prefix + "timeout_seconds",
+        active: runtime["timeout_seconds"] ?? .null,
+        numeric: true)
+      Picker(
+        "Reasoning effort",
+        selection: binding(
+          prefix + "reasoning_effort", runtime["reasoning_effort"] ?? .string(""), .string(""))
+      ) {
+        Text("Provider default").tag("")
+        ForEach(["minimal", "low", "medium", "high", "max", "xhigh", "ultra"], id: \.self) {
+          Text($0.capitalized).tag($0)
+        }
+      }
+      if provider == "deepseek" {
+        Picker(
+          "Thinking mode",
+          selection: binding(
+            prefix + "thinking_mode", runtime["thinking_mode"] ?? .string("enabled"),
+            .string("enabled"))
+        ) {
+          Text("Enabled").tag("enabled")
+          Text("Disabled").tag("disabled")
+        }
+      }
+      Button("Use deployment defaults") {
+        var fields = ["temperature", "timeout_seconds", "reasoning_effort"]
+        if runtime["model_editable"] == .bool(true) { fields.append("model") }
+        if provider == "deepseek" { fields.append("thinking_mode") }
+        for field in fields { reset(prefix + field) }
+      }
+    }
+  }
+  private func promptEditor(title: String, key: String, active: JSONValue, fallback: JSONValue)
+    -> some View
+  {
+    NavigationLink {
+      VStack(alignment: .leading, spacing: 16) {
+        TextEditor(text: binding(key, active, fallback)).font(.system(.body, design: .monospaced))
+          .scrollContentBackground(.hidden).autocorrectionDisabled()
+          .textInputAutocapitalization(.never).accessibilityLabel(title)
+        Button("Use default") { reset(key) }.buttonStyle(.bordered)
+      }.padding(16).workbench().navigationTitle(title).navigationBarTitleDisplayMode(.inline)
+        .disabled(saving)
+    } label: {
+      VStack(alignment: .leading, spacing: 4) {
+        Text(title)
+        Text(
+          changes[key] != nil ? "Unsaved" : text(active) == text(fallback) ? "Default" : "Custom"
+        )
+        .font(.caption).foregroundStyle(.secondary)
+      }
+    }
+  }
+  private func field(
+    _ title: String, key: String, active: JSONValue, fallback: JSONValue? = nil,
+    numeric: Bool = false
+  ) -> some View {
+    VStack(alignment: .leading, spacing: 6) {
+      Text(title).font(.caption).foregroundStyle(.secondary)
+      TextField(title, text: binding(key, active, fallback ?? active))
+        .keyboardType(numeric ? .decimalPad : .default).textInputAutocapitalization(.never)
+        .autocorrectionDisabled().accessibilityLabel(title)
+    }
+  }
+  private func text(_ value: JSONValue) -> String {
+    if let number = value.number {
+      return number.formatted(.number.grouping(.never).precision(.fractionLength(0...12)))
+    }
+    return value.string
+  }
+  private func binding(_ key: String, _ active: JSONValue, _ fallback: JSONValue) -> Binding<String>
+  {
+    Binding(
+      get: { text(changes[key].map { $0 == .null ? fallback : $0 } ?? active) },
+      set: { value in
+        notice = ""
+        if value == text(active) {
+          changes.removeValue(forKey: key)
+        } else {
+          changes[key] = .string(value)
+        }
+      })
+  }
+  private func reset(_ key: String) {
+    changes[key] = .null
+    notice = ""
+  }
+  private func save() async {
+    guard !saving, !changes.isEmpty else { return }
+    saving = true
+    error = ""
+    notice = ""
+    defer { saving = false }
+    do {
+      let updated: JSONValue = try await session.api.patch(
+        "/api/admin/llm", body: ["changes": .object(changes)])
+      settings = updated
+      changes = [:]
+      notice = "Saved"
+      onSaved(updated)
+    } catch { self.error = error.localizedDescription }
   }
 }

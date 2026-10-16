@@ -3,12 +3,18 @@ AQL pipeline — top-level orchestration for bottom-up attention artifact genera
 """
 from __future__ import annotations
 
+from services.work_scope import WorkScope
+from services.llm import llm_request_deadline
+
 import hashlib
 import json
 import math
 import os
 import queue
 import threading
+import time
+from contextlib import contextmanager
+from contextvars import ContextVar, copy_context
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from typing import Any, Callable
@@ -18,6 +24,8 @@ import pandas as pd
 from compute.signal_extraction import _history_correlation_map
 from ..attention_signal_graph import _graph_edges
 from ..runtime_policy import attention_graph_policy
+from ..json_utils import to_jsonable
+from ..llm import llm_request_deadline
 from .constants import (
     AgenticAttentionArtifacts,
     DEFAULT_PROMPT_VERSION,
@@ -40,16 +48,16 @@ from .collector import (
     _candidate_company_name,
     _candidate_context_documents,
     _peer_candidates,
-    _plan_candidate_research,
-    _search_query_results,
+    research_attention_candidate,
 )
 from .extractor import (
     _chunk_source_documents,
     _documents_from_search_results,
-    _extract_claims,
     _serialize_claims_frame,
 )
 from .evidence_index import annotate_source_documents
+from .evidence_pack import materialize_research_artifacts
+from .events import research_source_events
 from .assembler import _build_candidate_bundle, _build_event_bundle, build_observed_cohort_event_bundles
 from .clusterer import _cluster_candidates
 from .macro import (
@@ -72,8 +80,20 @@ class AQLStepTimeout(TimeoutError):
     pass
 
 
+_TIMEOUT_SETTINGS: ContextVar[dict[str, int]] = ContextVar("aql_timeout_settings", default={})
+
+
+@contextmanager
+def aql_timeout_scope(settings: dict[str, int]):
+    token = _TIMEOUT_SETTINGS.set({**_TIMEOUT_SETTINGS.get(), **settings})
+    try:
+        yield
+    finally:
+        _TIMEOUT_SETTINGS.reset(token)
+
+
 def _env_positive_int(name: str, default: int) -> int:
-    raw = (os.getenv(name) or str(default)).strip()
+    raw = str(_TIMEOUT_SETTINGS.get().get(name, os.getenv(name) or default)).strip()
     try:
         parsed = int(raw)
     except Exception:
@@ -99,20 +119,26 @@ def _macro_verification_timeout_seconds() -> int:
 
 def _call_with_timeout(label: str, timeout_seconds: int, fn: Callable[[], Any]) -> Any:
     if timeout_seconds <= 0:
-        return fn()
+        raise AQLStepTimeout(f"{label} has no remaining execution budget")
 
     result_queue: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=1)
+    work = WorkScope(time.monotonic() + float(timeout_seconds))
+    deadline = time.monotonic() + float(timeout_seconds)
 
     def _runner() -> None:
         try:
-            result_queue.put(("ok", fn()))
+            with work.activate(), llm_request_deadline(deadline):
+                value = fn()
+            result_queue.put(("ok", value))
         except BaseException as exc:
             result_queue.put(("error", exc))
 
-    thread = threading.Thread(target=_runner, name=f"aql-timeout-{label[:32]}", daemon=True)
+    context = copy_context()
+    thread = threading.Thread(target=lambda: context.run(_runner), name=f"aql-timeout-{label[:32]}", daemon=True)
     thread.start()
     thread.join(float(timeout_seconds))
     if thread.is_alive():
+        work.cancel()
         raise AQLStepTimeout(f"{label} exceeded {timeout_seconds}s")
 
     status, payload = result_queue.get_nowait()
@@ -127,6 +153,7 @@ def build_bottom_up_attention_artifacts(
     attention_rows: pd.DataFrame | None = None,
     bars_by_symbol: dict[str, pd.DataFrame] | None = None,
     news_payloads: dict[str, dict[str, Any]] | None = None,
+    news_frame: pd.DataFrame | None = None,
     context_payloads: dict[str, dict[str, Any]] | None = None,
     entity_master: pd.DataFrame | None = None,
     topology_universe_frame: pd.DataFrame | None = None,
@@ -162,6 +189,15 @@ def build_bottom_up_attention_artifacts(
     release_rules = macro_profile.get("release_rules") if isinstance(macro_profile.get("release_rules"), dict) else {}
     macro_release_force_limit = max(int(_coerce_float(release_rules.get("force_limit"), 2)), 0)
     entity_rows = entity_master if isinstance(entity_master, pd.DataFrame) else build_attention_entity_master(daily_movers.get("symbol", pd.Series(dtype=str)).dropna().astype(str).tolist())
+    source_news = news_frame
+    if not isinstance(source_news, pd.DataFrame):
+        article_frames = [item.get("articles") for item in (news_payloads or {}).values() if isinstance(item, dict) and isinstance(item.get("articles"), pd.DataFrame)]
+        source_news = pd.concat(article_frames, ignore_index=True, sort=False) if article_frames else pd.DataFrame()
+    source_events = research_source_events(
+        source_news, market_frame=daily_movers, universe_frame=topology_universe_frame,
+        asof_time_utc=asof_time_utc, run_id=run_id, llm_client=llm_client,
+        progress_callback=(lambda event: progress_callback(0, 1, event)) if progress_callback else None,
+    )
     base_candidates = build_attention_event_candidates_1d(
         daily_movers,
         attention_rows=attention_rows,
@@ -173,13 +209,27 @@ def build_bottom_up_attention_artifacts(
         asof_time_utc=asof_time_utc.isoformat(),
     )
     candidates = _augment_candidate_frame(base_candidates, asof_time_utc=asof_time_utc, run_id=run_id)
-    if candidates.empty:
+    identity_records = {
+        _normalize_symbol(row.get("symbol")): to_jsonable(row)
+        for row in topology_universe_frame.to_dict("records")
+    } if isinstance(topology_universe_frame, pd.DataFrame) else {}
+    price_records = {
+        _normalize_symbol(row.get("symbol")): to_jsonable(row)
+        for row in daily_movers.to_dict("records")
+    } if isinstance(daily_movers, pd.DataFrame) else {}
+    candidates["instrument_context_json"] = candidates.get("symbol", pd.Series(dtype=str)).map(lambda symbol: json.dumps({
+        "universe_identity": identity_records.get(_normalize_symbol(symbol)),
+        "market_observation": price_records.get(_normalize_symbol(symbol)),
+    }, default=str))
+    if candidates.empty and not source_events["bundles"]:
         empty_payload = {
             "top_events": [],
             "must_read_movers": [],
             "unresolved_large_moves": [],
             "generated_at_utc": asof_time_utc.isoformat(),
-            "coverage_summary": {"candidate_count": 0, "event_count": 0, "must_read_count": 0, "unresolved_count": 0, "run_id": run_id},
+            "coverage_summary": {"candidate_count": 0, "event_count": 0, "must_read_count": 0, "unresolved_count": 0, "run_id": run_id,
+                                 "source_event_research_status": source_events["status"], "source_event_input_count": source_events.get("input_count", len(source_events["documents"])),
+                                 "source_event_nominated_count": len(source_events["plans"]), "source_event_completed_count": 0},
             "taxonomy_horizon_trends": [],
             "event_candidates_1d": [],
             "event_impacts_1d": [],
@@ -192,7 +242,9 @@ def build_bottom_up_attention_artifacts(
             "attention_research_plans": pd.DataFrame(),
             "attention_search_requests": pd.DataFrame(),
             "attention_search_results": pd.DataFrame(),
-            "attention_source_documents": pd.DataFrame(),
+            "attention_source_documents": pd.DataFrame(source_events["documents"]),
+            "attention_source_event_plans": pd.DataFrame(source_events["plans"]),
+            "attention_source_event_research": pd.DataFrame(source_events["results"]),
             "attention_evidence_chunks": pd.DataFrame(),
             "attention_claims": pd.DataFrame(),
             "attention_candidate_graph": pd.DataFrame(),
@@ -272,42 +324,7 @@ def build_bottom_up_attention_artifacts(
 
     def _research_one_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
         peer_symbols = _peer_candidates(candidate, candidates, limit=5)
-        plan = _plan_candidate_research(candidate, peer_symbols, llm_client)
-        plan_row = {
-            "run_id": run_id,
-            "asof_time_utc": asof_time_utc,
-            "candidate_id": _coerce_text(candidate.get("candidate_id")),
-            "symbol": _normalize_symbol(candidate.get("symbol")),
-            "prompt_version": prompt_version,
-            "model_name": model_name,
-            "research_subjects_json": _json_dumps(plan.get("research_subjects") or []),
-            "hypotheses_json": _json_dumps(plan.get("hypotheses") or []),
-            "queries_json": _json_dumps(plan.get("queries") or []),
-            "official_routes_json": _json_dumps(plan.get("official_routes") or []),
-            "priority_entities_json": _json_dumps(plan.get("priority_entities") or []),
-            "evidence_budget": int(plan.get("evidence_budget") or 8),
-        }
-        per_query_budget = max(int(plan.get("evidence_budget") or 8) // max(len(plan.get("queries") or []), 1), 2)
-        candidate_results: list[dict[str, Any]] = []
-        local_request_rows: list[dict[str, Any]] = []
-        local_result_rows: list[dict[str, Any]] = []
-        for query in list(plan.get("queries") or [])[:4]:
-            req_rows, res_rows = _search_query_results(
-                _coerce_text((query or {}).get("query")),
-                candidate_id=_coerce_text(candidate.get("candidate_id")),
-                symbol=_normalize_symbol(candidate.get("symbol")),
-                company_name=_candidate_company_name(candidate),
-                run_id=run_id,
-                asof_time_utc=asof_time_utc,
-                serp_client=serp_client,
-                tavily_client=tavily_client,
-                llm_client=llm_client,
-                budget=per_query_budget,
-            )
-            local_request_rows.extend(req_rows)
-            local_result_rows.extend(res_rows)
-            candidate_results.extend(res_rows)
-        documents = _candidate_context_documents(
+        supplied_documents = _candidate_context_documents(
             candidate,
             news_payloads=news_payloads,
             context_payloads=context_payloads,
@@ -316,75 +333,104 @@ def build_bottom_up_attention_artifacts(
             yield_curve_facts_frame=yield_curve_facts_frame,
             run_id=run_id,
             asof_time_utc=asof_time_utc,
-            official_routes=[_coerce_text(route) for route in list(plan.get("official_routes") or [])],
-            priority_entities=[_coerce_text(entity) for entity in list(plan.get("priority_entities") or []) if _coerce_text(entity)],
         )
-        documents.extend(
-            _documents_from_search_results(
-                candidate,
-                candidate_results,
-                run_id=run_id,
-                asof_time_utc=asof_time_utc,
-            )
-        )
-        deduped_documents: list[dict[str, Any]] = []
-        seen_doc_ids: set[str] = set()
-        for item in documents:
-            doc_id = _coerce_text(item.get("document_id"))
-            if not doc_id or doc_id in seen_doc_ids:
-                continue
-            seen_doc_ids.add(doc_id)
-            deduped_documents.append(item)
-        deduped_documents = annotate_source_documents(
-            deduped_documents,
-            asof_time_utc=asof_time_utc,
-            llm_client=llm_client,
-        )
-        chunks = _chunk_source_documents(
-            deduped_documents,
-            run_id=run_id,
-            asof_time_utc=asof_time_utc,
-            embedding_client=embedding_client,
-            llm_client=llm_client,
-        )
-        claims = _extract_claims(
+        result = research_attention_candidate(
             candidate,
-            chunks,
+            peer_symbols=peer_symbols,
+            documents=supplied_documents,
+            llm_client=llm_client,
+            timeout_seconds=_candidate_research_timeout_seconds(),
+            progress_callback=(
+                (lambda event: progress_callback(0, 1, event))
+                if progress_callback
+                else None
+            ),
+        )
+        agent = result.get("agent_result") or {}
+        if result.get("status") != "completed":
+            raise RuntimeError(
+                result.get("error")
+                or agent.get("error")
+                or "Shared candidate research did not complete"
+            )
+        payload = result["payload"]
+        artifacts = materialize_research_artifacts(
+            agent,
+            candidate_id=_coerce_text(candidate.get("candidate_id")),
+            subject=_normalize_symbol(candidate.get("symbol")),
             run_id=run_id,
             asof_time_utc=asof_time_utc,
-            hypotheses=list(plan.get("hypotheses") or []),
-            llm_client=llm_client,
         )
-        claims_frame = _serialize_claims_frame(claims, asof_time_utc=asof_time_utc)
+        claims = []
+        for index, item in enumerate(payload["claims"]):
+            refs = [
+                chunk
+                for ref in item.get("evidence_chunk_ids") or []
+                for chunk in artifacts["source_aliases"].get(ref, [ref])
+            ]
+            claims.append(
+                {
+                    **item,
+                    "claim_id": f"claim::{agent['run_id']}::{index}",
+                    "run_id": run_id,
+                    "bundle_subject": _normalize_symbol(candidate.get("symbol")),
+                    "evidence_chunk_ids": refs,
+                    "source_authority_bucket": "research",
+                    "source": "",
+                }
+            )
+        documents = supplied_documents + artifacts["documents"]
         peer_moves = [
             {
                 "symbol": peer,
-                "change_pct": _coerce_float(candidates[candidates["symbol"] == peer].head(1)["change_pct"].iloc[0]) if not candidates[candidates["symbol"] == peer].empty else math.nan,
-                "relationship": _coerce_text(candidates[candidates["symbol"] == peer].head(1)["peer_group_id"].iloc[0]) if not candidates[candidates["symbol"] == peer].empty else "",
-                "headline": _coerce_text(candidates[candidates["symbol"] == peer].head(1)["headline"].iloc[0]) if not candidates[candidates["symbol"] == peer].empty else "",
+                "change_pct": price_records.get(peer, {}).get("change_pct"),
             }
-            for peer in peer_symbols[:4]
+            for peer in peer_symbols
         ]
         bundle = _build_candidate_bundle(
             candidate,
             claims,
             peer_moves,
-            deduped_documents,
-            llm_client=llm_client,
+            documents,
+            llm_client=None,
             prompt_version=prompt_version,
-            model_name=model_name,
+            model_name=agent.get("model") or model_name,
             run_id=run_id,
-            yield_facts=_latest_yield_facts(yield_curve_facts_frame) if _yield_context_relevant(candidate) else {},
+            written=payload,
+            yield_facts=(
+                _latest_yield_facts(yield_curve_facts_frame)
+                if _yield_context_relevant(candidate)
+                else {}
+            ),
         )
+        state = agent.get("research_state") or {}
         return {
             "symbol": _normalize_symbol(candidate.get("symbol")),
-            "plan_row": plan_row,
-            "request_rows": local_request_rows,
-            "result_rows": local_result_rows,
-            "document_rows": deduped_documents,
-            "chunks": chunks,
+            "plan_row": {
+                "run_id": run_id,
+                "asof_time_utc": asof_time_utc,
+                "candidate_id": _coerce_text(candidate.get("candidate_id")),
+                "symbol": _normalize_symbol(candidate.get("symbol")),
+                "prompt_version": prompt_version,
+                "model_name": agent.get("model"),
+                "research_subjects_json": _json_dumps([state.get("goal")]),
+                "hypotheses_json": _json_dumps(state.get("alternatives") or []),
+                "queries_json": _json_dumps(
+                    [row["query_text"] for row in artifacts["request_rows"]]
+                ),
+                "official_routes_json": "[]",
+                "priority_entities_json": "[]",
+                "evidence_budget": agent.get("engine", {}).get("max_tool_calls"),
+                "engine_revision": agent.get("engine", {}).get("revision"),
+            },
+            "request_rows": artifacts["request_rows"],
+            "result_rows": artifacts["result_rows"],
+            "document_rows": documents,
+            "chunks": artifacts["chunks"],
             "claims": claims,
-            "claims_frame": claims_frame,
+            "claims_frame": _serialize_claims_frame(
+                claims, asof_time_utc=asof_time_utc
+            ),
             "bundle": bundle,
         }
 
@@ -441,7 +487,7 @@ def build_bottom_up_attention_artifacts(
     else:
         with ThreadPoolExecutor(max_workers=candidate_max_workers, thread_name_prefix="aql-candidate") as pool:
             futures = {
-                pool.submit(_run_candidate_research, index, candidate): (index, candidate)
+                pool.submit(copy_context().run, _run_candidate_research, index, candidate): (index, candidate)
                 for index, candidate in enumerate(research_candidates, start=1)
             }
             completed = 0
@@ -645,6 +691,33 @@ def build_bottom_up_attention_artifacts(
             }
         )
 
+    for bundle in source_events["bundles"]:
+        bundle_map[bundle["bundle_id"]] = bundle
+        event_bundles.append(bundle)
+        member_rows = candidates[candidates["symbol"].isin(bundle.get("supporting_symbols") or [])]
+        event_cluster_rows.append({
+            "run_id": run_id, "asof_time_utc": asof_time_utc, "event_id": bundle["event_id"],
+            "member_candidate_ids_json": _json_dumps(member_rows["candidate_id"].tolist()),
+            "anchor_candidate_ids_json": _json_dumps([]),
+            "driver_symbols_json": _json_dumps(bundle.get("supporting_symbols") or []),
+            "beneficiary_symbols_json": _json_dumps([]), "loser_symbols_json": _json_dumps([]),
+            "event_facts_json": _json_dumps({"event_title": bundle["event_title"], "source_event": True}),
+            "supporting_claim_ids_json": _json_dumps(bundle.get("supporting_claim_ids") or []),
+            "event_score": bundle.get("event_score", 0), "cause_status": bundle["cause_status"], "event_type": "source_event",
+        })
+    source_documents = annotate_source_documents(source_events["documents"], asof_time_utc=asof_time_utc)
+    document_rows.extend(source_documents)
+    source_chunks = _chunk_source_documents(source_documents, run_id=run_id, asof_time_utc=asof_time_utc, embedding_client=embedding_client)
+    if not source_chunks.empty:
+        chunk_frames.append(source_chunks)
+    source_claims = [claim for bundle in source_events["bundles"] for claim in bundle.get("claims", [])]
+    if not source_chunks.empty:
+        chunks_by_document = source_chunks.groupby("document_id")["chunk_id"].agg(list).to_dict()
+        for claim in source_claims:
+            claim["evidence_chunk_ids"] = chunks_by_document.get(claim.get("document_id"), [])
+    if source_claims:
+        claim_frames.append(pd.DataFrame(source_claims))
+
     macro_release_events_frame, macro_release_bundles = _build_macro_release_events(
         fred_summary_frame=fred_summary_frame,
         candidates=candidates,
@@ -734,6 +807,15 @@ def build_bottom_up_attention_artifacts(
         run_id=run_id,
     )
 
+    for bundle in bundle_map.values():
+        symbols = list(bundle.get("supporting_symbols") or [])
+        if bundle.get("symbol"):
+            symbols.append(bundle["symbol"])
+        bundle["instrument_context"] = [{
+            "symbol": symbol, "universe_identity": identity_records.get(_normalize_symbol(symbol)),
+            "market_observation": price_records.get(_normalize_symbol(symbol)),
+        } for symbol in dict.fromkeys(symbols)]
+
     home_payload = _build_home_payload(
         candidates,
         bundle_map,
@@ -762,7 +844,15 @@ def build_bottom_up_attention_artifacts(
         cluster_frame,
         universe_frame=topology_universe,
     )
+    home_payload["coverage_summary"].update({
+        "source_event_research_status": source_events["status"],
+        "source_event_nominated_count": len(source_events["plans"]),
+        "source_event_completed_count": len(source_events["bundles"]),
+        "source_event_input_count": source_events.get("input_count", len(source_events["documents"])),
+    })
     frames = {
+        "attention_source_event_plans": pd.DataFrame(source_events["plans"]),
+        "attention_source_event_research": pd.DataFrame(source_events["results"]),
         "attention_candidates_1d": candidates.reset_index(drop=True),
         "attention_research_plans": pd.DataFrame(plan_rows),
         "attention_search_requests": pd.DataFrame(request_rows),

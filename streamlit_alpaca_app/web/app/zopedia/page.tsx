@@ -8,7 +8,7 @@ import { Icon } from "@/components/icons";
 import { MetricStrip, WorkbookTabs } from "@/components/workbook";
 import { responseError, secureMutation } from "@/lib/client/api";
 import { useAuthenticatedSession } from "@/lib/client/session";
-import type { ResearchRun } from "@/lib/types";
+import type { ResearchRun, ResearchConversationSummary } from "@/lib/types";
 
 type ZopediaPageRecord = {
   page_id: string; page_type: string; title: string; summary: string; status: string;
@@ -50,7 +50,7 @@ function ZopediaWorkspace() {
   const offset = Number(params.get("offset") || 0);
   const { session, sessionError } = useAuthenticatedSession("/zopedia");
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
-  const [threads, setThreads] = useState<ResearchRun[]>([]);
+  const [threads, setThreads] = useState<ResearchConversationSummary[]>([]);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState<KnowledgePage | null>(null);
   const [loading, setLoading] = useState(false);
@@ -62,6 +62,7 @@ function ZopediaWorkspace() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const pendingMessage = useRef<{ query: string; key: string; body: string } | null>(null);
   const [uploading, setUploading] = useState(false);
 
   function navigate(next: { tab?: string; q?: string; folder?: string; page?: string; offset?: number }) {
@@ -98,9 +99,9 @@ function ZopediaWorkspace() {
   useEffect(() => {
     if (!session?.authenticated) return;
     const controller = new AbortController();
-    fetch("/api/research-runs?limit=60", { cache: "no-store", credentials: "same-origin", signal: controller.signal })
-      .then(async (response) => { if (!response.ok) throw new Error(await responseError(response, "Research threads are unavailable.")); return response.json() as Promise<ResearchRun[]>; })
-      .then(setThreads).catch((reason) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Research threads are unavailable."); });
+    fetch("/api/research-conversations?limit=60", { cache: "no-store", credentials: "same-origin", signal: controller.signal })
+      .then(async (response) => { if (!response.ok) throw new Error(await responseError(response, "Conversations are unavailable.")); return response.json() as Promise<ResearchConversationSummary[]>; })
+      .then(setThreads).catch((reason) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Conversations are unavailable."); });
     return () => controller.abort();
   }, [session]);
 
@@ -123,17 +124,20 @@ function ZopediaWorkspace() {
   async function submitResearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const researchQuery = query.trim();
-    if (researchQuery.length < 3) return;
+    if (!researchQuery) return;
     setSubmitting(true); setError(""); setNotice("");
     try {
+      if (pendingMessage.current?.query !== researchQuery) pendingMessage.current = {
+        query: researchQuery, key: `web:${crypto.randomUUID()}`,
+        body: JSON.stringify({ query: researchQuery, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          asof_time_utc: new Date().toISOString(), visible_artifacts: page?.page_id ? [{ kind: "zopedia_page", page_id: page.page_id }] : [] }),
+      };
       const response = await secureMutation("/api/research-runs", {
-        method: "POST",
-        headers: { "Idempotency-Key": `web:${crypto.randomUUID()}` },
-        body: JSON.stringify({ query: researchQuery }),
+        method: "POST", headers: { "Idempotency-Key": pendingMessage.current.key }, body: pendingMessage.current.body,
       });
       if (!response.ok) throw new Error(await responseError(response, "Research could not be started."));
       const run = (await response.json()) as ResearchRun;
-      router.push(`/zopedia/runs/${encodeURIComponent(run.run_id)}`);
+      router.push(`/zopedia/conversations/${encodeURIComponent(run.conversation_id)}`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Research could not be started.");
       setSubmitting(false);
@@ -170,7 +174,7 @@ function ZopediaWorkspace() {
   const completed = useMemo(() => threads.filter((thread) => thread.status === "completed").length, [threads]);
   const active = useMemo(() => threads.filter((thread) => ["queued", "running", "cancel_requested"].includes(thread.status)).length, [threads]);
   const internalLinks = useMemo(() => Object.fromEntries((page?.links || []).flatMap((link) => [link.page_id, link.slug, link.title].filter(Boolean).map((key) => [key.toLowerCase(), `/zopedia?tab=knowledge&page=${encodeURIComponent(link.page_id)}`]))), [page]);
-  const filteredThreads = threads.filter((thread) => !searchQuery || thread.query.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredThreads = threads.filter((thread) => !searchQuery || thread.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   if (!session?.authenticated) return <div className="page-shell"><p className="loading-label">Checking session…</p></div>;
 
@@ -185,7 +189,7 @@ function ZopediaWorkspace() {
       </header>
 
       <WorkbookTabs active={tab} items={[
-        { key: "chat", label: "Research" }, { key: "threads", label: "Threads" },
+        { key: "chat", label: "Research" }, { key: "threads", label: "Conversations" },
         { key: "knowledge", label: "Knowledge" }, { key: "sources", label: "Sources" },
         ...(searchQuery ? [{ key: "search", label: "Search results" }] : []),
       ]} label="Zopedia sections" onChange={setTab} />
@@ -200,7 +204,7 @@ function ZopediaWorkspace() {
           <div className="knowledge-search-results">{workspace?.pages.map((item) => <button key={item.page_id} type="button" onClick={() => navigate({ tab: "knowledge", page: item.page_id })}><span>{item.page_type.replaceAll("_", " ")}</span><strong>{item.title}</strong><p>{item.summary}</p></button>)}</div>
           <h3>Sources · {(workspace?.documents.length || 0) + (workspace?.source_pages.length || 0)}</h3>
           <div className="thread-list">{workspace?.source_pages.map((item) => <Link href={`/zopedia?tab=knowledge&page=${encodeURIComponent(item.page_id)}`} key={item.page_id}><span>{item.title}</span><small>{item.summary}</small></Link>)}{workspace?.documents.map((item) => <a href={item.url || undefined} key={item.document_id} rel="noreferrer noopener" target="_blank"><span>{item.title}</span><small>{item.excerpt}</small></a>)}</div>
-          {filteredThreads.length ? <><h3>Threads · {filteredThreads.length}</h3><div className="thread-list">{filteredThreads.map((thread) => <Link key={thread.run_id} href={`/zopedia/runs/${encodeURIComponent(thread.run_id)}`}>{thread.query}</Link>)}</div></> : null}
+          {filteredThreads.length ? <><h3>Conversations · {filteredThreads.length}</h3><div className="thread-list">{filteredThreads.map((thread) => <Link key={thread.conversation_id} href={`/zopedia/conversations/${encodeURIComponent(thread.conversation_id)}`}>{thread.title}</Link>)}</div></> : null}
           {!workspace?.pages.length && !workspace?.documents.length && !workspace?.source_pages.length && !filteredThreads.length ? <p className="search-empty">No results for “{searchQuery}”.</p> : null}
           {workspace?.has_more ? <button className="quiet-button" onClick={() => navigate({ offset: offset + 60 })} type="button">More pages</button> : null}
         </> : null}
@@ -223,27 +227,27 @@ function ZopediaWorkspace() {
 
       {tab === "chat" ? <>
         <MetricStrip items={[
-          { label: "Threads", value: threads.length }, { label: "Complete", value: completed }, { label: "Active", value: active },
+          { label: "Conversations", value: threads.length }, { label: "Complete", value: completed }, { label: "Active", value: active },
           { label: "Knowledge pages", value: workspace?.counts.pages ?? "—" }, { label: "Retained sources", value: workspace?.counts.documents ?? "—" },
         ]} />
         <section className="zopedia-research-grid">
           <div className="research-composer conversation-opening">
             <form onSubmit={submitResearch}>
               <label htmlFor="research-query">What do you want to understand?</label>
-              <textarea autoFocus id="research-query" maxLength={4000} minLength={3} onChange={(event) => setQuery(event.target.value)} placeholder="Ask about a company, market event, sector, portfolio, or macro shift" required rows={8} value={query} />
+              <textarea autoFocus id="research-query" maxLength={4000} minLength={1} onChange={(event) => setQuery(event.target.value)} placeholder="Ask Zopedia" required rows={8} value={query} />
               <div className="composer-actions"><button className="primary-button" disabled={submitting} type="submit">{submitting ? "Starting…" : "Start research"}</button></div>
             </form>
           </div>
           <section className="workbook-panel recent-threads">
-            <header className="panel-header"><div><p className="section-label">Continuity</p><h2>Recent threads</h2></div><button className="text-button" onClick={() => setTab("threads")} type="button">View all</button></header>
-            <div className="thread-list">{threads.slice(0, 8).map((thread) => <Link href={`/zopedia/runs/${encodeURIComponent(thread.run_id)}`} key={thread.run_id}><span>{thread.query}</span><small>{statusLabel(thread.status)} · {dateTime(thread.updated_at)}</small></Link>)}</div>
+            <header className="panel-header"><div><h2>Recent conversations</h2></div><button className="text-button" onClick={() => setTab("threads")} type="button">View all</button></header>
+            <div className="thread-list">{threads.slice(0, 8).map((thread) => <Link href={`/zopedia/conversations/${encodeURIComponent(thread.conversation_id)}`} key={thread.conversation_id}><span>{thread.title}</span><small>{statusLabel(thread.status)} · {dateTime(thread.updated_at)}</small></Link>)}</div>
           </section>
         </section>
       </> : null}
 
       {tab === "threads" ? <section className="workbook-panel">
-        <header className="panel-header"><div><p className="section-label">Conversation history</p><h2>Research threads</h2></div><span>{threads.length}</span></header>
-        <div className="thread-ledger">{threads.map((thread) => <Link className={thread.metadata.parent_run_id ? "child-thread" : ""} href={`/zopedia/runs/${encodeURIComponent(thread.run_id)}`} key={thread.run_id}><div><strong>{thread.query}</strong><small>{thread.metadata.parent_run_id ? "Follow-up" : "Research"} · {dateTime(thread.created_at)}</small></div><span className={`status-badge status-${thread.status}`}>{statusLabel(thread.status)}</span></Link>)}</div>
+        <header className="panel-header"><div><p className="section-label">Conversation history</p><h2>Conversations</h2></div><span>{threads.length}</span></header>
+        <div className="thread-ledger">{threads.map((thread) => <Link href={`/zopedia/conversations/${encodeURIComponent(thread.conversation_id)}`} key={thread.conversation_id}><div><strong>{thread.title}</strong><small>{thread.turn_count} {thread.turn_count === 1 ? "message" : "messages"} · {dateTime(thread.created_at)}</small></div><span className={`status-badge status-${thread.status}`}>{statusLabel(thread.status)}</span></Link>)}</div>
       </section> : null}
 
       {tab === "sources" ? <>

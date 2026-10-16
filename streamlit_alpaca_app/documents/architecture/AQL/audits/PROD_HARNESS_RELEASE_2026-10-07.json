@@ -1,0 +1,450 @@
+{
+  "release": "prod-harness-20261007-0pjpbgoq",
+  "environment": "production",
+  "user_authorization": "Deploy to prod \u2014 October 7, 2026",
+  "verified_at_utc": "2026-10-08T04:50:32.031728+00:00",
+  "site": "https://spectral-nature.com",
+  "acr_runs": {
+    "api-next": "cjsa",
+    "jobs-legacy": "cjse"
+  },
+  "targets": [
+    {
+      "name": "sn-streamlit-ui",
+      "image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:c5077aac653ee980245d680fbf517267446ce331a17b3734e5f5f0c0994e1679",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:9c3de0f897e9c6b56d459ac925dca8045f46b91626cbeac081c8da92a8d66d98",
+      "revision": "sn-streamlit-ui--0000088",
+      "ready_revision": "sn-streamlit-ui--0000088",
+      "added_env": {},
+      "other_config_preserved": true,
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "name": "sn-next-ui",
+      "image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:c5077aac653ee980245d680fbf517267446ce331a17b3734e5f5f0c0994e1679",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:9c3de0f897e9c6b56d459ac925dca8045f46b91626cbeac081c8da92a8d66d98",
+      "revision": "sn-next-ui--0000004",
+      "ready_revision": "sn-next-ui--0000004",
+      "added_env": {},
+      "other_config_preserved": true,
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "name": "sn-api-next",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:2c91dc77d99424aa5c93fe4ca2160c6546acdb168ac440198bb4e0bc07fcce5a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/api-next-dev@sha256:45e87d1cd5895d853d4a094ed16405a024b5b15fa9d1ae90f812acfb5bb9c4a5",
+      "revision": "sn-api-next--0000003",
+      "ready_revision": "sn-api-next--0000003",
+      "added_env": {},
+      "other_config_preserved": true,
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "name": "universe-builder",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "equities-intraday-preload",
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:9a40f9862a84c6cd045a750d4522abdd05921e2c26eb57583866f235637d0bbc",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "macro-fred-daily",
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:9eccf5a14f7635fe37604853ca5045976db19ca7c30457aa63201749055366e6",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-macro@sha256:89db7175f52ac6b44be399526bbccd93884a31c0408d09ee0d7f9fed0a485571",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "commodities-regime",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "options-liquid-universe",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "news-ingest-and-features",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "attention-home-build",
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:9a40f9862a84c6cd045a750d4522abdd05921e2c26eb57583866f235637d0bbc",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "other_config_preserved": true
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "trading-agent-build",
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-trading@sha256:713fad3813fe8ef168c37a34b7733b689f97cb65adf0e6552b9255c87fb88633",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "zopedia-maintenance",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "zopedia-learning",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "system-health",
+      "image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {
+        "APP_TRACK": "production"
+      },
+      "other_config_preserved": true
+    },
+    {
+      "name": "sn-research-run",
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:4c957261c88bbb4f31a8f74c9d0dc3f1bf202c889a4bc8341b2a8050770f8c6e",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-research@sha256:a1782b4d9bb7dd61e2d9730686e959fa3fd0eefbe815bd8328d9efffb40267d6",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "other_config_preserved": true
+    }
+  ],
+  "excluded_resources": [
+    {
+      "name": "sn-streamlit-ui-dev",
+      "unchanged": true
+    },
+    {
+      "name": "sn-api-dev",
+      "unchanged": true
+    },
+    {
+      "name": "sn-api",
+      "unchanged": true
+    },
+    {
+      "name": "sn-api-next-dev",
+      "unchanged": true
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "unchanged": true
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "unchanged": true
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "unchanged": true
+    },
+    {
+      "name": "sn-research-run-dev",
+      "unchanged": true
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "unchanged": true
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "unchanged": true
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "unchanged": true
+    },
+    {
+      "name": "attention-home-next-dev",
+      "unchanged": true
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "unchanged": true
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "unchanged": true
+    },
+    {
+      "name": "technical-history-next-dev",
+      "unchanged": true
+    },
+    {
+      "name": "equities-next-dev",
+      "unchanged": true
+    }
+  ],
+  "source_artifacts": [
+    {
+      "name": "api-next",
+      "base": "snpipelineacr03130136.azurecr.io/api-next-dev@sha256:45e87d1cd5895d853d4a094ed16405a024b5b15fa9d1ae90f812acfb5bb9c4a5",
+      "tag": "harness-prod:prod-harness-20261007-0pjpbgoq-api-next",
+      "targets": [
+        "sn-api-next"
+      ],
+      "source_sha256": {
+        "api/main.py": "9b452ea5ed5e190aebf05b158562a0c49770774316f7ed9a8d8115dfbeace4a1",
+        "services/zopedia_agent.py": "72acdef7c304619d29ac5c33366c1d6c4f83ccfb7db23c824ec91f78536fba5d",
+        "services/page_agentic_summary.py": "9cdbff4eb5f36c4491dc7a7181cab19ebd60cccaa69ee2382d1685d49b5ec74d",
+        "services/aql_zopedia_gateway.py": "6313ac41308caa652f011ca8e4b3cdcbe3f6fcb0c696757e5aec0cdafd11fdd9",
+        "services/llm.py": "b810a346ef3001f4b4c5ca07ea07206e5187aabb24f323b948d69f8a0d6de79d",
+        "services/trading_agent.py": "acec674b077f2af5bc6138933227aee46adda324e065b8c158aeb9221ef815f6",
+        "services/attention_context_llm.py": "817b4dce13c178d328bd06b71ffbea8cf409cbec46cb0c5855ae619ca37481d0",
+        "services/admin_view.py": "4cfd7a4fa8e413bf33262e7f1bb0883e4ab4bd902c26266ac5f042b747a39332",
+        "services/aql_zopedia_engine.py": "0be18a612923eeb363f2dfd16729099ba8d14e4cc08973b2fb1fd528e5f08825",
+        "services/attention_live_research.py": "0645a3db5c23179336fbdd3017a042ad4267cb96870c0c5cde5e2dc3e5b64419",
+        "services/agents/chat_log.py": "0bfc5c138010fb153407abf411b55ecaa6162620b5ed2f490f1f8411fa3da484",
+        "services/agents/research_runs.py": "4f316db9ab94d013476c7d5ee916f23eb157e9b23a7caa780c9de29dedd1b617",
+        "services/aql/constants.py": "8081ff79d266a587ede389de32724008715f6a3e4e0aab96f9e01c492d1c9a89",
+        "services/aql/summarizer.py": "1a7abd759291e7844c144f6be9ab8a201ae20d8145c95fc395b8b21b7edaa073",
+        "services/aql/writer.py": "ff70e2c5fd24b956de1ef88bec836aaa426d25f97dc00dc3d424ba0757355387"
+      }
+    },
+    {
+      "name": "jobs-legacy",
+      "base": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "tag": "harness-prod:prod-harness-20261007-0pjpbgoq-jobs-legacy-v2",
+      "targets": [
+        "universe-builder",
+        "commodities-regime",
+        "options-liquid-universe",
+        "news-ingest-and-features",
+        "entity-taxonomy-refresh",
+        "fundamentals-quarterly-refresh",
+        "company-baseline-prefetch",
+        "zopedia-maintenance",
+        "zopedia-learning",
+        "system-health"
+      ],
+      "source_sha256": {
+        "services/zopedia_agent.py": "09327424ee12055bb91bd08e6fb54c545fad8f9537fbb4964f3b4aec11f66be2",
+        "services/aql_zopedia_gateway.py": "6313ac41308caa652f011ca8e4b3cdcbe3f6fcb0c696757e5aec0cdafd11fdd9",
+        "services/llm.py": "b810a346ef3001f4b4c5ca07ea07206e5187aabb24f323b948d69f8a0d6de79d",
+        "services/agents/chat_log.py": "0bfc5c138010fb153407abf411b55ecaa6162620b5ed2f490f1f8411fa3da484"
+      },
+      "baseline_review": "Inspected actual older llm.py: changes are superseded style text and older DeepSeek empty-response handling. Promote the exact accepted shared adapter module. Agent receives the exact shared language/harness patch with zero fuzz; preserve unrelated older loop behavior.",
+      "legacy_projection": {
+        "base_source_sha256": "a1e77de7cac1323bb7785078c68ee7fb750aacc904ca85bc6fcf9fe5220e224a",
+        "shared_patch_sha256": "f298f52f7a349d9fd5fffc56659893b8f7ce8590d9d18187e5347dc74116c83f",
+        "projected_source_sha256": "09327424ee12055bb91bd08e6fb54c545fad8f9537fbb4964f3b4aec11f66be2",
+        "patch_fuzz": 0
+      }
+    },
+    {
+      "name": "web",
+      "targets": [
+        "sn-streamlit-ui",
+        "sn-next-ui"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:c5077aac653ee980245d680fbf517267446ce331a17b3734e5f5f0c0994e1679",
+      "validated_dev_target": "sn-next-ui-dev"
+    },
+    {
+      "name": "trading",
+      "targets": [
+        "trading-agent-build"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04",
+      "validated_dev_target": "trading-agent-build-dev"
+    },
+    {
+      "name": "macro",
+      "targets": [
+        "macro-fred-daily"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:9eccf5a14f7635fe37604853ca5045976db19ca7c30457aa63201749055366e6",
+      "validated_dev_target": "macro-fred-daily-dev"
+    },
+    {
+      "name": "research",
+      "targets": [
+        "sn-research-run"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:4c957261c88bbb4f31a8f74c9d0dc3f1bf202c889a4bc8341b2a8050770f8c6e",
+      "validated_dev_target": "sn-research-run-dev"
+    },
+    {
+      "name": "pipeline",
+      "targets": [
+        "attention-home-build",
+        "equities-intraday-preload"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3",
+      "validated_dev_target": "attention-home-next-dev"
+    }
+  ],
+  "runtime_configuration": "Preserved except explicit APP_TRACK=production added to production workers lacking a scope label. Remove only that added key during rollback.",
+  "public_http_acceptance": [
+    {
+      "url": "https://spectral-nature.com/",
+      "http": 200
+    },
+    {
+      "url": "https://spectral-nature.com/health",
+      "http": 200
+    },
+    {
+      "url": "https://spectral-nature.com/api/home",
+      "http": 200,
+      "status": "available"
+    },
+    {
+      "url": "https://spectral-nature.com/zopedia",
+      "http": 200
+    },
+    {
+      "url": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io/health",
+      "http": 200
+    }
+  ],
+  "acceptance_basis": {
+    "accepted_development_receipt": "DEV_HARNESS_RELEASE_2026-10-07.json",
+    "legacy_worker_harness_contracts_passed": 26,
+    "controlled_live_answers_previously_read": 3,
+    "controlled_live_reviews_previously_read": 4,
+    "new_research_or_knowledge_created": false,
+    "jobs_started_for_acceptance": false
+  },
+  "legacy_public_api": "sn-api unchanged: separate older stack; both modern frontend entry points use sn-api-next.",
+  "runtime_acceptance": {
+    "revision": "sn-api-next--0000003",
+    "settings_scope": "production",
+    "style_is_80_default": true,
+    "style_has_80_percent": true,
+    "style_override_reset_needed": false,
+    "settings_writes": false,
+    "provider": "deepseek",
+    "configured_model": "deepseek-reasoner",
+    "agent_sha256": "72acdef7c304619d29ac5c33366c1d6c4f83ccfb7db23c824ec91f78536fba5d",
+    "typed_review_status": "failed",
+    "typed_answer_status": "draft",
+    "review_prose_removed": true,
+    "failed_review_allows_memory": false,
+    "health_http": 200,
+    "unauthenticated_admin_http": 401
+  },
+  "browser_acceptance": {
+    "signed_in_production_admin": "passed",
+    "authenticated_host": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+    "scope_visible": "production",
+    "model_and_language_controls_editable": true,
+    "active_language_rule": "80% ASD-STE100-inspired default",
+    "settings_written": false,
+    "screenshot": "PROD_LLM_ADMIN_2026-10-07.png",
+    "custom_domain_browser": "Correctly redirects to sign-in without its own host session; public HTTP/health/Home checks passed. No new session or credentials created."
+  },
+  "frontend_acceptance": {
+    "research_route_http": 200,
+    "delivered_draft_review_label": true,
+    "assets_checked": 9,
+    "research_or_conversation_created": false
+  }
+}

@@ -14,16 +14,23 @@ export async function POST(request: NextRequest) {
     const body = await readJsonBody(request);
     const query = body && typeof body === "object" ? String((body as Record<string, unknown>).query || "").trim() : "";
     const parentRunId = body && typeof body === "object" ? String((body as Record<string, unknown>).parent_run_id || "").trim() : "";
-    if (query.length < 3 || query.length > 4000) {
-      return noStoreJson({ error: "Research query must be 3-4000 characters." }, { status: 400 });
+    const fields = body && typeof body === "object" ? body as Record<string, unknown> : {};
+    const conversationId = String(fields.conversation_id || "");
+    if (query.length < 1 || query.length > 4000) {
+      return noStoreJson({ error: "Research query must be 1-4000 characters." }, { status: 400 });
     }
     if (parentRunId && !/^agrun_[a-zA-Z0-9_-]{8,64}$/.test(parentRunId)) {
       return noStoreJson({ error: "Parent research run is invalid." }, { status: 400 });
     }
+    if (conversationId && !/^zthread_[a-zA-Z0-9_-]{8,64}$/.test(conversationId)) {
+      return noStoreJson({ error: "Research conversation is invalid." }, { status: 400 });
+    }
     const response = await authorizedBackendFetch("/v1/research-runs", {
       method: "POST",
       headers: { "Idempotency-Key": idempotencyKey },
-      body: JSON.stringify({ query, parent_run_id: parentRunId }),
+      body: JSON.stringify({ query, parent_run_id: parentRunId, conversation_id: conversationId,
+        timezone: fields.timezone, asof_time_utc: fields.asof_time_utc,
+        allow_web: fields.allow_web, visible_artifacts: fields.visible_artifacts }),
     });
     return forwardJson(response, "Research run could not be created.");
   } catch (error) {

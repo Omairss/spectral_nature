@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 from typing import Any
 
+from data_access.query_service import QueryService
 from services.agents.chat_log import load_chat_session, load_chat_thread
 from services.saa.zopedia import apply_zopedia_typed_mutation
 from services.saa.storage import _db_connection
@@ -432,20 +433,7 @@ _CRITIC_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "properties": {
         "event_id": {"type": "string"},
-        "root_cause": {
-            "type": "string",
-            "enum": [
-                "tool_mismatch",
-                "premature_unavailable_claim",
-                "missing_fallback",
-                "input_contract_failure",
-                "code_generation_failure",
-                "model_synthesis_failure",
-                "source_trace_gap",
-                "confidence_overreach",
-                "ui_or_answer_surface_leak",
-            ],
-        },
+        "root_cause": {"type": "string"},
         "failed_assumption": {"type": "string"},
         "failed_claim": {"type": "string"},
         "successful_path": {
@@ -466,9 +454,9 @@ _CRITIC_SCHEMA: dict[str, Any] = {
         "required_future_evidence": {"type": "array", "items": {"type": "string"}},
         "proposed_change_type": {
             "type": "string",
-            "enum": ["eval_only", "tool_affordance_memory", "planner_contract", "safe_memory_update", "manual_review"],
+            "enum": ["no_change", "eval_only", "tool_affordance_memory", "planner_contract", "safe_memory_update", "manual_review"],
         },
-        "confidence": {"type": "number"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
     },
     "required": [
         "event_id",
@@ -485,67 +473,70 @@ _CRITIC_SCHEMA: dict[str, Any] = {
 }
 
 
-def _fallback_critique(event: dict[str, Any]) -> dict[str, Any]:
-    successful_path = [dict(item) for item in list(event.get("successful_path") or []) if isinstance(item, dict)]
-    tool_names = [_clean(item.get("tool")) for item in successful_path if _clean(item.get("tool"))]
-    forbidden = [
-        "stock data is unavailable",
-        "cannot query actual stocks",
-        "daily movers returned empty, so no market data",
-        "no price data available today",
-    ]
-    if _clean(event.get("root_cause")) == "ui_or_answer_surface_leak":
-        forbidden = ["tool-call ID", "run ID", "provider name", "debug reference"]
-    return {
-        "event_id": _clean(event.get("event_id")),
-        "root_cause": _clean(event.get("root_cause")) or "missing_fallback",
-        "failed_assumption": "The answer treated an earlier failed or insufficient path as final.",
-        "failed_claim": _clean(event.get("failed_claim")),
-        "successful_path": successful_path,
-        "should_try_earlier": tool_names,
-        "forbidden_future_claims": forbidden,
-        "required_future_evidence": [
-            "Use primitive evidence paths before saying data is unavailable.",
-            "Carry tool empty-result diagnostics into the final answer when relevant.",
-        ],
-        "proposed_change_type": _clean(event.get("proposed_change_type")) or "tool_affordance_memory",
-        "confidence": float(event.get("confidence") or 0.72),
-    }
-
-
 def critique_learning_event(
     event: dict[str, Any],
     thread: dict[str, Any] | None = None,
     run_payloads: list[dict[str, Any]] | None = None,
     llm_client: Any | None = None,
+    previous: dict[str, Any] | None = None,
+    on_pending: Any | None = None,
 ) -> dict[str, Any]:
+    from .aql_zopedia_engine import research_engine_revision, run_aql_zopedia_structured_agent
+
+    # Full episodes remain available without duplicating nested research traces
+    # into the initial critic request. These sources never enter shared memory.
+    records = {"episode": {"title": "Detected learning episode", "metadata": {"kind": "episode"},
+               "content": {key: value for key, value in event.items() if key not in {"metadata", "status"}}}}
+    for index, message in enumerate((thread or {}).get("messages") or []):
+        records[f"message:{index}"] = {"title": f"Conversation message {index}", "metadata": {
+            "kind": "message", "role": message.get("role"), "message_id": message.get("message_id"),
+            "created_at": message.get("created_at")}, "content": message}
+    for index, run in enumerate(run_payloads or []):
+        records[f"run:{index}"] = {"title": f"Research execution {index}", "metadata": {
+            "kind": "run", "run_id": run.get("run_id"), "status": run.get("status")}, "content": run}
+    service = QueryService.from_environment().with_supplied_evidence(records)
+    instructions = (
+        "You are the Zopedia learning critic. Review the original episode and conversation, then inspect relevant "
+        "execution records using the supplied evidence tools and JSON Pointers. Every original remains available. "
+        "The detected event is a hypothesis, not an established failure or diagnosis. Assess its meaning in context; "
+        "do not infer a failure from a phrase, missing optional tool or incomplete review alone. Distinguish an "
+        "execution failure from research quality and useful partial output. Produce a compact, auditable diagnosis and generalizable learning guidance. "
+        "If the failure premise is unsupported, say so and choose no_change rather than manufacturing a repair. "
+        "Do not invent successful paths, confidence or completed verification. "
+        "Future claims/evidence are semantic guidance for review, never literal phrase bans or mandatory tool sequences."
+    )
+    from services.llm import get_active_narrative_style_rule
+    config = getattr(llm_client, "config", None)
+    contract = {"evidence": service.supplied_evidence_manifest, "instructions": instructions,
+                "schema": _CRITIC_SCHEMA, "engine": research_engine_revision(),
+                "model_contract": {key: getattr(config, key, None) for key in (
+                    "provider", "base_url", "deployment", "api_version", "model", "thinking_mode", "reasoning_effort", "temperature")},
+                "style": get_active_narrative_style_rule(), "source_access": ["supplied"], "write_policy": "none"}
+    fingerprint = hashlib.sha256(_json_dumps(contract).encode()).hexdigest()
+    execution = {"input_fingerprint": fingerprint, "status": "pending", "attempted_at": _utc_now().isoformat()}
+    previous = previous or {}
+    if (previous.get("_execution") or {}).get("input_fingerprint") == fingerprint and (previous.get("_execution") or {}).get("status") == "completed":
+        return {**previous, "_reused": True}
+    if on_pending is not None:
+        on_pending()
     if llm_client is None:
-        return _fallback_critique(event)
-    system_prompt = (
-        "You are the Zopedia learning critic. Review a failed chat episode and produce a compact, "
-        "auditable root-cause record. Do not write user-facing narrative. Focus on tool affordances, "
-        "fallback paths, source coverage, and forbidden future claims."
-    )
-    user_prompt = _json_dumps(
-        {
-            "event": event,
-            "thread_messages": list((thread or {}).get("messages") or [])[-12:],
-            "run_payloads": list(run_payloads or [])[-3:],
-        }
-    )
+        return {"event_id": _clean(event.get("event_id")), "_execution": {**execution, "error": "LLM runtime unavailable"}}
     try:
-        result = llm_client.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            schema_name="zopedia_learning_critic",
-            schema=_CRITIC_SCHEMA,
+        operation = run_aql_zopedia_structured_agent(
+            query=f"Review learning episode {_clean(event.get('event_id'))}. Original question: {_clean(event.get('original_question'))}\n"
+                  + "Evidence manifest: " + _json_dumps(service.supplied_evidence_manifest),
+            instructions=instructions, schema_name="zopedia_learning_critic", schema=_CRITIC_SCHEMA,
+            task="zopedia_learning_critic", surface="services.zopedia_learning", llm_client=llm_client,
+            service=service, initial_evidence=[{"title": "Evidence navigation", **service.supplied_evidence_manifest}],
+            request_context={"allow_web": False, "allowed_source_access": ["supplied"]}, persist_findings=False, write_policy="none",
         )
-    except Exception:
-        return _fallback_critique(event)
-    if not isinstance(result, dict):
-        return _fallback_critique(event)
-    result.setdefault("event_id", _clean(event.get("event_id")))
-    return result
+        if operation.get("status") != "completed" or not isinstance(operation.get("payload"), dict):
+            raise RuntimeError(operation.get("error") or "Learning critique did not complete")
+        return {**operation["payload"], "event_id": _clean(event.get("event_id")),
+                "_execution": {**execution, "status": "completed"}}
+    except Exception as exc:
+        return {"event_id": _clean(event.get("event_id")),
+                "_execution": {**execution, "error": f"{type(exc).__name__}: {_clean(exc)[:1200]}"}}
 
 
 def build_regression_eval_case(event: dict[str, Any], critique: dict[str, Any]) -> dict[str, Any]:
@@ -557,28 +548,15 @@ def build_regression_eval_case(event: dict[str, Any], critique: dict[str, Any]) 
     required_tools = list(dict.fromkeys(required_tools))
     name = f"{_slug(question, default='zopedia_learning')}_{_clean(event.get('event_id'))[-8:]}"
     root_cause = _clean(critique.get("root_cause") or event.get("root_cause"))
-    forbidden_patterns = [_clean(item) for item in list(critique.get("forbidden_future_claims") or []) if _clean(item)]
-    if root_cause == "ui_or_answer_surface_leak":
-        forbidden_patterns.extend(["tool_call_id", "run_id", "provider", "debug", "eval.local"])
-    else:
-        forbidden_patterns.extend(
-            [
-                "stock data is unavailable",
-                "cannot query actual stocks",
-                "daily movers returned empty, so no market data",
-                "no price data available today",
-            ]
-        )
-    forbidden_patterns = list(dict.fromkeys(forbidden_patterns))
     return {
         "name": name,
         "thread_source": _clean(event.get("thread_id")),
         "learning_event_id": _clean(event.get("event_id")),
         "question": question,
-        "required_tool_patterns": required_tools,
-        "forbidden_answer_patterns": forbidden_patterns,
-        "required_answer_claims": list(critique.get("required_future_evidence") or []),
-        "confidence_rule": "confidence must be capped if required evidence slots remain unfilled",
+        "observed_successful_tools": required_tools,
+        "review_guidance": {"future_claims_to_reconsider": list(critique.get("forbidden_future_claims") or []),
+                            "useful_evidence": list(critique.get("required_future_evidence") or []),
+                            "failed_assumption": critique.get("failed_assumption")},
         "root_cause": root_cause,
         "benchmark_answer_summary": _clean(event.get("correction_summary")),
     }
@@ -602,8 +580,6 @@ def build_tool_affordance_update(event: dict[str, Any], critique: dict[str, Any]
         if not tool:
             continue
         tool_lines.append(f"- `{tool}` with arguments `{json.dumps(item.get('arguments') or {}, sort_keys=True)}`.")
-    if not tool_lines:
-        tool_lines.append("- Use the primitive evidence path named in the learning event before saying data is unavailable.")
     event_id = _clean(event.get("event_id"))
     title = f"Tool Affordance Learning: {event_id}"
     body = "\n".join(
@@ -698,7 +674,7 @@ def _persist_learning_event(conn: Any, event: dict[str, Any], *, commit: bool = 
                 "mutation_id": _clean(event.get("mutation_id")),
                 "eval_case_path": _clean(event.get("eval_case_path")),
                 "eval_status": _clean(event.get("eval_status")) or "not_generated",
-                "confidence": float(event.get("confidence") or 0.0),
+                "confidence": 0.0 if event.get("status") == "critique_pending" else float(event.get("confidence") or 0.0),
                 "created_at_utc": timestamp,
                 "updated_at_utc": timestamp,
                 "metadata_json": _json_dumps(dict(event.get("metadata") or {})),
@@ -781,10 +757,14 @@ def _recent_threads(conn: Any, *, limit: int) -> list[dict[str, str]]:
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT thread_id, user_key
-            FROM saa_zopedia_chat_threads
-            WHERE status <> 'deleted'
-            ORDER BY updated_at DESC
+            SELECT t.thread_id, t.user_key
+            FROM saa_zopedia_chat_threads t
+            LEFT JOIN LATERAL (
+                SELECT min(e.updated_at_utc) AS retry_at FROM saa_zopedia_learning_events e
+                WHERE e.thread_id=t.thread_id AND e.status IN ('critique_pending','review_pending')
+            ) pending ON true
+            WHERE t.status <> 'deleted'
+            ORDER BY (pending.retry_at IS NOT NULL) DESC, pending.retry_at ASC NULLS LAST, t.updated_at DESC
             LIMIT %s
             """,
             (max(int(limit), 1),),
@@ -814,6 +794,8 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
         "threads_scanned": 0,
         "events_detected": 0,
         "events_triaged": 0,
+        "critiques_pending": 0,
+        "critiques_reused": 0,
         "evals_generated": 0,
         "safe_updates_applied": 0,
         "verified": 0,
@@ -822,28 +804,58 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
     }
     generated_eval_events: list[tuple[str, str]] = []
     try:
-        bootstrap_zopedia_learning_storage(db_conn, commit=False)
+        if db_conn.info.transaction_status != 0:
+            raise ValueError("Zopedia learning requires a connection outside a transaction.")
+        bootstrap_zopedia_learning_storage(db_conn)
         try:
             llm_client = load_aql_zopedia_llm_client(surface="zopedia.learning_job", fallback_to_default=True)
         except Exception:
             llm_client = None
-        for row in _recent_threads(db_conn, limit=limit):
+        threads = _recent_threads(db_conn, limit=limit)
+        db_conn.commit()
+        for row in threads:
             summary["threads_scanned"] += 1
             thread = load_chat_thread(thread_id=row["thread_id"], user_key=row["user_key"], conn=db_conn)
+            db_conn.commit()
             if not thread:
                 continue
             run_payloads = _load_run_payloads_for_thread(thread)
             events = detect_learning_events_from_payload(thread, user_key=row["user_key"], run_payloads=run_payloads)
             summary["events_detected"] += len(events)
             for event in events:
-                critique = critique_learning_event(event, thread, run_payloads, llm_client)
+                with db_conn.cursor() as cur:
+                    cur.execute("SELECT metadata_json, eval_case_path, eval_status FROM saa_zopedia_learning_events WHERE event_id = %s", (event["event_id"],))
+                    prior_row = cur.fetchone()
+                prior_metadata = _json_dict(prior_row[0] if prior_row else {})
+                db_conn.commit()
+                # Save pending state before inference, so process death cannot masquerade as success.
+                event["status"] = "critique_pending"
+                event["metadata"] = {**dict(event.get("metadata") or {}), **prior_metadata}
+                critique = critique_learning_event(event, thread, run_payloads, llm_client,
+                    previous=prior_metadata.get("critic"), on_pending=lambda: _persist_learning_event(db_conn, event))
+                if critique.get("_reused"):
+                    summary["critiques_reused"] += 1
+                if (critique.get("_execution") or {}).get("status") != "completed":
+                    _merge_learning_event_metadata(db_conn, event["event_id"], {"critic": critique})
+                    db_conn.commit()
+                    summary["critiques_pending"] += 1
+                    continue
+                # A previously committed update/evaluation must not be applied or bought twice.
+                if critique.get("_reused"):
+                    if prior_row and prior_row[1] and prior_row[2] not in {"reviewed", "verified"}:
+                        generated_eval_events.append((event["event_id"], str(prior_row[1])))
+                    continue
                 event["status"] = "triaged"
                 event["root_cause"] = _clean(critique.get("root_cause")) or event.get("root_cause")
                 event["proposed_change_type"] = _clean(critique.get("proposed_change_type")) or event.get("proposed_change_type")
-                event["confidence"] = float(critique.get("confidence") or event.get("confidence") or 0.0)
+                event["confidence"] = float(critique.get("confidence") or 0.0)
                 event["metadata"] = {**dict(event.get("metadata") or {}), "critic": critique}
                 saved = _persist_learning_event(db_conn, event, commit=False)
                 summary["events_triaged"] += 1
+                if event["proposed_change_type"] == "no_change":
+                    _update_learning_event_fields(db_conn, saved["event_id"], status="reviewed_no_change", eval_status="not_required")
+                    db_conn.commit()
+                    continue
 
                 eval_case = build_regression_eval_case(saved, critique)
                 eval_path = persist_regression_eval_case(eval_case)
@@ -878,6 +890,8 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                             status="proposal_created" if proposal_id else "eval_generated",
                             proposal_id=proposal_id,
                         )
+                # Each event is durable before another critic/model call starts.
+                db_conn.commit()
         db_conn.commit()
 
         if _env_bool("ZOPEDIA_LEARNING_VERIFY_EVALS", True):
@@ -894,38 +908,24 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                     _update_learning_event_fields(
                         db_conn,
                         event_id,
-                        status="regressed",
+                        status="review_pending",
                         eval_status="replay_error",
                     )
-                    summary["regressed"] += 1
+                    summary["status"] = "partial"
+                    db_conn.commit()
                     continue
                 replay_status = _clean(replay.get("status"))
-                verification_metadata = {
-                    "verification": {
-                        "status": replay_status,
-                        "tool_names": list(replay.get("tool_names") or []),
-                        "forbidden_hits": list(replay.get("forbidden_hits") or []),
-                        "required_tool_hits": list(replay.get("required_tool_hits") or []),
-                    }
-                }
-                _merge_learning_event_metadata(db_conn, event_id, verification_metadata)
-                if replay_status == "passed":
-                    _update_learning_event_fields(
-                        db_conn,
-                        event_id,
-                        status="verified",
-                        eval_status="verified",
-                    )
-                    summary["verified"] += 1
-                else:
-                    _update_learning_event_fields(
-                        db_conn,
-                        event_id,
-                        status="regressed",
-                        eval_status="regressed",
-                    )
-                    summary["regressed"] += 1
+                if replay_status != "reviewed":
+                    summary["status"] = "partial"
+                _merge_learning_event_metadata(db_conn, event_id, {"verification": {
+                    "status": replay_status, "quality_review": replay.get("quality_review") or {},
+                    "tool_names": list(replay.get("tool_names") or []),
+                }})
+                _update_learning_event_fields(db_conn, event_id, status="reviewed" if replay_status == "reviewed" else "review_pending", eval_status=replay_status)
+                db_conn.commit()
             db_conn.commit()
+        if summary["critiques_pending"] or summary["status"] == "partial":
+            summary.update(status="partial", job_status="Warning", job_message=f"{summary['critiques_pending']} learning critiques remain pending; see retained review outcomes.")
         return summary
     except Exception:
         try:
@@ -950,29 +950,19 @@ def replay_learning_eval(eval_case_path: str, *, run_agent: bool = False) -> dic
 
     result = run_aql_zopedia_agent(
         query=_clean(payload.get("question")),
+        request_context={"task_context": {"learning_review_guidance": payload.get("review_guidance") or {}}},
         task="learning_eval_replay",
         surface="zopedia.learning",
         max_tool_calls=8,
         persist_findings=False,
+        write_policy="none",
     )
-    answer = _clean(result.get("answer_markdown"))
-    tool_names = [_clean(call.get("tool_name")) for call in list(result.get("tool_calls") or []) if isinstance(call, dict)]
-    forbidden_hits = [
-        pattern
-        for pattern in list(payload.get("forbidden_answer_patterns") or [])
-        if _clean(pattern) and _clean(pattern).lower() in answer.lower()
-    ]
-    required_tool_hits = [
-        pattern
-        for pattern in list(payload.get("required_tool_patterns") or [])
-        if any(_clean(pattern).split()[0] in name for name in tool_names)
-    ]
+    review = result.get("quality_review") or {}
     return {
-        "status": "passed" if not forbidden_hits and required_tool_hits else "failed",
+        "status": "execution_failed" if result.get("status") != "completed" else "reviewed" if review.get("status") == "completed" else "review_pending",
         "eval_case": payload,
-        "tool_names": tool_names,
-        "forbidden_hits": forbidden_hits,
-        "required_tool_hits": required_tool_hits,
+        "tool_names": [_clean(call.get("tool_name")) for call in result.get("tool_calls") or [] if isinstance(call, dict)],
+        "quality_review": review,
         "agent_result": result,
     }
 

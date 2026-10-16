@@ -7,7 +7,6 @@ struct HomeView: View {
   @State private var date = Date()
   @State private var replay = false
   @State private var showingDate = false
-  @State private var expandedBrief = false
   @State private var section = "Brief"
   var body: some View {
     ScrollView {
@@ -36,32 +35,30 @@ struct HomeView: View {
               if let summary = home.summary {
                 VStack(alignment: .leading, spacing: 16) {
                   Text(summary.headline).font(.title2.weight(.medium))
-                  if expandedBrief {
-                    MarkdownView(text: summary.markdown)
-                  } else {
-                    Text(
-                      (try? AttributedString(
-                        markdown: summary.markdown,
-                        options: .init(interpretedSyntax: .inlineOnlyPreservingWhitespace)))
-                        ?? AttributedString(summary.markdown)
-                    )
-                    .font(.subheadline).lineSpacing(4).lineLimit(5)
-                  }
-                  Button(expandedBrief ? "Collapse brief" : "Read brief") {
-                    withAnimation { expandedBrief.toggle() }
-                  }.font(.subheadline)
+                  MarkdownView(text: summary.markdown)
                   if summary.audioAvailable { BriefAudio(date: replay ? Format.day(date) : "") }
                 }
               }
               if let points = home.dailyDatapoints, !points.isEmpty {
-                Text("Key datapoints").font(.title3.weight(.semibold)).padding(.top, 12)
+                HStack {
+                  Text("Highlights").font(.title3.weight(.semibold))
+                  Spacer()
+                  if let selected = Format.date(home.dailyDatapointsAsOf ?? "") {
+                    Text(Format.historyDate(selected, years: false)).font(.caption).foregroundStyle(.secondary)
+                  }
+                }.padding(.top, 12)
                 ScrollView(.horizontal) {
                   HStack(alignment: .top, spacing: 16) {
                     ForEach(points) { point in
                       Panel(point.title) {
-                        TimeSeriesChart(trend: point.points, label: point.label)
+                        TimeSeriesChart(
+                          trend: point.points, label: point.label, price: point.kind == "price")
                         Text(point.significance).font(.subheadline).foregroundStyle(.secondary)
-                        Text("\(point.label) · \(point.unit) · \(point.date)").font(.caption2)
+                        Text(
+                          [point.label, point.unit, point.period ?? "", point.date].filter {
+                            !$0.isEmpty
+                          }.joined(separator: " · ")
+                        ).font(.caption2)
                           .foregroundStyle(.secondary)
                       }.containerRelativeFrame(.horizontal)
                     }
@@ -84,14 +81,11 @@ struct HomeView: View {
                     }.font(.subheadline)
                   }
                   ForEach(beat.tickers) { ticker in
-                    NavigationLink {
-                      AccessGate { InvestigatorView(ticker: ticker.symbol) }
-                    } label: {
-                      TickerCard(ticker: ticker)
-                    }.buttonStyle(.plain)
+                    AttentionTickerCard(ticker: ticker)
                   }
                 }
               }
+            }
               if let graph = home.graph {
                 NavigationLink {
                   AttentionGraphView(artifact: graph)
@@ -100,7 +94,6 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(.bordered)
               }
-            }
             if let asOf = Format.date(home.asOf) {
               Text("Updated \(asOf.formatted(date: .abbreviated, time: .shortened))").font(
                 .caption2
@@ -152,46 +145,54 @@ struct HomeView: View {
   }
 }
 
-private struct TickerCard: View {
+struct AttentionTickerCard: View {
   let ticker: TickerSnapshot
+  private var intraday: TickerSnapshot.IntradayHistory? {
+    guard let value = ticker.intradayPriceHistory, !value.points.isEmpty else { return nil }
+    return value
+  }
+  private struct Fundamental: Identifiable {
+    let id: String
+    let label: String
+    let value: Double?
+    let color: Color
+  }
+  private var fundamentals: [Fundamental] {
+    let useFreeCashFlow = ticker.freeCashFlow != nil
+      || !(ticker.financialTrends?["free_cash_flow"] ?? []).isEmpty
+    return [
+      Fundamental(id: "revenue", label: "Revenue", value: ticker.revenue, color: Theme.teal),
+      Fundamental(id: "net_income", label: "Net income", value: ticker.netIncome, color: Theme.violet),
+      useFreeCashFlow
+        ? Fundamental(id: "free_cash_flow", label: "Free cash flow", value: ticker.freeCashFlow, color: Theme.blue)
+        : Fundamental(id: "operating_cash_flow", label: "Operating cash flow", value: ticker.operatingCashFlow, color: Theme.blue),
+      Fundamental(id: "total_assets", label: "Total assets", value: ticker.totalAssets, color: Theme.teal),
+      Fundamental(id: "stockholders_equity", label: "Equity", value: ticker.stockholdersEquity, color: Theme.violet),
+    ].filter { $0.value != nil || !(ticker.financialTrends?[$0.id] ?? []).isEmpty }
+  }
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      HStack(alignment: .top) {
-        VStack(alignment: .leading, spacing: 4) {
-          Text(ticker.symbol).font(.subheadline.weight(.semibold))
-          Text(ticker.companyName).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-        }
-        Spacer()
-        VStack(alignment: .trailing, spacing: 4) {
-          Text(Format.money(ticker.latestClose)).font(.subheadline.weight(.medium))
-            .monospacedDigit()
-          Text(Format.percent(ticker.priceChange1DPct)).font(.caption).monospacedDigit()
-            .foregroundStyle(Theme.tone(ticker.priceChange1DPct))
-        }
-        Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.secondary).padding(
-          .top, 5)
-      }
-      Metrics(items: [
-        ("Market cap", Format.money(ticker.marketCap, compact: true)),
-        ("1 month", Format.percent(ticker.priceChange1MPct)),
-        ("Revenue", Format.money(ticker.revenue, compact: true)),
-        ("Revenue YoY", Format.percent(ticker.revenueYoyPct)),
-        ("Net income", Format.money(ticker.netIncome, compact: true)),
-        ("Free cash flow", Format.money(ticker.freeCashFlow, compact: true)),
-      ])
-      ForEach(
-        [
-          ("revenue", "Revenue"), ("net_income", "Net income"),
-          ("free_cash_flow", "Free cash flow"),
-        ], id: \.0
-      ) { key, label in
-        if let trend = ticker.financialTrends?[key], !trend.isEmpty {
-          Text(label).font(.caption2).foregroundStyle(.secondary)
-          TimeSeriesChart(trend: trend, label: label, height: 90)
-        }
-      }
-      if !ticker.fundamentalsPeriod.isEmpty {
-        Text(ticker.fundamentalsPeriod).font(.caption2).foregroundStyle(.secondary)
+      NavigationLink {
+        AccessGate { InvestigatorView(ticker: ticker.symbol) }
+      } label: {
+        InstrumentHeading(
+          symbol: ticker.symbol, name: ticker.companyName,
+          price: intraday?.points.last?.value ?? ticker.latestClose,
+          change: intraday != nil ? intraday?.changePct : ticker.priceChange1DPct,
+          priceLabel: intraday != nil ? "Price" : "Last close", disclosure: true, compact: true)
+      }.buttonStyle(.plain)
+      PriceContextChart(symbol: ticker.symbol, daily: ticker.priceTrend ?? [], intraday: intraday)
+      let facts = (ticker.marketCap.map { [("Market cap", Format.money($0, compact: true))] } ?? [])
+        + (ticker.priceChange1MPct.map { [("1 month", Format.percent($0))] } ?? [])
+      if !facts.isEmpty { Metrics(items: facts) }
+      if !fundamentals.isEmpty {
+        LazyVGrid(columns: [GridItem(.flexible(), alignment: .top), GridItem(.flexible(), alignment: .top)],
+                  alignment: .leading, spacing: 14) {
+          ForEach(fundamentals) { metric in
+            FundamentalHistoryChart(label: metric.label, value: metric.value,
+                                    history: ticker.financialTrends?[metric.id] ?? [], color: metric.color)
+          }
+        }.font(.caption)
       }
     }.padding(14).background(Theme.background, in: RoundedRectangle(cornerRadius: 10))
   }

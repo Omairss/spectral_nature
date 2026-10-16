@@ -64,6 +64,11 @@ actor APIClient {
     return try decode(await data(path, method: "POST", body: encoded, key: key))
   }
 
+  func patch<T: Decodable>(_ path: String, body: Record) async throws -> T {
+    let encoded = try JSONEncoder().encode(body)
+    return try decode(await data(path, method: "PATCH", body: encoded))
+  }
+
   func dataset<T: Decodable>(_ name: String, params: Record = [:]) async throws -> T {
     let response: DatasetResponse<T> = try await post(
       "/api/datasets/\(name)", body: ["params": .object(params)])

@@ -1,0 +1,75 @@
+{
+  "baseline": "accepted system-reliability release + Health v2",
+  "scoped_functions": {
+    "services/zopedia_agent.py": [
+      "_invoke_tool_with_heartbeat",
+      "_run_hidden_step_with_timeout"
+    ],
+    "services/pipeline_store.py": [
+      "_write_cached_metadata",
+      "reconcile_dataset_manifests",
+      "_blob_io_options",
+      "ImmutableBlobArchive",
+      "_read_blob_json",
+      "_stable_latest_manifest_metadata",
+      "_publication_generation",
+      "publish_dataset_manifest",
+      "latest_dataset_metadata",
+      "_uncached_latest_dataset_metadata",
+      "load_recent_dataset_frames",
+      "reconcile_provider_attempt_receipts",
+      "provider_usage_rollup"
+    ],
+    "services/saa/semantic_index.py": [
+      "_projection_store",
+      "_projected_batch",
+      "_projected",
+      "refresh_evidence_index",
+      "sync_zopedia_evidence",
+      "sync_recent_news_evidence"
+    ],
+    "pipeline/jobs/main.py": [
+      "_db_connection",
+      "_upload_manifest",
+      "_call_with_timeout",
+      "run_system_recovery",
+      "run_evidence_index",
+      "main"
+    ],
+    "services/operational_health.py": [
+      "_database"
+    ],
+    "pipeline/jobs/attention_home_build.py": [
+      "_call_with_timeout"
+    ],
+    "services/aql/pipeline.py": [
+      "_call_with_timeout"
+    ],
+    "services/zopedia_research.py": [
+      "_run_with_timeout"
+    ]
+  },
+  "context_propagation": "Executor submissions in Attention, AQL and live research inherit their owning context",
+  "changed": {
+    "services/zopedia_agent.py": "b73f406c1856c5cde1ff9deadf6c8e4dbf4395f375d8dc33cac9a187b2d58924",
+    "services/pipeline_store.py": "c10697dce87ec99e58d1173445c0b2fcf00c91a5b78aa41531d0a705f5577a98",
+    "services/saa/semantic_index.py": "68c3e349bbc74269e33a60acb3774beea749764c21f13cc5c94acec3e9643a63",
+    "pipeline/jobs/main.py": "f605b1c18d80126a873eaf7224d8d651f64c481f9cbcf1f51f7538b04585b925",
+    "services/operational_health.py": "a01439e3dd47ea9372ca01689f0ede25eb2f8bea56d15ef2706035201b4ea7a5",
+    "pipeline/jobs/attention_home_build.py": "5e9d3ec827f58b3ab6da92063d70fcb91027435d0515818862156e7cd8552941",
+    "services/aql/pipeline.py": "13d46da7cf7add8256aefdd97bb3f149734cbf8139169e9ab701642e281d7d9b",
+    "services/zopedia_research.py": "bf8db36451afa5b6a4b30940c9a0be087f337a7d108590f33722cd219332d699",
+    "services/database.py": "79d55fa089a01fd2d67d76a388da77242f36c28407e9494b37023ecc88fab151",
+    "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
+    "services/system_health.py": "1bd9dd0a1b133ede9818ae91aae8ad36413d81b5167c0a4dec4220fb04b34ce2"
+  },
+  "unchanged_guards": {
+    "services/aql_zopedia_engine.py": "30cdbd3487a062845b23356db452941f3a8a8c33955b1850cfc854a868be5f81",
+    "services/agent_tools.py": "9cdfe95d3d0657afc8a0f40ccf9de7b61c155142ac3b089e71c8a7c9a261835d",
+    "services/llm.py": "f06267cbf10c19be995f4e08bbaf5e5076ec33df7f506e0d9b610e7cf59631a5",
+    "services/llm_execution.py": "057ac18584aa3dba45cab7f4492dc134f6134a427c6f9551c19affa7e11fdcf0",
+    "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854"
+  },
+  "baseline_files": 160,
+  "excluded": "Concurrent trading tracking, unaccepted reasoning/cost candidate and unrelated UI/workspace changes"
+}

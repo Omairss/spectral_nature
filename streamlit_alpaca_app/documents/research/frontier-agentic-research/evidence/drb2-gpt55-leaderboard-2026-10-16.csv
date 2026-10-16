@@ -1,0 +1,7 @@
+model,total_score,info_recall,analysis,presentation,blocked_rate,valid_tasks,organization,source_type,link
+Beane Harness - Jatin Hans - UAE,56.70,52.86,61.75,85.29,0.19,132,Independent (Jatin Hans),Closed-source,https://jatinhans.com/lab/researcher/
+GPT-o3 Deep Research,43.00,38.05,46.37,83.49,2.13,131,"OpenAI, 2025",Closed-source,https://openai.com/index/introducing-deep-research/
+Gemini 3 Pro Deep Research,41.40,36.58,43.91,84.94,0.71,129,"Google, 2025",Closed-source,
+Gemini 2.5 Pro Deep Research,39.98,34.28,49.11,77.98,2.58,132,"Google, 2024",Closed-source,https://gemini.google/overview/deep-research/
+Doubao Deep Research,37.36,32.58,44.12,71.53,0.92,127,ByteDance,Closed-source,https://www.doubao.com/chat/
+Perplexity Research,33.65,29.16,36.26,73.41,1.04,127,"Perplexity AI, 2025",Closed-source,https://www.perplexity.ai/

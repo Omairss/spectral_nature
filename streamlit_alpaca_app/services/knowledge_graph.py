@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+from services.database import open_database_session
+
 from datetime import datetime, timezone
 import json
+import hashlib
+import threading
 import math
 import os
 from pathlib import Path
@@ -239,7 +243,7 @@ def _db_connect() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
+        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 
@@ -872,8 +876,9 @@ def _embedding_scores(query: str, candidates: list[dict[str, Any]]) -> dict[str,
     return scores
 
 
-# Cache: frozenset(node_ids) -> {node_id: embedding_vector}
-_NODE_VECTOR_CACHE: dict[frozenset, dict[str, list[float]]] = {}
+# Content and embedding-space identity, never just the set of node IDs.
+_NODE_VECTOR_CACHE: dict[str, dict[str, list[float]]] = {}
+_NODE_VECTOR_LOCK = threading.Lock()
 
 
 def _node_embedding_text(node: dict[str, Any]) -> str:
@@ -889,25 +894,44 @@ def _node_embedding_text(node: dict[str, Any]) -> str:
     return ". ".join(parts)
 
 
+
 def _get_node_vectors(nodes_by_id: dict[str, Any]) -> dict[str, list[float]]:
-    """Batch-embed all nodes using rich text; result is cached by node-id set."""
-    cache_key = frozenset(nodes_by_id.keys())
-    if cache_key in _NODE_VECTOR_CACHE:
-        return _NODE_VECTOR_CACHE[cache_key]
-    embedding_client = load_embedding_client()
-    if embedding_client is None or not nodes_by_id:
+    from .llm import llm_settings_scope
+    from .llm import embedding_space
+    from .pipeline_store import read_execution_states, write_execution_states
+    client = load_embedding_client()
+    if client is None or not nodes_by_id:
         return {}
-    node_ids = list(nodes_by_id.keys())
-    texts = [_node_embedding_text(nodes_by_id[nid]) for nid in node_ids]
-    try:
-        vectors = embedding_client.generate_embeddings(texts)
-    except Exception:
-        return {}
-    if len(vectors) != len(node_ids):
-        return {}
-    result = dict(zip(node_ids, vectors))
-    _NODE_VECTOR_CACHE[cache_key] = result
-    return result
+    texts = {node_id: _node_embedding_text(node) for node_id, node in sorted(nodes_by_id.items())}
+    space = embedding_space(client)
+    namespace = "graph_vectors:" + llm_settings_scope() + ":" + hashlib.sha256(space.encode()).hexdigest()
+    keys = {node_id: hashlib.sha256(text.encode()).hexdigest() for node_id, text in texts.items()}
+    snapshot_key = hashlib.sha256(json.dumps([space, keys], sort_keys=True).encode()).hexdigest()
+    with _NODE_VECTOR_LOCK:
+        if snapshot_key in _NODE_VECTOR_CACHE:
+            return _NODE_VECTOR_CACHE[snapshot_key]
+        try:
+            saved = read_execution_states(namespace, list(set(keys.values())))
+        except Exception:
+            saved = {}
+        result = {node_id: saved[key]["vector"] for node_id, key in keys.items()
+                  if isinstance(saved.get(key, {}).get("vector"), list)}
+        missing = {keys[node_id]: texts[node_id] for node_id in texts if node_id not in result}
+        if missing:
+            try:
+                vectors = client.generate_embeddings(list(missing.values()))
+                new_values = {key: {"vector": vector} for key, vector in zip(missing, vectors, strict=True)}
+            except Exception:
+                return result
+            try:
+                write_execution_states(namespace, new_values)
+            except Exception:
+                pass
+            saved.update(new_values)
+            result = {node_id: saved[key]["vector"] for node_id, key in keys.items()}
+        _NODE_VECTOR_CACHE.clear()
+        _NODE_VECTOR_CACHE[snapshot_key] = result
+        return result
 
 
 def search_knowledge_graph_nodes(
@@ -1216,41 +1240,6 @@ def _collect_seed_neighborhood(
     return nodes, edges
 
 
-def _web_research_lines(query: str, seed_nodes: list[dict[str, Any]], *, limit: int = 4) -> list[str]:
-    query_base = _clean(query)
-    seed_labels = [str(node.get("canonical_label") or node.get("node_id") or "").strip() for node in seed_nodes if str(node.get("canonical_label") or node.get("node_id") or "").strip()]
-    if seed_labels:
-        query_base = f"{query_base} {' '.join(seed_labels[:2])} dependencies downstream uses supply chain"
-    if not query_base:
-        return []
-    rows: list[str] = []
-    tavily_config = load_tavily_config()
-    if tavily_config is not None:
-        try:
-            client = TavilySearchClient(tavily_config)
-            for item in client.search(query_base, max_results=max(limit, 2), topic="general"):
-                title = _clean(item.title)
-                snippet = _clean(item.snippet)
-                source = _clean(item.source)
-                if title or snippet:
-                    rows.append(" | ".join(part for part in [title, source, snippet] if part))
-        except WebResearchError:
-            pass
-    if rows:
-        return rows[:limit]
-    serp_config = load_serpapi_config()
-    if serp_config is not None:
-        try:
-            client = SerpAPISearchClient(serp_config)
-            for item in client.search(query_base, news=False, num=max(limit, 2)):
-                title = _clean(item.title)
-                snippet = _clean(item.snippet)
-                source = _clean(item.source)
-                if title or snippet:
-                    rows.append(" | ".join(part for part in [title, source, snippet] if part))
-        except WebResearchError:
-            pass
-    return rows[:limit]
 
 
 _GRAPH_EXPANSION_SCHEMA: dict[str, Any] = {
@@ -1333,7 +1322,7 @@ def _agentic_graph_expansion(
         }
 
     _emit_status(status_callback, "research", "Collecting external context for the current query.")
-    research_lines = _web_research_lines(query, seed_nodes)
+    research_lines: list[str] = []
     node_catalog_lines = [
         f"- id={_clean(node.get('node_id'))} | label={_clean(node.get('canonical_label'))} | type={_clean(node.get('node_type'))}"
         for node in context_nodes[:18]
@@ -1369,12 +1358,28 @@ def _agentic_graph_expansion(
     )
     try:
         _emit_status(status_callback, "llm", "Asking the LLM for new node and edge suggestions.")
-        return llm_client.generate_json(
-            system_prompt=prompt,
-            user_prompt=user_prompt,
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=user_prompt,
+            instructions=prompt,
             schema_name="knowledge_graph_expansion",
             schema=_GRAPH_EXPANSION_SCHEMA,
+            task="knowledge_graph_expansion", stage="knowledge",
+            surface="services.knowledge_graph",
+            llm_client=llm_client,
+            max_tool_calls=4,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
+            run_timeout_seconds=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        return engine_operation["payload"]
     except LLMAPIError as exc:
         _emit_status(status_callback, "llm_error", "Expansion unavailable.")
         return {

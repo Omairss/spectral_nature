@@ -1,0 +1,601 @@
+[
+  {
+    "case": "finance",
+    "description": "financial arithmetic, no acquisition task premise",
+    "question": "Assess this retailer's performance and explain what the cash improvement establishes. Assume the records are audited and there were no acquisitions. Use only these records.\nUSD millions: year A revenue 100, gross profit 30, operating expenses 18, operating cash flow 8, capex 4. Year B revenue 120, gross profit 32, operating expenses 24, operating cash flow 14, capex 6.\nA broker says: \"Revenue growth improved profitability, and rising cash flow proves better collections and sustainable earnings.\" The records provide no working-capital reconciliation or collection figures. Give a concise explanation and one useful next investigation.",
+    "elapsed_seconds": 133.88925104099326,
+    "status": "completed",
+    "answer_markdown": "The retailer's revenue grew, but its profitability did not improve. Revenue rose from $100 million to $120 million. Implied cost of sales rose from $70 million to $88 million, and operating expenses rose from $18 million to $24 million. Gross profit rose only $2 million, from $30 million to $32 million. Operating profit (gross profit minus operating expenses) therefore fell from $12 million to $8 million. Gross margin fell from 30% to about 26.7%, and operating margin fell from 12% to about 6.7%. The records cannot separate price, product mix and cost effects, so the cost growth is an observed pattern, not a proven cause.\n\nThe cash improvement is real: operating cash flow rose from $8 million to $14 million, and cash after capital spending rose from $4 million to $8 million. That fact establishes only that the retailer generated more cash in Year B. It does not prove better collections. In Year A, operating cash flow was $4 million below calculated operating profit; in Year B it was $6 million above it. Without an indirect cash-flow statement, that rough comparison could come from non-cash items, customer and supplier timing, cash taxes, interest paid, or a one-off item such as a tax refund. It also does not prove sustainable earnings, because a timing or one-off cash change can improve one year without changing future profitability. The task assumes there were no acquisitions, so acquisitions do not explain the rise. An audit supports the reliability of the reported figures; it does not by itself show that no acquisition occurred.\n\nThe most useful next investigation is to obtain the indirect cash-flow statement for both years. It would separate the cash-flow change into operating profit, non-cash items and the working-capital lines for receivables, inventory and payables. If the collection question remained, days sales outstanding and a receivables aging list would show whether customer payment speed actually improved.",
+    "payload": null,
+    "analysis_basis": [
+      {
+        "claim": "Revenue growth did not improve profitability; operating profit fell from $12 million to $8 million.",
+        "basis": "The records show gross profit rising only from $30 million to $32 million while operating expenses rose from $18 million to $24 million. Implied cost of sales rose from $70 million to $88 million, so cost of sales and operating expenses grew faster than revenue; gross margin fell from 30% to about 26.7% and operating margin from 12% to about 6.7%."
+      },
+      {
+        "claim": "The cash improvement establishes only that operating cash flow and cash after capital spending rose, not the reason or persistence.",
+        "basis": "Operating cash flow rose from $8 million to $14 million and capital spending rose from $4 million to $6 million, so cash after capital spending rose from $4 million to $8 million. The records give no indirect cash-flow statement or working-capital reconciliation, so the change cannot be traced to collections, non-cash items, timing, cash taxes, interest or one-off receipts."
+      },
+      {
+        "claim": "Rising cash flow does not prove better collections or sustainable earnings.",
+        "basis": "The user states that the records provide no working-capital reconciliation or collection figures, and in Year A operating cash flow was $4 million below calculated operating profit while in Year B it was $6 million above it. This rough comparison cannot separate receipts, payments, non-cash items or timing."
+      },
+      {
+        "claim": "No acquisitions are excluded by the task premise, not by the audit.",
+        "basis": "The user assumes no acquisitions occurred. An audited set of records would simply include any acquisition, so an audit alone would not rule one out; the task assumption is the operative exclusion."
+      }
+    ],
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "revise",
+          "critique_summary": "The arithmetic and the core reasoning are correct and well matched to the request: revenue rose 20%, gross profit rose only $2 million, operating expenses rose $6 million, so calculated operating profit fell from $12 million to $8 million (margins 12% -> 6.7% and 30% -> 26.7%); operating cash flow rose $8 million -> $14 million and cash after capex $4 million -> $8 million; and the OCF-versus-operating-profit gap moved from -$4 million to +$6 million, which supports the draft's refusal to accept the broker's collection and sustainability claims. Two precision fixes are worth making: the acquisition exclusion comes from the user's stated premise, not from the fact that the records are audited; and the OCF-versus-profit gap is only a rough quality-of-cash signal, because OCF also carries cash taxes, interest and other items that the records do not separate. One cheap enrichment would sharpen the margin story: cost of sales rose from $70 million to $88 million (+25.7%) and operating expenses rose 33%, both faster than the 20% revenue growth, so costs, not revenue, drove the margin decline.",
+          "corrections": [
+            {
+              "claim": "\"Audited records and the absence of acquisitions remove acquisitions as an explanation.\"",
+              "correction": "Attribute the exclusion to the task premise alone. Say: \"The task assumes there were no acquisitions, so acquisitions do not explain the cash rise. An audit confirms that the reported numbers are reliable; it does not by itself show that no acquisition occurred.\"",
+              "basis": "The user states the no-acquisition assumption as a premise. An audit of a company that had made an acquisition would simply record the acquisition, so audit status alone carries no information about acquisitions.",
+              "counterexample": "A retailer buys a smaller chain, reports it in audited statements, and its cash flow rises because of the acquired stores. The audit is clean and the no-acquisition conclusion is still false."
+            },
+            {
+              "claim": "The $10 million shift between operating profit and operating cash flow is treated as coming from non-cash expenses, working-capital changes or timing.",
+              "correction": "Keep the list but label the comparison a rough proxy, not a reconciliation. Add that the gap also absorbs cash taxes, interest paid and other items, and that the records cannot separate them.",
+              "basis": "Operating cash flow is not operating profit plus or minus working capital alone. The supplied records contain no indirect cash-flow statement, so the composition of the $10 million shift is unknown.",
+              "counterexample": "A one-off tax refund raises operating cash flow in Year B with no change in collections, inventory, receivables or payables. The draft's list would miss the actual driver."
+            },
+            {
+              "claim": "Support for the claim that profitability declined rests on gross profit rising only $2 million while operating expenses rose $6 million.",
+              "correction": "Add the direct cost figures: cost of sales rose from $70 million to $88 million, up 25.7%, while revenue rose 20%; operating expenses rose 33%. This shows costs outgrew revenue at both the gross-profit and operating levels.",
+              "basis": "Cost of sales = revenue minus gross profit: $100M - $30M = $70M in Year A and $120M - $32M = $88M in Year B. The draft already reports the resulting margin decline, so the added figures are drawn from the same records.",
+              "counterexample": "Revenue could rise 20% while gross margin falls for reasons other than cost growth, such as a mix shift toward lower-margin goods. The records cannot separate price, mix and cost, so state the cost growth as an observation, not a proven cause."
+            }
+          ],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": [
+            "Request the Year A and Year B indirect cash-flow statements to split the $8 million to $14 million operating cash flow change into net income, non-cash items and each working-capital line (receivables, inventory, payables).",
+            "Request days sales outstanding and a receivables aging list for both years to test whether collections actually improved.",
+            "Request a year-over-year cost-of-sales breakdown (price, volume, mix) to explain the fall in gross margin from 30% to 26.7%."
+          ]
+        }
+      ],
+      "draft_sha256": "969d4c72c978cc149b5a777a591d9b108b3a2f2e771d1aee9ccc9272684f5eff",
+      "evidence_sha256": "28a82105aed0bc164d288cf5f24d447aee3b32df1e1c52d0660182eed6da4d94",
+      "research_requests": [
+        "Request the Year A and Year B indirect cash-flow statements to split the $8 million to $14 million operating cash flow change into net income, non-cash items and each working-capital line (receivables, inventory, payables).",
+        "Request days sales outstanding and a receivables aging list for both years to test whether collections actually improved.",
+        "Request a year-over-year cost-of-sales breakdown (price, volume, mix) to explain the fall in gross margin from 30% to 26.7%."
+      ],
+      "corrections_applied": true,
+      "pending_research_requests": [
+        "Request the Year A and Year B indirect cash-flow statements to split the $8 million to $14 million operating cash flow change into net income, non-cash items and each working-capital line (receivables, inventory, payables).",
+        "Request days sales outstanding and a receivables aging list for both years to test whether collections actually improved.",
+        "Request a year-over-year cost-of-sales breakdown (price, volume, mix) to explain the fall in gross margin from 30% to 26.7%."
+      ],
+      "resolution": "synthesis"
+    },
+    "limitations": [],
+    "error": null,
+    "raw_sha256": "a3aa48bd3a15509ad6f2d7255a14f180f02d95f51c04be7a1da6ad667fe75aff",
+    "provider_attempt_ids": [
+      "llmhttp_87fd144fa2ec4ea4a51c86856b8470c3",
+      "llmhttp_b959430514b64902958ad94c06df9ecb",
+      "llmhttp_0402ac47622f4c199029ea38c01f37f6"
+    ]
+  },
+  {
+    "case": "news",
+    "description": "routine structured news preparation, generic probe instructions",
+    "question": "Write a brief company update using only these records. On 2026-10-14, a manufacturer reported a signed three-year supply agreement with an existing customer. It starts in January 2027. Contract value and volume were not disclosed. Management says existing capacity can serve it. Retained company research dated September describes the same customer relationship and does not include this agreement. Explain what changed and what remains to be learned without inventing numerical forecasts.",
+    "elapsed_seconds": 10.495193874987308,
+    "status": "completed",
+    "answer_markdown": null,
+    "payload": {
+      "update": "On 2026-10-14, a manufacturer reported that it signed a three-year supply agreement with an existing customer (news report, 2026-10-14). The agreement starts in January 2027. The company did not disclose the contract value or the volume. Management said the company's existing capacity can serve the agreement.\n\nOne thing changed. Retained company research dated September 2026 described the same customer relationship, but that research did not include this agreement (retained company research, September 2026). So the customer relationship is not new. The new item is the signed, three-year commitment that begins in January 2027. Because the value and volume are not disclosed, we cannot measure the revenue or earnings effect, and we should not estimate it.\n\nSeveral items remain unknown. We do not know the contract value, the annual volumes, or the price and margin terms. We do not know which products or sites will supply the agreement. We also do not know whether the agreement replaces or adds to the customer's current orders. Finally, we do not know whether \"existing capacity can serve it\" means no new capital spending is needed. The September research alone cannot answer these points, and the news report does not resolve them.",
+      "next_question": "What are the agreement's annual volumes and prices, and does the agreement replace or add to the customer's existing orders?"
+    },
+    "analysis_basis": null,
+    "quality_review": null,
+    "limitations": null,
+    "error": null,
+    "raw_sha256": "e9af42bec134b1983eb0be912aa6b48b56a38d8646032cd34bbb4d2920438570",
+    "provider_attempt_ids": [
+      "llmhttp_87e3aab9cd3c476a8b68e134845beb23"
+    ]
+  },
+  {
+    "case": "source-initial",
+    "description": "initial source case; rejected",
+    "question": "A client receives HTTP 200 from a non-streaming DeepSeek request and continues receiving blank lines. Its own 75-second deadline then expires before a JSON answer arrives. Using the two acquired source pages, explain what these observations establish about the server, timeouts and possible failure cause. Outline an appropriate deadline and what telemetry would distinguish the remaining explanations. Keep it to three short paragraphs with useful source links.",
+    "elapsed_seconds": 221.42137287498917,
+    "status": "completed",
+    "answer_markdown": "The observations show documented keep-alive traffic, not a proven server fault. A non-streaming DeepSeek request may wait before inference starts, and during that wait the server may continuously return empty lines ([Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/)). HTTP 200 means the request was accepted within the concurrency limit; an over-limit request would instead return 429. The blank lines are not part of the JSON body and must be ignored. At 75 seconds, the server was still within DeepSeek's documented 10-minute no-start window. The client's own 75-second total deadline is therefore the most likely failure cause, although a later network or server stall cannot be ruled out from these facts alone.\n\nSplit the deadline into read inactivity and total time. HTTPX's read timeout measures the wait for the next received chunk, and every received chunk resets it ([Timeouts](https://www.python-httpx.org/advanced/timeouts/)). Blank lines reset that per-chunk timer, so the limit that expired at 75 seconds was an application-level total deadline, not an HTTPX read timeout. Set the read timeout from the longest silent gap observed across the entire request, including after generation begins, and add headroom: DeepSeek does not state the keep-alive period, and prompt processing or long reasoning may pause longer than the pre-generation blank-line interval. Set the total allowance above the documented 10-minute pre-inference window plus expected generation time. Do not rely on the server's 10-minute close as a substitute: if inference never starts, the client receives a closed socket and no JSON. Keep a separate fallback policy such as retry, alert, or a deliberate shorter business deadline.\n\nTelemetry should record the response status, headers, and a timestamp for every received chunk, blank line or not. If blank lines continue right up to the client's 75-second limit, the client's total deadline explains the failure. If the blank lines stop before that limit, a network or server stall becomes the more likely explanation. If the socket closes near 10 minutes with no JSON, inference never started. If ignoring the blank lines allows a JSON answer to arrive later, the short client deadline or parser handling caused the failure, not the server. Those timestamps separate the remaining explanations.",
+    "payload": null,
+    "analysis_basis": [
+      {
+        "claim": "The 200 status and continuing blank lines show accepted, documented keep-alive behavior, not a confirmed server failure.",
+        "basis": "DeepSeek says non-streaming requests may continuously return empty lines while the server waits, and over-limit requests return 429. The keep-alive traffic could still accompany a later stall, so it does not by itself prove success."
+      },
+      {
+        "claim": "The client's 75-second total deadline is the most likely failure cause.",
+        "basis": "HTTPX defines a read timeout as waiting for the next chunk and resets it on each received chunk, so blank lines prevent a read timeout from firing; the expired limit was a total timeout, and 75 seconds is still below DeepSeek's 10-minute no-start close."
+      },
+      {
+        "claim": "The read timeout should use the longest silent gap from the whole request, with headroom.",
+        "basis": "DeepSeek does not state a keep-alive cadence, and gaps after generation begins may be longer than observed pre-generation gaps; HTTPX resets the read timer on any received chunk."
+      },
+      {
+        "claim": "The total deadline should exceed the 10-minute pre-inference window plus expected generation time, while keeping a client fallback policy.",
+        "basis": "DeepSeek closes at 10 minutes only when inference has not started; a close is a failure signal with no JSON, not a success path, so a client still needs retry, alert, or a deliberate shorter business deadline."
+      },
+      {
+        "claim": "Per-chunk timestamps and the socket-close time distinguish the remaining explanations.",
+        "basis": "Blank lines continuing until the client limit implicate the client total deadline; earlier silence implicates network or server stall; a close near 10 minutes without JSON implicates no inference start; later JSON implicates the client limit or parser handling."
+      }
+    ],
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "revise",
+          "critique_summary": "The draft is relevant, well-structured and correctly joins the two sources: DeepSeek documents the empty-line keep-alive and the 10-minute no-inference close, and HTTPX documents that a read timeout resets on every received chunk. The main reasoning holds. Two points need tightening: the advice to 'rely on the server's documented close' understates what that close means for the client, and the proposed read timeout set from observed blank-line gaps can false-fire once real generation starts.",
+          "corrections": [
+            {
+              "claim": "Set any total deadline above the server's documented 10-minute pre-generation window plus expected generation time, or remove the total limit and rely on the server's documented close.",
+              "correction": "State that the server's 10-minute close is a failure signal, not a success path: if generation never starts, the client gets a closed connection and no JSON. A client that removes its own deadline will wait up to 10 minutes and still receive no answer, so keep a fallback policy (retry, alert or shorter business deadline) instead of presenting the server close as a substitute for a client deadline.",
+              "basis": "DeepSeek: 'If the request has not started inference after 10 minutes, the server will close the connection.' The close happens only when inference has not started, so no JSON body follows it.",
+              "counterexample": "A client set to timeout=None waits 10 minutes, then the socket closes with zero JSON bytes; it has no answer and no error payload to act on."
+            },
+            {
+              "claim": "Set a short read timeout based on the longest observed gap between blank lines to catch a truly silent connection.",
+              "correction": "Qualify this: gaps observed before generation starts may be shorter than gaps during generation. The DeepSeek page does not state a keep-alive cadence, and prompt processing or long reasoning can produce a longer silent stretch than any pre-generation blank-line interval. Base the read timeout on the longest gap seen across the whole request, including after generation begins, or add headroom.",
+              "basis": "HTTPX: the read timeout is 'the maximum duration to wait for a chunk of data to be received,' and each received chunk resets it. The DeepSeek page only says empty lines may be returned 'continuously' without giving a period or guaranteeing it during generation.",
+              "counterexample": "Blank lines arrive every 1 second for the first 75 seconds, so the client sets a 2-second read timeout; generation then starts and the model spends 6 seconds before its first output chunk, so the client raises ReadTimeout even though the server is healthy."
+            }
+          ],
+          "confidence": "medium",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "107851f7b6fdd95191e8e85c68c87e21077a984a16a63947a9c40050d464af83",
+      "evidence_sha256": "6e8a222367761da315a086895d53a1dde0dd4177d60943daaba26dca9dcec289",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "synthesis"
+    },
+    "limitations": [],
+    "error": null,
+    "raw_sha256": "d0e34b1524892e1e6f76b2f13e885f49c07a4e585a8d55b138753e877f3f81ad",
+    "provider_attempt_ids": [
+      "llmhttp_40ca8ce99675495e8fff1a0e30a0f43a",
+      "llmhttp_9bb28a0f309141f695853a3e111e9085",
+      "llmhttp_5d402f3c47344b1d8bfe2836cb804ac2"
+    ]
+  },
+  {
+    "case": "reservation",
+    "description": "unfamiliar reservation implication and user deadline",
+    "question": "Use only these supplied records. A booking system's policy says: if payment has not been confirmed after ten minutes, it cancels the reservation. Its event documentation says a cancellation event records the status and timestamp, not the reason. A reservation was cancelled at ten minutes; the payment record and reason are unavailable. Assume nobody cancelled it manually. Explain what the cancellation establishes, whether it proves payment was unconfirmed, and which records would resolve the cause. The customer needs a confirmed booking within two minutes: explain how to choose the customer-facing deadline. Keep the answer brief.",
+    "elapsed_seconds": 95.48149295797339,
+    "status": "completed",
+    "answer_markdown": "The cancellation establishes only that the reservation was cancelled at ten minutes and that the event stored its status and timestamp. It is consistent with the policy, because the policy says an unconfirmed payment after ten minutes causes cancellation. It does not prove that payment was unconfirmed. The event omits the reason, and the payment record is unavailable. The rule is one-way: it says what happens when payment is unconfirmed, not that this is the only automatic path.\n\nTo find the cause, you need a payment record with a timestamp showing whether payment was confirmed at the moment of cancellation, or a separate trigger log that records which rule cancelled the reservation. The cancellation event alone cannot answer this by its documented design.\n\nFor the customer deadline, start from the two-minute confirmation requirement, not the ten-minute cancellation limit. Make the customer complete payment early enough for the system to confirm and complete the booking within two minutes. That is two minutes minus the payment confirmation and booking completion time. For example, if confirmation takes 15 seconds, set the customer deadline to 1 minute 45 seconds. The ten-minute limit is only the latest cancellation boundary; it does not meet the customer's requirement.",
+    "payload": null,
+    "analysis_basis": [
+      {
+        "claim": "Cancellation at ten minutes is consistent with the unconfirmed-payment rule but does not prove payment was unconfirmed.",
+        "basis": "The policy is one-way; the event has no reason field and the payment record is unavailable. The given no-manual-cancellation assumption removes human intervention, not the missing payment evidence."
+      },
+      {
+        "claim": "The observed event establishes a cancellation with status and timestamp at ten minutes.",
+        "basis": "The user states the reservation was cancelled at ten minutes, and the event documentation says cancellation records status and timestamp only."
+      },
+      {
+        "claim": "A timestamped payment confirmation record or a cancellation-trigger log would resolve the cause.",
+        "basis": "The missing fact is the payment state at cancellation time; the cancellation event cannot carry the reason by its documented design."
+      },
+      {
+        "claim": "The customer-facing deadline should come from the two-minute requirement, reduced by confirmation and booking completion time, not from the ten-minute cancellation limit.",
+        "basis": "The customer needs a confirmed booking within two minutes; ten minutes is only the cancellation threshold and is later than the customer's requirement."
+      }
+    ],
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "accept",
+          "critique_summary": "The draft answers each part correctly and briefly. It separates what the event records (status and timestamp at ten minutes) from what it cannot show (the reason), and it explains why the policy is a one-way rule: it says an unconfirmed payment after ten minutes causes cancellation, not that only that cause can cancel. The assumed absence of manual cancellation rules out one alternative path but does not supply the missing payment fact, so the draft's caution is sound. The records it asks for \u2014 a timestamped payment confirmation record or a cancellation-trigger log \u2014 are exactly the missing evidence, because the missing fact is the payment state at cancellation time. The deadline logic is also correct: the customer-facing deadline is the two-minute confirmation target minus the payment confirmation and booking completion time, not the ten-minute cancellation limit, which is a later boundary and does not satisfy the customer's requirement. The 15-second example is internally consistent. No material factual or reasoning error found.",
+          "corrections": [],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "30672ebf04e3d038f0ed61b0ddc6d9d1bd812cdaa7dca576fd49bc1b1edb24bb",
+      "evidence_sha256": "28a82105aed0bc164d288cf5f24d447aee3b32df1e1c52d0660182eed6da4d94",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "accepted_existing_analysis"
+    },
+    "limitations": [],
+    "error": null,
+    "raw_sha256": "bdf3dd9d4173f14174abdd2b1971b55da6f47a0d9e25c593ae3e5af81bb49786",
+    "provider_attempt_ids": [
+      "llmhttp_48c7c4870a874cd2a217814f14073303",
+      "llmhttp_c1c3cb348c594f7b9096c1bbbc340a71"
+    ]
+  },
+  {
+    "case": "tools",
+    "description": "initial mandatory compact-view experiment; rejected",
+    "question": "A client receives HTTP 200 from a non-streaming DeepSeek request and continues receiving blank lines. Its own 75-second deadline then expires before a JSON answer arrives. Using the two acquired source pages, explain what these observations establish about the server, timeouts and possible failure cause. Outline an appropriate deadline and what telemetry would distinguish the remaining explanations. Keep it to three short paragraphs with useful source links.",
+    "elapsed_seconds": 278.7770240409882,
+    "status": "completed",
+    "answer_markdown": "The HTTP 200 and the blank lines tell you the request reached DeepSeek and was accepted. DeepSeek's own documentation says a non-streaming call can stay connected and keep returning empty lines while the server prepares the answer. Those empty lines are keep-alive padding, not part of the JSON. The same page says the server only closes the connection if inference has not started after 10 minutes, and that requests above the account's concurrency limit get HTTP 429 instead. So a 200 rules out a rate-limit rejection, but it does not prove that the model started generating text ([DeepSeek rate limit and keep-alive docs](https://api-docs.deepseek.com/quick_start/rate_limit/)).\n\nThe 75-second deadline is your client's own limit, not a server limit. It expired while the server was still holding the connection open, so nothing in these observations shows a server-side failure. Three explanations remain: the request sat in the queue and inference never started; inference started but the whole JSON body took longer than 75 seconds to arrive; or a network path or proxy stalled and the client saw only keep-alive lines. The second case is the most likely if the prompt or output is long, because a non-streaming call delivers the entire body in one piece at the end, so the client sees nothing useful until everything is finished. A client read timeout covers only the gap between bytes, and with keep-alive lines arriving the read timeout keeps resetting, so the connection can survive past the point where you expect it to stop ([httpx timeout behaviour](https://www.python-httpx.org/advanced/timeouts/)).\n\nA better deadline is split rather than a single 75-second total. Use a short connect timeout (about 5-10 seconds) and a read timeout that measures the gap between received bytes, then apply your own overall wall-clock cap below the server's 10-minute close \u2014 for example 120-300 seconds for non-streaming generation, or switch to streaming so tokens arrive as they are produced. To separate the remaining causes, record the request start time, time to connection established, time of the first non-blank byte (time to first byte), the keep-alive line cadence, and the exact time your deadline fires. Also log the response headers and any request ID, the HTTP status of every attempt (429 versus 200), retry count, and whether the final body contains usage or finish-reason fields. If the first byte ever arrives after 75 seconds, the cause is generation time, not a stall; if no non-blank byte ever arrives and the line cadence stops, suspect the network path or a queue that never began inference.",
+    "payload": null,
+    "analysis_basis": null,
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "accept",
+          "critique_summary": "The draft answers the question and stays inside the two supplied sources. Every source-based claim checks out: DeepSeek returns continuous empty lines on non-streaming keep-alive, closes the connection only if inference has not started after 10 minutes, and returns HTTP 429 when the concurrency limit is exceeded; httpx's read timeout is the maximum wait for a chunk of data, so a stream of keep-alive bytes keeps resetting it. The three candidate explanations (never started inference, generation slower than 75s, stalled network path) follow from those facts, the split-deadline recommendation is consistent with the httpx timeout model, and the telemetry list would distinguish them. Hypotheses (\"most likely if the prompt or output is long\") are correctly marked as likelihoods rather than proven causes. No material correction is needed.",
+          "corrections": [],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "fceb33956aba7535ee7b7c136253b22aeaae7dc7913de6b8f30a8590925a265c",
+      "evidence_sha256": "06ad25293bc84421d34b73dd6ee8c512e827988896ff32824c2fa5ba92bd88fe",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "accepted_existing_analysis"
+    },
+    "limitations": [
+      "Synthesis unavailable: ResearchStepTimeout",
+      "Synthesis unavailable: ResearchStepTimeout"
+    ],
+    "error": null,
+    "raw_sha256": "43e2b7c3e08f99fa63aa30057507edbf99c69b2643d39df685a1894f941e7a9e",
+    "provider_attempt_ids": [
+      "llmhttp_c723ccb80afa41f5ac429ad00d174f24",
+      "llmhttp_9ca9820ce9ea4121ad9ee80fdf033f6a",
+      "llmhttp_0cb6d0fe6da6407a980997bdfa887641",
+      "llmhttp_f059cb7e3f11455994f01ec2bfc60cc9",
+      "llmhttp_fc689715abd0409586586d34848dd03c",
+      "llmhttp_4f747557c98142e0bb66e00b9f80bd22",
+      "llmhttp_9f66d2c5ef6b4ef68e5561f5baee754f",
+      "llmhttp_4e3c76e6095844ed9fef86645c2f2520",
+      "llmhttp_825023d226984876a726321e3c36706c",
+      "llmhttp_ff17d54d795b4202a716188b4b231759",
+      "llmhttp_b1dce2f46c274bc0a8b8a6522008c2c7",
+      "llmhttp_71233a09373b4f5cb69909a5fca7533f",
+      "llmhttp_de2544025f774059950626e06e962b7a",
+      "llmhttp_4a1ebc9bf17b4e33a1324e40be8172b3",
+      "llmhttp_0e20f5cdb95b4bd6b776af46914be9c8",
+      "llmhttp_17552a1f12af452884916ddfc11ff6b8",
+      "llmhttp_32d579a2600b4603aca0114fe97a7353",
+      "llmhttp_d382d018c3e4483cae3afe72cda4c930",
+      "llmhttp_8147ee9000c346b6b844e44598cbd8c8",
+      "llmhttp_d4d3d09467b9459da39b9f5a11bb7562",
+      "llmhttp_04e275732d3349f6b62a243906bc3a07"
+    ]
+  },
+  {
+    "case": "operations",
+    "description": "unfamiliar operating mix and causal explanation; rejected",
+    "question": "Use only the two supplied operating records. A logistics company's on-time deliveries improved from 88% to 94%, while its mix shifted from 70% standard / 30% express to 50% / 50%. A manager says a new routing model caused the improvement. The rollout note says routes scoring below 0.6 are always reviewed by a dispatcher, and the review log records only that a review occurred; it does not record which rule triggered it. One route was reviewed and its score is missing. Assume nobody manually requested that review. Explain what can be concluded about operating improvement, the routing model's effect and that route's score. The operations team must assign a driver within 90 seconds: recommend the decision deadline and the most useful missing comparison. Keep it to three short paragraphs.",
+    "elapsed_seconds": 86.19835108297411,
+    "status": "completed",
+    "answer_markdown": "The 88% to 94% figure cannot be read as an operating improvement. It is an average over two delivery types, and the delivery mix changed at the same time: from 70% standard / 30% express to 50% / 50%. A changing mix can move the average even when the on-time rate for each type is unchanged. The supplied records give no separate on-time rates for standard and express deliveries, so the rise may be real, partly real, or entirely a mix effect. It is unproven.\n\nThe manager's claim that the routing model caused the rise is also unproven. The model and the rise happened together, but that is only an association. Dispatcher reviews of low-scoring routes can improve results on their own, and there is no control comparison. For the reviewed route with the missing score, the rollout note gives a one-way rule: a score below 0.6 always leads to review. A review does not imply a score below 0.6. The log records only that a review happened, and the stated assumption that nobody requested it manually does not identify which automatic rule fired. The score is therefore unknown, although below 0.6 is one possible value.\n\nFor the 90-second driver-assignment limit, set an internal decision deadline of about 60 seconds, with 75 seconds as the latest safe point, so there is buffer for completing the assignment. The most useful missing comparison is the on-time rate for standard and express deliveries separately, before and after the change. That comparison separates any real operating change from the mix shift and is needed before crediting the routing model or dispatcher reviews.",
+    "payload": null,
+    "analysis_basis": [
+      {
+        "claim": "The aggregate on-time rise is not proof of operating improvement.",
+        "basis": "The delivery mix changed at the same time; without per-type on-time rates, the average can move from mix alone."
+      },
+      {
+        "claim": "The routing model's causal effect cannot be established from the manager's statement.",
+        "basis": "The rise and the model introduction are only associated; dispatcher reviews and the absence of a control group are alternative explanations."
+      },
+      {
+        "claim": "The reviewed route's score is unknown, not below 0.6.",
+        "basis": "Below 0.6 implies review, but review does not imply below 0.6; the log records only the review, and the assumption of no manual request does not identify the trigger."
+      },
+      {
+        "claim": "An internal decision deadline of about 60 seconds, not 90, is prudent.",
+        "basis": "The 90-second limit is the outer bound; a 60-second decision leaves buffer to complete the assignment."
+      },
+      {
+        "claim": "The most useful missing comparison is on-time rate by delivery type before and after.",
+        "basis": "That comparison separates a real operating change from the mix shift."
+      }
+    ],
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "accept",
+          "critique_summary": "The draft correctly separates the three questions. It treats the mix shift as a possible cause of the average rise (a Simpson's-paradox-style effect), notes that no per-type rates are supplied, and rightly refuses to credit the routing model from association alone. The logic on the reviewed route is sound: the rule is one-way (score below 0.6 implies review, not the reverse), and the no-manual-request assumption does not reveal the trigger, so the score stays unknown. The 90-second limit is treated as an outer bound and the missing per-type comparison is the right one for separating mix from real change. No material factual or reasoning error.",
+          "corrections": [],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "dba675c343ae1dd66b3229f1f35f1c16e2b4784e8a0f38f2768ac992e0c804a4",
+      "evidence_sha256": "6d0f27f21f087f59f5d11244d26180996ab201f158b50e9db1c545f6201d4234",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "accepted_existing_analysis"
+    },
+    "limitations": [],
+    "error": null,
+    "raw_sha256": "e2c75d6c0afed7ee92fe9194c99339b9268fa57b0372e782cce98f92cac6ef98",
+    "provider_attempt_ids": [
+      "llmhttp_06e7a1c6dc364438a45fa76b2688ffcf",
+      "llmhttp_cc4c40edbbd34edfa233529d6c78f58b",
+      "llmhttp_b6834b0a35ef4941876a927309a917cc"
+    ]
+  },
+  {
+    "case": "source-revised",
+    "description": "routine supply agreement through interactive route; historical filename is misleading",
+    "question": "Write a brief company update using only these records. On 2026-10-14, a manufacturer reported a signed three-year supply agreement with an existing customer. It starts in January 2027. Contract value and volume were not disclosed. Management says existing capacity can serve it. Retained company research dated September describes the same customer relationship and does not include this agreement. Explain what changed and what remains to be learned without inventing numerical forecasts.",
+    "elapsed_seconds": 115.43662512500305,
+    "status": "completed",
+    "answer_markdown": "On October 14, 2026, the manufacturer reported a signed three-year supply agreement with an existing customer. The agreement starts in January 2027. The report did not state the contract's value or volume. Management said that existing capacity can serve the agreement. September retained company research described the same customer relationship but did not include this agreement.\n\nWhat changed in the record is that the October 14, 2026 report includes a signed agreement that the September retained research does not include. The customer relationship itself is not new. The records do not show when the agreement was signed, and they do not prove that it did not exist in September. They show only that the September retained research did not include it.\n\nManagement's statement means the company says its current production ability is enough for the order. The records do not discuss investment, so they do not say whether new investment is needed.\n\nThe remaining unknown is the agreement's size and effect. Because value and volume were not disclosed, these records do not support a dependable revenue or profit estimate. Useful future information includes contract value, volume or price terms, and how deliveries change capacity use once they begin. No numeric forecast should be made from these records.",
+    "payload": null,
+    "analysis_basis": [
+      {
+        "claim": "The customer relationship is not new; the October report covers the same existing customer relationship that the September research described.",
+        "basis": "The October report says the agreement is with an existing customer, and the September retained company research describes that same customer relationship."
+      },
+      {
+        "claim": "The October report adds a signed three-year agreement starting January 2027 that the September research did not include.",
+        "basis": "The October 14, 2026 report states the agreement and its start date; the September research does not include the agreement. The records do not show when it was signed or whether it existed in September; omission only shows that the retained September research did not include it."
+      },
+      {
+        "claim": "Management says existing capacity can serve the agreement, but the records do not say whether new investment is needed.",
+        "basis": "Management's statement appears in the October report. No record addresses investment. Existing capacity could still require new investment, so that cannot be inferred from the records."
+      },
+      {
+        "claim": "No reliable revenue or profit estimate can be made because contract value and volume are undisclosed.",
+        "basis": "The October report does not disclose value or volume, and no other record gives price or unit data. Missing value and volume data prevent a dependable estimate."
+      }
+    ],
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "revise",
+          "critique_summary": "The draft correctly reports the disclosed facts and identifies value and volume as unknown. Two precision fixes are needed: do not turn management's capacity statement into a claim about investment, and do not say the agreement's existence changed when the records only show that the October report includes an agreement absent from the September research.",
+          "corrections": [
+            {
+              "claim": "Management saying existing capacity can serve the agreement means the company can fill the order without requiring new investment.",
+              "correction": "Remove \"without requiring new investment.\" Say only that management states existing capacity can serve the agreement; the records do not address investment.",
+              "basis": "The user's premise says only that management says existing capacity can serve it. No record states that no new investment is needed.",
+              "counterexample": "A company could use existing production lines but still buy new tooling or hire workers; that is new investment even though existing capacity is sufficient."
+            },
+            {
+              "claim": "The change is the agreement's existence, three-year term, and January 2027 start.",
+              "correction": "Say the change is that the October report describes a signed agreement that the September research did not include. The records do not show when the agreement was signed or that it did not exist in September.",
+              "basis": "The September research lacking the agreement only shows it was not in that retained research. It does not prove the agreement was absent or unsigned then.",
+              "counterexample": "A contract could be signed in August, omitted from September retained research, and reported in October; the October report would still be the first record of it without the commitment itself being new."
+            }
+          ],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "4f0124e7ba8b996b78d4245295d41fedc0a7dc89bee6d5d165a99976021224a3",
+      "evidence_sha256": "28a82105aed0bc164d288cf5f24d447aee3b32df1e1c52d0660182eed6da4d94",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "synthesis"
+    },
+    "limitations": [],
+    "error": null,
+    "raw_sha256": "8c1e9d08ba48af12f01d60a3905fb7bd8796451a609f20747cd3858ee7308644",
+    "provider_attempt_ids": [
+      "llmhttp_bf583ede7d024977a978a429d3995417",
+      "llmhttp_aad204fc592c4f67a95946a80c527eba",
+      "llmhttp_c4ada5fb76204f6caf11feaea66c3f26"
+    ]
+  },
+  {
+    "case": "source-full",
+    "description": "originals by default, planning plus final synthesis; rejected",
+    "question": "A client receives HTTP 200 from a non-streaming DeepSeek request and continues receiving blank lines. Its own 75-second deadline then expires before a JSON answer arrives. Using the two acquired source pages, explain what these observations establish about the server, timeouts and possible failure cause. Outline an appropriate deadline and what telemetry would distinguish the remaining explanations. Keep it to three short paragraphs with useful source links.",
+    "elapsed_seconds": 139.98827270796755,
+    "status": "completed",
+    "answer_markdown": "**A 200 with ongoing blank lines means DeepSeek accepted the request and is holding the connection open, not rejecting it.** If the account exceeded its concurrency limit, the reply would be HTTP 429, so no admission rejection happened. For non-streaming calls, DeepSeek documents that it may send empty lines continuously as keep-alives while the answer is not yet ready; these empty lines are not partial or corrupted JSON, and the client should skip them and parse only the final body ([Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/)). This does not show whether the model's answer generation, called inference, has actually started\u2014only that the call is valid and still open.\n\n**The 75-second stop was the client's own deadline, not a server timeout, and not the default HTTPX read timeout.** HTTPX's read timeout is an inactivity limit: it fires after no data arrives for five seconds while waiting for the next chunk ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). Each blank keep-alive line is data and resets that clock, so a healthy-but-slow call will not trip it. DeepSeek's own failure marker is much later: it closes the connection only if inference has not started within ten minutes. At 75 seconds the request is still inside normal server behavior. The likely cause is slow or queued answer generation, not limit rejection, corruption, or a lost connection; a request that never starts is still possible, but the observations so far cannot separate it from slow inference.\n\n**Choose a total deadline with a clear purpose, and log timing and identity.** If you want the server's ten-minute no-start close to define failure, set a client deadline a little past that marker\u2014about 10.5 to 11 minutes\u2014while remembering this does not cap long generation after inference has begun. If early failure is better for the business, use a shorter deadline with retry, and accept that you may abandon work the server would have completed. To distinguish slow inference from a never-starting request, record the request ID if one is returned, the model, prompt token count, and timestamps for: request sent, HTTP status, each blank line and its interval, and the final event (JSON, client abort, or server close). Also record 429 or 5xx counts, time to final JSON, and client-side concurrency and retry counts. Steady blank lines that end in a server close near ten minutes point to inference never starting; blank lines that end in JSON point to slow generation; a gap in blank lines that ends in a read timeout points to network trouble.",
+    "payload": null,
+    "analysis_basis": [
+      {
+        "claim": "HTTP 200 and continued blank lines show the request was accepted and inside the concurrency limit, not a 429 rejection.",
+        "basis": "DeepSeek's docs state that requests within the account concurrency limit receive a response and that exceeded requests receive HTTP 429; they also state that non-streaming requests continuously return empty lines as keep-alives while waiting."
+      },
+      {
+        "claim": "The 75-second deadline is client-side, not the server's ten-minute close or the default HTTPX five-second read timeout.",
+        "basis": "HTTPX's read timeout is inactivity-based and is reset by each arriving blank keep-alive line; DeepSeek closes only if inference has not started within ten minutes. An unrelated total client stall or custom abort could also cause the 75-second ending, but the observed blank lines rule out simple silence-driven read timeout."
+      },
+      {
+        "claim": "Slow or queued inference is the likely cause, while a never-starting request remains an alternative not yet distinguishable.",
+        "basis": "Both mechanisms fit the observed 200 and blank keep-alive pattern, and no error code or ten-minute server-close marker has occurred. At 75 seconds, the observations establish normal waiting but not whether generation has begun."
+      },
+      {
+        "claim": "A total client deadline of about 10.5 to 11 minutes is appropriate when the objective is to observe the server's no-start close; a shorter deadline is a fail-fast business choice.",
+        "basis": "DeepSeek's documented ten-minute server close is the failure marker for inference that never starts, so a slightly longer client deadline can capture it. A shorter deadline can abort work the server would later complete, so it is useful only if the product accepts early failure plus retry."
+      }
+    ],
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "accept",
+          "critique_summary": "The draft correctly maps the observations to the two sources. It distinguishes the client's 75-second deadline from HTTPX's 5-second read timeout and from DeepSeek's 10-minute no-start close, explains why blank keep-alive lines reset the read-timeout clock, and separates slow inference from a never-starting request. The telemetry list and deadline advice follow from the evidence. Reasoning is sound and directly serves the question.",
+          "corrections": [],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "28a61e07b9a3107d7a4e2e076e0e1eb89d133733f7b2fd6479cc3825de7d1416",
+      "evidence_sha256": "5ceca1dce58f9145f20e3ebfe7ef05ea29b87ef827d68a09425956add58f774d",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "accepted_existing_analysis"
+    },
+    "limitations": [],
+    "error": null,
+    "raw_sha256": "52cc8509dce24f906b2668e5ae0c248771900ce3b0d202e26fc3a91d0e30f736",
+    "provider_attempt_ids": [
+      "llmhttp_5255790e97274767ba266dd51b0c9e96",
+      "llmhttp_dff5071473ea4f1586123e6b50c8a80c",
+      "llmhttp_d7c3be7d368845b0adb6bbd5d78b0e74"
+    ]
+  },
+  {
+    "case": "source",
+    "description": "latest direct source analysis, generic reasoning instructions; rejected",
+    "question": "A client receives HTTP 200 from a non-streaming DeepSeek request and continues receiving blank lines. Its own 75-second deadline then expires before a JSON answer arrives. Using the two acquired source pages, explain what these observations establish about the server, timeouts and possible failure cause. Outline an appropriate deadline and what telemetry would distinguish the remaining explanations. Keep it to three short paragraphs with useful source links.",
+    "elapsed_seconds": 173.55138987500686,
+    "status": "completed",
+    "answer_markdown": "An HTTP 200 followed by repeated blank lines establishes that DeepSeek accepted the request and is holding the connection open in its documented keep-alive state. The [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page says non-streaming requests may continuously return empty lines while the server takes a while to answer, and these lines do not damage the JSON body. The 200 also rules out the concurrency-limit error, which would be HTTP 429. The same page allows up to 10 minutes before inference starts, then closes the connection. A 75-second deadline that expires while blank lines are still arriving is therefore shorter than a delay the server explicitly permits; it does not by itself show a server fault.\n\nSet the overall deadline above the server's 10-minute window, such as 600 seconds plus a margin for the final body or the server close. Do not use 75 seconds. If the client is HTTPX, note that its default timeout is 5 seconds of network inactivity, and the read timeout measures a gap with no data; every blank line counts as data and resets that gap. An overall application timer is the appropriate way to enforce the 10-minute bound. The [Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/) page shows the separate connect, read, write, and pool values.\n\nTo tell the remaining explanations apart, record timestamps and byte counts: send-to-status time, the arrival time of each blank line, the HTTPX exception type if a timeout fires, and whether the server closes. If blank lines continue past the 75-second point, the client timer is the cause. If gaps between lines exceed the read timeout and a ReadTimeout fires before the server closes, a stalled network path or proxy is likely. If DeepSeek closes near 10 minutes without a JSON body, inference never started. That distinguishes a slow-but-healthy queue from a too-short client timer, a stalled path, or a server that never began work.",
+    "payload": null,
+    "analysis_basis": [
+      {
+        "claim": "HTTP 200 plus continuing blank lines establish an accepted request in DeepSeek's documented keep-alive state, not a server error.",
+        "basis": "The DeepSeek page says non-streaming requests may continuously return empty lines while the server works, and a concurrency-limit rejection would be a 429. The client observed 200 and lines, so the request was admitted; a later stall remains possible but is not shown."
+      },
+      {
+        "claim": "The 75-second deadline is below the server's documented 10-minute pre-inference window, making a client-side timer the likely cause of the observed failure.",
+        "basis": "DeepSeek says the server closes only if inference has not started after 10 minutes. The 75-second expiration happened while blank lines were still arriving, so the server was still within its documented allowed delay. A mid-request stall is an alternative but unproven."
+      },
+      {
+        "claim": "An appropriate client deadline is at least 600 seconds plus a margin, not 75 seconds.",
+        "basis": "The 10-minute server rule gives the bound. HTTPX's read timeout is a no-data gap timer, and blank lines count as data, so an overall timer, not a short HTTPX timeout, should enforce the 10-minute cutoff."
+      },
+      {
+        "claim": "Logging timestamps, byte counts, timeout type, and server close behavior can distinguish slow queueing, a client timer, and a stalled server or path.",
+        "basis": "If blanks continue past the deadline, the client timer explains the failure; if no-byte gaps exceed the read timeout before the server closes, a path or proxy stall is likely; if the server closes near 10 minutes without JSON, inference never started. The two sources define these signals."
+      }
+    ],
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "accept",
+          "critique_summary": "The draft correctly uses both source pages. It explains that HTTP 200 plus blank lines match DeepSeek's documented non-streaming keep-alive behavior and rule out the concurrency-limit 429. It correctly contrasts the server's 10-minute pre-inference close rule with the client's 75-second deadline, and it reasonably notes that HTTPX's 5-second read timeout is a no-data gap timer that blank lines reset. The recommended deadline above 600 seconds plus margin follows from the server's documented bound. The telemetry proposal (timestamps, byte counts, exception type, server close) directly distinguishes the remaining explanations: too-short client timer, slow queue, stalled path, or inference never starting. No material factual or reasoning error appears.",
+          "corrections": [],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "d70a35f7c22167551d86223b290e521147d31e96cebb44b7939d4341b610beb2",
+      "evidence_sha256": "6e8a222367761da315a086895d53a1dde0dd4177d60943daaba26dca9dcec289",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "accepted_existing_analysis"
+    },
+    "limitations": [],
+    "error": null,
+    "raw_sha256": "cd162e575c591491721710bdd415287e4d5e2f9b82d0f0efc860834b0523dc2c",
+    "provider_attempt_ids": [
+      "llmhttp_0148e85d8c9d427c948277ffe7833a7a",
+      "llmhttp_630e4881c6664e27ab13d373f577d88a"
+    ]
+  }
+]

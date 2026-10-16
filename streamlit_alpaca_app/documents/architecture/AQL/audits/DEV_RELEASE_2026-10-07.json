@@ -1,0 +1,140 @@
+{
+  "release": "llm-language-20261007-1571fe",
+  "environment": "development",
+  "acr_runs": {
+    "api": "cjrh",
+    "research": "cjrj",
+    "web": "cjrk",
+    "trading": "cjrq",
+    "macro": "cjrp",
+    "home_datapoints_equities": "cjrm",
+    "ticker_technical": "cjrn"
+  },
+  "targets": [
+    {
+      "name": "attention-home-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:7f457d3f790096508aefc9e7b6dc082dc80c9d2492104066aa328c0be5969844",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:9a40f9862a84c6cd045a750d4522abdd05921e2c26eb57583866f235637d0bbc",
+      "revision": null,
+      "ready_revision": null,
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {}
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:1714a0dbff39985b3b08fb7cbe8411ee830c46edfe75a0b607d479d093b13106",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-dev-contract@sha256:a31694827c354a1d7830ee9527204d6cc292ea3965adc26da38dce8b1d4ecacc",
+      "revision": null,
+      "ready_revision": null,
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {}
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:7f457d3f790096508aefc9e7b6dc082dc80c9d2492104066aa328c0be5969844",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:9a40f9862a84c6cd045a750d4522abdd05921e2c26eb57583866f235637d0bbc",
+      "revision": null,
+      "ready_revision": null,
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {}
+    },
+    {
+      "name": "equities-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:7f457d3f790096508aefc9e7b6dc082dc80c9d2492104066aa328c0be5969844",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:9a40f9862a84c6cd045a750d4522abdd05921e2c26eb57583866f235637d0bbc",
+      "revision": null,
+      "ready_revision": null,
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {}
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:ad607dafcda4237cbe7511be69699018363218427978c4ff9a632c9519d49c6b",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-macro@sha256:89db7175f52ac6b44be399526bbccd93884a31c0408d09ee0d7f9fed0a485571",
+      "revision": null,
+      "ready_revision": null,
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {}
+    },
+    {
+      "name": "sn-api-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:b48e44b851b025905b64d69041640875ad66e63b702bcae5d6a54a5c019047d5",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/api-next-dev@sha256:ce178f784163ae6048865af59c08829170f179260ffe4018d6c6c6339d110724",
+      "revision": "sn-api-next-dev--0000014",
+      "ready_revision": "sn-api-next-dev--0000014",
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {
+        "LLM_PROVIDER": "deepseek",
+        "LLM_MODEL": "deepseek-reasoner",
+        "LLM_BASE_URL": "https://api.deepseek.com",
+        "LLM_TEMPERATURE": "0.2",
+        "LLM_TIMEOUT_SECONDS": "480"
+      },
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:a6d674a1b4916d4c02258ac0e118d01e961ae0a0072eb2fcb1422afe6374aec7",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:9c3de0f897e9c6b56d459ac925dca8045f46b91626cbeac081c8da92a8d66d98",
+      "revision": "sn-next-ui-dev--0000011",
+      "ready_revision": "sn-next-ui-dev--0000011",
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {},
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "name": "sn-research-run-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:f8412d482d681bc3252a667421e909e87546f0cc6fb36f0f253041455a27e630",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-research@sha256:a1782b4d9bb7dd61e2d9730686e959fa3fd0eefbe815bd8328d9efffb40267d6",
+      "revision": null,
+      "ready_revision": null,
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {}
+    },
+    {
+      "name": "technical-history-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:1714a0dbff39985b3b08fb7cbe8411ee830c46edfe75a0b607d479d093b13106",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-dev-contract@sha256:a31694827c354a1d7830ee9527204d6cc292ea3965adc26da38dce8b1d4ecacc",
+      "revision": null,
+      "ready_revision": null,
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {}
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-language-dev@sha256:12e7141cf8149b549637821d821acdc3a70a4f2915eb4986336ac6bbd21dba28",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/lock-fix-trading@sha256:713fad3813fe8ef168c37a34b7733b689f97cb65adf0e6552b9255c87fb88633",
+      "revision": null,
+      "ready_revision": null,
+      "protected_config_preserved": true,
+      "added_nonsecret_env": {}
+    }
+  ],
+  "protected_configuration_preserved": true,
+  "production_changed": false,
+  "knowledge_changed": false,
+  "verified_at_utc": "2026-10-08T02:35:27.719451+00:00",
+  "live_acceptance": {
+    "health_http": 200,
+    "home_http": 200,
+    "home_status": "available",
+    "unauthenticated_admin_http": 401,
+    "signed_in_language_save": "passed",
+    "runtime_style": "80% ASD-STE100-inspired default",
+    "runtime_scope": "development",
+    "api_has_model_key": false,
+    "prompts": 17,
+    "parameters": 42,
+    "scheduled_jobs_started_for_acceptance": false
+  }
+}

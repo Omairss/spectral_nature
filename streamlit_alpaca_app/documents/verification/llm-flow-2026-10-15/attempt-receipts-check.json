@@ -1,0 +1,17 @@
+{
+  "distinct_start_and_final_receipts": true,
+  "pointers": [
+    [
+      "contract_attempt.started.json",
+      {
+        "status": "started"
+      }
+    ],
+    [
+      "contract_attempt.json",
+      {
+        "status": "success"
+      }
+    ]
+  ]
+}

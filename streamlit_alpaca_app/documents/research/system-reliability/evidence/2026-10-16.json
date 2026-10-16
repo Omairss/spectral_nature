@@ -1,0 +1,1726 @@
+{
+  "scope": "Historical October 16 production promotion evidence; no fresh runtime observation performed for this index.",
+  "release_receipt": "documents/verification/system-reliability-production-2026-10-16/release.json",
+  "release_receipt_sha256": "b1db6bf1280c29f2c7a4f4f0b5fa9fe18f4c6d943a2e464dd804fd968edff33c",
+  "release_status": "deployed; operational health remains degraded",
+  "pipeline_database_metrics": [
+    {
+      "retained_file": "pipeline-db-metrics.json",
+      "retained_file_sha256": "b1567183a57140136dafecd7364524d64bb077dff8b23c42e4afb1f89a391528",
+      "timespan": "2026-10-16T16:26:49Z/2026-10-16T17:26:49Z",
+      "interval": "PT1M",
+      "series": [
+        {
+          "name": "cpu_percent",
+          "data": [
+            {
+              "average": 94.89491502323895,
+              "maximum": 95.26781071242848,
+              "timeStamp": "2026-10-16T16:26:00Z"
+            },
+            {
+              "average": 94.0496826619708,
+              "maximum": 94.8093220338983,
+              "timeStamp": "2026-10-16T16:27:00Z"
+            },
+            {
+              "average": 95.26621459394568,
+              "maximum": 96.41478212906785,
+              "timeStamp": "2026-10-16T16:28:00Z"
+            },
+            {
+              "average": 93.42517083269864,
+              "maximum": 93.70409233997901,
+              "timeStamp": "2026-10-16T16:29:00Z"
+            },
+            {
+              "average": 94.3886342927029,
+              "maximum": 94.91255961844197,
+              "timeStamp": "2026-10-16T16:30:00Z"
+            },
+            {
+              "average": 97.5492133765515,
+              "maximum": 98.39513004980633,
+              "timeStamp": "2026-10-16T16:31:00Z"
+            },
+            {
+              "average": 95.66818418176223,
+              "maximum": 96.53465346534652,
+              "timeStamp": "2026-10-16T16:32:00Z"
+            },
+            {
+              "average": 96.43171165397206,
+              "maximum": 99.06880496637352,
+              "timeStamp": "2026-10-16T16:33:00Z"
+            },
+            {
+              "average": 94.66372185807923,
+              "maximum": 95.47413793103449,
+              "timeStamp": "2026-10-16T16:34:00Z"
+            },
+            {
+              "average": 95.61151738523844,
+              "maximum": 96.49495485926712,
+              "timeStamp": "2026-10-16T16:35:00Z"
+            },
+            {
+              "average": 94.4456993094411,
+              "maximum": 94.71502590673576,
+              "timeStamp": "2026-10-16T16:36:00Z"
+            },
+            {
+              "average": 97.06541340267756,
+              "maximum": 97.25050916496944,
+              "timeStamp": "2026-10-16T16:37:00Z"
+            },
+            {
+              "average": 94.10050154599001,
+              "maximum": 94.91347666491873,
+              "timeStamp": "2026-10-16T16:38:00Z"
+            },
+            {
+              "average": 95.86496544391281,
+              "maximum": 96.72727272727273,
+              "timeStamp": "2026-10-16T16:39:00Z"
+            },
+            {
+              "average": 94.71121212121211,
+              "maximum": 95.07575757575758,
+              "timeStamp": "2026-10-16T16:40:00Z"
+            },
+            {
+              "average": 96.77374111643785,
+              "maximum": 96.96811291165709,
+              "timeStamp": "2026-10-16T16:41:00Z"
+            },
+            {
+              "average": 95.14390839000421,
+              "maximum": 97.27564102564102,
+              "timeStamp": "2026-10-16T16:42:00Z"
+            },
+            {
+              "average": 95.79529507038531,
+              "maximum": 96.47256438969765,
+              "timeStamp": "2026-10-16T16:43:00Z"
+            },
+            {
+              "average": 94.90372758122972,
+              "maximum": 96.24387588459446,
+              "timeStamp": "2026-10-16T16:44:00Z"
+            },
+            {
+              "average": 98.28314977217043,
+              "maximum": 98.58310626702998,
+              "timeStamp": "2026-10-16T16:45:00Z"
+            },
+            {
+              "average": 96.87433699231399,
+              "maximum": 97.5361542581682,
+              "timeStamp": "2026-10-16T16:46:00Z"
+            },
+            {
+              "average": 95.8187670930371,
+              "maximum": 96.26119010005266,
+              "timeStamp": "2026-10-16T16:47:00Z"
+            },
+            {
+              "average": 93.1860995930434,
+              "maximum": 93.24942791762014,
+              "timeStamp": "2026-10-16T16:48:00Z"
+            },
+            {
+              "average": 96.9421452313047,
+              "maximum": 97.53154141524959,
+              "timeStamp": "2026-10-16T16:49:00Z"
+            },
+            {
+              "average": 93.10056426732645,
+              "maximum": 94.01444788441694,
+              "timeStamp": "2026-10-16T16:50:00Z"
+            },
+            {
+              "average": 96.9569610472813,
+              "maximum": 98.54504756575265,
+              "timeStamp": "2026-10-16T16:51:00Z"
+            },
+            {
+              "average": 93.90504789063982,
+              "maximum": 94.90379615184607,
+              "timeStamp": "2026-10-16T16:52:00Z"
+            },
+            {
+              "average": 95.18315110960161,
+              "maximum": 97.05093833780161,
+              "timeStamp": "2026-10-16T16:53:00Z"
+            },
+            {
+              "average": 95.17384759648604,
+              "maximum": 96.5909090909091,
+              "timeStamp": "2026-10-16T16:54:00Z"
+            },
+            {
+              "average": 95.5008498213196,
+              "maximum": 96.48268398268398,
+              "timeStamp": "2026-10-16T16:55:00Z"
+            },
+            {
+              "average": 95.75472201947555,
+              "maximum": 97.18832891246684,
+              "timeStamp": "2026-10-16T16:56:00Z"
+            },
+            {
+              "average": 96.55967557189959,
+              "maximum": 98.50051706308167,
+              "timeStamp": "2026-10-16T16:57:00Z"
+            },
+            {
+              "average": 96.95396183986628,
+              "maximum": 97.84580498866212,
+              "timeStamp": "2026-10-16T16:58:00Z"
+            },
+            {
+              "average": 95.3414019977895,
+              "maximum": 96.88818565400842,
+              "timeStamp": "2026-10-16T16:59:00Z"
+            },
+            {
+              "average": 96.51379192691792,
+              "maximum": 97.1718249733191,
+              "timeStamp": "2026-10-16T17:00:00Z"
+            },
+            {
+              "average": 99.28097345132744,
+              "maximum": 100.0,
+              "timeStamp": "2026-10-16T17:01:00Z"
+            },
+            {
+              "average": 95.98413688912244,
+              "maximum": 98.01136363636364,
+              "timeStamp": "2026-10-16T17:02:00Z"
+            },
+            {
+              "average": 94.9445687523697,
+              "maximum": 97.48743718592965,
+              "timeStamp": "2026-10-16T17:03:00Z"
+            },
+            {
+              "average": 93.66239019368581,
+              "maximum": 94.23599782490484,
+              "timeStamp": "2026-10-16T17:04:00Z"
+            },
+            {
+              "average": 95.01734613259056,
+              "maximum": 95.03735325506936,
+              "timeStamp": "2026-10-16T17:05:00Z"
+            },
+            {
+              "average": 95.76760486096687,
+              "maximum": 97.36989367655288,
+              "timeStamp": "2026-10-16T17:06:00Z"
+            },
+            {
+              "average": 94.71861033321714,
+              "maximum": 95.72107765451663,
+              "timeStamp": "2026-10-16T17:07:00Z"
+            },
+            {
+              "average": 92.50585063085062,
+              "maximum": 92.89529914529913,
+              "timeStamp": "2026-10-16T17:08:00Z"
+            },
+            {
+              "average": 95.02822467618117,
+              "maximum": 98.67622724765583,
+              "timeStamp": "2026-10-16T17:09:00Z"
+            },
+            {
+              "average": 91.82907597749174,
+              "maximum": 92.73021001615508,
+              "timeStamp": "2026-10-16T17:10:00Z"
+            },
+            {
+              "average": 94.53688951830216,
+              "maximum": 96.29629629629629,
+              "timeStamp": "2026-10-16T17:11:00Z"
+            },
+            {
+              "average": 92.91224780189083,
+              "maximum": 93.71523915461624,
+              "timeStamp": "2026-10-16T17:12:00Z"
+            },
+            {
+              "average": 96.30046453642827,
+              "maximum": 97.2054794520548,
+              "timeStamp": "2026-10-16T17:13:00Z"
+            },
+            {
+              "average": 93.46390856346467,
+              "maximum": 93.53312302839116,
+              "timeStamp": "2026-10-16T17:14:00Z"
+            },
+            {
+              "average": 98.15848172410948,
+              "maximum": 98.47285067873305,
+              "timeStamp": "2026-10-16T17:15:00Z"
+            },
+            {
+              "average": 96.88333715759003,
+              "maximum": 97.99048122686409,
+              "timeStamp": "2026-10-16T17:16:00Z"
+            },
+            {
+              "average": 98.60658412967409,
+              "maximum": 98.91179839633449,
+              "timeStamp": "2026-10-16T17:17:00Z"
+            },
+            {
+              "average": 97.14751143050717,
+              "maximum": 97.36118746564047,
+              "timeStamp": "2026-10-16T17:18:00Z"
+            },
+            {
+              "average": 95.30068593613746,
+              "maximum": 95.9655728886498,
+              "timeStamp": "2026-10-16T17:19:00Z"
+            },
+            {
+              "average": 92.80081212647,
+              "maximum": 92.92763157894737,
+              "timeStamp": "2026-10-16T17:20:00Z"
+            },
+            {
+              "average": 97.02490746859203,
+              "maximum": 97.87350054525628,
+              "timeStamp": "2026-10-16T17:21:00Z"
+            },
+            {
+              "average": 94.7525148264382,
+              "maximum": 95.14038876889849,
+              "timeStamp": "2026-10-16T17:22:00Z"
+            },
+            {
+              "average": 96.20835743965412,
+              "maximum": 96.65446941975954,
+              "timeStamp": "2026-10-16T17:23:00Z"
+            },
+            {
+              "average": 92.261202079412,
+              "maximum": 92.32008592910849,
+              "timeStamp": "2026-10-16T17:24:00Z"
+            },
+            {
+              "average": 93.38976924805324,
+              "maximum": 94.18297197250132,
+              "timeStamp": "2026-10-16T17:25:00Z"
+            }
+          ]
+        },
+        {
+          "name": "memory_percent",
+          "data": [
+            {
+              "average": 67.2847909477156,
+              "maximum": 67.39780559100011,
+              "timeStamp": "2026-10-16T16:26:00Z"
+            },
+            {
+              "average": 66.03398972449828,
+              "maximum": 66.22320739328103,
+              "timeStamp": "2026-10-16T16:27:00Z"
+            },
+            {
+              "average": 67.0133176693781,
+              "maximum": 67.2686176493351,
+              "timeStamp": "2026-10-16T16:28:00Z"
+            },
+            {
+              "average": 68.88991639496186,
+              "maximum": 69.2463242954693,
+              "timeStamp": "2026-10-16T16:29:00Z"
+            },
+            {
+              "average": 68.31313490118413,
+              "maximum": 68.45135210758914,
+              "timeStamp": "2026-10-16T16:30:00Z"
+            },
+            {
+              "average": 70.62671035110941,
+              "maximum": 71.78682203616866,
+              "timeStamp": "2026-10-16T16:31:00Z"
+            },
+            {
+              "average": 68.38983404012963,
+              "maximum": 68.68770055386105,
+              "timeStamp": "2026-10-16T16:32:00Z"
+            },
+            {
+              "average": 67.76691399575724,
+              "maximum": 68.33367399790045,
+              "timeStamp": "2026-10-16T16:33:00Z"
+            },
+            {
+              "average": 67.37637349007873,
+              "maximum": 67.60021987747983,
+              "timeStamp": "2026-10-16T16:34:00Z"
+            },
+            {
+              "average": 69.21665671132348,
+              "maximum": 70.7209719060877,
+              "timeStamp": "2026-10-16T16:35:00Z"
+            },
+            {
+              "average": 70.31961612725905,
+              "maximum": 71.76757283441519,
+              "timeStamp": "2026-10-16T16:36:00Z"
+            },
+            {
+              "average": 67.73655185278528,
+              "maximum": 68.75001240283618,
+              "timeStamp": "2026-10-16T16:37:00Z"
+            },
+            {
+              "average": 66.76238348775692,
+              "maximum": 67.95464332419823,
+              "timeStamp": "2026-10-16T16:38:00Z"
+            },
+            {
+              "average": 68.53817196085862,
+              "maximum": 70.65230980498772,
+              "timeStamp": "2026-10-16T16:39:00Z"
+            },
+            {
+              "average": 64.91346789252992,
+              "maximum": 65.02797087615619,
+              "timeStamp": "2026-10-16T16:40:00Z"
+            },
+            {
+              "average": 68.21381298904383,
+              "maximum": 68.61606177207754,
+              "timeStamp": "2026-10-16T16:41:00Z"
+            },
+            {
+              "average": 68.17858893428878,
+              "maximum": 68.80895068036999,
+              "timeStamp": "2026-10-16T16:42:00Z"
+            },
+            {
+              "average": 70.43044787137565,
+              "maximum": 71.96542287718017,
+              "timeStamp": "2026-10-16T16:43:00Z"
+            },
+            {
+              "average": 72.85971697720062,
+              "maximum": 73.49761964768008,
+              "timeStamp": "2026-10-16T16:44:00Z"
+            },
+            {
+              "average": 70.72841360779653,
+              "maximum": 71.7098252291548,
+              "timeStamp": "2026-10-16T16:45:00Z"
+            },
+            {
+              "average": 74.72599654308151,
+              "maximum": 77.13552033370576,
+              "timeStamp": "2026-10-16T16:46:00Z"
+            },
+            {
+              "average": 72.1823236763197,
+              "maximum": 73.23368729374083,
+              "timeStamp": "2026-10-16T16:47:00Z"
+            },
+            {
+              "average": 72.5173986985952,
+              "maximum": 75.64638621042751,
+              "timeStamp": "2026-10-16T16:48:00Z"
+            },
+            {
+              "average": 69.34257030423662,
+              "maximum": 70.98530115078475,
+              "timeStamp": "2026-10-16T16:49:00Z"
+            },
+            {
+              "average": 67.68773428957546,
+              "maximum": 69.51283643933425,
+              "timeStamp": "2026-10-16T16:50:00Z"
+            },
+            {
+              "average": 65.88515569032201,
+              "maximum": 66.73122756326934,
+              "timeStamp": "2026-10-16T16:51:00Z"
+            },
+            {
+              "average": 67.0441759257973,
+              "maximum": 68.13403794672536,
+              "timeStamp": "2026-10-16T16:52:00Z"
+            },
+            {
+              "average": 68.76628492390611,
+              "maximum": 69.27728177457796,
+              "timeStamp": "2026-10-16T16:53:00Z"
+            },
+            {
+              "average": 71.90370636434174,
+              "maximum": 72.96181712464552,
+              "timeStamp": "2026-10-16T16:54:00Z"
+            },
+            {
+              "average": 67.91237445849218,
+              "maximum": 69.53029963267761,
+              "timeStamp": "2026-10-16T16:55:00Z"
+            },
+            {
+              "average": 67.63216958348299,
+              "maximum": 68.09772244238634,
+              "timeStamp": "2026-10-16T16:56:00Z"
+            },
+            {
+              "average": 68.8515172141444,
+              "maximum": 69.00045047101011,
+              "timeStamp": "2026-10-16T16:57:00Z"
+            },
+            {
+              "average": 68.26530956486882,
+              "maximum": 68.41860862007036,
+              "timeStamp": "2026-10-16T16:58:00Z"
+            },
+            {
+              "average": 67.80273338664898,
+              "maximum": 69.12566950509706,
+              "timeStamp": "2026-10-16T16:59:00Z"
+            },
+            {
+              "average": 67.54257149490888,
+              "maximum": 67.64844210455293,
+              "timeStamp": "2026-10-16T17:00:00Z"
+            },
+            {
+              "average": 68.64692002849675,
+              "maximum": 69.14769694215515,
+              "timeStamp": "2026-10-16T17:01:00Z"
+            },
+            {
+              "average": 66.57534871814208,
+              "maximum": 66.58775155432343,
+              "timeStamp": "2026-10-16T17:02:00Z"
+            },
+            {
+              "average": 70.15113600057151,
+              "maximum": 70.73446619185302,
+              "timeStamp": "2026-10-16T17:03:00Z"
+            },
+            {
+              "average": 67.93628712664982,
+              "maximum": 69.45687484248398,
+              "timeStamp": "2026-10-16T17:04:00Z"
+            },
+            {
+              "average": 67.99115727391614,
+              "maximum": 68.93198681528902,
+              "timeStamp": "2026-10-16T17:05:00Z"
+            },
+            {
+              "average": 66.78976895004534,
+              "maximum": 67.02512516942274,
+              "timeStamp": "2026-10-16T17:06:00Z"
+            },
+            {
+              "average": 69.17409017754908,
+              "maximum": 71.1087341764616,
+              "timeStamp": "2026-10-16T17:07:00Z"
+            },
+            {
+              "average": 66.93165739596004,
+              "maximum": 67.02552206018055,
+              "timeStamp": "2026-10-16T17:08:00Z"
+            },
+            {
+              "average": 67.62214809184846,
+              "maximum": 67.8923314752231,
+              "timeStamp": "2026-10-16T17:09:00Z"
+            },
+            {
+              "average": 67.1616555901071,
+              "maximum": 67.90681798788293,
+              "timeStamp": "2026-10-16T17:10:00Z"
+            },
+            {
+              "average": 67.51865882675123,
+              "maximum": 68.20468450161435,
+              "timeStamp": "2026-10-16T17:11:00Z"
+            },
+            {
+              "average": 68.36482992238801,
+              "maximum": 69.07804261416067,
+              "timeStamp": "2026-10-16T17:12:00Z"
+            },
+            {
+              "average": 67.06918004353892,
+              "maximum": 67.4553547508816,
+              "timeStamp": "2026-10-16T17:13:00Z"
+            },
+            {
+              "average": 65.95838203513674,
+              "maximum": 66.13886810724782,
+              "timeStamp": "2026-10-16T17:14:00Z"
+            },
+            {
+              "average": 68.19019798895454,
+              "maximum": 68.50036811617787,
+              "timeStamp": "2026-10-16T17:15:00Z"
+            },
+            {
+              "average": 67.72107311323094,
+              "maximum": 68.19992181252071,
+              "timeStamp": "2026-10-16T17:16:00Z"
+            },
+            {
+              "average": 69.37471845561869,
+              "maximum": 70.22862892103264,
+              "timeStamp": "2026-10-16T17:17:00Z"
+            },
+            {
+              "average": 68.17928349311495,
+              "maximum": 68.89170240337198,
+              "timeStamp": "2026-10-16T17:18:00Z"
+            },
+            {
+              "average": 66.73579180698408,
+              "maximum": 66.93582474891699,
+              "timeStamp": "2026-10-16T17:19:00Z"
+            },
+            {
+              "average": 66.60769531490305,
+              "maximum": 67.50655365863823,
+              "timeStamp": "2026-10-16T17:20:00Z"
+            },
+            {
+              "average": 68.99568778191646,
+              "maximum": 70.69477711607269,
+              "timeStamp": "2026-10-16T17:21:00Z"
+            },
+            {
+              "average": 67.37686960352598,
+              "maximum": 69.29117295110107,
+              "timeStamp": "2026-10-16T17:22:00Z"
+            },
+            {
+              "average": 68.18880887130221,
+              "maximum": 68.53231782218103,
+              "timeStamp": "2026-10-16T17:23:00Z"
+            },
+            {
+              "average": 67.45783531811786,
+              "maximum": 67.4801604232443,
+              "timeStamp": "2026-10-16T17:24:00Z"
+            },
+            {
+              "average": 67.25313890978077,
+              "maximum": 67.89530815590663,
+              "timeStamp": "2026-10-16T17:25:00Z"
+            }
+          ]
+        },
+        {
+          "name": "active_connections",
+          "data": [
+            {
+              "average": 30.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T16:26:00Z"
+            },
+            {
+              "average": 26.5,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T16:27:00Z"
+            },
+            {
+              "average": 27.5,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T16:28:00Z"
+            },
+            {
+              "average": 28.0,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T16:29:00Z"
+            },
+            {
+              "average": 28.0,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T16:30:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T16:31:00Z"
+            },
+            {
+              "average": 25.0,
+              "maximum": 25.0,
+              "timeStamp": "2026-10-16T16:32:00Z"
+            },
+            {
+              "average": 27.5,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T16:33:00Z"
+            },
+            {
+              "average": 26.5,
+              "maximum": 27.0,
+              "timeStamp": "2026-10-16T16:34:00Z"
+            },
+            {
+              "average": 30.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T16:35:00Z"
+            },
+            {
+              "average": 30.0,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T16:36:00Z"
+            },
+            {
+              "average": 26.0,
+              "maximum": 26.0,
+              "timeStamp": "2026-10-16T16:37:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T16:38:00Z"
+            },
+            {
+              "average": 27.5,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T16:39:00Z"
+            },
+            {
+              "average": 30.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T16:40:00Z"
+            },
+            {
+              "average": 30.0,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T16:41:00Z"
+            },
+            {
+              "average": 26.0,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T16:42:00Z"
+            },
+            {
+              "average": 28.0,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T16:43:00Z"
+            },
+            {
+              "average": 32.0,
+              "maximum": 32.0,
+              "timeStamp": "2026-10-16T16:44:00Z"
+            },
+            {
+              "average": 34.0,
+              "maximum": 34.0,
+              "timeStamp": "2026-10-16T16:45:00Z"
+            },
+            {
+              "average": 31.0,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T16:46:00Z"
+            },
+            {
+              "average": 31.5,
+              "maximum": 32.0,
+              "timeStamp": "2026-10-16T16:47:00Z"
+            },
+            {
+              "average": 30.0,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T16:48:00Z"
+            },
+            {
+              "average": 30.5,
+              "maximum": 32.0,
+              "timeStamp": "2026-10-16T16:49:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T16:50:00Z"
+            },
+            {
+              "average": 27.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T16:51:00Z"
+            },
+            {
+              "average": 31.0,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T16:52:00Z"
+            },
+            {
+              "average": 29.5,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T16:53:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T16:54:00Z"
+            },
+            {
+              "average": 29.0,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T16:55:00Z"
+            },
+            {
+              "average": 31.0,
+              "maximum": 33.0,
+              "timeStamp": "2026-10-16T16:56:00Z"
+            },
+            {
+              "average": 30.5,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T16:57:00Z"
+            },
+            {
+              "average": 29.5,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T16:58:00Z"
+            },
+            {
+              "average": 29.0,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T16:59:00Z"
+            },
+            {
+              "average": 32.0,
+              "maximum": 33.0,
+              "timeStamp": "2026-10-16T17:00:00Z"
+            },
+            {
+              "average": 28.0,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T17:01:00Z"
+            },
+            {
+              "average": 30.5,
+              "maximum": 32.0,
+              "timeStamp": "2026-10-16T17:02:00Z"
+            },
+            {
+              "average": 31.0,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T17:03:00Z"
+            },
+            {
+              "average": 30.5,
+              "maximum": 32.0,
+              "timeStamp": "2026-10-16T17:04:00Z"
+            },
+            {
+              "average": 30.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:05:00Z"
+            },
+            {
+              "average": 29.5,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:06:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T17:07:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T17:08:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T17:09:00Z"
+            },
+            {
+              "average": 29.5,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:10:00Z"
+            },
+            {
+              "average": 28.0,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T17:11:00Z"
+            },
+            {
+              "average": 27.0,
+              "maximum": 27.0,
+              "timeStamp": "2026-10-16T17:12:00Z"
+            },
+            {
+              "average": 27.5,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T17:13:00Z"
+            },
+            {
+              "average": 26.5,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T17:14:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T17:15:00Z"
+            },
+            {
+              "average": 31.0,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T17:16:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T17:17:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:18:00Z"
+            },
+            {
+              "average": 29.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:19:00Z"
+            },
+            {
+              "average": 30.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:20:00Z"
+            },
+            {
+              "average": 28.0,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T17:21:00Z"
+            },
+            {
+              "average": 30.5,
+              "maximum": 32.0,
+              "timeStamp": "2026-10-16T17:22:00Z"
+            },
+            {
+              "average": 27.0,
+              "maximum": 27.0,
+              "timeStamp": "2026-10-16T17:23:00Z"
+            },
+            {
+              "average": 27.5,
+              "maximum": 28.0,
+              "timeStamp": "2026-10-16T17:24:00Z"
+            },
+            {
+              "average": 28.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:25:00Z"
+            }
+          ]
+        },
+        {
+          "name": "connections_failed",
+          "data": [
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:26:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:27:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:28:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:29:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:30:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:31:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:32:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:33:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:34:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:35:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:36:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:37:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:38:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:39:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:40:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:41:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:42:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:43:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:44:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:45:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:46:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:47:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:48:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:49:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:50:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:51:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:52:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:53:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:54:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:55:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:56:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:57:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:58:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T16:59:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:00:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:01:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:02:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T17:03:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:04:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:05:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:06:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:07:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:08:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:09:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T17:10:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:11:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:12:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:13:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:14:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:15:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:16:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T17:17:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:18:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:19:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:20:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:21:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:22:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:23:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T17:24:00Z"
+            },
+            {
+              "average": 0.0,
+              "maximum": 0.0,
+              "timeStamp": "2026-10-16T17:25:00Z"
+            }
+          ]
+        },
+        {
+          "name": "cpu_credits_remaining",
+          "data": [
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:26:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:27:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:28:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:29:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:30:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:31:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:32:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:33:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:34:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:35:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:36:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:37:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:38:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:39:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:40:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:41:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:42:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:43:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:44:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:45:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:46:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:47:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:48:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:49:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:50:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:51:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:52:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:53:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:54:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:55:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:56:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:57:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:58:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T16:59:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:00:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:01:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:02:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:03:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:04:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:05:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:06:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:07:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:08:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:09:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:10:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:11:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:12:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:13:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:14:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:15:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:16:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:17:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:18:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:19:00Z"
+            },
+            {
+              "average": 1.0,
+              "maximum": 1.0,
+              "timeStamp": "2026-10-16T17:20:00Z"
+            },
+            {
+              "timeStamp": "2026-10-16T17:21:00Z"
+            },
+            {
+              "timeStamp": "2026-10-16T17:22:00Z"
+            },
+            {
+              "timeStamp": "2026-10-16T17:23:00Z"
+            },
+            {
+              "timeStamp": "2026-10-16T17:24:00Z"
+            },
+            {
+              "timeStamp": "2026-10-16T17:25:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "retained_file": "pipeline-db-recovered-metrics.json",
+      "retained_file_sha256": "a2c93f610f268c4acd705c99839e059fd84ea9ac1a86156dd1c3bfeb98e3fe67",
+      "timespan": "2026-10-16T17:27:10Z/2026-10-16T17:37:10Z",
+      "interval": "PT1M",
+      "series": [
+        {
+          "name": "cpu_percent",
+          "data": [
+            {
+              "average": 98.12822389864446,
+              "maximum": 98.25422804146208,
+              "timeStamp": "2026-10-16T17:27:00Z"
+            },
+            {
+              "average": 93.43541565198109,
+              "maximum": 93.6353829557713,
+              "timeStamp": "2026-10-16T17:28:00Z"
+            },
+            {
+              "average": 94.24706649282922,
+              "maximum": 96.18644067796612,
+              "timeStamp": "2026-10-16T17:29:00Z"
+            },
+            {
+              "average": 95.33289199924344,
+              "maximum": 96.07843137254902,
+              "timeStamp": "2026-10-16T17:30:00Z"
+            },
+            {
+              "average": 99.20210133652675,
+              "maximum": 99.94617868675996,
+              "timeStamp": "2026-10-16T17:31:00Z"
+            },
+            {
+              "average": 93.53335919961042,
+              "maximum": 94.45640473627559,
+              "timeStamp": "2026-10-16T17:32:00Z"
+            },
+            {
+              "average": 96.15703870210531,
+              "maximum": 96.35779325120512,
+              "timeStamp": "2026-10-16T17:33:00Z"
+            },
+            {
+              "average": 97.63585781631576,
+              "maximum": 98.39335180055402,
+              "timeStamp": "2026-10-16T17:34:00Z"
+            },
+            {
+              "average": 98.10517361394004,
+              "maximum": 98.25232113599127,
+              "timeStamp": "2026-10-16T17:35:00Z"
+            },
+            {
+              "average": 96.97657813493021,
+              "maximum": 98.86941775014132,
+              "timeStamp": "2026-10-16T17:36:00Z"
+            }
+          ]
+        },
+        {
+          "name": "active_connections",
+          "data": [
+            {
+              "average": 30.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:27:00Z"
+            },
+            {
+              "average": 29.5,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:28:00Z"
+            },
+            {
+              "average": 30.0,
+              "maximum": 31.0,
+              "timeStamp": "2026-10-16T17:29:00Z"
+            },
+            {
+              "average": 28.5,
+              "maximum": 29.0,
+              "timeStamp": "2026-10-16T17:30:00Z"
+            },
+            {
+              "average": 29.5,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:31:00Z"
+            },
+            {
+              "average": 29.0,
+              "maximum": 30.0,
+              "timeStamp": "2026-10-16T17:32:00Z"
+            },
+            {
+              "average": 16.0,
+              "maximum": 16.0,
+              "timeStamp": "2026-10-16T17:33:00Z"
+            },
+            {
+              "average": 15.0,
+              "maximum": 16.0,
+              "timeStamp": "2026-10-16T17:34:00Z"
+            },
+            {
+              "average": 15.5,
+              "maximum": 17.0,
+              "timeStamp": "2026-10-16T17:35:00Z"
+            },
+            {
+              "average": 20.5,
+              "maximum": 26.0,
+              "timeStamp": "2026-10-16T17:36:00Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "stale_read_recovery": {
+    "client_queries_cancelled": 12,
+    "parallel_workers_cancelled": 1,
+    "client_connections_terminated": 2
+  },
+  "final_public_home_http_status": 503,
+  "research_smoke": [
+    {
+      "run_id": "agrun_5d01a223232f4fde82aa7c1e",
+      "status": "failed",
+      "started_at": "2026-10-16 17:33:23.608457+00:00",
+      "updated_at": "2026-10-16 17:39:44.679845+00:00",
+      "claimed_at": "2026-10-16 17:34:21.348579+00:00",
+      "completed_at": "2026-10-16 17:39:44.679845+00:00",
+      "error_code": "no_usable_answer",
+      "write_policy": "none",
+      "engine_revision": "7281e3631a1764cf48c9",
+      "result_summary_json": {
+        "status": "failed",
+        "confidence": "low",
+        "answer_chars": 0,
+        "citation_count": 0
+      },
+      "answer": ""
+    }
+  ],
+  "health_execution": {
+    "name": "system-health-29869530",
+    "platform_deadline_seconds": 300,
+    "reported_platform_terminal_status": "Failed",
+    "retained_log_sha256": "e60d0c65aa4e78741352440ef693b8e27f12c348963e29e11d54d95b1610ec81",
+    "observed_container_log": [
+      "2026-10-16T17:30:33.1498283Z stdout F [info] job=system-health run_id=f2b26e45-a686-4f55-b8f8-c979ca6e4a16 asof=2026-10-16T17:30:33.149565+00:00",
+      "2026-10-16T17:30:33.1501363Z stdout F [info] postgres tracking startup timeout=20s",
+      "2026-10-16T17:30:40.3447926Z stdout F [info] postgres tracking connected",
+      "2026-10-16T17:30:40.3448303Z stdout F [info] postgres tracking bootstrap timeout=30s",
+      "2026-10-16T17:30:57.5006274Z stdout F [info] postgres tracking startup timeout=20s",
+      "2026-10-16T17:31:02.0283049Z stdout F [info] postgres tracking connected",
+      "2026-10-16T17:31:02.0283365Z stdout F [info] job_progress stage=starting progress=1.0% message=Checking current product health.",
+      "2026-10-16T17:31:02.0285479Z stdout F [info] job_memory stage=starting {\"current_bytes\": 268787712, \"limit_bytes\": 536870912, \"peak_bytes\": 269041664}",
+      "2026-10-16T17:32:43.0429667Z stdout F [info] dataset indexes repaired=18 failed=0"
+    ]
+  },
+  "accepted_source_excerpts": [
+    {
+      "accepted_source": "services/database.py",
+      "accepted_file_sha256": "e2a1c3dde28fdf73a95fa0ea7bef8b48b631ef9c196bf1116d7871ccd59b320f",
+      "function": "_pool",
+      "start_line": 30,
+      "end_line": 44,
+      "source": "def _pool(conninfo: str) -> NullConnectionPool:\n    # Credentials remain part of the private identity: control and pipeline roles\n    # cannot share a connection, even when they address the same server/database.\n    identity = hashlib.sha256(conninfo.encode()).hexdigest()\n    with _pool_lock:\n        if identity not in _pools:\n            _pools[identity] = NullConnectionPool(\n                conninfo, name=\"spectral_\" + identity[:10], open=True,\n                max_size=max(1, int(os.getenv(\"POSTGRES_MAX_CONCURRENT_CONNECTIONS\", \"2\"))),\n                max_waiting=max(1, int(os.getenv(\"POSTGRES_MAX_WAITING_CONNECTIONS\", \"32\"))),\n                timeout=max(1.0, float(os.getenv(\"POSTGRES_ACQUIRE_TIMEOUT_SECONDS\", \"30\"))),\n                kwargs={\"connect_timeout\": postgres_connect_timeout_seconds(), \"autocommit\": True,\n                        \"options\": \"-c lock_timeout=5000 -c statement_timeout=120000 -c idle_in_transaction_session_timeout=60000\"},\n            )\n        return _pools[identity]"
+    },
+    {
+      "accepted_source": "services/pipeline_store.py",
+      "accepted_file_sha256": "cdb593fcc24eb2c405fe30dbf7154b79272d694841862eabeb69855b6c988b63",
+      "function": "latest_dataset_metadata",
+      "start_line": 962,
+      "end_line": 1007,
+      "source": "def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:\n    cached = _read_cached_metadata(dataset_name)\n    if cached is not None:\n        return cached\n\n    manifest_dataset = _stable_latest_manifest_metadata(dataset_name)\n    db_dataset: PipelineDataset | None = None\n    conn = _db_connect()\n    if conn is not None:\n        try:\n            with conn.cursor() as cur:\n                cur.execute(\n                    \"\"\"\n                    SELECT dataset_name, dataset_version_id, blob_path, asof_time_utc,\n                           ingested_at_utc, row_count\n                    FROM dataset_versions\n                    WHERE dataset_name = %s AND status = 'ready'\n                    ORDER BY ingested_at_utc DESC\n                    LIMIT 1\n                    \"\"\",\n                    (dataset_storage_name(dataset_name),),\n                )\n                row = cur.fetchone()\n            if row:\n                db_dataset = PipelineDataset(\n                    dataset_name=dataset_name,\n                    dataset_version_id=str(row[1]),\n                    blob_path=str(row[2]),\n                    asof_time_utc=str(row[3]),\n                    ingested_at_utc=str(row[4]),\n                    row_count=int(row[5] or 0),\n                )\n        except Exception:\n            pass\n        finally:\n            try:\n                conn.close()\n            except Exception:\n                pass\n\n    if db_dataset is None and manifest_dataset is None:\n        manifest_dataset = _latest_manifest_metadata(dataset_name)\n\n    dataset = _newer_dataset(db_dataset, manifest_dataset)\n    _write_cached_metadata(dataset_name, dataset)\n    return dataset"
+    },
+    {
+      "accepted_source": "services/pipeline_store.py",
+      "accepted_file_sha256": "cdb593fcc24eb2c405fe30dbf7154b79272d694841862eabeb69855b6c988b63",
+      "function": "reconcile_provider_attempt_receipts",
+      "start_line": 2387,
+      "end_line": 2419,
+      "source": "def reconcile_provider_attempt_receipts(*, days: int = 7, limit: int = 1000) -> dict[str, Any]:\n    \"\"\"Drain durable receipts after SQL recovery, with attempt-ID idempotency.\"\"\"\n    from datetime import timedelta\n    from azure.core.exceptions import ResourceNotFoundError\n    from .llm import llm_settings_scope\n    scope = llm_settings_scope()\n    archive = ImmutableBlobArchive(namespace=scope, root=\"provider-attempt-outbox\")\n    processed = reconciled = 0\n    for offset in range(max(int(days), 1)):\n        date = (datetime.now(timezone.utc) - timedelta(days=offset)).strftime(\"%Y-%m-%d\")\n        prefix = archive.root + \"/\" + date + \"/\"\n        for blob in archive.container.list_blobs(name_starts_with=prefix):\n            name = blob.name[len(prefix):]\n            if \"/\" in name or not name.endswith(\".json\"):\n                continue\n            if processed >= limit:\n                return {\"reconciled\": reconciled, \"scan_complete\": False}\n            processed += 1\n            pointer = archive.container.get_blob_client(blob.name)\n            try:\n                receipt = json.loads(pointer.download_blob().readall())\n                event = json.loads(archive.get(receipt))\n                if event.get(\"settings_scope\") != scope:\n                    raise ValueError(\"Provider receipt environment does not match its archive\")\n                if not record_provider_attempt(event, archive_on_failure=False):\n                    return {\"reconciled\": reconciled, \"scan_complete\": False}\n                # SQL commits before deletion. A competing reader or interrupted\n                # delete can repeat the insert safely under the attempt ID.\n                pointer.delete_blob()\n                reconciled += 1\n            except ResourceNotFoundError:\n                continue\n    return {\"reconciled\": reconciled, \"scan_complete\": True}"
+    },
+    {
+      "accepted_source": "services/system_health.py",
+      "accepted_file_sha256": "1924c02dc159dd75602ecaff17b4f5cdefc57a50e8fb8b6336b13cc7c1e4eeca",
+      "function": "run_system_health_check",
+      "start_line": 363,
+      "end_line": 437,
+      "source": "def run_system_health_check(\n    *,\n    conn: Any,\n    now: datetime | None = None,\n    policy: SystemHealthPolicy | None = None,\n    send_fn: Callable[..., EmailDeliveryResult] = send_email,\n) -> SystemHealthResult:\n    \"\"\"Persist health transitions and notify on open/recovery only.\"\"\"\n    if conn is None:\n        raise RuntimeError(\"System health monitoring requires a database connection.\")\n    observed_at = (now or _utc_now()).astimezone(timezone.utc)\n    active_policy = policy or policy_from_environment()\n    _ensure_incident_table(conn)\n\n    from services.pipeline_store import reconcile_dataset_manifests, reconcile_provider_attempt_receipts\n    reconciliation = reconcile_dataset_manifests(conn)\n    print(f\"[info] dataset indexes repaired={len(reconciliation['reconciled'])} failed={len(reconciliation['failed'])}\", flush=True)\n    reconcile_provider_attempt_receipts(days=2)\n\n    latest_jobs = _latest_jobs(conn)\n    try:\n        home_metadata = latest_dataset_metadata(ATTENTION_HOME_DATASET)\n    except Exception:\n        home_metadata = None\n    try:\n        trading_frame, _ = load_latest_dataset_frame(TRADING_AGENT_RUNS_DATASET)\n    except Exception:\n        trading_frame = pd.DataFrame()\n    provider_failures = _recent_provider_failures(\n        conn, since=observed_at - timedelta(hours=active_policy.provider_failure_window_hours)\n    )\n    issues = evaluate_system_health(\n        now=observed_at,\n        policy=active_policy,\n        latest_jobs=latest_jobs,\n        home_metadata=home_metadata,\n        trading_successful_horizons=_successful_horizon_count(trading_frame),\n        provider_failures=provider_failures,\n    )\n    opened, newly_recovered = _apply_incident_state(conn, issues=issues, now=observed_at)\n    pending_recoveries = _pending_recoveries(conn)\n\n    emails_sent = 0\n    if opened:\n        result = send_fn(\n            to_address=_alert_recipient(),\n            subject=\"Spectral Nature: action required\",\n            text_body=_issue_email_body(opened, now=observed_at),\n        )\n        if not result.sent:\n            raise RuntimeError(result.message)\n        _mark_notification_sent(conn, issue_keys=[issue.key for issue in opened], recovery=False, now=observed_at)\n        emails_sent += 1\n    if pending_recoveries:\n        result = send_fn(\n            to_address=_alert_recipient(),\n            subject=\"Spectral Nature: system health recovered\",\n            text_body=_recovery_email_body(pending_recoveries, now=observed_at),\n        )\n        if not result.sent:\n            raise RuntimeError(result.message)\n        _mark_notification_sent(\n            conn,\n            issue_keys=[issue_key for issue_key, _title in pending_recoveries],\n            recovery=True,\n            now=observed_at,\n        )\n        emails_sent += 1\n\n    return SystemHealthResult(\n        open_issues=tuple(issues),\n        opened_issue_keys=tuple(issue.key for issue in opened),\n        recovered_issue_keys=tuple(newly_recovered),\n        emails_sent=emails_sent,\n    )"
+    }
+  ]
+}

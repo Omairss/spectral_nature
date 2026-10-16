@@ -1,0 +1,8 @@
+{
+  "real_blob_cas": true,
+  "sql_disabled_reads": 8,
+  "newest_version": "version_7",
+  "owned_namespace": "qa_lifecycle_9b23d8e902",
+  "model_calls": 0,
+  "owned_blobs_removed": 6
+}

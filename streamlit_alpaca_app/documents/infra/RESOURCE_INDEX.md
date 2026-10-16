@@ -65,6 +65,17 @@ bash ./scripts/show_infra_inventory.sh
   - Local cache: `MANAGED_IDENTITY`
   - Live lookup: `az identity list -g "$RESOURCE_GROUP" -o table`
 
+- `zopedia_evidence_index`
+  - Purpose: project retained knowledge and original news, then embed pending text
+  - Development job: `evidence-index-dev`, every five minutes, with a shared database lock
+  - Embedding deployment: `zopedia-embedding` (`text-embedding-3-small`, 1536 dimensions)
+  - Azure OpenAI account: `spectral-nature-oai`, resource group `spectral-nature-2`
+  - Key Vault secret: `zopedia-embedding-api-key` in the shared runtime vault
+  - Runtime configuration: independent `EMBEDDING_*` variables in the ignored deployment cache
+  - Storage: `aql_evidence_embeddings` in shared PostgreSQL, with the `vector` extension
+  - Entry point: `PIPELINE_JOB_NAME=evidence-index`; standard pipeline deployment creates it when embeddings are configured
+  - Release: [October 8 development receipt](../architecture/AQL/audits/DEV_ZOPEDIA_GENERAL_REPAIR_2026-10-08.json)
+
 ### UI apps
 
 - `ui_resource_group`

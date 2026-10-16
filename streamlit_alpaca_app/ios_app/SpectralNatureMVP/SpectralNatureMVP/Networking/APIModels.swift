@@ -24,6 +24,7 @@ struct DatasetResponse<T: Decodable>: Decodable {
 struct TrendPoint: Decodable, Identifiable {
   let date: String
   let value: Double
+  let period: String?
   var id: String { date }
 }
 
@@ -49,6 +50,8 @@ struct HomeSnapshot: Decodable {
     let label: String
     let unit: String
     let date: String
+    let kind: String?
+    let period: String?
     let points: [TrendPoint]
   }
   let status: String
@@ -58,10 +61,21 @@ struct HomeSnapshot: Decodable {
   let summary: Summary?
   let beats: [Beat]
   let dailyDatapoints: [Datapoint]?
+  let dailyDatapointsAsOf: String?
   let graph: JSONValue?
 }
 
 struct TickerSnapshot: Decodable, Identifiable {
+  struct IntradayHistory: Decodable {
+    let status: String
+    let points: [TrendPoint]
+    let interval: String
+    let feed: String
+    let session: String
+    let asOf: String
+    let prefetchedAt: String
+    let changePct: Double?
+  }
   let symbol: String
   let companyName: String
   let latestClose: Double?
@@ -72,8 +86,13 @@ struct TickerSnapshot: Decodable, Identifiable {
   let revenueYoyPct: Double?
   let netIncome: Double?
   let freeCashFlow: Double?
+  let operatingCashFlow: Double?
+  let totalAssets: Double?
+  let stockholdersEquity: Double?
   let fundamentalsPeriod: String
   let financialTrends: [String: [TrendPoint]]?
+  let priceTrend: [TrendPoint]?
+  let intradayPriceHistory: IntradayHistory?
   var id: String { symbol }
 }
 
@@ -100,17 +119,20 @@ struct PortfolioSnapshot: Decodable {
   struct Analytics: Decodable {
     struct Correlation: Decodable {
       let labels: [String]
+      let keys: [String]?
       let values: [[Double?]]
-      enum CodingKeys: String, CodingKey { case labels, values }
+      enum CodingKeys: String, CodingKey { case labels, keys, values }
       init(from decoder: Decoder) throws {
         // The existing v1 service uses [] for a portfolio with no equities.
         if let empty = try? decoder.singleValueContainer().decode([JSONValue].self), empty.isEmpty {
           labels = []
+          keys = nil
           values = []
           return
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
         labels = try container.decode([String].self, forKey: .labels)
+        keys = try container.decodeIfPresent([String].self, forKey: .keys)
         values = try container.decode([[Double?]].self, forKey: .values)
       }
     }
@@ -137,6 +159,22 @@ struct PortfolioSnapshot: Decodable {
   let asOf: String
 }
 
+struct PortfolioOpportunitySnapshot: Decodable {
+  struct Series: Decodable {
+    let groupKey: String
+    let points: [TrendPoint]
+  }
+  let status: String
+  let series: [Series]
+  let rankings: [Record]
+  let contributions: [Record]
+  let correlation: PortfolioSnapshot.Analytics.Correlation
+  let sets: [Record]
+  let returnPeriod: String
+  let riskPeriod: String
+  let asOf: String
+}
+
 struct ResearchRun: Decodable, Identifiable, Hashable {
   static func == (lhs: ResearchRun, rhs: ResearchRun) -> Bool { lhs.runId == rhs.runId }
   func hash(into hasher: inout Hasher) { hasher.combine(runId) }
@@ -155,26 +193,62 @@ struct ResearchRun: Decodable, Identifiable, Hashable {
     let error: String
   }
   let runId: String
+  let conversationId: String
+  let turnId: String
   let query: String
   let status: String
   let result: Result?
+  let lastEventSequence: Int
   let updatedAt: String
   var id: String { runId }
   var isTerminal: Bool { ["completed", "failed", "cancelled"].contains(status) }
 }
 
 struct ResearchEvent: Decodable, Identifiable {
+  struct Payload: Decodable {
+    struct Update: Decodable {
+      let summary: String
+      let finding: String
+      let nextStep: String
+    }
+    let publicUpdate: Update?
+    let activityLabel: String?
+    let sourceLinks: [ResearchRun.Result.Citation]?
+  }
   let eventId: String
   let sequence: Int
   let message: String
   let progress: Double
   let createdAt: String
+  let payload: Payload
   var id: String { eventId }
 }
 
 struct ResearchEvents: Decodable {
   let events: [ResearchEvent]
   let lastEventSequence: Int
+}
+
+struct ResearchConversationSummary: Decodable, Identifiable, Hashable {
+  let conversationId: String
+  let title: String
+  let latestRunId: String
+  let status: String
+  let turnCount: Int
+  let updatedAt: String
+  var id: String { conversationId }
+}
+
+struct ResearchConversation: Decodable {
+  struct Turn: Decodable, Identifiable {
+    let turnId: String
+    let query: String
+    let attempts: [ResearchRun]
+    var id: String { turnId }
+  }
+  let conversationId: String
+  let title: String
+  let turns: [Turn]
 }
 
 struct KnowledgePage: Decodable, Identifiable {

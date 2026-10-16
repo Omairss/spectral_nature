@@ -26,7 +26,6 @@ export function ShellNav({ session, onLogout }: { session: Session | null; onLog
         <SignalMark />
         <span className="wordmark">
           <strong>Spectral Nature</strong>
-          <small>Where nature becomes signal</small>
         </span>
       </Link>
 

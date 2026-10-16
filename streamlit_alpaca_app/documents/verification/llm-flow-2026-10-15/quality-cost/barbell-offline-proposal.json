@@ -1,0 +1,217 @@
+{
+  "status": "Proposal only; offline repricing of saved attempts, no new inference or settings changes.",
+  "reference_date": "2026-10-15",
+  "timezone": "America/Los_Angeles",
+  "provider_reference_day_usd": 37.21,
+  "twenty_percent_reference_limit_usd": 44.652,
+  "known_attributed_usd": 35.639187738,
+  "source_snapshot": "tmp/daily-spend-20261015/merged-attribution.private.json",
+  "source_sha256": "49034c51ca168f6cbcfcc1770ebff5b41d6d723b6a99d90896845f2f1a760931",
+  "price_version": "published-prices-verified-2026-10-12",
+  "price_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+  "price_checked_date": "2026-10-15",
+  "method": "Replace selected known production Flash calls with Pro at their actual UTC time bands. Keep all other recorded and unattributed spend unchanged. Assume zero Pro cache hits; retain actual Flash baseline cache hits. Reasoning is included in output, never added again.",
+  "selectors": {
+    "home_analysis": {
+      "job": "attention-home-build",
+      "purposes": [
+        "agent.final_synthesis",
+        "attention_event_writer.direct"
+      ]
+    },
+    "trading_analysis": {
+      "job": "trading-agent-build",
+      "purposes": [
+        "agent.final_synthesis",
+        "candidate_synthesis.direct"
+      ]
+    },
+    "queued_query_final": {
+      "job": "research-run-execute",
+      "purposes": [
+        "agent.final_synthesis"
+      ]
+    },
+    "news_synthesis": {
+      "job": "news-ingest-and-features",
+      "purposes": [
+        "agent.final_synthesis"
+      ]
+    }
+  },
+  "groups": {
+    "home_analysis": {
+      "priced_attempts": 157,
+      "input_tokens": 4416041,
+      "output_tokens_including_reasoning": 844715,
+      "recorded_model_cost_usd": 1.15945083,
+      "pro_same_tokens_zero_cache_usd": 4.58712276,
+      "pro_output_plus25pct_zero_cache_usd": 5.005256685,
+      "pro_output_plus50pct_zero_cache_usd": 5.42339061
+    },
+    "trading_analysis": {
+      "priced_attempts": 80,
+      "input_tokens": 459115,
+      "output_tokens_including_reasoning": 357688,
+      "recorded_model_cost_usd": 0.272077554,
+      "pro_same_tokens_zero_cache_usd": 1.01123814,
+      "pro_output_plus25pct_zero_cache_usd": 1.1882937,
+      "pro_output_plus50pct_zero_cache_usd": 1.36534926
+    },
+    "queued_query_final": {
+      "priced_attempts": 6,
+      "input_tokens": 25663,
+      "output_tokens_including_reasoning": 9771,
+      "recorded_model_cost_usd": 0.013599918,
+      "pro_same_tokens_zero_cache_usd": 0.05256372,
+      "pro_output_plus25pct_zero_cache_usd": 0.059697164999999996,
+      "pro_output_plus50pct_zero_cache_usd": 0.06683061
+    },
+    "news_synthesis": {
+      "priced_attempts": 207,
+      "input_tokens": 28638580,
+      "output_tokens_including_reasoning": 1094842,
+      "recorded_model_cost_usd": 4.944940008,
+      "pro_same_tokens_zero_cache_usd": 21.06924996,
+      "pro_output_plus25pct_zero_cache_usd": 21.61119675,
+      "pro_output_plus50pct_zero_cache_usd": 22.153143540000002
+    },
+    "all_synthesis": {
+      "priced_attempts": 457,
+      "input_tokens": 33556384,
+      "output_tokens_including_reasoning": 2318518,
+      "recorded_model_cost_usd": 6.3990468599999994,
+      "pro_same_tokens_zero_cache_usd": 26.75415864,
+      "pro_output_plus25pct_zero_cache_usd": 27.904121850000003,
+      "pro_output_plus50pct_zero_cache_usd": 29.054085060000002
+    },
+    "barbell_core": {
+      "priced_attempts": 243,
+      "input_tokens": 4900819,
+      "output_tokens_including_reasoning": 1212174,
+      "recorded_model_cost_usd": 1.4451283019999999,
+      "pro_same_tokens_zero_cache_usd": 5.6509246200000005,
+      "pro_output_plus25pct_zero_cache_usd": 6.25324755,
+      "pro_output_plus50pct_zero_cache_usd": 6.85557048
+    }
+  },
+  "scenarios": [
+    {
+      "news_synthesis_usage_share_promoted": 0,
+      "pro_output_multiplier": 1,
+      "increment_usd": 4.205796318000001,
+      "projected_reference_day_usd": 41.415796318000005,
+      "increase_pct": 11.30286567589358
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0,
+      "pro_output_multiplier": 1.25,
+      "increment_usd": 4.808119248000001,
+      "projected_reference_day_usd": 42.018119248000005,
+      "increase_pct": 12.921578199408762
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0,
+      "pro_output_multiplier": 1.5,
+      "increment_usd": 5.410442178,
+      "projected_reference_day_usd": 42.620442178000005,
+      "increase_pct": 14.540290722923945
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.05,
+      "pro_output_multiplier": 1,
+      "increment_usd": 5.012011815600001,
+      "projected_reference_day_usd": 42.2220118156,
+      "increase_pct": 13.46952920075249
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.05,
+      "pro_output_multiplier": 1.25,
+      "increment_usd": 5.641432085100001,
+      "projected_reference_day_usd": 42.8514320851,
+      "increase_pct": 15.16106445874765
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.05,
+      "pro_output_multiplier": 1.5,
+      "increment_usd": 6.270852354600001,
+      "projected_reference_day_usd": 43.4808523546,
+      "increase_pct": 16.852599716742812
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.1,
+      "pro_output_multiplier": 1,
+      "increment_usd": 5.818227313200001,
+      "projected_reference_day_usd": 43.028227313200006,
+      "increase_pct": 15.636192725611398
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.1,
+      "pro_output_multiplier": 1.25,
+      "increment_usd": 6.474744922200001,
+      "projected_reference_day_usd": 43.684744922200004,
+      "increase_pct": 17.40055071808654
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.1,
+      "pro_output_multiplier": 1.5,
+      "increment_usd": 7.131262531200001,
+      "projected_reference_day_usd": 44.3412625312,
+      "increase_pct": 19.16490871056168
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.15,
+      "pro_output_multiplier": 1,
+      "increment_usd": 6.6244428108000015,
+      "projected_reference_day_usd": 43.8344428108,
+      "increase_pct": 17.80285625047031
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.15,
+      "pro_output_multiplier": 1.25,
+      "increment_usd": 7.3080577593000005,
+      "projected_reference_day_usd": 44.5180577593,
+      "increase_pct": 19.640036977425424
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.15,
+      "pro_output_multiplier": 1.5,
+      "increment_usd": 7.991672707800001,
+      "projected_reference_day_usd": 45.2016727078,
+      "increase_pct": 21.477217704380546
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.2,
+      "pro_output_multiplier": 1,
+      "increment_usd": 7.430658308400002,
+      "projected_reference_day_usd": 44.640658308400006,
+      "increase_pct": 19.969519775329218
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.2,
+      "pro_output_multiplier": 1.25,
+      "increment_usd": 8.141370596400002,
+      "projected_reference_day_usd": 45.3513705964,
+      "increase_pct": 21.879523236764314
+    },
+    {
+      "news_synthesis_usage_share_promoted": 0.2,
+      "pro_output_multiplier": 1.5,
+      "increment_usd": 8.852082884400001,
+      "projected_reference_day_usd": 46.0620828844,
+      "increase_pct": 23.789526698199413
+    }
+  ],
+  "blanket_synthesis_pro": {
+    "projected_reference_day_usd": 57.56511178,
+    "increase_pct": 54.70333722117711
+  },
+  "limits": [
+    "A reference-day sensitivity calculation, not a forecast or an accepted quality result.",
+    "News shares are proportional to recorded synthesis token mix/cost, not percentages of calls and not a routing quota. Selected difficult cases may be larger.",
+    "Output growth scenarios change output including reasoning, not input, tool calls or correction frequency.",
+    "Replacing existing calls is cheaper than adding a second full analysis pass; this proposal replaces calls.",
+    "The unassigned provider gap, unknown-usage attempts and experiment costs remain unchanged. Additional premium research/corrections must fit remaining headroom.",
+    "No savings assumed from retry continuation or incremental research reuse; production baseline must be assessed over representative days."
+  ]
+}

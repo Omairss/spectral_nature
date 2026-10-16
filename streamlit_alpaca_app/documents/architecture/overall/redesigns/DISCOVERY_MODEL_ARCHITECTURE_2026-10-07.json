@@ -1,0 +1,686 @@
+{
+  "version": 2,
+  "date": "2026-10-07",
+  "status": "proposed; no runtime implementation",
+  "scope": "shared discovery and research-selection architecture",
+  "pages": [
+    {
+      "title": "Discovery: a model architecture",
+      "subtitle": "Technical redesign / revision 2 / October 7, 2026. Replaces the previous product-oriented proposal.",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "<b>Goal.</b> Surface developments and relationships worth investigating across the covered data, including persistent changes and shared behavior. Research should improve the next selection. The original examples are diagnostic observations, not training labels, model classes, or coded triggers."
+        },
+        {
+          "type": "p",
+          "text": "<b>Structural decision.</b> Replace shortlist-first scoring with a shared learning layer upstream of AQL/Zopedia. It represents every covered entity over time, estimates relationships, retrieves research candidates, and learns which investigations are useful. AQL/Zopedia remains the agent that reads, reasons, investigates, and updates knowledge."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Learned component",
+            "Recommended starting design",
+            "Learning signal"
+          ],
+          "rows": [
+            [
+              "Temporal state",
+              "Shared causal temporal encoder; dynamic-factor model as the statistical benchmark.",
+              "Masked observation and future-block likelihood; chronological validation."
+            ],
+            [
+              "Empirical relationships",
+              "Shrinkage correlation and regularized conditional lag models.",
+              "Held-out likelihood gain and stability across time blocks."
+            ],
+            [
+              "Semantic relationships",
+              "Existing text embeddings plus shared LLM extraction and contextual entity recovery.",
+              "Retained passages, research revisions, and reviewed retrieval relevance."
+            ],
+            [
+              "Research selection",
+              "LLM reranking initially; a learned preference ranker after reviewed data exists.",
+              "Pairwise research-usefulness judgments and observed follow-up value."
+            ]
+          ],
+          "widths": [
+            112,
+            205,
+            194
+          ]
+        },
+        {
+          "type": "p",
+          "text": "These components have distinct objectives. Predicting an observation distribution teaches numerical structure. Ranking learns research usefulness. An LLM explanation contributes a hypothesis; it does not establish that a relationship causes a price change."
+        },
+        {
+          "type": "note",
+          "text": "The initial system does not need an end-to-end reinforcement learner, a graph neural network, or a new agent framework. Start with these defined contracts and benchmark the proposed learners. Add model complexity only when held-out results and personal review justify it."
+        }
+      ]
+    },
+    {
+      "title": "Current structure and failure modes",
+      "subtitle": "Verified source structure, with production limits from the October 7 audit. This is not an assumption that current source ran unchanged historically. [R1]",
+      "blocks": [
+        {
+          "type": "diagram",
+          "kind": "current"
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Current owner / behavior",
+            "Why it limits learning"
+          ],
+          "rows": [
+            [
+              "attention_home_1d: daily buckets, liquidity eligibility, additive scores.",
+              "Eligibility removes entities before research or relationship modeling can learn their relevance."
+            ],
+            [
+              "compute/anomalies: trend/peer/benchmark blend and residual threshold.",
+              "Surprise is treated as the discovery objective. Shared and persistent behavior can become unremarkable residuals."
+            ],
+            [
+              "attention_signal_graph: weighted tags, claims, and correlations among candidates.",
+              "Relationships describe an already-selected subgraph. Negative or less familiar connections do not have an independent discovery path."
+            ],
+            [
+              "all_signal_ranker: peer percentiles and reciprocal-rank fusion.",
+              "Feature inclusion is broad, but importance weights and aggregation are not fitted to research-usefulness outcomes."
+            ],
+            [
+              "aql/macro: configured signs, lags, and target symbols.",
+              "A declared mechanism is checked against selected daily moves rather than learned across the observation history."
+            ]
+          ],
+          "widths": [
+            230,
+            281
+          ]
+        },
+        {
+          "type": "p",
+          "text": "The application has historical data, embeddings, research memory, and a nearest-history path simulator in compute/signals.py. These are useful inputs or baselines. They do not constitute a shared learned discovery and research-selection model."
+        }
+      ]
+    },
+    {
+      "title": "Target structure and dependency flow",
+      "subtitle": "A learning layer shared by all surfaces. Full observation coverage comes before expensive research selection.",
+      "blocks": [
+        {
+          "type": "diagram",
+          "kind": "target"
+        },
+        {
+          "type": "p",
+          "text": "<b>Training path.</b> Versioned observations and text feed offline model fitting. Reviewed research and selection history train retrieval/ranking. Model weights, transforms, training cutoffs, and validation results are retained in the existing artifact store."
+        },
+        {
+          "type": "p",
+          "text": "<b>Serving path.</b> Ingestion updates observations; local models update representations and relationships; the shared index proposes investigations; AQL/Zopedia reranks and researches within a budget. New knowledge and reviewed outcomes return to the same learning layer."
+        },
+        {
+          "type": "p",
+          "text": "<b>Publication path.</b> Numerical observations and model state publish independently of narrative research. Home, Markets, chat, and Trading Agent consume the same context and reusable research. No client constructs a private learner or research runtime."
+        },
+        {
+          "type": "note",
+          "text": "The scarce resource is deep investigation, not whether a covered entity receives a representation. Every covered entity stays queryable even when it was not selected for research."
+        }
+      ]
+    },
+    {
+      "title": "Data model and time semantics",
+      "subtitle": "The modeling unit is an entity-variable observation or a source event, not a ticker that passed today's mover filter.",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Retained object",
+            "Minimum useful fields"
+          ],
+          "rows": [
+            [
+              "Observation",
+              "Entity, variable, value, unit, observation time, first available time, source/vintage, missingness and coverage."
+            ],
+            [
+              "Source event",
+              "Document/chunk, publication and acquisition times, text embedding, possible entities/concepts, retained context."
+            ],
+            [
+              "Entity state",
+              "As-of time, numerical representation, text context references, observed trajectory, missingness/age, model version."
+            ],
+            [
+              "Relationship",
+              "Possible endpoints, empirical or semantic type, horizon/window, estimate or description, uncertainty/context, valid/as-of time."
+            ],
+            [
+              "Research and selection",
+              "Question, candidate context, research outcome, previous work, exposure/selection history, feedback, cost and model/input versions."
+            ]
+          ],
+          "widths": [
+            134,
+            377
+          ]
+        },
+        {
+          "type": "h",
+          "text": "Build training examples from what was available"
+        },
+        {
+          "type": "equation",
+          "text": "D(t) = { observation o : available_time(o) <= t }",
+          "description": "A quarterly figure belongs to the period it describes, but enters the model only when published. A later macro revision must not silently replace the value available during an earlier replay."
+        },
+        {
+          "type": "p",
+          "text": "Align channels by their measurement semantics. Price changes, yield changes, counts, and financial statement values need appropriate units and training-only transforms. Preserve masks and observation age. Do not treat a repeated quarterly value as a new daily measurement or fill missing observations with zero."
+        },
+        {
+          "type": "p",
+          "text": "Keep historical universe membership and known exits. Today's surviving symbols alone cannot establish historical market recall. Thin-history entities can use population-level representations and text context; lack of history is not an exclusion rule."
+        },
+        {
+          "type": "note",
+          "text": "These fields support estimation and time integrity. An indirect article or uncertain entity match remains a valid research lead; complete source attribution is not an admission requirement."
+        }
+      ]
+    },
+    {
+      "title": "Learn temporal state from histories",
+      "subtitle": "Recommended learner: a small shared causal temporal-convolutional encoder with probabilistic observation heads. [R2]",
+      "blocks": [
+        {
+          "type": "equation",
+          "text": "z(i,t) = E_theta(history(i,<=t), masks, ages, shared_context(t))",
+          "description": "One set of learned weights is shared across entities. The representation summarizes the available path, not only the latest return or deviation from peers."
+        },
+        {
+          "type": "equation",
+          "text": "L_rep = mean NLL(masked observations) + alpha * mean NLL(future blocks)",
+          "description": "Hide observed channels or segments and estimate their distributions at multiple temporal resolutions, including aggregated changes where meaningful. Predict future blocks from past context. Choose resolution, horizon and loss balance chronologically. Mask derived inputs too, so shared context cannot reveal a hidden target."
+        },
+        {
+          "type": "p",
+          "text": "<b>Architecture.</b> Use residual, dilated causal one-dimensional convolutions over aligned channels, masks and ages. Hidden states feed reconstruction heads; the last state z(i,t) feeds future-block heads. Start with Student-t location/scale heads for continuous changes, compared with Gaussian heads; use measurement-appropriate heads otherwise. Select depth, width and receptive field on validation data."
+        },
+        {
+          "type": "p",
+          "text": "<b>Inputs.</b> Use normalized channels, masks and ages. Shared context contains available numerical series and causally filtered cross-entity factors fitted on training data. Retain invertible transforms and actual path summaries alongside embeddings. Preserve sign, cumulative magnitude, duration and time order rather than removing them through destructive augmentations."
+        },
+        {
+          "type": "p",
+          "text": "<b>Outputs.</b> Emit a temporal embedding and estimated observation distributions across horizons. Preserve three separate views: the observed path, behavior shared with other entities, and conditional surprise. The research ranker sees all three; it is not restricted to the residual."
+        },
+        {
+          "type": "p",
+          "text": "<b>Statistical benchmark.</b> Fit a dynamic-factor/state-space model: x(t) = Lambda f(t) + e(t), f(t) = A f(t-1) + eta(t). Learn loadings and dynamics; handle missing measurements during inference. At replay or serving time, filter using available history rather than smooth with future observations. Compare with the encoder and simple historical baselines. [R3]"
+        },
+        {
+          "type": "p",
+          "text": "<b>Change over time.</b> Compare embeddings and predictive distributions at successive dates. A Bayesian online change model can provide a distribution over change timing as a diagnostic feature, not a universal alert threshold. Gradual movement remains visible in the trajectory even without an abrupt change. [R4]"
+        },
+        {
+          "type": "note",
+          "text": "A more predictable continuing development may still be important research. Preserve observed state even when the model increasingly expects it."
+        }
+      ]
+    },
+    {
+      "title": "Estimate historical relationships",
+      "subtitle": "Relationships are fitted before research selection. Estimate both shared behavior and conditional association, across measured horizons.",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "<b>First pass: broad empirical structure.</b> Compute shrinkage co-movement estimates across covered series and their changes. Retain both signs. Use shared factor loadings and temporal representations to retrieve related entities and form data-driven cohorts. Taxonomy can supply context, but does not define the only allowed groups."
+        },
+        {
+          "type": "equation",
+          "text": "y(i,t+h) = g_i(own_history, f(t)) + sum_l theta(i,j,l) x(j,t-l) + error",
+          "description": "Use a regularized linear baseline g_i with the target's own lags and shared factors. Estimate whether source history improves its held-out predictions. Coefficients and useful lags are learned, not supplied by a financial relationship table."
+        },
+        {
+          "type": "p",
+          "text": "<b>Regularization.</b> Use elastic-net or hierarchical shrinkage to control correlated predictors and short histories. Fit hyperparameters and lag ranges inside chronological training folds. For forecasts, every explanatory value must have been available at the forecast origin. Same-time association is labeled separately."
+        },
+        {
+          "type": "p",
+          "text": "<b>Evidence of usefulness.</b> Compare held-out likelihood with and without the source variables. Examine coefficient and sign stability using time-block resampling. Searching many pairs and lags creates selection bias; assess gains on untouched periods rather than reporting the largest fitted correlation."
+        },
+        {
+          "type": "p",
+          "text": "<b>Cohorts.</b> Cluster learned loadings or representations with soft membership and time stability estimates. A cohort's common trajectory becomes its own candidate before peer adjustment. Store empirical association edges separately from cohort membership so inverse relationships are not lost."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Keep in the relationship record",
+            "How it is used"
+          ],
+          "rows": [
+            [
+              "Association estimate, uncertainty, horizon, lag, support window, stability and held-out gain.",
+              "The LLM and ranker compare current relevance; weak relations can still motivate investigation."
+            ],
+            [
+              "Common state and entity-specific deviation.",
+              "Research can investigate a shared development, a divergence, or both without hardcoded directional expectations."
+            ]
+          ],
+          "widths": [
+            255,
+            256
+          ]
+        },
+        {
+          "type": "note",
+          "text": "Lagged predictive association is not identified causality. Observational data alone does not justify promoting an estimated edge to a causal law."
+        }
+      ]
+    },
+    {
+      "title": "Represent knowledge from text",
+      "subtitle": "Zopedia supplies an independent source of relationships, including ones that lack long numerical histories.",
+      "blocks": [
+        {
+          "type": "p",
+          "text": "<b>Extract context, not just labels.</b> The shared LLM reads retained passages and memory, then proposes related entities or concepts, a relationship description, relevant conditions, timing, and disagreement. The relationship vocabulary stays open; there is no coded list of finance mechanisms or mandatory expected sign."
+        },
+        {
+          "type": "table",
+          "headers": [
+            "Text representation",
+            "Reason for retaining it"
+          ],
+          "rows": [
+            [
+              "Passage embedding plus relationship-description embedding.",
+              "Retrieve conceptually related material even when ticker strings and article vocabulary differ."
+            ],
+            [
+              "Possible endpoints and contextual entity resolution.",
+              "A sparse ticker or indirect industry reference can link to several possibilities until further research clarifies it."
+            ],
+            [
+              "Conditions, dates, supporting and conflicting context when available.",
+              "A useful connection can depend on circumstances. Later research can revise it without deleting the original observation."
+            ],
+            [
+              "Document similarity and source relationships.",
+              "Syndicated or repeated articles should not masquerade as independent confirmation."
+            ]
+          ],
+          "widths": [
+            251,
+            260
+          ]
+        },
+        {
+          "type": "p",
+          "text": "<b>Entity recovery.</b> Provide instrument and business context when known, but let the LLM infer identity from incomplete inputs. Ambiguity becomes context for follow-up. Do not reject an article because it omits an exchange, identifier, or exact issuer name."
+        },
+        {
+          "type": "p",
+          "text": "<b>Learned retrieval.</b> Reuse the existing embedding/chunk infrastructure. Collect reviewed query-passage and question-relationship pairs. Fine-tune retrieval or reranking only when these judgments show a gap; do not force numerical and text vectors into the same metric without an alignment objective."
+        },
+        {
+          "type": "p",
+          "text": "<b>Update knowledge.</b> Preserve contradictory assertions and model revisions. Relevance changes with new observations and research, rather than a fixed expiry or a rule that an expected relationship is no longer interesting."
+        },
+        {
+          "type": "note",
+          "text": "Article-derived knowledge can nominate a subject on its own. Historical correlation can do the same. Neither source must pass a mutual-confirmation gate."
+        }
+      ]
+    },
+    {
+      "title": "Fuse context without another narrow gate",
+      "subtitle": "Use separate numerical and semantic retrieval channels, then learn their contribution to research relevance.",
+      "blocks": [
+        {
+          "type": "equation",
+          "text": "v(a,t) = [temporal state; observed path; empirical relations; text context; memory; masks]",
+          "description": "Candidate a can be an entity, a learned cohort, a relation, or a research question. The same representation contract supports all discovery surfaces."
+        },
+        {
+          "type": "p",
+          "text": "<b>Separate indexes initially.</b> Numerical neighbors use numerical representations and empirical estimates. Semantic retrieval uses text/question embeddings. Both index the complete retained space relevant to their modality. Their scores are not interchangeable probabilities and should not be averaged by hand."
+        },
+        {
+          "type": "p",
+          "text": "<b>Nomination.</b> Update candidates from numerical state, changed relationships, new source content, user questions, and active research. Retrieval budgets bound work, but a company need not be a daily mover or satisfy an anomaly threshold to enter. Preserve unselected candidates and coverage information."
+        },
+        {
+          "type": "p",
+          "text": "<b>Late fusion.</b> Supply both retrieved contexts, source availability, estimation uncertainty, and previous research to the relevance model. Learn how these predict useful investigations. Missing modalities are explicit inputs; train and review missing-modality cases so thin numerical history does not suppress strong semantic leads."
+        },
+        {
+          "type": "p",
+          "text": "<b>Coverage outside the current leaders.</b> Sample candidates beyond the highest scores and audit the low-exposure population. New sources and exploratory research must be able to discover missing concepts or entities, rather than repeatedly reinforcing the same well-researched names."
+        },
+        {
+          "type": "p",
+          "text": "<b>Shared-group behavior.</b> Represent a cohort's common movement directly. Its members can also carry their individual behavior. Conditioning on a group may explain a residual without removing the group development from consideration."
+        },
+        {
+          "type": "note",
+          "text": "A learned score can still produce a self-reinforcing blind spot. Broad indexing, explicit missingness, independent nomination sources, and exploration address that failure at the selection boundary."
+        }
+      ]
+    },
+    {
+      "title": "Learn the research-selection policy",
+      "subtitle": "Target: which investigation is more useful now, given current knowledge and cost? A large move is one input, not the label.",
+      "blocks": [
+        {
+          "type": "equation",
+          "text": "P(a preferred to b | c) = sigmoid(q_phi(a,c) - q_phi(b,c))",
+          "description": "Context c includes the observation date, user/question context, available relationships, prior research, and what has already been selected. Train with pairwise cross-entropy; ties can use soft labels. [R5]"
+        },
+        {
+          "type": "p",
+          "text": "<b>What supplies labels.</b> Personally reviewed comparisons of research usefulness, corrections, useful follow-ups, and whether an investigation added material understanding. LLM preference judgments can bootstrap weak labels, but they are reviewed separately and must not become the sole ground truth. Clicks and popularity are incomplete proxies."
+        },
+        {
+          "type": "p",
+          "text": "<b>Cold start.</b> Use the shared LLM as a contextual reranker over broad nominations while collecting reviewed outcomes. There is currently no demonstrated preference dataset sufficient to claim a trained utility model. Once data supports it, distill into a small pairwise ranker, initially boosted trees over contextual features; retain the LLM for semantic reranking and investigation."
+        },
+        {
+          "type": "p",
+          "text": "<b>Selection under a budget.</b> Rerank with already-selected investigations in context, take the highest-ranked affordable next question, update context, and repeat. Estimate token/tool cost from retained executions. This greedy policy needs comparison with static ranking at matched cost; it is not an optimal set solver. Learn when another related subject adds detail without sector quotas or percentage-move bonuses."
+        },
+        {
+          "type": "p",
+          "text": "<b>Exploration.</b> Maintain known-probability exploratory exposure to estimate relevance outside previous selections. A contextual bandit is a later policy option after reward and selection logging are reliable; it is not a prerequisite or an excuse to call an untrained score machine learning. [R6]"
+        },
+        {
+          "type": "note",
+          "text": "An unseen or unresearched candidate is unlabeled, not irrelevant. Rank values are ordinal preferences unless calibration establishes more. Do not present synthetic confidence as measured relevance."
+        }
+      ]
+    },
+    {
+      "title": "Make investigation part of learning",
+      "subtitle": "AQL/Zopedia remains the shared research agent. Its context and retained outcomes become inputs to subsequent selection.",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Before an investigation",
+            "After an investigation"
+          ],
+          "rows": [
+            [
+              "Question and current candidate representation.",
+              "What was learned, changed, contradicted, or still worth resolving."
+            ],
+            [
+              "Relevant numerical paths, relation estimates, passages, and memory.",
+              "Updated entity/concept links, semantic relationships, and usable research context."
+            ],
+            [
+              "Previous work and available acquisition/analysis tools.",
+              "Actions taken, reusable results, cost, observation versions, and reviewed usefulness."
+            ]
+          ],
+          "widths": [
+            255,
+            256
+          ]
+        },
+        {
+          "type": "p",
+          "text": "<b>Tool choice.</b> The agent can retrieve knowledge, acquire sources, compare series, or run bounded analysis. Give it the learned context and allow it to investigate unexpected connections. Tool use is not a sequence of finance-specific conditionals."
+        },
+        {
+          "type": "p",
+          "text": "<b>Continuing research.</b> Preserve a question's state and its context through time. Let new evidence and the relevance model decide when to revisit, deepen, summarize, or retire it. Being below an anomaly threshold does not mean that the question is resolved."
+        },
+        {
+          "type": "p",
+          "text": "<b>Shared work.</b> One relationship or cohort investigation can inform several entity analyses and surfaces. Reuse it when the inputs and question still match; investigate again when new observations change its relevance. Selection history exposes repeated expensive work with no information gain."
+        },
+        {
+          "type": "p",
+          "text": "<b>Feedback separation.</b> A source can revise Zopedia's knowledge without retraining a numerical model. Numerical learners update on versioned observations; retrieval/ranking updates on reviewed labels. Keep these update paths distinct so an LLM assertion does not silently become a statistical training fact."
+        },
+        {
+          "type": "note",
+          "text": "Provider failure can interrupt new narrative work, but must not freeze numerical state. Previously retained research keeps its actual observation date; restarting a job does not make old context current."
+        }
+      ]
+    },
+    {
+      "title": "Evaluation and scientific validity",
+      "subtitle": "Evaluate the estimators and the research product separately. Personal qualitative review is necessary for the LLM outputs.",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Component",
+            "Evaluation that matches its objective"
+          ],
+          "rows": [
+            [
+              "Temporal representation",
+              "Chronological masked/future likelihood, interval coverage, and downstream retrieval/ranking improvement against simple and factor-model benchmarks."
+            ],
+            [
+              "Empirical relationships",
+              "Held-out incremental likelihood, stability across time blocks, missingness sensitivity, and robustness to shared factors and pair/lag selection."
+            ],
+            [
+              "Retrieval and selection",
+              "Reviewed relevance within a declared universe, pairwise preference accuracy, time to useful discovery, coverage of low-exposure subjects, repetition, and usefulness per research cost."
+            ],
+            [
+              "LLM investigation",
+              "Read the actual sources, connections, competing explanations, memory updates, and resulting answers. Fixed ticker or phrase checks do not establish quality."
+            ]
+          ],
+          "widths": [
+            139,
+            372
+          ]
+        },
+        {
+          "type": "p",
+          "text": "<b>Temporal discipline.</b> Fit transforms, clusters, encoders, and ranking models only on the training period. Hold out later periods; where targets overlap boundaries, purge those training labels. Hold out entity groups as well to expose memorized identities. Sparse history and market-wide shared dependence reduce effective sample size."
+        },
+        {
+          "type": "p",
+          "text": "<b>Ablations.</b> At matched research budgets, compare the current selector with broad LLM reranking, then add temporal state, empirical relationships, semantic relationships, and learned ranking separately. Review randomly sampled low-exposure candidates as well as leaders. A component must improve usefulness or coverage, not merely its own training loss."
+        },
+        {
+          "type": "p",
+          "text": "<b>Historical reconstruction.</b> Revisit original onset and intermediate dates with the inputs then available. Current scores do not explain earlier omissions. Retained sources may be incomplete, and an LLM can know later events from training; historical replay diagnoses mechanics, while prospective shadow runs establish real-time usefulness."
+        },
+        {
+          "type": "p",
+          "text": "<b>Selection bias.</b> Deterministic old logs do not contain outcomes for unchosen investigations. Do not claim unbiased off-policy evaluation without overlap and trustworthy propensities. Use forward comparisons and exploratory sampling to collect the missing support."
+        },
+        {
+          "type": "note",
+          "text": "Measure recall only against an explicitly reviewed candidate population. The original examples are a selected set of misses, not a valid population estimate and not an inclusion test to optimize."
+        }
+      ]
+    },
+    {
+      "title": "Compute, provider load, and storage",
+      "subtitle": "Analytical sizing, not measured runtime. Numerical coverage and LLM research capacity have different cost curves.",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Work",
+            "Scale / proposed execution"
+          ],
+          "rows": [
+            [
+              "Historical numerical tensor",
+              "For illustration: 1,000 entities x 2,500 times x 10 float32 channels is about 100 MB, before masks, indexes and copies. Actual coverage must be inventoried."
+            ],
+            [
+              "Pairwise numerical structure",
+              "A dense 1,000 x 1,000 float32 matrix is about 4 MB; 499,500 unordered pairs. Batched/incremental statistics are feasible to benchmark. At 10,000 entities the matrix is about 400 MB."
+            ],
+            [
+              "Learned state",
+              "A 128-dimensional float32 embedding for 1,000 entities is about 0.5 MB per snapshot. Fit offline; batch inference locally. Dimensions are tunable, not domain rules."
+            ],
+            [
+              "Semantic acquisition",
+              "Embed and extract new or changed documents once; reuse retained passages and relationships. Source-provider quotas and article acquisition are independent constraints."
+            ],
+            [
+              "LLM research",
+              "Cost is selection/reranking plus newly investigated subjects and synthesis. Trial 12 versus 24 subjects only after broadening nomination; similar depth roughly doubles direct research work before reuse."
+            ]
+          ],
+          "widths": [
+            149,
+            362
+          ]
+        },
+        {
+          "type": "p",
+          "text": "<b>Execution split.</b> Run feature preparation, model fitting, and batched inference in scheduled analytical compute. Keep AQL/Zopedia tool analysis bounded for individual questions; the current short analysis sandbox is not a full-universe training host. Store models and validation manifests in existing Blob/Postgres ownership."
+        },
+        {
+          "type": "p",
+          "text": "<b>Provider throughput.</b> If active inference throughput is binding, compare doubled concurrency within provider limits while keeping subject count fixed. If useful investigations are being deferred, increase subjects separately. Record tokens, latency, failures, cache reuse, and reviewed usefulness."
+        },
+        {
+          "type": "note",
+          "text": "Market Explorer already has roughly 999 ranked names materialized; its ranked Market view requests 80 rows and Broad Markets exposes full-universe observations. Removing that visibility limit does not imply 11x model training or LLM expenditure."
+        }
+      ]
+    },
+    {
+      "title": "Repository restructuring",
+      "subtitle": "Replace the discovery authority at its source. Preserve the existing shared agent, data store, API, and client ownership.",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Boundary to change",
+            "Concrete restructuring"
+          ],
+          "rows": [
+            [
+              "universe / ingestion",
+              "Separate retained research coverage from daily liquidity/execution eligibility. Keep membership history and acquire by observation/source change plus research needs."
+            ],
+            [
+              "compute + analytical jobs",
+              "Own temporal learners, relationship fitting, transforms, training folds, and model artifacts. Publish whole-universe entity/cohort state independently of Home."
+            ],
+            [
+              "attention_signal_graph / aql/clusterer",
+              "Move empirical and semantic relationship retrieval before research selection. Make the rendered graph a projection of retained relations, not their only storage or discovery boundary."
+            ],
+            [
+              "attention_home_1d / all_signal_ranker",
+              "Retire daily buckets, macro bonuses, and combined ranks as universal research eligibility. Analytical scores can remain available as context, not authoritative research policy."
+            ],
+            [
+              "aql/macro + macro profile",
+              "Replace configured signs and target lists as the source of truth with empirical estimates and Zopedia assertions kept distinct. Migrate useful old knowledge as revisable context."
+            ],
+            [
+              "AQL/Zopedia engine and pipeline",
+              "Own nomination fusion, contextual reranking, broad acquisition, continuing research, and feedback. Add no feature-private LLM or hosted session dependency."
+            ],
+            [
+              "pipeline store / QueryService / clients",
+              "Retain versioned model state and selection/research artifacts. Expose complete filtering and shared context. Render existing output; do not fit models on page load."
+            ]
+          ],
+          "widths": [
+            190,
+            321
+          ]
+        },
+        {
+          "type": "p",
+          "text": "Use one model contract for numerical state, one relationship record with empirical and semantic variants, and one research-candidate contract. Extend existing manifests and research history rather than introducing a separate feature-store or graph platform."
+        },
+        {
+          "type": "note",
+          "text": "Both Home and Trading Agent should consume the same learned discovery context. A rewrite confined to a UI limit, one scorer, or the original example symbols would leave the architectural gap intact."
+        }
+      ]
+    },
+    {
+      "title": "Research sequence and references",
+      "subtitle": "The architecture is specified; model superiority and product quality still need empirical establishment. No runtime changes are claimed.",
+      "blocks": [
+        {
+          "type": "table",
+          "headers": [
+            "Order",
+            "Deliverable and decision"
+          ],
+          "rows": [
+            [
+              "1. Establish the training view",
+              "Inventory histories, first-available times, membership, missingness, text coverage and existing feedback. Remove narrative dependence from numerical publication."
+            ],
+            [
+              "2. Fit the numerical learners",
+              "Compare the causal temporal encoder with historical and dynamic-factor baselines. Inspect both shared trajectories and deviations; keep the best-supported representation."
+            ],
+            [
+              "3. Connect both relation sources",
+              "Fit empirical relations; extract/retrieve semantic relations through Zopedia; inspect cross-modal retrieval and missing-modality cases."
+            ],
+            [
+              "4. Run broad discovery in shadow",
+              "Use LLM reranking and shared research, collect reviewed preference/outcome data, and compare against the current selector at matched budgets."
+            ],
+            [
+              "5. Learn and promote selection",
+              "Train the preference ranker only when data supports it; verify usefulness on later periods and prospective runs. Promote to development after qualitative acceptance."
+            ]
+          ],
+          "widths": [
+            112,
+            399
+          ]
+        },
+        {
+          "type": "h",
+          "text": "Method sources and scope"
+        },
+        {
+          "type": "p",
+          "text": "<b>[R1] Repository evidence.</b> October 7 decline-discovery audit and captured JSON under documents/architecture/overall/audits/. Current source: compute/anomalies.py; compute/signals.py; services/attention_home_1d.py; attention_signal_graph.py; all_signal_ranker.py; services/aql/{pipeline,clusterer,macro}.py; services/saa/storage.py; services/zopedia_analysis.py; pipeline/jobs/attention_home_build.py."
+        },
+        {
+          "type": "p",
+          "text": "<b>[R2]</b> <link href=\"https://arxiv.org/abs/2106.10466\" color=\"#176278\">Yue et al., TS2Vec (AAAI 2022).</link> Precedent for hierarchical temporal representation learning. The proposed causal likelihood encoder is a design choice, not a claim to reproduce TS2Vec."
+        },
+        {
+          "type": "p",
+          "text": "<b>[R3]</b> <link href=\"https://www.ecb.europa.eu/pub/pdf/scpwps/ecbwp1189.pdf\" color=\"#176278\">Banbura and Modugno, ECB WP 1189 (2010).</link> Dynamic-factor estimation with missing and asynchronously available data."
+        },
+        {
+          "type": "p",
+          "text": "<b>[R4]</b> <link href=\"https://arxiv.org/abs/0710.3742\" color=\"#176278\">Adams and MacKay (2007).</link> Online inference over change timing; an optional diagnostic, not a preset market-pattern detector."
+        },
+        {
+          "type": "p",
+          "text": "<b>[R5]</b> <link href=\"https://www.microsoft.com/en-us/research/publication/from-ranknet-to-lambdarank-to-lambdamart-an-overview/\" color=\"#176278\">Burges, MSR-TR-2010-82.</link> Pairwise ranking and boosted-tree ranking methods. <b>[R6]</b> <link href=\"https://www.microsoft.com/en-us/research/publication/a-contextual-bandit-approach-to-personalized-news-article-recommendation-3/\" color=\"#176278\">Li et al. (2010).</link> Learning recommendation policies with exploration and logged feedback."
+        }
+      ]
+    }
+  ]
+}

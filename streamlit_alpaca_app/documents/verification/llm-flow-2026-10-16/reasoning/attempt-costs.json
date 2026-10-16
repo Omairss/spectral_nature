@@ -1,0 +1,3687 @@
+{
+  "summary": {
+    "attempts": 76,
+    "attempts_with_priced_usage": 61,
+    "attempts_with_unknown_charge": 15,
+    "estimated_usd_min": 0.22565031,
+    "estimated_usd_max": 0.45130062,
+    "statuses": {
+      "failure": 15,
+      "success": 61
+    },
+    "scope": "October 16 investigation only; includes rejected prototypes, role probes, full loops, repairs, failures and one correction-only continuation.",
+    "limitations": "Receipt-price estimates, not a provider invoice. Unknown timeout charges remain unpriced. Reasoning tokens are included in completion tokens. This is not a representative workload comparison."
+  },
+  "attempts": [
+    {
+      "attempt_id": "llmhttp_6376007fad2547df8911fa43434007ac",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.analysis.operations",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 07:19:58.529322+00:00",
+      "duration_ms": 88854.38695800258,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 7114,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 4847,
+            "user": 2117
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_8ab529e2c5b14cb3adcbf2a0a8c725c8",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.analysis.source",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 07:18:26.834952+00:00",
+      "duration_ms": 87975.51687498344,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 13431,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 4847,
+            "user": 8434
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_fb6ae898ec3943758abda5ac63b3c965",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.operations",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:15:20.026990+00:00",
+      "duration_ms": 6788.029583054595,
+      "usage": {
+        "prompt_tokens": 1981,
+        "completion_tokens": 824,
+        "total_tokens": 2805,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 617
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 1341
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0006974700000000001,
+          "usd_max": 0.0013949400000000001,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 9862,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 4397,
+            "user": 5316
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_aff5720d336d496380dfdb6b56a13397",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.source",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:14:58.125746+00:00",
+      "duration_ms": 19381.594499980565,
+      "usage": {
+        "prompt_tokens": 3638,
+        "completion_tokens": 2734,
+        "total_tokens": 6372,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2281
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 3382
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0021484679999999997,
+          "usd_max": 0.0042969359999999995,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 17119,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 4397,
+            "user": 12573
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_0c40626704c24e9780dee323687baada",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.analysis.mix_feasible",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 07:22:36.286218+00:00",
+      "duration_ms": 90009.94866603287,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6252a6fde3198b3496dc",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 4304,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2797,
+            "user": 1356
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_21f182f7e4e5411598d01b097de0581b",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.analysis.replacement",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:22:07.835489+00:00",
+      "duration_ms": 25863.959625014104,
+      "usage": {
+        "prompt_tokens": 934,
+        "completion_tokens": 1477,
+        "total_tokens": 2411,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1151
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 934
+      },
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6252a6fde3198b3496dc",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0035409,
+          "usd_max": 0.0070818,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 4605,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2797,
+            "user": 1657
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_2dfa1b598ba245e9bdc8eeb84e53528a",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.analysis.trial",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:24:13.099496+00:00",
+      "duration_ms": 43155.464124982245,
+      "usage": {
+        "prompt_tokens": 872,
+        "completion_tokens": 2537,
+        "total_tokens": 3409,
+        "prompt_tokens_details": {
+          "cached_tokens": 512
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2070
+        },
+        "prompt_cache_hit_tokens": 512,
+        "prompt_cache_miss_tokens": 360
+      },
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6252a6fde3198b3496dc",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0052721239999999996,
+          "usd_max": 0.010544247999999999,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 4266,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2797,
+            "user": 1318
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_f352a87c1db442a799fbefc4095558ce",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.analysis.operations",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 07:19:57.514109+00:00",
+      "duration_ms": 88840.0248750113,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 5515,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2797,
+            "user": 2568
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_b36c04bbda54477bb7d5ba27c28751b9",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.analysis.source",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 07:18:25.724494+00:00",
+      "duration_ms": 88040.34758399939,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 11832,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2797,
+            "user": 8885
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_88a17aa9e0a0433fb68740513a7863a4",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.operations",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:15:05.760774+00:00",
+      "duration_ms": 50476.40408301959,
+      "usage": {
+        "prompt_tokens": 1634,
+        "completion_tokens": 8407,
+        "total_tokens": 10041,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 7041
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 1250
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.005232852,
+          "usd_max": 0.010465704,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 7942,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2861,
+            "user": 4932
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_877843b1877d474399b21c76de2664e0",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.source",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:14:50.835064+00:00",
+      "duration_ms": 12397.820333018899,
+      "usage": {
+        "prompt_tokens": 3167,
+        "completion_tokens": 1690,
+        "total_tokens": 4857,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 894
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 3167
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00148905,
+          "usd_max": 0.0029781,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 14633,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2861,
+            "user": 11623
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_19591e85ce3e4c53abdff6df0848b3dc",
+      "root_run_id": "agrun_9fd5b3d441",
+      "parent_run_id": "agrun_9fd5b3d441",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:59:49.516885+00:00",
+      "duration_ms": 12608.242584043182,
+      "usage": {
+        "prompt_tokens": 4959,
+        "completion_tokens": 1648,
+        "total_tokens": 6607,
+        "prompt_tokens_details": {
+          "cached_tokens": 3968
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 679
+        },
+        "prompt_cache_hit_tokens": 3968,
+        "prompt_cache_miss_tokens": 991
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "080fe6dd0ae20b3c88fb",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001149354,
+          "usd_max": 0.002298708,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 23393,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 13888
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_699d8737de334bc88a895f08b1cc1dcf",
+      "root_run_id": "agrun_9fd5b3d441",
+      "parent_run_id": "agrun_9fd5b3d441",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 08:00:05.093900+00:00",
+      "duration_ms": 90018.33545800764,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "080fe6dd0ae20b3c88fb",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 17184,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3605,
+            "user": 13429
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_2d7ded5991ac40d1943b3f63b6c736fb",
+      "root_run_id": "agrun_9fd5b3d441",
+      "parent_run_id": "agrun_9fd5b3d441",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:01:36.898354+00:00",
+      "duration_ms": 42618.08608297724,
+      "usage": {
+        "prompt_tokens": 2312,
+        "completion_tokens": 6899,
+        "total_tokens": 9211,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 5480
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 1928
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "080fe6dd0ae20b3c88fb",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0044297519999999995,
+          "usd_max": 0.008859503999999999,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 10567,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2857,
+            "user": 7561
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_069f53bdcab143b79d1063fffd2f99b9",
+      "root_run_id": "agrun_9fd5b3d441",
+      "parent_run_id": "agrun_9fd5b3d441",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 08:02:23.255393+00:00",
+      "duration_ms": 88855.52391700912,
+      "usage": null,
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "080fe6dd0ae20b3c88fb",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 14130,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3362,
+            "user": 10618
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_5b27ca4f7a394fb2829cb0ba2a943cb6",
+      "root_run_id": "agrun_648679ed59",
+      "parent_run_id": "agrun_648679ed59",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:59:48.561686+00:00",
+      "duration_ms": 18714.3467090209,
+      "usage": {
+        "prompt_tokens": 8010,
+        "completion_tokens": 2580,
+        "total_tokens": 10590,
+        "prompt_tokens_details": {
+          "cached_tokens": 7040
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1077
+        },
+        "prompt_cache_hit_tokens": 7040,
+        "prompt_cache_miss_tokens": 970
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "080fe6dd0ae20b3c88fb",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0017146199999999998,
+          "usd_max": 0.0034292399999999996,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 36261,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 26756
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_34b909035c024578aa51eb796e1854d8",
+      "root_run_id": "agrun_648679ed59",
+      "parent_run_id": "agrun_648679ed59",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 08:00:09.890136+00:00",
+      "duration_ms": 90012.06283300417,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "080fe6dd0ae20b3c88fb",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 30682,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3605,
+            "user": 26927
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_9570c566bca04198a33aaf0f118c8d1a",
+      "root_run_id": "agrun_648679ed59",
+      "parent_run_id": "agrun_648679ed59",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:01:42.188208+00:00",
+      "duration_ms": 19761.567582958378,
+      "usage": {
+        "prompt_tokens": 5654,
+        "completion_tokens": 3092,
+        "total_tokens": 8746,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1797
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 5270
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "080fe6dd0ae20b3c88fb",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.002646852,
+          "usd_max": 0.005293704,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 24658,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2857,
+            "user": 21652
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_ead21acb89e9430c9bc08c6ce6d79148",
+      "root_run_id": "agrun_648679ed59",
+      "parent_run_id": "agrun_648679ed59",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:02:04.611769+00:00",
+      "duration_ms": 65843.5983749805,
+      "usage": {
+        "prompt_tokens": 6323,
+        "completion_tokens": 3371,
+        "total_tokens": 9694,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2597
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 6323
+      },
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "080fe6dd0ae20b3c88fb",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.01084776,
+          "usd_max": 0.02169552,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 27666,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3362,
+            "user": 24154
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_31c083704d434b57bc9cf42a99dac497",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.business_hypothesis",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:44:37.883207+00:00",
+      "duration_ms": 12161.519332963508,
+      "usage": {
+        "prompt_tokens": 1030,
+        "completion_tokens": 1777,
+        "total_tokens": 2807,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1370
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 646
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001164252,
+          "usd_max": 0.002328504,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5337,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2812,
+            "user": 2376
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_3e1d88f0ea744692aa82fb42da50f75c",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.mix_feasible",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:44:07.642271+00:00",
+      "duration_ms": 12585.315125004854,
+      "usage": {
+        "prompt_tokens": 1048,
+        "completion_tokens": 2007,
+        "total_tokens": 3055,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1508
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 664
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001304952,
+          "usd_max": 0.002609904,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5207,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2812,
+            "user": 2246
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_1690042e338d403190f8c049c265c8c2",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.operations",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:42:25.864886+00:00",
+      "duration_ms": 54254.41441696603,
+      "usage": {
+        "prompt_tokens": 1541,
+        "completion_tokens": 8943,
+        "total_tokens": 10484,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 7907
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 1157
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.005540502,
+          "usd_max": 0.011081004,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 7568,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2812,
+            "user": 4607
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_bccc77c969094af9877f0855405e5948",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.replacement",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:43:55.830709+00:00",
+      "duration_ms": 9297.24216699833,
+      "usage": {
+        "prompt_tokens": 1034,
+        "completion_tokens": 1272,
+        "total_tokens": 2306,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 745
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 650
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000861852,
+          "usd_max": 0.001723704,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5273,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2812,
+            "user": 2312
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_246caa21074940ee8987e517047a6b64",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.retailer",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:43:23.841614+00:00",
+      "duration_ms": 28219.173124991357,
+      "usage": {
+        "prompt_tokens": 1081,
+        "completion_tokens": 4944,
+        "total_tokens": 6025,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 4157
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 697
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0030721019999999997,
+          "usd_max": 0.0061442039999999995,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5403,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2812,
+            "user": 2442
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_0a7ecac7e6a746aeb7c575da0ac43e15",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.source",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:41:12.945934+00:00",
+      "duration_ms": 69194.04662499437,
+      "usage": {
+        "prompt_tokens": 3074,
+        "completion_tokens": 13504,
+        "total_tokens": 16578,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 12075
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 3074
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0085635,
+          "usd_max": 0.017127,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 14259,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2812,
+            "user": 11298
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_dfe281e89fd748df9e05d5a9cac0a49b",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.trial",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:44:22.771046+00:00",
+      "duration_ms": 11419.151708018035,
+      "usage": {
+        "prompt_tokens": 1032,
+        "completion_tokens": 1727,
+        "total_tokens": 2759,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1164
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 648
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001134552,
+          "usd_max": 0.002269104,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5161,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2812,
+            "user": 2200
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_dcb2de6d11914f06aa90914b9f207862",
+      "root_run_id": "agrun_c609475a53",
+      "parent_run_id": "agrun_c609475a53",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:11:41.206695+00:00",
+      "duration_ms": 20110.740125004668,
+      "usage": {
+        "prompt_tokens": 4432,
+        "completion_tokens": 3718,
+        "total_tokens": 8150,
+        "prompt_tokens_details": {
+          "cached_tokens": 1536
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2056
+        },
+        "prompt_cache_hit_tokens": 1536,
+        "prompt_cache_miss_tokens": 2896
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0026698079999999996,
+          "usd_max": 0.005339615999999999,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 21725,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 12220
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_78db975ff3b941b8a0b717ee2ce2bdd8",
+      "root_run_id": "agrun_c609475a53",
+      "parent_run_id": "agrun_c609475a53",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:12:03.938728+00:00",
+      "duration_ms": 16746.901624952443,
+      "usage": {
+        "prompt_tokens": 4468,
+        "completion_tokens": 2628,
+        "total_tokens": 7096,
+        "prompt_tokens_details": {
+          "cached_tokens": 3584
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1326
+        },
+        "prompt_cache_hit_tokens": 3584,
+        "prompt_cache_miss_tokens": 884
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001720152,
+          "usd_max": 0.003440304,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 21862,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 12357
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_26f8337c86cd4a329062253ac7c9dfbb",
+      "root_run_id": "agrun_c609475a53",
+      "parent_run_id": "agrun_c609475a53",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:12:24.421567+00:00",
+      "duration_ms": 53904.35141697526,
+      "usage": {
+        "prompt_tokens": 3285,
+        "completion_tokens": 2792,
+        "total_tokens": 6077,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2417
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 2645
+      },
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00728794,
+          "usd_max": 0.01457588,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 15422,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3605,
+            "user": 11666
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_e1552c135f5c426e969410be0aea8b1f",
+      "root_run_id": "agrun_c609475a53",
+      "parent_run_id": "agrun_c609475a53",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:13:24.436255+00:00",
+      "duration_ms": 34422.43216600036,
+      "usage": {
+        "prompt_tokens": 4853,
+        "completion_tokens": 1960,
+        "total_tokens": 6813,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1353
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 4213
+      },
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00667546,
+          "usd_max": 0.01335092,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 20569,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3605,
+            "user": 16813
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_9133a5f52eef4e8691889dd14c95418f",
+      "root_run_id": "agrun_c609475a53",
+      "parent_run_id": "agrun_c609475a53",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:14:02.762339+00:00",
+      "duration_ms": 32347.863500006497,
+      "usage": {
+        "prompt_tokens": 3244,
+        "completion_tokens": 5640,
+        "total_tokens": 8884,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 4528
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 2860
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.003814152,
+          "usd_max": 0.007628304,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 13294,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2857,
+            "user": 10288
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_df712cd4ccc848b98da79f6a36ea40df",
+      "root_run_id": "agrun_c609475a53",
+      "parent_run_id": "agrun_c609475a53",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 08:14:38.838690+00:00",
+      "duration_ms": 14298.371082986705,
+      "usage": null,
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 14585,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3362,
+            "user": 11072
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_310ac48110dd4c12a6834a12f179378e",
+      "root_run_id": "agrun_6f5c8f307b",
+      "parent_run_id": "agrun_6f5c8f307b",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:11:40.893060+00:00",
+      "duration_ms": 18111.13687499892,
+      "usage": {
+        "prompt_tokens": 5106,
+        "completion_tokens": 2416,
+        "total_tokens": 7522,
+        "prompt_tokens_details": {
+          "cached_tokens": 3456
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 871
+        },
+        "prompt_cache_hit_tokens": 3456,
+        "prompt_cache_miss_tokens": 1650
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0017074679999999997,
+          "usd_max": 0.0034149359999999995,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 24135,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 14630
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_0fbeda11f6444d73ae7829a293263f5f",
+      "root_run_id": "agrun_6f5c8f307b",
+      "parent_run_id": "agrun_6f5c8f307b",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:12:01.609872+00:00",
+      "duration_ms": 39903.3998340019,
+      "usage": {
+        "prompt_tokens": 3948,
+        "completion_tokens": 1857,
+        "total_tokens": 5805,
+        "prompt_tokens_details": {
+          "cached_tokens": 1408
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1441
+        },
+        "prompt_cache_hit_tokens": 1408,
+        "prompt_cache_miss_tokens": 2540
+      },
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.005384236000000001,
+          "usd_max": 0.010768472000000001,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 17738,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3605,
+            "user": 13982
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_c1c2c53fe4594c09a813fe80a00c1c40",
+      "root_run_id": "agrun_6f5c8f307b",
+      "parent_run_id": "agrun_6f5c8f307b",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:12:45.282198+00:00",
+      "duration_ms": 17746.601374994498,
+      "usage": {
+        "prompt_tokens": 2257,
+        "completion_tokens": 2843,
+        "total_tokens": 5100,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1786
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 1873
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001987902,
+          "usd_max": 0.003975804,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 10315,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2857,
+            "user": 7309
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_6881014826f8485dbec81befb5094623",
+      "root_run_id": "agrun_6f5c8f307b",
+      "parent_run_id": "agrun_6f5c8f307b",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 08:13:05.644859+00:00",
+      "duration_ms": 90013.43395799631,
+      "usage": null,
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 13075,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3362,
+            "user": 9562
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_7a7662fca67141639f4dc8c6d7cba3f5",
+      "root_run_id": "agrun_857d6bdcde",
+      "parent_run_id": "agrun_857d6bdcde",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:05:15.710053+00:00",
+      "duration_ms": 16298.055708990432,
+      "usage": {
+        "prompt_tokens": 4971,
+        "completion_tokens": 2239,
+        "total_tokens": 7210,
+        "prompt_tokens_details": {
+          "cached_tokens": 3968
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 739
+        },
+        "prompt_cache_hit_tokens": 3968,
+        "prompt_cache_miss_tokens": 1003
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001505754,
+          "usd_max": 0.003011508,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 23476,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 13971
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_af2810e2f4ff4874b7bb7ad93cf6b772",
+      "root_run_id": "agrun_857d6bdcde",
+      "parent_run_id": "agrun_857d6bdcde",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:05:34.724525+00:00",
+      "duration_ms": 51810.9913750086,
+      "usage": {
+        "prompt_tokens": 3827,
+        "completion_tokens": 2248,
+        "total_tokens": 6075,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2063
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 3827
+      },
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0069768600000000005,
+          "usd_max": 0.013953720000000001,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 17053,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3605,
+            "user": 13297
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_c4966f4e7eb7406b87cf75f2a041965e",
+      "root_run_id": "agrun_857d6bdcde",
+      "parent_run_id": "agrun_857d6bdcde",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 08:06:32.625429+00:00",
+      "duration_ms": 88857.00345801888,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 21583,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3605,
+            "user": 17827
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_262b8727fecf4eeeb4cde92c3effeca6",
+      "root_run_id": "agrun_857d6bdcde",
+      "parent_run_id": "agrun_857d6bdcde",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:08:03.790241+00:00",
+      "duration_ms": 26982.333833002485,
+      "usage": {
+        "prompt_tokens": 3694,
+        "completion_tokens": 4241,
+        "total_tokens": 7935,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3218
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 3310
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.003042252,
+          "usd_max": 0.006084504,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 15513,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2857,
+            "user": 12507
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_68054a19c4f642209b9d1283de63ac34",
+      "root_run_id": "agrun_857d6bdcde",
+      "parent_run_id": "agrun_857d6bdcde",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:08:33.339113+00:00",
+      "duration_ms": 79179.25683298381,
+      "usage": {
+        "prompt_tokens": 4509,
+        "completion_tokens": 4340,
+        "total_tokens": 8849,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3747
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 4509
+      },
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.011569140000000002,
+          "usd_max": 0.023138280000000004,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 19023,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3362,
+            "user": 15510
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_ac39e4dbbf91410ba9caf8526674c296",
+      "root_run_id": "agrun_643ba98f5a",
+      "parent_run_id": "agrun_643ba98f5a",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:05:13.849406+00:00",
+      "duration_ms": 17350.96433298895,
+      "usage": {
+        "prompt_tokens": 8022,
+        "completion_tokens": 2371,
+        "total_tokens": 10393,
+        "prompt_tokens_details": {
+          "cached_tokens": 7040
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 454
+        },
+        "prompt_cache_hit_tokens": 7040,
+        "prompt_cache_miss_tokens": 982
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00159102,
+          "usd_max": 0.00318204,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 36344,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 26839
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_11159d24dc424c30b79509daec304938",
+      "root_run_id": "agrun_643ba98f5a",
+      "parent_run_id": "agrun_643ba98f5a",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:05:33.772122+00:00",
+      "duration_ms": 58549.126250029076,
+      "usage": {
+        "prompt_tokens": 6890,
+        "completion_tokens": 2548,
+        "total_tokens": 9438,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1848
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 6890
+      },
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00959244,
+          "usd_max": 0.01918488,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 29953,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3605,
+            "user": 26197
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_1339e6bed2da483497d47d6bdb5648e3",
+      "root_run_id": "agrun_643ba98f5a",
+      "parent_run_id": "agrun_643ba98f5a",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:06:36.075638+00:00",
+      "duration_ms": 11085.27345902985,
+      "usage": {
+        "prompt_tokens": 5512,
+        "completion_tokens": 1686,
+        "total_tokens": 7198,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 738
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 5128
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0017819519999999998,
+          "usd_max": 0.0035639039999999997,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 23981,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2857,
+            "user": 20975
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_533f744707fe4499abc2750fbd01bc49",
+      "root_run_id": "agrun_643ba98f5a",
+      "parent_run_id": "agrun_643ba98f5a",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 08:06:49.734074+00:00",
+      "duration_ms": 73094.62975000497,
+      "usage": {
+        "prompt_tokens": 6089,
+        "completion_tokens": 3818,
+        "total_tokens": 9907,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3109
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 6089
+      },
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.011578380000000001,
+          "usd_max": 0.023156760000000002,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 26649,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3362,
+            "user": 23136
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_84e56f6ae5094f86ae65a5e451864a3d",
+      "root_run_id": "agrun_6f5c8f307b",
+      "parent_run_id": "agrun_6f5c8f307b",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 08:17:17.966462+00:00",
+      "duration_ms": 86334.00375000201,
+      "usage": null,
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "6fbae3755acc020756ac",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 13075,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 3362,
+            "user": 9562
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_5b91e5d2fc53490c8f606683c7c03d79",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.business_hypothesis",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:32:24.444801+00:00",
+      "duration_ms": 9779.415125027299,
+      "usage": {
+        "prompt_tokens": 1133,
+        "completion_tokens": 1348,
+        "total_tokens": 2481,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 771
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 749
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000922302,
+          "usd_max": 0.001844604,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5787,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2836
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_9c0ff0ab476742058152a6c12e2a70cb",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.mix_feasible",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:31:30.608767+00:00",
+      "duration_ms": 27509.15537500987,
+      "usage": {
+        "prompt_tokens": 1151,
+        "completion_tokens": 4511,
+        "total_tokens": 5662,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3929
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 767
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0028228019999999997,
+          "usd_max": 0.005645603999999999,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5657,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2706
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_c9c5b57af0044c22baf15f395366d3ad",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.business_hypothesis",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:39:39.755009+00:00",
+      "duration_ms": 5126.765208027791,
+      "usage": {
+        "prompt_tokens": 1108,
+        "completion_tokens": 513,
+        "total_tokens": 1621,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 724
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "f339828ae5c59ca4cb99",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000417552,
+          "usd_max": 0.000835104,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5781,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2836
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_c3654060529b43cd98c8462f1a839435",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.mix_feasible",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:39:23.735634+00:00",
+      "duration_ms": 4856.582708016504,
+      "usage": {
+        "prompt_tokens": 1126,
+        "completion_tokens": 562,
+        "total_tokens": 1688,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 742
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "f339828ae5c59ca4cb99",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000449652,
+          "usd_max": 0.000899304,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5651,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2706
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_2534610e2cb94522882706f251458c5b",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.operations",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:38:53.547235+00:00",
+      "duration_ms": 10444.959415995982,
+      "usage": {
+        "prompt_tokens": 1619,
+        "completion_tokens": 1592,
+        "total_tokens": 3211,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 1235
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "f339828ae5c59ca4cb99",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0011416019999999998,
+          "usd_max": 0.0022832039999999996,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 8012,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 5067
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_e00398047cbf49ee943ac5e1cb087251",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.replacement",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:39:15.042406+00:00",
+      "duration_ms": 6132.346750004217,
+      "usage": {
+        "prompt_tokens": 1112,
+        "completion_tokens": 831,
+        "total_tokens": 1943,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 728
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "f339828ae5c59ca4cb99",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000608952,
+          "usd_max": 0.001217904,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5717,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2772
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_faac402ecc444558a288742acd0bb6a4",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.retailer",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:39:06.479844+00:00",
+      "duration_ms": 4851.012750004884,
+      "usage": {
+        "prompt_tokens": 1159,
+        "completion_tokens": 636,
+        "total_tokens": 1795,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 775
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "f339828ae5c59ca4cb99",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0004990019999999999,
+          "usd_max": 0.0009980039999999998,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5847,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2902
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_e0899ecfa8444be892336f2f9eb3c3e2",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.source",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:38:37.970627+00:00",
+      "duration_ms": 12722.50733297551,
+      "usage": {
+        "prompt_tokens": 3152,
+        "completion_tokens": 2022,
+        "total_tokens": 5174,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 3152
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "f339828ae5c59ca4cb99",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001686,
+          "usd_max": 0.003372,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 14703,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 11758
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_f6fb8ffebc5a406490a4541ebfe71466",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.trial",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:39:31.139253+00:00",
+      "duration_ms": 6033.614917017985,
+      "usage": {
+        "prompt_tokens": 1110,
+        "completion_tokens": 732,
+        "total_tokens": 1842,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 726
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "f339828ae5c59ca4cb99",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000549252,
+          "usd_max": 0.001098504,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5605,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2660
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_943cf32b6a014ce5a4b062ab851f0877",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.replacement",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:31:12.626427+00:00",
+      "duration_ms": 15294.720290985424,
+      "usage": {
+        "prompt_tokens": 1137,
+        "completion_tokens": 2346,
+        "total_tokens": 3483,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1627
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 753
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001521702,
+          "usd_max": 0.003043404,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5723,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2772
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_a48f52fc101a413685d4b239a294f8e1",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.source",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:30:34.641174+00:00",
+      "duration_ms": 34270.523458952084,
+      "usage": {
+        "prompt_tokens": 3177,
+        "completion_tokens": 5516,
+        "total_tokens": 8693,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 4285
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 3177
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00378615,
+          "usd_max": 0.0075723,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 14709,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 11758
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_bc9b2e76d0664be39cdc5402cbcfb942",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.trial",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:32:01.826552+00:00",
+      "duration_ms": 14741.463375044987,
+      "usage": {
+        "prompt_tokens": 1135,
+        "completion_tokens": 2201,
+        "total_tokens": 3336,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1462
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 751
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0014344019999999998,
+          "usd_max": 0.0028688039999999995,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5611,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2802,
+            "user": 2660
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_d5166b9b54c347d8803dfaef5a83d5d8",
+      "root_run_id": null,
+      "parent_run_id": null,
+      "purpose": "reasoning_repair.review.trial",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "json_repair",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:32:17.715934+00:00",
+      "duration_ms": 4211.2602080451325,
+      "usage": {
+        "prompt_tokens": 1236,
+        "completion_tokens": 706,
+        "total_tokens": 1942,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 1236
+      },
+      "metadata": {
+        "stage": "repair",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000609,
+          "usd_max": 0.001218,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 5364,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 360,
+            "user": 4860
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_2a3f7c017d764ab1b34aa39b500a70f9",
+      "root_run_id": "agrun_11900602c5",
+      "parent_run_id": "agrun_11900602c5",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:51:15.498423+00:00",
+      "duration_ms": 13211.089875025209,
+      "usage": {
+        "prompt_tokens": 4944,
+        "completion_tokens": 1770,
+        "total_tokens": 6714,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 673
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 4944
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0018035999999999998,
+          "usd_max": 0.0036071999999999996,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 23292,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 13787
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_394d9d0dc4db4727b27feeb66a301044",
+      "root_run_id": "agrun_11900602c5",
+      "parent_run_id": "agrun_11900602c5",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "json_repair",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:51:29.880159+00:00",
+      "duration_ms": 5581.616458017379,
+      "usage": {
+        "prompt_tokens": 1818,
+        "completion_tokens": 1100,
+        "total_tokens": 2918,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 1818
+      },
+      "metadata": {
+        "stage": "repair",
+        "profile": "economy",
+        "inference_effort": null,
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0009327000000000001,
+          "usd_max": 0.0018654000000000001,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 8394,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 359,
+            "user": 7891
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_4bf13800b99c4d07b6da813dfe199b0d",
+      "root_run_id": "agrun_11900602c5",
+      "parent_run_id": "agrun_11900602c5",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 07:51:38.158694+00:00",
+      "duration_ms": 90023.47295801155,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 21918,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 5447,
+            "user": 16320
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_ee27f4179ccd49e480e3827f830188e6",
+      "root_run_id": "agrun_11900602c5",
+      "parent_run_id": "agrun_11900602c5",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:53:10.016095+00:00",
+      "duration_ms": 12641.281874966808,
+      "usage": {
+        "prompt_tokens": 2383,
+        "completion_tokens": 1931,
+        "total_tokens": 4314,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 967
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 2383
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00151605,
+          "usd_max": 0.0030321,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 10861,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2857,
+            "user": 7855
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_28289ec3e25648c393337b3fdd5f031d",
+      "root_run_id": "agrun_11900602c5",
+      "parent_run_id": "agrun_11900602c5",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:53:25.249753+00:00",
+      "duration_ms": 78506.54045899864,
+      "usage": {
+        "prompt_tokens": 2940,
+        "completion_tokens": 4327,
+        "total_tokens": 7267,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3683
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 2940
+      },
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.010507859999999999,
+          "usd_max": 0.021015719999999998,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 13331,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 5220,
+            "user": 7960
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_77ceb4dd8e0649d0918086d5546f6226",
+      "root_run_id": "agrun_616823ff8c",
+      "parent_run_id": "agrun_616823ff8c",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:51:15.473003+00:00",
+      "duration_ms": 19199.45029198425,
+      "usage": {
+        "prompt_tokens": 7995,
+        "completion_tokens": 2676,
+        "total_tokens": 10671,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1193
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 7995
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00280485,
+          "usd_max": 0.0056097,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 36160,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9356,
+            "user": 26655
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_a3565ebc96d84e75984068c025c7063b",
+      "root_run_id": "agrun_616823ff8c",
+      "parent_run_id": "agrun_616823ff8c",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 07:51:37.300847+00:00",
+      "duration_ms": 90016.76420803415,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 35827,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 5447,
+            "user": 30229
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_c575a7ed82804bd79c4c37b3bb52b0fa",
+      "root_run_id": "agrun_616823ff8c",
+      "parent_run_id": "agrun_616823ff8c",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:53:09.552734+00:00",
+      "duration_ms": 19229.565916990396,
+      "usage": {
+        "prompt_tokens": 5673,
+        "completion_tokens": 2884,
+        "total_tokens": 8557,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1739
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 5673
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00258135,
+          "usd_max": 0.0051627,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 24785,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 2857,
+            "user": 21779
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_dec5271e13b4421999c4e2179d299e96",
+      "root_run_id": "agrun_616823ff8c",
+      "parent_run_id": "agrun_616823ff8c",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:53:31.463712+00:00",
+      "duration_ms": 81614.27550000371,
+      "usage": {
+        "prompt_tokens": 6762,
+        "completion_tokens": 4482,
+        "total_tokens": 11244,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3624
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 6762
+      },
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "high",
+        "configuration_revision": "26d49a864254e8b9352f",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.01333728,
+          "usd_max": 0.02667456,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 30197,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 5220,
+            "user": 24826
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_71ab0f1f65834d1682bc0549fa1f9971",
+      "root_run_id": "agrun_daa00d6e3e",
+      "parent_run_id": "agrun_daa00d6e3e",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:38:59.229322+00:00",
+      "duration_ms": 40429.37029199675,
+      "usage": {
+        "prompt_tokens": 4283,
+        "completion_tokens": 6227,
+        "total_tokens": 10510,
+        "prompt_tokens_details": {
+          "cached_tokens": 1536
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 5198
+        },
+        "prompt_cache_hit_tokens": 1536,
+        "prompt_cache_miss_tokens": 2747
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.004152858000000001,
+          "usd_max": 0.008305716000000001,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 20948,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9261,
+            "user": 11538
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_2d2a381f9ba94b1c8ede4f80fab17c88",
+      "root_run_id": "agrun_daa00d6e3e",
+      "parent_run_id": "agrun_daa00d6e3e",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:39:44.885007+00:00",
+      "duration_ms": 14597.30349999154,
+      "usage": {
+        "prompt_tokens": 6082,
+        "completion_tokens": 2136,
+        "total_tokens": 8218,
+        "prompt_tokens_details": {
+          "cached_tokens": 1664
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 815
+        },
+        "prompt_cache_hit_tokens": 1664,
+        "prompt_cache_miss_tokens": 4418
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0019492919999999998,
+          "usd_max": 0.0038985839999999996,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 28119,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9261,
+            "user": 18709
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_ca164c2892894b0d8276b2ae2b147a04",
+      "root_run_id": "agrun_daa00d6e3e",
+      "parent_run_id": "agrun_daa00d6e3e",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:40:02.170680+00:00",
+      "duration_ms": 48531.558082962874,
+      "usage": {
+        "prompt_tokens": 5622,
+        "completion_tokens": 2708,
+        "total_tokens": 8330,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1544
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 5622
+      },
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00907236,
+          "usd_max": 0.01814472,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 24623,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 5447,
+            "user": 19026
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_5d430b1e942b49b6b8c926cd0707b81c",
+      "root_run_id": "agrun_daa00d6e3e",
+      "parent_run_id": "agrun_daa00d6e3e",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:40:54.441681+00:00",
+      "duration_ms": 13826.33479195647,
+      "usage": {
+        "prompt_tokens": 3267,
+        "completion_tokens": 1976,
+        "total_tokens": 5243,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1641
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 2627
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00158157,
+          "usd_max": 0.00316314,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 14337,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 4444,
+            "user": 9744
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_7fe19168cd554a65ba03854fd59158ad",
+      "root_run_id": "agrun_e2700d3a4e",
+      "parent_run_id": "agrun_e2700d3a4e",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:29:32.871875+00:00",
+      "duration_ms": 15602.95174998464,
+      "usage": {
+        "prompt_tokens": 4456,
+        "completion_tokens": 2148,
+        "total_tokens": 6604,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 924
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 3816
+      },
+      "metadata": {
+        "stage": "researcher",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0018631199999999998,
+          "usd_max": 0.0037262399999999996,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 21043,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 9261,
+            "user": 11633
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_62f477b5515d48c68ecc7686c48a24c2",
+      "root_run_id": "agrun_e2700d3a4e",
+      "parent_run_id": "agrun_e2700d3a4e",
+      "purpose": "agent.analysis_step",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": null,
+      "operation": "chat",
+      "status": "failure",
+      "started_at_utc": "2026-10-16 07:29:50.977821+00:00",
+      "duration_ms": 90016.51175000006,
+      "usage": null,
+      "metadata": {
+        "stage": "synthesis",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "usage_unavailable"
+        },
+        "request_composition": {
+          "serialized_characters": 21744,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 5367,
+            "user": 16227
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "ReadTimeout"
+      }
+    },
+    {
+      "attempt_id": "llmhttp_6caaa9d0f7ae4d29adbc99cab426ecef",
+      "root_run_id": "agrun_e2700d3a4e",
+      "parent_run_id": "agrun_e2700d3a4e",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:31:23.146536+00:00",
+      "duration_ms": 68656.07583301608,
+      "usage": {
+        "prompt_tokens": 2614,
+        "completion_tokens": 12027,
+        "total_tokens": 14641,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 11615
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 1974
+      },
+      "metadata": {
+        "stage": "review",
+        "profile": "economy",
+        "inference_effort": "low",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.007514219999999999,
+          "usd_max": 0.015028439999999999,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 12203,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 4444,
+            "user": 7610
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    },
+    {
+      "attempt_id": "llmhttp_9d99da20e8d34116b588932a55f8ef79",
+      "root_run_id": "agrun_e2700d3a4e",
+      "parent_run_id": "agrun_e2700d3a4e",
+      "purpose": "agent.review_corrections",
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "operation": "chat",
+      "status": "success",
+      "started_at_utc": "2026-10-16 07:32:35.525765+00:00",
+      "duration_ms": 76987.50074999407,
+      "usage": {
+        "prompt_tokens": 3071,
+        "completion_tokens": 4177,
+        "total_tokens": 7248,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3499
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 2431
+      },
+      "metadata": {
+        "stage": "reasoning",
+        "profile": "analysis",
+        "inference_effort": "max",
+        "configuration_revision": "ed279f89f2a3f3b2f493",
+        "estimated_charge": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.009889,
+          "usd_max": 0.019778,
+          "rate_band": "peak_or_holiday"
+        },
+        "request_composition": {
+          "serialized_characters": 14188,
+          "message_count": 2,
+          "message_characters_by_role": {
+            "system": 5220,
+            "user": 8818
+          },
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 23,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": ""
+      }
+    }
+  ]
+}

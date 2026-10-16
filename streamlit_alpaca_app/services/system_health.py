@@ -3,13 +3,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import os
+from urllib.parse import quote
 from typing import Any, Callable
 
 import pandas as pd
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from .emailer import EmailDeliveryResult, send_email
-from .pipeline_store import PipelineDataset, latest_dataset_metadata, load_latest_dataset_frame
-from .secrets import resolve_secret_value
+from .pipeline_store import PipelineDataset, dataset_namespace, latest_dataset_metadata, load_latest_dataset_frame
+from .secrets import build_azure_credential, resolve_secret_value
 
 
 ATTENTION_HOME_JOB = "attention-home-build"
@@ -160,6 +164,22 @@ def evaluate_system_health(
             )
         )
 
+    for job_name, job in latest_jobs.items():
+        if job.get("progress_stage") == "platform_completion_unrecorded":
+            issues.append(HealthIssue(
+                key=f"pipeline-job-unrecorded-{job_name}",
+                title=f"Completion was not recorded for {job_name}",
+                details=_trim(job.get("error_summary")),
+            ))
+        if job_name in {ATTENTION_HOME_JOB, TRADING_AGENT_JOB}:
+            continue
+        if str(job.get("status") or "").lower() == "failed":
+            issues.append(HealthIssue(
+                key=f"pipeline-job-failed-{job_name}",
+                title=f"Pipeline job {job_name} failed",
+                details=_trim(job.get("error_summary") or job.get("progress_message")),
+            ))
+
     for failure in provider_failures:
         job_name = _trim(failure.get("job_name"), 100) or "pipeline"
         details = _trim(failure.get("error_summary") or failure.get("progress_message"))
@@ -179,24 +199,94 @@ def _latest_jobs(conn: Any) -> dict[str, dict[str, object]]:
         cur.execute(
             """
             SELECT DISTINCT ON (job_name)
-                   job_name, status, start_time_utc, end_time_utc, error_summary, progress_message
+                   job_name, status, start_time_utc, end_time_utc, error_summary, progress_message,
+                   progress_stage
             FROM job_runs
-            WHERE job_name = ANY(%s)
+            WHERE status NOT IN ('Running', 'Stopped')
+              AND CASE WHEN %s = '' THEN position('::' in job_name) = 0
+                       ELSE starts_with(job_name, %s) END
             ORDER BY job_name, start_time_utc DESC
             """,
-            ([ATTENTION_HOME_JOB, TRADING_AGENT_JOB],),
+            (dataset_namespace(), f"{dataset_namespace()}::"),
         )
         rows = cur.fetchall() or []
     return {
-        str(row[0]): {
+        str(row[0]).split("::", 1)[-1]: {
             "status": row[1],
             "start_time_utc": row[2],
             "end_time_utc": row[3],
             "error_summary": row[4],
             "progress_message": row[5],
+            "progress_stage": row[6],
         }
         for row in rows
     }
+
+
+def reconcile_job_executions(conn: Any, *, now: datetime) -> int:
+    """Finalize orphaned run rows from their exact Azure execution, never their age."""
+    resource_group_id = (os.getenv("SYSTEM_HEALTH_AZURE_RESOURCE_GROUP_ID") or "").strip().rstrip("/")
+    if not resource_group_id:
+        return 0
+    if not resource_group_id.startswith("/subscriptions/") or "/resourceGroups/" not in resource_group_id:
+        raise SystemHealthConfigurationError("Invalid system health Azure resource group ID.")
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT DISTINCT platform_job_name, platform_execution_name
+            FROM job_runs
+            WHERE status = 'Running' AND platform_job_name IS NOT NULL
+              AND platform_execution_name IS NOT NULL
+              AND CASE WHEN %s = '' THEN position('::' in job_name) = 0
+                       ELSE starts_with(job_name, %s) END
+            """, (dataset_namespace(), f"{dataset_namespace()}::"),
+        )
+        executions = cur.fetchall() or []
+    conn.commit()
+    if not executions:
+        return 0
+    credential = build_azure_credential()
+    if credential is None:
+        raise SystemHealthConfigurationError("Azure job monitoring requires a credential.")
+    token = credential.get_token("https://management.azure.com/.default").token
+    updated = 0
+    with requests.Session() as session:
+        session.mount("https://", HTTPAdapter(max_retries=Retry(
+            total=2, backoff_factor=0.5, backoff_max=3,
+            status_forcelist=(429, 500, 502, 503, 504),
+            allowed_methods=frozenset({"GET"}), respect_retry_after_header=False,
+        )))
+        session.headers["Authorization"] = f"Bearer {token}"
+        for job_name, execution_name in executions:
+            url = (f"https://management.azure.com{resource_group_id}/providers/Microsoft.App/jobs/"
+                   f"{quote(job_name, safe='')}/executions/{quote(execution_name, safe='')}")
+            response = session.get(url, params={"api-version": "2025-07-01"}, timeout=15)
+            if response.status_code != 200:
+                raise RuntimeError(f"Azure execution lookup for {job_name} returned HTTP {response.status_code}.")
+            props = response.json().get("properties") or {}
+            platform_status = str(props.get("status") or "")
+            if platform_status not in {"Failed", "Succeeded", "Stopped"}:
+                continue
+            status = "Warning" if platform_status == "Succeeded" else platform_status
+            stage = "platform_completion_unrecorded" if platform_status == "Succeeded" else "platform_terminated"
+            detail = (f"Azure execution {execution_name} ended with status {platform_status}; "
+                      "the process did not finalize its database run.")
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE job_runs SET status = %s, end_time_utc = %s,
+                        error_summary = %s, progress_stage = %s, progress_message = %s
+                    WHERE status = 'Running' AND platform_job_name = %s
+                      AND platform_execution_name = %s
+                      AND CASE WHEN %s = '' THEN position('::' in job_name) = 0
+                               ELSE starts_with(job_name, %s) END
+                    """,
+                    (status, _as_utc(props.get("endTime")) or now, detail, stage, detail,
+                     job_name, execution_name, dataset_namespace(), f"{dataset_namespace()}::"),
+                )
+                updated += cur.rowcount
+            conn.commit()
+    return updated
 
 
 def _recent_provider_failures(conn: Any, *, since: datetime) -> list[dict[str, object]]:
@@ -207,15 +297,21 @@ def _recent_provider_failures(conn: Any, *, since: datetime) -> list[dict[str, o
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT DISTINCT ON (job_name)
-                   job_name, start_time_utc, error_summary, progress_message
-            FROM job_runs
-            WHERE status = 'Failed'
-              AND start_time_utc >= %s
+            WITH completed AS (
+                SELECT DISTINCT ON (job_name)
+                       job_name, status, start_time_utc, error_summary, progress_message
+                FROM job_runs
+                WHERE status NOT IN ('Running', 'Stopped')
+                  AND CASE WHEN %s = '' THEN position('::' in job_name) = 0
+                           ELSE starts_with(job_name, %s) END
+                ORDER BY job_name, start_time_utc DESC
+            )
+            SELECT job_name, start_time_utc, error_summary, progress_message
+            FROM completed
+            WHERE status = 'Failed' AND start_time_utc >= %s
               AND lower(coalesce(error_summary, '') || ' ' || coalesce(progress_message, '')) LIKE ANY(%s)
-            ORDER BY job_name, start_time_utc DESC
             """,
-            (since, patterns),
+            (dataset_namespace(), f"{dataset_namespace()}::", since, patterns),
         )
         rows = cur.fetchall() or []
     return [
@@ -226,6 +322,8 @@ def _recent_provider_failures(conn: Any, *, since: datetime) -> list[dict[str, o
 
 def _ensure_incident_table(conn: Any) -> None:
     with conn.cursor() as cur:
+        cur.execute("ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS platform_job_name TEXT")
+        cur.execute("ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS platform_execution_name TEXT")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS system_health_incidents (
@@ -374,7 +472,19 @@ def run_system_health_check(
     active_policy = policy or policy_from_environment()
     _ensure_incident_table(conn)
 
+    platform_issues: list[HealthIssue] = []
+    try:
+        reconcile_job_executions(conn, now=observed_at)
+    except Exception as exc:
+        conn.rollback()
+        platform_issues.append(HealthIssue(
+            key="job-execution-monitor-unavailable",
+            title="Platform job monitoring failed",
+            details=_trim(f"{type(exc).__name__}: {exc}"),
+        ))
+
     latest_jobs = _latest_jobs(conn)
+    conn.commit()
     try:
         home_metadata = latest_dataset_metadata(ATTENTION_HOME_DATASET)
     except Exception:
@@ -394,6 +504,7 @@ def run_system_health_check(
         trading_successful_horizons=_successful_horizon_count(trading_frame),
         provider_failures=provider_failures,
     )
+    issues.extend(platform_issues)
     opened, newly_recovered = _apply_incident_state(conn, issues=issues, now=observed_at)
     pending_recoveries = _pending_recoveries(conn)
 

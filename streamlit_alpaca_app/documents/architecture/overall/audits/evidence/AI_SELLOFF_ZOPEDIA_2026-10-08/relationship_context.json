@@ -1,0 +1,2757 @@
+{
+  "query": "As of October 8, 2026, investigate how a revision in beliefs about OpenAI revenue could affect public cloud, chip and neocloud businesses. Use Zopedia memory and current or primary sources to discover the relevant companies and business relationships. Separate direct contractual/customer exposure from broader spending expectations and shared market reaction. Do not assume every declining stock has the same cause or hardcode a fixed affected list. Explain what additional evidence would change the interpretation. Give a concise source-linked synthesis.",
+  "elapsed_seconds": 200.3656104588881,
+  "result": {
+    "run_id": "agrun_9582d99192",
+    "status": "completed",
+    "mode": "sync",
+    "provider": "deepseek",
+    "model": "deepseek-reasoner",
+    "synthesis_model": "deepseek-reasoner",
+    "tool_calls": [
+      {
+        "tool_call_id": "agtc_1",
+        "tool_name": "zopedia.search_pages",
+        "arguments": {
+          "query": "OpenAI revenue cloud chip neocloud exposure",
+          "max_results": 12
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "saa_zopedia_pages",
+              "saa_zopedia_change_proposals",
+              "saa_zopedia_mutation_audit",
+              "saa_zopedia_backlinks",
+              "saa_zopedia_community_index",
+              "saa_zopedia_maintenance_reports"
+            ],
+            "details": {
+              "tool_name": "zopedia.search_pages"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 12,
+            "columns": [
+              "kind",
+              "ref",
+              "page_id",
+              "page_type",
+              "title",
+              "summary_text",
+              "source_urls",
+              "url",
+              "entity_refs",
+              "outgoing_links"
+            ],
+            "sample": [
+              {
+                "kind": "zopedia_page",
+                "ref": "theme:ai-neocloud-reliability-risk",
+                "page_id": "theme:ai-neocloud-reliability-risk",
+                "page_type": "theme",
+                "title": "AI neocloud reliability and execution risk",
+                "summary_text": "Ex-crypto miners that convert legacy Bitcoin sites to AI neoclouds face execution risk. On 2026-10-07, SemiAnalysis placed IREN in its \"Not Recommended / Underperforming\" ClusterMAX tier, citing power, cooling, and ne...",
+                "source_urls": [
+                  "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html"
+                ],
+                "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+                "entity_refs": [
+                  "IREN",
+                  "CoreWeave",
+                  "Nebius",
+                  "SemiAnalysis",
+                  "AI neocloud",
+                  "data center reliability",
+                  "Nvidia",
+                  "ClusterMAX"
+                ],
+                "outgoing_links": [
+                  "ticker:IREN",
+                  "source:yahoo-finance-iren-semianalysis-highlights-2026-10-07",
+                  "market_event:iren-2026-10-07-semianalysis-drop",
+                  "peer:CRWV",
+                  "peer:NBIS",
+                  "supplier:NVDA"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "ticker:IREN",
+                "page_id": "ticker:IREN",
+                "page_type": "ticker",
+                "title": "IREN Limited (IREN)",
+                "summary_text": "IREN is a Bitcoin miner converting to an AI neocloud. On 2026-10-07, SemiAnalysis reliability criticism drove a 6%+ single-day drop. IREN operates legacy sites in Prince George and Mackenzie, British Columbia, and bui...",
+                "source_urls": [
+                  "https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/",
+                  "https://finance.yahoo.com/markets/stocks/articles/caused-surge-irens-ai-neocloud-171327410.html",
+                  "https://www.tradingview.com/news/zacks:ba5c9500e094b:0-iren-doubles-down-on-pricing-can-revenue-per-mw-keep-rising/",
+                  "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html"
+                ],
+                "url": "https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/",
+                "entity_refs": [
+                  "IREN",
+                  "APLD",
+                  "CIFR",
+                  "MARA",
+                  "RIOT",
+                  "CLSK",
+                  "Nvidia",
+                  "SemiAnalysis"
+                ],
+                "outgoing_links": [
+                  "source:yahoo-finance-iren-semianalysis-highlights-2026-10-07",
+                  "market_event:iren-2026-10-07-semianalysis-drop",
+                  "theme:ai-neocloud-reliability-risk",
+                  "peer:RIOT",
+                  "peer:CLSK",
+                  "peer:MARA",
+                  "supplier:NVDA"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "entity:penguin-solutions",
+                "page_id": "entity:penguin-solutions",
+                "page_type": "entity",
+                "title": "Penguin Solutions (PENG)",
+                "summary_text": "Penguin Solutions is a Nasdaq-listed AI infrastructure and memory company. Fiscal Q4 FY2026 revenue was $566.69M (+68% YoY) with non-GAAP EPS of $1.00, and FY2027 guidance is $2.25B-$2.60B revenue and $3.75-$5.15 adju...",
+                "source_urls": [
+                  "https://www.benzinga.com/markets/earnings/26/10/62205895/penguin-solutions-stock-pops-on-q4-earnings-beat-strong-guidance",
+                  "https://stockanalysis.com/stocks/peng/",
+                  "https://www.marketbeat.com/stocks/NASDAQ/PENG/",
+                  "https://www.businesswire.com/news/home/20261006035943/en/Penguin-Solutions-Announces-Fourth-Quarter-and-Full-Year-Fiscal-2026-Results",
+                  "https://www.marketbeat.com/instant-alerts/price-penguin-solutions-nasdaq-peng-shares-gap-up-following-earnings-beat-2026-10-07/",
+                  "https://www.businesswire.com/news/home/20261006014846/en/Penguin-Solutions-Appoints-Stephen-Cumming-as-Senior-Vice-President-and-Chief-Financial-Officer-to-Support-Accelerated-Growth",
+                  "https://simplywall.st/stocks/us/semiconductors/nasdaq-peng/penguin-solutions/news/penguin-solutions-peng-could-be-14-undervalued-on-earnings-a/amp",
+                  "https://www.marketbeat.com/instant-alerts/options-penguin-solutions-sees-unusually-large-options-volume-nasdaq-peng-2026-10-07/"
+                ],
+                "url": "https://www.benzinga.com/markets/earnings/26/10/62205895/penguin-solutions-stock-pops-on-q4-earnings-beat-strong-guidance",
+                "entity_refs": [
+                  "PENG",
+                  "Penguin Solutions",
+                  "Kash Shaikh",
+                  "AI Factory Platform",
+                  "AI Infrastructure",
+                  "AI Memory",
+                  "neocloud",
+                  "Stephen Cumming"
+                ],
+                "outgoing_links": [
+                  "market_event:peng-q4-fy2026-earnings-2026-10-07",
+                  "market_event:peng-fy2026-q4-earnings-gap-2026-10-07",
+                  "market_event/peng-q4-fy2026-results-cfo-change-2026-10-06"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:mrvl-2026-10-07-investor-day-ai-revenue-target",
+                "page_id": "market_event:mrvl-2026-10-07-investor-day-ai-revenue-target",
+                "page_type": "market_event",
+                "title": "MRVL 2026 investor day: raised 2028 revenue forecast tied to AI data-center demand",
+                "summary_text": "On 2026-10-07, multiple news sources reported that Marvell raised its 2028 revenue forecast on strong AI data-center demand at an investor day. The headlines do not state the target amount or base year. The event is t...",
+                "source_urls": [
+                  "https://seekingalpha.com/news/4651235-biggest-stock-movers-thursday-mrvl-apld-and-more",
+                  "https://finance.yahoo.com/markets/stocks/articles/could-chipmaker-really-overtake-intel-111555027.html",
+                  "https://www.investors.com/news/technology/marvell-stock-price-target-hikes-investor-day/",
+                  "https://www.barrons.com/articles/marvell-stock-technology-ai-chips-ba886070",
+                  "https://www.cnbc.com/investingclub/2026/10/06/what-marvells-rosy-long-term-guidance-means-for-our-ai-chip-stocks.html",
+                  "https://www.reuters.com/business/marvell-raises-2028-revenue-forecast-strong-ai-data-center-demand-2026-10-06/",
+                  "https://www.investing.com/news/stock-market-news/marvell-technology-stock-rallies-following-ambitious-investor-day-targets-4934767"
+                ],
+                "url": "https://seekingalpha.com/news/4651235-biggest-stock-movers-thursday-mrvl-apld-and-more",
+                "entity_refs": [
+                  "MRVL",
+                  "Marvell Technology, Inc.",
+                  "AI data center",
+                  "Intel"
+                ],
+                "outgoing_links": [
+                  "ticker:MRVL"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:MRVL-investor-day-2026-10-06",
+                "page_id": "market_event:MRVL-investor-day-2026-10-06",
+                "page_type": "market_event",
+                "title": "Marvell investor day and long-term revenue targets \u2014 2026-10-06",
+                "summary_text": "On 2026-10-06 Marvell raised its fiscal 2028 revenue forecast on AI data-center demand and targeted $90B revenue by fiscal 2031 at its investor day. Headlines also describe a stock rally and accelerating AI data-cente...",
+                "source_urls": [
+                  "https://www.reuters.com/business/marvell-raises-2028-revenue-forecast-strong-ai-data-center-demand-2026-10-06/",
+                  "https://finance.yahoo.com/video/marvell-rides-the-ai-boom-targets-90b-in-revenue-by-fiscal-2031-192654470.html",
+                  "https://www.barrons.com/articles/marvell-stock-technology-ai-chips-ba886070",
+                  "https://www.cnbc.com/investingclub/2026/10/06/what-marvells-rosy-long-term-guidance-means-for-our-ai-chip-stocks.html",
+                  "https://www.investing.com/news/stock-market-news/marvell-technology-stock-rallies-following-ambitious-investor-day-targets-4934767",
+                  "https://www.investors.com/news/technology/marvell-stock-price-target-hikes-investor-day/",
+                  "https://seekingalpha.com/news/4650949-4-stocks-to-watch-on-wednesday-u-mu-tsla-and-mrvl"
+                ],
+                "url": "https://www.reuters.com/business/marvell-raises-2028-revenue-forecast-strong-ai-data-center-demand-2026-10-06/",
+                "entity_refs": [
+                  "MRVL",
+                  "Marvell Technology, Inc.",
+                  "AI data center",
+                  "investor day"
+                ],
+                "outgoing_links": [
+                  "ticker:MRVL"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:MU_2026-10-07",
+                "page_id": "market_event:MU_2026-10-07",
+                "page_type": "market_event",
+                "title": "MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally",
+                "summary_text": "MU rose 4.02% to $1,087.42 on 2026-10-07 while peer SNDK rose 3.98% and logic/equipment peers NVDA, WDC, STX, AMAT, and LRCX all fell. Same-day headlines named MU in analyst price-target forecasts and a +100% revenue-...",
+                "source_urls": [
+                  "https://www.benzinga.com/analyst-stock-ratings/price-target/26/10/62213969/micron-to-rally-around-187-here-are-10-top-analyst-forecasts-for-wednesday?utm_source=googlefinance",
+                  "https://www.benzinga.com/news/26/10/62219299/p-500-stocks-100-percent-revenue-growth-micron-nvidia-sandisk",
+                  "https://seekingalpha.com/news/4650949-4-stocks-to-watch-on-wednesday-u-mu-tsla-and-mrvl"
+                ],
+                "url": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/10/62213969/micron-to-rally-around-187-here-are-10-top-analyst-forecasts-for-wednesday?utm_source=googlefinance",
+                "entity_refs": [
+                  "MU",
+                  "SNDK",
+                  "NVDA",
+                  "WDC",
+                  "STX",
+                  "AMAT",
+                  "LRCX"
+                ],
+                "outgoing_links": []
+              }
+            ]
+          },
+          "preview_text": "research summary with 12 rows; columns=kind, ref, page_id, page_type, title, summary_text, source_urls, url, entity_refs, outgoing_links; sample=[{\"entity_refs\": [\"IREN\", \"CoreWeave\", \"Nebius\", \"SemiAnalysis\", \"AI neocloud\", \"data center reliability\", \"Nvidia\", \"ClusterMAX\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [\"ticker:IREN\", \"source:yahoo-finance-iren-semianalysis-highlights-2026-10-07\", \"market_event:iren-2026-10-07-semianalysis-drop\", \"peer:CRWV\", \"peer:NBIS\", \"supplier:NVDA\"], \"page_id\": \"theme:ai-neocloud-reliability-risk\", \"page_type\": \"theme\", \"ref\": \"theme:ai-neocloud-reliability-risk\", \"source_urls\": [\"https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html\"], \"summary_text\": \"Ex-crypto miners that convert legacy Bitcoin sites to AI neoclouds face execution risk. On 2026-10-07, SemiAnalysis placed IREN in its \\\"Not Recommended / Underperforming\\\" ClusterMAX tier, citing power, cooling, and ne...\", \"title\": \"AI neocloud reliability and execution risk\", \"url\": \"https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html\"}, {\"entity_refs\": [\"IREN\", \"APLD\", \"CIFR\", \"MARA\", \"RIOT\", \"CLSK\", \"Nvidia\", \"SemiAnalysis\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [\"source:yahoo-finance-iren-semianalysis-highlights-2026-10-07\", \"market_event:iren-2026-10-07-semianalysis-drop\", \"theme:ai-neocloud-reliability-risk\", \"peer:RIOT\", \"peer:CLSK\", \"peer:MARA\", \"supplier:NVDA\"], \"page_id\": \"ticker:IREN\", \"page_type\": \"ticker\", \"ref\": \"ticker:IREN\", \"source_urls\": [\"https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/\", \"https://finance.yahoo.com/markets/stocks/articles/caused-surge-irens-ai-neocloud-171327410.html\", \"https://www.tradingview.com/news/zacks:ba5c9500e094b:0-iren-doubles-down-on-pricing-can-revenue-per-mw-keep-rising/\", \"https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html\"], \"summary_text\": \"IREN is a Bitcoin miner converting to an AI neocloud. On 2026-10-07, SemiAnalysis reliability criticism drove a 6%+ single-day drop. IREN operates legacy sites in Prince George and Mackenzie, British Columbia, and bui...\", \"title\": \"IREN Limited (IREN)\", \"url\": \"https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/\"}, {\"entity_refs\": [\"PENG\", \"Penguin Solutions\", \"Kash Shaikh\", \"AI Factory Platform\", \"AI Infrastructure\", \"AI Memory\", \"neocloud\", \"Stephen Cumming\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [\"market_event:peng-q4-fy2026-earnings-2026-10-07\", \"market_event:peng-fy2026-q4-earnings-gap-2026-10-07\", \"market_event/peng-q4-fy2026-results-cfo-change-2026-10-06\"], \"page_id\": \"entity:penguin-solutions\", \"page_type\": \"entity\", \"ref\": \"entity:penguin-solutions\", \"source_urls\": [\"https://www.benzinga.com/markets/earnings/26/10/62205895/penguin-solutions-stock-pops-on-q4-earnings-beat-strong-guidance\", \"https://stockanalysis.com/stocks/peng/\", \"https://www.marketbeat.com/stocks/NASDAQ/PENG/\", \"https://www.businesswire.com/news/home/20261006035943/en/Penguin-Solutions-Announces-Fourth-Quarter-and-Full-Year-Fiscal-2026-Results\", \"https://www...",
+          "user_preview": "Zopedia page search for 'OpenAI revenue cloud chip neocloud exposure': 12 result(s). AI neocloud reliability and execution risk (page_id=theme:ai-neocloud-reliability-risk) [theme]: Ex-crypto miner...",
+          "render_payload": null,
+          "llm_context_text": "Zopedia page search for 'OpenAI revenue cloud chip neocloud exposure': 12 result(s). AI neocloud reliability and execution risk (page_id=theme:ai-neocloud-reliability-risk) [theme]: Ex-crypto miners that convert legacy Bitcoin sites to AI neoclouds face execution risk. On 2026-10-07, SemiAnalysis placed IREN in its \"Not Recommended / Underperforming\" ClusterMAX tier, citing power, cooling, and ne... IREN Limited (IREN) (page_id=ticker:IREN) [ticker]: IREN is a Bitcoin miner converting to an AI neocloud. On 2026-10-07, SemiAnalysis reliability criticism drove a 6%+ single-day drop. IREN operates legacy sites in Prince George and Mackenzie, British Columbia, and bui... Penguin Solutions (PENG) (page_id=entity:penguin-solutions) [entity]: Penguin Solutions is a Nasdaq-listed AI infrastructure and memory company. Fiscal Q4 FY2026 revenue was $566.69M (+68% YoY) with non-GAAP EPS of $1.00, and FY2027 guidance is $2.25B-$2.60B revenue and $3.75-$5.15 adju... MRVL 2026 investor day: raised 2028 revenue forecast tied to AI data-center demand (page_id=market_event:mrvl-2026-10-07-investor-day-ai-revenue-target) [market_event]: On 2026-10-07, multiple news sources reported that Marvell raised its 2028 revenue forecast on strong AI data-center demand at an investor day. The headlines do not state the target amount or base year. The event is t... Marvell investor day and long-term revenue targets \u2014 2026-10-06 (page_id=market_event:MRVL-investor-day-2026-10-06) [market_event]: On 2026-10-06 Marvell raised its fiscal 2028 revenue forecast on AI data-center demand and targeted $90B revenue by fiscal 2031 at its investor day. Headlines also describe a stock rally and accelerating AI data-cente... MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally (page_id=market_event:MU_2026-10-07) [market_event]: MU rose 4.02% to $1,087.42 on 2026-10-07 while peer SNDK rose 3.98% and logic/equipment peers NVDA, WDC, STX, AMAT, and LRCX all fell. Same-day headlines named MU in analyst price-target forecasts and a +100% revenue-... Microchip Technology (MCHP) (page_id=entity/microchip-technology) [entity]: US chip maker selling microcontrollers, analog, and connectivity into industrial, auto, data center, and defense. Sept 14 2026 product launches and post-inventory-correction recovery noted; current price driver unconf... PLTR holds steady as quarterly revenue jumps (page_id=source:tradersunion:3706510) [source]: Traders Union headline dated 2026-10-07 says PLTR holds steady as quarterly revenue jumps. Full article text is not available in the current evidence. IOVA Stock Hits Over 2-Year Highs \u2013 Why Iovance Raised Its FY2026 Revenue Outlook (Yahoo Finance, 2026-09-30) (page_id=source:yahoo_iova_fy2026_guidance_2026-09-30) [source]: Yahoo Finance article reports the Iovance full-year 2026 revenue guidance raise to $410 million to $420 million, the record second quarter, the pipeline, and the Goldman Sachs Buy rating. It supplies the guidance figu... Iovance raises FY2026 revenue guidance to $410\u2013$420 million (2026-09-29) (page_id=market_event:iova_fy2026_guidance_raise) [market_event]: An 8-K dated 2026-09-29 says Iovance updated full-year 2026 revenue guidance in a press release filed as Exhibit 99.1. The filing text holds no figures. News sources report the range: $410 million to $420 million, up... NBIS 5.1% Decline on October 7, 2026 (page_id=market_event_nbis_2026_10_07_decline) [market_event]: NBIS fell 5.1% to $237.13 on Oct 7, 2026, attributed to a COO insider stake sale and a broad neocloud/AI infrastructure pullback. Peers CRWV, CORZ, and IREN fell 3.5% to 6.2%, while SMH and NVDA declined less. No macr... IREN Limited (IREN) (page_id=ticker/IREN) [ticker]: Bitcoin miner-turned-neocloud/data-center operator; owns legacy Prince George and Mackenzie, B.C. sites plus newer Childress and Sweetwater, Texas builds, with a $2.1B Nvidia investment supporting future sites.",
+          "evidence_context_text": "Zopedia page search for 'OpenAI revenue cloud chip neocloud exposure': 12 result(s). AI neocloud reliability and execution risk (page_id=theme:ai-neocloud-reliability-risk) [theme]: Ex-crypto miners that convert legacy Bitcoin sites to AI neoclouds face execution risk. On 2026-10-07, SemiAnalysis placed IREN in its \"Not Recommended / Underperforming\" ClusterMAX tier, citing power, cooling, and ne... IREN Limited (IREN) (page_id=ticker:IREN) [ticker]: IREN is a Bitcoin miner converting to an AI neocloud. On 2026-10-07, SemiAnalysis reliability criticism drove a 6%+ single-day drop. IREN operates legacy sites in Prince George and Mackenzie, British Columbia, and bui... Penguin Solutions (PENG) (page_id=entity:penguin-solutions) [entity]: Penguin Solutions is a Nasdaq-listed AI infrastructure and memory company. Fiscal Q4 FY2026 revenue was $566.69M (+68% YoY) with non-GAAP EPS of $1.00, and FY2027 guidance is $2.25B-$2.60B revenue and $3.75-$5.15 adju... MRVL 2026 investor day: raised 2028 revenue forecast tied to AI data-center demand (page_id=market_event:mrvl-2026-10-07-investor-day-ai-revenue-target) [market_event]: On 2026-10-07, multiple news sources reported that Marvell raised its 2028 revenue forecast on strong AI data-center demand at an investor day. The headlines do not state the target amount or base year. The event is t... Marvell investor day and long-term revenue targets \u2014 2026-10-06 (page_id=market_event:MRVL-investor-day-2026-10-06) [market_event]: On 2026-10-06 Marvell raised its fiscal 2028 revenue forecast on AI data-center demand and targeted $90B revenue by fiscal 2031 at its investor day. Headlines also describe a stock rally and accelerating AI data-cente... MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally (page_id=market_event:MU_2026-10-07) [market_event]: MU rose 4.02% to $1,087.42 on 2026-10-07 while peer SNDK rose 3.98% and logic/equipment peers NVDA, WDC, STX, AMAT, and LRCX all fell. Same-day headlines named MU in analyst price-target forecasts and a +100% revenue-... Microchip Technology (MCHP) (page_id=entity/microchip-technology) [entity]: US chip maker selling microcontrollers, analog, and connectivity into industrial, auto, data center, and defense. Sept 14 2026 product launches and post-inventory-correction recovery noted; current price driver unconf... PLTR holds steady as quarterly revenue jumps (page_id=source:tradersunion:3706510) [source]: Traders Union headline dated 2026-10-07 says PLTR holds steady as quarterly revenue jumps. Full article text is not available in the current evidence. IOVA Stock Hits Over 2-Year Highs \u2013 Why Iovance Raised Its FY2026 Revenue Outlook (Yahoo Finance, 2026-09-30) (page_id=source:yahoo_iova_fy2026_guidance_2026-09-30) [source]: Yahoo Finance article reports the Iovance full-year 2026 revenue guidance raise to $410 million to $420 million, the record second quarter, the pipeline, and the Goldman Sachs Buy rating. It supplies the guidance figu... Iovance raises FY2026 revenue guidance to $410\u2013$420 million (2026-09-29) (page_id=market_event:iova_fy2026_guidance_raise) [market_event]: An 8-K dated 2026-09-29 says Iovance updated full-year 2026 revenue guidance in a press release filed as Exhibit 99.1. The filing text holds no figures. News sources report the range: $410 million to $420 million, up... NBIS 5.1% Decline on October 7, 2026 (page_id=market_event_nbis_2026_10_07_decline) [market_event]: NBIS fell 5.1% to $237.13 on Oct 7, 2026, attributed to a COO insider stake sale and a broad neocloud/AI infrastructure pullback. Peers CRWV, CORZ, and IREN fell 3.5% to 6.2%, while SMH and NVDA declined less. No macr... IREN Limited (IREN) (page_id=ticker/IREN) [ticker]: Bitcoin miner-turned-neocloud/data-center operator; owns legacy Prince George and Mackenzie, B.C. sites plus newer Childress and Sweetwater, Texas builds, with a $2.1B Nvidia investment supporting future sites.",
+          "source_links": [
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+              "label": "AI neocloud reliability and execution risk"
+            },
+            {
+              "url": "https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/",
+              "label": "IREN Limited (IREN)"
+            },
+            {
+              "url": "https://www.benzinga.com/markets/earnings/26/10/62205895/penguin-solutions-stock-pops-on-q4-earnings-beat-strong-guidance",
+              "label": "Penguin Solutions (PENG)"
+            },
+            {
+              "url": "https://seekingalpha.com/news/4651235-biggest-stock-movers-thursday-mrvl-apld-and-more",
+              "label": "MRVL 2026 investor day: raised 2028 revenue forecast tied to AI data-center demand"
+            },
+            {
+              "url": "https://www.reuters.com/business/marvell-raises-2028-revenue-forecast-strong-ai-data-center-demand-2026-10-06/",
+              "label": "Marvell investor day and long-term revenue targets \u2014 2026-10-06"
+            },
+            {
+              "url": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/10/62213969/micron-to-rally-around-187-here-are-10-top-analyst-forecasts-for-wednesday?utm_source=googlefinance",
+              "label": "MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally"
+            },
+            {
+              "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-mchp/microchip-technology/news/microchip-technology-mchp-climbed-what-is-driving-attention",
+              "label": "Microchip Technology (MCHP)"
+            },
+            {
+              "url": "https://tradersunion.com/news/stocks/show/3706510-palantir-slips-0-47percent-to-usd191-16/",
+              "label": "PLTR holds steady as quarterly revenue jumps"
+            },
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html",
+              "label": "IOVA Stock Hits Over 2-Year Highs \u2013 Why Iovance Raised Its FY2026 Revenue Outlook (Yahoo Finance, 2026-09-30)"
+            },
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html",
+              "label": "Iovance raises FY2026 revenue guidance to $410\u2013$420 million (2026-09-29)"
+            },
+            {
+              "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+              "label": "NBIS 5.1% Decline on October 7, 2026"
+            },
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+              "label": "IREN Limited (IREN)"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "zopedia_page",
+              "ref": "theme:ai-neocloud-reliability-risk",
+              "page_id": "theme:ai-neocloud-reliability-risk",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AI neocloud reliability and execution risk",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "ticker:IREN",
+              "page_id": "ticker:IREN",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "IREN Limited (IREN)",
+              "source": "",
+              "published_date": "",
+              "url": "https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "entity:penguin-solutions",
+              "page_id": "entity:penguin-solutions",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Penguin Solutions (PENG)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.benzinga.com/markets/earnings/26/10/62205895/penguin-solutions-stock-pops-on-q4-earnings-beat-strong-guidance"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:mrvl-2026-10-07-investor-day-ai-revenue-target",
+              "page_id": "market_event:mrvl-2026-10-07-investor-day-ai-revenue-target",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "MRVL 2026 investor day: raised 2028 revenue forecast tied to AI data-center demand",
+              "source": "",
+              "published_date": "",
+              "url": "https://seekingalpha.com/news/4651235-biggest-stock-movers-thursday-mrvl-apld-and-more"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:MRVL-investor-day-2026-10-06",
+              "page_id": "market_event:MRVL-investor-day-2026-10-06",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Marvell investor day and long-term revenue targets \u2014 2026-10-06",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.reuters.com/business/marvell-raises-2028-revenue-forecast-strong-ai-data-center-demand-2026-10-06/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:MU_2026-10-07",
+              "page_id": "market_event:MU_2026-10-07",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/10/62213969/micron-to-rally-around-187-here-are-10-top-analyst-forecasts-for-wednesday?utm_source=googlefinance"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "entity/microchip-technology",
+              "page_id": "entity/microchip-technology",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Microchip Technology (MCHP)",
+              "source": "",
+              "published_date": "",
+              "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-mchp/microchip-technology/news/microchip-technology-mchp-climbed-what-is-driving-attention"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "source:tradersunion:3706510",
+              "page_id": "source:tradersunion:3706510",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "PLTR holds steady as quarterly revenue jumps",
+              "source": "",
+              "published_date": "",
+              "url": "https://tradersunion.com/news/stocks/show/3706510-palantir-slips-0-47percent-to-usd191-16/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "source:yahoo_iova_fy2026_guidance_2026-09-30",
+              "page_id": "source:yahoo_iova_fy2026_guidance_2026-09-30",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "IOVA Stock Hits Over 2-Year Highs \u2013 Why Iovance Raised Its FY2026 Revenue Outlook (Yahoo Finance, 2026-09-30)",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:iova_fy2026_guidance_raise",
+              "page_id": "market_event:iova_fy2026_guidance_raise",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Iovance raises FY2026 revenue guidance to $410\u2013$420 million (2026-09-29)",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event_nbis_2026_10_07_decline",
+              "page_id": "market_event_nbis_2026_10_07_decline",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "NBIS 5.1% Decline on October 7, 2026",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "ticker/IREN",
+              "page_id": "ticker/IREN",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "IREN Limited (IREN)",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html"
+            }
+          ]
+        }
+      },
+      {
+        "tool_call_id": "agtc_2",
+        "tool_name": "research.live_event_evidence",
+        "arguments": {
+          "query": "OpenAI revenue outlook revision impact public cloud chip neocloud exposure October 2026",
+          "focus_symbols": [
+            "MSFT",
+            "ORCL",
+            "NVDA",
+            "AMD",
+            "AVGO",
+            "CRWV",
+            "IREN",
+            "NBIS"
+          ],
+          "max_results": 12,
+          "force_refresh": false
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "web_research",
+              "attention_search_results"
+            ],
+            "details": {
+              "tool_name": "research.live_event_evidence"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 2,
+            "columns": [
+              "scope",
+              "symbol",
+              "headline",
+              "summary_text",
+              "source",
+              "published_at",
+              "url"
+            ],
+            "sample": [
+              {
+                "scope": "symbol",
+                "symbol": "MSFT",
+                "headline": "MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI",
+                "summary_text": "Microsoft is pushing Windows deeper into the local-AI era with Nvidia-powered Surface, on-device models and hybrid Copilot features.",
+                "source": "Yahoo Finance",
+                "published_at": "2026-10-08T03:17:06.037513+00:00",
+                "url": "https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html"
+              },
+              {
+                "scope": "symbol",
+                "symbol": "ORCL",
+                "headline": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+                "summary_text": "Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%...",
+                "source": "Seeking Alpha",
+                "published_at": "2026-10-07T20:17:07.717262+00:00",
+                "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in"
+              }
+            ]
+          },
+          "preview_text": "research summary with 2 rows; columns=scope, symbol, headline, summary_text, source, published_at, url; sample=[{\"headline\": \"MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI\", \"published_at\": \"2026-10-08T03:17:06.037513+00:00\", \"scope\": \"symbol\", \"source\": \"Yahoo Finance\", \"summary_text\": \"Microsoft is pushing Windows deeper into the local-AI era with Nvidia-powered Surface, on-device models and hybrid Copilot features.\", \"symbol\": \"MSFT\", \"url\": \"https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html\"}, {\"headline\": \"Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)\", \"published_at\": \"2026-10-07T20:17:07.717262+00:00\", \"scope\": \"symbol\", \"source\": \"Seeking Alpha\", \"summary_text\": \"Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%...\", \"symbol\": \"ORCL\", \"url\": \"https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in\"}]",
+          "user_preview": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, ORCL, NVDA, AMD. Live evidence warnings: live...",
+          "render_payload": null,
+          "llm_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, ORCL, NVDA, AMD. Live evidence warnings: live_event_impact_map timed out after 4s; Skipped remaining symbol news searches because the live-event budget was exhausted.. MSFT: MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI | snippet=Microsoft is pushing Windows deeper into the local-AI era with Nvidia-powered Surface, on-device models and hybrid Copilot features. | source=Yahoo Finance | published_at=2026-10-08T03:17:06.037513+00:00 | url=https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html ORCL: Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) | snippet=Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%... | source=Seeking Alpha | published_at=2026-10-07T20:17:07.717262+00:00 | url=https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in Tool messages: - live_event_impact_map timed out after 4s - Skipped remaining symbol news searches because the live-event budget was exhausted.",
+          "evidence_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, ORCL, NVDA, AMD. Live evidence warnings: live_event_impact_map timed out after 4s; Skipped remaining symbol news searches because the live-event budget was exhausted.. MSFT: MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI | snippet=Microsoft is pushing Windows deeper into the local-AI era with Nvidia-powered Surface, on-device models and hybrid Copilot features. | source=Yahoo Finance | published_at=2026-10-08T03:17:06.037513+00:00 | url=https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html ORCL: Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) | snippet=Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%... | source=Seeking Alpha | published_at=2026-10-07T20:17:07.717262+00:00 | url=https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in\nTool messages:\nlive_event_impact_map timed out after 4s\nSkipped remaining symbol news searches because the live-event budget was exhausted.",
+          "source_links": [
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html",
+              "label": "MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI (Yahoo Finance)"
+            },
+            {
+              "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+              "label": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) (Seeking Alpha)"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI",
+              "source": "Yahoo Finance",
+              "published_date": "2026-10-08T03:17:06.037513+00:00",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html"
+            },
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+              "source": "Seeking Alpha",
+              "published_date": "2026-10-07T20:17:07.717262+00:00",
+              "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in"
+            }
+          ]
+        }
+      },
+      {
+        "tool_call_id": "agtc_3",
+        "tool_name": "zopedia.search_pages",
+        "arguments": {
+          "query": "OpenAI compute contract revenue Microsoft Oracle CoreWeave Nvidia Broadcom AMD Azure deal",
+          "max_results": 15
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "saa_zopedia_pages",
+              "saa_zopedia_change_proposals",
+              "saa_zopedia_mutation_audit",
+              "saa_zopedia_backlinks",
+              "saa_zopedia_community_index",
+              "saa_zopedia_maintenance_reports"
+            ],
+            "details": {
+              "tool_name": "zopedia.search_pages"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 15,
+            "columns": [
+              "kind",
+              "ref",
+              "page_id",
+              "page_type",
+              "title",
+              "summary_text",
+              "source_urls",
+              "url",
+              "entity_refs",
+              "outgoing_links"
+            ],
+            "sample": [
+              {
+                "kind": "zopedia_page",
+                "ref": "source:yahoo-shaz-trapdoor-masterpiece-2026-09-23",
+                "page_id": "source:yahoo-shaz-trapdoor-masterpiece-2026-09-23",
+                "page_type": "source",
+                "title": "Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026)",
+                "summary_text": "Opened same-day analysis piece on SHAZ. It lays out the backlog-versus-cash-burn case and carries the contract detail: $8.8B total contract value, $4.9B NVIDIA collaboration, $1.32B New Zealand AI lab deal, $373M B300...",
+                "source_urls": [
+                  "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html"
+                ],
+                "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html",
+                "entity_refs": [
+                  "SHAZ",
+                  "Sharon AI Holdings",
+                  "NVIDIA",
+                  "Rafay Systems",
+                  "Yahoo Finance"
+                ],
+                "outgoing_links": []
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:twst-lilly-tunelab-2026-09-17",
+                "page_id": "market_event:twst-lilly-tunelab-2026-09-17",
+                "page_type": "market_event",
+                "title": "Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026)",
+                "summary_text": "Coverage on Sept 17-18, 2026 tied a sharp TWST move to a deal feeding antibody characterization data into Eli Lilly's AI/ML TuneLab platform. TWST opened $151.43 and closed $155.56 on Sept 17, then closed the latest s...",
+                "source_urls": [
+                  "https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/",
+                  "https://stockstotrade.com/news/twist-bioscience-corporation-twst-news-2026_09_17-2/",
+                  "https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17/",
+                  "https://www.timothysykes.com/news/twistbiosciencecorporation-twst-news-2026_09_19-2/",
+                  "https://www.timothysykes.com/news/twistbiosciencecorporation-twst-news-2026_09_19/",
+                  "https://www.timothysykes.com/news/twistbiosciencecorporation-twst-news-2026_09_18/",
+                  "https://stockstotrade.com/news/twistbiosciencecorporation-twst-news-2026_09_18/",
+                  "https://finance.yahoo.com/markets/stocks/articles/twst-stock-hits-multi-high-214446723.html"
+                ],
+                "url": "https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/",
+                "entity_refs": [
+                  "TWST",
+                  "Eli Lilly",
+                  "TuneLab",
+                  "XBI",
+                  "ILMN",
+                  "SPY"
+                ],
+                "outgoing_links": [
+                  "ticker:TWST"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "source:benzinga-micron-150b-contract-book-2026-10-01",
+                "page_id": "source:benzinga-micron-150b-contract-book-2026-10-01",
+                "page_type": "source",
+                "title": "Micron\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01",
+                "summary_text": "Benzinga article on Micron's Sept 30 disclosure of about $150B in remaining performance obligations across 26 long-term agreements with take-or-pay commitments, larger than fiscal 2026 revenue of $133.2B.",
+                "source_urls": [
+                  "https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book"
+                ],
+                "url": "https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book",
+                "entity_refs": [
+                  "MU"
+                ],
+                "outgoing_links": [
+                  "market_event:mu-2026-10-01-contract-book"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21",
+                "page_id": "market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21",
+                "page_type": "market_event",
+                "title": "AMD crosses $1T market cap as AI chip stocks rally (2026-09-21)",
+                "summary_text": "AMD closed at $609.09, up 8.8%, hitting a record high and a $1 trillion market cap for the first time. The move was sector-wide: INTC +11.8%, MU +2.8%, NVDA +2.4%, TSM +2.2%, AVGO +1.1%. A Barron's headline tied the r...",
+                "source_urls": [
+                  "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+                  "https://finance.yahoo.com/markets/article/amd-stock-soars-to-new-record-as-semiconductors-bounce-chart-of-the-day-161627271.html",
+                  "https://www.bloomberg.com/news/articles/2026-09-21/amd-set-to-top-1-trillion-in-market-value-as-chip-stocks-soar",
+                  "https://seekingalpha.com/news/4644811-amd-crossed-1t-market-cap-as-chip-and-ai-stocks-rally",
+                  "https://www.marketwatch.com/story/amd-hits-with-a-major-milestone-as-ai-stocks-blaze-higher-7bb366df",
+                  "https://www.investing.com/news/company-news/amd-stock-hits-alltime-high-at-58495-usd-93CH-4909198",
+                  "https://www.tipranks.com/news/amd-stock-price-forecast-what-technical-analysis-says-right-now-sept-21",
+                  "https://www.barrons.com/articles/intel-stock-price-arm-meta-muse-2a81cacf"
+                ],
+                "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+                "entity_refs": [
+                  "AMD",
+                  "NVDA",
+                  "INTC",
+                  "MU",
+                  "TSM",
+                  "AVGO",
+                  "Lisa Su",
+                  "Jensen Huang"
+                ],
+                "outgoing_links": []
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5",
+                "page_id": "zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5",
+                "page_type": "theme",
+                "title": "Bitcoin miners pivoting to AI data centers",
+                "summary_text": "Bitcoin miners are converting power and sites to AI data center capacity; Hut 8's Beacon Point campus is one example, with reported long-term leases and AI compute deals.",
+                "source_urls": [
+                  "https://247wallst.com/investing/2026/08/11/riot-platforms-soars-17-on-9-1b-anthropic-data-center-deal-ai-infrastructure-peers-iren-applied-digital-terawulf-head-higher/",
+                  "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/"
+                ],
+                "url": "https://247wallst.com/investing/2026/08/11/riot-platforms-soars-17-on-9-1b-anthropic-data-center-deal-ai-infrastructure-peers-iren-applied-digital-terawulf-head-higher/",
+                "entity_refs": [
+                  "RIOT",
+                  "APLD",
+                  "IREN",
+                  "WULF",
+                  "Anthropic",
+                  "AMD",
+                  "Hut 8 Corp",
+                  "HUT"
+                ],
+                "outgoing_links": [
+                  "ticker_hut",
+                  "entity_hut8",
+                  "source_stockstotrade_hut_2026_09_18"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "crwv_coreweave",
+                "page_id": "crwv_coreweave",
+                "page_type": "ticker",
+                "title": "CoreWeave (CRWV)",
+                "summary_text": "AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contracted power rose to about 4.2 GW as of Aug 11, from about 3.7 GW at end...",
+                "source_urls": [
+                  "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+                  "https://finance.yahoo.com/markets/stocks/articles/coreweave-proposes-3-billion-convertible-135044278.html",
+                  "https://finance.yahoo.com/markets/stocks/articles/stock-market-today-sept-17-213252652.html",
+                  "https://www.benzinga.com/markets/prediction-markets/26/09/61868516/oracle-coreweave-ai-financing-3-6-trillion",
+                  "https://finance.yahoo.com/markets/stocks/articles/happens-crwv-stock-lenders-pull-181611508.html"
+                ],
+                "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+                "entity_refs": [
+                  "CRWV",
+                  "NVDA",
+                  "ORCL"
+                ],
+                "outgoing_links": []
+              }
+            ]
+          },
+          "preview_text": "research summary with 15 rows; columns=kind, ref, page_id, page_type, title, summary_text, source_urls, url, entity_refs, outgoing_links; sample=[{\"entity_refs\": [\"SHAZ\", \"Sharon AI Holdings\", \"NVIDIA\", \"Rafay Systems\", \"Yahoo Finance\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [], \"page_id\": \"source:yahoo-shaz-trapdoor-masterpiece-2026-09-23\", \"page_type\": \"source\", \"ref\": \"source:yahoo-shaz-trapdoor-masterpiece-2026-09-23\", \"source_urls\": [\"https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html\"], \"summary_text\": \"Opened same-day analysis piece on SHAZ. It lays out the backlog-versus-cash-burn case and carries the contract detail: $8.8B total contract value, $4.9B NVIDIA collaboration, $1.32B New Zealand AI lab deal, $373M B300...\", \"title\": \"Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026)\", \"url\": \"https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html\"}, {\"entity_refs\": [\"TWST\", \"Eli Lilly\", \"TuneLab\", \"XBI\", \"ILMN\", \"SPY\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [\"ticker:TWST\"], \"page_id\": \"market_event:twst-lilly-tunelab-2026-09-17\", \"page_type\": \"market_event\", \"ref\": \"market_event:twst-lilly-tunelab-2026-09-17\", \"source_urls\": [\"https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/\", \"https://stockstotrade.com/news/twist-bioscience-corporation-twst-news-2026_09_17-2/\", \"https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17/\", \"https://www.timothysykes.com/news/twistbiosciencecorporation-twst-news-2026_09_19-2/\", \"https://www.timothysykes.com/news/twistbiosciencecorporation-twst-news-2026_09_19/\", \"https://www.timothysykes.com/news/twistbiosciencecorporation-twst-news-2026_09_18/\", \"https://stockstotrade.com/news/twistbiosciencecorporation-twst-news-2026_09_18/\", \"https://finance.yahoo.com/markets/stocks/articles/twst-stock-hits-multi-high-214446723.html\"], \"summary_text\": \"Coverage on Sept 17-18, 2026 tied a sharp TWST move to a deal feeding antibody characterization data into Eli Lilly's AI/ML TuneLab platform. TWST opened $151.43 and closed $155.56 on Sept 17, then closed the latest s...\", \"title\": \"Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026)\", \"url\": \"https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/\"}, {\"entity_refs\": [\"MU\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [\"market_event:mu-2026-10-01-contract-book\"], \"page_id\": \"source:benzinga-micron-150b-contract-book-2026-10-01\", \"page_type\": \"source\", \"ref\": \"source:benzinga-micron-150b-contract-book-2026-10-01\", \"source_urls\": [\"https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book\"], \"summary_text\": \"Benzinga article on Micron's Sept 30 disclosure of about $150B in remaining performance obligations across 26 long-term agreements with take-or-pay commitments, larger than fiscal 2026 revenue of $133.2B.\", \"title\": \"Micron\\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01\", \"url\": \"https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book\"}, {\"entity_refs\": [\"AMD\", \"NVDA\", \"INTC\", \"MU\", \"TSM\", \"AVGO\", \"Lisa Su\", \"Jensen Huang\"], \"kind\": \"zopedia_page\", \"outgoing_...",
+          "user_preview": "Zopedia page search for 'OpenAI compute contract revenue Microsoft Oracle CoreWeave Nvidia Broadcom AMD Azure deal': 15 result(s). Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Doll...",
+          "render_payload": null,
+          "llm_context_text": "Zopedia page search for 'OpenAI compute contract revenue Microsoft Oracle CoreWeave Nvidia Broadcom AMD Azure deal': 15 result(s). Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026) (page_id=source:yahoo-shaz-trapdoor-masterpiece-2026-09-23) [source]: Opened same-day analysis piece on SHAZ. It lays out the backlog-versus-cash-burn case and carries the contract detail: $8.8B total contract value, $4.9B NVIDIA collaboration, $1.32B New Zealand AI lab deal, $373M B300... Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026) (page_id=market_event:twst-lilly-tunelab-2026-09-17) [market_event]: Coverage on Sept 17-18, 2026 tied a sharp TWST move to a deal feeding antibody characterization data into Eli Lilly's AI/ML TuneLab platform. TWST opened $151.43 and closed $155.56 on Sept 17, then closed the latest s... Micron\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01 (page_id=source:benzinga-micron-150b-contract-book-2026-10-01) [source]: Benzinga article on Micron's Sept 30 disclosure of about $150B in remaining performance obligations across 26 long-term agreements with take-or-pay commitments, larger than fiscal 2026 revenue of $133.2B. AMD crosses $1T market cap as AI chip stocks rally (2026-09-21) (page_id=market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21) [market_event]: AMD closed at $609.09, up 8.8%, hitting a record high and a $1 trillion market cap for the first time. The move was sector-wide: INTC +11.8%, MU +2.8%, NVDA +2.4%, TSM +2.2%, AVGO +1.1%. A Barron's headline tied the r... Bitcoin miners pivoting to AI data centers (page_id=zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5) [theme]: Bitcoin miners are converting power and sites to AI data center capacity; Hut 8's Beacon Point campus is one example, with reported long-term leases and AI compute deals. CoreWeave (CRWV) (page_id=crwv_coreweave) [ticker]: AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contracted power rose to about 4.2 GW as of Aug 11, from about 3.7 GW at end... Sharon AI Holdings Inc. (SHAZ) (page_id=ticker:shaz) [ticker]: NasdaqCM-listed AI infrastructure and cloud GPU company. Q2 2026 revenue $1.9M (+412% YoY) against $8.8B total contract value and $1.9B cash. Stock fell 7.2% to $58.71 on Sep 23 2026 while direct peers were flat to up... AMD crosses $1 trillion market cap (2026-09-21) (page_id=amd_1t_market_cap_2026_09_21) [market_event]: AMD rose 9% on 2026-09-21 to a record intraday high of $613.92 and topped a $1 trillion market cap for the first time, inside a five-day rally of about 24%. CNBC ties the move to the AI buildout and AMD data center gr... HPE \u2014 Hewlett Packard Enterprise Company Common Stock (page_id=ticker:HPE) [ticker]: HPE rose 3.62% on 2026-10-07 and is up across listed horizons. 2026Q3 revenue was $12.213B, operating margin 11.99%, net income $1.540B, and free cash flow $988M. Catalysts are an AMD-server AI headline, a Morgan Stan... HUT Stock Powers Higher On $9.8B AI Data Center Deal And Bullish Wall Street Call (StocksToTrade, 2026-09-18) (page_id=zopedia::source::hut-stock-powers-higher-on-9-8b-ai-data-center-deal-and-bullish-::caf92d117649) [source]: StocksToTrade article dated 2026-09-18 covering Hut 8's reported AI data center lease, Wells Fargo Overweight initiation, and an 8.15% intraday gain. Jim Cramer Prefers CoreWeave (CRWV) Over Nebius (NBIS) \u2014 Is the Valuation Gap the Reason? (page_id=source:yahoo-finance-coreweave-cramer-2026-10-06) [source]: Yahoo Finance article dated 2026-10-06. It reports Jim Cramer's 2026-09-30 preference for CRWV over NBIS and gives CoreWeave Q2 and September business and valuation facts. It does not provide a verified 2026-10-08 CRW... Bitcoin miners pivot to AI compute and data centers (page_id=zopedia::theme::bitcoin-miners-pivot-to-ai-compute-and-data-centers::4a3c637e3e97) [the...",
+          "evidence_context_text": "Zopedia page search for 'OpenAI compute contract revenue Microsoft Oracle CoreWeave Nvidia Broadcom AMD Azure deal': 15 result(s). Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026) (page_id=source:yahoo-shaz-trapdoor-masterpiece-2026-09-23) [source]: Opened same-day analysis piece on SHAZ. It lays out the backlog-versus-cash-burn case and carries the contract detail: $8.8B total contract value, $4.9B NVIDIA collaboration, $1.32B New Zealand AI lab deal, $373M B300... Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026) (page_id=market_event:twst-lilly-tunelab-2026-09-17) [market_event]: Coverage on Sept 17-18, 2026 tied a sharp TWST move to a deal feeding antibody characterization data into Eli Lilly's AI/ML TuneLab platform. TWST opened $151.43 and closed $155.56 on Sept 17, then closed the latest s... Micron\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01 (page_id=source:benzinga-micron-150b-contract-book-2026-10-01) [source]: Benzinga article on Micron's Sept 30 disclosure of about $150B in remaining performance obligations across 26 long-term agreements with take-or-pay commitments, larger than fiscal 2026 revenue of $133.2B. AMD crosses $1T market cap as AI chip stocks rally (2026-09-21) (page_id=market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21) [market_event]: AMD closed at $609.09, up 8.8%, hitting a record high and a $1 trillion market cap for the first time. The move was sector-wide: INTC +11.8%, MU +2.8%, NVDA +2.4%, TSM +2.2%, AVGO +1.1%. A Barron's headline tied the r... Bitcoin miners pivoting to AI data centers (page_id=zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5) [theme]: Bitcoin miners are converting power and sites to AI data center capacity; Hut 8's Beacon Point campus is one example, with reported long-term leases and AI compute deals. CoreWeave (CRWV) (page_id=crwv_coreweave) [ticker]: AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contracted power rose to about 4.2 GW as of Aug 11, from about 3.7 GW at end... Sharon AI Holdings Inc. (SHAZ) (page_id=ticker:shaz) [ticker]: NasdaqCM-listed AI infrastructure and cloud GPU company. Q2 2026 revenue $1.9M (+412% YoY) against $8.8B total contract value and $1.9B cash. Stock fell 7.2% to $58.71 on Sep 23 2026 while direct peers were flat to up... AMD crosses $1 trillion market cap (2026-09-21) (page_id=amd_1t_market_cap_2026_09_21) [market_event]: AMD rose 9% on 2026-09-21 to a record intraday high of $613.92 and topped a $1 trillion market cap for the first time, inside a five-day rally of about 24%. CNBC ties the move to the AI buildout and AMD data center gr... HPE \u2014 Hewlett Packard Enterprise Company Common Stock (page_id=ticker:HPE) [ticker]: HPE rose 3.62% on 2026-10-07 and is up across listed horizons. 2026Q3 revenue was $12.213B, operating margin 11.99%, net income $1.540B, and free cash flow $988M. Catalysts are an AMD-server AI headline, a Morgan Stan... HUT Stock Powers Higher On $9.8B AI Data Center Deal And Bullish Wall Street Call (StocksToTrade, 2026-09-18) (page_id=zopedia::source::hut-stock-powers-higher-on-9-8b-ai-data-center-deal-and-bullish-::caf92d117649) [source]: StocksToTrade article dated 2026-09-18 covering Hut 8's reported AI data center lease, Wells Fargo Overweight initiation, and an 8.15% intraday gain. Jim Cramer Prefers CoreWeave (CRWV) Over Nebius (NBIS) \u2014 Is the Valuation Gap the Reason? (page_id=source:yahoo-finance-coreweave-cramer-2026-10-06) [source]: Yahoo Finance article dated 2026-10-06. It reports Jim Cramer's 2026-09-30 preference for CRWV over NBIS and gives CoreWeave Q2 and September business and valuation facts. It does not provide a verified 2026-10-08 CRW... Bitcoin miners pivot to AI compute and data centers (page_id=zopedia::theme::bitcoin-miners-pivot-to-ai-compute-and-data-centers::4a3c637e3e97) [theme]: Bitcoin miners such as BTDR, MARA, and CLSK are adding AI data-center and cloud capacity. Citizens initiated Outperform coverage on 2026-10-07, citing AI-compute upside up to 106%. Nebius Group N.V. (NBIS) (page_id=ticker:NBIS) [ticker]: AI cloud provider (GPU compute plus Token Factory inference). Rose 7.5% to $249.86 on Oct 6 2026, outpacing AI-infrastructure peers, on a BNP Paribas upgrade, the Inferize acquisition, a 50 MW AIB Data Centers deal, a... AMD +9.98% on 2026-09-21: AI Chip Rally and Reported Q4 Price Hike (page_id=market_event_amd_2026_09_21) [market_event]: AMD closed 2026-09-21 at $615.54, up 9.98%. Peers rose as well (INTC +12.0%, SMH +4.06%, MU +2.76%, NVDA +2.37%, AVGO +1.36%). Best-supported read: a broad AI chip rally plus an unconfirmed report of a 10% Q4 AMD pric... CoreWeave proposes $3B convertible notes and 35M-share ATM (Sept 2026) (page_id=event_crwv_convert_atm_2026_09) [market_event]: CoreWeave went to market with a $3B senior convertible note offering due 2033 (up to $3.5B with the option) and a 35M-share Class A equity program, announced around Sept 17, 2026. A Sept 17 headline said the stock fel...",
+          "source_links": [
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html",
+              "label": "Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026)"
+            },
+            {
+              "url": "https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/",
+              "label": "Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026)"
+            },
+            {
+              "url": "https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book",
+              "label": "Micron\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01"
+            },
+            {
+              "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+              "label": "AMD crosses $1T market cap as AI chip stocks rally (2026-09-21)"
+            },
+            {
+              "url": "https://247wallst.com/investing/2026/08/11/riot-platforms-soars-17-on-9-1b-anthropic-data-center-deal-ai-infrastructure-peers-iren-applied-digital-terawulf-head-higher/",
+              "label": "Bitcoin miners pivoting to AI data centers"
+            },
+            {
+              "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+              "label": "CoreWeave (CRWV)"
+            },
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html",
+              "label": "Sharon AI Holdings Inc. (SHAZ)"
+            },
+            {
+              "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+              "label": "AMD crosses $1 trillion market cap (2026-09-21)"
+            },
+            {
+              "url": "https://www.barrons.com/articles/hpe-stock-amd-servers-ai-buildout-dc1fe745",
+              "label": "HPE \u2014 Hewlett Packard Enterprise Company Common Stock"
+            },
+            {
+              "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+              "label": "HUT Stock Powers Higher On $9.8B AI Data Center Deal And Bullish Wall Street Call (StocksToTrade, 2026-09-18)"
+            },
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-prefers-coreweave-crwv-194348338.html",
+              "label": "Jim Cramer Prefers CoreWeave (CRWV) Over Nebius (NBIS) \u2014 Is the Valuation Gap the Reason?"
+            },
+            {
+              "url": "https://stocktwits.com/news-articles/markets/equity/mara-clsk-btdr-stock-citizens-ai-data-center-play/cZKyeioR7fP",
+              "label": "Bitcoin miners pivot to AI compute and data centers"
+            },
+            {
+              "url": "https://www.marketbeat.com/instant-alerts/price-nebius-group-nasdaq-nbis-shares-gap-up-on-analyst-upgrade-2026-09-24/",
+              "label": "Nebius Group N.V. (NBIS)"
+            },
+            {
+              "url": "https://247wallst.com/investing/2026/09/21/amd-rises-5-as-report-flags-10-chip-price-increase-nvidia-and-taiwan-semiconductor-tick-up/",
+              "label": "AMD +9.98% on 2026-09-21: AI Chip Rally and Reported Q4 Price Hike"
+            },
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-proposes-3-billion-convertible-135044278.html",
+              "label": "CoreWeave proposes $3B convertible notes and 35M-share ATM (Sept 2026)"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "zopedia_page",
+              "ref": "source:yahoo-shaz-trapdoor-masterpiece-2026-09-23",
+              "page_id": "source:yahoo-shaz-trapdoor-masterpiece-2026-09-23",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026)",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:twst-lilly-tunelab-2026-09-17",
+              "page_id": "market_event:twst-lilly-tunelab-2026-09-17",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "source:benzinga-micron-150b-contract-book-2026-10-01",
+              "page_id": "source:benzinga-micron-150b-contract-book-2026-10-01",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Micron\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21",
+              "page_id": "market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AMD crosses $1T market cap as AI chip stocks rally (2026-09-21)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5",
+              "page_id": "zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Bitcoin miners pivoting to AI data centers",
+              "source": "",
+              "published_date": "",
+              "url": "https://247wallst.com/investing/2026/08/11/riot-platforms-soars-17-on-9-1b-anthropic-data-center-deal-ai-infrastructure-peers-iren-applied-digital-terawulf-head-higher/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "crwv_coreweave",
+              "page_id": "crwv_coreweave",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "CoreWeave (CRWV)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "ticker:shaz",
+              "page_id": "ticker:shaz",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Sharon AI Holdings Inc. (SHAZ)",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "amd_1t_market_cap_2026_09_21",
+              "page_id": "amd_1t_market_cap_2026_09_21",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AMD crosses $1 trillion market cap (2026-09-21)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "ticker:HPE",
+              "page_id": "ticker:HPE",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "HPE \u2014 Hewlett Packard Enterprise Company Common Stock",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.barrons.com/articles/hpe-stock-amd-servers-ai-buildout-dc1fe745"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "zopedia::source::hut-stock-powers-higher-on-9-8b-ai-data-center-deal-and-bullish-::caf92d117649",
+              "page_id": "zopedia::source::hut-stock-powers-higher-on-9-8b-ai-data-center-deal-and-bullish-::caf92d117649",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "HUT Stock Powers Higher On $9.8B AI Data Center Deal And Bullish Wall Street Call (StocksToTrade, 2026-09-18)",
+              "source": "",
+              "published_date": "",
+              "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "source:yahoo-finance-coreweave-cramer-2026-10-06",
+              "page_id": "source:yahoo-finance-coreweave-cramer-2026-10-06",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Jim Cramer Prefers CoreWeave (CRWV) Over Nebius (NBIS) \u2014 Is the Valuation Gap the Reason?",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-prefers-coreweave-crwv-194348338.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "zopedia::theme::bitcoin-miners-pivot-to-ai-compute-and-data-centers::4a3c637e3e97",
+              "page_id": "zopedia::theme::bitcoin-miners-pivot-to-ai-compute-and-data-centers::4a3c637e3e97",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Bitcoin miners pivot to AI compute and data centers",
+              "source": "",
+              "published_date": "",
+              "url": "https://stocktwits.com/news-articles/markets/equity/mara-clsk-btdr-stock-citizens-ai-data-center-play/cZKyeioR7fP"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "ticker:NBIS",
+              "page_id": "ticker:NBIS",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Nebius Group N.V. (NBIS)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.marketbeat.com/instant-alerts/price-nebius-group-nasdaq-nbis-shares-gap-up-on-analyst-upgrade-2026-09-24/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event_amd_2026_09_21",
+              "page_id": "market_event_amd_2026_09_21",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AMD +9.98% on 2026-09-21: AI Chip Rally and Reported Q4 Price Hike",
+              "source": "",
+              "published_date": "",
+              "url": "https://247wallst.com/investing/2026/09/21/amd-rises-5-as-report-flags-10-chip-price-increase-nvidia-and-taiwan-semiconductor-tick-up/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "event_crwv_convert_atm_2026_09",
+              "page_id": "event_crwv_convert_atm_2026_09",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "CoreWeave proposes $3B convertible notes and 35M-share ATM (Sept 2026)",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-proposes-3-billion-convertible-135044278.html"
+            }
+          ]
+        }
+      },
+      {
+        "tool_call_id": "agtc_4",
+        "tool_name": "research.live_event_evidence",
+        "arguments": {
+          "query": "OpenAI revenue expectations revised cut AI infrastructure spending cloud chip neocloud impact October 2026",
+          "focus_symbols": [
+            "MSFT",
+            "ORCL",
+            "AMZN",
+            "GOOGL",
+            "NVDA",
+            "AVGO",
+            "AMD",
+            "CRWV"
+          ],
+          "max_results": 12,
+          "force_refresh": true
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "web_research",
+              "attention_search_results"
+            ],
+            "details": {
+              "tool_name": "research.live_event_evidence"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 2,
+            "columns": [
+              "scope",
+              "symbol",
+              "headline",
+              "summary_text",
+              "source",
+              "published_at",
+              "url"
+            ],
+            "sample": [
+              {
+                "scope": "symbol",
+                "symbol": "ORCL",
+                "headline": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+                "summary_text": "Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%...",
+                "source": "Seeking Alpha",
+                "published_at": "2026-10-07T20:17:58.845016+00:00",
+                "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in"
+              },
+              {
+                "scope": "symbol",
+                "symbol": "MSFT",
+                "headline": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+                "summary_text": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+                "source": "Investor's Business Daily",
+                "published_at": "2026-10-07T20:17:56.855790+00:00",
+                "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/"
+              }
+            ]
+          },
+          "preview_text": "research summary with 2 rows; columns=scope, symbol, headline, summary_text, source, published_at, url; sample=[{\"headline\": \"Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)\", \"published_at\": \"2026-10-07T20:17:58.845016+00:00\", \"scope\": \"symbol\", \"source\": \"Seeking Alpha\", \"summary_text\": \"Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%...\", \"symbol\": \"ORCL\", \"url\": \"https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in\"}, {\"headline\": \"As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists\", \"published_at\": \"2026-10-07T20:17:56.855790+00:00\", \"scope\": \"symbol\", \"source\": \"Investor's Business Daily\", \"summary_text\": \"As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists\", \"symbol\": \"MSFT\", \"url\": \"https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/\"}]",
+          "user_preview": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, ORCL, AMZN, GOOGL. Live evidence warnings: li...",
+          "render_payload": null,
+          "llm_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, ORCL, AMZN, GOOGL. Live evidence warnings: live_event_impact_map timed out after 4s; Skipped remaining symbol news searches because the live-event budget was exhausted.. ORCL: Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) | snippet=Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%... | source=Seeking Alpha | published_at=2026-10-07T20:17:58.845016+00:00 | url=https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in MSFT: As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists | snippet=As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists | source=Investor's Business Daily | published_at=2026-10-07T20:17:56.855790+00:00 | url=https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/ Tool messages: - live_event_impact_map timed out after 4s - Skipped remaining symbol news searches because the live-event budget was exhausted.",
+          "evidence_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, ORCL, AMZN, GOOGL. Live evidence warnings: live_event_impact_map timed out after 4s; Skipped remaining symbol news searches because the live-event budget was exhausted.. ORCL: Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) | snippet=Oracle has sharply underperformed in 2024, but recent results and valuation reset present a compelling long opportunity. Q1 revenue grew 30%... | source=Seeking Alpha | published_at=2026-10-07T20:17:58.845016+00:00 | url=https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in MSFT: As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists | snippet=As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists | source=Investor's Business Daily | published_at=2026-10-07T20:17:56.855790+00:00 | url=https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/\nTool messages:\nlive_event_impact_map timed out after 4s\nSkipped remaining symbol news searches because the live-event budget was exhausted.",
+          "source_links": [
+            {
+              "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+              "label": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) (Seeking Alpha)"
+            },
+            {
+              "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/",
+              "label": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists (Investor's Business Daily)"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+              "source": "Seeking Alpha",
+              "published_date": "2026-10-07T20:17:58.845016+00:00",
+              "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in"
+            },
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+              "source": "Investor's Business Daily",
+              "published_date": "2026-10-07T20:17:56.855790+00:00",
+              "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/"
+            }
+          ]
+        }
+      },
+      {
+        "tool_call_id": "agtc_monitor_1",
+        "tool_name": "trajectory.monitor",
+        "arguments": {
+          "decision": "restart",
+          "restart_count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "preview_text": "Trajectory monitor decision: restart.\nReason: The thread is anchored to the requested OpenAI revenue topic and has found relevant cloud, chip, and neocloud names. But the next planned step is research.retained_context, and the trace has no opened Zopedia page or primary article. It has only search snippets and two live headline rows. Direct contractual exposure cannot be separated from spending expectations or shared market reaction without a source-linked page or article. The remaining call should gather that evidence instead of internal memory..\nCorrective instruction: Do not run research.retained_context. Use the remaining tool call to zopedia.read_page on the most relevant page (for example crwv_coreweave or theme:ai-neocloud-reliability-risk), or to research.open_page on a live-evidence URL. Then write a partial synthesis that labels direct contractual/customer exposure, broader spending expectations, and shared market reaction separately, and names the missing evidence..\nOff-contract signals: The planned final evidence step is research.retained_context, which would move the thread toward synthesis without a source-traced page or article..\nEvidence gaps: No opened Zopedia page or primary article body appears in the trace, so source-linked claims about OpenAI revenue exposure cannot be verified.; No direct mapping exists between OpenAI contractual/customer exposure and specific public cloud, chip, or neocloud companies.; The trace does not yet separate direct contractual exposure from broader AI spending expectations and shared market reaction.; No source states the specific revision in beliefs about OpenAI revenue as of 2026-10-08, and no source shows a dated market reaction tied to that revision.; Live evidence attempts timed out and returned only MSFT and ORCL headline snippets; they do not cover OpenAI revenue exposure..",
+          "user_preview": "Trajectory monitor decision: restart. Reason: The thread is anchored to the requested OpenAI revenue topic and has found relevant cloud, chip, and neocloud names. But the next planned step is resea...",
+          "llm_context_text": "Trajectory monitor decision: restart.\nReason: The thread is anchored to the requested OpenAI revenue topic and has found relevant cloud, chip, and neocloud names. But the next planned step is research.retained_context, and the trace has no opened Zopedia page or primary article. It has only search snippets and two live headline rows. Direct contractual exposure cannot be separated from spending expectations or shared market reaction without a source-linked page or article. The remaining call should gather that evidence instead of internal memory..\nCorrective instruction: Do not run research.retained_context. Use the remaining tool call to zopedia.read_page on the most relevant page (for example crwv_coreweave or theme:ai-neocloud-reliability-risk), or to research.open_page on a live-evidence URL. Then write a partial synthesis that labels direct contractual/customer exposure, broader spending expectations, and shared market reaction separately, and names the missing evidence..\nOff-contract signals: The planned final evidence step is research.retained_context, which would move the thread toward synthesis without a source-traced page or article..\nEvidence gaps: No opened Zopedia page or primary article body appears in the trace, so source-linked claims about OpenAI revenue exposure cannot be verified.; No direct mapping exists between OpenAI contractual/customer exposure and specific public cloud, chip, or neocloud companies.; The trace does not yet separate direct contractual exposure from broader AI spending expectations and shared market reaction.; No source states the specific revision in beliefs about OpenAI revenue as of 2026-10-08, and no source shows a dated market reaction tied to that revision.; Live evidence attempts timed out and returned only MSFT and ORCL headline snippets; they do not cover OpenAI revenue exposure..",
+          "result_type": "trajectory_monitor",
+          "provenance": {
+            "source": "aql_zopedia_trajectory_monitor"
+          },
+          "preview": {
+            "kind": "text",
+            "chars": 1860
+          }
+        }
+      },
+      {
+        "tool_call_id": "agtc_6",
+        "tool_name": "zopedia.read_page",
+        "arguments": {
+          "page_id": "crwv_coreweave"
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "saa_zopedia_pages",
+              "saa_zopedia_change_proposals",
+              "saa_zopedia_mutation_audit",
+              "saa_zopedia_backlinks",
+              "saa_zopedia_community_index",
+              "saa_zopedia_maintenance_reports"
+            ],
+            "details": {
+              "tool_name": "zopedia.read_page"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 1,
+            "columns": [
+              "kind",
+              "ref",
+              "page_id",
+              "page_type",
+              "title",
+              "summary_text",
+              "source_urls",
+              "url",
+              "entity_refs",
+              "outgoing_links"
+            ],
+            "sample": [
+              {
+                "kind": "zopedia_page",
+                "ref": "crwv_coreweave",
+                "page_id": "crwv_coreweave",
+                "page_type": "ticker",
+                "title": "CoreWeave (CRWV)",
+                "summary_text": "AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contracted power rose to about 4.2 GW as of Aug 11, from about 3.7 GW at end...",
+                "source_urls": [
+                  "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+                  "https://finance.yahoo.com/markets/stocks/articles/coreweave-proposes-3-billion-convertible-135044278.html",
+                  "https://finance.yahoo.com/markets/stocks/articles/stock-market-today-sept-17-213252652.html",
+                  "https://www.benzinga.com/markets/prediction-markets/26/09/61868516/oracle-coreweave-ai-financing-3-6-trillion",
+                  "https://finance.yahoo.com/markets/stocks/articles/happens-crwv-stock-lenders-pull-181611508.html"
+                ],
+                "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+                "entity_refs": [
+                  "CRWV",
+                  "NVDA",
+                  "ORCL"
+                ],
+                "outgoing_links": []
+              }
+            ]
+          },
+          "preview_text": "research summary with 1 rows; columns=kind, ref, page_id, page_type, title, summary_text, source_urls, url, entity_refs, outgoing_links; sample=[{\"entity_refs\": [\"CRWV\", \"NVDA\", \"ORCL\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [], \"page_id\": \"crwv_coreweave\", \"page_type\": \"ticker\", \"ref\": \"crwv_coreweave\", \"source_urls\": [\"https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock\", \"https://finance.yahoo.com/markets/stocks/articles/coreweave-proposes-3-billion-convertible-135044278.html\", \"https://finance.yahoo.com/markets/stocks/articles/stock-market-today-sept-17-213252652.html\", \"https://www.benzinga.com/markets/prediction-markets/26/09/61868516/oracle-coreweave-ai-financing-3-6-trillion\", \"https://finance.yahoo.com/markets/stocks/articles/happens-crwv-stock-lenders-pull-181611508.html\"], \"summary_text\": \"AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contracted power rose to about 4.2 GW as of Aug 11, from about 3.7 GW at end...\", \"title\": \"CoreWeave (CRWV)\", \"url\": \"https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock\"}]",
+          "user_preview": "Zopedia page: CoreWeave (CRWV) [ticker]. Summary: AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contrac...",
+          "render_payload": null,
+          "llm_context_text": "Zopedia page: CoreWeave (CRWV) [ticker]. Summary: AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contracted power rose to about 4.2 GW as of Aug 11, from about 3.7 GW at end.... Entities: CRWV, NVDA, ORCL. Body: CoreWeave runs cloud infrastructure for AI workloads (training, inference, dedicated enterprise compute). ## Demand (company statement, opened via Barchart) - More than $25 billion in net new customer commitments signed early in Q3 2026. - That total was not in the $104.2 billion revenue backlog reported as of June 30, 2026. - Deals are short-dated, about 3 to 6 months. - Pricing about $40 million per megawatt (annualized revenue divided by power for the cluster). The article says that is higher than prior deals. - Contracted power about 4.2 GW as of Aug 11, up from roughly 3.7 GW at end of June. - CEO Mike Intrator has said supply and demand for AI compute will not balance until the end of the decade. ## Financing (opened Yahoo filing write-up) - Proposed $3B senior convertible notes due 2033, with a 13-day option for another $500M, up to $3.5B. - Indicative coupon 2.375%-2.875%, indicative conversion premium 22.5%-27.5%. Not final terms. - Separate equity program for up to 35M Class A shares via ATM, block trades, and collared forwards. - Proceeds: capped calls to cut dilution, general corporate uses, debt repayment, capex. Part of the aim is lifting the credit profile toward investment grade. - Bookrunners: Morgan Stanley, Goldman Sachs, J.P. Morgan, Wells Fargo. ## Tape (technical snapshot) - Close 81.28; all-time high 183.86; pullback about -55.8%. - RSI 14: 44.1. Annualized 20-day volatility: 66.9%. - Channel support 60.56, resistance 119.09, position 0.354. Regime: deep pullback. ## What is not confirmed The Sept 17 headline said the stock fell on the convertible debt and share-sale news. That is headline-level; no opened body confirms cause and effect for the current price. A Benzinga piece framed debt, leases, and circular funding risk across a $3.6 trillion AI financing web, but its body was too shallow to verify detail. A Yahoo headline asked what happens to CRWV if lenders pull back; no body opened. A Fed-decision headline was generic sector framing, not a confirmed driver.",
+          "evidence_context_text": "Zopedia page: CoreWeave (CRWV) [ticker]. Summary: AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contracted power rose to about 4.2 GW as of Aug 11, from about 3.7 GW at end.... Entities: CRWV, NVDA, ORCL. Body: CoreWeave runs cloud infrastructure for AI workloads (training, inference, dedicated enterprise compute). ## Demand (company statement, opened via Barchart) - More than $25 billion in net new customer commitments signed early in Q3 2026. - That total was not in the $104.2 billion revenue backlog reported as of June 30, 2026. - Deals are short-dated, about 3 to 6 months. - Pricing about $40 million per megawatt (annualized revenue divided by power for the cluster). The article says that is higher than prior deals. - Contracted power about 4.2 GW as of Aug 11, up from roughly 3.7 GW at end of June. - CEO Mike Intrator has said supply and demand for AI compute will not balance until the end of the decade. ## Financing (opened Yahoo filing write-up) - Proposed $3B senior convertible notes due 2033, with a 13-day option for another $500M, up to $3.5B. - Indicative coupon 2.375%-2.875%, indicative conversion premium 22.5%-27.5%. Not final terms. - Separate equity program for up to 35M Class A shares via ATM, block trades, and collared forwards. - Proceeds: capped calls to cut dilution, general corporate uses, debt repayment, capex. Part of the aim is lifting the credit profile toward investment grade. - Bookrunners: Morgan Stanley, Goldman Sachs, J.P. Morgan, Wells Fargo. ## Tape (technical snapshot) - Close 81.28; all-time high 183.86; pullback about -55.8%. - RSI 14: 44.1. Annualized 20-day volatility: 66.9%. - Channel support 60.56, resistance 119.09, position 0.354. Regime: deep pullback. ## What is not confirmed The Sept 17 headline said the stock fell on the convertible debt and share-sale news. That is headline-level; no opened body confirms cause and effect for the current price. A Benzinga piece framed debt, leases, and circular funding risk across a $3.6 trillion AI financing web, but its body was too shallow to verify detail. A Yahoo headline asked what happens to CRWV if lenders pull back; no body opened. A Fed-decision headline was generic sector framing, not a confirmed driver.",
+          "source_links": [
+            {
+              "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+              "label": "CoreWeave (CRWV)"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "zopedia_page",
+              "ref": "crwv_coreweave",
+              "page_id": "crwv_coreweave",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "CoreWeave (CRWV)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock"
+            }
+          ]
+        }
+      }
+    ],
+    "answer_markdown": "**The evidence in this run does not support a dated 2026-10-08 revision in OpenAI revenue beliefs, so the effect on public cloud, chip, and neocloud stocks cannot be sized; only structural sensitivities and a 2026-10-07 neocloud pullback with company-specific causes are documented.**\n\n### Premise check\n\n- No Zopedia page or live source in this run states a specific revision in OpenAI revenue expectations as of 2026-10-08.\n- Both live evidence calls (agtc_2 and agtc_4) returned the warning \"live_event_impact_map timed out after 4s\" and returned only MSFT and ORCL headline snippets. The MSFT snippet covers a Surface device and on-device AI. The ORCL snippet covers earnings acceleration. Neither names OpenAI revenue.\n- The trajectory monitor (agtc_monitor_1) flagged the same gap: \"No source states the specific revision in beliefs about OpenAI revenue as of 2026-10-08.\"\n\n### Direct contractual/customer exposure\n\n- No opened Zopedia page or primary article in this run names OpenAI as a contract counterparty for any chip, cloud, or neocloud company.\n- The opened CoreWeave page (**crwv_coreweave**) gives the strongest contractual detail available. CoreWeave signed more than **$25B** in net new customer commitments early in Q3 2026, on top of a **$104.2B** revenue backlog as of June 30, 2026. Deals are short-dated, about 3 to 6 months, at about **$40M per MW** annualized. The page lists CRWV, NVDA, and ORCL as related entities, but it does not name OpenAI.\n- CoreWeave also proposed **$3B** senior convertible notes due 2033, up to **$3.5B** with the option, plus a **35M**-share Class A ATM program (page **event_crwv_convert_atm_2026_09**). That is financing risk, not OpenAI revenue exposure.\n- Neocloud pages for **NBIS**, **IREN**, and **SHAZ** show upgrades, acquisitions, power deals, and a **$2.1B** Nvidia investment, but no OpenAI contract is named.\n\nSo direct OpenAI contractual exposure is an evidence gap. The names above appear because the searches returned them, not because a source ties their revenue to OpenAI.\n\n### Broader AI spending expectations\n\n- Chip and neocloud valuations in this run rest on AI data-center spending expectations, not on a named OpenAI revenue figure.\n- Marvell raised its fiscal 2028 revenue forecast on strong AI data-center demand and targeted **$90B** revenue by fiscal 2031 at its 2026-10-06 investor day (pages **market_event:MRVL-investor-day-2026-10-06** and **market_event:mrvl-2026-10-07-investor-day-ai-revenue-target**).\n- Micron disclosed about **$150B** in remaining performance obligations across 26 long-term agreements with take-or-pay commitments, larger than fiscal 2026 revenue of **$133.2B** (page **source:benzinga-micron-150b-contract-book-2026-10-01**).\n- AMD closed at **$609.09**, up **8.8%**, and reached a **$1T** market cap for the first time inside an AI chip rally (page **market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21**).\n\nA revision in OpenAI revenue beliefs would reach these names only through a change in expected AI data-center demand. The evidence does not connect such a revision to any of them on 2026-10-08.\n\n### Shared market reaction versus company-specific moves\n\n- A 2026-10-07 neocloud pullback is documented, but it is not a single-cause OpenAI event.\n- **NBIS** fell **5.1%** to **$237.13** on Oct 7, 2026. The attributed causes were a COO insider stake sale and a broad neocloud/AI infrastructure pullback. Peers **CRWV**, **CORZ**, and **IREN** fell **3.5%** to **6.2%**, while SMH and **NVDA** declined less. No macro catalyst was found (page **market_event_nbis_2026_10_07_decline**).\n- **IREN** fell more than **6%** in one day after SemiAnalysis placed it in its \"Not Recommended / Underperforming\" ClusterMAX tier, citing power, cooling, and neocloud execution risk (pages **theme:ai-neocloud-reliability-risk** and **ticker:IREN**).\n- **MU** rose **4.02%** to **$1,087.42** on 2026-10-07 on analyst-target headlines. Peer **SNDK** rose **3.98%**, while **NVDA**, **WDC**, **STX**, **AMAT**, and **LRCX** all fell (page **market_event:MU_2026-10-07**). That is not a uniform chip-sector reaction.\n\nThe tape shows shared neocloud pressure on one day plus stock-specific causes. It does not show a common OpenAI revenue driver.\n\n### What would change the interpretation\n\n- A primary source dated 2026-10-08 that states the OpenAI revenue revision, with the old figure, the new figure, and the time horizon.\n- An OpenAI contract or customer disclosure that names **MSFT**, **ORCL**, **AMZN**, **GOOGL**, **CRWV**, **NBIS**, or **IREN** as a counterparty, with contract value and duration.\n- Cloud remaining performance obligation or backlog updates tied to OpenAI, plus any capex guidance change at those cloud providers.\n- Neocloud customer-concentration disclosures that show the OpenAI share of revenue or backlog.\n- Dated market data for 2026-10-08 that links the OpenAI revision to intraday moves in specific tickers.\n\nWith those items, a company can move from \"spending expectation\" to \"direct contractual exposure.\" Without them, the premise stays unverified.\n\n### Takeaway\n\nWatch for an opened primary source on the OpenAI revenue revision, then match it to counterparty lists in **MSFT**, **ORCL**, **CRWV**, **NBIS**, and **IREN** filings. Keep treating same-day decliners as separate cases until a dated causal link is shown. Supporting live headlines used here include a Yahoo Finance MSFT item (https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html) and a Seeking Alpha ORCL item (https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in); the opened CoreWeave detail came from Barchart (https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock).",
+    "confidence": "medium",
+    "limitations": [
+      "No source in the tool evidence states the specific revision in OpenAI revenue beliefs as of 2026-10-08.",
+      "Both live evidence calls (agtc_2, agtc_4) timed out after 4s and returned only MSFT and ORCL headline snippets that do not mention OpenAI revenue.",
+      "No opened primary article or Zopedia page names OpenAI as a contract counterparty for any chip, cloud, or neocloud company.",
+      "The OpenAI-related search returned unrelated revenue-guidance pages such as IOVA and TWST, so the query did not isolate OpenAI exposure.",
+      "The 2026-10-07 IREN decline and NBIS decline are documented at page and headline level; no opened article body confirms full cause and effect.",
+      "No 2026-10-08 market data was collected to test for an OpenAI-revenue-driven move on that date.",
+      "Direct contractual exposure, broader spending expectations, and shared market reaction are separated by structural inference from page content, not by a dated causal source.",
+      "Confidence capped because live web evidence was not opened into source text."
+    ],
+    "quality_review": {
+      "status": "completed",
+      "verdict": "accept",
+      "critique_summary": "The draft correctly treats the core premise as unverified: no source in the tool history states a 2026-10-08 revision in OpenAI revenue beliefs. It separates direct contractual/customer exposure (only CoreWeave contract and financing detail is opened, and no page names OpenAI as counterparty) from broader AI spending expectations (Marvell, Micron, AMD) and from shared versus stock-specific market reaction (NBIS, IREN, MU). It does not hardcode a fixed affected list, it names the evidence gap, and it explains what evidence would change the read. Live-call timeouts and their limited MSFT/ORCL headline output are reported accurately and match the tool history. No malformed tables are present.",
+      "confidence": "high",
+      "limitations": [
+        "No source in the tool evidence states the specific revision in OpenAI revenue beliefs as of 2026-10-08.",
+        "Both live evidence calls (agtc_2, agtc_4) timed out after 4s and returned only MSFT and ORCL headline snippets that do not mention OpenAI revenue.",
+        "No opened primary article or Zopedia page names OpenAI as a contract counterparty for any chip, cloud, or neocloud company.",
+        "The OpenAI-related search returned unrelated revenue-guidance pages such as IOVA and TWST, so the query did not isolate OpenAI exposure.",
+        "The 2026-10-07 IREN decline and NBIS decline are documented at page and headline level; no opened article body confirms full cause and effect.",
+        "No 2026-10-08 market data was collected to test for an OpenAI-revenue-driven move on that date.",
+        "Direct contractual exposure, broader spending expectations, and shared market reaction are separated by structural inference from page content, not by a dated causal source."
+      ],
+      "unsupported_claims": [],
+      "evidence_gaps": [
+        "A primary source dated 2026-10-08 that states the revised OpenAI revenue expectation, with old figure, new figure, and time horizon.",
+        "A named OpenAI contract or customer disclosure linking OpenAI to MSFT, ORCL, AMZN, GOOGL, CRWV, NBIS, IREN, or a chip supplier, with value and duration.",
+        "Cloud backlog or remaining performance obligation updates tied to OpenAI, plus any related capex guidance change.",
+        "Neocloud customer-concentration disclosures showing the OpenAI share of revenue or backlog.",
+        "Dated 2026-10-08 market data linking the OpenAI revenue revision to intraday moves in specific tickers."
+      ],
+      "revised_answer_applied": true
+    },
+    "answer_status": "reviewed",
+    "memory_update": {
+      "status": "not_run"
+    },
+    "trajectory_reviews": [
+      {
+        "decision": "double_down",
+        "reason": "The planned zopedia.search_pages call is anchored to OpenAI revenue and its cloud, chip, and neocloud business exposure. It can discover relevant Zopedia pages and entities. No off-contract signal appears yet. The thread should continue, then read the best pages and trace sources before synthesis.",
+        "corrective_instruction": "Run the planned zopedia.search_pages query. Then use zopedia.read_page and zopedia.read_source on the most relevant pages. Use research.live_event_evidence, research.search_evidence, or research.open_page for current or primary evidence. Keep OpenAI at the center, and label direct customer or contract exposure separately from broader spending expectations, shared market reaction, and adjacent tickers.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No Zopedia page read or source trace exists yet.",
+          "No current or primary source evidence has been collected.",
+          "No company relationship map separates direct contractual or customer exposure from broader spending expectations and shared market reaction.",
+          "No evidence yet identifies which public cloud, chip, or neocloud businesses have direct OpenAI links versus indirect exposure."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The thread stays on the requested OpenAI revenue belief revision. The completed Zopedia search returned adjacent AI infrastructure pages, but not a specific OpenAI revenue revision page. The planned research.live_event_evidence call targets public cloud, chip, and neocloud candidates. That is the correct next step before synthesis. No off-contract signal is present.",
+        "corrective_instruction": "Proceed with the planned research.live_event_evidence call. Then use zopedia.read_page, zopedia.sources_for_page, and zopedia.trace_to_evidence to attach source links to each direct exposure claim. Treat focus_symbols as candidates, not as a fixed affected list.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No Zopedia page or primary source yet states the OpenAI revenue belief revision, its date, size, or source.",
+          "No evidence yet separates direct contractual or customer exposure from broader AI spending expectations or shared market reaction.",
+          "No source-linked map yet connects the OpenAI revenue revision to specific public cloud, chip, or neocloud companies.",
+          "The planned focus symbols are candidates; each company still needs relationship verification before synthesis."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The thread is anchored to the requested subject: how revised OpenAI revenue beliefs can affect public cloud, chip, and neocloud businesses. The planned Zopedia search is on-contract because it looks for OpenAI compute contracts and related company relationships. The earlier live-evidence call was incomplete and timed out, but that is an evidence gap, not an off-contract drift.",
+        "corrective_instruction": "Run the planned zopedia.search_pages call, then use zopedia.read_page and zopedia.sources_for_page or zopedia.trace_to_evidence on the highest-value contract and company pages. Fill the current-evidence gap with research.live_event_evidence or research.open_page if budget allows. Keep OpenAI revenue exposure as the center, and separate direct contractual exposure from broader spending expectations and shared market reaction.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "Live evidence timed out and skipped most focus symbols, so current evidence for CRWV, IREN, NBIS, NVDA, AMD, AVGO is incomplete.",
+          "Most live evidence rows are provider headlines and snippets, not opened article bodies or primary sources.",
+          "No page read or source trace yet supports dependent Zopedia claims about OpenAI contracts and company exposure.",
+          "Direct contractual or customer exposure is not yet separated from broader AI spending expectations or shared market reaction.",
+          "No evidence yet confirms which declining stocks have company-specific causes versus sector-wide reaction."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The thread stays centered on the requested subject: how an OpenAI revenue belief revision could hit public cloud, chip, and neocloud names. The two page searches returned directly relevant pages (CRWV, IREN, SHAZ, MSFT/ORCL-adjacent events, bitcoin-miner-to-neocloud theme). The planned tool is research.live_event_evidence with a query aimed at the exact core event, OpenAI revenue expectations revised, and it expands coverage to AMZN, GOOGL, AVGO. That is on-contract adjacent context, not drift. The prior live call timed out, so a retry with force_refresh is a reasonable recovery step before synthesis. No off-contract or fabricated content appears.",
+        "corrective_instruction": "Run the planned research.live_event_evidence call to pin the actual OpenAI revenue revision event. Then use zopedia.read_page and zopedia.trace_to_evidence on the OpenAI exposure pages and the ticker pages for CRWV, IREN, NBIS, MSFT, and ORCL, so each direct-contract claim and each spending-expectation claim carries a source reference. Keep the requested-company thread as the center and label adjacent names as context.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No Zopedia page has been read yet; only search result snippets exist, so dependent claims lack source traces.",
+          "The specific OpenAI revenue belief revision is not yet established with a dated source; the live call timed out and returned only MSFT and ORCL rows.",
+          "Direct contractual/customer exposure is not yet separated from broader AI spending expectations or shared market reaction for any named company.",
+          "No primary sources (contracts, filings, earnings transcripts) have been opened for the cloud, chip, or neocloud relationships."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "restart",
+        "reason": "The thread is anchored to the requested OpenAI revenue topic and has found relevant cloud, chip, and neocloud names. But the next planned step is research.retained_context, and the trace has no opened Zopedia page or primary article. It has only search snippets and two live headline rows. Direct contractual exposure cannot be separated from spending expectations or shared market reaction without a source-linked page or article. The remaining call should gather that evidence instead of internal memory.",
+        "corrective_instruction": "Do not run research.retained_context. Use the remaining tool call to zopedia.read_page on the most relevant page (for example crwv_coreweave or theme:ai-neocloud-reliability-risk), or to research.open_page on a live-evidence URL. Then write a partial synthesis that labels direct contractual/customer exposure, broader spending expectations, and shared market reaction separately, and names the missing evidence.",
+        "off_contract_signals": [
+          "The planned final evidence step is research.retained_context, which would move the thread toward synthesis without a source-traced page or article."
+        ],
+        "evidence_gaps": [
+          "No opened Zopedia page or primary article body appears in the trace, so source-linked claims about OpenAI revenue exposure cannot be verified.",
+          "No direct mapping exists between OpenAI contractual/customer exposure and specific public cloud, chip, or neocloud companies.",
+          "The trace does not yet separate direct contractual exposure from broader AI spending expectations and shared market reaction.",
+          "No source states the specific revision in beliefs about OpenAI revenue as of 2026-10-08, and no source shows a dated market reaction tied to that revision.",
+          "Live evidence attempts timed out and returned only MSFT and ORCL headline snippets; they do not cover OpenAI revenue exposure.",
+          "No evidence identifies what additional evidence would change the interpretation."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The thread stays centered on the OpenAI revenue-belief revision and its possible effects on cloud, chip, and neocloud businesses. The planned zopedia.read_page call on crwv_coreweave is on-contract because CoreWeave is a direct AI neocloud name with OpenAI-linked contracts and backlog evidence. This page read can supply the source-linked contractual evidence that earlier search snippets lacked.",
+        "corrective_instruction": "Run zopedia.read_page on crwv_coreweave. In the synthesis, label direct contractual or customer exposure separately from broader AI-spending expectations and shared market reaction. If the page does not state the OpenAI revenue revision, name that missing evidence instead of filling the gap.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No opened page or article body yet states the specific revision in beliefs about OpenAI revenue as of 2026-10-08.",
+          "No source-linked mapping yet separates direct OpenAI contractual or customer exposure from broader AI-spending expectations and shared market reaction.",
+          "Live evidence attempts returned only MSFT and ORCL headline snippets and timed out before covering the OpenAI revision.",
+          "The trace does not yet include primary-source contract terms, backlog, or customer-disclosure evidence for cloud, chip, or neocloud names."
+        ],
+        "status": "completed"
+      }
+    ],
+    "error": null,
+    "query": "As of October 8, 2026, investigate how a revision in beliefs about OpenAI revenue could affect public cloud, chip and neocloud businesses. Use Zopedia memory and current or primary sources to discover the relevant companies and business relationships. Separate direct contractual/customer exposure from broader spending expectations and shared market reaction. Do not assume every declining stock has the same cause or hardcode a fixed affected list. Explain what additional evidence would change the interpretation. Give a concise source-linked synthesis.",
+    "original_query": "As of October 8, 2026, investigate how a revision in beliefs about OpenAI revenue could affect public cloud, chip and neocloud businesses. Use Zopedia memory and current or primary sources to discover the relevant companies and business relationships. Separate direct contractual/customer exposure from broader spending expectations and shared market reaction. Do not assume every declining stock has the same cause or hardcode a fixed affected list. Explain what additional evidence would change the interpretation. Give a concise source-linked synthesis.",
+    "followup_resolved": false,
+    "write_policy": "none",
+    "aql_evidence_pack": {
+      "schema_version": "aql_evidence_pack_v1",
+      "evidence_pack_id": "aqlpack::c2b3611c9da3a4d1f4c2e91a",
+      "run_id": "agrun_9582d99192",
+      "surface": "zopedia_agent",
+      "query": "As of October 8, 2026, investigate how a revision in beliefs about OpenAI revenue could affect public cloud, chip and neocloud businesses. Use Zopedia memory and current or primary sources to discover the relevant companies and business relationships. Separate direct contractual/customer exposure from broader spending expectations and shared market reaction. Do not assume every declining stock has the same cause or hardcode a fixed affected list. Explain what additional evidence would change the interpretation. Give a concise source-linked synthesis.",
+      "original_query": "As of October 8, 2026, investigate how a revision in beliefs about OpenAI revenue could affect public cloud, chip and neocloud businesses. Use Zopedia memory and current or primary sources to discover the relevant companies and business relationships. Separate direct contractual/customer exposure from broader spending expectations and shared market reaction. Do not assume every declining stock has the same cause or hardcode a fixed affected list. Explain what additional evidence would change the interpretation. Give a concise source-linked synthesis.",
+      "status": "completed",
+      "model": "deepseek-reasoner",
+      "entities": [],
+      "retained_chunks": [],
+      "source_documents": [
+        {
+          "kind": "zopedia_page",
+          "ref": "theme:ai-neocloud-reliability-risk",
+          "page_id": "theme:ai-neocloud-reliability-risk",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AI neocloud reliability and execution risk",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:IREN",
+          "page_id": "ticker:IREN",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "IREN Limited (IREN)",
+          "source": "",
+          "published_date": "",
+          "url": "https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "entity:penguin-solutions",
+          "page_id": "entity:penguin-solutions",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Penguin Solutions (PENG)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/markets/earnings/26/10/62205895/penguin-solutions-stock-pops-on-q4-earnings-beat-strong-guidance",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:mrvl-2026-10-07-investor-day-ai-revenue-target",
+          "page_id": "market_event:mrvl-2026-10-07-investor-day-ai-revenue-target",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "MRVL 2026 investor day: raised 2028 revenue forecast tied to AI data-center demand",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/news/4651235-biggest-stock-movers-thursday-mrvl-apld-and-more",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:MRVL-investor-day-2026-10-06",
+          "page_id": "market_event:MRVL-investor-day-2026-10-06",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Marvell investor day and long-term revenue targets \u2014 2026-10-06",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.reuters.com/business/marvell-raises-2028-revenue-forecast-strong-ai-data-center-demand-2026-10-06/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:MU_2026-10-07",
+          "page_id": "market_event:MU_2026-10-07",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/10/62213969/micron-to-rally-around-187-here-are-10-top-analyst-forecasts-for-wednesday?utm_source=googlefinance",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "entity/microchip-technology",
+          "page_id": "entity/microchip-technology",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Microchip Technology (MCHP)",
+          "source": "",
+          "published_date": "",
+          "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-mchp/microchip-technology/news/microchip-technology-mchp-climbed-what-is-driving-attention",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:tradersunion:3706510",
+          "page_id": "source:tradersunion:3706510",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "PLTR holds steady as quarterly revenue jumps",
+          "source": "",
+          "published_date": "",
+          "url": "https://tradersunion.com/news/stocks/show/3706510-palantir-slips-0-47percent-to-usd191-16/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:yahoo_iova_fy2026_guidance_2026-09-30",
+          "page_id": "source:yahoo_iova_fy2026_guidance_2026-09-30",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "IOVA Stock Hits Over 2-Year Highs \u2013 Why Iovance Raised Its FY2026 Revenue Outlook (Yahoo Finance, 2026-09-30)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:iova_fy2026_guidance_raise",
+          "page_id": "market_event:iova_fy2026_guidance_raise",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Iovance raises FY2026 revenue guidance to $410\u2013$420 million (2026-09-29)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event_nbis_2026_10_07_decline",
+          "page_id": "market_event_nbis_2026_10_07_decline",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "NBIS 5.1% Decline on October 7, 2026",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker/IREN",
+          "page_id": "ticker/IREN",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "IREN Limited (IREN)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI",
+          "source": "Yahoo Finance",
+          "published_date": "2026-10-08T03:17:06.037513+00:00",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html",
+          "tool_call_id": "agtc_2",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+          "source": "Seeking Alpha",
+          "published_date": "2026-10-07T20:17:07.717262+00:00",
+          "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+          "tool_call_id": "agtc_2",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:yahoo-shaz-trapdoor-masterpiece-2026-09-23",
+          "page_id": "source:yahoo-shaz-trapdoor-masterpiece-2026-09-23",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:twst-lilly-tunelab-2026-09-17",
+          "page_id": "market_event:twst-lilly-tunelab-2026-09-17",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:benzinga-micron-150b-contract-book-2026-10-01",
+          "page_id": "source:benzinga-micron-150b-contract-book-2026-10-01",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Micron\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21",
+          "page_id": "market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AMD crosses $1T market cap as AI chip stocks rally (2026-09-21)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5",
+          "page_id": "zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Bitcoin miners pivoting to AI data centers",
+          "source": "",
+          "published_date": "",
+          "url": "https://247wallst.com/investing/2026/08/11/riot-platforms-soars-17-on-9-1b-anthropic-data-center-deal-ai-infrastructure-peers-iren-applied-digital-terawulf-head-higher/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "crwv_coreweave",
+          "page_id": "crwv_coreweave",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "CoreWeave (CRWV)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:shaz",
+          "page_id": "ticker:shaz",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Sharon AI Holdings Inc. (SHAZ)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "amd_1t_market_cap_2026_09_21",
+          "page_id": "amd_1t_market_cap_2026_09_21",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AMD crosses $1 trillion market cap (2026-09-21)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:HPE",
+          "page_id": "ticker:HPE",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "HPE \u2014 Hewlett Packard Enterprise Company Common Stock",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.barrons.com/articles/hpe-stock-amd-servers-ai-buildout-dc1fe745",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "zopedia::source::hut-stock-powers-higher-on-9-8b-ai-data-center-deal-and-bullish-::caf92d117649",
+          "page_id": "zopedia::source::hut-stock-powers-higher-on-9-8b-ai-data-center-deal-and-bullish-::caf92d117649",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "HUT Stock Powers Higher On $9.8B AI Data Center Deal And Bullish Wall Street Call (StocksToTrade, 2026-09-18)",
+          "source": "",
+          "published_date": "",
+          "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:yahoo-finance-coreweave-cramer-2026-10-06",
+          "page_id": "source:yahoo-finance-coreweave-cramer-2026-10-06",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Jim Cramer Prefers CoreWeave (CRWV) Over Nebius (NBIS) \u2014 Is the Valuation Gap the Reason?",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-prefers-coreweave-crwv-194348338.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "zopedia::theme::bitcoin-miners-pivot-to-ai-compute-and-data-centers::4a3c637e3e97",
+          "page_id": "zopedia::theme::bitcoin-miners-pivot-to-ai-compute-and-data-centers::4a3c637e3e97",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Bitcoin miners pivot to AI compute and data centers",
+          "source": "",
+          "published_date": "",
+          "url": "https://stocktwits.com/news-articles/markets/equity/mara-clsk-btdr-stock-citizens-ai-data-center-play/cZKyeioR7fP",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:NBIS",
+          "page_id": "ticker:NBIS",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Nebius Group N.V. (NBIS)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.marketbeat.com/instant-alerts/price-nebius-group-nasdaq-nbis-shares-gap-up-on-analyst-upgrade-2026-09-24/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event_amd_2026_09_21",
+          "page_id": "market_event_amd_2026_09_21",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AMD +9.98% on 2026-09-21: AI Chip Rally and Reported Q4 Price Hike",
+          "source": "",
+          "published_date": "",
+          "url": "https://247wallst.com/investing/2026/09/21/amd-rises-5-as-report-flags-10-chip-price-increase-nvidia-and-taiwan-semiconductor-tick-up/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "event_crwv_convert_atm_2026_09",
+          "page_id": "event_crwv_convert_atm_2026_09",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "CoreWeave proposes $3B convertible notes and 35M-share ATM (Sept 2026)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-proposes-3-billion-convertible-135044278.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+          "source": "Investor's Business Daily",
+          "published_date": "2026-10-07T20:17:56.855790+00:00",
+          "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "research.live_event_evidence"
+        }
+      ],
+      "zopedia_pages": [
+        {
+          "kind": "zopedia_page",
+          "ref": "theme:ai-neocloud-reliability-risk",
+          "page_id": "theme:ai-neocloud-reliability-risk",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AI neocloud reliability and execution risk",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:IREN",
+          "page_id": "ticker:IREN",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "IREN Limited (IREN)",
+          "source": "",
+          "published_date": "",
+          "url": "https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "entity:penguin-solutions",
+          "page_id": "entity:penguin-solutions",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Penguin Solutions (PENG)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/markets/earnings/26/10/62205895/penguin-solutions-stock-pops-on-q4-earnings-beat-strong-guidance",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:mrvl-2026-10-07-investor-day-ai-revenue-target",
+          "page_id": "market_event:mrvl-2026-10-07-investor-day-ai-revenue-target",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "MRVL 2026 investor day: raised 2028 revenue forecast tied to AI data-center demand",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/news/4651235-biggest-stock-movers-thursday-mrvl-apld-and-more",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:MRVL-investor-day-2026-10-06",
+          "page_id": "market_event:MRVL-investor-day-2026-10-06",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Marvell investor day and long-term revenue targets \u2014 2026-10-06",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.reuters.com/business/marvell-raises-2028-revenue-forecast-strong-ai-data-center-demand-2026-10-06/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:MU_2026-10-07",
+          "page_id": "market_event:MU_2026-10-07",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/10/62213969/micron-to-rally-around-187-here-are-10-top-analyst-forecasts-for-wednesday?utm_source=googlefinance",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "entity/microchip-technology",
+          "page_id": "entity/microchip-technology",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Microchip Technology (MCHP)",
+          "source": "",
+          "published_date": "",
+          "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-mchp/microchip-technology/news/microchip-technology-mchp-climbed-what-is-driving-attention",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:tradersunion:3706510",
+          "page_id": "source:tradersunion:3706510",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "PLTR holds steady as quarterly revenue jumps",
+          "source": "",
+          "published_date": "",
+          "url": "https://tradersunion.com/news/stocks/show/3706510-palantir-slips-0-47percent-to-usd191-16/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:yahoo_iova_fy2026_guidance_2026-09-30",
+          "page_id": "source:yahoo_iova_fy2026_guidance_2026-09-30",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "IOVA Stock Hits Over 2-Year Highs \u2013 Why Iovance Raised Its FY2026 Revenue Outlook (Yahoo Finance, 2026-09-30)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:iova_fy2026_guidance_raise",
+          "page_id": "market_event:iova_fy2026_guidance_raise",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Iovance raises FY2026 revenue guidance to $410\u2013$420 million (2026-09-29)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event_nbis_2026_10_07_decline",
+          "page_id": "market_event_nbis_2026_10_07_decline",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "NBIS 5.1% Decline on October 7, 2026",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker/IREN",
+          "page_id": "ticker/IREN",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "IREN Limited (IREN)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:yahoo-shaz-trapdoor-masterpiece-2026-09-23",
+          "page_id": "source:yahoo-shaz-trapdoor-masterpiece-2026-09-23",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:twst-lilly-tunelab-2026-09-17",
+          "page_id": "market_event:twst-lilly-tunelab-2026-09-17",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:benzinga-micron-150b-contract-book-2026-10-01",
+          "page_id": "source:benzinga-micron-150b-contract-book-2026-10-01",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Micron\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21",
+          "page_id": "market_event/amd-1t-market-cap-ai-chip-rally-2026-09-21",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AMD crosses $1T market cap as AI chip stocks rally (2026-09-21)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5",
+          "page_id": "zopedia::theme::bitcoin-miners-pivoting-to-ai-data-centers::7de568fd46b5",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Bitcoin miners pivoting to AI data centers",
+          "source": "",
+          "published_date": "",
+          "url": "https://247wallst.com/investing/2026/08/11/riot-platforms-soars-17-on-9-1b-anthropic-data-center-deal-ai-infrastructure-peers-iren-applied-digital-terawulf-head-higher/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "crwv_coreweave",
+          "page_id": "crwv_coreweave",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "CoreWeave (CRWV)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:shaz",
+          "page_id": "ticker:shaz",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Sharon AI Holdings Inc. (SHAZ)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "amd_1t_market_cap_2026_09_21",
+          "page_id": "amd_1t_market_cap_2026_09_21",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AMD crosses $1 trillion market cap (2026-09-21)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:HPE",
+          "page_id": "ticker:HPE",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "HPE \u2014 Hewlett Packard Enterprise Company Common Stock",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.barrons.com/articles/hpe-stock-amd-servers-ai-buildout-dc1fe745",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "zopedia::source::hut-stock-powers-higher-on-9-8b-ai-data-center-deal-and-bullish-::caf92d117649",
+          "page_id": "zopedia::source::hut-stock-powers-higher-on-9-8b-ai-data-center-deal-and-bullish-::caf92d117649",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "HUT Stock Powers Higher On $9.8B AI Data Center Deal And Bullish Wall Street Call (StocksToTrade, 2026-09-18)",
+          "source": "",
+          "published_date": "",
+          "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:yahoo-finance-coreweave-cramer-2026-10-06",
+          "page_id": "source:yahoo-finance-coreweave-cramer-2026-10-06",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Jim Cramer Prefers CoreWeave (CRWV) Over Nebius (NBIS) \u2014 Is the Valuation Gap the Reason?",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-prefers-coreweave-crwv-194348338.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "zopedia::theme::bitcoin-miners-pivot-to-ai-compute-and-data-centers::4a3c637e3e97",
+          "page_id": "zopedia::theme::bitcoin-miners-pivot-to-ai-compute-and-data-centers::4a3c637e3e97",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Bitcoin miners pivot to AI compute and data centers",
+          "source": "",
+          "published_date": "",
+          "url": "https://stocktwits.com/news-articles/markets/equity/mara-clsk-btdr-stock-citizens-ai-data-center-play/cZKyeioR7fP",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:NBIS",
+          "page_id": "ticker:NBIS",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Nebius Group N.V. (NBIS)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.marketbeat.com/instant-alerts/price-nebius-group-nasdaq-nbis-shares-gap-up-on-analyst-upgrade-2026-09-24/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event_amd_2026_09_21",
+          "page_id": "market_event_amd_2026_09_21",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AMD +9.98% on 2026-09-21: AI Chip Rally and Reported Q4 Price Hike",
+          "source": "",
+          "published_date": "",
+          "url": "https://247wallst.com/investing/2026/09/21/amd-rises-5-as-report-flags-10-chip-price-increase-nvidia-and-taiwan-semiconductor-tick-up/",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "event_crwv_convert_atm_2026_09",
+          "page_id": "event_crwv_convert_atm_2026_09",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "CoreWeave proposes $3B convertible notes and 35M-share ATM (Sept 2026)",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-proposes-3-billion-convertible-135044278.html",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        }
+      ],
+      "kg_paths": [],
+      "live_evidence": [
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI",
+          "source": "Yahoo Finance",
+          "published_date": "2026-10-08T03:17:06.037513+00:00",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html",
+          "tool_call_id": "agtc_2",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL)",
+          "source": "Seeking Alpha",
+          "published_date": "2026-10-07T20:17:07.717262+00:00",
+          "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+          "tool_call_id": "agtc_2",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists",
+          "source": "Investor's Business Daily",
+          "published_date": "2026-10-07T20:17:56.855790+00:00",
+          "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "research.live_event_evidence"
+        }
+      ],
+      "citations": [
+        {
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+          "label": "AI neocloud reliability and execution risk",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://247wallst.com/investing/2026/10/05/applied-digital-falls-4-despite-bringing-75-mw-online-at-polaris-forge-1-iren-and-cipher-digital-also-slide-4/",
+          "label": "IREN Limited (IREN)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.benzinga.com/markets/earnings/26/10/62205895/penguin-solutions-stock-pops-on-q4-earnings-beat-strong-guidance",
+          "label": "Penguin Solutions (PENG)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://seekingalpha.com/news/4651235-biggest-stock-movers-thursday-mrvl-apld-and-more",
+          "label": "MRVL 2026 investor day: raised 2028 revenue forecast tied to AI data-center demand",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.reuters.com/business/marvell-raises-2028-revenue-forecast-strong-ai-data-center-demand-2026-10-06/",
+          "label": "Marvell investor day and long-term revenue targets \u2014 2026-10-06",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.benzinga.com/analyst-stock-ratings/price-target/26/10/62213969/micron-to-rally-around-187-here-are-10-top-analyst-forecasts-for-wednesday?utm_source=googlefinance",
+          "label": "MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://simplywall.st/stocks/us/semiconductors/nasdaq-mchp/microchip-technology/news/microchip-technology-mchp-climbed-what-is-driving-attention",
+          "label": "Microchip Technology (MCHP)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://tradersunion.com/news/stocks/show/3706510-palantir-slips-0-47percent-to-usd191-16/",
+          "label": "PLTR holds steady as quarterly revenue jumps",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iova-stock-hits-over-2-141513877.html",
+          "label": "IOVA Stock Hits Over 2-Year Highs \u2013 Why Iovance Raised Its FY2026 Revenue Outlook (Yahoo Finance, 2026-09-30)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+          "label": "NBIS 5.1% Decline on October 7, 2026",
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://finance.yahoo.com/markets/stocks/articles/msft-stock-4-day-winning-032843614.html",
+          "label": "MSFT Stock On 4-Day Winning Streak: Microsoft Takes On Apple's Macs With Nvidia-Powered Surface Ultra, More On-Device AI (Yahoo Finance)",
+          "tool_call_id": "agtc_2",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "url": "https://seekingalpha.com/article/4952590-oracle-earnings-acceleration-is-now-kicking-in",
+          "label": "Oracle: Earnings Acceleration Is Now Kicking In (NYSE:ORCL) (Seeking Alpha)",
+          "tool_call_id": "agtc_2",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "url": "https://finance.yahoo.com/markets/stocks/articles/sharon-ai-shaz-sitting-multi-132622996.html",
+          "label": "Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Dollar Trapdoor or a Masterpiece? (Sep 23 2026)",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.timothysykes.com/news/twist-bioscience-corporation-twst-news-2026_09_17-3/",
+          "label": "Twist Bioscience-Lilly TuneLab antibody data deal (Sept 2026)",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.benzinga.com/trading-ideas/long-ideas/26/10/62115548/micron-150-billion-contract-book",
+          "label": "Micron\u2019s $150B Contract Book Tops Annual Revenue - Benzinga, 2026-10-01",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.cnbc.com/2026/09/21/amd-stock-1-trillion-value.html",
+          "label": "AMD crosses $1T market cap as AI chip stocks rally (2026-09-21)",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://247wallst.com/investing/2026/08/11/riot-platforms-soars-17-on-9-1b-anthropic-data-center-deal-ai-infrastructure-peers-iren-applied-digital-terawulf-head-higher/",
+          "label": "Bitcoin miners pivoting to AI data centers",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.barchart.com/story/news/4684161/a-25-billion-reason-to-buy-coreweave-stock",
+          "label": "CoreWeave (CRWV)",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.barrons.com/articles/hpe-stock-amd-servers-ai-buildout-dc1fe745",
+          "label": "HPE \u2014 Hewlett Packard Enterprise Company Common Stock",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "label": "HUT Stock Powers Higher On $9.8B AI Data Center Deal And Bullish Wall Street Call (StocksToTrade, 2026-09-18)",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://finance.yahoo.com/markets/stocks/articles/jim-cramer-prefers-coreweave-crwv-194348338.html",
+          "label": "Jim Cramer Prefers CoreWeave (CRWV) Over Nebius (NBIS) \u2014 Is the Valuation Gap the Reason?",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://stocktwits.com/news-articles/markets/equity/mara-clsk-btdr-stock-citizens-ai-data-center-play/cZKyeioR7fP",
+          "label": "Bitcoin miners pivot to AI compute and data centers",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.marketbeat.com/instant-alerts/price-nebius-group-nasdaq-nbis-shares-gap-up-on-analyst-upgrade-2026-09-24/",
+          "label": "Nebius Group N.V. (NBIS)",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://247wallst.com/investing/2026/09/21/amd-rises-5-as-report-flags-10-chip-price-increase-nvidia-and-taiwan-semiconductor-tick-up/",
+          "label": "AMD +9.98% on 2026-09-21: AI Chip Rally and Reported Q4 Price Hike",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://finance.yahoo.com/markets/stocks/articles/coreweave-proposes-3-billion-convertible-135044278.html",
+          "label": "CoreWeave proposes $3B convertible notes and 35M-share ATM (Sept 2026)",
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.investors.com/research/microsoft-leads-9-joining-ibd-best-stock-lists/",
+          "label": "As Microsoft Adapted To AI Megatrend, Sales, Profits Surged. MSFT Leads 9 Joining IBD Best Stock Lists (Investor's Business Daily)",
+          "tool_call_id": "agtc_4",
+          "tool_name": "research.live_event_evidence"
+        }
+      ],
+      "data_gaps": [
+        "No source in the tool evidence states the specific revision in OpenAI revenue beliefs as of 2026-10-08.",
+        "Both live evidence calls (agtc_2, agtc_4) timed out after 4s and returned only MSFT and ORCL headline snippets that do not mention OpenAI revenue.",
+        "No opened primary article or Zopedia page names OpenAI as a contract counterparty for any chip, cloud, or neocloud company.",
+        "The OpenAI-related search returned unrelated revenue-guidance pages such as IOVA and TWST, so the query did not isolate OpenAI exposure.",
+        "The 2026-10-07 IREN decline and NBIS decline are documented at page and headline level; no opened article body confirms full cause and effect.",
+        "No 2026-10-08 market data was collected to test for an OpenAI-revenue-driven move on that date.",
+        "Direct contractual exposure, broader spending expectations, and shared market reaction are separated by structural inference from page content, not by a dated causal source.",
+        "Confidence capped because live web evidence was not opened into source text."
+      ],
+      "critique_findings": [],
+      "proposals": [],
+      "mutations": [],
+      "trace": [
+        {
+          "tool_call_id": "agtc_1",
+          "tool_name": "zopedia.search_pages",
+          "status": "completed",
+          "arguments": {
+            "query": "OpenAI revenue cloud chip neocloud exposure",
+            "max_results": 12
+          },
+          "preview_text": "Zopedia page search for 'OpenAI revenue cloud chip neocloud exposure': 12 result(s). AI neocloud reliability and execution risk (page_id=theme:ai-neocloud-reliability-risk) [theme]: Ex-crypto miner...",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_2",
+          "tool_name": "research.live_event_evidence",
+          "status": "completed",
+          "arguments": {
+            "query": "OpenAI revenue outlook revision impact public cloud chip neocloud exposure October 2026",
+            "focus_symbols": [
+              "MSFT",
+              "ORCL",
+              "NVDA",
+              "AMD",
+              "AVGO",
+              "CRWV",
+              "IREN",
+              "NBIS"
+            ],
+            "max_results": 12,
+            "force_refresh": false
+          },
+          "preview_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, ORCL, NVDA, AMD. Live evidence warnings: live...",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_3",
+          "tool_name": "zopedia.search_pages",
+          "status": "completed",
+          "arguments": {
+            "query": "OpenAI compute contract revenue Microsoft Oracle CoreWeave Nvidia Broadcom AMD Azure deal",
+            "max_results": 15
+          },
+          "preview_text": "Zopedia page search for 'OpenAI compute contract revenue Microsoft Oracle CoreWeave Nvidia Broadcom AMD Azure deal': 15 result(s). Yahoo Finance: Is Sharon AI (SHAZ) Sitting on a Multi-Billion Doll...",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_4",
+          "tool_name": "research.live_event_evidence",
+          "status": "completed",
+          "arguments": {
+            "query": "OpenAI revenue expectations revised cut AI infrastructure spending cloud chip neocloud impact October 2026",
+            "focus_symbols": [
+              "MSFT",
+              "ORCL",
+              "AMZN",
+              "GOOGL",
+              "NVDA",
+              "AVGO",
+              "AMD",
+              "CRWV"
+            ],
+            "max_results": 12,
+            "force_refresh": true
+          },
+          "preview_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: MSFT, ORCL, AMZN, GOOGL. Live evidence warnings: li...",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_monitor_1",
+          "tool_name": "trajectory.monitor",
+          "status": "completed",
+          "arguments": {
+            "decision": "restart",
+            "restart_count": 1
+          },
+          "preview_text": "Trajectory monitor decision: restart. Reason: The thread is anchored to the requested OpenAI revenue topic and has found relevant cloud, chip, and neocloud names. But the next planned step is resea...",
+          "result_type": "trajectory_monitor",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.read_page",
+          "status": "completed",
+          "arguments": {
+            "page_id": "crwv_coreweave"
+          },
+          "preview_text": "Zopedia page: CoreWeave (CRWV) [ticker]. Summary: AI cloud operator. Signed more than $25B in net new customer commitments early in Q3 2026, on top of a $104.2B backlog as of June 30, 2026. Contrac...",
+          "result_type": "research",
+          "error": ""
+        }
+      ],
+      "error": ""
+    },
+    "aql_evidence_pack_id": "aqlpack::c2b3611c9da3a4d1f4c2e91a",
+    "runtime": {
+      "run_id": "agrun_9582d99192",
+      "event_count": 67,
+      "durable_event_log": false,
+      "resumable": false
+    },
+    "engine": {
+      "name": "aql_zopedia",
+      "task": "home_discovery_audit",
+      "surface": "attention_home.discovery_audit",
+      "write_policy": "none",
+      "max_tool_calls": 6,
+      "tool_call_timeout_seconds": 40,
+      "llm_step_timeout_seconds": 90,
+      "prefetch_timeout_seconds": 40
+    }
+  }
+}

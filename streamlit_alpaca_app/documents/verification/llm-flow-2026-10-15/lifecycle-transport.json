@@ -1,0 +1,79 @@
+{
+  "stages": [
+    {
+      "stage": "researcher",
+      "model": "deepseek-v4-pro",
+      "effort": "max",
+      "purpose": "agent.research_step",
+      "reviewer": null
+    },
+    {
+      "stage": "researcher",
+      "model": "deepseek-v4-pro",
+      "effort": "max",
+      "purpose": "agent.research_step",
+      "reviewer": null
+    },
+    {
+      "stage": "synthesis",
+      "model": "deepseek-v4-pro",
+      "effort": "max",
+      "purpose": "agent.final_synthesis",
+      "reviewer": null
+    },
+    {
+      "stage": "review",
+      "model": "deepseek-flash",
+      "effort": "low",
+      "purpose": "agent.answer_judge",
+      "reviewer": "reviewer_1"
+    },
+    {
+      "stage": "review",
+      "model": "deepseek-v4-pro",
+      "effort": "high",
+      "purpose": "agent.answer_judge",
+      "reviewer": "second"
+    },
+    {
+      "stage": "researcher",
+      "model": "deepseek-v4-pro",
+      "effort": "max",
+      "purpose": "agent.research_step",
+      "reviewer": null
+    },
+    {
+      "stage": "monitor",
+      "model": "deepseek-flash",
+      "effort": "low",
+      "purpose": "agent.trajectory_monitor",
+      "reviewer": null
+    },
+    {
+      "stage": "researcher",
+      "model": "deepseek-v4-pro",
+      "effort": "max",
+      "purpose": "agent.research_step",
+      "reviewer": null
+    },
+    {
+      "stage": "synthesis",
+      "model": "deepseek-v4-pro",
+      "effort": "max",
+      "purpose": "agent.review_corrections",
+      "reviewer": null
+    },
+    {
+      "stage": "answer",
+      "model": "deepseek-flash",
+      "effort": null,
+      "purpose": "agent.answer_presentation",
+      "reviewer": null
+    }
+  ],
+  "review_cycles_used": 1,
+  "completed_review_cycles": 1,
+  "tool_calls": 2,
+  "pending_requests": [],
+  "http_attempts": 10
+}

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
+from contextvars import copy_context
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
+import hashlib
 import os
 import re
 import threading
@@ -13,6 +15,10 @@ from typing import Any, Callable
 from urllib.parse import urlparse
 
 import pandas as pd
+
+from ..llm_context import serialize_llm_context, render_research_prompt, organize_source_captures
+from ..llm_flow import workload_value
+from ..llm_execution import latest_research_artifact, current_research_access_scope, retain_research_artifact, research_artifact_key
 
 from ..saa import build_zopedia_change_proposal, prepare_zopedia_pages
 from ..web_research import WebResearchError, search_client_provider
@@ -217,7 +223,7 @@ def _env_nonnegative_float(name: str, default: float) -> float:
 
 
 def _business_research_budget_seconds() -> int:
-    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_RESEARCH_BUDGET_SECONDS", 3600, minimum=60)
+    return workload_value("news", "research_seconds")
 
 
 def _business_agent_tool_timeout_seconds() -> int:
@@ -259,15 +265,15 @@ def _business_slot_max_workers() -> int:
 
 
 def _business_research_open_pages_per_query() -> int:
-    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_OPEN_PAGES_PER_QUERY", 2, minimum=1)
+    return workload_value("news", "page_opens")
 
 
 def _business_research_open_attempts_per_query() -> int:
-    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_OPEN_ATTEMPTS_PER_QUERY", 4, minimum=1)
+    return workload_value("news", "open_attempts")
 
 
 def _business_research_open_page_chars() -> int:
-    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_OPEN_PAGE_CHARS", 8000, minimum=1200)
+    return workload_value("news", "page_characters")
 
 
 def _business_research_seeking_alpha_pages_per_query() -> int:
@@ -340,23 +346,16 @@ def _business_agent_runtime_kwargs() -> dict[str, int]:
 
 
 @contextmanager
-def _business_aql_timeout_env():
+def _business_aql_timeouts():
+    from .pipeline import aql_timeout_scope
+
     defaults = {
         "AQL_CANDIDATE_RESEARCH_TIMEOUT_SECONDS": _business_aql_candidate_timeout_seconds(),
         "AQL_EVENT_BUNDLE_TIMEOUT_SECONDS": _business_aql_event_bundle_timeout_seconds(),
         "AQL_MACRO_VERIFICATION_TIMEOUT_SECONDS": _business_aql_macro_timeout_seconds(),
     }
-    set_by_context: list[str] = []
-    for name, value in defaults.items():
-        if os.getenv(name) is None:
-            os.environ[name] = str(value)
-            set_by_context.append(name)
-    try:
+    with aql_timeout_scope({name: value for name, value in defaults.items() if os.getenv(name) is None}):
         yield
-    finally:
-        for name in set_by_context:
-            if os.getenv(name) == str(defaults[name]):
-                os.environ.pop(name, None)
 
 
 def _clean_company_name_for_research(value: object) -> str:
@@ -383,28 +382,11 @@ TICKER_BUSINESS_MODEL_STACK_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "properties": {
         "resolved_company_name": {"type": "string"},
-        "slot_facts": {
-            "type": "object",
-            "additionalProperties": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "properties": {
-                        "text": {"type": "string"},
-                        "source": {"type": "string"},
-                        "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
-                        "evidence_refs": {"type": "array", "items": {"type": "string"}},
-                    },
-                    "required": ["text", "source", "confidence", "evidence_refs"],
-                },
-            },
-        },
-        "business_story_markdown": {"type": "string"},
+        "business_story_markdown": {"type": "string", "minLength": 1},
         "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
         "slot_gaps": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["resolved_company_name", "slot_facts", "business_story_markdown", "confidence", "slot_gaps"],
+    "required": ["resolved_company_name", "business_story_markdown", "confidence", "slot_gaps"],
 }
 
 BUSINESS_MODEL_SLOT_VERDICT_SCHEMA: dict[str, Any] = {
@@ -460,13 +442,13 @@ BUSINESS_MODEL_RESEARCH_QUERY_PLAN_SCHEMA: dict[str, Any] = {
 
 BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA: dict[str, Any] = {
     "type": "object",
-    "additionalProperties": False,
+    "additionalProperties": True,
     "properties": {
         "source_inventory": {
             "type": "array",
             "items": {
                 "type": "object",
-                "additionalProperties": False,
+                "additionalProperties": True,
                 "properties": {
                     "evidence_ref": {"type": "string"},
                     "slot": {"type": "string"},
@@ -475,26 +457,14 @@ BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA: dict[str, Any] = {
                     "title": {"type": "string"},
                     "url": {"type": "string"},
                     "relevance": {"type": "string"},
-                    "evidence_scope": {
-                        "type": "string",
-                        "enum": ["primary_company", "parent_or_platform", "peer_or_customer", "sector_or_macro", "unknown"],
-                    },
+                    "evidence_scope": {"type": "string"},
                     "business_use": {"type": "string"},
                     "evidence_limits": {"type": "string"},
-                    "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+                    "confidence": {"type": "string"},
                 },
                 "required": [
                     "evidence_ref",
-                    "slot",
-                    "source_class",
-                    "source_status",
                     "title",
-                    "url",
-                    "relevance",
-                    "evidence_scope",
-                    "business_use",
-                    "evidence_limits",
-                    "confidence",
                 ],
             },
         },
@@ -504,25 +474,46 @@ BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA: dict[str, Any] = {
                 "type": "array",
                 "items": {
                     "type": "object",
-                    "additionalProperties": False,
+                    "additionalProperties": True,
                     "properties": {
                         "finding": {"type": "string"},
                         "status": {"type": "string"},
-                        "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+                        "confidence": {"type": "string"},
                         "evidence_refs": {"type": "array", "items": {"type": "string"}},
                         "missing_evidence": {"type": "array", "items": {"type": "string"}},
                     },
-                    "required": ["finding", "status", "confidence", "evidence_refs", "missing_evidence"],
+                    "required": ["finding", "confidence", "evidence_refs"],
                 },
             },
         },
         "source_gaps": {"type": "array", "items": {"type": "string"}},
         "next_research_actions": {"type": "array", "items": {"type": "string"}},
+        "follow_up_questions": {
+            "type": "array", "items": {"type": "object", "additionalProperties": True,
+            "properties": {"question": {"type": "string"}, "reason": {"type": "string"}},
+            "required": ["question"]}},
     },
-    "required": ["source_inventory", "slot_findings", "source_gaps", "next_research_actions"],
+    "required": ["source_inventory", "slot_findings", "source_gaps", "next_research_actions", "follow_up_questions"],
 }
 
 AqlZopediaStructuredRunner = Callable[..., dict[str, Any]]
+
+# Source identity and capture metadata are application-owned. Inference adds
+# interpretation without paying to reproduce the acquired document catalog.
+BUSINESS_MODEL_DOSSIER_ANALYSIS_SCHEMA = {
+    **BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA,
+    "properties": {
+        **{key: value for key, value in BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA["properties"].items()
+           if key != "source_inventory"},
+        "source_annotations": {
+            "type": "array", "items": {
+                **BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA["properties"]["source_inventory"]["items"],
+                "required": ["evidence_ref"],
+            },
+        },
+    },
+    "required": [key for key in BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA["required"] if key != "source_inventory"],
+}
 
 
 @dataclass
@@ -1284,10 +1275,8 @@ def _default_aql_zopedia_structured_runner(**kwargs: Any) -> dict[str, Any]:
 
 
 def _compact_json(value: Any, *, limit: int = 12000) -> str:
-    text = json.dumps(value, ensure_ascii=True, sort_keys=True, default=str)
-    if len(text) <= limit:
-        return text
-    return text[: limit - 3].rstrip() + "..."
+    # Preserve all model context; share exact repeated values by reference.
+    return serialize_llm_context(value)
 
 
 def _agent_runner_or_none(
@@ -1312,13 +1301,17 @@ def _structured_agent_payload(
     task: str,
     surface: str,
     max_tool_calls: int,
+    research_subject: str = "",
     progress_callback: ProgressCallback | None = None,
+    answer_review_owner: str = "agent",
+    reuse_identity: str = "",
+    artifact_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     runner = _agent_runner_or_none(zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client)
     if runner is None:
         return {"status": "skipped", "payload": None, "error": "aql_zopedia_agent_not_configured"}
     try:
-        with _business_aql_timeout_env():
+        with _business_aql_timeouts():
             result = runner(
                 query=query,
                 schema_name=schema_name,
@@ -1329,6 +1322,11 @@ def _structured_agent_payload(
                 llm_client=llm_client,
                 progress_callback=progress_callback,
                 persist_findings=False,
+                reuse_scope=current_research_access_scope(),
+                research_subject=research_subject,
+                answer_review_owner=answer_review_owner,
+                reuse_identity=reuse_identity,
+                artifact_context=artifact_context,
                 **_business_agent_runtime_kwargs(),
             )
     except Exception as exc:
@@ -1350,7 +1348,7 @@ def _normalize_research_query_plan_payload(payload: dict[str, Any], *, max_queri
             continue
         slot = _coerce_text(item.get("slot"))
         query = _coerce_text(item.get("query"))
-        if slot not in BUSINESS_MEMORY_SLOTS or not query:
+        if not slot or not query:
             continue
         signature = (slot, re.sub(r"\s+", " ", query.lower()).strip())
         if signature in seen:
@@ -1419,6 +1417,9 @@ def _business_research_plan_query(
     context = {
         "symbol": symbol,
         "company_name": company_name,
+        "prior_company_research": latest_research_artifact(
+            access_scope=current_research_access_scope(), subject="company:" + symbol,
+            task="ticker_business_model_research_dossier") if current_research_access_scope() else None,
         "business_memory_slots": BUSINESS_MODEL_STACK_SLOT_QUESTIONS,
         "missing_slots": missing_slots,
         "company_identity_task": {
@@ -1443,22 +1444,22 @@ def _business_research_plan_query(
         "existing_slot_facts": initial_slot_facts,
         "max_queries": max_queries,
     }
-    return (
+    shared = {key: context[key] for key in (
+        "company_baseline", "fundamentals", "edgar_evidence", "recent_news"
+    ) if key in context}
+    request = {key: value for key, value in context.items() if key not in shared}
+    instructions = (
         "Plan the external evidence acquisition for a ticker-specific business model stack. "
         "Return concrete search queries only; do not answer the business questions. "
         "Recover practical company identity and aliases while planning, but do not treat a ticker-only seed as a blocker. "
         "Use the ticker plus any recovered company or platform identity in queries so smaller companies do not get lost in generic theme results. "
-        "Create enough distinct queries to cover operating model, products/services, customers, demand, fundamentals, workforce/hiring, employee sentiment, web or developer/customer attention, policy/regulatory backdrop, capacity constraints, and execution risks. "
-        "For financial firms, include queries that can surface filings, investor presentations, AUM/originations/NAV/leverage/dividend coverage, portfolio credit quality, rate-cycle exposure, and regulatory/credit-cycle pressure. "
-        "Reserve at least one query for investor-debate or analyst-commentary leads on public securities. "
-        "Use source_intent='investor_debate' for that query, name the ticker and company, and make Seeking Alpha discoverable when useful. "
+        "Use prior_company_research as dated work already completed. Plan evidence deltas, contradictions, confirmation and worthwhile exploration rather than repeating the whole profile. Consider all business questions, but choose queries for their expected additional usefulness. Return an empty queries array when no new acquisition would help this update. Sparse and indirect leads remain valid; uncertainty alone does not suppress exploration. "
         "These sources sharpen what must be investigated next; they are research-direction inputs, not final authority. "
         "For source_intent, describe the intended source class in plain machine-readable words, such as company_filing, investor_presentation, earnings_transcript, credible_news, employee_reviews, hiring_page, web_traffic, policy_regulatory, or customer_demand. "
         "Set requires_page_open=true when snippets are unlikely to be enough and the page body should be opened through the shared crawler path. "
         "Do not use stock-price, chart, or quote-page queries.\n\n"
-        "Context JSON:\n"
-        f"{_compact_json(context, limit=14000)}"
     )
+    return render_research_prompt(evidence=shared, request=request, instructions=instructions)
 
 
 def _zopedia_research_query_plan(
@@ -1497,12 +1498,14 @@ def _zopedia_research_query_plan(
         zopedia_agent_runner=runner,
         llm_client=llm_client,
         query=plan_query,
+        answer_review_owner="downstream",
         schema_name="ticker_business_model_research_query_plan",
         schema=BUSINESS_MODEL_RESEARCH_QUERY_PLAN_SCHEMA,
         task="ticker_business_model_research_plan",
         surface="pipeline.ticker_business_model_stack.research_plan",
         max_tool_calls=plan_max_tool_calls,
         progress_callback=progress_callback,
+        research_subject="company:" + symbol,
     )
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else None
     if payload is None:
@@ -1517,7 +1520,8 @@ def _zopedia_research_query_plan(
             zopedia_agent_runner=runner,
             llm_client=llm_client,
             query=retry_query,
-            schema_name="ticker_business_model_research_query_plan",
+            answer_review_owner="downstream",
+        schema_name="ticker_business_model_research_query_plan",
             schema=BUSINESS_MODEL_RESEARCH_QUERY_PLAN_SCHEMA,
             task="ticker_business_model_research_plan_retry_after_error",
             surface="pipeline.ticker_business_model_stack.research_plan",
@@ -1533,36 +1537,11 @@ def _zopedia_research_query_plan(
             ]
         payload = retry_payload
     plan = _normalize_research_query_plan_payload(payload, max_queries=max_queries)
-    if not plan:
-        retry_query = (
-            f"{plan_query}\n\n"
-            "The previous AQL/Zopedia planner response returned no usable queries. "
-            "That is not a valid business-stack research plan. Return a non-empty query plan that covers the missing business model slots, "
-            "preserves the ticker/company identity, and includes resolved_company_name plus company_aliases. "
-            "Do not answer the business questions; plan the evidence acquisition."
-        )
-        retry_result = _structured_agent_payload(
-            zopedia_agent_runner=runner,
-            llm_client=llm_client,
-            query=retry_query,
-            schema_name="ticker_business_model_research_query_plan",
-            schema=BUSINESS_MODEL_RESEARCH_QUERY_PLAN_SCHEMA,
-            task="ticker_business_model_research_plan_retry",
-            surface="pipeline.ticker_business_model_stack.research_plan",
-            max_tool_calls=max(plan_max_tool_calls, 5),
-            progress_callback=progress_callback,
-        )
-        retry_payload = retry_result.get("payload") if isinstance(retry_result.get("payload"), dict) else None
-        if retry_payload is not None:
-            payload = retry_payload
-            plan = _normalize_research_query_plan_payload(payload, max_queries=max_queries)
     warnings = [
         f"aql_zopedia_research_plan_gap::{_safe_error_text(item, limit=160)}"
         for item in list(payload.get("data_gaps") or [])
         if _coerce_text(item)
     ]
-    if not plan:
-        warnings.append("aql_zopedia_research_plan_empty")
     return plan, warnings
 
 
@@ -1599,35 +1578,6 @@ def _normalized_business_confidence(value: object, *, default: str = "low") -> s
     return default if default in {"high", "medium", "low"} else "low"
 
 
-def _slot_facts_from_synthesis_payload(payload: dict[str, Any], *, default_source: str) -> dict[str, list[dict[str, Any]]]:
-    source_facts = payload.get("slot_facts") if isinstance(payload.get("slot_facts"), dict) else {}
-    out: dict[str, list[dict[str, Any]]] = {}
-    for slot, facts in source_facts.items():
-        clean_slot = _coerce_text(slot)
-        if clean_slot not in BUSINESS_MEMORY_SLOTS:
-            continue
-        for fact in list(facts or []):
-            if not isinstance(fact, dict):
-                continue
-            text = _agent_verdict_text(fact.get("text"), limit=900)
-            confidence = _normalized_business_confidence(
-                fact.get("confidence") or payload.get("confidence"),
-                default="low",
-            )
-            evidence_refs = [_coerce_text(item) for item in list(fact.get("evidence_refs") or []) if _coerce_text(item)]
-            if not text or confidence == "low" or not evidence_refs or _is_unresolved_business_fact_text(text):
-                continue
-            _add_slot_with_evidence_refs(
-                out,
-                clean_slot,
-                text,
-                source=default_source,
-                confidence=confidence if confidence in {"high", "medium"} else "medium",
-                evidence_refs=evidence_refs,
-            )
-    return out
-
-
 def _add_slot_with_evidence_refs(
     slot_facts: dict[str, list[dict[str, Any]]],
     slot: str,
@@ -1646,7 +1596,7 @@ def _add_slot_with_evidence_refs(
 
 def _compact_research_rows_for_dossier(research_rows: list[dict[str, Any]], *, limit: int = 80) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    for row in list(research_rows or [])[: max(int(limit), 1)]:
+    for row in list(research_rows or []):
         error_text = _coerce_text(row.get("error_text"))
         quality_issue = _coerce_text(row.get("page_quality_issue"))
         if error_text:
@@ -1667,23 +1617,32 @@ def _compact_research_rows_for_dossier(research_rows: list[dict[str, Any]], *, l
                 "provider": _coerce_text(row.get("provider")),
                 "source": _coerce_text(row.get("source")),
                 "authority_bucket": _coerce_text(row.get("authority_bucket")),
-                "title": _coerce_text(row.get("title"))[:240],
-                "url": _coerce_text(row.get("url"))[:500],
-                "snippet": _coerce_text(row.get("snippet"))[:700],
-                "text": _coerce_text(row.get("raw_text"))[:1400],
+                "title": _coerce_text(row.get("title")),
+                "url": _coerce_text(row.get("url")),
+                "snippet": _coerce_text(row.get("snippet")),
+                "text": _coerce_text(row.get("raw_text")),
+                "published_at": _coerce_text(row.get("published_at")),
                 "error_text": error_text[:240],
             }
         )
-    return rows
+    return organize_source_captures(rows)
 
 
-def _normalize_research_dossier_payload(payload: dict[str, Any]) -> dict[str, Any]:
+def _normalize_research_dossier_payload(payload: dict[str, Any], *, source_catalog: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    sources = {item["evidence_ref"]: dict(item) for item in payload.get("source_inventory") or []}
+    for annotation in payload.get("source_annotations") or []:
+        ref = annotation["evidence_ref"]
+        sources[ref] = {**sources.get(ref, {}), **annotation}
+    for source in source_catalog or []:
+        ref = source["evidence_ref"]
+        sources[ref] = {**sources.get(ref, {}), **source}
     source_inventory: list[dict[str, Any]] = []
-    for item in list(payload.get("source_inventory") or []):
+    for item in sources.values():
         if not isinstance(item, dict):
             continue
         source_inventory.append(
             {
+                **item,
                 "evidence_ref": _coerce_text(item.get("evidence_ref")),
                 "slot": _coerce_text(item.get("slot")),
                 "source_class": _coerce_text(item.get("source_class")),
@@ -1694,49 +1653,48 @@ def _normalize_research_dossier_payload(payload: dict[str, Any]) -> dict[str, An
                 "evidence_scope": _coerce_text(item.get("evidence_scope")) or "unknown",
                 "business_use": _coerce_text(item.get("business_use")),
                 "evidence_limits": _coerce_text(item.get("evidence_limits")),
-                "confidence": _normalized_business_confidence(item.get("confidence"), default="low"),
+                "confidence": _coerce_text(item.get("confidence")) or "low",
             }
         )
     slot_findings: dict[str, list[dict[str, Any]]] = {}
     raw_findings = payload.get("slot_findings") if isinstance(payload.get("slot_findings"), dict) else {}
     for slot, items in raw_findings.items():
         clean_slot = _coerce_text(slot)
-        if clean_slot not in BUSINESS_MEMORY_SLOTS:
+        if not clean_slot:
             continue
         for item in list(items or []):
             if not isinstance(item, dict):
                 continue
-            finding = _agent_verdict_text(item.get("finding"), limit=900)
+            finding = _coerce_text(item.get("finding"))
             evidence_refs = [_coerce_text(ref) for ref in list(item.get("evidence_refs") or []) if _coerce_text(ref)]
             missing_evidence = [_coerce_text(ref) for ref in list(item.get("missing_evidence") or []) if _coerce_text(ref)]
             slot_findings.setdefault(clean_slot, []).append(
                 {
+                    **item,
                     "finding": finding,
                     "status": _coerce_text(item.get("status")).lower(),
-                    "confidence": _normalized_business_confidence(item.get("confidence"), default="low"),
+                    "confidence": _coerce_text(item.get("confidence")) or "low",
                     "evidence_refs": evidence_refs,
                     "missing_evidence": missing_evidence,
                 }
             )
     return {
+        **{key: value for key, value in payload.items() if key != "artifact_reference"},
         "source_inventory": source_inventory,
         "slot_findings": slot_findings,
         "source_gaps": [_coerce_text(item) for item in list(payload.get("source_gaps") or []) if _coerce_text(item)],
         "next_research_actions": [_coerce_text(item) for item in list(payload.get("next_research_actions") or []) if _coerce_text(item)],
+        "follow_up_questions": [
+            {**item, "question": _coerce_text(item.get("question")), "reason": _coerce_text(item.get("reason"))}
+            for item in list(payload.get("follow_up_questions") or [])
+            if isinstance(item, dict) and _coerce_text(item.get("question"))
+        ],
     }
 
 
 def _slot_facts_from_research_dossier(dossier: dict[str, Any], *, default_source: str) -> dict[str, list[dict[str, Any]]]:
     out: dict[str, list[dict[str, Any]]] = {}
     slot_findings = dossier.get("slot_findings") if isinstance(dossier.get("slot_findings"), dict) else {}
-    supported_statuses = {
-        "supported",
-        "confirmed",
-        "improving",
-        "deteriorating",
-        "mixed",
-        "contradicted",
-    }
     for slot, findings in slot_findings.items():
         clean_slot = _coerce_text(slot)
         if clean_slot not in BUSINESS_MEMORY_SLOTS:
@@ -1744,16 +1702,13 @@ def _slot_facts_from_research_dossier(dossier: dict[str, Any], *, default_source
         for item in list(findings or []):
             if not isinstance(item, dict):
                 continue
-            finding = _agent_verdict_text(item.get("finding"), limit=900)
+            finding = _coerce_text(item.get("finding"))
             confidence = _normalized_business_confidence(item.get("confidence"), default="low")
-            status = _coerce_text(item.get("status")).lower()
             evidence_refs = [_coerce_text(ref) for ref in list(item.get("evidence_refs") or []) if _coerce_text(ref)]
             if (
                 not finding
                 or confidence == "low"
-                or status not in supported_statuses
                 or not evidence_refs
-                or _is_unresolved_business_fact_text(finding)
             ):
                 continue
             _add_slot_with_evidence_refs(
@@ -1791,8 +1746,12 @@ def _business_research_dossier_query(
     initial_slot_facts: dict[str, list[dict[str, Any]]],
     business_research_evidence: dict[str, list[dict[str, Any]]],
     combined_research_rows: list[dict[str, Any]],
+    include_prior: bool = True,
 ) -> str:
     context = {
+        "prior_company_research": latest_research_artifact(
+            access_scope=current_research_access_scope(), subject="company:" + symbol,
+            task="ticker_business_model_research_dossier") if include_prior and current_research_access_scope() else None,
         "symbol": symbol,
         "company_name": company_name,
         "business_model_slot_questions": BUSINESS_MODEL_STACK_SLOT_QUESTIONS,
@@ -1807,34 +1766,36 @@ def _business_research_dossier_query(
                 "page_type": _coerce_text(page.get("page_type")),
                 "title": _coerce_text(page.get("title")),
                 "summary": _coerce_text(page.get("summary")),
-                "body_markdown": _coerce_text(page.get("body_markdown"))[:1200],
+                "body_markdown": _coerce_text(page.get("body_markdown")),
                 "metadata": _json_dict(page.get("metadata") or page.get("metadata_json")),
             }
             for page in zopedia_pages[:6]
         ],
         "initial_slot_facts": initial_slot_facts,
-        "accepted_business_research_evidence_by_slot": business_research_evidence,
         "source_acquisition_rows": _compact_research_rows_for_dossier(combined_research_rows, limit=80),
         "allowed_slots": list(BUSINESS_MEMORY_SLOTS),
     }
-    return (
-        "Build a research dossier for this ticker business-model task. Do not write the final business story. "
+    shared = {key: context[key] for key in (
+        "company_baseline", "fundamentals", "edgar_evidence", "recent_news"
+    ) if key in context}
+    request = {key: value for key, value in context.items() if key not in shared}
+    instructions = (
+        "Build the reusable company research dossier, including the resolved findings for all relevant business questions. Do not write the final business story. Reuse dated prior_company_research and update it against current evidence; distinguish older observations from new developments. "
         "Use the supplied source_acquisition_rows, local fundamentals, filings, news, and Zopedia pages as evidence inputs. "
-        "Classify each useful source as direct, adjacent, weak, partial, blocked, irrelevant, or error in plain language. "
+        "Source acquisition groups all captures of a document under one evidence_ref. The application preserves the complete source catalog and capture metadata automatically. Do not reproduce source_inventory, titles, URLs or capture metadata. Return sparse source_annotations only where source-specific interpretation adds information; put substantive analysis in slot_findings. Every supplied capture retains its complete text, dates and query context. Repeated captures are not independent corroboration. "
         "A weak snippet, blocked article, or unopened but clearly relevant source is still evidence of a lead; do not collapse it into 'no evidence'. "
-        "For each business slot, write only source-backed findings that the evidence can support, and separately name the missing source classes. "
+        "For each relevant business question, organize findings, useful hypotheses and indirect connections, with evidence and remaining questions. Keep uncertainty in the finding rather than erasing a useful connection. This dossier owns resolution; there is no later per-question interpretation pass. "
         "If evidence is weak, say what it weakly supports and what must still be opened or verified. "
-        "For every useful source, classify evidence_scope as primary_company, parent_or_platform, peer_or_customer, sector_or_macro, or unknown, and write evidence_limits that name what the source does not prove. "
+        "Describe which entities or relationships a useful source concerns in evidence_scope when it helps interpretation. Source annotations are optional; include details that improve understanding rather than repeating a metadata inventory for every document. Preserve useful additional research fields and topics. "
         "Use Seeking Alpha and similar investor-commentary sources to identify the strongest bull/bear questions and verification targets; do not treat opinion as authoritative proof unless the opened text cites direct company evidence. "
-        "Use confidence values exactly as high, medium, or low. High requires direct authoritative evidence; medium requires direct but incomplete evidence; low is for snippets, analyst opinion, adjacent-platform evidence, blocked pages, or one-off signals. "
+        "Use confidence values high, medium, or low for the specific claim. Judge relevance, agreement and limitations rather than requiring exact company attribution or a particular source class. Adjacent evidence and commentary can support useful connections. Confidence is not a calibrated probability or a publication gate. "
         "When extracting numeric metrics, preserve the metric label, segment, period, and source scope. Do not combine company-level revenue, segment revenue, guidance, backlog, AUM, NAV, or yield figures unless the source explicitly connects them. "
         "Do not turn a single earnings beat into a broad customer-demand verdict, a valuation/yield article into a fundamentals verdict, or related-platform liquidity news into a direct company risk unless the source ties it to this company. "
         "Keep event location and spillover separate: if a source says one company, platform, fund, or peer had an issue, do not rewrite it as sector-wide. Say it may affect sector sentiment only when the source says that. "
         "Keep adjacent company, peer, platform, sector, credit-cycle, rate-cycle, and policy evidence organized around the primary company. "
-        "Do not use stock-price, chart, or technical-analysis commentary.\n\n"
-        "Context JSON:\n"
-        f"{_compact_json(context, limit=22000)}"
+        "Request follow_up_questions only when additional evidence could materially improve this investigation. Explain the expected information gain in reason. Missing data is not itself a reason to repeat searches. Keep longer-term possibilities in next_research_actions. Preserve broad exploration and company/sector/private-entity connections without requiring exact source identity. Do not use stock-price, chart, or technical-analysis commentary.\n\n"
     )
+    return render_research_prompt(evidence=shared, request=request, instructions=instructions)
 
 
 def _zopedia_research_dossier(
@@ -1857,6 +1818,12 @@ def _zopedia_research_dossier(
     runner = _agent_runner_or_none(zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client)
     if runner is None:
         return {}, []
+    source_catalog = [
+        {**{key: value for key, value in document.items() if key != "captures"},
+         "captures": [{key: value for key, value in capture.items() if key not in {"text", "snippet"}}
+                      for capture in document["captures"]]}
+        for document in _compact_research_rows_for_dossier(combined_research_rows)
+    ]
     result = _structured_agent_payload(
         zopedia_agent_runner=runner,
         llm_client=llm_client,
@@ -1873,205 +1840,118 @@ def _zopedia_research_dossier(
             business_research_evidence=business_research_evidence,
             combined_research_rows=combined_research_rows,
         ),
+        reuse_identity=_business_research_dossier_query(
+            symbol=symbol, company_name=company_name, query_plan=query_plan, baseline=baseline,
+            fundamentals=fundamentals, edgar_rows=edgar_rows, recent_news_rows=recent_news_rows,
+            zopedia_pages=zopedia_pages, initial_slot_facts=initial_slot_facts,
+            business_research_evidence=business_research_evidence, combined_research_rows=combined_research_rows, include_prior=False),
         schema_name="ticker_business_model_research_dossier",
-        schema=BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA,
+        schema=BUSINESS_MODEL_DOSSIER_ANALYSIS_SCHEMA,
         task="ticker_business_model_research_dossier",
         surface="pipeline.ticker_business_model_stack.research_dossier",
         max_tool_calls=0,
         progress_callback=progress_callback,
+        research_subject="company:" + symbol,
+        artifact_context={"source_inventory": source_catalog},
     )
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else None
     if payload is None:
         error = _coerce_text(result.get("error")) or _coerce_text(result.get("status")) or "unknown_error"
         return {}, [f"aql_zopedia_research_dossier::{_safe_error_text(error, limit=180)}"]
-    return _normalize_research_dossier_payload(payload), []
+    dossier = _normalize_research_dossier_payload(
+        payload, source_catalog=(result.get("artifact_context") or {}).get("source_inventory") or source_catalog)
+    reference = result.get("research_artifact") or result.get("artifact_reuse")
+    if reference:
+        dossier["artifact_reference"] = {**reference, "continuation_completed": bool(result.get("continuation_completed"))}
+    return dossier, []
 
 
-def _agent_verdict_text(value: object, *, limit: int = 900) -> str:
-    text = re.sub(r"\s+", " ", _coerce_text(value)).strip()
-    return _trim(text, limit)
-
-
-def _is_unresolved_business_fact_text(value: object) -> bool:
-    text = _agent_verdict_text(value, limit=220).lower().strip(" .:-")
-    if not text:
-        return True
-    unresolved_markers = (
-        "no evidence",
-        "no data",
-        "no source-backed",
-        "not enough evidence",
-        "insufficient evidence",
-        "unknown",
-        "unavailable",
-    )
-    if any(text == marker or text.startswith(f"{marker} ") for marker in unresolved_markers):
-        return True
-    if "no evidence available" in text or "evidence is absent" in text:
-        return True
-    return False
-
-
-def _business_slot_query(
-    *,
-    symbol: str,
-    company_name: str,
-    slot: str,
-    question: str,
-    query_spec: dict[str, Any],
-    baseline: dict[str, Any],
-    fundamentals: list[dict[str, Any]],
-    edgar_rows: list[dict[str, Any]],
-    recent_news_rows: list[dict[str, Any]],
-    zopedia_pages: list[dict[str, Any]],
-    research_dossier: dict[str, Any],
-    business_research_evidence: dict[str, list[dict[str, Any]]],
-    initial_slot_facts: dict[str, list[dict[str, Any]]],
-) -> str:
-    context = {
-        "symbol": symbol,
-        "company_name": company_name,
-        "slot": slot,
-        "question": question,
-        "planned_query": query_spec,
-        "company_baseline": baseline,
-        "fundamentals": fundamentals[:6],
-        "edgar_evidence": edgar_rows[:3],
-        "recent_news": recent_news_rows[:3],
-        "related_zopedia_pages": [
-            {
-                "page_id": _coerce_text(page.get("page_id")),
-                "page_type": _coerce_text(page.get("page_type")),
-                "title": _coerce_text(page.get("title")),
-                "summary": _coerce_text(page.get("summary")),
-                "metadata": _json_dict(page.get("metadata") or page.get("metadata_json")),
-            }
-            for page in zopedia_pages[:5]
-        ],
-        "research_dossier": research_dossier,
-        "existing_slot_facts": initial_slot_facts.get(slot) or [],
-        "business_research_evidence_for_slot": business_research_evidence.get(slot) or [],
-    }
-    return (
-        "Use the AQL/Zopedia tool path to answer one ticker business-model question. "
-        "The supplied Context JSON is typed pipeline state; treat company_baseline, fundamentals, filings, news, existing slot facts, and search evidence as valid input evidence with their named sources. "
-        "Use the research_dossier as the current evidence inventory and quality map. A relevant weak source, blocked article, or unopened source lead means the answer is not 'no evidence'; it is weak or incomplete evidence plus a named missing source class. "
-        "Read relevant Zopedia pages and source evidence when available. Use retained internal evidence before live search, "
-        "but if the current wiki or retained evidence is empty, call AQL research/live evidence tools with the planned query before declaring the slot unresolved. "
-        "For financial companies, adapt the question to fee income, spread income, AUM, NAV, leverage, dividend coverage, credit quality, and rate-cycle exposure where relevant. "
-        "Return a verdict, not a label that evidence exists. If the evidence does not support a business claim, leave verdict_markdown empty and name the missing evidence in data_gaps. "
-        "Do not write price action, chart, or technical-analysis commentary.\n\n"
-        f"Question: {question}\n\n"
-        "Context JSON:\n"
-        f"{_compact_json(context, limit=12000)}"
-    )
-
-
-def _zopedia_slot_fact_overlay(
-    *,
-    zopedia_agent_runner: AqlZopediaStructuredRunner | None,
-    llm_client: Any | None,
-    symbol: str,
-    company_name: str,
-    baseline: dict[str, Any],
-    fundamentals: list[dict[str, Any]],
-    edgar_rows: list[dict[str, Any]],
-    recent_news_rows: list[dict[str, Any]],
-    zopedia_pages: list[dict[str, Any]],
-    research_dossier: dict[str, Any],
-    business_research_evidence: dict[str, list[dict[str, Any]]],
-    initial_slot_facts: dict[str, list[dict[str, Any]]],
-    query_plan: list[dict[str, Any]],
-    slot_gaps: list[str],
+def _zopedia_dossier_followup(
+    *, zopedia_agent_runner: AqlZopediaStructuredRunner | None, llm_client: Any | None,
+    symbol: str, company_name: str, research_dossier: dict[str, Any],
     progress_callback: ProgressCallback | None = None,
-) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
-    del slot_gaps
-    runner = _agent_runner_or_none(zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client)
-    if runner is None:
-        return {}, []
-    query_specs = [
-        query_spec
-        for query_spec in list(query_plan or [])
-        if _coerce_text(query_spec.get("slot")) in BUSINESS_MEMORY_SLOTS
-    ]
-
-    def _resolve_slot(query_spec: dict[str, Any]) -> tuple[dict[str, list[dict[str, Any]]], list[str]]:
-        local_overlay: dict[str, list[dict[str, Any]]] = {}
-        local_warnings: list[str] = []
-        slot = _coerce_text(query_spec.get("slot"))
-        local_llm_client = _fresh_llm_client_like(llm_client)
-        result = _structured_agent_payload(
-            zopedia_agent_runner=runner,
-            llm_client=local_llm_client,
-            query=_business_slot_query(
-                symbol=symbol,
-                company_name=company_name,
-                slot=slot,
-                question=BUSINESS_MODEL_STACK_SLOT_QUESTIONS.get(slot, slot),
-                query_spec=query_spec,
-                baseline=baseline,
-                fundamentals=fundamentals,
-                edgar_rows=edgar_rows,
-                recent_news_rows=recent_news_rows,
-                zopedia_pages=zopedia_pages,
-                research_dossier=research_dossier,
-                business_research_evidence=business_research_evidence,
-                initial_slot_facts=initial_slot_facts,
-            ),
-            schema_name="ticker_business_model_slot_verdict",
-            schema=BUSINESS_MODEL_SLOT_VERDICT_SCHEMA,
-            task="ticker_business_model_slot",
-            surface=f"pipeline.ticker_business_model_stack.{slot}",
-            max_tool_calls=0,
-            progress_callback=progress_callback,
-        )
-        payload = result.get("payload") if isinstance(result.get("payload"), dict) else None
-        if payload is None:
-            error = _coerce_text(result.get("error")) or _coerce_text(result.get("status")) or "unknown_error"
-            local_warnings.append(f"aql_zopedia_slot::{slot}::{_safe_error_text(error, limit=180)}")
-            return local_overlay, local_warnings
-        verdict = _agent_verdict_text(payload.get("verdict_markdown"))
-        confidence = _payload_confidence(payload, result)
-        evidence_refs = [_coerce_text(item) for item in list(payload.get("evidence_refs") or []) if _coerce_text(item)]
-        if not verdict or confidence == "low" or not evidence_refs or _is_unresolved_business_fact_text(verdict):
-            gap = ", ".join(_coerce_text(item) for item in list(payload.get("data_gaps") or []) if _coerce_text(item))
-            local_warnings.append(f"aql_zopedia_slot_unresolved::{slot}" + (f"::{_safe_error_text(gap, limit=140)}" if gap else ""))
-            return local_overlay, local_warnings
-        _add_slot(
-            local_overlay,
-            slot,
-            verdict,
-            source=_agent_result_evidence_ref(result, slot=slot),
-            confidence=confidence,
-        )
-        return local_overlay, local_warnings
-
-    overlay: dict[str, list[dict[str, Any]]] = {}
-    warnings: list[str] = []
-    max_workers = min(_business_slot_max_workers(), len(query_specs)) if query_specs else 0
-    if max_workers <= 1:
-        ordered_results = [_resolve_slot(query_spec) for query_spec in query_specs]
-    else:
-        ordered_results: list[tuple[dict[str, list[dict[str, Any]]], list[str]] | None] = [None] * len(query_specs)
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            future_map = {
-                pool.submit(_resolve_slot, query_spec): index
-                for index, query_spec in enumerate(query_specs)
-            }
-            for future in as_completed(future_map):
-                index = future_map[future]
-                try:
-                    ordered_results[index] = future.result()
-                except Exception as exc:
-                    slot = _coerce_text(query_specs[index].get("slot"))
-                    ordered_results[index] = ({}, [f"aql_zopedia_slot::{slot}::{_safe_error_text(exc, limit=180)}"])
-    for item in ordered_results:
-        if item is None:
-            continue
-        local_overlay, local_warnings = item
-        warnings.extend(local_warnings)
-        overlay = _merge_slot_facts(overlay, local_overlay)
-    return overlay, warnings
+) -> tuple[dict[str, Any], list[str]]:
+    questions = list(research_dossier.get("follow_up_questions") or [])
+    if not questions or (research_dossier.get("artifact_reference") or {}).get("continuation_completed"):
+        return research_dossier, []
+    findings_by_id = {}
+    for group, findings in (research_dossier.get("slot_findings") or {}).items():
+        for finding in findings:
+            identity = "finding_" + hashlib.sha256(_compact_json([group, finding]).encode()).hexdigest()
+            findings_by_id[identity] = {**finding, "slot": group}
+    finding_fields = BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA["properties"]["slot_findings"]["additionalProperties"]["items"]
+    delta_schema = {
+        "type": "object", "additionalProperties": False,
+        "properties": {
+            "finding_updates": {"type": "array", "items": {
+                "type": "object", "additionalProperties": True,
+                "properties": {**finding_fields["properties"], "slot": {"type": "string"},
+                    "supersedes": {"type": "array", "items": {"type": "string", **({"enum": list(findings_by_id)} if findings_by_id else {})}}},
+                "required": [*finding_fields["required"], "slot", "supersedes"]}},
+            "source_updates": BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA["properties"]["source_inventory"],
+            "source_gaps": BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA["properties"]["source_gaps"],
+            "next_research_actions": BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA["properties"]["next_research_actions"],
+            "follow_up_questions": BUSINESS_MODEL_RESEARCH_DOSSIER_SCHEMA["properties"]["follow_up_questions"],
+        },
+        "required": ["finding_updates", "source_updates", "source_gaps", "next_research_actions", "follow_up_questions"],
+    }
+    query = render_research_prompt(
+        evidence={"symbol": symbol, "company_name": company_name,
+                  "source_inventory": research_dossier.get("source_inventory") or [],
+                  "existing_findings": findings_by_id},
+        request={"follow_up_questions": questions},
+        instructions=("Continue this shared investigation. Acquire evidence together for related questions and "
+            "reuse retained findings instead of repeating answered research. Return only useful additions and "
+            "corrections in finding_updates, not a rewritten dossier. Use supersedes to identify findings that "
+            "a new observation revises or contradicts; an empty supersedes array adds a finding. Unchanged "
+            "findings are retained automatically. Record newly acquired or corrected source entries in source_updates. "
+            "Keep dates and useful indirect connections. Return the remaining open source_gaps, next_research_actions "
+            "and follow_up_questions for future work. Do not claim uncompleted questions were answered."),
+    )
+    result = _structured_agent_payload(
+        zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client, query=query,
+        schema_name="research_dossier_delta", schema=delta_schema,
+        task="ticker_business_model_research_followup", surface="pipeline.ticker_business_model_stack.research_followup",
+        max_tool_calls=_business_stack_max_tool_calls(), research_subject="company:" + symbol,
+        progress_callback=progress_callback,
+    )
+    payload = result.get("payload") if isinstance(result.get("payload"), dict) else None
+    if payload is None:
+        return research_dossier, ["aql_zopedia_followup::" + _safe_error_text(result.get("error") or result.get("status"))]
+    retired = {identity for update in payload["finding_updates"] for identity in update["supersedes"]}
+    if not retired.issubset(findings_by_id):
+        return research_dossier, ["aql_zopedia_followup::invalid_finding_reference"]
+    findings = {}
+    for identity, finding in findings_by_id.items():
+        if identity not in retired:
+            group = finding["slot"]
+            findings.setdefault(group, []).append({key: value for key, value in finding.items() if key != "slot"})
+    for update in payload["finding_updates"]:
+        group = update["slot"]
+        findings.setdefault(group, []).append({key: value for key, value in update.items() if key not in {"slot", "supersedes"}})
+    sources = {source["evidence_ref"]: source for source in research_dossier.get("source_inventory") or []}
+    sources.update({source["evidence_ref"]: source for source in payload["source_updates"]})
+    updated = _normalize_research_dossier_payload({
+        **research_dossier,
+        **{key: value for key, value in payload.items() if key not in {"finding_updates", "source_updates"}},
+        "slot_findings": findings, "source_inventory": list(sources.values()),
+    })
+    reference = research_dossier.get("artifact_reference") or {}
+    access = current_research_access_scope()
+    if access and llm_client is not None:
+        namespace, key = research_artifact_key(access_scope=access, subject="company:" + symbol,
+            query=query, schema=delta_schema, config=llm_client.config)
+        # The completed continuation supersedes the same input checkpoint, so a
+        # stage resume reuses the completed investigation rather than repeating it.
+        if reference.get("namespace") == namespace and reference.get("input_id"):
+            key = reference["input_id"]
+        new_reference = retain_research_artifact(namespace, key, subject="company:" + symbol,
+            task="ticker_business_model_research_dossier",
+            result={"status": "completed", "payload": updated, "agent_result": result.get("agent_result") or {},
+                    "parent_artifact_id": reference.get("artifact_id"), "continuation_completed": True})
+        if new_reference:
+            updated["artifact_reference"] = {**new_reference, "continuation_completed": True}
+    return updated, []
 
 
 def _business_stack_query(
@@ -2113,26 +1993,32 @@ def _business_stack_query(
         "slot_gaps": slot_gaps,
         "allowed_slots": list(BUSINESS_MEMORY_SLOTS),
     }
-    return (
-        "Use the AQL/Zopedia tool path to construct the ticker-specific business model stack. "
-        "The supplied Context JSON is typed pipeline state; use it as valid job evidence and tool-call outward only for missing or stale slots. "
-        "Start from the research_dossier: it tells you which sources were found, which were opened or blocked, what each source can support, and which source classes are still missing. "
-        "Do not write 'no evidence' when the dossier contains relevant weak, partial, adjacent, blocked, or unopened source leads; write a weak/incomplete business interpretation and name the missing verification source. "
-        "Preserve evidence_scope from the dossier. Primary-company sources can support direct company claims; parent/platform, peer/customer, and sector/macro sources can support context or risk only when labeled as adjacent. "
-        "Resolve the operating business: what the company sells, who buys it, whether demand is strengthening or weakening, employee/workforce signals, web or developer attention, policy backdrop, fundamentals, and execution risks. "
-        "Return resolved_company_name as the best source-backed company display/legal name you can infer from the evidence; leave it as the input name only if evidence does not resolve identity. "
-        "If this is a financial company, resolve the actual economics: management fees, performance fees, spread income, AUM, originations, NAV, leverage, dividend coverage, credit quality, and rate sensitivity. "
-        "If you cite a number, keep its exact metric label, segment, period, and evidence scope. Do not mix company revenue, segment revenue, guidance, backlog, AUM, NAV, or yield into one sentence unless the evidence explicitly connects them. If the label or period is unclear, use a qualitative statement instead of the number. "
-        "Calibrate claims to evidence strength. A single earnings beat is a positive financial signal, not proof of strong customer demand; valuation/yield commentary is not enough to judge fundamentals; adjacent parent/platform or peer news should be labeled adjacent unless directly tied to the company. "
-        "Keep event location and spillover separate: do not describe a company, platform, fund, or peer issue as sector-wide unless the source says the event is sector-wide. If a source mentions a share-price reaction, extract the underlying business concern and omit the price move unless the user asked for price action. "
-        "Use confidence values exactly as high, medium, or low. "
-        "If retained Zopedia memory is empty, use AQL research/live evidence tools rather than returning a missing-memory summary. "
-        "Turn evidence into explicit business verdicts: strong, weak, mixed, improving, deteriorating, confirmed, contradicted, or unknown with the exact missing slot. "
-        "Do not write that evidence exists; say what the evidence means. "
-        "Do not write stock-price, chart, or technical-statistics analysis.\n\n"
-        "Context JSON:\n"
-        f"{_compact_json(context, limit=18000)}"
+    shared = {key: context[key] for key in (
+        "company_baseline", "fundamentals", "edgar_evidence", "recent_news"
+    ) if key in context}
+    request = {key: value for key, value in context.items() if key not in shared}
+    instructions = (
+        "Write a useful company analysis from this shared research. Lead with the most consequential business "
+        "development or interpretation, then explain what the company sells, how its customers and economics work, "
+        "what is changing or being confirmed, and the connected uncertainties that matter. Choose the structure "
+        "for the actual company and evidence; do not march through the research schema or publish category status labels. "
+        "The research dossier owns organized findings and initial_slot_facts owns retained facts. "
+        "Use both without reconstructing the fact inventory in the response. Keep substantive indirect, peer, "
+        "customer, private-company, sector and macro connections when useful, including reasonable hypotheses. "
+        "Explain why a connection matters and distinguish observations, associations and proposed explanations. "
+        "Treat financial narratives as hypotheses, not laws. Do not infer that a quantity cannot exist or cannot be "
+        "reported merely because the business model suggests it is unusual. Missing retrieved data is an acquisition "
+        "gap, not proof that the data does not exist. Unknown metrics should not become paragraphs of bookkeeping. "
+        "Discuss a missing source in the public analysis only when it materially changes the interpretation; "
+        "put remaining research questions in slot_gaps. Use clear analytical prose with helpful headings if needed. "
+        "Preserve exact numeric metric labels, scope, observation periods and source dates. "
+        "Anchor recency to the actual observations; distinguish company figures from estimates and inferred mechanisms. "
+        "Use available sources and reasonable inference to recover the company's display name; a bare ticker is "
+        "a valid starting point. Return resolved_company_name, business_story_markdown, confidence and slot_gaps. "
+        "Focus the narrative on consequential facts and connections; keep the exhaustive inventory in the dossier. Aim for a concise analysis of roughly 500 to 800 words, expanding only when useful complexity requires it. Do not add a ritual conclusion or repeat the opening. Do not create numeric forecasts from loosely related summary metrics: projections need supplied computed analysis or an explicit empirical model. Express uncertainty through precise claims and specific open questions, not blanket disclaimers. Confidence is an editorial assessment, not a calibrated probability. "
+        "Do not expose internal research fields, status inventories, workflow or review commentary in the narrative."
     )
+    return render_research_prompt(evidence=shared, request=request, instructions=instructions)
 
 
 def _zopedia_stack_synthesis(
@@ -2177,6 +2063,7 @@ def _zopedia_stack_synthesis(
         surface="pipeline.ticker_business_model_stack",
         max_tool_calls=0,
         progress_callback=progress_callback,
+        research_subject="company:" + symbol,
     )
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else None
     if payload is None:
@@ -2331,8 +2218,6 @@ def build_ticker_business_model_stack(
             progress_callback=progress_callback,
         )
         synthesis_warnings.extend(plan_warnings)
-        if not query_plan:
-            synthesis_warnings.append("aql_zopedia_research_plan_failed_closed")
     else:
         query_plan = []
         synthesis_warnings.append("aql_zopedia_research_plan_unavailable::agent_not_configured")
@@ -2536,6 +2421,7 @@ def build_ticker_business_model_stack(
         progress=0.46,
         evidence_row_count=len(combined_research_rows),
     )
+    seed_slot_facts = {group: [dict(fact) for fact in facts] for group, facts in initial_slot_facts.items()}
     research_dossier, dossier_warnings = _zopedia_research_dossier(
         zopedia_agent_runner=zopedia_agent_runner,
         llm_client=llm_client,
@@ -2590,26 +2476,17 @@ def build_ticker_business_model_stack(
         evidence_row_count=len(combined_research_rows),
         open_gap_count=len(gaps),
     )
-    slot_overlay, slot_warnings = _zopedia_slot_fact_overlay(
-        zopedia_agent_runner=zopedia_agent_runner,
-        llm_client=llm_client,
-        symbol=normalized_symbol,
-        company_name=company_name,
-        baseline=baseline,
-        fundamentals=fundamentals,
-        edgar_rows=edgar_rows,
-        recent_news_rows=recent_news_rows,
-        zopedia_pages=zopedia_pages,
-        research_dossier=research_dossier,
-        business_research_evidence=business_research_evidence,
-        initial_slot_facts=initial_slot_facts,
-        query_plan=query_plan,
-        slot_gaps=gaps,
+    research_dossier, slot_warnings = _zopedia_dossier_followup(
+        zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client,
+        symbol=normalized_symbol, company_name=company_name, research_dossier=research_dossier,
         progress_callback=progress_callback,
+    )
+    slot_overlay = _slot_facts_from_research_dossier(
+        research_dossier, default_source="aql_zopedia::company_research::" + normalized_symbol,
     )
     synthesis_warnings.extend(slot_warnings)
     slot_overlay_available = bool(slot_overlay)
-    initial_slot_facts = _merge_slot_facts(initial_slot_facts, slot_overlay)
+    initial_slot_facts = _merge_slot_facts(seed_slot_facts, slot_overlay)
     initial_slot_facts = _prioritize_zopedia_verdict_facts(initial_slot_facts)
     gaps = _slot_gaps(initial_slot_facts)
     _emit_business_progress(
@@ -2652,15 +2529,11 @@ def build_ticker_business_model_stack(
         synthesis_payload = None
     slot_facts = initial_slot_facts
     gaps = _slot_gaps(slot_facts)
-    synthesis_slot_facts: dict[str, list[dict[str, Any]]] = {}
-    if isinstance(synthesis_payload, dict):
-        synthesis_slot_facts = _slot_facts_from_synthesis_payload(
-            synthesis_payload,
-            default_source=_coerce_text(synthesis_payload.get("_agent_evidence_ref")) or "aql_zopedia_agent",
-        )
-        if not synthesis_slot_facts and _coerce_text(synthesis_payload.get("business_story_markdown")):
-            synthesis_warnings.append("business_stack_story_rejected_no_source_backed_facts")
-    stack_synthesis_available = bool(synthesis_slot_facts)
+    # A useful research narrative does not require a new durable-memory fact.
+    # Memory eligibility is decided independently below from the retained facts.
+    stack_synthesis_available = bool(
+        isinstance(synthesis_payload, dict) and _coerce_text(synthesis_payload.get("business_story_markdown"))
+    )
     zopedia_verdict_available = bool(slot_overlay_available or stack_synthesis_available)
     if stack_synthesis_available and isinstance(synthesis_payload, dict):
         resolved_from_stack = _coerce_text(synthesis_payload.get("resolved_company_name"))
@@ -2668,9 +2541,6 @@ def build_ticker_business_model_stack(
             company_name = resolved_from_stack
         story = _coerce_text(synthesis_payload.get("business_story_markdown"))
         confidence = _normalized_business_confidence(synthesis_payload.get("confidence"), default="medium")
-        slot_facts = _merge_slot_facts(slot_facts, synthesis_slot_facts)
-        slot_facts = _prioritize_zopedia_verdict_facts(slot_facts)
-        gaps = _slot_gaps(slot_facts)
         for gap in list(synthesis_payload.get("slot_gaps") or []):
             clean_gap = _coerce_text(gap)
             if clean_gap in BUSINESS_MEMORY_SLOTS and clean_gap not in gaps and not slot_facts.get(clean_gap):
@@ -2695,9 +2565,9 @@ def build_ticker_business_model_stack(
     if ready_gaps and any(_slot_has_zopedia_verdict(facts) for facts in slot_facts.values()):
         synthesis_warnings.append(f"business_stack_not_ready_missing_core_slots::{','.join(ready_gaps)}")
     durable_memory_ready = bool(confidence in {"high", "medium"} and not ready_gaps)
-    if durable_memory_ready:
+    if durable_memory_ready and story:
         status = "ready"
-    elif any(_slot_has_zopedia_verdict(facts) for facts in slot_facts.values()):
+    elif story or any(_slot_has_zopedia_verdict(facts) for facts in slot_facts.values()):
         status = "partial"
     elif slot_facts or business_research_evidence:
         status = "needs_zopedia_verdict"
@@ -2720,7 +2590,13 @@ def build_ticker_business_model_stack(
         open_gap_count=len(gaps),
         open_gaps=list(gaps),
     )
-    source_urls = [row.get("url", "") for row in recent_news_rows if _coerce_text(row.get("url"))]
+    source_urls = list(
+        dict.fromkeys(
+            _coerce_text(row.get("url"))
+            for row in [*recent_news_rows, *combined_research_rows]
+            if _coerce_text(row.get("url")) and not _coerce_text(row.get("error_text"))
+        )
+    )
     if slot_facts and durable_memory_ready:
         company_page = _build_stack_memory_page(
             symbol=normalized_symbol,
@@ -2816,31 +2692,36 @@ def build_ticker_business_model_stack_results(
     progress_callback: ProgressCallback | None = None,
 ) -> list[TickerBusinessModelStackResult]:
     normalized_symbols = list(dict.fromkeys(_normalize_symbol(symbol) for symbol in list(symbols or []) if _normalize_symbol(symbol)))
-    results: list[TickerBusinessModelStackResult] = []
-    for symbol in normalized_symbols[: max(int(limit), 1)]:
-        results.append(
-            build_ticker_business_model_stack(
-                symbol=symbol,
-                company_baselines_frame=company_baselines_frame,
-                fundamentals_frame=fundamentals_frame,
-                zopedia_pages_frame=zopedia_pages_frame,
-                edgar_evidence_frame=edgar_evidence_frame,
-                news_frame=news_frame,
-                research_results_frame=research_results_frame,
-                serp_client=serp_client,
-                tavily_client=tavily_client,
-                execute_research=execute_research,
-                max_research_queries=max_research_queries,
-                max_search_results_per_query=max_search_results_per_query,
-                llm_client=llm_client,
-                zopedia_agent_runner=zopedia_agent_runner,
-                run_id=run_id,
-                asof_time_utc=asof_time_utc,
-                write_policy=write_policy,
-                progress_callback=progress_callback,
-            )
-        )
-    return results
+    selected = normalized_symbols[: max(int(limit), 1)]
+    max_workers = min(_env_positive_int("ZOPEDIA_TICKER_BUSINESS_MAX_WORKERS", 4, minimum=1), len(selected))
+    if not selected:
+        return []
+    kwargs = dict(
+        company_baselines_frame=company_baselines_frame,
+        fundamentals_frame=fundamentals_frame,
+        zopedia_pages_frame=zopedia_pages_frame,
+        edgar_evidence_frame=edgar_evidence_frame,
+        news_frame=news_frame,
+        research_results_frame=research_results_frame,
+        serp_client=serp_client,
+        tavily_client=tavily_client,
+        execute_research=execute_research,
+        max_research_queries=max_research_queries,
+        max_search_results_per_query=max_search_results_per_query,
+        llm_client=llm_client,
+        zopedia_agent_runner=zopedia_agent_runner,
+        run_id=run_id,
+        asof_time_utc=asof_time_utc,
+        write_policy=write_policy,
+        progress_callback=progress_callback,
+    )
+    if max_workers == 1:
+        return [build_ticker_business_model_stack(symbol=symbol, **kwargs) for symbol in selected]
+    with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="company-research") as pool:
+        futures = [pool.submit(copy_context().run, build_ticker_business_model_stack, symbol=symbol, **kwargs) for symbol in selected]
+        # Preserve caller order while every submitted company finishes. Browser
+        # and provider capacity are controlled independently at their shared owners.
+        return [future.result() for future in futures]
 
 
 def _result_row(result: TickerBusinessModelStackResult) -> dict[str, Any]:

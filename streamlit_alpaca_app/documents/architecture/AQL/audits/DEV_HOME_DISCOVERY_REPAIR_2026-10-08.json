@@ -1,0 +1,895 @@
+{
+  "release": "home-repair-20261008-ce8638-intake",
+  "environment": "development",
+  "verified_at_utc": "2026-10-08T23:54:16.104585+00:00",
+  "status": "Discovery coverage and public read verified; qualitative reasoning gaps remain.",
+  "objective": "Statistical high recall and expected relevance. Preserve noisy useful leads and indirect hypotheses. LLMs organize, connect and rank; review is advisory.",
+  "runtime": {
+    "verified_at_utc": "2026-10-08T23:51:49.056900+00:00",
+    "targets": [
+      {
+        "name": "sn-api-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:38f1d40b0692dbba44fb5c90869193a1583970c1ff8efb5fd3dc1f37e813364c",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0245049fbec903203c19db45bdc1b04ce8cb9e278b6b3d246dde9984029af2cc",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:72b8cb6f40cca9badcee064df018b73995888247e9782dbebef2ff5f9d1dc2a1",
+        "revision": "sn-api-next-dev--0000019",
+        "ready_revision": "sn-api-next-dev--0000019",
+        "protected_config_preserved": true,
+        "traffic": [
+          {
+            "latestRevision": true,
+            "weight": 100
+          }
+        ],
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0245049fbec903203c19db45bdc1b04ce8cb9e278b6b3d246dde9984029af2cc",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7d0af4cd8077529ec8eeed1692a31fe9100aa3ed02ea4da7898fff50ce80a286",
+        "transport_correction": "cjtf"
+      },
+      {
+        "name": "trading-agent-build-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0a81a4dc098e4227d64a0e5e565978b045c54bf8519004d7565246281cf7475a",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:f3bc5dec74659f01afa7cccc056758bc6be94b2a7c5c3a5186511dc8bda7fba9",
+        "revision": null,
+        "ready_revision": null,
+        "protected_config_preserved": true,
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0a81a4dc098e4227d64a0e5e565978b045c54bf8519004d7565246281cf7475a",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7659630a6c21a2481ac7b8961c41fbbabbb9daffb2c9fe82a05dd7f8b8012c6e",
+        "transport_correction": "cjtd"
+      },
+      {
+        "name": "macro-fred-daily-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:eeb7e445a23ecb1a868bd5bfff318bd4c715c20b148095ad8292e8b22e71a1c8",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0419d09fc09b59350e74fbd5424063189f95bbc6ec33f5cffd008b6ef1aced96",
+        "revision": null,
+        "ready_revision": null,
+        "protected_config_preserved": true,
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:eeb7e445a23ecb1a868bd5bfff318bd4c715c20b148095ad8292e8b22e71a1c8",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:13d0b2659d7d42f01dec36a1852f374819e213d17f8ae645e02a7ba32a5ac784",
+        "transport_correction": "cjtc"
+      },
+      {
+        "name": "sn-research-run-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:810f093fc6dfaa6c2b0bd2a9058afdb006ab75c2e0f78f4f137deafd8ecce80b",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:e3ffe3f3109142453249350aa957b70b92b9ac497607b69845fe1a006d070de7",
+        "revision": null,
+        "ready_revision": null,
+        "protected_config_preserved": true,
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:810f093fc6dfaa6c2b0bd2a9058afdb006ab75c2e0f78f4f137deafd8ecce80b",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:cd5f9628e6992d8ef7b7bd6c35f2eab08c3583c3b923e4533044cdebfb36bfaf",
+        "transport_correction": "cjte"
+      },
+      {
+        "name": "attention-home-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:e7291f77ced05defa96a751e09bdb8af91781624fd511b8e2fcdbf4353ad39ae",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:781c061feb5805ce2dec208fcc99cacd1ea364e317e77af4562a131f1b57bcfc",
+        "revision": null,
+        "ready_revision": null,
+        "protected_config_preserved": true,
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:e7291f77ced05defa96a751e09bdb8af91781624fd511b8e2fcdbf4353ad39ae",
+        "pre_loader_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7",
+        "loader_correction": "cjt8",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "transport_correction": "cjt9"
+      },
+      {
+        "name": "attention-ticker-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7309240544bb94b16394c4bb65992f820d87fd927a26e2cbfd204c57b04482a9",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:ef49e1431df0ce4a4322d9fa2f42cda8f7c1de1b0b0efe362259a0b8af813f50",
+        "revision": null,
+        "ready_revision": null,
+        "protected_config_preserved": true,
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7309240544bb94b16394c4bb65992f820d87fd927a26e2cbfd204c57b04482a9",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:2819d77370a0a26e312e5e0d1ce1091da2e7cb6211651a54a73d20efdc6828c4",
+        "transport_correction": "cjtg"
+      },
+      {
+        "name": "daily-datapoints-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:e7291f77ced05defa96a751e09bdb8af91781624fd511b8e2fcdbf4353ad39ae",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:781c061feb5805ce2dec208fcc99cacd1ea364e317e77af4562a131f1b57bcfc",
+        "revision": null,
+        "ready_revision": null,
+        "protected_config_preserved": true,
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:e7291f77ced05defa96a751e09bdb8af91781624fd511b8e2fcdbf4353ad39ae",
+        "pre_loader_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7",
+        "loader_correction": "cjt8",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "transport_correction": "cjt9"
+      },
+      {
+        "name": "technical-history-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7309240544bb94b16394c4bb65992f820d87fd927a26e2cbfd204c57b04482a9",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:ef49e1431df0ce4a4322d9fa2f42cda8f7c1de1b0b0efe362259a0b8af813f50",
+        "revision": null,
+        "ready_revision": null,
+        "protected_config_preserved": true,
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7309240544bb94b16394c4bb65992f820d87fd927a26e2cbfd204c57b04482a9",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:2819d77370a0a26e312e5e0d1ce1091da2e7cb6211651a54a73d20efdc6828c4",
+        "transport_correction": "cjtg"
+      },
+      {
+        "name": "equities-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:e7291f77ced05defa96a751e09bdb8af91781624fd511b8e2fcdbf4353ad39ae",
+        "previous_repair_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:781c061feb5805ce2dec208fcc99cacd1ea364e317e77af4562a131f1b57bcfc",
+        "revision": null,
+        "ready_revision": null,
+        "protected_config_preserved": true,
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:e7291f77ced05defa96a751e09bdb8af91781624fd511b8e2fcdbf4353ad39ae",
+        "pre_loader_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7",
+        "loader_correction": "cjt8",
+        "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "transport_correction": "cjt9"
+      },
+      {
+        "name": "sn-next-ui-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+        "revision": "sn-next-ui-dev--0000013",
+        "ready_revision": "sn-next-ui-dev--0000013",
+        "protected_config_preserved": true,
+        "traffic": [
+          {
+            "latestRevision": true,
+            "weight": 100
+          }
+        ],
+        "baseline_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c"
+      }
+    ],
+    "acr_runs": {
+      "group-0": "cjt0",
+      "group-1": "cjt2",
+      "group-2": "cjt1",
+      "group-3": "cjt3",
+      "group-4": "cjt4",
+      "group-5": "cjt5",
+      "web": "cjss"
+    },
+    "protected_configuration_preserved": true,
+    "production_checked": [
+      "sn-api-next",
+      "sn-streamlit-ui",
+      "sn-next-ui",
+      "attention-home-build"
+    ],
+    "production_changed": false,
+    "home_http": 200,
+    "home_status": "available",
+    "web_http": 200
+  },
+  "source_projections": [
+    {
+      "group": "group-0",
+      "base": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:5017a7be7a6f114fc8b239d149def79f13cbbe215dc1820041486702e47e26da",
+      "targets": [
+        "sn-api-next-dev"
+      ],
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "fd2bc186307f0f12745a7d0a2cbd43194d38fd3af0d0eeefa79d1438661c7916",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "93824d4c01779586551fab3be8a22fff2066f1df5651b18015fecb900431b1cc",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/home_view.py": "039a4aae39a860072127113ab62935cce1f8f7241a2bebca462c41bc99949dfc",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "289eaebeb8a5a57a816378fc8b7d4f4241cc48d3dc1da733cf73034473324e18"
+      },
+      "compatibility_projection": null,
+      "read_projection": "Only remove semantic phrase/count suppression from Home and retained-bundle reads; preserve the actual deployed data-layer baseline."
+    },
+    {
+      "group": "group-1",
+      "base": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04",
+      "targets": [
+        "trading-agent-build-dev"
+      ],
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "8a7dee2a7ad445bcfdee7793cf3a41522fda5a0d864276742c4be520b37fc665",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "b0cd4d7d04e107f719738b20e2e1c81eb33cde6d18a7f12f6ebfd282f909905e"
+      },
+      "compatibility_projection": "Preserve legacy session store; add shared ResearchBudget; use existing progress-callback exception handling. Keep current discovery prompts and schema/deadline repair.",
+      "read_projection": "Only remove semantic phrase/count suppression from Home and retained-bundle reads; preserve the actual deployed data-layer baseline."
+    },
+    {
+      "group": "group-2",
+      "base": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:9eccf5a14f7635fe37604853ca5045976db19ca7c30457aa63201749055366e6",
+      "targets": [
+        "macro-fred-daily-dev"
+      ],
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "8a7dee2a7ad445bcfdee7793cf3a41522fda5a0d864276742c4be520b37fc665",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "b0cd4d7d04e107f719738b20e2e1c81eb33cde6d18a7f12f6ebfd282f909905e"
+      },
+      "compatibility_projection": "Preserve legacy session store; add shared ResearchBudget; use existing progress-callback exception handling. Keep current discovery prompts and schema/deadline repair.",
+      "read_projection": "Only remove semantic phrase/count suppression from Home and retained-bundle reads; preserve the actual deployed data-layer baseline."
+    },
+    {
+      "group": "group-3",
+      "base": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:4c957261c88bbb4f31a8f74c9d0dc3f1bf202c889a4bc8341b2a8050770f8c6e",
+      "targets": [
+        "sn-research-run-dev"
+      ],
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "fd2bc186307f0f12745a7d0a2cbd43194d38fd3af0d0eeefa79d1438661c7916",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "93824d4c01779586551fab3be8a22fff2066f1df5651b18015fecb900431b1cc",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "ef27f6cc06550fba0fd5e60d8215fe9e466156bcc6aa36b6b5d0a41bd53684e9"
+      },
+      "compatibility_projection": null,
+      "read_projection": "Only remove semantic phrase/count suppression from Home and retained-bundle reads; preserve the actual deployed data-layer baseline."
+    },
+    {
+      "group": "group-4",
+      "base": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3",
+      "targets": [
+        "attention-home-next-dev",
+        "daily-datapoints-next-dev",
+        "equities-next-dev"
+      ],
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "fd2bc186307f0f12745a7d0a2cbd43194d38fd3af0d0eeefa79d1438661c7916",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "93824d4c01779586551fab3be8a22fff2066f1df5651b18015fecb900431b1cc",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "pipeline/jobs/attention_home_build.py": "cbee17bb38a11f89d34666d7afc759e16c7c5b599427f806bd1b775b2cd69264",
+        "pipeline/jobs/main.py": "12668a92ef996df9bdad1e4c41092f6608e092cde3784c6926b9ab430fe652d3",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "5602f83da3d29eae1dfb5586686d0654d0f609a1fe59375c3c77e132c40f2881"
+      },
+      "compatibility_projection": null,
+      "read_projection": "Only remove semantic phrase/count suppression from Home and retained-bundle reads; preserve the actual deployed data-layer baseline."
+    },
+    {
+      "group": "group-5",
+      "base": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:af99405428441b130c4d22d5b770df34e6b31394e0ffd3c10ce76fb742c4bdf0",
+      "targets": [
+        "attention-ticker-next-dev",
+        "technical-history-next-dev"
+      ],
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "fd2bc186307f0f12745a7d0a2cbd43194d38fd3af0d0eeefa79d1438661c7916",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "93824d4c01779586551fab3be8a22fff2066f1df5651b18015fecb900431b1cc",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "5602f83da3d29eae1dfb5586686d0654d0f609a1fe59375c3c77e132c40f2881"
+      },
+      "compatibility_projection": null,
+      "read_projection": "Only remove semantic phrase/count suppression from Home and retained-bundle reads; preserve the actual deployed data-layer baseline."
+    },
+    {
+      "group": "web",
+      "base": "accepted-web-source",
+      "targets": [
+        "sn-next-ui-dev"
+      ],
+      "source_sha256": {
+        "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
+        "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
+        "web/CLAUDE.md": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
+        "web/app/admin/page.tsx": "f774ea8c16bbff1af70eda0a1677745325346c4ac9745e85c23b9ca9de4a14ac",
+        "web/app/api/admin/invites/route.ts": "cb7fd40ef84e5a2588620c2de63c23d685fe5e05b35c424421c2b2d316adbf45",
+        "web/app/api/admin/llm/route.ts": "e690cc642b586d50a6d43fe5ef52b9787a3b130ebe9924b6e19482ec552f4865",
+        "web/app/api/admin/password-resets/route.ts": "550149dec6ce9874657c422d5d20501a0449346bd592f7ecd6200a6b33ca3935",
+        "web/app/api/admin/route.ts": "f005d46afb4135461d09fb8f63c1223f474d0254153cc4d5abd4bd510ce64636",
+        "web/app/api/auth/account/[action]/route.ts": "23357c4b702c8401641efc504f1966ce525e3008acbd9acf2951780626475acb",
+        "web/app/api/auth/csrf/route.ts": "b71321e40ce309f5f8cf9530be67f6dcdc65ddb9e72c661ebe99c1e7b5fe6740",
+        "web/app/api/auth/login/route.ts": "c3c992cd5fe2eb27f53ca846f0ab9cc1cba5a6950c62557ce6a313543ac74651",
+        "web/app/api/auth/logout/route.ts": "dc45e493af97de27351e6b298b2f710ceb00b4c504cf0b86ab22f301ee2e30f3",
+        "web/app/api/auth/session/route.ts": "fb71a4d428eee038074f5d9c410c66640862c262abc94c02a77e54fca6755d03",
+        "web/app/api/datasets/[name]/route.ts": "dc1107d2ae169956f3d9e0412ed56484a7b4083afb100355eab90a6050211816",
+        "web/app/api/home/audio/route.ts": "5a35d13ac9c9b847df1ab300a1b97dc2d45bbb9d9b92b48db70e64e16a4e819e",
+        "web/app/api/home/route.ts": "32c4ffdf84ac1083dd06a3203515053298d3533b2e82fef66913034f1b3a6b9c",
+        "web/app/api/investigator/[ticker]/route.ts": "f7a5feff57f3628c33237aef703f7209ad711305aedda6c76bf426ab08bcb044",
+        "web/app/api/market-lenses/route.ts": "afb09216f0686217a9b2817eb2bf0022f17da049c40f79ada58ecac8fe092a63",
+        "web/app/api/portfolio/route.ts": "c2d3d0efd2b74e85ad26eaa0d34d1fb129e33f834d7bd05d93930b5d823c1945",
+        "web/app/api/research-runs/[runId]/cancel/route.ts": "d739fc33dfb5d2e860290c078bef8d68a47adc6c33da253b843544e13a7d3cb4",
+        "web/app/api/research-runs/[runId]/events/route.ts": "0874d469c39200703a9f75285788c62efc4467f3bde73cf73a71f056abad63a5",
+        "web/app/api/research-runs/[runId]/route.ts": "824d24987168aaf9c54de397d0dc8a2d080f0ae2d44c7472bf81d9fe6e2e5aad",
+        "web/app/api/research-runs/route.ts": "e13794ca118bcb31b2098ce71a665aa783aec4efb2ca241d6d996b735766c35e",
+        "web/app/api/trading-agent/decisions/route.ts": "99a759da8113d1dc91a0acf3f0ae49b71462f85455efc90cef11658fe620f5dd",
+        "web/app/api/trading-agent/route.ts": "1c2c6b68e07f541b613dddd614f82797b1b6b49ac8321b24bc94e1da4f71bd07",
+        "web/app/api/visualizations/[name]/route.ts": "fcc3a1b098fa9ee4233ffa1aaae7c8b6743499b3574b2ce78a399d24fa48da78",
+        "web/app/api/zopedia/pages/route.ts": "f02a50d65ddf14c99a489a88e9f0eb60e92c67d02fc90e1ab548b0195c63858b",
+        "web/app/api/zopedia/sources/upload/route.ts": "8fd6cea3bcd5b27b5a1396b05f08eda573941ca5e1f623a457071b43997a0edd",
+        "web/app/api/zopedia/workspace/route.ts": "f5c765bf859b32cd930705d5b9de6b92364576b27a14ab7be51286166abc6941",
+        "web/app/broad-economy/page.tsx": "21619a2722d30578852df528f46cf0e768f28620338bb47a68c60cbf61cdaf45",
+        "web/app/globals.css": "510c7df6372a4d1e4364e0ef00bc3be580ea945465e6b4793c8dbc4539b472ce",
+        "web/app/health/route.ts": "fbd86280d0a005e41947c611db300c2859bec610cf383e779cc01c06322c61a3",
+        "web/app/layout.tsx": "85fe444f2059a58d0c89962c7a13032c829a316c69844708f9353dd902a80254",
+        "web/app/login/login-form.tsx": "ed85bc9477761542aa2f79892332205a92f1b93d610f90a3d47906d9c7d617ff",
+        "web/app/login/page.tsx": "e9e71e0871c4ffc2e53de19b0deef1a0005886597f08fcea2e550f9ffda3bf20",
+        "web/app/market-explorer/page.tsx": "7d7c8f11319b0dd59381ad23dc5979b04b6f5db8a34c18d58c469603121ffd32",
+        "web/app/options/page.tsx": "697a32f3657f48bb72a581f28729f65868fd4a7b6a00f3deb8a780a63ea3eea2",
+        "web/app/page.tsx": "6996778951125614c1c368f96a9ee9211a26cadb6403fa9eb88c0e5199ece3cf",
+        "web/app/portfolio/page.tsx": "9d9af664417542ae0071dfe05ca19d78c373d9d4208c113a18b4a9987f590418",
+        "web/app/portfolio-performance/page.tsx": "fbaf6d62c06d0f0b06ddb75bc9a3b73185b76f2bcad28eeb357227329852199c",
+        "web/app/stock-investigator/page.tsx": "2875209e58497c67c75471f73d23b3f2751f9f86c80f8b5aa57e84c533eb7cef",
+        "web/app/trading-agent/page.tsx": "bd44b82d5f36cee6da0b785f9379e8eb3b4f1c3d9517e98716b28ecc8a86e545",
+        "web/app/zopedia/page.tsx": "642902e9e4a43dc686464f1e708cf042191601e4bfe23cd369008715a92b1f5b",
+        "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
+        "web/app/zopedia/runs/[runId]/research-run-view.tsx": "aaf70b92ae78ab2555ac7ef3c53b69f44b86dc2b1aa48e2d9a5dee8d0cafba24",
+        "web/components/admin/llm-settings.tsx": "6b435cb03eb2048a15bbf8c88b0faeee6175061e5141a237d5b9ef5f11fbaaac",
+        "web/components/agent-rail.tsx": "daf6f7bc3563453c5711c54c86fbaa4b9ef6456b3f1815fb3957765e47841730",
+        "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
+        "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
+        "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
+        "web/components/visualizations/data-plot.tsx": "cc6ae2da3397a70d46a1dd12d02d0dc3b70f9dbb54564388650684af972d5a64",
+        "web/components/visualizations/plotly-renderer.tsx": "ef001b939efe9d5a257a58453b43ce17d294f3ef2a6987ff517ec4edaf9cd298",
+        "web/components/visualizations/trend-chart.tsx": "79fb06b9f53b5e789322541056341aa33dea18f426e578c2d98e84215ebae807",
+        "web/components/visualizations/visualization.tsx": "f3dcb5cc76d16bd0c57e4136bba14cd3fcbb6c0415f07f8e17c91194bbf54f3c",
+        "web/components/workbench-shell.tsx": "319e4d70f12cdbb707b1e7186ca4ed77dd38bb1038dc8dbc8785b049eae3b438",
+        "web/components/workbook.tsx": "0e5e9572c970c094ed75d28b55970d88a340f8af84d830b4ea4fbdb16830e35b",
+        "web/eslint.config.mjs": "77e9f34454d52f5986545c76c35c90aa6c82f29d00612fe85b7519d34031bb8b",
+        "web/lib/client/api.ts": "201417ee7b63542b681f8413b497a5ac02c6e357b5a073ecf282652009b86d84",
+        "web/lib/client/portfolio.ts": "fd30d19290b5d2ea5de957cf05989b6059d7ad9c50280f95066ddaacf7ae49e1",
+        "web/lib/client/session.ts": "e72697ac958a90841b4809a1bb162faea8175c523961a74d55e53d31e0468c9b",
+        "web/lib/server/auth.ts": "611189dff46ec6ac36a2766ec2566f7038667698d19244d14f714cbbcc8a52bd",
+        "web/lib/server/backend.ts": "279b569361522b998e083c2072e7e097045231afa723d791f9f8d33d64bc66af",
+        "web/lib/server/http.ts": "cb9f125624e54d0017385b20d9279ea71b6b85b31b674a7a094f0bc69f7796a8",
+        "web/lib/types.ts": "5a989e61e1f4c8ff40ce1c2fedbe9aa13fe8d73edc943af61a194c5e26723b3b",
+        "web/next-env.d.ts": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b",
+        "web/next.config.ts": "304db7c8cad0928ec4fd92fd1c56c1d6ec26b9078e45ed1a626bf95a92a8b440",
+        "web/package-lock.json": "04f70dfd9398ad53693c7a481defd5be0b1ca2113943e5ace748b7b1670b0f6e",
+        "web/package.json": "3c39b5d57b99099a754322bed1bfe37c78d1722a24db83201c71345d4753dc37",
+        "web/proxy.ts": "791579da0d48b397c5084d20d5f4ecf9c293d4e8678b1eb2326337cc3f6ccde7",
+        "web/tests/auth-boundary.test.mjs": "de5ebf6263c5f9554de5dbe6055057d414a1ef3167f578e87e19bb4997fef1c6",
+        "web/tsconfig.json": "9c73cf280ef044e5b2557572af01310c7bb24a714ec22d1a7bdb85e6f152cb0b"
+      },
+      "compatibility_projection": null,
+      "read_projection": null
+    }
+  ],
+  "publication": {
+    "execution": "attention-home-next-dev-m8ncxp9",
+    "run_id": "0d073b0c-c494-4d92-a712-b411cf77e920",
+    "status": "Succeeded",
+    "source_research_run_id": "a22da3f1-07ff-4a59-8865-12933b910098",
+    "input_reports": 50,
+    "edited_stories_retained": 22,
+    "newly_discovered_stories": 14,
+    "dropped_stories": 0,
+    "public_cards": 8,
+    "older_retained_bundles_outside_selection": 2,
+    "actual_model_calls": [
+      {
+        "surface": "attention_home.public_surface_quality",
+        "purpose": "agent.final_synthesis",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-flash",
+        "status": "success",
+        "duration_ms": 157967.39467908628,
+        "error_type": ""
+      },
+      {
+        "surface": "attention_home.public_surface_quality",
+        "purpose": "agent.answer_judge",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-flash",
+        "status": "success",
+        "duration_ms": 118989.32630289346,
+        "error_type": ""
+      },
+      {
+        "surface": "attention_home.daily_datapoints",
+        "purpose": "daily_market_datapoints.direct",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-flash",
+        "status": "success",
+        "duration_ms": 53162.34722593799,
+        "error_type": ""
+      },
+      {
+        "surface": "attention_home.daily_datapoints.review",
+        "purpose": "daily_market_datapoints_review.direct",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-flash",
+        "status": "success",
+        "duration_ms": 16800.074681872502,
+        "error_type": ""
+      },
+      {
+        "surface": "attention_home.daily_datapoints",
+        "purpose": "daily_market_datapoints.direct",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-flash",
+        "status": "success",
+        "duration_ms": 21682.990304892883,
+        "error_type": ""
+      },
+      {
+        "surface": "attention_home.daily_datapoints.review",
+        "purpose": "daily_market_datapoints_review.direct",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-flash",
+        "status": "success",
+        "duration_ms": 57430.08672911674,
+        "error_type": ""
+      }
+    ],
+    "canonical_projection": [
+      {
+        "id": "event::home-087ec2118c52fb464d0f",
+        "title": "OpenAI's annualized revenue is reported about $20 billion below earlier signals",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "event::cluster-01-0a2b5bbfa1",
+        "title": "AI-infrastructure shares fall as oil and yields jump and OpenAI revenue is reported lower",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "event::home-b103fe51001028954319",
+        "title": "Gulf tanker attacks lift Brent above $105 and 10-year yields near 5.35%",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "event::observed-cohort-tag_token-cc20be1ad6",
+        "title": "AI compute names fall a second day; Astera Labs has the clearest company lead",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "event::observed-cohort-tag_token-047698d562",
+        "title": "Power and electrification shares fall together; FuelCell drops on a CFO transition",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::NIB",
+        "title": "nib Group completes a $97.6 million travel insurance sale to Allianz Partners and IMG",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::BNO",
+        "title": "A BNO October $64 put gains 41% while crude reportedly rises 5%",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::UGA",
+        "title": "United States Gasoline Fund faces listing termination if the Marygold deal closes",
+        "canonical_fields_preserved": true
+      }
+    ],
+    "overview_sha256": "fca299dc66eef4ea1ddd70855f22cf1a7c8f44ae1cddadd651f7f6de053bf91f",
+    "actual_browser_read_verified": true,
+    "memory_write_policy": "none"
+  },
+  "qualitative_read": {
+    "personally_read": [
+      "Actual development overview and all eight rendered cards",
+      "All 22 edited retained stories and two older retained bundles",
+      "Full-intake source-only output with zero nominations, 25 stories",
+      "Sparse two-headline output with no ticker tags or price input"
+    ],
+    "findings": [
+      "OpenAI report ranked first and linked to cloud capacity, GPU purchases, optical suppliers and funding expectations.",
+      "Full retained intake can create stories outside focused nomination.",
+      "Software, private financing, energy and talent connections survive without exact ticker routing.",
+      "Advisory review revised the draft without suppressing valid output."
+    ],
+    "remaining_quality_gaps": [
+      "Repeated AI groups in the selected cards.",
+      "Uncertain NIB instrument identity.",
+      "BNO card reverses put moneyness and makes an invalid inference from a fund price versus strike.",
+      "Some causal language remains stronger than the available reporting."
+    ],
+    "acceptance_scope": "Discovery, retention, canonical transport and live page visibility. This does not certify all reasoning or claim the full producer now completes reliably."
+  },
+  "public_inputs": {
+    "initial_staging": {
+      "run_id": "dfdfea58-137b-4200-8b21-80e82b62ac79",
+      "execution": "attention-home-next-dev-hlr6ymj",
+      "status": "Succeeded",
+      "datasets": [
+        {
+          "dataset": "daily_movers",
+          "rows": 999,
+          "metadata": {
+            "dataset_name": "daily_movers",
+            "dataset_version_id": "development__daily_movers__20261008T203530Z__dfdfea58",
+            "blob_path": "namespaces/development/datasets/daily_movers/dt=2026-10-08/asof=2026-10-08T20-35-30Z/universe=daily_movers__20261008T203530Z__6b559731/part-dfdfea58.parquet",
+            "asof_time_utc": "2026-10-08 20:35:30.040171+00:00",
+            "ingested_at_utc": "2026-10-08 23:06:16.487036+00:00",
+            "row_count": 999,
+            "partitioning": {}
+          }
+        },
+        {
+          "dataset": "macro_anchor_daily_movers",
+          "rows": 570,
+          "metadata": {
+            "dataset_name": "macro_anchor_daily_movers",
+            "dataset_version_id": "development__macro_anchor_daily_movers__20261008T203530Z__dfdfea58",
+            "blob_path": "namespaces/development/datasets/macro_anchor_daily_movers/dt=2026-10-08/asof=2026-10-08T20-35-30Z/universe=macro_anchor_daily_movers__20261008T203530Z__6b559731/part-dfdfea58.parquet",
+            "asof_time_utc": "2026-10-08 20:35:30.040171+00:00",
+            "ingested_at_utc": "2026-10-08 23:06:16.657245+00:00",
+            "row_count": 570,
+            "partitioning": {}
+          }
+        },
+        {
+          "dataset": "news_articles",
+          "rows": 50,
+          "metadata": {
+            "dataset_name": "news_articles",
+            "dataset_version_id": "development__news_articles__20261008T200528Z__dfdfea58",
+            "blob_path": "namespaces/development/datasets/news_articles/dt=2026-10-08/asof=2026-10-08T20-05-28Z/universe=news_articles__20261008T200528Z__8b0a1191/part-dfdfea58.parquet",
+            "asof_time_utc": "2026-10-08 20:05:28.658734+00:00",
+            "ingested_at_utc": "2026-10-08 23:06:16.829216+00:00",
+            "row_count": 50,
+            "partitioning": {}
+          }
+        },
+        {
+          "dataset": "universe_snapshot",
+          "rows": 1000,
+          "metadata": {
+            "dataset_name": "universe_snapshot",
+            "dataset_version_id": "development__universe_snapshot__20261008T132029Z__dfdfea58",
+            "blob_path": "namespaces/development/datasets/universe_snapshot/dt=2026-10-08/asof=2026-10-08T13-20-29Z/universe=universe_snapshot__20261008T132029Z__735321af/part-dfdfea58.parquet",
+            "asof_time_utc": "2026-10-08 13:20:29.253258+00:00",
+            "ingested_at_utc": "2026-10-08 23:06:16.991740+00:00",
+            "row_count": 1000,
+            "partitioning": {}
+          }
+        },
+        {
+          "dataset": "entity_taxonomy_labels",
+          "rows": 6735,
+          "metadata": {
+            "dataset_name": "entity_taxonomy_labels",
+            "dataset_version_id": "development__entity_taxonomy_labels__20261001T090029Z__dfdfea58",
+            "blob_path": "namespaces/development/datasets/entity_taxonomy_labels/dt=2026-10-01/asof=2026-10-01T09-00-29Z/universe=entity_taxonomy_labels__20261001T090029Z__2346cad3/part-dfdfea58.parquet",
+            "asof_time_utc": "2026-10-01 09:00:29.474615+00:00",
+            "ingested_at_utc": "2026-10-08 23:06:17.238564+00:00",
+            "row_count": 6735,
+            "partitioning": {}
+          }
+        },
+        {
+          "dataset": "fred_summary",
+          "rows": 35,
+          "metadata": {
+            "dataset_name": "fred_summary",
+            "dataset_version_id": "development__fred_summary__20261008T110030Z__dfdfea58",
+            "blob_path": "namespaces/development/datasets/fred_summary/dt=2026-10-08/asof=2026-10-08T11-00-30Z/universe=fred_summary__20261008T110030Z__1e1390d9/part-dfdfea58.parquet",
+            "asof_time_utc": "2026-10-08 11:00:30.478817+00:00",
+            "ingested_at_utc": "2026-10-08 23:06:17.405936+00:00",
+            "row_count": 35,
+            "partitioning": {}
+          }
+        },
+        {
+          "dataset": "yield_curve_facts_1d",
+          "rows": 1,
+          "metadata": {
+            "dataset_name": "yield_curve_facts_1d",
+            "dataset_version_id": "development__yield_curve_facts_1d__20261008T110030Z__dfdfea58",
+            "blob_path": "namespaces/development/datasets/yield_curve_facts_1d/dt=2026-10-08/asof=2026-10-08T11-00-30Z/universe=yield_curve_facts_1d__20261008T110030Z__1e1390d9/part-dfdfea58.parquet",
+            "asof_time_utc": "2026-10-08 11:00:30.478817+00:00",
+            "ingested_at_utc": "2026-10-08 23:06:17.597215+00:00",
+            "row_count": 1,
+            "partitioning": {}
+          }
+        }
+      ],
+      "blob_readback_verified": true,
+      "withdrawn_failed_metadata": [
+        {
+          "dataset": "development::daily_movers",
+          "status": "failed",
+          "count": 1
+        },
+        {
+          "dataset": "development::entity_taxonomy_labels",
+          "status": "failed",
+          "count": 1
+        },
+        {
+          "dataset": "development::fred_summary",
+          "status": "failed",
+          "count": 1
+        },
+        {
+          "dataset": "development::macro_anchor_daily_movers",
+          "status": "failed",
+          "count": 1
+        },
+        {
+          "dataset": "development::news_articles",
+          "status": "failed",
+          "count": 1
+        },
+        {
+          "dataset": "development::universe_snapshot",
+          "status": "failed",
+          "count": 1
+        },
+        {
+          "dataset": "development::yield_curve_facts_1d",
+          "status": "failed",
+          "count": 1
+        }
+      ],
+      "excluded": [
+        "credentials",
+        "broker positions",
+        "Zopedia knowledge"
+      ]
+    },
+    "price_refresh": {
+      "staging_execution": "attention-home-next-dev-rmrmp83",
+      "quote_execution": "attention-ticker-next-dev-hu1jf0a",
+      "jobs": [
+        {
+          "run_id": "66980155-7a34-46c6-b356-1cff5cce89ed",
+          "job_name": "development::home-repair-public-price-input",
+          "status": "Succeeded",
+          "start_time_utc": "2026-10-08 23:48:38.541423+00:00",
+          "end_time_utc": "2026-10-08 23:48:49.414434+00:00",
+          "error_summary": null
+        }
+      ],
+      "metadata": {
+        "price_history": {
+          "dataset_name": "price_history",
+          "dataset_version_id": "development__price_history__20261008T203530Z__66980155",
+          "asof_time_utc": "2026-10-08T20:35:30.040171+00:00",
+          "row_count": 1469943
+        },
+        "attention_ticker_snapshots_1d": {
+          "dataset_name": "attention_ticker_snapshots_1d",
+          "dataset_version_id": "development__attention_ticker_snapshots_1d__20261008T235023Z__f6777f60",
+          "asof_time_utc": "2026-10-08T23:50:23.453035+00:00",
+          "row_count": 31
+        },
+        "attention_home_snapshots_1d": {
+          "dataset_name": "attention_home_snapshots_1d",
+          "dataset_version_id": "development__attention_home_snapshots_1d__20261008T233318Z__0d073b0c",
+          "asof_time_utc": "2026-10-08 23:33:18.801457+00:00",
+          "row_count": 1
+        }
+      },
+      "actual_public_quotes": {
+        "ORCL": {
+          "latest_close": 135.555,
+          "price_change_1d_pct": -5.5892185541161705,
+          "latest_observation": {
+            "date": "2026-10-08",
+            "value": 135.555,
+            "period": ""
+          }
+        },
+        "NVDA": {
+          "latest_close": 230.57,
+          "price_change_1d_pct": -2.877000842459987,
+          "latest_observation": {
+            "date": "2026-10-08",
+            "value": 230.57,
+            "period": ""
+          }
+        },
+        "AAOI": {
+          "latest_close": 105.94,
+          "price_change_1d_pct": -13.560704960835512,
+          "latest_observation": {
+            "date": "2026-10-08",
+            "value": 105.94,
+            "period": ""
+          }
+        }
+      },
+      "quote_execution_status": "Succeeded",
+      "quote_database_rows": [],
+      "quote_public_read_verified": true
+    },
+    "excluded": [
+      "Credentials",
+      "Broker positions",
+      "Zopedia knowledge"
+    ]
+  },
+  "first_full_producer": {
+    "execution": "attention-home-next-dev-lpbaze2",
+    "run_id": "a22da3f1-07ff-4a59-8865-12933b910098",
+    "azure_status": "Failed",
+    "database_status": "Warning",
+    "core_home_saved": true,
+    "manual_status_update_applied": false,
+    "exact_azure_termination_reason_available": false,
+    "last_captured_stage": "Optional page summaries after core persistence"
+  },
+  "remaining_harness_findings": [
+    "First full producer Azure failure is unresolved despite durable core publication.",
+    "Whole-run response budgets do not hard-cancel every existing browser operation.",
+    "Optional page-summary completion and budgets need separate investigation.",
+    "The independent quote execution succeeded in Azure and its manifest/public values were verified; matching job/dataset rows were absent from the shared database read."
+  ],
+  "mechanical_validation": "35 focused budget/schema/session checks passed earlier. Actual public fields preserved in all eight cards. These are contract checks, not LLM-quality tests.",
+  "production_changed": false,
+  "production_permission": "Explicit approval required for this repair under the user-provided AGENTS.md instructions.",
+  "excluded_workspace_work": [
+    "Native iOS",
+    "Broker adapters",
+    "Historical corpus/training",
+    "Unrelated API and data-layer changes",
+    "Dependency changes"
+  ],
+  "loader_correction": {
+    "verified_at_utc": "2026-10-09T01:26:09.454417+00:00",
+    "acr_run": "cjt8",
+    "reason": "Use typed PipelineDataset observation metadata in the standard shared loader, retaining real mover frames and logging load exceptions.",
+    "targets": [
+      {
+        "name": "attention-home-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7",
+        "protected_config_preserved": true,
+        "verified_at_utc": "2026-10-09T01:25:24.259690+00:00"
+      },
+      {
+        "name": "daily-datapoints-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7",
+        "protected_config_preserved": true,
+        "verified_at_utc": "2026-10-09T01:25:46.567959+00:00"
+      },
+      {
+        "name": "equities-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7",
+        "protected_config_preserved": true,
+        "verified_at_utc": "2026-10-09T01:26:09.454417+00:00"
+      }
+    ],
+    "actual_production_input_reads": [
+      {
+        "dataset": "daily_movers",
+        "rows": 999,
+        "version": "daily_movers__20261008T203530Z__6b559731",
+        "observed_at": "2026-10-08 20:35:30.040171+00:00"
+      },
+      {
+        "dataset": "macro_anchor_daily_movers",
+        "rows": 570,
+        "version": "macro_anchor_daily_movers__20261008T203530Z__6b559731",
+        "observed_at": "2026-10-08 20:35:30.040171+00:00"
+      }
+    ],
+    "production_rerun": "f905bd8a-9c63-4b97-8abc-0b482e74d9a1 — research completed; publication failed on provider body disconnect. Recovered publication 4893138a-fa36-4ecd-8d38-2557600ab07e verified separately; database Warning."
+  },
+  "transport_correction": {
+    "verified_at_utc": "2026-10-09T01:56:54.220742+00:00",
+    "reason": "Extend existing bounded provider retries to truncated HTTP response bodies; no narrative or ranking changes.",
+    "targets": [
+      {
+        "name": "sn-api-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:38f1d40b0692dbba44fb5c90869193a1583970c1ff8efb5fd3dc1f37e813364c",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7d0af4cd8077529ec8eeed1692a31fe9100aa3ed02ea4da7898fff50ce80a286",
+        "acr_run": "cjtf",
+        "ready_revision": "sn-api-next-dev--0000019",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "trading-agent-build-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7659630a6c21a2481ac7b8961c41fbbabbb9daffb2c9fe82a05dd7f8b8012c6e",
+        "acr_run": "cjtd",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "macro-fred-daily-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:13d0b2659d7d42f01dec36a1852f374819e213d17f8ae645e02a7ba32a5ac784",
+        "acr_run": "cjtc",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "sn-research-run-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:cd5f9628e6992d8ef7b7bd6c35f2eab08c3583c3b923e4533044cdebfb36bfaf",
+        "acr_run": "cjte",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "attention-home-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "acr_run": "cjt9",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "attention-ticker-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:2819d77370a0a26e312e5e0d1ce1091da2e7cb6211651a54a73d20efdc6828c4",
+        "acr_run": "cjtg",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "daily-datapoints-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "acr_run": "cjt9",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "technical-history-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:2819d77370a0a26e312e5e0d1ce1091da2e7cb6211651a54a73d20efdc6828c4",
+        "acr_run": "cjtg",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "equities-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "acr_run": "cjt9",
+        "protected_config_preserved": true
+      }
+    ],
+    "local_transport_validation": "All three structured provider adapters retried one ChunkedEncodingError with a decreasing deadline and returned the valid second response."
+  }
+}

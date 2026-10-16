@@ -1,5 +1,14 @@
 # Attention Feed Guidelines
 
+Scope clarification, 2026-10-07: the daily-event rules below do not define the
+whole discovery system. Current anomaly production has multiple horizons and
+Home retains taxonomy trend metadata, although daily selection still restricts
+which names reach research and the public Home DTO omits that trend structure.
+The [stock decline discovery audit](../architecture/overall/audits/DECLINE_DISCOVERY_AUDIT_2026-10-07.md)
+documents the gap for sustained company and industry declines and the proposed
+shared discovery contract. A strict daily-event rail is not coverage of ongoing
+business deterioration.
+
 ## Product Standard
 
 The attention feed is a strict `today / 1d` market-intelligence product.

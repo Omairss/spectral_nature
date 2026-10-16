@@ -13,7 +13,7 @@ from presentation.visualization_artifacts import build_plotly_figure_visualizati
 from services.aql.summarizer import build_attention_home_narrative_beats
 
 
-def _clean(value: object, *, limit: int = 4000) -> str:
+def _clean(value: object, *, limit: int | None = 4000) -> str:
     text = str(value if value is not None else "").strip()
     return "" if text.lower() == "nan" else text[:limit]
 
@@ -56,9 +56,13 @@ def _ticker_snapshot_view(symbol: str, raw: object, *, attention_change_pct: obj
         "net_income_yoy_pct": _number(payload.get("net_income_yoy_pct")),
         "operating_cash_flow": _number(payload.get("operating_cash_flow")),
         "free_cash_flow": _number(payload.get("free_cash_flow")),
+        "total_assets": _number(payload.get("total_assets")),
+        "stockholders_equity": _number(payload.get("stockholders_equity")),
         "fundamentals_period": _clean(payload.get("fundamentals_period"), limit=20),
         "fundamentals_report_date": _clean(payload.get("fundamentals_report_date"), limit=20),
         "sparkline_data_uri": sparkline,
+        "price_trend": _trend_points(payload.get("price_trend_json"), limit=1300),
+        "intraday_price_history": _intraday_price_history(payload.get("intraday_price_history_json")),
         "financial_trends": _financial_trends(payload.get("financial_trends_json")),
     }
 
@@ -86,16 +90,41 @@ def _trend_points(raw: object, *, limit: int = 1200) -> list[dict[str, Any]]:
     return sorted(points, key=lambda point: point["date"])
 
 
+def _intraday_price_history(raw: object) -> dict[str, Any]:
+    source = _json_value(raw, {})
+    points = []
+    for point in list(source.get("points") or [])[-100:]:
+        if not isinstance(point, dict):
+            continue
+        value = _number(point.get("value"))
+        try:
+            observed = datetime.fromisoformat(str(point.get("date") or "").replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        if value is not None and observed.tzinfo is not None:
+            points.append({"date": observed.astimezone(timezone.utc).isoformat(), "value": value})
+    points.sort(key=lambda point: point["date"])
+    return {
+        "status": "available" if points else "unavailable", "points": points,
+        "interval": _clean(source.get("interval"), limit=20),
+        "feed": _clean(source.get("feed"), limit=20),
+        "session": _clean(source.get("session"), limit=20),
+        "as_of": points[-1]["date"] if points else "",
+        "prefetched_at": _clean(source.get("prefetched_at"), limit=80),
+        "change_pct": _number(source.get("change_pct")),
+    }
+
+
 def _financial_trends(raw: object) -> dict[str, list[dict[str, Any]]]:
     source = _json_value(raw, {})
-    return {metric: _trend_points(source.get(metric), limit=20) for metric in ("revenue", "net_income", "free_cash_flow")}
+    return {metric: _trend_points(source.get(metric), limit=20) for metric in ("revenue", "net_income", "free_cash_flow", "operating_cash_flow", "total_assets", "stockholders_equity")}
 
 
-def _daily_datapoints_view(raw: object, home_run_id: str) -> list[dict[str, Any]]:
+def _daily_datapoints_view(raw: object, home_run_id: str = "") -> list[dict[str, Any]]:
     rows = _json_value(raw, [])
     result = []
     for row in sorted([item for item in rows if isinstance(item, dict)], key=lambda item: _count(item.get("rank"))):
-        if _clean(row.get("home_run_id")) != home_run_id or row.get("selection_method") != "aql_zopedia":
+        if (home_run_id and _clean(row.get("home_run_id")) != home_run_id) or row.get("selection_method") != "aql_zopedia":
             continue
         points = _trend_points(row.get("points_json"))
         title = _clean(row.get("title"), limit=100)
@@ -103,13 +132,14 @@ def _daily_datapoints_view(raw: object, home_run_id: str) -> list[dict[str, Any]
             continue
         result.append({
             "id": _clean(row.get("id"), limit=160), "title": title,
+            "selected_at": _clean(row.get("asof_time_utc"), limit=80),
             "significance": _clean(row.get("significance"), limit=260),
             "label": _clean(row.get("label"), limit=160), "kind": _clean(row.get("kind"), limit=20),
             "symbol": _clean(row.get("symbol"), limit=20), "series_id": _clean(row.get("series_id"), limit=40),
             "unit": _clean(row.get("unit"), limit=80), "date": points[-1]["date"],
             "value": points[-1]["value"], "period": _clean(row.get("period"), limit=20), "points": points,
         })
-    return result[:5] if len(result) == 5 and len({item["id"] for item in result}) == 5 else []
+    return list({item["id"]: item for item in result if item["id"]}.values())[:5]
 
 
 def _validated_target_date(value: str | None) -> str:
@@ -227,17 +257,19 @@ def build_public_home_view(
     daily_datapoints = payload.get("daily_datapoints") or []
     if not is_replay:
         resolved_datapoints = resolved_service.data_access.resolve_daily_market_datapoints()
-        current_points = _daily_datapoints_view(resolved_datapoints.payload, str(payload.get("run_id") or ""))
+        current_points = _daily_datapoints_view(resolved_datapoints.payload)
     else:
         current_points = []
-    daily_datapoints = current_points or _daily_datapoints_view(daily_datapoints, str(payload.get("run_id") or ""))
+    embedded_points = _daily_datapoints_view(daily_datapoints, str(payload.get("run_id") or ""))
+    daily_datapoints = max((current_points, embedded_points),
+                           key=lambda items: max((item["selected_at"] for item in items), default=""))
 
     beats: list[dict[str, Any]] = []
     for item in narrative_beats:
         if not isinstance(item, dict):
             continue
         title = _clean(item.get("sentence"), limit=400)
-        body = _clean(item.get("summary"), limit=1600)
+        body = _clean(item.get("summary"), limit=None)
         if not title and not body:
             continue
         symbols = [
@@ -254,7 +286,10 @@ def build_public_home_view(
                 "kind": _clean(item.get("kind"), limit=40),
                 "title": title,
                 "summary": body,
-                "business_context": _clean(item.get("business_context"), limit=1200),
+                "what_changed": _clean(item.get("what_changed"), limit=None),
+                "why": _clean(item.get("why"), limit=None),
+                "business_context": _clean(item.get("business_context"), limit=None),
+                "watch_next": _clean(item.get("watch_next"), limit=None),
                 "symbols": ordered_symbols,
                 "primary_symbol": primary_symbol,
                 "change_pct": _number(attention_change_pct),
@@ -294,6 +329,7 @@ def build_public_home_view(
         "graph": graph,
         "beats": beats,
         "daily_datapoints": daily_datapoints,
+        "daily_datapoints_as_of": max((item["selected_at"] for item in daily_datapoints), default=""),
         "coverage": {
             "candidate_count": _count(coverage.get("candidate_count")),
             "event_count": _count(coverage.get("event_count")),

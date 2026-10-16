@@ -1,0 +1,69 @@
+{
+  "status": "local implementation; final native UI acceptance blocked by host",
+  "installed_phone_build": 7,
+  "server_deployments": [],
+  "candidate_images": {
+    "api": {
+      "run": "cj14d",
+      "image": "snpipelineacr03130136.azurecr.io/native-requests-api-dev@sha256:148af2c1ebca705012378c4bc12ed017f468233e18432644948fc906ea007b88"
+    },
+    "web": {
+      "run": "cj14e",
+      "image": "snpipelineacr03130136.azurecr.io/native-requests-web-dev@sha256:ef09a83cce6f3cc206f1ed2dee4ea25be2ce1490a25f1b2a0c7f2698a1787510"
+    }
+  },
+  "checks": {
+    "real_database": "4 passed in 68.34s; isolated QA namespaces; QA-only 15s connection timeout",
+    "gateway_auth": "8 passed",
+    "isolated_web_build": "passed",
+    "native_preview_build": "passed",
+    "selector": "999 instruments; 40 selected; all four extrema retained; collinear/coincident/singleton checks passed"
+  },
+  "ui_review": {
+    "markets": "40 and 35 point views reviewed on iPhone16; full-universe scales retained",
+    "network": "up/down shapes and colors reviewed; final hidden-label correction compiled but pending visual recheck",
+    "requests": "inbox and form reviewed; full submission/follow-up/reopen flow pending",
+    "authentication": "synthetic isolated local QA only; normal signed-in dev acceptance pending"
+  },
+  "blocker": "Host load average 484; simulator install failed invalid state / Mach server died; app launch timed out after simulator restarts",
+  "source_sha256": {
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/SpectralNatureMVPApp.swift": "8f27bf244f9c2bf7d30e92c63217311520a946c71b58f5992bb6428d002e4de2",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AttentionCharts.swift": "4202bb40a7250c4e2242e21149b49f6f23735dbb6e7cb1a2384ff1d01b8a7e8a",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/MarkdownView.swift": "f1725608eca9b7529ccb0d13ec5113c01e935bff2e04b2bb546cef95cf2a2ad7",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ScatterPlot.swift": "86586208c2c751b0fc786646e87a416f6e4d11a01757b2067fc4e4e01a38d72b",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/WorkbenchDesign.swift": "1b111d4b952b8532389950cad90ba789aca7be139d5be2021db7bc48db525628",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/SankeyChart.swift": "bcdc01232b5014c63fd405423d7853c58b255040fb9b78a7fa514c5ffbe1d287",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/PeripheralScatterSelection.swift": "31f5a1c32c861121455532058f2dccd27a3bda85fadebaf76a3a2ef2c547b748",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AnalysisCharts.swift": "1250c7ebcbf30aa0f90ef59c23b31cfdd7ea10d1b661ac515b739f3ed2e09e57",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/AppSession.swift": "fc21cd8a0fe31a689799ba86474345d85d8c1e35eded0f7da7d43259e958bea9",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/RootView.swift": "e4ffb5fe00ea6fc9366e623ce3c03b658fa067bb2ee32d0550c80ef6d80850b8",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/AppEnvironment.swift": "0e3fc7f42e217d793373a76021d8cfd19f63dcb150bd93071f3356ea83c7d674",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/JSONValue.swift": "76c28c762629fceefe327a7c2d6b65e46e1b3352c7145424043bb42df4b26eb3",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIClient.swift": "52019336cb201971c5fa3141d70587860110c5973dd62d53a552597af41f0988",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift": "7c89abbb5db2c982923fa75fb65942a3d944bebc8c37187b4dcdce3800afd3eb",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift": "a9b3b7b952ea14d76ebf5582978ff16d2183eb9603642e4a8fac3c90710f09ba",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Home/HomeView.swift": "f846de1b657b068e8be92022de0f37dae965c51abfbf43db363ceae8cc5d0bee",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Auth/LoginView.swift": "7a3f53141e5adeeb94847ba3c4c16043f0f90337cb03e81d3d5783fbfa0b011d",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Auth/AccountLink.swift": "5a6350f12044d755c7343a293d1d0ec32a651eadc7d62a8fad2b4e824bc3d4b1",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/AdminView.swift": "dea88efb78860b53f09a81ee10a38acb293275bb72f5bfe611ddee4952269ca7",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/AttentionGraphView.swift": "7cd946c29ebc862be86906b3d3977c5dff0568c1ed249257bd3af137a0ee84b9",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/OptionsView.swift": "d2a3f3aa558e1d7d318e6accff3f9c5253202c7da5c477f023f3d2b93995c882",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/FeatureRequestsView.swift": "f984b84808665c345928649848580e826fb144d2b091ad474e559d11f1779e4a",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/InvestigatorView.swift": "c596a7d034d46e8210b8b180d0ba8f02aa4349f6bcee36e5262555686f20f7a5",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/MacroView.swift": "90a4e56584a68154739e8134392f240fab96dc887798816de498e6f54c44093a",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/TradingView.swift": "0d078187f113f0135067673e20fb3099e93fad028345ce24f99deda16be8e9c7",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketsView.swift": "d5c472a9952151564601bb3b657125688bc196c1989fbf7f80b97c9daad56de9",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketReturnAnalysis.swift": "d170ee21da79d24ec337ca717e1012ecda7f6cefeb0a774a7859b16f08c2faa5",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioListsView.swift": "875694e6c2c0cb0d42f57c07ff5485efc23981c4b10b954aafb00bfcd3662ce5",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioView.swift": "a03012c9a1a3888eeb1cb1c0596d43f9491356d0ad4e22775d544eccabe4e8ad",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Core/Security/KeychainTokenStore.swift": "a3690e1b7c5843fb43ee179e470ed5014b75d50a4e25ed303a8a58b45db29660",
+    "ios_app/SpectralNatureMVP/project.yml": "ebb3bcaa5a3d79a8978b700a91ec34e404fcb346c2130477c48338c962ffb0a9",
+    "api/feature_requests.py": "a9de6f58dc920cd9f81431d7b606f8fa19ca24261502a66084265df334d24158",
+    "services/feature_requests.py": "653c9861b0e70a81680e53b6ac3907325b5aee2b2da29837762deb382b6d9681",
+    "tests/test_feature_requests.py": "64eae92b8c2afa87a78a854d56bd51d32946431feca53d718c63d798e7aca033",
+    "web/lib/server/http.ts": "dc7957240f6182314fa9538c38117435cda33efcb41699fc12e29aeb2c6c3bd7",
+    "web/app/api/feature-requests/route.ts": "dbf42ef57a02390e3515996c01e8c1bae2a72237f502f7e21e9b6c587ef43fdd",
+    "web/app/api/feature-requests/[requestId]/route.ts": "4b9804874bcc2c07d2e1087c0833237688c263324bfe4b9e351dac1dd337147f",
+    "web/app/api/feature-requests/[requestId]/messages/route.ts": "1ed154a38eccc9b43e4e4828bf6c5f8f22d98167059a06f704cd74a566b79cdf"
+  }
+}

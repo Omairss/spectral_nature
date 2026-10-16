@@ -1,0 +1,429 @@
+{
+  "audit_date_local": "2026-10-12",
+  "timezone": "America/Los_Angeles",
+  "scope": "Read-only evaluation. No runtime configuration, code, schedule, deployment, provider execution policy or account funding changed.",
+  "evidence_window_utc": {
+    "first_event": "2026-10-06 05:12:05.759022+00:00",
+    "last_event": "2026-10-12 20:54:39.363202+00:00",
+    "window": "last seven days at collection"
+  },
+  "method": {
+    "table": "aql_zopedia_model_call_events",
+    "gateway_rows": 22738,
+    "main_usage_rows": 16656,
+    "any_usage_rows_including_repair_only_probe": 16657,
+    "token_totals_include_nested_json_repair_usage_once": true,
+    "pricing": "Current off-peak published rates by provider-reported model, not a historical invoice. Model-specific rates use nested repair model where supplied.",
+    "not_covered": [
+      "Earlier successful calls without usage instrumentation",
+      "Unreported adapter HTTP attempts, retries and failures",
+      "Direct generate_json calls bypassing the gateway",
+      "Embedding, ElevenLabs, search-provider and infrastructure billing"
+    ],
+    "normalization": "Development and reliability repair traffic make this an unsuitable steady-state production or monthly baseline."
+  },
+  "measured": {
+    "gateway_calls": 22738,
+    "success": 21203,
+    "failure": 1535,
+    "input_tokens": 321958582,
+    "output_tokens": 48986373,
+    "cached_input_tokens": 49130857,
+    "input_cache_hit_fraction": 0.15259992976363648,
+    "reasoning_output_tokens": 29931076,
+    "reasoning_fraction_of_output": 0.6110082083439817,
+    "adapter_json_repairs": 233,
+    "captured_usage_current_offpeak_usd": 70.794984771,
+    "exact_successful_repeated_prompt_calls": 347,
+    "exact_repeats_flash_equivalent_offpeak_usd": 0.5206491059999999,
+    "development_fraction_of_flash_equivalent_captured_cost": 0.4771253933872427
+  },
+  "runtime": {
+    "chat_provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "observed_primary_model": "deepseek-flash",
+    "thinking_mode": "enabled",
+    "reasoning_effort": "unset, provider defaults to high",
+    "embeddings": "separate OpenAI/Azure embedding capability; default text-embedding-3-small; billed usage absent from gateway events",
+    "audio": "ElevenLabs; billed usage absent from gateway events"
+  },
+  "purpose_costs_current_offpeak": [
+    {
+      "purpose": "agent.research_step",
+      "calls": 6533,
+      "covered": 4222,
+      "input": 116909431,
+      "output": 7415344,
+      "hit": 30030453,
+      "reasoning": 3943964,
+      "repairs": 44,
+      "success": 5759,
+      "price_usd_offpeak": 17.581308009000004
+    },
+    {
+      "purpose": "ticker_business_model_slot.direct",
+      "calls": 5486,
+      "covered": 5326,
+      "input": 71488405,
+      "output": 11234797,
+      "hit": 6580224,
+      "reasoning": 6523428,
+      "repairs": 164,
+      "success": 5482,
+      "price_usd_offpeak": 16.496846022000007
+    },
+    {
+      "purpose": "agent.answer_judge",
+      "calls": 1183,
+      "covered": 895,
+      "input": 43199781,
+      "output": 6031352,
+      "hit": 2078208,
+      "reasoning": 3701201,
+      "repairs": 5,
+      "success": 1130,
+      "price_usd_offpeak": 9.846182514000002
+    },
+    {
+      "purpose": "agent.final_synthesis",
+      "calls": 965,
+      "covered": 779,
+      "input": 22577241,
+      "output": 4294608,
+      "hit": 826368,
+      "reasoning": 2721272,
+      "repairs": 7,
+      "success": 941,
+      "price_usd_offpeak": 5.902291494
+    },
+    {
+      "purpose": "ticker_business_model_research_dossier.direct",
+      "calls": 471,
+      "covered": 286,
+      "input": 8231167,
+      "output": 7255235,
+      "hit": 475776,
+      "reasoning": 3966932,
+      "repairs": 7,
+      "success": 294,
+      "price_usd_offpeak": 5.517876978
+    },
+    {
+      "purpose": "agent.trajectory_monitor",
+      "calls": 4119,
+      "covered": 2701,
+      "input": 27817489,
+      "output": 3132329,
+      "hit": 3685120,
+      "reasoning": 2123361,
+      "repairs": 2,
+      "success": 4049,
+      "price_usd_offpeak": 5.5159305600000055
+    },
+    {
+      "purpose": "ticker_business_model_stack.direct",
+      "calls": 474,
+      "covered": 288,
+      "input": 7258367,
+      "output": 2664816,
+      "hit": 439296,
+      "reasoning": 1500978,
+      "repairs": 3,
+      "success": 297,
+      "price_usd_offpeak": 2.6230681380000003
+    },
+    {
+      "purpose": "retrieval.plan",
+      "calls": 281,
+      "covered": 223,
+      "input": 10800952,
+      "output": 372348,
+      "hit": 1026944,
+      "reasoning": 273966,
+      "repairs": 0,
+      "success": 223,
+      "price_usd_offpeak": 1.6925908320000012
+    },
+    {
+      "purpose": "agent.memory_reflection",
+      "calls": 448,
+      "covered": 219,
+      "input": 1944322,
+      "output": 1348796,
+      "hit": 221312,
+      "reasoning": 794281,
+      "repairs": 0,
+      "success": 400,
+      "price_usd_offpeak": 1.068393036
+    },
+    {
+      "purpose": "daily_market_datapoints.direct",
+      "calls": 43,
+      "covered": 28,
+      "input": 5590942,
+      "output": 284133,
+      "hit": 2098304,
+      "reasoning": 273030,
+      "repairs": 0,
+      "success": 41,
+      "price_usd_offpeak": 0.7006704120000001
+    },
+    {
+      "purpose": "attention_candidate_research_plan",
+      "calls": 492,
+      "covered": 265,
+      "input": 208599,
+      "output": 1133022,
+      "hit": 152820,
+      "reasoning": 865629,
+      "repairs": 0,
+      "success": 414,
+      "price_usd_offpeak": 0.6886385099999992
+    },
+    {
+      "purpose": "attention_search_relevance",
+      "calls": 1356,
+      "covered": 900,
+      "input": 972016,
+      "output": 946109,
+      "hit": 381440,
+      "reasoning": 873537,
+      "repairs": 0,
+      "success": 1348,
+      "price_usd_offpeak": 0.6573961199999999
+    },
+    {
+      "purpose": "page_agentic_summary_review.direct",
+      "calls": 278,
+      "covered": 178,
+      "input": 1521784,
+      "output": 815118,
+      "hit": 824064,
+      "reasoning": 774503,
+      "repairs": 0,
+      "success": 261,
+      "price_usd_offpeak": 0.5962009920000002
+    },
+    {
+      "purpose": "page_agentic_summary_quality.direct",
+      "calls": 159,
+      "covered": 97,
+      "input": 895173,
+      "output": 431442,
+      "hit": 48512,
+      "reasoning": 360354,
+      "repairs": 0,
+      "success": 144,
+      "price_usd_offpeak": 0.3860098860000001
+    },
+    {
+      "purpose": "candidate_synthesis",
+      "calls": 66,
+      "covered": 45,
+      "input": 320534,
+      "output": 399271,
+      "hit": 70016,
+      "reasoning": 329493,
+      "repairs": 0,
+      "success": 66,
+      "price_usd_offpeak": 0.27735034799999997
+    },
+    {
+      "purpose": "answer_reasoning_audit.direct",
+      "calls": 4,
+      "covered": 4,
+      "input": 272890,
+      "output": 43688,
+      "hit": 0,
+      "reasoning": 35419,
+      "repairs": 0,
+      "success": 4,
+      "price_usd_offpeak": 0.26660964
+    },
+    {
+      "purpose": "page_summary_format.direct",
+      "calls": 126,
+      "covered": 89,
+      "input": 648137,
+      "output": 235387,
+      "hit": 92544,
+      "reasoning": 171185,
+      "repairs": 0,
+      "success": 126,
+      "price_usd_offpeak": 0.224848782
+    },
+    {
+      "purpose": "daily_market_datapoints_review.direct",
+      "calls": 38,
+      "covered": 25,
+      "input": 234158,
+      "output": 243392,
+      "hit": 59392,
+      "reasoning": 235475,
+      "repairs": 0,
+      "success": 34,
+      "price_usd_offpeak": 0.17242827600000002
+    }
+  ],
+  "scope_metrics_flash_equivalent_offpeak": {
+    "None": {
+      "calls": 4566,
+      "success": 4545,
+      "failure": 21,
+      "covered": 0,
+      "input": 0,
+      "output": 0,
+      "hit": 0,
+      "reasoning": 0,
+      "json_repairs": 0,
+      "miss": 0,
+      "flash_usd_offpeak": 0.0
+    },
+    "development": {
+      "calls": 5306,
+      "success": 5118,
+      "failure": 188,
+      "covered": 5118,
+      "input": 166161004,
+      "output": 17104989,
+      "hit": 10661758,
+      "reasoning": 9305345,
+      "json_repairs": 118,
+      "miss": 155499246,
+      "flash_usd_offpeak": 33.61986557399998
+    },
+    "production": {
+      "calls": 12457,
+      "success": 11135,
+      "failure": 1322,
+      "covered": 11134,
+      "input": 150371555,
+      "output": 30876807,
+      "hit": 36514539,
+      "reasoning": 20002182,
+      "json_repairs": 114,
+      "miss": 113857016,
+      "flash_usd_offpeak": 35.71418021699983
+    },
+    "local": {
+      "calls": 409,
+      "success": 405,
+      "failure": 4,
+      "covered": 404,
+      "input": 5426023,
+      "output": 1004577,
+      "hit": 1954560,
+      "reasoning": 623549,
+      "json_repairs": 1,
+      "miss": 3471463,
+      "flash_usd_offpeak": 1.1293293300000007
+    }
+  },
+  "billing_state": {
+    "checked_with": "GET /user/balance, no paid inference",
+    "is_available": false,
+    "reported_usd_balance": -0.07,
+    "http_402_failures_on_2026_10_12_utc": 983,
+    "interpretation": "Rejected insufficient-funds calls do not establish billed tokens. Account-wide execution needs a terminal-provider circuit breaker and durable stage resume."
+  },
+  "architecture_findings": [
+    {
+      "priority": 1,
+      "finding": "Company research creates dossier findings, then invokes all planned business questions anyway. Gap list is explicitly discarded. Each question repeats substantial common research context.",
+      "code": "services/aql/business_model_stack.py:1908",
+      "change": "Make the shared dossier the reusable research result. Resolve related questions together; let the shared LLM choose follow-ups for missing, conflicting or valuable additional evidence. Preserve broad discovery and periodically explore beyond changed sources.",
+      "measured_stage_fraction": 0.233022806281578,
+      "interpretation": "Stage share is an upper bound on savings from eliminating this stage, not a claim that all fact-resolution work is redundant."
+    },
+    {
+      "priority": 2,
+      "finding": "Changing question and question-specific JSON fields precede the shared research dossier. Only 15.26% of recorded input is served from cache.",
+      "code": "services/aql/business_model_stack.py:1863",
+      "change": "Version and deterministically serialize common instructions/evidence first; append changing questions last. Reuse necessary requests to establish prefixes. Provider cache remains best-effort.",
+      "scenarios": [
+        {
+          "input_cache_hit_fraction": 0.4,
+          "usd_offpeak": 59.000038624,
+          "fraction_saved": 0.16660708643632072
+        },
+        {
+          "input_cache_hit_fraction": 0.6,
+          "usd_offpeak": 49.491447561,
+          "fraction_saved": 0.3009187342706604
+        },
+        {
+          "input_cache_hit_fraction": 0.8,
+          "usd_offpeak": 39.982856498,
+          "fraction_saved": 0.4352303821050003
+        }
+      ]
+    },
+    {
+      "priority": 3,
+      "finding": "Default thinking enabled for almost all roles. formatter_over_aql includes substantive inference, so it is not a reliable low-cost routing label.",
+      "code": "services/llm.py:689",
+      "change": "Assign thinking effort by actual task requirements and qualitative comparisons. Start with genuine transformations and simple execution-control tasks; retain strong reasoning for discovery, conflicting evidence and final judgment.",
+      "all_reasoning_removal_usd_ceiling": 18.04391304,
+      "interpretation": "Removing every reasoning token is not a useful or realistic target. Reasoning is 61% of output, approximately 25.5% of captured cost."
+    },
+    {
+      "priority": 4,
+      "finding": "Answer judges and trajectory monitors together consume about 21.7% of repriced captured usage, before additional page-specific review.",
+      "code": "services/zopedia_agent.py:1910",
+      "change": "Give research and final publication reviews clear ownership. Share completed review state and assess whether each additional check changes the result. Do not remove independent durable-memory authorization."
+    },
+    {
+      "priority": 5,
+      "finding": "Full research jobs repeat while baseline business state is relatively stable. Development/repair contributes roughly 48% of captured Flash-equivalent cost. Whole-job reruns can replay already successful paid stages.",
+      "code": "pipeline/jobs/main.py",
+      "change": "Extend existing shared research owners with immutable artifact versions, source dependencies, changed-evidence updates, durable stage checkpoints and resume. Share company/event research across News, Home, Trading and chat within permission/environment boundaries. Keep fresh-event discovery immediate and independent."
+    },
+    {
+      "priority": 6,
+      "finding": "Gateway telemetry measures logical calls, not every billable attempt. Some active filing/context paths call the raw client directly. Embedding and TTS usage are not included. Nested agent run IDs can conceal parent job cost.",
+      "code": "services/aql_zopedia_gateway.py:151",
+      "change": "Measure usage at provider transport attempts with root/parent call IDs, environment, actual model, thinking effort, cached and reasoning tokens and price version. Attribute to shared artifacts and reconcile actual provider billing. Separate development and production quotas and balance forecasts."
+    },
+    {
+      "priority": 7,
+      "finding": "Corpus embeddings already deduplicate by content hash and embedding space; Trading Agent already shares unique-company research across horizons. Knowledge graph node-vector cache is process-local and keyed by node set; TTS records text hash after synthesis without consulting a reuse cache in the shared audio function.",
+      "code": "services/saa/semantic_index.py:35",
+      "change": "Preserve existing reuse. Extend content/model/version-based durable embedding reuse to graph paths, cache exact audio by text/voice/model/format, and resume repairs from accepted artifacts. Establish their actual bill before ranking these below measured chat costs."
+    }
+  ],
+  "ml_allocation_direction": {
+    "objective": "Expected incremental useful research gained per marginal dollar, with explicit exploration.",
+    "state": [
+      "New evidence and artifact dependencies",
+      "Prior research and unresolved questions",
+      "Uncertainty and conflicting findings",
+      "User interests and prior corrections",
+      "Measured cost and latency by action"
+    ],
+    "actions": [
+      "Reuse an artifact",
+      "Read additional retained evidence",
+      "Acquire a source",
+      "Ask a focused follow-up",
+      "Increase reasoning effort",
+      "Perform an additional review"
+    ],
+    "learning": "Cold-start with the shared LLM planner and measured costs. Learn from human preferences, corrections and usefulness of new connections; retain randomized exploration. Unknown research is unlabeled. LLM confidence and accepting critics are not ground truth.",
+    "quality_review": "Personally compare full research outputs and breadth on diverse live cases before changing routing. No ticker rules, exact provenance gates, smaller universe or fixed financial narrative classes."
+  },
+  "already_present": [
+    "Materialized read-only Home path",
+    "Lossless exact repeated-content references in llm_context",
+    "Shared unique-company Trading Agent research across horizons",
+    "Content/embedding-space keyed corpus embeddings",
+    "Final company writer no longer repeats full fact inventory"
+  ],
+  "sources": [
+    "https://api-docs.deepseek.com/quick_start/pricing/",
+    "https://api-docs.deepseek.com/guides/kv_cache/",
+    "https://api-docs.deepseek.com/guides/thinking_mode/",
+    "https://api-docs.deepseek.com/api/get-user-balance/",
+    "https://developers.openai.com/api/docs/models/text-embedding-3-small"
+  ],
+  "decision": "Recommend research reuse and stable cached context first, then role-aware thinking and review consolidation. Savings overlap and must not be added; no supported steady-state monthly estimate yet."
+}

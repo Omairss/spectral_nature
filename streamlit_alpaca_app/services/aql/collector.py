@@ -3,10 +3,13 @@ AQL collector — web search and document collection functions.
 """
 from __future__ import annotations
 
+from ..llm_context import render_research_prompt
+from ..llm_execution import latest_research_artifact
+
 import hashlib
 import json
 import os
-from typing import Any
+from typing import Any, Callable
 
 import pandas as pd
 
@@ -21,7 +24,6 @@ from ..web_research import (
     load_serper_config,
     search_client_provider,
 )
-from ..aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from .constants import (
     LLMClient,
     PLANNER_SCHEMA,
@@ -177,20 +179,10 @@ def _llm_search_relevance_flags(
     if llm_client is None:
         return baseline_flags
     try:
-        data = generate_json_via_aql_zopedia_gateway(
-            llm_client=llm_client,
-            surface="aql.search_relevance",
-            purpose="attention_search_relevance",
-            call_type="utility",
-            system_prompt=(
-                "You are a relevance gate for company news research. "
-                "Select only indices that are materially relevant to the target company and likely business triggers, "
-                "including trials, approvals, guidance, partnerships, product/commercial updates, management actions, "
-                "or major financial/company developments. Exclude noisy insider/form-4/dividend-equivalent chatter, "
-                "routine ex-dividend notices, isolated analyst target tweaks, and generic stock-up/stock-down recaps "
-                "that do not identify a concrete business development."
-            ),
-            user_prompt=json.dumps(
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=json.dumps(
                 {
                     "query": query,
                     "symbol": symbol,
@@ -209,14 +201,27 @@ def _llm_search_relevance_flags(
                 ensure_ascii=False,
                 default=str,
             ),
+            instructions="You are a relevance gate for company news research. Select only indices that are materially relevant to the target company and likely business triggers, including trials, approvals, guidance, partnerships, product/commercial updates, management actions, or major financial/company developments. Exclude noisy insider/form-4/dividend-equivalent chatter, routine ex-dividend notices, isolated analyst target tweaks, and generic stock-up/stock-down recaps that do not identify a concrete business development.",
             schema_name="attention_search_relevance",
             schema=SEARCH_RELEVANCE_SCHEMA,
-            metadata={
+            task="attention_search_relevance", stage='relevance',
+            surface="aql.search_relevance",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="utility",
+            operation_metadata={
                 "symbol": symbol,
                 "company_name": company_name,
                 "item_count": len(items),
             },
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
         selected = {
             int(value)
             for value in list(data.get("relevant_indices") or [])
@@ -242,20 +247,10 @@ def _llm_tavily_route_decision(
             return False, "news", query, "primary_search_results_relevant"
         return True, "general", default_tavily_query, "primary_search_results_not_relevant"
     try:
-        data = generate_json_via_aql_zopedia_gateway(
-            llm_client=llm_client,
-            surface="aql.search_router",
-            purpose="attention_search_router",
-            call_type="utility",
-            system_prompt=(
-                "You are a research-router for market analysis. "
-                "Decide if the primary news-search results are relevant enough to explain the move. "
-                "If not relevant, call Tavily using topic='general' for broader RAG retrieval. "
-                "Prefer Tavily when primary search results are sparse or mostly low-signal (insider/form-4, ex-dividend, "
-                "analyst target-only notes, or generic price-action recaps without concrete company developments). "
-                "When using Tavily, output a high-recall query that includes company identity and likely business triggers."
-            ),
-            user_prompt=json.dumps(
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=json.dumps(
                 {
                     "query": query,
                     "symbol": symbol,
@@ -268,15 +263,28 @@ def _llm_tavily_route_decision(
                 ensure_ascii=False,
                 default=str,
             ),
+            instructions="You are a research-router for market analysis. Decide if the primary news-search results are relevant enough to explain the move. If not relevant, call Tavily using topic='general' for broader RAG retrieval. Prefer Tavily when primary search results are sparse or mostly low-signal (insider/form-4, ex-dividend, analyst target-only notes, or generic price-action recaps without concrete company developments). When using Tavily, output a high-recall query that includes company identity and likely business triggers.",
             schema_name="attention_search_router",
             schema=SEARCH_ROUTER_SCHEMA,
-            metadata={
+            task="attention_search_router", stage='search',
+            surface="aql.search_router",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="utility",
+            operation_metadata={
                 "symbol": symbol,
                 "company_name": company_name,
                 "preview_count": len(serp_preview),
                 "primary_has_identity_match": bool(serp_has_identity_match),
             },
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
         use_tavily = bool(data.get("use_tavily"))
         topic = _coerce_text(data.get("tavily_topic")).lower() or "general"
         if topic not in {"news", "general"}:
@@ -520,220 +528,30 @@ def _search_query_results(
     include_provider_payload: bool = False,
     include_provider_text: bool = False,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    request_rows: list[dict[str, Any]] = []
-    result_rows: list[dict[str, Any]] = []
-    query_id = f"query::{hashlib.sha1(f'{candidate_id}|{query}'.encode('utf-8')).hexdigest()[:16]}"
-    normalized_symbol = _normalize_symbol(symbol)
-    normalized_company = _coerce_text(company_name)
-    serp_preview: list[dict[str, str]] = []
-    serp_relevant_count = 0
-    serp_failed = False
-    primary_provider = search_client_provider(serp_client) or "primary_search"
+    """Legacy data-shape adapter; research itself belongs to the shared engine."""
+    from ..aql_zopedia_engine import run_aql_zopedia_agent
+    from .evidence_pack import materialize_research_artifacts
 
-    if serp_client is not None:
-        request_rows.append(
-            {
-                "run_id": run_id,
-                "asof_time_utc": asof_time_utc,
-                "candidate_id": candidate_id,
-                "query_id": query_id,
-                "provider": primary_provider,
-                "query": query,
-                "route_mode": "primary",
-            }
-        )
-        try:
-            results = serp_client.search(query, news=True, num=max(min(int(budget), 6), 1))
-        except WebResearchError:
-            serp_failed = True
-            results = []
-        except Exception as exc:
-            error_text = _trim(str(exc), 180)
-            result_rows.append(
-                {
-                    "run_id": run_id,
-                    "asof_time_utc": asof_time_utc,
-                    "candidate_id": candidate_id,
-                    "query_id": query_id,
-                    "provider": primary_provider,
-                    "result_id": f"{query_id}::{primary_provider}::error",
-                    "title": "",
-                    "url": "",
-                    "snippet": "",
-                    "error_text": error_text,
-                    "result_kind": "error",
-                    "source": primary_provider,
-                    "published_at": "",
-                    "authority_bucket": "web",
-                    "authority_rank": 3,
-                }
-            )
-            results = []
-        serp_candidates: list[dict[str, str]] = []
-        for item in list(results or [])[: max(min(int(budget), 6), 1)]:
-            if not isinstance(item, WebSearchResult):
-                continue
-            serp_candidates.append(
-                {
-                    "title": _coerce_text(item.title),
-                    "snippet": _coerce_text(item.snippet),
-                    "provider_text": _provider_result_text(item),
-                    "source": _coerce_text(item.source),
-                    "url": _coerce_text(item.url),
-                    "published_at": coerce_article_published_at(item.published_at, url=item.url),
-                    "provider_payload_json": _provider_payload_json(item.raw),
-                }
-            )
-        serp_flags = _llm_search_relevance_flags(
-            query=query,
-            symbol=normalized_symbol,
-            company_name=normalized_company,
-            items=serp_candidates,
-            llm_client=llm_client,
-        )
-        for row, keep in zip(serp_candidates, serp_flags):
-            title = _coerce_text(row.get("title"))
-            snippet = _coerce_text(row.get("snippet"))
-            serp_preview.append(
-                {
-                    "title": title,
-                    "snippet": snippet,
-                    "source": _coerce_text(row.get("source")),
-                }
-            )
-            if bool(keep) and not _is_irrelevant_news_text(title, snippet):
-                serp_relevant_count += 1
-            authority_bucket, authority_rank = _source_authority_bucket(row.get("source"), row.get("url"))
-            result_rows.append(
-                {
-                    "run_id": run_id,
-                    "asof_time_utc": asof_time_utc,
-                    "candidate_id": candidate_id,
-                    "query_id": query_id,
-                    "provider": primary_provider,
-                    "result_id": f"{query_id}::{primary_provider}::{hashlib.sha1((_coerce_text(row.get('url')) or title).encode('utf-8')).hexdigest()[:12]}",
-                    "title": title,
-                    "url": _coerce_text(row.get("url")),
-                    "snippet": snippet,
-                    "provider_text": _coerce_text(row.get("provider_text")) if include_provider_text else "",
-                    "error_text": "",
-                    "result_kind": "result",
-                    "source": _coerce_text(row.get("source")) or primary_provider,
-                    "published_at": coerce_article_published_at(row.get("published_at"), url=row.get("url")),
-                    "authority_bucket": authority_bucket,
-                    "authority_rank": authority_rank,
-                    "query_text": query,
-                    "provider_payload_json": _coerce_text(row.get("provider_payload_json")) if include_provider_payload else "",
-                }
-            )
-
-    use_tavily = bool(tavily_client is not None and (serp_client is None or serp_failed))
-    tavily_topic = "news"
-    tavily_query = query
-    route_reason = "primary_search_unavailable" if use_tavily else "primary_search_results_relevant"
-    if tavily_client is not None and serp_client is not None and not serp_failed:
-        use_tavily, tavily_topic, tavily_query, route_reason = _llm_tavily_route_decision(
-            query=query,
-            symbol=normalized_symbol,
-            company_name=normalized_company,
-            serp_preview=serp_preview,
-            serp_has_identity_match=serp_relevant_count > 0,
-            llm_client=llm_client,
-        )
-        if serp_relevant_count <= 0:
-            use_tavily = True
-
-    if tavily_client is not None and use_tavily:
-        request_rows.append(
-            {
-                "run_id": run_id,
-                "asof_time_utc": asof_time_utc,
-                "candidate_id": candidate_id,
-                "query_id": query_id,
-                "provider": "tavily",
-                "query": tavily_query,
-                "route_mode": "rag_fallback" if serp_client is not None else "primary",
-                "route_reason": route_reason,
-                "topic": tavily_topic,
-            }
-        )
-        try:
-            results = tavily_client.search(tavily_query, max_results=max(min(int(budget), 4), 1), topic=tavily_topic)
-        except Exception as exc:
-            error_text = _trim(str(exc), 180)
-            result_rows.append(
-                {
-                    "run_id": run_id,
-                    "asof_time_utc": asof_time_utc,
-                    "candidate_id": candidate_id,
-                    "query_id": query_id,
-                    "provider": "tavily",
-                    "result_id": f"{query_id}::tavily::error",
-                    "title": "",
-                    "url": "",
-                    "snippet": "",
-                    "error_text": error_text,
-                    "result_kind": "error",
-                    "source": "tavily",
-                    "published_at": "",
-                    "authority_bucket": "web",
-                    "authority_rank": 3,
-                }
-            )
-            results = []
-        tavily_candidates: list[dict[str, str]] = []
-        for item in list(results or [])[: max(min(int(budget), 6), 1)]:
-            if not isinstance(item, WebSearchResult):
-                continue
-            tavily_candidates.append(
-                {
-                    "title": _coerce_text(item.title),
-                    "snippet": _coerce_text(item.snippet),
-                    "provider_text": _provider_result_text(item),
-                    "source": _coerce_text(item.source),
-                    "url": _coerce_text(item.url),
-                    "published_at": coerce_article_published_at(item.published_at, url=item.url),
-                    "provider_payload_json": _provider_payload_json(item.raw),
-                }
-            )
-        tavily_flags = _llm_search_relevance_flags(
-            query=tavily_query,
-            symbol=normalized_symbol,
-            company_name=normalized_company,
-            items=tavily_candidates,
-            llm_client=llm_client,
-        )
-        for row, keep in zip(tavily_candidates, tavily_flags):
-            if not bool(keep):
-                continue
-            title = _coerce_text(row.get("title"))
-            snippet = _coerce_text(row.get("snippet"))
-            if _is_irrelevant_news_text(title, snippet):
-                continue
-            authority_bucket, authority_rank = _source_authority_bucket(row.get("source"), row.get("url"))
-            result_rows.append(
-                {
-                    "run_id": run_id,
-                    "asof_time_utc": asof_time_utc,
-                    "candidate_id": candidate_id,
-                    "query_id": query_id,
-                    "provider": "tavily",
-                    "result_id": f"{query_id}::tavily::{hashlib.sha1((_coerce_text(row.get('url')) or title).encode('utf-8')).hexdigest()[:12]}",
-                    "title": title,
-                    "url": _coerce_text(row.get("url")),
-                    "snippet": snippet,
-                    "provider_text": _coerce_text(row.get("provider_text")) if include_provider_text else "",
-                    "error_text": "",
-                    "result_kind": "result",
-                    "source": _coerce_text(row.get("source")) or "tavily",
-                    "published_at": coerce_article_published_at(row.get("published_at"), url=row.get("url")),
-                    "authority_bucket": authority_bucket,
-                    "authority_rank": authority_rank,
-                    "query_text": tavily_query,
-                    "provider_payload_json": _coerce_text(row.get("provider_payload_json")) if include_provider_payload else "",
-                }
-            )
-    return request_rows, result_rows
+    if llm_client is None:
+        return [], []
+    result = run_aql_zopedia_agent(
+        query=query,
+        task="source_research",
+        surface="aql.source_research",
+        max_tool_calls=max(int(budget), 1),
+        llm_client=llm_client,
+        persist_findings=False,
+        write_policy="none",
+        request_context={"asof_time_utc": str(asof_time_utc)},
+    )
+    trace = materialize_research_artifacts(
+        result,
+        candidate_id=candidate_id,
+        subject=symbol,
+        run_id=run_id,
+        asof_time_utc=asof_time_utc,
+    )
+    return trace["request_rows"], trace["result_rows"]
 
 
 def _candidate_context_documents(
@@ -746,8 +564,6 @@ def _candidate_context_documents(
     yield_curve_facts_frame: pd.DataFrame | None,
     run_id: str,
     asof_time_utc: pd.Timestamp,
-    official_routes: list[str],
-    priority_entities: list[str],
 ) -> list[dict[str, Any]]:
     symbol = _normalize_symbol(candidate.get("symbol"))
     documents: list[dict[str, Any]] = []
@@ -793,7 +609,7 @@ def _candidate_context_documents(
         ("context_headline", context.get("llm_headline")),
     ]
     for label, text in context_snippets:
-        clean = _trim(text, 400)
+        clean = _coerce_text(text)
         if not clean:
             continue
         authority_bucket, authority_rank = _source_authority_bucket(context.get("llm_source_line") or "attention_context")
@@ -816,13 +632,15 @@ def _candidate_context_documents(
                 "source_trace": _json_dumps({"source": "attention_context_bundle"}),
             }
         )
-    if "sec" in {route.lower() for route in official_routes} and isinstance(filings_frame, pd.DataFrame) and not filings_frame.empty:
+    if isinstance(filings_frame, pd.DataFrame) and not filings_frame.empty:
         filings = filings_frame.copy()
         if "symbol" in filings.columns:
             filings["symbol"] = filings["symbol"].astype(str).str.upper().str.strip()
             filings = filings[filings["symbol"] == symbol].copy()
         filings["filing_date"] = pd.to_datetime(filings.get("filing_date"), utc=True, errors="coerce")
-        filings = filings.sort_values("filing_date", ascending=False, na_position="last").head(4)
+        filings = filings.sort_values(
+            "filing_date", ascending=False, na_position="last"
+        )
         for _, row in filings.iterrows():
             text = _coerce_text(row.get("filing_excerpt") or row.get("document_text") or row.get("primary_doc_description"))
             if not text:
@@ -846,15 +664,9 @@ def _candidate_context_documents(
                     "source_trace": _json_dumps({"source": "edgar_filings"}),
                 }
             )
-    if "fred" in {route.lower() for route in official_routes} and isinstance(fred_summary_frame, pd.DataFrame) and not fred_summary_frame.empty:
+    if isinstance(fred_summary_frame, pd.DataFrame) and not fred_summary_frame.empty:
         fred = fred_summary_frame.copy()
         fred["label"] = fred.get("label", pd.Series(dtype=str)).astype(str)
-        tokens = _tag_tokens(priority_entities)
-        if tokens:
-            fred["_match"] = fred["label"].map(lambda value: len(tokens & _tag_tokens([value])))
-            fred = fred[fred["_match"] > 0].sort_values(["_match"], ascending=False).head(3)
-        else:
-            fred = fred.head(2)
         for _, row in fred.iterrows():
             summary = (
                 f"{_coerce_text(row.get('label') or row.get('series_id'))}: latest {_coerce_text(row.get('latest_value'))}"
@@ -879,7 +691,10 @@ def _candidate_context_documents(
                     "source_trace": _json_dumps({"source": "fred_summary"}),
                 }
             )
-    if "treasury" in {route.lower() for route in official_routes} and _yield_context_relevant(candidate):
+    if (
+        isinstance(yield_curve_facts_frame, pd.DataFrame)
+        and not yield_curve_facts_frame.empty
+    ):
         yield_facts = _latest_yield_facts(yield_curve_facts_frame)
         summary = _yield_fact_summary_text(yield_facts)
         if summary:
@@ -913,173 +728,9 @@ def _candidate_context_documents(
     return deduped
 
 
-def _empty_research_plan() -> dict[str, Any]:
-    return {
-        "research_subjects": [],
-        "hypotheses": [],
-        "queries": [],
-        "official_routes": [],
-        "priority_entities": [],
-        "evidence_budget": 0,
-    }
-
-
-def _summary_research_items(home_payload: dict[str, Any]) -> list[dict[str, Any]]:
-    items: list[dict[str, Any]] = []
-    for section_name, section_items in (
-        ("top_event", list(home_payload.get("top_events") or [])[:3]),
-        ("must_read_mover", list(home_payload.get("must_read_movers") or [])[:4]),
-        ("unresolved_move", list(home_payload.get("unresolved_large_moves") or [])[:3]),
-    ):
-        for item in section_items:
-            symbols = [
-                str(value).upper().strip()
-                for value in list(item.get("supporting_symbols") or [item.get("symbol")])
-                if str(value or "").strip()
-            ]
-            items.append(
-                {
-                    "kind": section_name,
-                    "title": _coerce_text(item.get("event_title") or item.get("headline") or item.get("symbol")),
-                    "summary": _coerce_text(
-                        item.get("surface_summary_text")
-                        or item.get("why_happened_text")
-                        or item.get("why_now_text")
-                        or item.get("what_happened_text")
-                        or item.get("what_changed_text")
-                    ),
-                    "sector": _coerce_text(item.get("sector") or item.get("source_label")),
-                    "industry": _coerce_text(item.get("industry")),
-                    "symbols": list(dict.fromkeys(symbols[:6])),
-                }
-            )
-    return items
-
-
-def _plan_summary_research(home_payload: dict[str, Any], *, llm_client: LLMClient | None) -> list[str]:
-    import json as _json
-
-    if llm_client is None:
-        return []
-
-    try:
-        summary_items = _summary_research_items(home_payload)
-        data = generate_json_via_aql_zopedia_gateway(
-            llm_client=llm_client,
-            surface="aql.summary_research_plan",
-            purpose="attention_summary_research_plan",
-            call_type="research_grade",
-            system_prompt=(
-                "You are planning research for a market homepage summary. "
-                "Look across market-wide activity and propose 3 to 5 search queries that can explain the shared macro, sector, "
-                "or cross-asset narrative. Do not emit one query per symbol. Prefer broad but concrete queries that could "
-                "tie multiple movers or events together."
-            ),
-            user_prompt=_json.dumps(
-                {
-                    "home_payload": {
-                        "generated_at_utc": _coerce_text(home_payload.get("generated_at_utc")),
-                        "coverage_summary": dict(home_payload.get("coverage_summary") or {}),
-                        "items": summary_items,
-                    },
-                    "instructions": {
-                        "query_count": "3-5",
-                        "no_per_symbol_queries": True,
-                        "prefer_cross_market_context": True,
-                    },
-                },
-                ensure_ascii=False,
-                default=str,
-            ),
-            schema_name="attention_research_plan",
-            schema=PLANNER_SCHEMA,
-            metadata={
-                "item_count": len(summary_items),
-                "generated_at_utc": _coerce_text(home_payload.get("generated_at_utc")),
-            },
-        )
-    except Exception:
-        return []
-
-    query_rows = [
-        item
-        for item in list((data or {}).get("queries") or [])
-        if _coerce_text((item or {}).get("query"))
-    ]
-    if not query_rows:
-        return []
-
-    deduped: list[str] = []
-    seen: set[str] = set()
-    for item in query_rows:
-        query = _trim(item.get("query"), 160)
-        if not query or query.lower() in seen:
-            continue
-        seen.add(query.lower())
-        deduped.append(query)
-        if len(deduped) >= 5:
-            break
-    return deduped
-
-
-def _plan_candidate_research(candidate: dict[str, Any], peer_symbols: list[str], llm_client: LLMClient | None) -> dict[str, Any]:
-    import json as _json
-    if llm_client is None:
-        return _empty_research_plan()
-    system_prompt = (
-        "You are planning bottom-up market-move research. "
-        "Use only the supplied facts. Do not use canned oil/rates/risk templates. "
-    )
-    user_prompt = _json.dumps(
-        {
-            "candidate": {
-                "symbol": _normalize_symbol(candidate.get("symbol")),
-                "subject": _candidate_subject(candidate),
-                "sector": _coerce_text(candidate.get("sector")),
-                "industry": _coerce_text(candidate.get("industry")),
-                "change_pct": _coerce_float(candidate.get("change_pct")),
-                "expected_move_pct": _coerce_float(candidate.get("expected_move_pct")),
-                "surprise_z": _coerce_float(candidate.get("surprise_z")),
-                "macro_exposure_tags": _safe_list(candidate.get("macro_exposure_tags")),
-                "business_tags": _safe_list(candidate.get("business_tags")),
-                "peer_symbols": peer_symbols[:5],
-            },
-        },
-        ensure_ascii=False,
-        default=str,
-    )
-    try:
-        data = generate_json_via_aql_zopedia_gateway(
-            llm_client=llm_client,
-            surface="aql.candidate_research_plan",
-            purpose="attention_candidate_research_plan",
-            call_type="research_grade",
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-            schema_name="attention_research_plan",
-            schema=PLANNER_SCHEMA,
-            metadata={
-                "symbol": _normalize_symbol(candidate.get("symbol")),
-                "subject": _candidate_subject(candidate),
-                "peer_count": len(peer_symbols),
-            },
-        )
-        queries = [item for item in data.get("queries", []) if _coerce_text((item or {}).get("query"))]
-        if not queries:
-            return _empty_research_plan()
-        return {
-            "research_subjects": data.get("research_subjects") or [],
-            "hypotheses": data.get("hypotheses") or [],
-            "queries": queries[:4],
-            "official_routes": data.get("official_routes") or [],
-            "priority_entities": data.get("priority_entities") or [],
-            "evidence_budget": int(data.get("evidence_budget") or len(queries) * 2 or 0),
-        }
-    except Exception:
-        return _empty_research_plan()
-
-
-def _peer_candidates(candidate: dict[str, Any], candidates: pd.DataFrame, *, limit: int = 5) -> list[str]:
+def _peer_candidates(
+    candidate: dict[str, Any], candidates: pd.DataFrame, *, limit: int = 5
+) -> list[str]:
     symbol = _normalize_symbol(candidate.get("symbol"))
     industry = _coerce_text(candidate.get("industry"))
     sector = _coerce_text(candidate.get("sector"))
@@ -1104,3 +755,64 @@ def _peer_candidates(candidate: dict[str, Any], candidates: pd.DataFrame, *, lim
         peers.append((peer_symbol, match + abs(_coerce_float(row.get("change_pct"), 0.0)) / 20.0))
     peers.sort(key=lambda item: (-item[1], item[0]))
     return [symbol for symbol, _ in peers[:limit]]
+
+
+def research_attention_candidate(
+    candidate: dict[str, Any],
+    *,
+    peer_symbols: list[str],
+    documents: list[dict[str, Any]],
+    llm_client: LLMClient,
+    timeout_seconds: float | None = None,
+    progress_callback: Callable[[dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    """Define a feed task; the shared engine owns its entire research lifecycle."""
+    from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+    from .constants import CLAIM_SCHEMA, SYMBOL_WRITER_SCHEMA
+
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            **SYMBOL_WRITER_SCHEMA["properties"],
+            **CLAIM_SCHEMA["properties"],
+        },
+        "required": [*SYMBOL_WRITER_SCHEMA["required"], *CLAIM_SCHEMA["required"]],
+    }
+    prior = latest_research_artifact(
+        access_scope="public_company_research",
+        subject="company:" + _normalize_symbol(candidate.get("symbol")),
+        task="ticker_business_model_research_dossier",
+    )
+    task_query = (
+        "Investigate this company and its observed market development. Explain what changed and the "
+        "useful business, customer, supplier, financing, sector or macro connections. Compare alternatives "
+        "and pursue original reporting when it improves the explanation. Existing investigations are dated "
+        "context that can be extended or corrected. Return the narrative and useful claims for the feed. "
+        "Claims may include plausible indirect connections; describe their strength without requiring proof "
+        "of causality. Reference the source IDs or tool_call_ids supplied by the shared engine."
+    )
+    task_query = render_research_prompt(
+        evidence={"completed_research": prior},
+        request={"candidate": candidate, "peer_symbols": peer_symbols},
+        instructions=task_query,
+    )
+    result = run_aql_zopedia_structured_agent(
+        query=task_query,
+        schema_name="attention_candidate_research",
+        schema=schema,
+        task="attention_candidate_research", stage='synthesis',
+        surface="attention.candidate",
+        initial_evidence=documents,
+        llm_client=llm_client,
+        run_timeout_seconds=timeout_seconds,
+        request_context=(
+            {"asof_time_utc": str(candidate["asof_time_utc"])}
+            if candidate.get("asof_time_utc") is not None
+            else None
+        ),
+        persist_findings=False,
+        write_policy="none",
+        progress_callback=progress_callback,
+    )
+    return result

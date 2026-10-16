@@ -18,7 +18,7 @@ function tabForPath(pathname: string) {
   if (pathname.startsWith("/trading-agent")) return { label: "Trading Agent", icon: "message" as const };
   if (pathname.startsWith("/admin")) return { label: "Admin", icon: "shield" as const };
   if (pathname.startsWith("/stock-investigator")) return { label: "Stock Investigator", icon: "chart" as const };
-  if (pathname.startsWith("/zopedia/runs/")) return { label: "Research", icon: "book" as const };
+  if (pathname.startsWith("/zopedia/runs/") || pathname.startsWith("/zopedia/conversations/")) return { label: "Research", icon: "book" as const };
   if (pathname.startsWith("/zopedia")) return { label: "Zopedia", icon: "book" as const };
   return { label: "Daily Brief", icon: "home" as const };
 }
@@ -28,7 +28,7 @@ export function WorkbenchShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
   const tab = useMemo(() => tabForPath(pathname), [pathname]);
-  const conversationOwnsCanvas = pathname === "/zopedia";
+  const conversationOwnsCanvas = pathname.startsWith("/zopedia") || pathname.startsWith("/admin");
 
   useEffect(() => {
     let active = true;

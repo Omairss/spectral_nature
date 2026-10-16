@@ -103,12 +103,25 @@ def test_run_analysis_python_classifies_missing_inputs():
         service=_service(),
         objective="needs input",
         code="add_metric('rows', len(datasets['prices']))",
+        dataset_refs=[{"name": "prices"}],
         persist=False,
     )
 
     assert result["status"] == "failed"
     assert result["metadata"]["failure_category"] == "analysis_input_missing"
     assert "Failure category: analysis_input_missing" in result["llm_context_text"]
+
+
+def test_run_analysis_python_computes_without_datasets():
+    result = zopedia_analysis.run_analysis_python(
+        service=_service(), objective="check supplied quantities",
+        code="result = {'value': 3 * 7}\nadd_metric('value', result['value'])",
+        timeout_seconds=10, persist=False,
+    )
+    assert result["status"] == "succeeded"
+    assert result["input_refs"] == []
+    assert result["result"] == {"value": 21}
+    assert "value=21" in result["llm_context_text"]
 
 
 def test_resolve_analysis_input_frames_keeps_duplicate_dataset_aliases_distinct():

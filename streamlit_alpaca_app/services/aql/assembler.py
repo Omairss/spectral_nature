@@ -365,8 +365,6 @@ def build_observed_cohort_event_bundles(
         scoped = item["rows"]
         label = _coerce_text(item["label"])
         direction = _coerce_text(item["direction"])
-        subject = _cohort_title_subject(scoped, fallback_label=label, fallback_kind=_coerce_text(item["kind"]))
-        verb = _cohort_direction_word(direction)
         supporting_symbols = [
             _normalize_symbol(value)
             for value in scoped.get("symbol", pd.Series(dtype=str)).tolist()
@@ -376,21 +374,10 @@ def build_observed_cohort_event_bundles(
             continue
         anchor_row = scoped.iloc[0]
         anchor_symbol = _normalize_symbol(anchor_row.get("symbol"))
-        member_text = _cohort_member_move_text(scoped)
-        shared_labels = _cohort_shared_label_text(scoped)
-        what_happened = f"{subject} {verb} together today."
-        if member_text:
-            what_happened = f"{what_happened} The largest moves included {member_text}."
+        # Observations nominate research; prose belongs to the shared research writer.
+        what_happened = ""
         business_context = ""
-        if shared_labels:
-            business_context = (
-                f"The group shares taxonomy labels such as {shared_labels}, so this is a connected cohort move rather than an isolated single-name move."
-            )
-        else:
-            business_context = "The affected names share sector or peer-group exposure, so this is a connected cohort move rather than an isolated single-name move."
-        watch_next = (
-            "Watch for company news, sector research, macro data, or fund-flow commentary that explains the driver."
-        )
+        watch_next = ""
         symbol_hash = hashlib.sha1("|".join(supporting_symbols).encode("utf-8")).hexdigest()[:10]
         event_id = f"observed-cohort-{item['kind']}-{symbol_hash}"
         event_score = float(item["score"]) + float(scoped["candidate_score"].sum(skipna=True)) * 0.25
@@ -401,7 +388,7 @@ def build_observed_cohort_event_bundles(
             "prompt_version": prompt_version,
             "model_name": model_name,
             "event_id": event_id,
-            "event_title": f"{subject} {verb} together",
+            "event_title": "",
             "surface_summary_text": " ".join(part for part in [what_happened, business_context] if part).strip(),
             "what_happened_text": what_happened,
             "why_happened_text": "",
@@ -446,6 +433,7 @@ def build_observed_cohort_event_bundles(
             "observed_cohort": True,
             "cohort_label": label,
             "cohort_kind": _coerce_text(item["kind"]),
+            "observed_members": scoped.to_dict(orient="records"),
             "source_dataset": "attention_candidates_1d",
         }
         bundles.append(bundle)
@@ -517,6 +505,9 @@ def _event_item(bundle: dict[str, Any], cluster_rows: pd.DataFrame, event_type: 
         anchor_direction = _coerce_text(bundle.get("anchor_direction")).lower()
         if anchor_direction not in {"up", "down"}:
             anchor_direction = "up" if up else ("down" if down else "")
+    if bundle.get("source_event"):
+        supporting_symbols = list(dict.fromkeys(_normalize_symbol(value) for value in bundle.get("supporting_symbols", []) if _normalize_symbol(value)))
+        anchor_symbol = _normalize_symbol(bundle.get("anchor_symbol"))
     surprise_score = _coerce_float(bundle.get("surprise_score"))
     surprise_z = _coerce_float(bundle.get("surprise_z"))
     reaction_pct = _coerce_float(bundle.get("cross_asset_reaction_pct"))
@@ -592,6 +583,7 @@ def _build_candidate_bundle(
     model_name: str,
     run_id: str,
     yield_facts: dict[str, Any] | None = None,
+    written: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     cause_status, why_today_mode = _judge_cause_status(claims)
     asof_time = pd.to_datetime(candidate.get("asof_time_utc"), utc=True, errors="coerce")
@@ -608,11 +600,24 @@ def _build_candidate_bundle(
     if cause_status == "partial" and same_day_documents:
         evidence_quality = "Developing"
         freshness_quality = "High"
-    written = _write_symbol_bundle(candidate, claims, peer_moves, llm_client=llm_client, cause_status=cause_status, yield_facts=yield_facts)
+    written = (
+        written
+        if written is not None
+        else _write_symbol_bundle(
+            candidate,
+            claims,
+            peer_moves,
+            llm_client=llm_client,
+            cause_status=cause_status,
+            yield_facts=yield_facts,
+        )
+    )
     document_importance = _document_importance_map(claims)
     evidence = []
     background = []
     for doc in documents:
+        if _coerce_text(doc.get("source_kind")) == "research_tool_result":
+            continue
         document_id = _coerce_text(doc.get("document_id"))
         source_kind = _coerce_text(doc.get("source_kind"))
         evidence_role = (
@@ -801,7 +806,10 @@ def _build_home_payload(
             _coerce_text(bundle.get("event_type")) or "cluster",
             event_score=_coerce_float(bundle.get("event_score"), 0.0),
         )
-        for bundle in sorted(event_bundles, key=lambda item: -_coerce_float(item.get("event_score"), 0.0))[: max(int(top_events_limit), 1)]
+        for bundle in (
+            [item for item in event_bundles if item.get("source_event")]
+            + sorted([item for item in event_bundles if not item.get("source_event")], key=lambda item: -_coerce_float(item.get("event_score"), 0.0))
+        )
     ]
     macro_release_items = list(macro_release_bundles or [])
     all_qualifying_macro_release_bundles = sorted(
@@ -852,23 +860,19 @@ def _build_home_payload(
         if not bundle:
             continue
         item = _candidate_bundle_item(bundle, candidate)
-        same_day = int(bundle.get("same_day_evidence_count") or 0)
-        source_count = int(bundle.get("source_count") or 0)
-        evidence_count = len(_safe_list(bundle.get("claims"))) + len(_safe_list(bundle.get("evidence")))
         cause_status = _coerce_text(bundle.get("cause_status"))
-        has_source_context = same_day > 0 or source_count > 0 or evidence_count > 0
-        if cause_status in {"supported", "continuation", "partial"} and has_source_context:
+        if cause_status in {"supported", "continuation", "partial"}:
             must_read.append(item)
-        elif abs(_coerce_float(candidate.get("change_pct"), 0.0)) >= 4.0:
+        else:
             unresolved.append(item)
     must_read = sorted(
         must_read,
         key=lambda item: (-int(item.get("same_day_evidence_count") or 0), -_coerce_float(item.get("candidate_score"), 0.0), -abs(_coerce_float(item.get("change_pct"), 0.0))),
-    )[: max(int(must_read_limit), 1)]
+    )
     unresolved = sorted(
         unresolved,
         key=lambda item: (-_coerce_float(item.get("candidate_score"), 0.0), -abs(_coerce_float(item.get("change_pct"), 0.0))),
-    )[: max(int(unresolved_limit), 1)]
+    )
     taxonomy_horizon_trends = _taxonomy_horizon_trends(attention_rows, candidates)
     event_impacts = []
     for event in top_event_items:

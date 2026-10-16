@@ -1,0 +1,224 @@
+[
+  {
+    "kind": "local_fundamentals",
+    "path": "data/stock_fundamental/us-income-quarterly.csv",
+    "dataset": "company_income_quarterly"
+  },
+  {
+    "kind": "local_fundamentals",
+    "path": "data/stock_fundamental/us-cashflow-quarterly.csv",
+    "dataset": "company_cashflow_quarterly"
+  },
+  {
+    "kind": "local_fundamentals",
+    "path": "data/stock_fundamental/us-balance-quarterly.csv",
+    "dataset": "company_balance_quarterly"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-02-01",
+    "end": "2025-02-28"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-03-01",
+    "end": "2025-03-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-04-01",
+    "end": "2025-04-30"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-05-01",
+    "end": "2025-05-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-06-01",
+    "end": "2025-06-30"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-07-01",
+    "end": "2025-07-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-08-01",
+    "end": "2025-08-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-09-01",
+    "end": "2025-09-30"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-10-01",
+    "end": "2025-10-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-11-01",
+    "end": "2025-11-30"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2025-12-01",
+    "end": "2025-12-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-01-01",
+    "end": "2026-01-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-02-01",
+    "end": "2026-02-28"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-03-01",
+    "end": "2026-03-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-04-01",
+    "end": "2026-04-30"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-05-01",
+    "end": "2026-05-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-06-01",
+    "end": "2026-06-30"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-07-01",
+    "end": "2026-07-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-08-01",
+    "end": "2026-08-31"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+  },
+  {
+    "kind": "npm",
+    "package": "@anthropic-ai/claude-code",
+    "start": "2026-10-01",
+    "end": "2026-10-07"
+  },
+  {
+    "kind": "csv",
+    "dataset": "oxcgrt_nat_latest",
+    "url": "https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker/master/data/OxCGRT_nat_latest.csv",
+    "date_column": "Date"
+  },
+  {
+    "kind": "csv",
+    "dataset": "oxcgrt_nat_latest_allchanges",
+    "url": "https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker/master/data/OxCGRT_nat_latest_allchanges.csv",
+    "date_column": "Date"
+  },
+  {
+    "kind": "csv",
+    "dataset": "oxcgrt_vaccines_full",
+    "url": "https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker/master/data/OxCGRT_vaccines_full.csv",
+    "date_column": "Date"
+  },
+  {
+    "kind": "fred",
+    "series_id": "DFEDTARL"
+  },
+  {
+    "kind": "fred",
+    "series_id": "DFEDTARU"
+  },
+  {
+    "kind": "fred",
+    "series_id": "RHORUSQ156N"
+  },
+  {
+    "kind": "fred",
+    "series_id": "USALOLITONOSTSAM"
+  },
+  {
+    "kind": "fred",
+    "series_id": "USSLIND"
+  },
+  {
+    "kind": "fred",
+    "series_id": "SP500",
+    "vintage": false,
+    "request_contract_version": 2
+  },
+  {
+    "kind": "fred",
+    "series_id": "DJIA",
+    "vintage": false,
+    "request_contract_version": 2
+  },
+  {
+    "kind": "sec_reference",
+    "catalog_version": 2
+  },
+  {
+    "kind": "document",
+    "normalizer_version": 4,
+    "title": "WHO pandemic announcement, current official URL",
+    "published_at": "2020-03-11",
+    "url": "https://www.who.int/news-room/speeches/item/who-director-general-s-opening-remarks-at-the-media-briefing-on-covid-19---11-march-2020"
+  },
+  {
+    "kind": "document",
+    "normalizer_version": 4,
+    "url": "https://www.anthropic.com/news/claude-3-7-sonnet",
+    "title": "Claude Code preview",
+    "published_at": "2025-02-24"
+  },
+  {
+    "kind": "document",
+    "normalizer_version": 4,
+    "url": "https://www.anthropic.com/news/claude-4",
+    "title": "Claude Code general availability",
+    "published_at": "2025-05-22"
+  },
+  {
+    "kind": "fred",
+    "series_id": "EXHOSLUSM495S",
+    "vintage": false,
+    "request_contract_version": 2
+  }
+]

@@ -237,3 +237,49 @@ computes a monthly-last, pairwise-complete correlation heatmap.
 - Streamlit development remained on `sn-streamlit-ui-dev--0000456` at digest
   `sha256:7e059ad6122682792975fbf534b7acf864070a4ac2b6f110fdec1d6a534cd3e5`.
   No production resource was targeted.
+
+
+## Home worker runtime contract — October 10 reliability repair
+
+Development `attention-home-next-dev` and production `attention-home-build` run
+the same complete workload, including optional summaries after core publication.
+Both require a 7,200-second replica allowance, 4 CPU/8 GiB and a 600-second editor
+allowance. Page summaries own a 900-second whole-operation deadline; research
+uses at most 300 seconds and leaves time for formatting/review. Daily chart
+selection owns a 600-second operation allowance and retains its latest valid
+selection through incomplete semantic review. All five shared
+JSON context adapters use the lossless representation; complete text/markdown
+survives final narrative serialization. The old development 1,800-second timeout
+killed a worker after its
+reviewed core artifacts were already published. Shared browser capacity remains
+two for Home; its owned browser processes also have a worker lifetime deadline.
+News has a three-hour platform ceiling, 4 CPU/8 GiB, four browser slots and four concurrent investigations in
+each of its company and news-interpretation phases. Keep identity, namespace,
+secrets, providers and schedules unchanged when synchronizing these profiles.
+
+### News interpretation and company writing repair, October 11
+
+The final company writer returns narrative/name/confidence/open questions only;
+resolved facts remain owned by the preceding research phase and keep their
+existing persisted schema. A usable story does not require a new memory fact.
+Direct structured synthesis uses bounded shared schema conversion before failure.
+`ZOPEDIA_NEWS_BUSINESS_TIMEOUT_SECONDS` defaults to 900 and
+`ZOPEDIA_NEWS_BUSINESS_LLM_STEP_TIMEOUT_SECONDS` defaults to 300. The shared agent
+reserves synthesis/review time within that operation. Missing required company
+or event narratives propagate a job failure after completed research checkpoints.
+Full r18 news validation completed in both namespaces with 25 nonempty company narratives and 12 nonempty event interpretations each. All event text and representative company narratives were personally read. Final r19 deployment is complete in both environments, and ordinary final-image health succeeded with zero open incidents.
+The r19 overlay carries acquired search-source URLs into durable company memory.
+The manual development validation host also uses a three-hour platform ceiling.
+
+
+### One engine and conversation release, October 14
+
+Development API revision 30 and web revision 19 serve the conversation contract.
+The API and nine AI jobs carry identical engine revision `7242a828ab189e15faa4`;
+feature adapters retain their consumer's previously accepted source. Two real
+queued worker turns completed with this revision and one conversation identity.
+The frontend preserves the accepted Attention card changes. Resource settings,
+identities, schedules, broker jobs and production images were unchanged. Native
+source builds on the simulator; it has not been installed on a physical device.
+See [exact images and rollback receipt](../verification/zopedia-conversation-2026-10-14/release.json)
+and [implementation/acceptance](../plans/ZOPEDIA_CONVERSATION_REPAIR_2026-10-14.md).

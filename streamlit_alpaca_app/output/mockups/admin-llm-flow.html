@@ -1,0 +1,399 @@
+<div id="sn-llm-studio">
+  <div class="viz-carousel" aria-label="Admin LLM layout options">
+    <section data-variant="Flow canvas" aria-label="Flow canvas layout"><div class="sn-app" data-layout="canvas"></div></section>
+    <section data-variant="Step list" aria-label="Step list layout" hidden><div class="sn-app" data-layout="outline"></div></section>
+  </div>
+</div>
+<style>
+#sn-llm-studio {
+  color-scheme: light dark;
+  --sn-bg: light-dark(#fafaf9,#141416); --sn-surface: light-dark(#ffffff,#1b1b1e);
+  --sn-soft: light-dark(#f2f1ef,#242427); --sn-text: light-dark(#25252a,#eeeeef);
+  --sn-muted: light-dark(#6b6970,#aaa8b1); --sn-line: light-dark(#dedddf,#38373d);
+  --sn-accent: light-dark(#6951a4,#b6a0ea); --sn-tint: light-dark(#f0ebfa,#30283e);
+  --sn-button: light-dark(#28242e,#e7e1f0); --sn-button-text: light-dark(#ffffff,#242029);
+  --sn-green: light-dark(#34745b,#99cbb5); --sn-shadow: light-dark(#25212d14,#00000025);
+  --sn-gap: 18px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--sn-text); font-size: 14px; line-height: 1.45;
+}
+#sn-llm-studio * { box-sizing: border-box; }
+#sn-llm-studio button, #sn-llm-studio input, #sn-llm-studio select, #sn-llm-studio textarea { font: inherit; color: inherit; }
+#sn-llm-studio button { cursor: inherit; }
+#sn-llm-studio .sn-app { background: var(--sn-bg); min-height: 940px; border: 1px solid var(--sn-line); border-radius: 12px; overflow: clip; position: relative; }
+#sn-llm-studio .sn-appnav { display:flex; align-items:center; gap:22px; min-height:54px; padding:12px 24px; border-bottom:1px solid var(--sn-line); background:var(--sn-surface); }
+#sn-llm-studio .sn-brand { font-weight:500; white-space:nowrap; letter-spacing:-.35px; }
+#sn-llm-studio .sn-navlinks { display:flex; gap:18px; align-items:center; font-size:12px; color:var(--sn-muted); }
+#sn-llm-studio .sn-navlinks .sn-current { color:var(--sn-text); font-weight:500; }
+#sn-llm-studio .sn-avatar { margin-left:auto; width:27px; height:27px; display:grid; place-items:center; border-radius:50%; font-size:11px; background:var(--sn-soft); }
+#sn-llm-studio .sn-adminnav { display:flex; align-items:center; gap:21px; padding:0 24px; min-height:43px; font-size:12px; border-bottom:1px solid var(--sn-line); }
+#sn-llm-studio .sn-adminnav span { padding:13px 0; color:var(--sn-muted); white-space:nowrap; }
+#sn-llm-studio .sn-adminnav .sn-selected { color:var(--sn-text); border-bottom:2px solid var(--sn-accent); font-weight:500; }
+#sn-llm-studio .sn-page { padding:24px; }
+#sn-llm-studio .sn-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:21px; }
+#sn-llm-studio .sn-titleline { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+#sn-llm-studio h1 { margin:0; font-size:24px; font-weight:500; letter-spacing:-.7px; }
+#sn-llm-studio .sn-environment { display:inline-flex; gap:6px; align-items:center; color:var(--sn-muted); font-size:12px; }
+#sn-llm-studio .sn-environment::before { content:""; display:block; width:6px; height:6px; border-radius:50%; background:var(--sn-green); }
+#sn-llm-studio .sn-heading p { margin:5px 0 0; color:var(--sn-muted); font-size:12px; }
+#sn-llm-studio .sn-primary, #sn-llm-studio .sn-secondary { border:1px solid var(--sn-line); border-radius:6px; padding:8px 12px; background:var(--sn-surface); white-space:nowrap; font-size:12px; font-weight:500; }
+#sn-llm-studio .sn-primary { background:var(--sn-button); color:var(--sn-button-text); border-color:var(--sn-button); }
+#sn-llm-studio button:disabled { opacity:.42; }
+#sn-llm-studio .sn-toolbar { display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:14px; }
+#sn-llm-studio .sn-subtabs { display:flex; gap:4px; border-radius:7px; background:var(--sn-soft); padding:3px; }
+#sn-llm-studio .sn-subtab { border:0; border-radius:5px; padding:6px 12px; font-size:12px; background:transparent; color:var(--sn-muted); }
+#sn-llm-studio .sn-subtab[aria-selected="true"] { background:var(--sn-surface); box-shadow:0 1px 3px var(--sn-shadow); color:var(--sn-text); }
+#sn-llm-studio .sn-configstate { font-size:12px; color:var(--sn-muted); text-align:right; }
+#sn-llm-studio .sn-workspace { border:1px solid var(--sn-line); border-radius:9px; background:var(--sn-surface); }
+#sn-llm-studio .sn-canvas { position:relative; height:392px; margin:0 16px; }
+#sn-llm-studio .sn-edges { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+#sn-llm-studio .sn-edges path { fill:none; stroke:var(--sn-line); stroke-width:1.4; }
+#sn-llm-studio .sn-edges path.sn-edge-active { stroke:var(--sn-accent); }
+#sn-llm-studio .sn-edge-label { position:absolute; color:var(--sn-muted); font-size:11px; background:var(--sn-surface); padding:0 5px; pointer-events:none; white-space:nowrap; }
+#sn-llm-studio .sn-input { position:absolute; left:4%; top:113px; color:var(--sn-muted); font-size:11px; }
+#sn-llm-studio .sn-node { position:absolute; width:17%; border:1px solid var(--sn-line); border-radius:8px; background:var(--sn-surface); text-align:left; padding:12px; min-height:77px; box-shadow:0 2px 4px var(--sn-shadow); }
+#sn-llm-studio .sn-node:hover { background:var(--sn-soft); }
+#sn-llm-studio .sn-node[aria-pressed="true"], #sn-llm-studio .sn-tool[aria-pressed="true"], #sn-llm-studio .sn-step[aria-pressed="true"] { border-color:var(--sn-accent); background:var(--sn-tint); }
+#sn-llm-studio .sn-node strong, #sn-llm-studio .sn-tool strong { display:block; font-size:13px; font-weight:500; }
+#sn-llm-studio .sn-node small, #sn-llm-studio .sn-tool small { display:block; color:var(--sn-muted); margin-top:4px; font-size:11px; }
+#sn-llm-studio .sn-node-researcher { left:4%; top:139px; }
+#sn-llm-studio .sn-node-monitor { left:4%; top:17px; min-height:73px; }
+#sn-llm-studio .sn-node-synthesis { left:43%; top:139px; }
+#sn-llm-studio .sn-node-review { left:64%; top:139px; }
+#sn-llm-studio .sn-node-memory { left:79%; top:284px; width:18%; }
+#sn-llm-studio .sn-result { position:absolute; left:87%; top:159px; width:10%; min-height:37px; border:1px solid var(--sn-line); background:var(--sn-soft); border-radius:22px; display:grid; place-items:center; font-size:12px; }
+#sn-llm-studio .sn-sources { position:absolute; left:4%; top:278px; width:68%; padding:18px 12px 12px; border:1px solid var(--sn-line); border-radius:9px; background:var(--sn-bg); }
+#sn-llm-studio .sn-source-title { position:absolute; left:10px; top:-10px; padding:0 6px; background:var(--sn-surface); font-size:11px; color:var(--sn-muted); }
+#sn-llm-studio .sn-tools { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
+#sn-llm-studio .sn-tool { display:block; width:100%; min-width:0; padding:8px; border:1px solid var(--sn-line); border-radius:6px; text-align:left; background:var(--sn-surface); }
+#sn-llm-studio .sn-tool strong { font-size:12px; }
+#sn-llm-studio .sn-tool small { font-size:11px; }
+#sn-llm-studio .sn-canvas-footer { display:flex; gap:16px; flex-wrap:wrap; padding:11px 18px; border-top:1px solid var(--sn-line); color:var(--sn-muted); font-size:11px; }
+#sn-llm-studio .sn-canvas-footer span:last-child { margin-left:auto; }
+#sn-llm-studio .sn-inspector { border-top:1px solid var(--sn-line); padding:20px; min-width:0; }
+#sn-llm-studio .sn-inspector-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:18px; }
+#sn-llm-studio .sn-inspector-title { display:flex; align-items:baseline; gap:10px; }
+#sn-llm-studio h2 { font-size:16px; font-weight:500; margin:0; letter-spacing:-.25px; }
+#sn-llm-studio .sn-stage-kind { color:var(--sn-muted); font-size:11px; }
+#sn-llm-studio .sn-inspector-tabs { display:flex; gap:14px; }
+#sn-llm-studio .sn-inspector-tab { background:none; border:0; padding:4px 0; font-size:12px; color:var(--sn-muted); }
+#sn-llm-studio .sn-inspector-tab[aria-selected="true"] { color:var(--sn-accent); box-shadow:0 1px 0 var(--sn-accent); }
+#sn-llm-studio .sn-fields { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:20px; align-items:start; }
+#sn-llm-studio .sn-field { min-width:0; display:flex; flex-direction:column; gap:7px; font-size:12px; }
+#sn-llm-studio .sn-field-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+#sn-llm-studio .sn-field output { font-variant-numeric:tabular-nums; color:var(--sn-text); font-weight:500; }
+#sn-llm-studio select, #sn-llm-studio input[type="number"], #sn-llm-studio input[type="text"], #sn-llm-studio textarea { width:100%; min-width:0; border:1px solid var(--sn-line); border-radius:5px; padding:8px 9px; background:var(--sn-surface); }
+#sn-llm-studio input[type="range"] { width:100%; accent-color:var(--sn-accent); margin:6px 0; }
+#sn-llm-studio .sn-field small, #sn-llm-studio .sn-stage-note { font-size:11px; color:var(--sn-muted); }
+#sn-llm-studio .sn-stage-note { margin:17px 0 0; }
+#sn-llm-studio .sn-prompt { resize:vertical; min-height:130px; line-height:1.6; }
+#sn-llm-studio .sn-prompt-label { display:block; margin-bottom:8px; font-size:12px; }
+#sn-llm-studio .sn-data { display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; }
+#sn-llm-studio .sn-data h3 { color:var(--sn-muted); font-size:11px; font-weight:400; margin:0 0 9px; }
+#sn-llm-studio .sn-data ul { list-style:none; padding:0; margin:0; display:grid; gap:7px; font-size:12px; }
+#sn-llm-studio .sn-review-config { display:grid; grid-template-columns:minmax(0,1fr) 220px; gap:26px; }
+#sn-llm-studio .sn-reviewer { border-bottom:1px solid var(--sn-line); padding:0 0 14px; margin-bottom:14px; }
+#sn-llm-studio .sn-reviewer-title { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:12px; font-weight:500; }
+#sn-llm-studio .sn-reviewer .sn-fields { grid-template-columns:1fr 1fr; gap:12px; }
+#sn-llm-studio .sn-text-button { border:0; background:none; padding:3px 0; color:var(--sn-accent); font-size:12px; }
+#sn-llm-studio .sn-remove { border:0; background:none; color:var(--sn-muted); font-size:11px; }
+#sn-llm-studio .sn-reviewer-focus { margin-top:9px; }
+#sn-llm-studio .sn-models { display:grid; gap:16px; }
+#sn-llm-studio .sn-model-profile { padding:20px; border:1px solid var(--sn-line); background:var(--sn-surface); border-radius:8px; }
+#sn-llm-studio .sn-model-profile h2 { margin-bottom:16px; }
+#sn-llm-studio .sn-model-profile .sn-fields { grid-template-columns:1fr 1fr; }
+#sn-llm-studio .sn-model-use { color:var(--sn-muted); font-size:12px; margin:14px 0 0; }
+#sn-llm-studio .sn-page-footer { display:flex; justify-content:space-between; gap:12px; margin-top:14px; color:var(--sn-muted); font-size:11px; }
+#sn-llm-studio .sn-outline { display:grid; grid-template-columns:250px minmax(0,1fr); }
+#sn-llm-studio .sn-step-list { padding:14px 12px; border-right:1px solid var(--sn-line); }
+#sn-llm-studio .sn-step { display:block; width:100%; padding:10px 12px; border:1px solid transparent; border-radius:6px; text-align:left; background:none; margin:2px 0; }
+#sn-llm-studio .sn-step strong { display:flex; justify-content:space-between; gap:8px; font-size:13px; font-weight:500; }
+#sn-llm-studio .sn-step small { display:block; margin-top:3px; font-size:11px; color:var(--sn-muted); }
+#sn-llm-studio .sn-step-list .sn-substep { padding-left:24px; }
+#sn-llm-studio .sn-list-label { color:var(--sn-muted); font-size:11px; margin:17px 12px 7px; }
+#sn-llm-studio .sn-outline .sn-inspector { border-top:0; }
+#sn-llm-studio .sn-outline .sn-fields { grid-template-columns:1fr 1fr; gap:18px; }
+#sn-llm-studio .sn-outline .sn-review-config { grid-template-columns:1fr; }
+#sn-llm-studio .sn-outline .sn-data { grid-template-columns:1fr; gap:20px; }
+#sn-llm-studio .sn-outline .sn-inspector-head { flex-wrap:wrap; }
+#sn-llm-studio .sn-outline .sn-cycle-settings { border-top:1px solid var(--sn-line); padding-top:16px; }
+#sn-llm-studio .sn-dialog-backdrop { position:relative; background:var(--sn-bg); padding:24px; }
+#sn-llm-studio .sn-dialog { max-width:700px; margin:12px auto; border:1px solid var(--sn-line); border-radius:10px; background:var(--sn-surface); padding:24px; }
+#sn-llm-studio .sn-dialog-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
+#sn-llm-studio .sn-change { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:12px 0; border-bottom:1px solid var(--sn-line); font-size:12px; }
+#sn-llm-studio .sn-change span:first-child { color:var(--sn-muted); }
+#sn-llm-studio .sn-dialog-actions { margin-top:20px; display:flex; justify-content:flex-end; gap:10px; }
+#sn-llm-studio .sn-dialog-note { margin:12px 0; color:var(--sn-muted); font-size:12px; }
+#sn-llm-studio .sn-compact .sn-page { padding:18px; }
+#sn-llm-studio .sn-compact .sn-inspector { padding:16px; }
+#sn-llm-studio [hidden] { display:none !important; }
+@media(max-width:760px) {
+  #sn-llm-studio .sn-appnav { gap:12px; padding:12px 16px; }
+  #sn-llm-studio .sn-navlinks { gap:12px; }
+  #sn-llm-studio .sn-navlinks .sn-optional-nav { display:none; }
+  #sn-llm-studio .sn-adminnav { padding:0 16px; gap:16px; flex-wrap:wrap; }
+  #sn-llm-studio .sn-page { padding:18px 14px; }
+  #sn-llm-studio .sn-heading { align-items:flex-start; }
+  #sn-llm-studio .sn-heading .sn-primary { white-space:normal; }
+  #sn-llm-studio .sn-canvas { height:auto; display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:18px; }
+  #sn-llm-studio .sn-canvas .sn-edges, #sn-llm-studio .sn-canvas .sn-edge-label, #sn-llm-studio .sn-canvas .sn-input { display:none; }
+  #sn-llm-studio .sn-node, #sn-llm-studio .sn-result, #sn-llm-studio .sn-sources { position:relative; inset:auto; width:auto; min-width:0; }
+  #sn-llm-studio .sn-node-researcher { order:1; }
+  #sn-llm-studio .sn-node-monitor { order:2; }
+  #sn-llm-studio .sn-sources { order:3; grid-column:1/-1; margin:6px 0; }
+  #sn-llm-studio .sn-node-synthesis { order:4; }
+  #sn-llm-studio .sn-node-review { order:5; }
+  #sn-llm-studio .sn-result { order:6; min-height:48px; align-self:center; }
+  #sn-llm-studio .sn-node-memory { order:7; }
+  #sn-llm-studio .sn-tools { grid-template-columns:1fr 1fr; }
+  #sn-llm-studio .sn-inspector { padding:18px; }
+  #sn-llm-studio .sn-fields { grid-template-columns:1fr 1fr; gap:16px; }
+  #sn-llm-studio .sn-review-config { grid-template-columns:1fr; }
+  #sn-llm-studio .sn-cycle-settings { border-top:1px solid var(--sn-line); padding-top:14px; }
+  #sn-llm-studio .sn-outline { grid-template-columns:1fr; }
+  #sn-llm-studio .sn-step-list { display:flex; flex-wrap:wrap; gap:5px; padding:12px; border-right:0; border-bottom:1px solid var(--sn-line); }
+  #sn-llm-studio .sn-step { width:auto; padding:8px; margin:0; }
+  #sn-llm-studio .sn-step small { display:none; }
+  #sn-llm-studio .sn-list-label { display:none; }
+  #sn-llm-studio .sn-step-list .sn-substep { padding-left:8px; }
+  #sn-llm-studio .sn-data { grid-template-columns:1fr; gap:18px; }
+  #sn-llm-studio .sn-inspector-head { flex-wrap:wrap; }
+  #sn-llm-studio .sn-app { min-height:1120px; }
+  #sn-llm-studio .sn-dialog-backdrop { padding:12px; }
+}
+@media(max-width:420px) {
+  #sn-llm-studio .sn-navlinks { display:none; }
+  #sn-llm-studio .sn-adminnav { gap:12px; font-size:11px; }
+  #sn-llm-studio .sn-adminnav span { padding:10px 0; }
+  #sn-llm-studio .sn-heading { flex-wrap:wrap; }
+  #sn-llm-studio .sn-heading .sn-primary { padding:8px 10px; }
+  #sn-llm-studio .sn-fields, #sn-llm-studio .sn-outline .sn-fields, #sn-llm-studio .sn-model-profile .sn-fields { grid-template-columns:1fr; }
+  #sn-llm-studio input, #sn-llm-studio select, #sn-llm-studio textarea { font-size:16px; }
+  #sn-llm-studio .sn-canvas { margin:16px 12px; gap:10px; }
+  #sn-llm-studio .sn-node { padding:10px; }
+  #sn-llm-studio .sn-canvas-footer { padding:10px 12px; gap:8px 16px; }
+  #sn-llm-studio .sn-canvas-footer span:last-child { margin-left:0; }
+  #sn-llm-studio .sn-configstate { max-width:160px; }
+}
+</style>
+<script>
+(() => {
+  const root = document.getElementById('sn-llm-studio');
+  const defaults = {
+    researcher:{ model:'pro', thinking:'max', tools:10, seconds:300, prompt:'Answer the research question. Follow useful connections, compare explanations, and choose the next action from the evidence and time available.' },
+    search:{ model:'flash', thinking:'low', queries:5, results:12, parallel:3, prompt:'Find broad, useful sources for the research objective. Preserve the question and dates. Expand the search where it could reveal a relevant connection.' },
+    read:{ model:'flash', thinking:'off', passage:5000, prompt:'Extract the substantive source text, including relevant tables, dates and qualifications. Keep the complete original capture available for further reading.' },
+    relevance:{ model:'flash', thinking:'low', candidates:40, approach:'Broad connections', prompt:'Rank useful sources and explain their relationship to the question. Keep indirect leads and competing explanations available to the researcher.' },
+    summary:{ model:'flash', thinking:'off', words:250, prompt:'Summarize the source faithfully. Preserve dates, numbers, conflicting claims and qualifications. Link every summary back to the original source.' },
+    synthesis:{ model:'pro', thinking:'max', length:'Match the request', prompt:'Develop the answer from original sources, observations, calculations and research findings. Explain the main mechanisms and distinguish observations from inferences.' },
+    review:{ cycles:1, reviewers:[{model:'flash',thinking:'low',focus:'Evidence, reasoning and clarity'}], prompt:'Review the draft alongside its original evidence. Identify useful corrections, contradictions and missing angles. Send substantive analytical corrections back to synthesis.' },
+    monitor:{ model:'flash', thinking:'low', frequency:'When requested', freedom:'Balanced', prompt:'Let the researcher follow useful adjacent leads. Suggest a redirect when the investigation stops contributing to the question.' },
+    memory:{ model:'pro', thinking:'max', policy:'Propose updates', prompt:'Compare durable findings with existing knowledge. Propose source-backed additions or corrections and retain the source relationships.' },
+    repair:{ model:'flash', thinking:'off' },
+    profiles:{ pro:{name:'DeepSeek Pro',id:'deepseek-v4-pro'}, flash:{name:'DeepSeek Flash',id:'deepseek-flash'} }
+  };
+  const descriptions = {
+    researcher:{title:'Researcher',kind:'Research decisions',input:['User question or Attention event','Conversation and existing knowledge','Tool results and open questions'],output:['Research direction','Next tool or source request','Findings and selected evidence'],next:['Evidence lookup','Synthesis','Monitor']},
+    search:{title:'Search',kind:'Evidence lookup',input:['Research objective','Date and source scope'],output:['Candidate sources and URLs','Publication dates and previews','Queries and retrieval mode'],next:['Relevance','Source reading','Researcher']},
+    read:{title:'Source reading',kind:'Evidence lookup',input:['Selected source or retained capture','Requested passage'],output:['Original text and tables','Capture identity and dates','Read range and remaining content'],next:['First-pass summary','Relevance','Researcher']},
+    relevance:{title:'Relevance',kind:'Evidence lookup',input:['Candidate sources','Research objective and context'],output:['Ranked sources and useful connections','Reasons for relevance','Complete candidate catalog'],next:['Source reading','Researcher']},
+    summary:{title:'First-pass summary',kind:'Evidence lookup',input:['Original source passages','Dates and source references'],output:['Source summary','Numbers and qualifications','Reference to complete original'],next:['Researcher','Synthesis','Reviewers']},
+    synthesis:{title:'Synthesis',kind:'Analysis',input:['Original passages and observations','Research findings and calculations','Review corrections'],output:['Draft answer and analysis','Source references','Open questions'],next:['Reviewers','Answer']},
+    review:{title:'Reviewers',kind:'Parallel review',input:['Same draft and original evidence','Research objective'],output:['Corrections and disagreements','Specific research requests','Review linked to this draft'],next:['Synthesis','Researcher']},
+    monitor:{title:'Monitor',kind:'Research direction',input:['Research question and current objective','Actions, findings and time remaining'],output:['Continue or redirect','Concise suggested correction'],next:['Researcher']},
+    memory:{title:'Knowledge updates',kind:'Retained knowledge',input:['Completed findings and source references','Existing knowledge','Active write policy'],output:['Proposed or applied knowledge changes','Source relationships and revision'],next:['Future research','Evidence lookup']}
+  };
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+  const esc = (value) => String(value).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let config = clone(defaults), baseline = clone(defaults), selected = 'search', inspectorTab = 'settings', pageTab = 'flow';
+  const design = { canvas:{density:'Comfortable',labels:true}, outline:{density:'Comfortable'} };
+  function restore(saved) {
+    const c = saved?.modelContent?.llmFlow;
+    if (c?.version === 1 && c.configuration?.researcher && c.configuration?.profiles && c.configuration?.review?.reviewers?.length) {
+      config = clone(c.configuration); baseline = clone(c.savedConfiguration || c.configuration);
+      if (descriptions[c.selectedStage]) selected = c.selectedStage;
+    }
+    const ui = saved?.privateContent;
+    if (ui?.inspectorTab && ['settings','prompt','data'].includes(ui.inspectorTab)) inspectorTab = ui.inspectorTab;
+  }
+  restore(window.openai?.widgetState);
+  function persist() {
+    if (!window.openai?.setWidgetState) return;
+    Promise.resolve(window.openai.setWidgetState({modelContent:{llmFlow:{version:1,configuration:config,savedConfiguration:baseline,selectedStage:selected}},privateContent:{inspectorTab}})).catch(()=>{});
+  }
+  function get(path, source=config) { return path.split('.').reduce((v,k)=>v?.[k],source); }
+  function set(path,value) { const keys=path.split('.'); const key=keys.pop(); const obj=keys.reduce((v,k)=>v[k],config); obj[key]=value; }
+  function modelName(key) { return config.profiles[key]?.name || key; }
+  function shortModel(key) { return key==='pro'?'Pro':key==='flash'?'Flash':modelName(key); }
+  function thinkingName(value) { return value==='off'?'Thinking off':value==='max'?'Max thinking':value==='low'?'Low thinking':'High thinking'; }
+  function options(values,current) { return values.map((v)=>{const [value,label]=Array.isArray(v)?v:[v,v];return `<option value="${esc(value)}"${value===current?' selected':''}>${esc(label)}</option>`;}).join(''); }
+  function selectField(path,label,values) { return `<label class="sn-field"><span>${esc(label)}</span><select data-setting="${path}">${options(values,get(path))}</select></label>`; }
+  function textField(path,label) { return `<label class="sn-field"><span>${esc(label)}</span><input type="text" data-setting="${path}" value="${esc(get(path))}"></label>`; }
+  function slider(path,label,min,max,unit='') { return `<label class="sn-field"><span class="sn-field-head"><span>${esc(label)}</span><output data-output="${path}">${esc(get(path))}${unit?' '+unit:''}</output></span><input type="range" data-setting="${path}" min="${min}" max="${max}" step="1" value="${get(path)}" aria-label="${esc(label)}"></label>`; }
+  function modelFields(prefix,label='Model') { return selectField(`${prefix}.model`,label,Object.keys(config.profiles).map((key)=>[key,modelName(key)]))+selectField(`${prefix}.thinking`,'Thinking',[['off','Off'],['low','Low'],['high','High'],['max','Max']]); }
+  function changes() {
+    const result=[];
+    function walk(now,before,path='') {
+      if (Array.isArray(now)) {
+        if (now.length !== before?.length) result.push({path:`${path}.count`,before:before?.length||0,after:now.length});
+        now.forEach((v,i)=>walk(v,before?.[i]||{},`${path}.${i}`));
+      } else if (now && typeof now==='object') Object.keys(now).forEach((key)=>walk(now[key],before?.[key],path?`${path}.${key}`:key));
+      else if (now!==before) result.push({path,before,after:now});
+    }
+    walk(config,baseline);
+    return result;
+  }
+  function changeLabel(path) {
+    const bits=path.split('.'); const stage=descriptions[bits[0]]?.title || (bits[0]==='profiles'?'Models':'Output repair');
+    const names={model:'Model',thinking:'Thinking',queries:'Queries per lookup',results:'Results per query',parallel:'Parallel queries',tools:'Tool calls',seconds:'Time per run',passage:'Passage size',words:'Summary length',candidates:'Sources to rank',approach:'Source preference',length:'Answer length',cycles:'Review cycles',count:'Reviewers',focus:'Review focus',frequency:'Check frequency',freedom:'Research freedom',policy:'Knowledge policy',prompt:'Instructions',name:'Name',id:'Model ID'};
+    let scope=stage;
+    if(bits[1]==='reviewers' && /^\d+$/.test(bits[2]||'')) scope+=` · Reviewer ${Number(bits[2])+1}`;
+    if(bits[0]==='profiles') scope+=` · ${shortModel(bits[1])}`;
+    return `${scope} / ${names[bits[bits.length-1]]||bits[bits.length-1]}`;
+  }
+  function displayValue(change,which) {
+    const value=change[which];
+    if(value===undefined) return 'New';
+    if(change.path.endsWith('.model')) return shortModel(value);
+    return String(value);
+  }
+  const node = (id,extra='')=>`<button type="button" class="sn-node sn-node-${id} cursor-interaction" data-stage="${id}" data-anchor="${id}" aria-pressed="${selected===id}"><strong>${descriptions[id].title}${id==='review'?` · ${config.review.reviewers.length}`:''}</strong><small>${id==='review'?`${config.review.reviewers.map(r=>shortModel(r.model)).join(' + ')} · ${config.review.cycles} ${config.review.cycles===1?'cycle':'cycles'}`:`${shortModel(config[id].model)} · ${config[id].thinking==='off'?'Off':config[id].thinking}`}</small>${extra}</button>`;
+  function canvasMarkup() {
+    return `<div class="sn-canvas" aria-label="Research flow"><svg class="sn-edges" aria-hidden="true"></svg><span class="sn-input">User question / Attention event</span>
+      ${node('monitor',`<small>${esc(config.monitor.freedom)}</small>`)}${node('researcher')}${node('synthesis')}${node('review')}
+      <span class="sn-result" data-anchor="answer">Answer</span>
+      <section class="sn-sources" data-anchor="sources" aria-label="Evidence lookup"><span class="sn-source-title">Evidence lookup · live search + retained sources</span><div class="sn-tools">
+      ${['search','read','relevance','summary'].map(id=>`<button type="button" class="sn-tool cursor-interaction" data-stage="${id}" aria-pressed="${selected===id}"><strong>${id==='read'?'Read':id==='summary'?'Summarize':descriptions[id].title}</strong><small>${shortModel(config[id].model)} · ${config[id].thinking==='off'?'Off':config[id].thinking}</small></button>`).join('')}</div></section>
+      ${node('memory')}<span class="sn-edge-label" style="left:25%;top:157px" data-flow-label>Findings + originals</span><span class="sn-edge-label" style="left:48%;top:84px" data-flow-label>Corrections</span><span class="sn-edge-label" style="left:31%;top:48px" data-flow-label>More research</span><span class="sn-edge-label" style="left:14%;top:230px" data-flow-label>Research requests</span><span class="sn-edge-label" style="left:32%;top:249px" data-flow-label>Sources + observations</span>
+      </div>`;
+  }
+  function outlineMarkup() {
+    const step=(id,sub=false)=>`<button class="sn-step ${sub?'sn-substep':''} cursor-interaction" data-stage="${id}" type="button" aria-pressed="${selected===id}"><strong>${descriptions[id].title}${id==='review'?`<span>${config.review.reviewers.length}</span>`:''}</strong><small>${id==='review'?`${config.review.cycles} review cycle${config.review.cycles===1?'':'s'}`:`${shortModel(config[id].model)} · ${thinkingName(config[id].thinking)}`}</small></button>`;
+    return `<nav class="sn-step-list" aria-label="Research steps">${step('researcher')}${step('monitor')}<div class="sn-list-label">EVIDENCE LOOKUP</div>${['search','read','relevance','summary'].map(id=>step(id,true)).join('')}<div class="sn-list-label">ANSWER & KNOWLEDGE</div>${step('synthesis')}${step('review')}${step('memory')}</nav>`;
+  }
+  function settingsMarkup() {
+    if(selected==='review') return `<div class="sn-review-config"><div>${config.review.reviewers.map((r,i)=>`<div class="sn-reviewer"><div class="sn-reviewer-title"><span>Reviewer ${i+1}</span>${config.review.reviewers.length>1?`<button class="sn-remove cursor-interaction" type="button" data-remove-reviewer="${i}">Remove</button>`:''}</div><div class="sn-fields">${modelFields(`review.reviewers.${i}`)}</div><div class="sn-reviewer-focus">${textField(`review.reviewers.${i}.focus`,'Review focus')}</div></div>`).join('')}<button type="button" class="sn-text-button cursor-interaction" data-action="add-reviewer">+ Add reviewer</button></div><div class="sn-cycle-settings">${slider('review.cycles','Review cycles',0,5)}<p class="sn-stage-note">Reviewers work in parallel. Synthesis resolves their corrections.</p></div></div>`;
+    let fields=modelFields(selected,selected==='read'?'Body extraction model':'Model');
+    if(selected==='researcher') fields+=slider('researcher.tools','Tool calls per run',1,30)+slider('researcher.seconds','Time per run',60,900,'sec');
+    if(selected==='search') fields+=slider('search.queries','Queries per lookup',1,20)+slider('search.results','Results per query',3,40)+slider('search.parallel','Parallel queries',1,8);
+    if(selected==='read') fields+=slider('read.passage','Passage size',1000,20000,'chars');
+    if(selected==='relevance') fields+=slider('relevance.candidates','Sources to rank',10,100)+selectField('relevance.approach','Source preference',['Broad connections','Balanced coverage','Direct matches']);
+    if(selected==='summary') fields+=slider('summary.words','Summary length',100,800,'words');
+    if(selected==='synthesis') fields+=selectField('synthesis.length','Answer length',['Match the request','Concise','Detailed']);
+    if(selected==='monitor') fields+=selectField('monitor.frequency','Check frequency',['When requested','Every 2 tool calls','Every tool call'])+selectField('monitor.freedom','Research freedom',['Focused','Balanced','Exploratory']);
+    if(selected==='memory') fields+=selectField('memory.policy','Knowledge policy',['No writes','Propose updates','Apply safe updates']);
+    const notes={search:'Each lookup can search several queries. These are separate from the researcher’s tool-call limit.',read:'The complete source stays available; passage size controls what is returned at once.',relevance:'Rank useful connections while keeping the original candidate catalog available.',summary:'Summaries travel with references to their original sources.',monitor:config.monitor.freedom==='Exploratory'?'Follow adjacent leads. Redirect only when they stop helping the question.':config.monitor.freedom==='Focused'?'Keep research close to the question; redirect unrelated branches early.':'Allow useful connections; redirect when the investigation loses its purpose.',memory:'Knowledge changes retain their source relationships and revision history.'};
+    return `<div class="sn-fields">${fields}</div>${notes[selected]?`<p class="sn-stage-note">${notes[selected]}</p>`:''}`;
+  }
+  function inspectorMarkup() {
+    const d=descriptions[selected];
+    return `<div class="sn-inspector-head"><div class="sn-inspector-title"><h2>${d.title}</h2><span class="sn-stage-kind">${d.kind}</span></div><div class="sn-inspector-tabs" role="tablist" aria-label="${d.title} details">${['settings','prompt','data'].map(tab=>`<button type="button" role="tab" class="sn-inspector-tab cursor-interaction" data-inspector-tab="${tab}" aria-selected="${inspectorTab===tab}">${tab==='settings'?'Settings':tab==='prompt'?'Instructions':'Data'}</button>`).join('')}</div></div>
+      ${inspectorTab==='settings'?settingsMarkup():inspectorTab==='prompt'?`<label class="sn-prompt-label">Stage instructions</label><textarea class="sn-prompt" aria-label="${d.title} instructions" data-setting="${selected}.prompt">${esc(config[selected].prompt)}</textarea>`:`<div class="sn-data">${[['Receives',d.input],['Produces',d.output],['Used by',d.next]].map(([title,items])=>`<section><h3>${title}</h3><ul>${items.map(item=>`<li>${item}</li>`).join('')}</ul></section>`).join('')}</div>`}`;
+  }
+  function modelsMarkup() {
+    return `<div class="sn-models">${Object.keys(config.profiles).map(key=>`<section class="sn-model-profile"><h2>${esc(modelName(key))}</h2><div class="sn-fields">${textField(`profiles.${key}.name`,'Display name')}${textField(`profiles.${key}.id`,'DeepSeek model ID')}</div><p class="sn-model-use">${key==='pro'?'Default for research, synthesis and interpreting knowledge changes.':'Default for monitor, review, evidence helpers and output repair.'}</p></section>`).join('')}<section class="sn-model-profile"><h2>Output repair</h2><div class="sn-fields">${modelFields('repair')}</div></section></div>`;
+  }
+  const apps=[...root.querySelectorAll('[data-layout]')];
+  function buildApps() {
+    apps.forEach(app=>{
+      const layout=app.dataset.layout;
+      app.innerHTML=`<header class="sn-appnav"><span class="sn-brand">spectral nature</span><nav class="sn-navlinks" aria-label="Application"><span>Home</span><span class="sn-optional-nav">Markets</span><span class="sn-optional-nav">Portfolio</span><span>Zopedia</span><span class="sn-current">Admin</span></nav><span class="sn-avatar">OS</span></header>
+        <nav class="sn-adminnav" aria-label="Admin"><span>Users</span><span>Usage & security</span><span class="sn-selected">LLM</span><span>API keys</span><span>System</span></nav>
+        <main class="sn-page"><header class="sn-heading"><div><div class="sn-titleline"><h1>LLM</h1><span class="sn-environment">Development</span></div><p>Shared research · Chat, Attention and background work</p></div><button type="button" class="sn-primary cursor-interaction" data-action="review-changes">Review changes</button></header>
+        <div class="sn-toolbar"><div class="sn-subtabs" role="tablist" aria-label="LLM configuration"><button class="sn-subtab cursor-interaction" type="button" role="tab" data-page-tab="flow" aria-selected="true">Research flow</button><button class="sn-subtab cursor-interaction" type="button" role="tab" data-page-tab="models" aria-selected="false">Models</button></div><span class="sn-configstate" aria-live="polite"></span></div>
+        <div data-flow-page class="sn-workspace ${layout==='outline'?'sn-outline':''}"><div data-flow-map></div><section class="sn-inspector" aria-label="Selected step settings"></section></div><div data-models-page hidden></div>
+        <footer class="sn-page-footer"><span data-config-summary></span><span>Changes apply to new runs</span></footer></main><div data-dialog hidden></div>`;
+      app.classList.toggle('sn-compact',design[layout].density==='Compact');
+    });
+    refresh(true);
+  }
+  function drawEdges(app) {
+    const canvas=app.querySelector('.sn-canvas'), svg=app.querySelector('.sn-edges');
+    if(!canvas || !svg || canvas.getBoundingClientRect().width===0) return;
+    const box=canvas.getBoundingClientRect();
+    const point=(name,side)=>{
+      const n=canvas.querySelector(`[data-anchor="${name}"]`); if(!n) return {x:0,y:0};
+      const b=n.getBoundingClientRect();
+      return {x:b.left-box.left+(side==='right'?b.width:side==='left'?0:b.width/2),y:b.top-box.top+(side==='bottom'?b.height:side==='top'?0:b.height/2)};
+    };
+    const links=[['monitor','bottom','researcher','top','monitor'],['researcher','right','synthesis','left','researcher'],['synthesis','right','review','left','synthesis'],['review','right','answer','left','review'],['researcher','bottom','sources','top','search'],['sources','top','researcher','bottom','read'],['answer','bottom','memory','top','memory'],['memory','left','sources','right','memory'],['review','top','synthesis','top','review'],['review','top','researcher','right','review']];
+    svg.setAttribute('viewBox',`0 0 ${box.width} ${box.height}`);
+    const id=`sn-arrow-${app.dataset.layout}`;
+    svg.innerHTML=`<defs><marker id="${id}" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M1 1 L6 3.5 L1 6" style="stroke:var(--sn-muted);fill:none;stroke-width:1"/></marker></defs>`;
+    for(const [from,side,to,toSide,stage] of links) {
+      const a=point(from,side),b=point(to,toSide); let d;
+      if(from==='review' && to==='synthesis') d=`M${a.x},${a.y} V104 Q${a.x},94 ${a.x-10},94 H${b.x+10} Q${b.x},94 ${b.x},104 V${b.y}`;
+      else if(from==='review' && to==='researcher') { a.x+=20; b.y-=20; d=`M${a.x},${a.y} V68 Q${a.x},58 ${a.x-10},58 H${b.x+34} Q${b.x+24},58 ${b.x+24},72 V${b.y-10} Q${b.x+24},${b.y} ${b.x+10},${b.y} H${b.x}`; }
+      else if(from==='researcher'&&to==='sources') { a.x-=25; b.x-=box.width*.19; d=`M${a.x},${a.y} C${a.x},${a.y+27} ${b.x},${b.y-27} ${b.x},${b.y}`; }
+      else if(from==='sources'&&to==='researcher') { a.x-=box.width*.06; b.x+=25; d=`M${a.x},${a.y} C${a.x},${a.y-22} ${b.x},${b.y+30} ${b.x},${b.y}`; }
+      else if(side==='right'||side==='left') d=`M${a.x},${a.y} C${(a.x+b.x)/2},${a.y} ${(a.x+b.x)/2},${b.y} ${b.x},${b.y}`;
+      else d=`M${a.x},${a.y} C${a.x},${(a.y+b.y)/2} ${b.x},${(a.y+b.y)/2} ${b.x},${b.y}`;
+      const active=selected===stage||(['search','read','relevance','summary'].includes(selected)&&(from==='sources'||to==='sources'));
+      svg.insertAdjacentHTML('beforeend',`<path d="${d}" marker-end="url(#${id})"${active?' class="sn-edge-active"':''}/>`);
+    }
+    app.querySelectorAll('[data-flow-label]').forEach(e=>e.hidden=!design.canvas.labels);
+  }
+  function refresh(rebuildInspector=false) {
+    apps.forEach(app=>{
+      const layout=app.dataset.layout;
+      app.querySelector('[data-flow-map]').innerHTML=layout==='canvas'?canvasMarkup():outlineMarkup();
+      app.querySelector('[data-flow-page]').hidden=pageTab!=='flow';
+      app.querySelector('[data-models-page]').hidden=pageTab!=='models';
+      if(rebuildInspector) app.querySelector('.sn-inspector').innerHTML=inspectorMarkup();
+      if(pageTab==='models'&&rebuildInspector) app.querySelector('[data-models-page]').innerHTML=modelsMarkup();
+      app.querySelectorAll('[data-page-tab]').forEach(e=>e.setAttribute('aria-selected',String(e.dataset.pageTab===pageTab)));
+      const count=changes().length;
+      app.querySelector('.sn-configstate').textContent=count?`${count} unsaved ${count===1?'change':'changes'}`:'Saved configuration';
+      app.querySelector('[data-action="review-changes"]').disabled=!count;
+      app.querySelector('[data-config-summary]').textContent=`${config.search.queries} queries / lookup · ${config.review.reviewers.length} reviewer${config.review.reviewers.length===1?'':'s'} · ${config.review.cycles} cycle${config.review.cycles===1?'':'s'}`;
+      if(layout==='canvas') {
+        const footer=app.querySelector('.sn-canvas-footer'); if(footer) footer.remove();
+        app.querySelector('[data-flow-map]').insertAdjacentHTML('beforeend',`<div class="sn-canvas-footer"><span>Original sources stay available</span><span>${config.monitor.freedom} research · ${esc(config.monitor.frequency.toLowerCase())}</span></div>`);
+      }
+      requestAnimationFrame(()=>drawEdges(app));
+    });
+  }
+  function updateSetting(input) {
+    const path=input.dataset.setting; if(!path) return;
+    const value=input.type==='range'||input.type==='number'?Number(input.value):input.value;
+    set(path,value);
+    root.querySelectorAll(`[data-setting="${path}"]`).forEach(other=>{if(other!==input)other.value=String(value);});
+    root.querySelectorAll(`[data-output="${path}"]`).forEach(e=>{e.textContent=String(value)+(path.endsWith('.seconds')?' sec':path.endsWith('.passage')?' chars':path.endsWith('.words')?' words':'');});
+    if(path==='monitor.freedom') {
+      config.monitor.prompt=value==='Exploratory'?'Follow adjacent leads and unexpected connections. Suggest a redirect only when they stop helping the research question.':value==='Focused'?'Keep the investigation close to the research question. Suggest a redirect when an unrelated branch takes attention away from it.':defaults.monitor.prompt;
+    }
+    refresh(false); persist();
+  }
+  root.addEventListener('input',event=>{if(event.target.matches('input,textarea'))updateSetting(event.target);});
+  root.addEventListener('change',event=>{if(event.target.matches('select'))updateSetting(event.target);});
+  root.addEventListener('click',event=>{
+    const target=event.target.closest('button'); if(!target) return;
+    if(target.dataset.stage){selected=target.dataset.stage;inspectorTab='settings';refresh(true);persist();}
+    if(target.dataset.inspectorTab){inspectorTab=target.dataset.inspectorTab;refresh(true);persist();}
+    if(target.dataset.pageTab){pageTab=target.dataset.pageTab;refresh(true);}
+    if(target.dataset.action==='add-reviewer'){config.review.reviewers.push({model:'flash',thinking:'low',focus:'Alternative explanations and missing evidence'});refresh(true);persist();}
+    if(target.dataset.removeReviewer!==undefined){config.review.reviewers.splice(Number(target.dataset.removeReviewer),1);refresh(true);persist();}
+    if(target.dataset.action==='review-changes'){
+      const app=target.closest('[data-layout]'); const container=app.querySelector('[data-dialog]');
+      container.hidden=false;container.className='sn-dialog-backdrop';app.querySelector('.sn-page').hidden=true;
+      container.innerHTML=`<section class="sn-dialog" aria-label="Review configuration changes"><div class="sn-dialog-head"><h2>Review changes</h2><button type="button" class="sn-remove cursor-interaction" data-action="close-dialog">Close</button></div>${changes().map(c=>`<div class="sn-change"><span>${esc(changeLabel(c.path))}</span><span>${esc(displayValue(c,'before'))} → ${esc(displayValue(c,'after'))}</span></div>`).join('')}<p class="sn-dialog-note">Development · Applies to new research runs</p><div class="sn-dialog-actions"><button type="button" class="sn-secondary cursor-interaction" data-action="close-dialog">Keep editing</button><button type="button" class="sn-primary cursor-interaction" data-action="save">Save configuration</button></div></section>`;
+      container.querySelector('button').focus();
+    }
+    if(target.dataset.action==='close-dialog'){const app=target.closest('[data-layout]');target.closest('[data-dialog]').hidden=true;app.querySelector('.sn-page').hidden=false;app.querySelector('[data-action="review-changes"]').focus();}
+    if(target.dataset.action==='save'){baseline=clone(config);root.querySelectorAll('[data-dialog]').forEach(e=>e.hidden=true);apps.forEach(app=>app.querySelector('.sn-page').hidden=false);refresh(false);persist();}
+  });
+  root.addEventListener('keydown',event=>{
+    const dialog=root.querySelector('[data-dialog]:not([hidden])');
+    if(!dialog)return;
+    if(event.key==='Escape'){const app=dialog.closest('[data-layout]');dialog.hidden=true;app.querySelector('.sn-page').hidden=false;app.querySelector('[data-action="review-changes"]').focus();}
+  });
+  window.addEventListener('openai:set_globals',event=>{if(event.detail?.globals?.widgetState){restore(event.detail.globals.widgetState);refresh(true);}});
+  buildApps();
+  const observer=new ResizeObserver(()=>apps.forEach(drawEdges)); apps.forEach(app=>observer.observe(app));
+  if(globalThis.Tweak) apps.forEach(app=>{
+    const key=app.dataset.layout; const tweak=new Tweak({container:app,onChange:()=>{app.classList.toggle('sn-compact',design[key].density==='Compact');drawEdges(app);}});
+    tweak.addSelect(design[key],'density',{label:'Spacing',options:['Comfortable','Compact']});
+    if(key==='canvas')tweak.addToggle(design.canvas,'labels',{label:'Data labels'});
+  });
+})();
+</script>

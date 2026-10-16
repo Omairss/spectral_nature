@@ -1,0 +1,2513 @@
+{
+  "audit_date": "2026-10-07",
+  "scope_start_utc": "2026-07-01T00:00:00Z",
+  "scope_end": "2026-10-07 latest captured ready versions",
+  "namespace": "production (unprefixed dataset names)",
+  "history_download_count": 664,
+  "historical_version_counts": {
+    "trading_agent_candidates": 267,
+    "trading_agent_research_packages": 213,
+    "universe_snapshot": 71,
+    "momentum_profiles": 71,
+    "attention_research_plans": 14,
+    "attention_home_1d": 14,
+    "attention_candidates_1d": 14
+  },
+  "target_symbols": [
+    "INTU",
+    "NKE",
+    "MCD",
+    "DHI",
+    "LEN",
+    "PHM",
+    "TOL",
+    "KBH",
+    "MTH",
+    "BLDR",
+    "OPEN"
+  ],
+  "job_summary": [
+    [
+      "attention-home-build",
+      "Failed",
+      310,
+      "2026-07-01 14:20:31.629499+00",
+      "2026-10-07 20:20:34.71205+00"
+    ],
+    [
+      "attention-home-build",
+      "Running",
+      3,
+      "2026-07-03 03:22:23.368052+00",
+      "2026-10-01 21:09:02.410323+00"
+    ],
+    [
+      "attention-home-build",
+      "Succeeded",
+      13,
+      "2026-07-02 01:45:18.682802+00",
+      "2026-10-07 20:51:03.211167+00"
+    ],
+    [
+      "commodities-regime",
+      "Succeeded",
+      159,
+      "2026-07-01 14:10:32.226615+00",
+      "2026-10-07 22:10:28.746815+00"
+    ],
+    [
+      "company-baseline-prefetch",
+      "Succeeded",
+      4,
+      "2026-07-01 10:15:31.887649+00",
+      "2026-10-01 10:15:31.031944+00"
+    ],
+    [
+      "daily-market-datapoints-build",
+      "Succeeded",
+      1,
+      "2026-10-07 07:29:12.419287+00",
+      "2026-10-07 07:29:12.419287+00"
+    ],
+    [
+      "development::attention-home-build",
+      "Running",
+      1,
+      "2026-09-21 05:03:08.817363+00",
+      "2026-09-21 05:03:08.817363+00"
+    ],
+    [
+      "development::attention-home-build",
+      "Succeeded",
+      2,
+      "2026-09-21 04:34:27.679491+00",
+      "2026-10-06 21:19:26.766827+00"
+    ],
+    [
+      "development::commodities-regime",
+      "Succeeded",
+      1,
+      "2026-09-21 04:33:09.894944+00",
+      "2026-09-21 04:33:09.894944+00"
+    ],
+    [
+      "development::daily-market-datapoints-build",
+      "Succeeded",
+      5,
+      "2026-10-07 00:53:28.062143+00",
+      "2026-10-07 07:27:56.98872+00"
+    ],
+    [
+      "development::equities-intraday-preload",
+      "Succeeded",
+      2,
+      "2026-09-21 04:20:02.275844+00",
+      "2026-10-07 06:48:13.929297+00"
+    ],
+    [
+      "development::fundamentals-quarterly-refresh",
+      "Succeeded",
+      1,
+      "2026-09-21 04:24:07.150701+00",
+      "2026-09-21 04:24:07.150701+00"
+    ],
+    [
+      "development::macro-fred-daily",
+      "Succeeded",
+      1,
+      "2026-09-21 02:55:34.774344+00",
+      "2026-09-21 02:55:34.774344+00"
+    ],
+    [
+      "development::options-liquid-universe",
+      "Succeeded",
+      1,
+      "2026-09-21 04:29:11.258361+00",
+      "2026-09-21 04:29:11.258361+00"
+    ],
+    [
+      "development::research-run-execute",
+      "Succeeded",
+      4,
+      "2026-10-02 07:52:28.230973+00",
+      "2026-10-07 05:44:53.441303+00"
+    ],
+    [
+      "development::trading-agent-build",
+      "Succeeded",
+      5,
+      "2026-09-21 02:11:03.237339+00",
+      "2026-09-21 05:22:07.857664+00"
+    ],
+    [
+      "entity-taxonomy-refresh",
+      "Failed",
+      6,
+      "2026-07-01 09:00:32.208222+00",
+      "2026-09-01 09:01:11.14994+00"
+    ],
+    [
+      "entity-taxonomy-refresh",
+      "Succeeded",
+      1,
+      "2026-10-01 09:00:30.778045+00",
+      "2026-10-01 09:00:30.778045+00"
+    ],
+    [
+      "equities-intraday-preload",
+      "Running",
+      7,
+      "2026-10-05 18:35:30.426813+00",
+      "2026-10-07 20:35:29.356355+00"
+    ],
+    [
+      "equities-intraday-preload",
+      "Succeeded",
+      192,
+      "2026-07-01 13:35:32.495396+00",
+      "2026-10-07 20:38:46.43418+00"
+    ],
+    [
+      "fundamentals-quarterly-refresh",
+      "Succeeded",
+      71,
+      "2026-07-01 12:00:33.047228+00",
+      "2026-10-07 12:00:34.691024+00"
+    ],
+    [
+      "macro-fred-daily",
+      "Failed",
+      2,
+      "2026-07-24 11:00:38.34139+00",
+      "2026-07-24 11:04:10.585211+00"
+    ],
+    [
+      "macro-fred-daily",
+      "Succeeded",
+      99,
+      "2026-07-01 11:00:32.351219+00",
+      "2026-10-07 11:00:31.752835+00"
+    ],
+    [
+      "news-ingest-and-features",
+      "Failed",
+      2,
+      "2026-07-15 14:05:33.57316+00",
+      "2026-08-13 16:05:30.10473+00"
+    ],
+    [
+      "news-ingest-and-features",
+      "Running",
+      172,
+      "2026-07-02 14:05:32.853318+00",
+      "2026-10-07 20:22:38.619599+00"
+    ],
+    [
+      "news-ingest-and-features",
+      "Succeeded",
+      156,
+      "2026-07-01 14:05:33.013556+00",
+      "2026-09-18 20:05:28.208146+00"
+    ],
+    [
+      "options-liquid-universe",
+      "Succeeded",
+      82,
+      "2026-07-01 14:45:31.134311+00",
+      "2026-10-07 20:45:31.42328+00"
+    ],
+    [
+      "research-run-execute",
+      "Succeeded",
+      2,
+      "2026-10-07 16:13:39.044124+00",
+      "2026-10-07 17:14:09.773375+00"
+    ],
+    [
+      "system-health",
+      "Failed",
+      2,
+      "2026-09-19 23:03:03.035664+00",
+      "2026-09-19 23:03:39.290383+00"
+    ],
+    [
+      "system-health",
+      "Succeeded",
+      1564,
+      "2026-09-19 23:05:43.497628+00",
+      "2026-10-08 02:30:37.494236+00"
+    ],
+    [
+      "trading-agent-build",
+      "Failed",
+      202,
+      "2026-08-14 20:35:30.433757+00",
+      "2026-09-18 20:36:16.997906+00"
+    ],
+    [
+      "trading-agent-build",
+      "Succeeded",
+      65,
+      "2026-07-01 14:35:30.091759+00",
+      "2026-10-07 20:35:31.187609+00"
+    ],
+    [
+      "universe-builder",
+      "Succeeded",
+      71,
+      "2026-07-01 13:20:30.874504+00",
+      "2026-10-07 13:20:31.160161+00"
+    ],
+    [
+      "zopedia-learning",
+      "Running",
+      9,
+      "2026-07-16 19:20:33.540312+00",
+      "2026-10-07 19:26:26.14399+00"
+    ],
+    [
+      "zopedia-learning",
+      "Succeeded",
+      140,
+      "2026-07-01 15:20:31.497108+00",
+      "2026-10-07 15:20:28.944354+00"
+    ],
+    [
+      "zopedia-maintenance",
+      "Running",
+      4,
+      "2026-10-07 18:50:29.891336+00",
+      "2026-10-07 20:56:41.387121+00"
+    ],
+    [
+      "zopedia-maintenance",
+      "Succeeded",
+      164,
+      "2026-07-01 14:50:32.418502+00",
+      "2026-10-06 18:51:09.684259+00"
+    ]
+  ],
+  "failure_groups": [
+    [
+      "trading-agent-build",
+      "RuntimeError: Trading Agent produced no successful horizon synthesis; inspect research packages and run errors.",
+      202,
+      "2026-08-14 20:35:30.433757+00",
+      "2026-09-18 20:36:16.997906+00"
+    ],
+    [
+      "attention-home-build",
+      "AttentionHomeBuildError: Home public-surface quality review failed: LLMAPIError: DeepSeek account has insufficient funds. Add credit in DeepSeek billing before retrying the pipeline. Provider response: HTTP 402 (invalid_request_error).",
+      201,
+      "2026-08-14 20:20:32.776468+00",
+      "2026-09-18 20:22:50.543417+00"
+    ],
+    [
+      "attention-home-build",
+      "AttentionHomeBuildError: Home public-surface quality review failed: LLMAPIError: DeepSeek request failed status=402: {\"error\":{\"message\":\"Insufficient Balance\",\"type\":\"unknown_error\",\"param\":null,\"code\":\"invalid_request_error\"}}",
+      108,
+      "2026-07-01 14:20:31.629499+00",
+      "2026-08-10 16:22:01.612386+00"
+    ],
+    [
+      "news-ingest-and-features",
+      "ReadTimeout: HTTPSConnectionPool(host='www.sec.gov', port=443): Read timed out. (read timeout=20)",
+      1,
+      "2026-08-13 16:05:30.10473+00",
+      "2026-08-13 16:05:30.10473+00"
+    ],
+    [
+      "news-ingest-and-features",
+      "ReadTimeout: HTTPSConnectionPool(host='data.sec.gov', port=443): Read timed out. (read timeout=20)",
+      1,
+      "2026-07-15 14:05:33.57316+00",
+      "2026-07-15 14:05:33.57316+00"
+    ],
+    [
+      "attention-home-build",
+      "_AttentionStepTimeout: attention-home-public-surface-quality-1 exceeded 300s",
+      1,
+      "2026-10-07 20:20:34.71205+00",
+      "2026-10-07 20:20:34.71205+00"
+    ]
+  ],
+  "monthly_jobs": [
+    [
+      "attention-home-build",
+      "2026-07",
+      "Failed",
+      64
+    ],
+    [
+      "attention-home-build",
+      "2026-07",
+      "Running",
+      1
+    ],
+    [
+      "attention-home-build",
+      "2026-07",
+      "Succeeded",
+      2
+    ],
+    [
+      "attention-home-build",
+      "2026-08",
+      "Failed",
+      134
+    ],
+    [
+      "attention-home-build",
+      "2026-08",
+      "Succeeded",
+      3
+    ],
+    [
+      "attention-home-build",
+      "2026-09",
+      "Failed",
+      111
+    ],
+    [
+      "attention-home-build",
+      "2026-09",
+      "Running",
+      1
+    ],
+    [
+      "attention-home-build",
+      "2026-09",
+      "Succeeded",
+      2
+    ],
+    [
+      "attention-home-build",
+      "2026-10",
+      "Failed",
+      1
+    ],
+    [
+      "attention-home-build",
+      "2026-10",
+      "Running",
+      1
+    ],
+    [
+      "attention-home-build",
+      "2026-10",
+      "Succeeded",
+      6
+    ],
+    [
+      "equities-intraday-preload",
+      "2026-07",
+      "Succeeded",
+      47
+    ],
+    [
+      "equities-intraday-preload",
+      "2026-08",
+      "Succeeded",
+      73
+    ],
+    [
+      "equities-intraday-preload",
+      "2026-09",
+      "Succeeded",
+      64
+    ],
+    [
+      "equities-intraday-preload",
+      "2026-10",
+      "Running",
+      7
+    ],
+    [
+      "equities-intraday-preload",
+      "2026-10",
+      "Succeeded",
+      8
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-07",
+      "Failed",
+      1
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-07",
+      "Running",
+      62
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-07",
+      "Succeeded",
+      32
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-08",
+      "Failed",
+      1
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-08",
+      "Running",
+      26
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-08",
+      "Succeeded",
+      68
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-09",
+      "Running",
+      56
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-09",
+      "Succeeded",
+      56
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-10",
+      "Running",
+      28
+    ],
+    [
+      "trading-agent-build",
+      "2026-07",
+      "Succeeded",
+      32
+    ],
+    [
+      "trading-agent-build",
+      "2026-08",
+      "Failed",
+      90
+    ],
+    [
+      "trading-agent-build",
+      "2026-08",
+      "Succeeded",
+      25
+    ],
+    [
+      "trading-agent-build",
+      "2026-09",
+      "Failed",
+      112
+    ],
+    [
+      "trading-agent-build",
+      "2026-09",
+      "Succeeded",
+      3
+    ],
+    [
+      "trading-agent-build",
+      "2026-10",
+      "Succeeded",
+      5
+    ]
+  ],
+  "home_versions": [
+    [
+      "attention_home_1d__20260702T014517Z__1f57ece4",
+      "2026-07-02 01:45:17.531946+00",
+      "2026-07-02 02:06:22.103247+00",
+      1
+    ],
+    [
+      "attention_home_1d__20260703T034459Z__63a4f201",
+      "2026-07-03 03:44:59.029322+00",
+      "2026-07-03 04:01:25.937454+00",
+      1
+    ],
+    [
+      "attention_home_1d__20260810T182029Z__47cde87f",
+      "2026-08-10 18:20:29.609463+00",
+      "2026-08-10 19:21:43.774356+00",
+      1
+    ],
+    [
+      "attention_home_1d__20260812T182028Z__9f94a40b",
+      "2026-08-12 18:20:28.514828+00",
+      "2026-08-12 19:30:13.827295+00",
+      1
+    ],
+    [
+      "attention_home_1d__20260814T162029Z__05b96689",
+      "2026-08-14 16:20:29.35086+00",
+      "2026-08-14 17:33:09.915394+00",
+      1
+    ],
+    [
+      "attention_home_1d__20260920T005538Z__9898f1c6",
+      "2026-09-20 00:55:38.989851+00",
+      "2026-09-20 01:14:42.22283+00",
+      1
+    ],
+    [
+      "attention_home_1d__20260921T184511Z__1438e83b",
+      "2026-09-21 18:45:11.990236+00",
+      "2026-09-21 19:05:36.713205+00",
+      1
+    ],
+    [
+      "attention_home_1d__20261001T210901Z__5037518c",
+      "2026-10-01 21:09:01.265966+00",
+      "2026-10-01 21:42:25.47902+00",
+      1
+    ],
+    [
+      "attention_home_1d__20261002T202032Z__fc68b18f",
+      "2026-10-02 20:20:32.358759+00",
+      "2026-10-02 20:37:40.083157+00",
+      1
+    ],
+    [
+      "attention_home_1d__20261005T182030Z__4f532816",
+      "2026-10-05 18:20:30.231075+00",
+      "2026-10-05 18:41:09.022247+00",
+      1
+    ],
+    [
+      "attention_home_1d__20261007T062413Z__68cb8690",
+      "2026-10-07 06:24:13.827952+00",
+      "2026-10-07 06:44:45.49041+00",
+      1
+    ],
+    [
+      "attention_home_1d__20261007T073648Z__7fb537d9",
+      "2026-10-07 07:36:48.875362+00",
+      "2026-10-07 07:56:59.651688+00",
+      1
+    ],
+    [
+      "attention_home_1d__20261007T182031Z__958d1c36",
+      "2026-10-07 18:20:31.67966+00",
+      "2026-10-07 19:03:20.33925+00",
+      1
+    ],
+    [
+      "attention_home_1d__20261007T205102Z__44e2c934",
+      "2026-10-07 20:51:02.071446+00",
+      "2026-10-07 21:34:12.556449+00",
+      1
+    ]
+  ],
+  "latest_jobs": [
+    [
+      "attention-home-build",
+      "2026-10-07 18:20:32.732671+00",
+      "2026-10-07 19:10:30.774765+00",
+      "Succeeded",
+      "completed",
+      "Completed successfully.",
+      null
+    ],
+    [
+      "attention-home-build",
+      "2026-10-07 20:20:34.71205+00",
+      "2026-10-07 20:46:47.25419+00",
+      "Failed",
+      "failed",
+      "_AttentionStepTimeout: attention-home-public-surface-quality-1 exceeded 300s",
+      "_AttentionStepTimeout: attention-home-public-surface-quality-1 exceeded 300s"
+    ],
+    [
+      "attention-home-build",
+      "2026-10-07 20:51:03.211167+00",
+      "2026-10-07 21:40:47.076596+00",
+      "Succeeded",
+      "completed",
+      "Completed successfully.",
+      null
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-10-07 18:22:46.674062+00",
+      null,
+      "Running",
+      "news_business_resolution",
+      "Building ticker business stacks and resolving company news against memory.",
+      null
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-10-07 20:05:32.274228+00",
+      null,
+      "Running",
+      "news_business_resolution",
+      "Building ticker business stacks and resolving company news against memory.",
+      null
+    ],
+    [
+      "news-ingest-and-features",
+      "2026-10-07 20:22:38.619599+00",
+      null,
+      "Running",
+      "news_business_resolution",
+      "Building ticker business stacks and resolving company news against memory.",
+      null
+    ],
+    [
+      "trading-agent-build",
+      "2026-10-05 18:35:30.924482+00",
+      "2026-10-05 18:46:42.872669+00",
+      "Succeeded",
+      "completed",
+      "Completed successfully.",
+      null
+    ],
+    [
+      "trading-agent-build",
+      "2026-10-07 18:35:33.364348+00",
+      "2026-10-07 18:46:19.389164+00",
+      "Succeeded",
+      "completed",
+      "Completed successfully.",
+      null
+    ],
+    [
+      "trading-agent-build",
+      "2026-10-07 20:35:31.187609+00",
+      "2026-10-07 20:45:38.232657+00",
+      "Succeeded",
+      "completed",
+      "Completed successfully.",
+      null
+    ]
+  ],
+  "history_summary": {
+    "INTU": {
+      "attention_candidates_1d": {
+        "count": 2,
+        "first": "2026-10-07 18:20:31.679660+00:00",
+        "last": "2026-10-07 20:51:02.071446+00:00"
+      },
+      "universe_snapshot": {
+        "count": 71,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-10-07 13:20:29.955830+00:00"
+      },
+      "momentum_profiles": {
+        "count": 71,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-10-07 20:38:45.401589+00:00"
+      }
+    },
+    "NKE": {
+      "attention_candidates_1d": {
+        "count": 1,
+        "first": "2026-10-02 20:20:32.358759+00:00",
+        "last": "2026-10-02 20:20:32.358759+00:00"
+      },
+      "universe_snapshot": {
+        "count": 71,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-10-07 13:20:29.955830+00:00"
+      },
+      "momentum_profiles": {
+        "count": 71,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-10-07 20:38:45.401589+00:00"
+      }
+    },
+    "MCD": {
+      "attention_candidates_1d": {
+        "count": 1,
+        "first": "2026-07-03 03:44:59.029322+00:00",
+        "last": "2026-07-03 03:44:59.029322+00:00"
+      },
+      "universe_snapshot": {
+        "count": 71,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-10-07 13:20:29.955830+00:00"
+      },
+      "momentum_profiles": {
+        "count": 71,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-10-07 20:38:45.401589+00:00"
+      }
+    },
+    "DHI": {
+      "universe_snapshot": {
+        "count": 71,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-10-07 13:20:29.955830+00:00"
+      },
+      "momentum_profiles": {
+        "count": 71,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-10-07 20:38:45.401589+00:00"
+      }
+    },
+    "LEN": {
+      "universe_snapshot": {
+        "count": 69,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-10-07 13:20:29.955830+00:00"
+      },
+      "momentum_profiles": {
+        "count": 69,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-10-07 20:38:45.401589+00:00"
+      }
+    },
+    "PHM": {
+      "universe_snapshot": {
+        "count": 61,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-10-07 13:20:29.955830+00:00"
+      },
+      "momentum_profiles": {
+        "count": 61,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-10-07 20:38:45.401589+00:00"
+      }
+    },
+    "TOL": {
+      "universe_snapshot": {
+        "count": 58,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-10-07 13:20:29.955830+00:00"
+      },
+      "momentum_profiles": {
+        "count": 58,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-10-07 20:38:45.401589+00:00"
+      }
+    },
+    "KBH": {
+      "universe_snapshot": {
+        "count": 4,
+        "first": "2026-09-15 13:20:26.962941+00:00",
+        "last": "2026-09-25 13:20:27.510216+00:00"
+      },
+      "momentum_profiles": {
+        "count": 4,
+        "first": "2026-09-15 20:35:26.398520+00:00",
+        "last": "2026-09-25 13:35:29.114397+00:00"
+      }
+    },
+    "MTH": {
+      "universe_snapshot": {
+        "count": 6,
+        "first": "2026-07-20 13:20:30.471671+00:00",
+        "last": "2026-08-10 13:20:29.441501+00:00"
+      },
+      "momentum_profiles": {
+        "count": 6,
+        "first": "2026-07-20 13:35:32.885588+00:00",
+        "last": "2026-08-10 16:35:32.503816+00:00"
+      }
+    },
+    "BLDR": {
+      "universe_snapshot": {
+        "count": 64,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-10-06 13:20:27.735718+00:00"
+      },
+      "momentum_profiles": {
+        "count": 64,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-10-06 13:35:28.401399+00:00"
+      }
+    },
+    "OPEN": {
+      "universe_snapshot": {
+        "count": 34,
+        "first": "2026-07-01 13:20:29.721768+00:00",
+        "last": "2026-09-18 13:20:26.993804+00:00"
+      },
+      "momentum_profiles": {
+        "count": 34,
+        "first": "2026-07-01 20:35:29.770361+00:00",
+        "last": "2026-09-18 20:35:26.193004+00:00"
+      }
+    }
+  },
+  "home_target_trace": [],
+  "summary_name_mentions": [],
+  "home_coverage_history": [
+    {
+      "asof": "2026-07-02 01:45:17.531946+00:00",
+      "candidates": 62,
+      "research": 12,
+      "macro": 44
+    },
+    {
+      "asof": "2026-07-03 03:44:59.029322+00:00",
+      "candidates": 100,
+      "research": 12,
+      "macro": 87
+    },
+    {
+      "asof": "2026-08-10 18:20:29.609463+00:00",
+      "candidates": 66,
+      "research": 12,
+      "macro": 54
+    },
+    {
+      "asof": "2026-08-12 18:20:28.514828+00:00",
+      "candidates": 76,
+      "research": 12,
+      "macro": 62
+    },
+    {
+      "asof": "2026-08-14 16:20:29.350860+00:00",
+      "candidates": 69,
+      "research": 12,
+      "macro": 58
+    },
+    {
+      "asof": "2026-09-20 00:55:38.989851+00:00",
+      "candidates": 100,
+      "research": 12,
+      "macro": 89
+    },
+    {
+      "asof": "2026-09-21 18:45:11.990236+00:00",
+      "candidates": 77,
+      "research": 12,
+      "macro": 55
+    },
+    {
+      "asof": "2026-10-01 21:09:01.265966+00:00",
+      "candidates": 78,
+      "research": 12,
+      "macro": 46
+    },
+    {
+      "asof": "2026-10-02 20:20:32.358759+00:00",
+      "candidates": 74,
+      "research": 12,
+      "macro": 53
+    },
+    {
+      "asof": "2026-10-05 18:20:30.231075+00:00",
+      "candidates": 72,
+      "research": 12,
+      "macro": 53
+    },
+    {
+      "asof": "2026-10-07 06:24:13.827952+00:00",
+      "candidates": 71,
+      "research": 12,
+      "macro": 52
+    },
+    {
+      "asof": "2026-10-07 07:36:48.875362+00:00",
+      "candidates": 71,
+      "research": 12,
+      "macro": 52
+    },
+    {
+      "asof": "2026-10-07 18:20:31.679660+00:00",
+      "candidates": 80,
+      "research": 12,
+      "macro": 60
+    },
+    {
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "candidates": 76,
+      "research": 12,
+      "macro": 51
+    }
+  ],
+  "price_summary": [
+    {
+      "symbol": "DHI",
+      "last_date": "2026-10-07 04:00:00+00:00",
+      "close": 133.255,
+      "return_since_2026-01-02": -7.74,
+      "return_since_2026-04-07": -2.22,
+      "return_since_2026-07-01": -14.87,
+      "return_since_2026-07-07": -14.06,
+      "return_since_2026-09-07": -6.64,
+      "drawdown_90d": -13.45,
+      "peak_date_90d": "2026-07-16",
+      "drawdown_180d": -19.91,
+      "peak_date_180d": "2026-06-25",
+      "drawdown_365d": -20.22,
+      "peak_date_365d": "2026-02-13",
+      "largest_daily_losses": [
+        {
+          "timestamp": "2026-07-08 04:00:00+00:00",
+          "day_return": -4.488585063846262
+        },
+        {
+          "timestamp": "2026-08-12 04:00:00+00:00",
+          "day_return": -3.318525394510008
+        },
+        {
+          "timestamp": "2026-08-06 04:00:00+00:00",
+          "day_return": -3.3050735196714642
+        }
+      ]
+    },
+    {
+      "symbol": "INTU",
+      "last_date": "2026-10-07 04:00:00+00:00",
+      "close": 297.18,
+      "return_since_2026-01-02": -52.34,
+      "return_since_2026-04-07": -27.0,
+      "return_since_2026-07-01": 11.76,
+      "return_since_2026-07-07": 6.16,
+      "return_since_2026-09-07": -10.68,
+      "drawdown_90d": -19.67,
+      "peak_date_90d": "2026-08-24",
+      "drawdown_180d": -26.96,
+      "peak_date_180d": "2026-04-22",
+      "drawdown_365d": -56.11,
+      "peak_date_365d": "2025-10-27",
+      "largest_daily_losses": [
+        {
+          "timestamp": "2026-07-30 04:00:00+00:00",
+          "day_return": -5.350929814037187
+        },
+        {
+          "timestamp": "2026-09-08 04:00:00+00:00",
+          "day_return": -4.132852419597233
+        },
+        {
+          "timestamp": "2026-09-01 04:00:00+00:00",
+          "day_return": -4.016477857878476
+        }
+      ]
+    },
+    {
+      "symbol": "LEN",
+      "last_date": "2026-10-07 04:00:00+00:00",
+      "close": 76.12,
+      "return_since_2026-01-02": -25.31,
+      "return_since_2026-04-07": -9.42,
+      "return_since_2026-07-01": -11.47,
+      "return_since_2026-07-07": -11.12,
+      "return_since_2026-09-07": -8.32,
+      "drawdown_90d": -13.13,
+      "peak_date_90d": "2026-08-07",
+      "drawdown_180d": -19.03,
+      "peak_date_180d": "2026-06-11",
+      "drawdown_365d": -41.54,
+      "peak_date_365d": "2025-12-03",
+      "largest_daily_losses": [
+        {
+          "timestamp": "2026-10-05 04:00:00+00:00",
+          "day_return": -6.699470098410298
+        },
+        {
+          "timestamp": "2026-09-18 04:00:00+00:00",
+          "day_return": -4.11564196439842
+        },
+        {
+          "timestamp": "2026-09-08 04:00:00+00:00",
+          "day_return": -3.854028664338194
+        }
+      ]
+    },
+    {
+      "symbol": "MCD",
+      "last_date": "2026-10-07 04:00:00+00:00",
+      "close": 230.84,
+      "return_since_2026-01-02": -22.39,
+      "return_since_2026-04-07": -23.22,
+      "return_since_2026-07-01": -13.71,
+      "return_since_2026-07-07": -17.61,
+      "return_since_2026-09-07": -9.72,
+      "drawdown_90d": -15.92,
+      "peak_date_90d": "2026-07-09",
+      "drawdown_180d": -24.83,
+      "peak_date_180d": "2026-04-17",
+      "drawdown_365d": -30.99,
+      "peak_date_365d": "2026-02-27",
+      "largest_daily_losses": [
+        {
+          "timestamp": "2026-09-23 04:00:00+00:00",
+          "day_return": -4.817063428662727
+        },
+        {
+          "timestamp": "2026-08-17 04:00:00+00:00",
+          "day_return": -2.668881506090792
+        },
+        {
+          "timestamp": "2026-08-27 04:00:00+00:00",
+          "day_return": -2.569326542161854
+        }
+      ]
+    },
+    {
+      "symbol": "NKE",
+      "last_date": "2026-10-07 04:00:00+00:00",
+      "close": 34.365,
+      "return_since_2026-01-02": -44.26,
+      "return_since_2026-04-07": -17.94,
+      "return_since_2026-07-01": -19.48,
+      "return_since_2026-07-07": -19.61,
+      "return_since_2026-09-07": -10.53,
+      "drawdown_90d": -22.04,
+      "peak_date_90d": "2026-07-16",
+      "drawdown_180d": -26.02,
+      "peak_date_180d": "2026-05-28",
+      "drawdown_365d": -49.07,
+      "peak_date_365d": "2025-10-23",
+      "largest_daily_losses": [
+        {
+          "timestamp": "2026-08-17 04:00:00+00:00",
+          "day_return": -4.094292803970223
+        },
+        {
+          "timestamp": "2026-10-02 04:00:00+00:00",
+          "day_return": -3.337136337706792
+        },
+        {
+          "timestamp": "2026-08-25 04:00:00+00:00",
+          "day_return": -3.1490205802132354
+        }
+      ]
+    },
+    {
+      "symbol": "PHM",
+      "last_date": "2026-10-07 04:00:00+00:00",
+      "close": 112.325,
+      "return_since_2026-01-02": -5.02,
+      "return_since_2026-04-07": -1.99,
+      "return_since_2026-07-01": -15.16,
+      "return_since_2026-07-07": -13.3,
+      "return_since_2026-09-07": -9.52,
+      "drawdown_90d": -16.43,
+      "peak_date_90d": "2026-07-28",
+      "drawdown_180d": -18.29,
+      "peak_date_180d": "2026-06-29",
+      "drawdown_365d": -20.69,
+      "peak_date_365d": "2026-02-13",
+      "largest_daily_losses": [
+        {
+          "timestamp": "2026-07-08 04:00:00+00:00",
+          "day_return": -5.294844087681383
+        },
+        {
+          "timestamp": "2026-09-08 04:00:00+00:00",
+          "day_return": -3.6407571486105628
+        },
+        {
+          "timestamp": "2026-10-07 04:00:00+00:00",
+          "day_return": -3.243173399948318
+        }
+      ]
+    },
+    {
+      "symbol": "SPY",
+      "last_date": "2026-10-07 04:00:00+00:00",
+      "close": 777.15,
+      "return_since_2026-01-02": 14.62,
+      "return_since_2026-04-07": 18.48,
+      "return_since_2026-07-01": 4.48,
+      "return_since_2026-07-07": 4.19,
+      "return_since_2026-09-07": 1.16,
+      "drawdown_90d": -0.25,
+      "peak_date_90d": "2026-10-06",
+      "drawdown_180d": -0.25,
+      "peak_date_180d": "2026-10-06",
+      "drawdown_365d": -0.25,
+      "peak_date_365d": "2026-10-06",
+      "largest_daily_losses": [
+        {
+          "timestamp": "2026-07-29 04:00:00+00:00",
+          "day_return": -1.515643607231787
+        },
+        {
+          "timestamp": "2026-07-23 04:00:00+00:00",
+          "day_return": -1.2620031114210617
+        },
+        {
+          "timestamp": "2026-07-17 04:00:00+00:00",
+          "day_return": -1.010667414320232
+        }
+      ]
+    },
+    {
+      "symbol": "TOL",
+      "last_date": "2026-10-07 04:00:00+00:00",
+      "close": 133.76,
+      "return_since_2026-01-02": -0.82,
+      "return_since_2026-04-07": 0.85,
+      "return_since_2026-07-01": -14.92,
+      "return_since_2026-07-07": -11.42,
+      "return_since_2026-09-07": -5.61,
+      "drawdown_90d": -14.07,
+      "peak_date_90d": "2026-07-16",
+      "drawdown_180d": -18.73,
+      "peak_date_180d": "2026-06-29",
+      "drawdown_365d": -19.26,
+      "peak_date_365d": "2026-02-13",
+      "largest_daily_losses": [
+        {
+          "timestamp": "2026-09-08 04:00:00+00:00",
+          "day_return": -3.7434287125568955
+        },
+        {
+          "timestamp": "2026-07-08 04:00:00+00:00",
+          "day_return": -3.741474074564588
+        },
+        {
+          "timestamp": "2026-08-10 04:00:00+00:00",
+          "day_return": -3.311855670103081
+        }
+      ]
+    }
+  ],
+  "trading_selection_replay": {
+    "per_horizon": {
+      "1w": [
+        "HPE",
+        "PBR",
+        "JBLU",
+        "IOVA",
+        "WING",
+        "FLG"
+      ],
+      "1m": [
+        "HPE",
+        "PBR",
+        "JBLU",
+        "ASST",
+        "FLG",
+        "IOVA"
+      ],
+      "3m": [
+        "ASST",
+        "CDNA",
+        "HPE",
+        "PBR",
+        "JBLU",
+        "TEAM"
+      ],
+      "1y": [
+        "PBR",
+        "MRVL",
+        "IOVA",
+        "ASST",
+        "MRNA",
+        "WING"
+      ],
+      "5y": [
+        "HPE",
+        "PBR",
+        "JBLU",
+        "IOVA",
+        "FLG",
+        "MSTR"
+      ]
+    },
+    "replayed_pool": [
+      "PBR",
+      "HPE",
+      "ASST",
+      "CDNA",
+      "MRVL",
+      "JBLU",
+      "IOVA",
+      "FLG"
+    ],
+    "retained_pool": [
+      "PBR",
+      "HPE",
+      "ASST",
+      "CDNA",
+      "MRVL",
+      "JBLU",
+      "IOVA",
+      "FLG"
+    ],
+    "sets_match": true
+  },
+  "health_incidents": [
+    [
+      "attention-home-build-failed",
+      "resolved",
+      "2026-09-19 23:03:01.814617+00",
+      "2026-09-20 00:30:30.459805+00",
+      "2026-09-20 00:30:30.459805+00",
+      "2026-09-19 23:05:42.343624+00",
+      "2026-09-20 00:30:30.459805+00"
+    ],
+    [
+      "trading-agent-build-failed",
+      "resolved",
+      "2026-09-19 23:03:01.814617+00",
+      "2026-09-20 01:15:28.932205+00",
+      "2026-09-20 01:15:28.932205+00",
+      "2026-09-19 23:05:42.343624+00",
+      "2026-09-20 01:15:28.932205+00"
+    ],
+    [
+      "trading-agent-no-successful-horizons",
+      "resolved",
+      "2026-09-20 01:15:28.932205+00",
+      "2026-10-02 05:00:31.79388+00",
+      "2026-10-02 05:00:31.79388+00",
+      "2026-10-01 21:15:29.174453+00",
+      "2026-10-02 05:00:31.79388+00"
+    ]
+  ],
+  "live_job_configuration": [
+    {
+      "env": [
+        {
+          "name": "ATTENTION_HOME_RESEARCH_LIMIT",
+          "value": "12"
+        },
+        {
+          "name": "ATTENTION_CANDIDATE_SCORING_MODE",
+          "value": "legacy"
+        }
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "name": "universe-builder",
+      "schedule": "20 13 * * 1-5",
+      "timeout": 3600
+    },
+    {
+      "env": [
+        {
+          "name": "ATTENTION_HOME_RESEARCH_LIMIT",
+          "value": "12"
+        },
+        {
+          "name": "ATTENTION_CANDIDATE_SCORING_MODE",
+          "value": "legacy"
+        }
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:9a40f9862a84c6cd045a750d4522abdd05921e2c26eb57583866f235637d0bbc",
+      "name": "equities-intraday-preload",
+      "schedule": "35 13,16,18,20 * * 1-5",
+      "timeout": 3600
+    },
+    {
+      "env": [
+        {
+          "name": "ATTENTION_CONTEXT_SYMBOL_LIMIT",
+          "value": "20"
+        },
+        {
+          "name": "ATTENTION_HOME_RESEARCH_LIMIT",
+          "value": "12"
+        },
+        {
+          "name": "ATTENTION_CANDIDATE_SCORING_MODE",
+          "value": "legacy"
+        }
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/lock-fix-legacy@sha256:b90e5f070108cfe36dc02ae8d9d3282df3f8a181b14eb851022a8641b4ac8257",
+      "name": "news-ingest-and-features",
+      "schedule": "5 14,16,18,20 * * 1-5",
+      "timeout": 3600
+    },
+    {
+      "env": [
+        {
+          "name": "ATTENTION_HOME_RESEARCH_LIMIT",
+          "value": "12"
+        },
+        {
+          "name": "ATTENTION_CANDIDATE_SCORING_MODE",
+          "value": "legacy"
+        },
+        {
+          "name": "PIPELINE_DATASET_NAMESPACE",
+          "value": "production"
+        },
+        {
+          "name": "APP_TRACK",
+          "value": "production"
+        }
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:9a40f9862a84c6cd045a750d4522abdd05921e2c26eb57583866f235637d0bbc",
+      "name": "attention-home-build",
+      "schedule": "20 14,16,18,20 * * 1-5",
+      "timeout": 7200
+    },
+    {
+      "env": [
+        {
+          "name": "ATTENTION_HOME_RESEARCH_LIMIT",
+          "value": "12"
+        },
+        {
+          "name": "ATTENTION_CANDIDATE_SCORING_MODE",
+          "value": "legacy"
+        },
+        {
+          "name": "TRADING_AGENT_GENERATION_MODE",
+          "value": "shared_research_v2"
+        },
+        {
+          "name": "TRADING_AGENT_SCOUT_LIMIT_PER_HORIZON",
+          "value": "6"
+        },
+        {
+          "name": "TRADING_AGENT_RESEARCH_POOL_LIMIT",
+          "value": "8"
+        }
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/lock-fix-trading@sha256:713fad3813fe8ef168c37a34b7733b689f97cb65adf0e6552b9255c87fb88633",
+      "name": "trading-agent-build",
+      "schedule": "35 14,16,18,20 * * 1-5",
+      "timeout": 3600
+    }
+  ],
+  "news_azure_executions": [
+    {
+      "end": null,
+      "name": "news-ingest-and-features-29856725",
+      "start": "2026-10-07T20:05:00+00:00",
+      "status": "Failed"
+    },
+    {
+      "end": null,
+      "name": "news-ingest-and-features-29856605",
+      "start": "2026-10-07T18:05:00+00:00",
+      "status": "Failed"
+    },
+    {
+      "end": null,
+      "name": "news-ingest-and-features-29856485",
+      "start": "2026-10-07T16:05:00+00:00",
+      "status": "Failed"
+    },
+    {
+      "end": null,
+      "name": "news-ingest-and-features-29856365",
+      "start": "2026-10-07T14:05:00+00:00",
+      "status": "Failed"
+    },
+    {
+      "end": null,
+      "name": "news-ingest-and-features-29855285",
+      "start": "2026-10-06T20:05:00+00:00",
+      "status": "Failed"
+    }
+  ],
+  "latest_dataset_metadata": [
+    {
+      "name": "attention_candidates_1d",
+      "id": "attention_candidates_1d__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:33:45.296769+00:00",
+      "rows": 76
+    },
+    {
+      "name": "attention_event_clusters_1d",
+      "id": "attention_event_clusters_1d__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:34:05.417298+00:00",
+      "rows": 13
+    },
+    {
+      "name": "attention_home_1d",
+      "id": "attention_home_1d__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:34:12.556449+00:00",
+      "rows": 1
+    },
+    {
+      "name": "attention_research_bundles",
+      "id": "attention_research_bundles__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:34:12.725344+00:00",
+      "rows": 89
+    },
+    {
+      "name": "attention_research_plans",
+      "id": "attention_research_plans__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:33:45.599060+00:00",
+      "rows": 12
+    },
+    {
+      "name": "attention_search_requests",
+      "id": "attention_search_requests__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:33:46.102703+00:00",
+      "rows": 48
+    },
+    {
+      "name": "attention_ticker_zopedia_enrichments",
+      "id": "attention_ticker_zopedia_enrichments__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:34:10.653073+00:00",
+      "rows": 13
+    },
+    {
+      "name": "daily_movers",
+      "id": "daily_movers__20261007T203845Z__14fc29a6",
+      "asof": "2026-10-07 20:38:45.401589+00:00",
+      "ingested": "2026-10-07 20:38:50.301135+00:00",
+      "rows": 999
+    },
+    {
+      "name": "entity_taxonomy_labels",
+      "id": "entity_taxonomy_labels__20261001T090029Z__2346cad3",
+      "asof": "2026-10-01 09:00:29.474615+00:00",
+      "ingested": "2026-10-01 09:08:39.505647+00:00",
+      "rows": 6735
+    },
+    {
+      "name": "market_opportunity_feed",
+      "id": "market_opportunity_feed__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:34:12.279988+00:00",
+      "rows": 11550
+    },
+    {
+      "name": "momentum_profiles",
+      "id": "momentum_profiles__20261007T203845Z__14fc29a6",
+      "asof": "2026-10-07 20:38:45.401589+00:00",
+      "ingested": "2026-10-07 20:41:38.068211+00:00",
+      "rows": 999
+    },
+    {
+      "name": "page_agentic_summaries",
+      "id": "page_agentic_summaries__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "ingested": "2026-10-07 21:40:46.943248+00:00",
+      "rows": 5
+    },
+    {
+      "name": "taxonomy_peer_group_membership",
+      "id": "taxonomy_peer_group_membership__20261007T203845Z__14fc29a6",
+      "asof": "2026-10-07 20:38:45.401589+00:00",
+      "ingested": "2026-10-07 20:42:19.591547+00:00",
+      "rows": 1000
+    },
+    {
+      "name": "technical_signals_latest",
+      "id": "technical_signals_latest__20261007T203845Z__14fc29a6",
+      "asof": "2026-10-07 20:38:45.401589+00:00",
+      "ingested": "2026-10-07 20:42:13.431595+00:00",
+      "rows": 1000
+    },
+    {
+      "name": "trading_agent_candidates",
+      "id": "trading_agent_candidates__20261007T203529Z__046d272e",
+      "asof": "2026-10-07 20:35:29.663951+00:00",
+      "ingested": "2026-10-07 20:45:34.209502+00:00",
+      "rows": 18
+    },
+    {
+      "name": "trading_agent_ranked_opportunities",
+      "id": "trading_agent_ranked_opportunities__20261007T203529Z__046d272e",
+      "asof": "2026-10-07 20:35:29.663951+00:00",
+      "ingested": "2026-10-07 20:45:33.820640+00:00",
+      "rows": 5994
+    },
+    {
+      "name": "trading_agent_research_packages",
+      "id": "trading_agent_research_packages__20261007T203529Z__046d272e",
+      "asof": "2026-10-07 20:35:29.663951+00:00",
+      "ingested": "2026-10-07 20:45:33.502293+00:00",
+      "rows": 8
+    },
+    {
+      "name": "universe_snapshot",
+      "id": "universe_snapshot__20261007T132029Z__351dc2e0",
+      "asof": "2026-10-07 13:20:29.955830+00:00",
+      "ingested": "2026-10-07 13:20:50.080082+00:00",
+      "rows": 1000
+    },
+    {
+      "name": "zopedia_news_business_resolutions",
+      "id": "zopedia_news_business_resolutions__20260918T200527Z__893690d2",
+      "asof": "2026-09-18 20:05:27.032492+00:00",
+      "ingested": "2026-09-18 20:08:31.317220+00:00",
+      "rows": 12
+    },
+    {
+      "name": "zopedia_ticker_business_model_stacks",
+      "id": "zopedia_ticker_business_model_stacks__20260918T200527Z__893690d2",
+      "asof": "2026-09-18 20:05:27.032492+00:00",
+      "ingested": "2026-09-18 20:08:31.121719+00:00",
+      "rows": 25
+    },
+    {
+      "name": "anomaly_events",
+      "id": "anomaly_events__20261007T203845Z__14fc29a6",
+      "asof": "2026-10-07 20:38:45.401589+00:00",
+      "rows": 194
+    },
+    {
+      "name": "attention_candidates",
+      "id": "attention_candidates__20261007T203845Z__14fc29a6",
+      "asof": "2026-10-07 20:38:45.401589+00:00",
+      "rows": 4977
+    },
+    {
+      "name": "attention_context_bundle",
+      "id": "attention_context_bundle__20261007T202237Z__0e1caa8a",
+      "asof": "2026-10-07 20:22:37.526515+00:00",
+      "rows": 16
+    },
+    {
+      "name": "attention_feed",
+      "id": "attention_feed__20261007T203845Z__14fc29a6",
+      "asof": "2026-10-07 20:38:45.401589+00:00",
+      "rows": 20
+    },
+    {
+      "name": "attention_macro_context_1d",
+      "id": "attention_macro_context_1d__20261007T205102Z__44e2c934",
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "rows": 0
+    },
+    {
+      "name": "edgar_filings",
+      "id": "edgar_filings__20261007T202237Z__0e1caa8a",
+      "asof": "2026-10-07 20:22:37.526515+00:00",
+      "rows": 55
+    },
+    {
+      "name": "news_articles",
+      "id": "news_articles__20261007T202237Z__0e1caa8a",
+      "asof": "2026-10-07 20:22:37.526515+00:00",
+      "rows": 50
+    },
+    {
+      "name": "news_symbol_map",
+      "id": "news_symbol_map__20261007T202237Z__0e1caa8a",
+      "asof": "2026-10-07 20:22:37.526515+00:00",
+      "rows": 50
+    },
+    {
+      "name": "price_expectations",
+      "id": "price_expectations__20261007T203845Z__14fc29a6",
+      "asof": "2026-10-07 20:38:45.401589+00:00",
+      "rows": 4977
+    }
+  ],
+  "latest_momentum": [
+    {
+      "symbol": "INTU",
+      "close": 297.18,
+      "return_1d_pct": 2.5536613983,
+      "return_1m_pct": -5.3235209787,
+      "return_3m_pct": 8.0811754437,
+      "return_1y_pct": -54.3200577955,
+      "momentum_roc_score": -1.2925428931
+    },
+    {
+      "symbol": "LEN",
+      "close": 76.12,
+      "return_1d_pct": -0.98855359,
+      "return_1m_pct": -5.1345962114,
+      "return_3m_pct": -9.0561529271,
+      "return_1y_pct": -35.9851988899,
+      "momentum_roc_score": 0.4452841069
+    },
+    {
+      "symbol": "DHI",
+      "close": 133.255,
+      "return_1d_pct": -2.5379411227,
+      "return_1m_pct": -4.0606213327,
+      "return_3m_pct": -11.8100595632,
+      "return_1y_pct": -16.2392356528,
+      "momentum_roc_score": -0.2767241442
+    },
+    {
+      "symbol": "PHM",
+      "close": 112.325,
+      "return_1d_pct": -3.2431733999,
+      "return_1m_pct": -5.354735423,
+      "return_3m_pct": -9.7573712541,
+      "return_1y_pct": -12.5739414695,
+      "momentum_roc_score": -0.3078721095
+    },
+    {
+      "symbol": "TOL",
+      "close": 133.76,
+      "return_1d_pct": -2.9740316263,
+      "return_1m_pct": -1.0065127294,
+      "return_3m_pct": -10.4445634708,
+      "return_1y_pct": 1.394784718,
+      "momentum_roc_score": -2.4140380802
+    },
+    {
+      "symbol": "MCD",
+      "close": 230.84,
+      "return_1d_pct": -0.6926220693,
+      "return_1m_pct": -8.9532223712,
+      "return_3m_pct": -15.3253613088,
+      "return_1y_pct": -20.0913874273,
+      "momentum_roc_score": 3.5947222946
+    },
+    {
+      "symbol": "NKE",
+      "close": 34.365,
+      "return_1d_pct": -0.7078878937,
+      "return_1m_pct": -8.0165952891,
+      "return_3m_pct": -21.7554644809,
+      "return_1y_pct": -48.5014236475,
+      "momentum_roc_score": 0.5013137735
+    }
+  ],
+  "latest_universe_membership": [
+    {
+      "symbol": "NKE",
+      "rank": 56,
+      "liquidity_rank": 56.0,
+      "volume": 2096323.0,
+      "dollar_volume": 72553739.03,
+      "selection_reason": "liquidity"
+    },
+    {
+      "symbol": "MCD",
+      "rank": 102,
+      "liquidity_rank": 102.0,
+      "volume": 191662.0,
+      "dollar_volume": 44551831.9,
+      "selection_reason": "liquidity"
+    },
+    {
+      "symbol": "DHI",
+      "rank": 134,
+      "liquidity_rank": 134.0,
+      "volume": 260695.0,
+      "dollar_volume": 35643523.875,
+      "selection_reason": "liquidity"
+    },
+    {
+      "symbol": "INTU",
+      "rank": 155,
+      "liquidity_rank": 155.0,
+      "volume": 109919.0,
+      "dollar_volume": 31852327.819999997,
+      "selection_reason": "liquidity"
+    },
+    {
+      "symbol": "LEN",
+      "rank": 313,
+      "liquidity_rank": 313.0,
+      "volume": 203539.0,
+      "dollar_volume": 15749847.819999998,
+      "selection_reason": "liquidity"
+    },
+    {
+      "symbol": "PHM",
+      "rank": 852,
+      "liquidity_rank": null,
+      "volume": 69542.0,
+      "dollar_volume": 8073130.78,
+      "selection_reason": "liquidity_fallback"
+    },
+    {
+      "symbol": "TOL",
+      "rank": 952,
+      "liquidity_rank": null,
+      "volume": 42070.0,
+      "dollar_volume": 5799770.2,
+      "selection_reason": "liquidity_fallback"
+    }
+  ],
+  "latest_market_ranks": [
+    {
+      "symbol": "NKE",
+      "horizon_key": "1m",
+      "rank": 70,
+      "horizon_retrieval_rank": 415.0,
+      "opportunity_score": 31.7,
+      "momentum_change_retrieval_rank": 739.0,
+      "daily_move_retrieval_rank": 724.0,
+      "trend_quality_retrieval_rank": 2.0
+    },
+    {
+      "symbol": "TOL",
+      "horizon_key": "1m",
+      "rank": 308,
+      "horizon_retrieval_rank": 919.0,
+      "opportunity_score": 20.3,
+      "momentum_change_retrieval_rank": 175.0,
+      "daily_move_retrieval_rank": 183.0,
+      "trend_quality_retrieval_rank": 196.0
+    },
+    {
+      "symbol": "MCD",
+      "horizon_key": "1m",
+      "rank": 349,
+      "horizon_retrieval_rank": 369.0,
+      "opportunity_score": 19.0,
+      "momentum_change_retrieval_rank": 120.0,
+      "daily_move_retrieval_rank": 730.0,
+      "trend_quality_retrieval_rank": 240.0
+    },
+    {
+      "symbol": "PHM",
+      "horizon_key": "1m",
+      "rank": 540,
+      "horizon_retrieval_rank": 578.0,
+      "opportunity_score": 14.3,
+      "momentum_change_retrieval_rank": 855.0,
+      "daily_move_retrieval_rank": 160.0,
+      "trend_quality_retrieval_rank": 397.0
+    },
+    {
+      "symbol": "INTU",
+      "horizon_key": "1m",
+      "rank": 644,
+      "horizon_retrieval_rank": 582.0,
+      "opportunity_score": 12.5,
+      "momentum_change_retrieval_rank": 384.0,
+      "daily_move_retrieval_rank": 234.0,
+      "trend_quality_retrieval_rank": 947.0
+    },
+    {
+      "symbol": "DHI",
+      "horizon_key": "1m",
+      "rank": 645,
+      "horizon_retrieval_rank": 677.0,
+      "opportunity_score": 12.5,
+      "momentum_change_retrieval_rank": 869.0,
+      "daily_move_retrieval_rank": 240.0,
+      "trend_quality_retrieval_rank": 350.0
+    },
+    {
+      "symbol": "LEN",
+      "horizon_key": "1m",
+      "rank": 907,
+      "horizon_retrieval_rank": 593.0,
+      "opportunity_score": 8.9,
+      "momentum_change_retrieval_rank": 770.0,
+      "daily_move_retrieval_rank": 624.0,
+      "trend_quality_retrieval_rank": 548.0
+    },
+    {
+      "symbol": "NKE",
+      "horizon_key": "3m",
+      "rank": 62,
+      "horizon_retrieval_rank": 207.0,
+      "opportunity_score": 34.2,
+      "momentum_change_retrieval_rank": 739.0,
+      "daily_move_retrieval_rank": 724.0,
+      "trend_quality_retrieval_rank": 2.0
+    },
+    {
+      "symbol": "TOL",
+      "horizon_key": "3m",
+      "rank": 273,
+      "horizon_retrieval_rank": 528.0,
+      "opportunity_score": 21.3,
+      "momentum_change_retrieval_rank": 175.0,
+      "daily_move_retrieval_rank": 183.0,
+      "trend_quality_retrieval_rank": 196.0
+    },
+    {
+      "symbol": "MCD",
+      "horizon_key": "3m",
+      "rank": 328,
+      "horizon_retrieval_rank": 346.0,
+      "opportunity_score": 19.2,
+      "momentum_change_retrieval_rank": 120.0,
+      "daily_move_retrieval_rank": 730.0,
+      "trend_quality_retrieval_rank": 240.0
+    },
+    {
+      "symbol": "PHM",
+      "horizon_key": "3m",
+      "rank": 508,
+      "horizon_retrieval_rank": 561.0,
+      "opportunity_score": 14.4,
+      "momentum_change_retrieval_rank": 855.0,
+      "daily_move_retrieval_rank": 160.0,
+      "trend_quality_retrieval_rank": 397.0
+    },
+    {
+      "symbol": "DHI",
+      "horizon_key": "3m",
+      "rank": 563,
+      "horizon_retrieval_rank": 475.0,
+      "opportunity_score": 13.3,
+      "momentum_change_retrieval_rank": 869.0,
+      "daily_move_retrieval_rank": 240.0,
+      "trend_quality_retrieval_rank": 350.0
+    },
+    {
+      "symbol": "INTU",
+      "horizon_key": "3m",
+      "rank": 616,
+      "horizon_retrieval_rank": 639.0,
+      "opportunity_score": 12.3,
+      "momentum_change_retrieval_rank": 384.0,
+      "daily_move_retrieval_rank": 234.0,
+      "trend_quality_retrieval_rank": 947.0
+    },
+    {
+      "symbol": "LEN",
+      "horizon_key": "3m",
+      "rank": 872,
+      "horizon_retrieval_rank": 590.0,
+      "opportunity_score": 8.9,
+      "momentum_change_retrieval_rank": 770.0,
+      "daily_move_retrieval_rank": 624.0,
+      "trend_quality_retrieval_rank": 548.0
+    }
+  ],
+  "latest_trading_ranks": [
+    {
+      "symbol": "TOL",
+      "horizon_key": "1m",
+      "rank": 83,
+      "all_signal_rank": 83,
+      "all_signal_score": 26.2,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":60.8,\"price_behavior\":73.6,\"relative_dislocation\":68.2}"
+    },
+    {
+      "symbol": "LEN",
+      "horizon_key": "1m",
+      "rank": 140,
+      "all_signal_rank": 140,
+      "all_signal_score": 21.8,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":37.1,\"price_behavior\":65.5,\"relative_dislocation\":77.9}"
+    },
+    {
+      "symbol": "INTU",
+      "horizon_key": "1m",
+      "rank": 181,
+      "all_signal_rank": 181,
+      "all_signal_score": 19.4,
+      "all_signal_family_count": 9,
+      "all_signal_domain_scores_json": "{\"event_evidence\":72.2,\"fundamentals\":57.7,\"price_behavior\":43.0,\"relative_dislocation\":37.5}"
+    },
+    {
+      "symbol": "NKE",
+      "horizon_key": "1m",
+      "rank": 225,
+      "all_signal_rank": 225,
+      "all_signal_score": 17.6,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":43.2,\"price_behavior\":72.2,\"relative_dislocation\":45.5}"
+    },
+    {
+      "symbol": "DHI",
+      "horizon_key": "1m",
+      "rank": 469,
+      "all_signal_rank": 469,
+      "all_signal_score": 12.3,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":51.2,\"price_behavior\":59.8,\"relative_dislocation\":43.3}"
+    },
+    {
+      "symbol": "PHM",
+      "horizon_key": "1m",
+      "rank": 513,
+      "all_signal_rank": 513,
+      "all_signal_score": 11.8,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":46.9,\"price_behavior\":48.9,\"relative_dislocation\":60.7}"
+    },
+    {
+      "symbol": "MCD",
+      "horizon_key": "1m",
+      "rank": 662,
+      "all_signal_rank": 662,
+      "all_signal_score": 10.4,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":50.1,\"price_behavior\":51.0,\"relative_dislocation\":44.2}"
+    },
+    {
+      "symbol": "TOL",
+      "horizon_key": "3m",
+      "rank": 82,
+      "all_signal_rank": 82,
+      "all_signal_score": 26.4,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":60.8,\"price_behavior\":73.6,\"relative_dislocation\":68.9}"
+    },
+    {
+      "symbol": "LEN",
+      "horizon_key": "3m",
+      "rank": 129,
+      "all_signal_rank": 129,
+      "all_signal_score": 22.3,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":37.1,\"price_behavior\":65.5,\"relative_dislocation\":79.3}"
+    },
+    {
+      "symbol": "NKE",
+      "horizon_key": "3m",
+      "rank": 214,
+      "all_signal_rank": 214,
+      "all_signal_score": 18.0,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":43.2,\"price_behavior\":72.2,\"relative_dislocation\":50.4}"
+    },
+    {
+      "symbol": "INTU",
+      "horizon_key": "3m",
+      "rank": 252,
+      "all_signal_rank": 252,
+      "all_signal_score": 16.8,
+      "all_signal_family_count": 9,
+      "all_signal_domain_scores_json": "{\"event_evidence\":72.2,\"fundamentals\":57.7,\"price_behavior\":43.0,\"relative_dislocation\":37.8}"
+    },
+    {
+      "symbol": "DHI",
+      "horizon_key": "3m",
+      "rank": 447,
+      "all_signal_rank": 447,
+      "all_signal_score": 12.6,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":51.2,\"price_behavior\":59.8,\"relative_dislocation\":49.0}"
+    },
+    {
+      "symbol": "MCD",
+      "horizon_key": "3m",
+      "rank": 580,
+      "all_signal_rank": 580,
+      "all_signal_score": 11.0,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":50.1,\"price_behavior\":51.0,\"relative_dislocation\":52.5}"
+    },
+    {
+      "symbol": "PHM",
+      "horizon_key": "3m",
+      "rank": 684,
+      "all_signal_rank": 684,
+      "all_signal_score": 10.2,
+      "all_signal_family_count": 7,
+      "all_signal_domain_scores_json": "{\"fundamentals\":46.9,\"price_behavior\":48.9,\"relative_dislocation\":49.3}"
+    }
+  ],
+  "latest_price_expectations": [
+    {
+      "symbol": "TOL",
+      "horizon": "1mo",
+      "observed_return_pct": -1.9426728246,
+      "trend_expected_return_pct": -2.700583617,
+      "peer_expected_return_pct": -4.4234940911,
+      "blended_expected_return_pct": -2.3400845926,
+      "residual_zscore": 0.2761493173
+    },
+    {
+      "symbol": "LEN",
+      "horizon": "1mo",
+      "observed_return_pct": -4.6473756733,
+      "trend_expected_return_pct": -8.1967913748,
+      "peer_expected_return_pct": -3.7473183789,
+      "blended_expected_return_pct": -4.5001289375,
+      "residual_zscore": 0.2189349767
+    },
+    {
+      "symbol": "DHI",
+      "horizon": "1mo",
+      "observed_return_pct": -3.6478669559,
+      "trend_expected_return_pct": -4.8945202449,
+      "peer_expected_return_pct": -3.9971955583,
+      "blended_expected_return_pct": -3.1617087853,
+      "residual_zscore": 0.1833335969
+    },
+    {
+      "symbol": "PHM",
+      "horizon": "1mo",
+      "observed_return_pct": -6.1063278442,
+      "trend_expected_return_pct": -5.7263928021,
+      "peer_expected_return_pct": -3.3825803362,
+      "blended_expected_return_pct": -3.2466702591,
+      "residual_zscore": -0.0659936474
+    },
+    {
+      "symbol": "INTU",
+      "horizon": "1mo",
+      "observed_return_pct": -6.8255212416,
+      "trend_expected_return_pct": 1.3786500603,
+      "peer_expected_return_pct": -8.818375266,
+      "blended_expected_return_pct": -2.4611630562,
+      "residual_zscore": -0.2240568227
+    },
+    {
+      "symbol": "MCD",
+      "horizon": "1mo",
+      "observed_return_pct": -9.7664419036,
+      "trend_expected_return_pct": -5.6684217565,
+      "peer_expected_return_pct": -4.8858244365,
+      "blended_expected_return_pct": -3.8144783453,
+      "residual_zscore": -0.3908288347
+    },
+    {
+      "symbol": "NKE",
+      "horizon": "1mo",
+      "observed_return_pct": -9.8149849101,
+      "trend_expected_return_pct": -7.2779089195,
+      "peer_expected_return_pct": -2.6500484027,
+      "blended_expected_return_pct": -3.7098103281,
+      "residual_zscore": -0.4069230802
+    },
+    {
+      "symbol": "TOL",
+      "horizon": "1yr",
+      "observed_return_pct": -4.3341438993,
+      "trend_expected_return_pct": -11.5571268624,
+      "peer_expected_return_pct": -25.6966918932,
+      "blended_expected_return_pct": -10.737572041,
+      "residual_zscore": -0.0721300752
+    },
+    {
+      "symbol": "MCD",
+      "horizon": "1yr",
+      "observed_return_pct": -20.0166314404,
+      "trend_expected_return_pct": -32.4544047697,
+      "peer_expected_return_pct": -32.9377940408,
+      "blended_expected_return_pct": -22.8832980051,
+      "residual_zscore": -0.1375350447
+    },
+    {
+      "symbol": "PHM",
+      "horizon": "1yr",
+      "observed_return_pct": -16.4372861181,
+      "trend_expected_return_pct": -20.5106045336,
+      "peer_expected_return_pct": -22.6709063385,
+      "blended_expected_return_pct": -13.8647904846,
+      "residual_zscore": -0.2381209139
+    },
+    {
+      "symbol": "DHI",
+      "horizon": "1yr",
+      "observed_return_pct": -21.3695639346,
+      "trend_expected_return_pct": -25.5395364328,
+      "peer_expected_return_pct": -21.4378368844,
+      "blended_expected_return_pct": -15.7709903142,
+      "residual_zscore": -0.2940818641
+    },
+    {
+      "symbol": "LEN",
+      "horizon": "1yr",
+      "observed_return_pct": -38.1691170498,
+      "trend_expected_return_pct": -36.0570227355,
+      "peer_expected_return_pct": -17.2379486056,
+      "blended_expected_return_pct": -19.5560377408,
+      "residual_zscore": -0.5347577844
+    },
+    {
+      "symbol": "NKE",
+      "horizon": "1yr",
+      "observed_return_pct": -50.1306051371,
+      "trend_expected_return_pct": -60.0575539303,
+      "peer_expected_return_pct": -21.1892633229,
+      "blended_expected_return_pct": -30.1526162745,
+      "residual_zscore": -0.5599989169
+    },
+    {
+      "symbol": "INTU",
+      "horizon": "1yr",
+      "observed_return_pct": -55.1487345115,
+      "trend_expected_return_pct": -28.3266299244,
+      "peer_expected_return_pct": 0.1650051564,
+      "blended_expected_return_pct": -10.5359941304,
+      "residual_zscore": -1.0155668527
+    },
+    {
+      "symbol": "INTU",
+      "horizon": "3mo",
+      "observed_return_pct": 8.7416297706,
+      "trend_expected_return_pct": -3.6477033541,
+      "peer_expected_return_pct": -2.672189191,
+      "blended_expected_return_pct": -2.2353102754,
+      "residual_zscore": 0.8358732074
+    },
+    {
+      "symbol": "LEN",
+      "horizon": "3mo",
+      "observed_return_pct": -8.6194477791,
+      "trend_expected_return_pct": -10.707443999,
+      "peer_expected_return_pct": -9.3552786171,
+      "blended_expected_return_pct": -7.363077769,
+      "residual_zscore": -0.0303019006
+    },
+    {
+      "symbol": "PHM",
+      "horizon": "3mo",
+      "observed_return_pct": -9.011745646,
+      "trend_expected_return_pct": -9.7594439738,
+      "peer_expected_return_pct": -9.2572041503,
+      "blended_expected_return_pct": -6.6529718894,
+      "residual_zscore": -0.1083572004
+    },
+    {
+      "symbol": "NKE",
+      "horizon": "3mo",
+      "observed_return_pct": -18.7780666509,
+      "trend_expected_return_pct": -19.9501967025,
+      "peer_expected_return_pct": -22.7259629238,
+      "blended_expected_return_pct": -15.6564845526,
+      "residual_zscore": -0.16236757
+    },
+    {
+      "symbol": "DHI",
+      "horizon": "3mo",
+      "observed_return_pct": -10.6091098142,
+      "trend_expected_return_pct": -9.9700955648,
+      "peer_expected_return_pct": -8.8578631083,
+      "blended_expected_return_pct": -6.6678631559,
+      "residual_zscore": -0.2204036237
+    },
+    {
+      "symbol": "TOL",
+      "horizon": "3mo",
+      "observed_return_pct": -9.5971884293,
+      "trend_expected_return_pct": -5.7971794216,
+      "peer_expected_return_pct": -9.1108434545,
+      "blended_expected_return_pct": -4.8863020562,
+      "residual_zscore": -0.2748976862
+    },
+    {
+      "symbol": "MCD",
+      "horizon": "3mo",
+      "observed_return_pct": -15.9236596737,
+      "trend_expected_return_pct": -15.7774879696,
+      "peer_expected_return_pct": 13.8533901313,
+      "blended_expected_return_pct": -1.1112399372,
+      "residual_zscore": -0.9901331141
+    }
+  ],
+  "latest_anomaly_candidates": [
+    {
+      "entity_id": "MCD",
+      "horizon": "3mo",
+      "direction": "down",
+      "observed_value": -15.9236596737,
+      "attention_score": 53.0888311408,
+      "residual_zscore": -0.9901331141,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "INTU",
+      "horizon": "1yr",
+      "direction": "down",
+      "observed_value": -55.1487345115,
+      "attention_score": 51.9556685269,
+      "residual_zscore": -1.0155668527,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "NKE",
+      "horizon": "1yr",
+      "direction": "down",
+      "observed_value": -50.1306051371,
+      "attention_score": 50.5499891688,
+      "residual_zscore": -0.5599989169,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "INTU",
+      "horizon": "3mo",
+      "direction": "up",
+      "observed_value": 8.7416297706,
+      "attention_score": 50.1305655661,
+      "residual_zscore": 0.8358732074,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "LEN",
+      "horizon": "1yr",
+      "direction": "down",
+      "observed_value": -38.1691170498,
+      "attention_score": 48.9850778435,
+      "residual_zscore": -0.5347577844,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "NKE",
+      "horizon": "1mo",
+      "direction": "down",
+      "observed_value": -9.8149849101,
+      "attention_score": 45.7261235248,
+      "residual_zscore": -0.4069230802,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "MCD",
+      "horizon": "1mo",
+      "direction": "down",
+      "observed_value": -9.7664419036,
+      "attention_score": 44.03049563,
+      "residual_zscore": -0.3908288347,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "DHI",
+      "horizon": "1yr",
+      "direction": "down",
+      "observed_value": -21.3695639346,
+      "attention_score": 43.9517585382,
+      "residual_zscore": -0.2940818641,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "TOL",
+      "horizon": "3mo",
+      "direction": "down",
+      "observed_value": -9.5971884293,
+      "attention_score": 41.8858458158,
+      "residual_zscore": -0.2748976862,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "DHI",
+      "horizon": "3mo",
+      "direction": "down",
+      "observed_value": -10.6091098142,
+      "attention_score": 40.9522747694,
+      "residual_zscore": -0.2204036237,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "NKE",
+      "horizon": "3mo",
+      "direction": "down",
+      "observed_value": -18.7780666509,
+      "attention_score": 40.7879061205,
+      "residual_zscore": -0.16236757,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "PHM",
+      "horizon": "1yr",
+      "direction": "down",
+      "observed_value": -16.4372861181,
+      "attention_score": 40.0823762384,
+      "residual_zscore": -0.2381209139,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "MCD",
+      "horizon": "1yr",
+      "direction": "up",
+      "observed_value": -20.0166314404,
+      "attention_score": 37.560767002,
+      "residual_zscore": -0.1375350447,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "PHM",
+      "horizon": "3mo",
+      "direction": "down",
+      "observed_value": -9.011745646,
+      "attention_score": 36.9891946523,
+      "residual_zscore": -0.1083572004,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "INTU",
+      "horizon": "1mo",
+      "direction": "down",
+      "observed_value": -6.8255212416,
+      "attention_score": 35.4802963892,
+      "residual_zscore": -0.2240568227,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "LEN",
+      "horizon": "3mo",
+      "direction": "down",
+      "observed_value": -8.6194477791,
+      "attention_score": 34.561552456,
+      "residual_zscore": -0.0303019006,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "TOL",
+      "horizon": "1yr",
+      "direction": "up",
+      "observed_value": -4.3341438993,
+      "attention_score": 34.4009621688,
+      "residual_zscore": -0.0721300752,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "PHM",
+      "horizon": "1mo",
+      "direction": "down",
+      "observed_value": -6.1063278442,
+      "attention_score": 33.2823057821,
+      "residual_zscore": -0.0659936474,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "LEN",
+      "horizon": "1mo",
+      "direction": "down",
+      "observed_value": -4.6473756733,
+      "attention_score": 30.203698517,
+      "residual_zscore": 0.2189349767,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "DHI",
+      "horizon": "1mo",
+      "direction": "down",
+      "observed_value": -3.6478669559,
+      "attention_score": 29.0939217938,
+      "residual_zscore": 0.1833335969,
+      "status": "resolved"
+    },
+    {
+      "entity_id": "TOL",
+      "horizon": "1mo",
+      "direction": "up",
+      "observed_value": -1.9426728246,
+      "attention_score": 26.169169222,
+      "residual_zscore": 0.2761493173,
+      "status": "resolved"
+    }
+  ],
+  "historical_daily_candidates": [
+    {
+      "asof": "2026-07-03 03:44:59.029322+00:00",
+      "symbol": "MCD",
+      "rank": 22,
+      "change_pct": 4.07,
+      "candidate_score": 79.0,
+      "cause_status": "unresolved"
+    },
+    {
+      "asof": "2026-10-02 20:20:32.358759+00:00",
+      "symbol": "NKE",
+      "rank": 32,
+      "change_pct": -3.95,
+      "candidate_score": 77.9,
+      "cause_status": "supported"
+    },
+    {
+      "asof": "2026-10-07 18:20:31.679660+00:00",
+      "symbol": "INTU",
+      "rank": 66,
+      "change_pct": 1.95,
+      "candidate_score": 48.8,
+      "cause_status": "supported"
+    },
+    {
+      "asof": "2026-10-07 20:51:02.071446+00:00",
+      "symbol": "INTU",
+      "rank": 59,
+      "change_pct": 2.55,
+      "candidate_score": 56.8,
+      "cause_status": "supported"
+    }
+  ],
+  "latest_home_public_titles": [
+    {
+      "section": "top_events",
+      "symbol": "PENG",
+      "symbols": [
+        "PENG",
+        "CGNX",
+        "CAT",
+        "IREN",
+        "ENS",
+        "AXTI",
+        "MU",
+        "VICR"
+      ],
+      "title": "Caterpillar Rating Cut and Farm-Equipment Inquiry Hit CAT and Construction Names; CGNX Falls on Analyst Cuts as HPC and Memory Names Gain"
+    },
+    {
+      "section": "top_events",
+      "symbol": "AVBP",
+      "symbols": [
+        "AVBP",
+        "DNA",
+        "TWST",
+        "MRNA",
+        "TXG",
+        "GRAL",
+        "PFE",
+        "LQDA"
+      ],
+      "title": "ArriVent Lung-Cancer Trial Setback Sends AVBP Sharply Lower; Genomics Peers Slide as MRNA, PFE and LQDA Rise"
+    },
+    {
+      "section": "top_events",
+      "symbol": "CGNX",
+      "symbols": [
+        "CGNX",
+        "XNDU",
+        "BB",
+        "MSTR",
+        "IREN",
+        "AXTI",
+        "BMNR",
+        "CRWD"
+      ],
+      "title": "Crypto-Linked and Data-Center Infrastructure Stocks Slid as a Group"
+    },
+    {
+      "section": "top_events",
+      "symbol": "CAT",
+      "symbols": [
+        "CAT",
+        "ALLE",
+        "CNH",
+        "QXO",
+        "HRI",
+        "SUNB",
+        "EME",
+        "STRL"
+      ],
+      "title": "Construction Activity, Construction Cycle and Engineering & Construction Names Fell Together, Led by CAT, CNH, ALLE and HRI"
+    },
+    {
+      "section": "top_events",
+      "symbol": "CAT",
+      "symbols": [
+        "CAT",
+        "CRWD",
+        "NBIS",
+        "WCC",
+        "AAOI",
+        "APLD",
+        "STRL",
+        "CIFR"
+      ],
+      "title": "Data Center Infrastructure Stocks Fell Together, With CAT, CRWD, NBIS, APLD and CIFR Among the Decliners"
+    },
+    {
+      "section": "must_read_movers",
+      "symbol": "NIB",
+      "symbols": null,
+      "title": "nib Holdings Declares 21 Cent Dividend as FY26 Revenue and Underlying Operating Profit Grow"
+    },
+    {
+      "section": "must_read_movers",
+      "symbol": "FCEL",
+      "symbols": null,
+      "title": "FuelCell Energy Names Matthew Latino CFO as Michael Bishop Steps Down After 15 Years"
+    },
+    {
+      "section": "unresolved_large_moves",
+      "symbol": "BNO",
+      "symbols": null,
+      "title": "United States Brent Oil Fund October 2026 45.000 Put Historical Price Page"
+    }
+  ],
+  "package_status_counts": {
+    "completed": 82,
+    "failed": 1622,
+    "provider_balance_errors": 1616
+  },
+  "source_notes": {
+    "price_returns": "Retained IEX daily adjusted bars, latest 2026-10-07; momentum horizons use N observations, technical returns use N intervals. These are observed historical values, not forecasts.",
+    "historical_membership": "One latest universe and momentum version per UTC date; every retained attention and trading version in scope.",
+    "home_trace": "Primary/support ticker matching on rendered narrative beats plus company-name review of prose. Audio bytes and internal tool logs excluded. Lennar appears as Millrose background on October 5, not as a dedicated target card.",
+    "provider_failures": "Counts are recorded job attempts, including retries/manual runs; not unique scheduled market sessions."
+  }
+}

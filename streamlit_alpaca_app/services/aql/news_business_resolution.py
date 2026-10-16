@@ -2,13 +2,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 import hashlib
 import json
 import math
+import os
 import re
 from typing import Any, Callable
 
 import pandas as pd
+
+from ..llm_context import serialize_llm_context
 
 from ..saa import (
     build_zopedia_change_proposal,
@@ -126,7 +131,7 @@ NEWS_BUSINESS_RESOLUTION_SCHEMA: dict[str, Any] = {
                 "required": ["label", "text", "evidence_refs"],
             },
         },
-        "coherent_story_markdown": {"type": "string"},
+        "coherent_story_markdown": {"type": "string", "minLength": 1, "description": "Explain available observations and useful research leads, including uncertainty; retain a narrative even when company evidence is incomplete."},
         "confidence": {"type": "string"},
         "data_gaps": {"type": "array", "items": {"type": "string"}},
     },
@@ -634,7 +639,7 @@ def _add_slot(slot_facts: dict[str, list[dict[str, Any]]], slot: str, text: obje
     slot_facts.setdefault(slot, [])
     if any(_coerce_text(item.get("text")) == clean for item in slot_facts[slot]):
         return
-    slot_facts[slot].append({"text": clean[:1600], "source": source, "confidence": confidence})
+    slot_facts[slot].append({"text": clean, "source": source, "confidence": confidence})
 
 
 def _initial_slot_facts(
@@ -726,10 +731,8 @@ def _default_aql_zopedia_structured_runner(**kwargs: Any) -> dict[str, Any]:
 
 
 def _compact_json(value: Any, *, limit: int = 16000) -> str:
-    text = json.dumps(value, ensure_ascii=True, sort_keys=True, default=str)
-    if len(text) <= limit:
-        return text
-    return text[: limit - 3].rstrip() + "..."
+    # Preserve all model context; share exact repeated values by reference.
+    return serialize_llm_context(value)
 
 
 def _agent_runner_or_none(
@@ -761,6 +764,7 @@ def _structured_agent_payload(
     task: str,
     surface: str,
     max_tool_calls: int,
+    research_subject: str = "",
 ) -> dict[str, Any]:
     runner = _agent_runner_or_none(zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client)
     if runner is None:
@@ -771,10 +775,15 @@ def _structured_agent_payload(
             schema_name=schema_name,
             schema=schema,
             task=task,
+            stage="knowledge",
             surface=surface,
             max_tool_calls=max_tool_calls,
             llm_client=llm_client,
             persist_findings=False,
+            reuse_scope=os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", ""),
+            research_subject=research_subject,
+            run_timeout_seconds=max(int(os.getenv("ZOPEDIA_NEWS_BUSINESS_TIMEOUT_SECONDS", "900")), 60),
+            llm_step_timeout_seconds=max(int(os.getenv("ZOPEDIA_NEWS_BUSINESS_LLM_STEP_TIMEOUT_SECONDS", "300")), 60),
         )
     except Exception as exc:
         return {
@@ -886,10 +895,12 @@ def _zopedia_resolution(
         task="news_business_resolution",
         surface=surface,
         max_tool_calls=8,
+        research_subject="company:" + symbol,
     )
     payload = result.get("payload") if isinstance(result.get("payload"), dict) else None
     if payload is None:
-        return None
+        return {"_execution_error": _safe_resolution_error(result.get("error") or result.get("status")),
+                "data_gaps": ["business_synthesis_unavailable"]}
     return payload
 
 
@@ -1116,6 +1127,8 @@ def resolve_news_business_event(
     )
     slot_facts = _merge_slot_facts(initial_slot_facts, (synthesis_payload or {}).get("slot_facts") if isinstance(synthesis_payload, dict) else None)
     if isinstance(synthesis_payload, dict):
+        if synthesis_payload.get("_execution_error"):
+            data_gaps.append("research_execution::" + synthesis_payload["_execution_error"])
         resolved_changes = [item for item in list(synthesis_payload.get("resolved_changes") or []) if isinstance(item, dict)]
         story = _coerce_text(synthesis_payload.get("coherent_story_markdown"))
         confidence = _coerce_text(synthesis_payload.get("confidence")).lower() or "medium"
@@ -1321,26 +1334,37 @@ def build_news_business_resolution_results(
     write_policy: str = "propose",
     limit: int = 12,
 ) -> list[NewsBusinessResolutionResult]:
-    results: list[NewsBusinessResolutionResult] = []
-    for row, symbol in _news_symbol_rows(news_frame, symbols=symbols, limit=limit):
-        results.append(
-            resolve_news_business_event(
-                row,
-                symbol=symbol,
-                company_baselines_frame=company_baselines_frame,
-                fundamentals_frame=fundamentals_frame,
-                zopedia_pages_frame=zopedia_pages_frame,
-                business_model_stack_frame=business_model_stack_frame,
-                edgar_evidence_frame=edgar_evidence_frame,
-                llm_client=llm_client,
-                zopedia_agent_runner=zopedia_agent_runner,
-                run_id=run_id,
-                asof_time_utc=asof_time_utc,
-                surface=surface,
-                write_policy=write_policy,
-            )
-        )
-    return results
+    selected = _news_symbol_rows(news_frame, symbols=symbols, limit=limit)
+    if not selected:
+        return []
+    workers = min(max(int(os.getenv("ZOPEDIA_NEWS_BUSINESS_MAX_WORKERS") or 4), 1), len(selected))
+    kwargs = dict(
+        company_baselines_frame=company_baselines_frame,
+        fundamentals_frame=fundamentals_frame,
+        zopedia_pages_frame=zopedia_pages_frame,
+        business_model_stack_frame=business_model_stack_frame,
+        edgar_evidence_frame=edgar_evidence_frame,
+        llm_client=llm_client,
+        zopedia_agent_runner=zopedia_agent_runner,
+        run_id=run_id,
+        asof_time_utc=asof_time_utc,
+        surface=surface,
+        write_policy=write_policy,
+    )
+    print(f"[info] news business resolution starting events={len(selected)} workers={workers}", flush=True)
+
+    def resolve(index: int, row: pd.Series, symbol: str) -> NewsBusinessResolutionResult:
+        print(f"[info] news business resolution started index={index} symbol={symbol}", flush=True)
+        result = resolve_news_business_event(row, symbol=symbol, **kwargs)
+        print(f"[info] news business resolution completed index={index} symbol={symbol} status={result.status}", flush=True)
+        return result
+
+    if workers == 1:
+        return [resolve(index, row, symbol) for index, (row, symbol) in enumerate(selected)]
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="news-resolution") as pool:
+        futures = [pool.submit(copy_context().run, resolve, index, row, symbol)
+                   for index, (row, symbol) in enumerate(selected)]
+        return [future.result() for future in futures]
 
 
 def serialize_news_business_resolution_results(results: list[NewsBusinessResolutionResult]) -> pd.DataFrame:

@@ -1,17 +1,24 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from services.database import open_database_session
+from services.work_scope import check_work, WorkCancelled
+
+from dataclasses import asdict, dataclass, field
+from contextlib import contextmanager, suppress
 from datetime import datetime, timezone
 from io import BytesIO
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
 import shutil
 import subprocess
 import time
-from typing import Any
+import threading
+import tempfile
+from typing import Any, Iterator
 import uuid
 
 import pandas as pd
@@ -35,6 +42,7 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 PIPELINE_CACHE_ROOT = APP_ROOT / "cache" / "pipeline_store"
 PIPELINE_METADATA_CACHE_SECONDS = max(int((os.getenv("PIPELINE_METADATA_CACHE_SECONDS") or "30").strip() or "30"), 0)
 PIPELINE_CACHE_MAX_BYTES_DEFAULT = 256 * 1024 * 1024
+_METADATA_READ_LOCKS = tuple(threading.RLock() for _ in range(32))
 ARM_BASE_URL = "https://management.azure.com"
 ARM_SCOPE = "https://management.azure.com/.default"
 SUBSCRIPTIONS_API_VERSION = "2020-01-01"
@@ -462,26 +470,43 @@ def _read_cached_metadata(dataset_name: str) -> PipelineDataset | None:
 def _write_cached_metadata(dataset_name: str, dataset: PipelineDataset | None) -> None:
     if PIPELINE_METADATA_CACHE_SECONDS <= 0 or dataset is None or not _pipeline_cache_enabled():
         return
-    path = _metadata_cache_path(dataset_name)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {
-        "cached_at_epoch": time.time(),
-        "dataset": {
-            "dataset_name": dataset.dataset_name,
-            "dataset_version_id": dataset.dataset_version_id,
-            "blob_path": dataset.blob_path,
-            "asof_time_utc": dataset.asof_time_utc,
-            "ingested_at_utc": dataset.ingested_at_utc,
-            "row_count": dataset.row_count,
-            "partitioning": dataset.partitioning,
-        },
-    }
-    path.write_text(json.dumps(payload), encoding="utf-8")
-    max_bytes = _pipeline_cache_max_bytes()
-    if _path_size_bytes(path) > max_bytes:
-        _delete_cache_path(path)
-        return
-    _prune_pipeline_cache(keep_paths=(path,))
+    try:
+        lock = _METADATA_READ_LOCKS[int.from_bytes(hashlib.sha256(dataset_storage_name(dataset_name).encode()).digest()[:2], "big") % len(_METADATA_READ_LOCKS)]
+        with lock:
+            path = _metadata_cache_path(dataset_name)
+            try:
+                prior = json.loads(path.read_text())["dataset"]
+            except (OSError, ValueError, KeyError):
+                prior = None
+            if prior is not None and _publication_generation(prior) > _publication_generation(asdict(dataset)):
+                return
+            path = _metadata_cache_path(dataset_name)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            payload = {
+                "cached_at_epoch": time.time(),
+                "dataset": {
+                    "dataset_name": dataset.dataset_name,
+                    "dataset_version_id": dataset.dataset_version_id,
+                    "blob_path": dataset.blob_path,
+                    "asof_time_utc": dataset.asof_time_utc,
+                    "ingested_at_utc": dataset.ingested_at_utc,
+                    "row_count": dataset.row_count,
+                    "partitioning": dataset.partitioning,
+                },
+            }
+            temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".tmp")
+            try:
+                temporary.write_text(json.dumps(payload), encoding="utf-8")
+                os.replace(temporary, path)
+            finally:
+                temporary.unlink(missing_ok=True)
+            max_bytes = _pipeline_cache_max_bytes()
+            if _path_size_bytes(path) > max_bytes:
+                _delete_cache_path(path)
+                return
+            _prune_pipeline_cache(keep_paths=(path,))
+    except OSError:
+        return  # A cache failure cannot invalidate a completed publication.
 
 
 def _get_env(name: str, default: str = "") -> str:
@@ -638,7 +663,7 @@ def open_database_connection() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
+        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 
@@ -646,6 +671,88 @@ def open_database_connection() -> Any | None:
 def _db_connect() -> Any | None:
     """Compatibility alias for older persistence modules."""
     return open_database_connection()
+
+
+def index_dataset_manifest(conn: Any, manifest: dict[str, Any]) -> None:
+    """Index the same committed Blob receipt; PostgreSQL is a recoverable index."""
+    if manifest.get("dataset_namespace", "") != dataset_namespace():
+        raise ValueError("Dataset receipt belongs to another environment")
+    checksum = hashlib.sha256(
+        f"{manifest.get('blob_path','')}|{manifest.get('row_count',0)}|{manifest.get('asof_time_utc','')}".encode()
+    ).hexdigest()
+    with conn.cursor() as cur:
+        cur.execute("""INSERT INTO dataset_versions (
+            dataset_version_id,dataset_name,universe_version,parameter_hash,asof_time_utc,ingested_at_utc,
+            blob_path,row_count,checksum,code_version,schema_version,status,run_id,schema_columns)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,'ready',%s,%s::jsonb)
+            ON CONFLICT(dataset_version_id) DO UPDATE SET
+                dataset_name=EXCLUDED.dataset_name,universe_version=EXCLUDED.universe_version,
+                parameter_hash=EXCLUDED.parameter_hash,asof_time_utc=EXCLUDED.asof_time_utc,
+                ingested_at_utc=EXCLUDED.ingested_at_utc,blob_path=EXCLUDED.blob_path,row_count=EXCLUDED.row_count,
+                checksum=EXCLUDED.checksum,code_version=EXCLUDED.code_version,schema_version=EXCLUDED.schema_version,
+                status=EXCLUDED.status,run_id=EXCLUDED.run_id,schema_columns=EXCLUDED.schema_columns""",
+            (manifest["dataset_version_id"],dataset_storage_name(manifest["dataset_name"]),manifest.get("universe_version"),
+             manifest.get("parameter_hash"),manifest["asof_time_utc"],manifest["ingested_at_utc"],manifest["blob_path"],
+             int(manifest.get("row_count",0)),checksum,manifest.get("code_version","unknown"),manifest.get("schema_version","v1"),
+             manifest["run_id"],json.dumps(manifest.get("schema_columns") or [])))
+    conn.commit()
+
+
+def reconcile_dataset_manifests(conn: Any, *, dataset_names: list[str] | None = None,
+                                offset: int = 0, limit: int | None = None) -> dict[str, Any]:
+    """Repair missing/stale SQL indexes from current environment Blob receipts."""
+    from services.work_scope import work_expired
+    names = sorted(set(dataset_names if dataset_names is not None else
+                       [name for group in SOURCE_DATASETS.values() for name in group]))
+    total = len(names)
+    start = min(max(offset, 0), total)
+    names = names[start:start + max(limit, 1)] if limit is not None else names[start:]
+    indexed = _latest_db_dataset_metadata_map(names)
+    result: dict[str, Any] = {"checked": 0, "reconciled": [], "failed": {}, "next_offset": start, "scan_complete": False}
+    for name in names:
+        if work_expired():
+            break
+        receipt = _read_blob_json(dataset_blob_path(f"manifests/{name}/latest.json"))
+        result["checked"] += 1
+        result["next_offset"] = start + result["checked"]
+        if not receipt:
+            continue
+        current = indexed.get(name)
+        if current is not None and current.dataset_version_id == receipt.get("dataset_version_id") and (
+            _dataset_time_epoch(current.ingested_at_utc) >= _dataset_time_epoch(receipt.get("ingested_at_utc"))
+        ):
+            continue
+        try:
+            if receipt.get("dataset_name") != name:
+                raise ValueError("Receipt identity differs from its published pointer")
+            index_dataset_manifest(conn, receipt)
+            result["reconciled"].append(name)
+        except Exception as exc:
+            conn.rollback()
+            result["failed"][name] = type(exc).__name__
+    result["scan_complete"] = result["next_offset"] >= total
+    if result["scan_complete"]:
+        result["next_offset"] = 0
+    return result
+
+
+def retain_job_execution_receipt(receipt: dict[str, Any]) -> str:
+    """Keep completion/component state independent of a failed database sink."""
+    name = str(receipt["job_name"])
+    if not re.fullmatch(r"[a-z0-9_-]+", name):
+        raise ValueError("Invalid job receipt name")
+    archive = ImmutableBlobArchive(namespace=dataset_namespace(), root="job-executions/" + name)
+    stored = archive.put(json.dumps(receipt, sort_keys=True, default=str).encode(), suffix="json", content_type="application/json")
+    archive.point(receipt["run_id"] + ".json", stored)
+    return archive.point("latest.json", stored)
+
+
+def latest_job_execution_receipt(job_name: str) -> dict[str, Any] | None:
+    if not re.fullmatch(r"[a-z0-9_-]+", job_name):
+        raise ValueError("Invalid job receipt name")
+    archive = ImmutableBlobArchive(namespace=dataset_namespace(), root="job-executions/" + job_name)
+    pointer = _read_blob_json(archive.root + "/latest.json")
+    return json.loads(archive.get(pointer)) if pointer else None
 
 
 def _blob_service_client() -> Any | None:
@@ -678,6 +785,71 @@ def _blob_service_client() -> Any | None:
         return None
 
 
+def _blob_io_options(maximum: float = 10) -> dict[str, Any]:
+    from services.work_scope import remaining_work_seconds
+    seconds = remaining_work_seconds(maximum)
+    return {"timeout": max(1, math.ceil(seconds)), "read_timeout": seconds,
+            "connection_timeout": seconds, "retry_total": 0}
+
+
+class ImmutableBlobArchive:
+    """Content-addressed, receipt-verified payloads in the shared dataset store."""
+
+    def __init__(self, *, namespace: str, root: str):
+        from azure.storage.blob import ContentSettings
+        self._settings = ContentSettings
+        self.client = _blob_service_client()
+        if self.client is None:
+            raise RuntimeError("Blob storage is required for an archive")
+        self.container_name = _storage_container()
+        self.container = self.client.get_container_client(self.container_name)
+        self.root = dataset_blob_path(root, namespace=namespace).rstrip("/")
+
+    def put(self, payload: bytes, *, suffix: str, content_type: str) -> dict[str, Any]:
+        from azure.core.exceptions import ResourceExistsError
+        digest = hashlib.sha256(payload).hexdigest()
+        md5 = hashlib.md5(payload).digest()
+        path = f"{self.root}/objects/{digest[:2]}/{digest}.{suffix}"
+        blob = self.container.get_blob_client(path)
+        try:
+            blob.upload_blob(
+                payload, overwrite=False, validate_content=True,
+                content_settings=self._settings(content_type=content_type, content_md5=md5),
+                metadata={"sha256": digest}, max_concurrency=2,
+            )
+        except ResourceExistsError:
+            pass
+        props = blob.get_blob_properties()
+        if props.size != len(payload) or props.metadata.get("sha256") != digest:
+            raise RuntimeError("Immutable archive object verification failed")
+        if props.content_settings.content_md5 != md5:
+            raise RuntimeError("Archive content MD5 verification failed")
+        return {"blob_path": path, "sha256": digest, "bytes": len(payload),
+                "etag": str(props.etag), "container": self.container_name,
+                "verified_at_utc": datetime.now(timezone.utc).isoformat()}
+
+    def get(self, receipt: dict[str, Any]) -> bytes:
+        payload = self.container.get_blob_client(receipt["blob_path"]).download_blob(**_blob_io_options()).readall()
+        if hashlib.sha256(payload).hexdigest() != receipt["sha256"]:
+            raise RuntimeError("Archive read checksum mismatch")
+        return payload
+
+    def point(self, name: str, receipt: dict[str, Any]) -> str:
+        """Publish a discoverable mutable pointer to an immutable release."""
+        if "/" in name or name in {"", ".", ".."} or not name.endswith(".json"):
+            raise ValueError("Archive pointer requires a simple JSON filename")
+        payload = json.dumps(receipt, sort_keys=True, default=str).encode()
+        md5 = hashlib.md5(payload).digest()
+        path = f"{self.root}/{name}"
+        blob = self.container.get_blob_client(path)
+        blob.upload_blob(payload, overwrite=True, validate_content=True,
+            content_settings=self._settings(content_type="application/json", content_md5=md5))
+        props = blob.get_blob_properties()
+        if props.size != len(payload) or props.content_settings.content_md5 != md5:
+            raise RuntimeError("Archive pointer verification failed")
+        return path
+
+
 def _read_blob_parquet(blob_path: str) -> pd.DataFrame:
     client = _blob_service_client()
     if client is None:
@@ -691,6 +863,92 @@ def _read_blob_parquet(blob_path: str) -> pd.DataFrame:
         return frame if isinstance(frame, pd.DataFrame) else pd.DataFrame(frame)
     except Exception:
         return pd.DataFrame()
+
+
+@contextmanager
+def _dataset_parquet_file(dataset: PipelineDataset) -> Iterator[Path]:
+    """Stage immutable bytes on disk, avoiding a second full in-memory copy."""
+    with tempfile.TemporaryDirectory(prefix="pipeline-parquet-") as temporary:
+        cached = _pipeline_cache_enabled()
+        path = (_pipeline_cache_dir(dataset.dataset_name, dataset.dataset_version_id) / "frame.parquet"
+                if cached else Path(temporary) / "frame.parquet")
+        if not path.exists():
+            client = _blob_service_client()
+            if client is None:
+                raise RuntimeError("Dataset storage is unavailable.")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            pending = path.with_name(path.name + "." + uuid.uuid4().hex + ".pending")
+            try:
+                blob = client.get_blob_client(container=_storage_container(), blob=dataset.blob_path)
+                with pending.open("wb") as output:
+                    blob.download_blob(max_concurrency=1).readinto(output)
+                pending.replace(path)
+            finally:
+                pending.unlink(missing_ok=True)
+        try:
+            yield path
+        finally:
+            if cached:
+                # A large input may be scanned, but need not remain cached.
+                if path.exists() and path.stat().st_size > _pipeline_cache_max_bytes():
+                    path.unlink(missing_ok=True)
+                else:
+                    _prune_pipeline_cache(keep_paths=(path,))
+
+
+def iter_dataset_frame_batches(
+    dataset: PipelineDataset, *, columns: list[str] | None = None,
+    symbols: list[str] | None = None, batch_size: int = 65536,
+) -> Iterator[pd.DataFrame]:
+    """Project/filter before Pandas allocation; keep every matching historical row."""
+    import pyarrow.dataset as ds
+
+    with _dataset_parquet_file(dataset) as path:
+        source = ds.dataset(path, format="parquet")
+        names = source.schema.names
+        projection = [column for column in columns if column in names] if columns is not None else None
+        predicate = None
+        if symbols is not None:
+            symbol_column = next((column for column in ("symbol", "ticker") if column in names), None)
+            if symbol_column is None:
+                raise ValueError("Symbol-filtered dataset requires symbol or ticker.")
+            predicate = ds.field(symbol_column).isin(symbols)
+        scanner = source.scanner(
+            columns=projection, filter=predicate, batch_size=max(int(batch_size), 1),
+            batch_readahead=1, fragment_readahead=1, use_threads=False,
+        )
+        for batch in scanner.to_batches():
+            if batch.num_rows:
+                yield batch.to_pandas()
+
+
+def load_dataset_frame(
+    dataset: PipelineDataset | None, *, columns: list[str] | None = None, symbols: list[str] | None = None,
+) -> pd.DataFrame:
+    if dataset is None:
+        return pd.DataFrame(columns=columns)
+    frames = list(iter_dataset_frame_batches(dataset, columns=columns, symbols=symbols))
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=columns)
+
+
+def dataset_input_versions(dataset_names: list[str]) -> dict[str, PipelineDataset | None]:
+    """Pin source versions for retries of one declared public research execution."""
+    execution = os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or os.getenv("PIPELINE_RUN_ID")
+    namespace = "pipeline_inputs:" + dataset_namespace()
+    key = str(execution) + ":" + hashlib.sha256(json.dumps(sorted(dataset_names)).encode()).hexdigest()
+    owned = bool(execution and os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE"))
+    stored = read_execution_state(namespace, key, strict=True) if owned else None
+    if stored is None:
+        versions = {name: latest_dataset_metadata(name) for name in dataset_names}
+        if not owned:
+            return versions
+        payload = {name: asdict(metadata) if metadata is not None else None for name, metadata in versions.items()}
+        if not write_execution_state(namespace, key, payload, immutable=True):
+            raise RuntimeError("Pipeline input versions could not be retained.")
+        stored = read_execution_state(namespace, key, strict=True)
+        if stored is None:
+            raise RuntimeError("Pipeline input versions could not be read back.")
+    return {name: PipelineDataset(**value) if value is not None else None for name, value in stored.items()}
 
 
 def _local_frame_cache_path(dataset: PipelineDataset) -> Path:
@@ -775,11 +1033,13 @@ def _read_blob_json(blob_path: str) -> dict[str, Any] | None:
         return None
     try:
         blob = client.get_blob_client(container=_storage_container(), blob=blob_path)
-        payload = blob.download_blob().readall()
+        payload = blob.download_blob(**_blob_io_options()).readall()
         if not payload:
             return None
         parsed = json.loads(payload.decode("utf-8"))
         return parsed if isinstance(parsed, dict) else None
+    except WorkCancelled:
+        raise
     except Exception:
         return None
 
@@ -849,9 +1109,59 @@ def _stable_latest_manifest_metadata(dataset_name: str) -> PipelineDataset | Non
     latest_manifest = _read_blob_json(dataset_blob_path(f"manifests/{dataset_name}/latest.json"))
     if latest_manifest:
         dataset = _coerce_manifest_dataset(latest_manifest)
-        if dataset is not None:
+        if dataset is not None and dataset.dataset_name == dataset_name and (
+            "dataset_namespace" not in latest_manifest or latest_manifest["dataset_namespace"] == dataset_namespace()
+        ):
             return dataset
     return None
+
+
+def _publication_generation(value: dict[str, Any]) -> tuple:
+    return (_dataset_time_epoch(value.get("asof_time_utc")),
+            _dataset_time_epoch(value.get("ingested_at_utc")), str(value.get("dataset_version_id") or ""))
+
+
+def publish_dataset_manifest(manifest: dict[str, Any]) -> None:
+    """Publish a version receipt and conditionally advance its latest pointer."""
+    from azure.core import MatchConditions
+    from azure.core.exceptions import ResourceNotFoundError, ResourceExistsError, ResourceModifiedError
+    from azure.storage.blob import ContentSettings
+    dataset = _coerce_manifest_dataset(manifest)
+    if dataset is None:
+        raise ValueError("A publication requires a complete dataset manifest")
+    if manifest.get("dataset_namespace", dataset_namespace()) != dataset_namespace():
+        raise ValueError("Publication namespace differs from the active dataset namespace")
+    client = _blob_service_client()
+    if client is None:
+        raise RuntimeError("Dataset storage is unavailable")
+    payload = json.dumps(manifest, sort_keys=True, default=str).encode("utf-8")
+    settings = ContentSettings(content_type="application/json")
+    version = client.get_blob_client(container=_storage_container(), blob=dataset_blob_path(
+        f"manifests/{dataset.dataset_name}/{dataset.dataset_version_id}.json"))
+    version.upload_blob(payload, overwrite=True, content_settings=settings)
+    latest = client.get_blob_client(container=_storage_container(), blob=dataset_blob_path(
+        f"manifests/{dataset.dataset_name}/latest.json"))
+
+    for _ in range(8):
+        try:
+            download = latest.download_blob()
+            current = json.loads(download.readall())
+            etag = download.properties.etag
+        except ResourceNotFoundError:
+            current, etag = None, None
+        if current is not None and _publication_generation(current) >= _publication_generation(manifest):
+            return
+        try:
+            if etag is None:
+                latest.upload_blob(payload, overwrite=False, content_settings=settings)
+            else:
+                latest.upload_blob(payload, overwrite=True, content_settings=settings,
+                                   etag=etag, match_condition=MatchConditions.IfNotModified)
+            _write_cached_metadata(dataset.dataset_name, dataset)
+            return
+        except (ResourceExistsError, ResourceModifiedError):
+            continue
+    raise RuntimeError("Concurrent publication did not settle within its retry allowance")
 
 
 def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
@@ -892,11 +1202,24 @@ def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
 
 
 def latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
+    check_work()
     cached = _read_cached_metadata(dataset_name)
     if cached is not None:
         return cached
 
+    lock = _METADATA_READ_LOCKS[int.from_bytes(hashlib.sha256(dataset_storage_name(dataset_name).encode()).digest()[:2], "big") % len(_METADATA_READ_LOCKS)]
+    with lock:
+        cached = _read_cached_metadata(dataset_name)
+        return cached if cached is not None else _uncached_latest_dataset_metadata(dataset_name)
+
+
+def _uncached_latest_dataset_metadata(dataset_name: str) -> PipelineDataset | None:
     manifest_dataset = _stable_latest_manifest_metadata(dataset_name)
+    if manifest_dataset is not None:
+        # Publication completes before its optional SQL index. A valid stable
+        # pointer is sufficient to serve a completed artifact during SQL load.
+        _write_cached_metadata(dataset_name, manifest_dataset)
+        return manifest_dataset
     db_dataset: PipelineDataset | None = None
     conn = _db_connect()
     if conn is not None:
@@ -1007,10 +1330,14 @@ def load_dataset_frame_asof(dataset_name: str, target_date: str) -> tuple[pd.Dat
     return frame, metadata
 
 
-def load_latest_dataset_frame(dataset_name: str) -> tuple[pd.DataFrame, PipelineDataset | None]:
+def load_latest_dataset_frame(
+    dataset_name: str, *, columns: list[str] | None = None, symbols: list[str] | None = None,
+) -> tuple[pd.DataFrame, PipelineDataset | None]:
     metadata = latest_dataset_metadata(dataset_name)
     if metadata is None:
         return pd.DataFrame(), None
+    if columns is not None or symbols is not None:
+        return load_dataset_frame(metadata, columns=columns, symbols=symbols), metadata
     cached = _read_local_frame_cache(metadata)
     if cached is not None:
         if not (cached.empty and int(metadata.row_count or 0) > 0):
@@ -1131,9 +1458,12 @@ def recent_dataset_metadata(dataset_name: str, *, limit: int = 8) -> list[Pipeli
             pass
 
 
-def load_recent_dataset_frames(dataset_name: str, *, limit: int = 8) -> list[tuple[pd.DataFrame, PipelineDataset]]:
+def load_recent_dataset_frames(dataset_name: str, *, limit: int = 8,
+                               exclude_versions: set[str] | None = None) -> list[tuple[pd.DataFrame, PipelineDataset]]:
     out: list[tuple[pd.DataFrame, PipelineDataset]] = []
     for metadata in recent_dataset_metadata(dataset_name, limit=limit):
+        if metadata.dataset_version_id in (exclude_versions or ()):
+            continue
         cached = _read_local_frame_cache(metadata)
         if cached is not None:
             out.append((cached, metadata))
@@ -1169,6 +1499,11 @@ TRADING_AGENT_ACTION_COLUMNS = [
 
 def _bootstrap_trading_agent_actions(conn: Any) -> None:
     with conn.cursor() as cur:
+        cur.execute("SELECT attname FROM pg_attribute WHERE attrelid=to_regclass('trading_agent_actions') AND attnum>0 AND NOT attisdropped")
+        columns = {row[0] for row in cur.fetchall()}
+        if {"execution_mode", "broker", "broker_order_id", "order_payload", "dataset_namespace"}.issubset(columns):
+            return
+        cur.execute("SELECT pg_advisory_xact_lock(hashtext('trading_agent_actions_schema_v1'))")
         cur.execute(
             """
             CREATE TABLE IF NOT EXISTS trading_agent_actions (
@@ -1241,7 +1576,7 @@ def _bootstrap_trading_agent_actions(conn: Any) -> None:
 def _normalize_trading_agent_action(action: object) -> tuple[str, str]:
     text = str(action or "").strip().lower()
     if text in {"approve", "approved", "place", "placed", "place_requested", "request_place"}:
-        return "place_requested", "logged"
+        return "approved", "pending_entry"
     if text in {"reject", "rejected"}:
         return "rejected", "logged"
     return text or "unknown", "logged"
@@ -1259,8 +1594,13 @@ def record_trading_agent_action(
     if not isinstance(candidate, dict) or not str(candidate.get("candidate_id") or "").strip():
         return False, "Missing Trading Agent candidate id."
     action_value, status_value = _normalize_trading_agent_action(action)
-    if action_value not in {"place_requested", "rejected"}:
+    if action_value not in {"approved", "rejected"}:
         return False, f"Unsupported Trading Agent action: {action}"
+    owner_id = str(requested_by or "").strip()
+    if not owner_id:
+        return False, "A signed-in owner is required."
+    if action_value == "approved" and str(candidate.get("stance") or "").lower() not in {"long", "short"}:
+        return False, "Only a directional call can be approved for tracking."
     conn = _db_connect()
     if conn is None:
         return False, "Postgres is unavailable, so the Trading Agent action was not logged."
@@ -1268,7 +1608,29 @@ def record_trading_agent_action(
     action_id = str(uuid.uuid4())
     try:
         _bootstrap_trading_agent_actions(conn)
+        from .trading_call_tracking import ensure_schema, record_approval
+        ensure_schema(conn)
+        conn.commit()
         with conn.cursor() as cur:
+            identity = json.dumps([dataset_namespace(), owner_id, candidate["candidate_id"]])
+            cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (identity,))
+            cur.execute("""SELECT action,action_id,created_at_utc,candidate_payload,execution_mode
+                FROM trading_agent_actions WHERE dataset_namespace=%s AND requested_by=%s AND candidate_id=%s
+                ORDER BY created_at_utc DESC,action_id DESC LIMIT 1""",
+                (dataset_namespace(), owner_id, candidate["candidate_id"]))
+            previous = cur.fetchone()
+            if previous and previous[0] in {"approved", "place_requested"}:
+                if action_value != "approved":
+                    return False, "This call is already approved and tracked."
+                if previous[4] in {"log_only", "paper_tracking"}:
+                    snapshot = previous[3] if isinstance(previous[3], dict) else json.loads(previous[3])
+                    record_approval(cur, candidate=snapshot, owner_id=owner_id, action_id=previous[1],
+                                    approved_at=previous[2], namespace=dataset_namespace(), source="retained_log_approval")
+                conn.commit()
+                return True, "Candidate approved."
+            if previous and previous[0] == "rejected" and action_value == "rejected":
+                conn.commit()
+                return True, "Candidate rejected."
             cur.execute(
                 """
                 INSERT INTO trading_agent_actions (
@@ -1292,9 +1654,9 @@ def record_trading_agent_action(
                     str(candidate.get("horizon_key") or "").strip() or None,
                     str(candidate.get("ticker") or "").upper().strip() or None,
                     action_value,
-                    "log_only",
+                    "paper_tracking" if action_value == "approved" else "log_only",
                     status_value,
-                    "alpaca",
+                    None,
                     None,
                     json.dumps({}, ensure_ascii=True, sort_keys=True),
                     created_at,
@@ -1305,6 +1667,9 @@ def record_trading_agent_action(
                     dataset_namespace(),
                 ),
             )
+            if action_value == "approved":
+                record_approval(cur, candidate=candidate, owner_id=owner_id, action_id=action_id,
+                                approved_at=created_at, namespace=dataset_namespace())
         conn.commit()
     except Exception as exc:
         try:
@@ -1318,7 +1683,7 @@ def record_trading_agent_action(
         except Exception:
             pass
 
-    if action_value == "place_requested":
+    if action_value == "approved":
         return True, "Candidate approved."
     return True, "Candidate rejected."
 
@@ -2134,6 +2499,346 @@ def connector_call_rollup(*, days: int = 7) -> pd.DataFrame:
             conn.close()
         except Exception:
             pass
+
+
+_EXECUTION_SCHEMA_READY: set[tuple[str, str]] = set()
+_EXECUTION_SCHEMA_LOCK = threading.Lock()
+
+
+def _ensure_execution_store(conn: Any) -> None:
+    identity = (str(conn.info.host), str(conn.info.dbname))
+    with _EXECUTION_SCHEMA_LOCK:
+        if identity in _EXECUTION_SCHEMA_READY:
+            return
+        with conn.cursor() as cur:
+            cur.execute("""CREATE TABLE IF NOT EXISTS aql_zopedia_execution_state (
+                namespace TEXT NOT NULL, state_key TEXT NOT NULL, payload JSONB NOT NULL,
+                updated_at_utc TIMESTAMPTZ NOT NULL DEFAULT now(),
+                PRIMARY KEY(namespace,state_key))""")
+            cur.execute("""CREATE TABLE IF NOT EXISTS aql_zopedia_provider_attempts (
+                attempt_id TEXT PRIMARY KEY, model_call_id TEXT, root_run_id TEXT,
+                parent_run_id TEXT, settings_scope TEXT, surface TEXT, purpose TEXT,
+                provider TEXT, requested_model TEXT, reported_model TEXT, operation TEXT,
+                status TEXT, http_status INTEGER, started_at_utc TIMESTAMPTZ NOT NULL,
+                duration_ms DOUBLE PRECISION, usage_json JSONB, metadata_json JSONB)""")
+            cur.execute("""CREATE INDEX IF NOT EXISTS idx_aql_provider_attempts_scope_time
+                ON aql_zopedia_provider_attempts(settings_scope,started_at_utc DESC)""")
+            cur.execute("""CREATE INDEX IF NOT EXISTS idx_aql_provider_attempts_root
+                ON aql_zopedia_provider_attempts(root_run_id,started_at_utc)""")
+        conn.commit()
+        _EXECUTION_SCHEMA_READY.add(identity)
+
+
+def read_execution_state(namespace: str, state_key: str, *, strict: bool = False) -> dict[str, Any] | None:
+    """Read an owned checkpoint; unavailable persistence is distinct from a hit."""
+    conn = _db_connect()
+    if conn is None:
+        if strict:
+            raise RuntimeError("Research execution store is unavailable.")
+        return None
+    try:
+        _ensure_execution_store(conn)
+        with conn.cursor() as cur:
+            cur.execute("SELECT payload FROM aql_zopedia_execution_state WHERE namespace=%s AND state_key=%s",
+                        (namespace, state_key))
+            row = cur.fetchone()
+        return dict(row[0]) if row else None
+    finally:
+        conn.close()
+
+
+def claim_execution_state(namespace: str, state_key: str, *, owner: str, seconds: float) -> bool:
+    """Short SQL transaction; a lease never holds a connection during inference."""
+    conn = _db_connect()
+    if conn is None:
+        raise RuntimeError("Research execution store is unavailable.")
+    try:
+        _ensure_execution_store(conn)
+        with conn.cursor() as cur:
+            cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
+                VALUES (%s,%s,jsonb_build_object('owner',%s::text,'expires_at',
+                    clock_timestamp()+%s*interval '1 second'))
+                ON CONFLICT(namespace,state_key) DO UPDATE
+                SET payload=excluded.payload,updated_at_utc=now()
+                WHERE (aql_zopedia_execution_state.payload->>'expires_at')::timestamptz < clock_timestamp()
+                RETURNING state_key""", (namespace, state_key, owner, max(float(seconds), 1)))
+            claimed = cur.fetchone() is not None
+        conn.commit()
+        return claimed
+    finally:
+        conn.close()
+
+
+def release_execution_state(namespace: str, state_key: str, *, owner: str) -> None:
+    conn = _db_connect()
+    if conn is None:
+        return
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""DELETE FROM aql_zopedia_execution_state
+                WHERE namespace=%s AND state_key=%s AND payload->>'owner'=%s""",
+                (namespace, state_key, owner))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def write_execution_state(namespace: str, state_key: str, payload: dict[str, Any], *, immutable: bool = False) -> bool:
+    conn = _db_connect()
+    if conn is None:
+        return False
+    try:
+        _ensure_execution_store(conn)
+        conflict = "DO NOTHING" if immutable else "DO UPDATE SET payload=excluded.payload,updated_at_utc=now()"
+        with conn.cursor() as cur:
+            cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
+                VALUES (%s,%s,%s::jsonb) ON CONFLICT(namespace,state_key) """ + conflict,
+                        (namespace, state_key, json.dumps(payload, ensure_ascii=False, default=str)))
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def read_execution_states(namespace: str, state_keys: list[str]) -> dict[str, dict[str, Any]]:
+    if not state_keys:
+        return {}
+    conn = _db_connect()
+    if conn is None:
+        return {}
+    try:
+        _ensure_execution_store(conn)
+        with conn.cursor() as cur:
+            cur.execute("SELECT state_key,payload FROM aql_zopedia_execution_state WHERE namespace=%s AND state_key=ANY(%s)",
+                        (namespace, state_keys))
+            return {row[0]: dict(row[1]) for row in cur.fetchall()}
+    finally:
+        conn.close()
+
+
+def retain_research_checkpoint(*, namespace: str, input_key: str, artifact: dict[str, Any],
+                               subject: str, task: str) -> dict[str, Any] | None:
+    """Publish an immutable result and its replay/latest pointers atomically."""
+    conn = _db_connect()
+    if conn is None:
+        return None
+    try:
+        _ensure_execution_store(conn)
+        with conn.cursor() as cur:
+            cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
+                VALUES (%s,%s,%s::jsonb) ON CONFLICT(namespace,state_key) DO NOTHING""",
+                (namespace, artifact["artifact_id"], json.dumps(artifact, ensure_ascii=False, default=str)))
+            cur.execute("SELECT payload FROM aql_zopedia_execution_state WHERE namespace=%s AND state_key=%s",
+                        (namespace, artifact["artifact_id"]))
+            stored = dict(cur.fetchone()[0])
+            pointer = json.dumps({"artifact_id": stored["artifact_id"], "created_at_utc": stored["created_at_utc"]})
+            pointers = [(namespace + ":inputs", input_key, pointer)]
+            if subject:
+                pointers.append((namespace + ":latest", subject + ":" + task, pointer))
+            cur.executemany("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
+                VALUES (%s,%s,%s::jsonb) ON CONFLICT(namespace,state_key)
+                DO UPDATE SET payload=excluded.payload,updated_at_utc=now()""", pointers)
+        conn.commit()
+        return stored
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def write_execution_states(namespace: str, values: dict[str, dict[str, Any]]) -> bool:
+    if not values:
+        return True
+    conn = _db_connect()
+    if conn is None:
+        return False
+    try:
+        _ensure_execution_store(conn)
+        with conn.cursor() as cur:
+            cur.executemany("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
+                VALUES (%s,%s,%s::jsonb) ON CONFLICT(namespace,state_key) DO NOTHING""",
+                [(namespace, key, json.dumps(value, ensure_ascii=False, default=str)) for key, value in values.items()])
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
+
+def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool = True) -> bool:
+    """One actual HTTP attempt. Logical gateway events never enter this ledger."""
+    if not _model_call_telemetry_enabled():
+        return False
+    conn = None
+    try:
+        conn = _db_connect()
+        if conn is None:
+            raise RuntimeError("Provider attempt database is unavailable")
+        _ensure_execution_store(conn)
+        fields = ("attempt_id", "model_call_id", "root_run_id", "parent_run_id", "settings_scope",
+                  "surface", "purpose", "provider", "requested_model", "reported_model", "operation",
+                  "status", "http_status", "started_at_utc", "duration_ms")
+        with conn.cursor() as cur:
+            cur.execute("INSERT INTO aql_zopedia_provider_attempts (" + ",".join(fields)
+                        + ",usage_json,metadata_json) VALUES (" + ",".join(["%s"] * len(fields))
+                        + ",%s::jsonb,%s::jsonb) ON CONFLICT(attempt_id) DO UPDATE SET "
+                        "reported_model=EXCLUDED.reported_model,status=EXCLUDED.status,http_status=EXCLUDED.http_status,"
+                        "duration_ms=EXCLUDED.duration_ms,usage_json=EXCLUDED.usage_json,metadata_json=EXCLUDED.metadata_json "
+                        "WHERE aql_zopedia_provider_attempts.status='started' AND EXCLUDED.status != 'started'",
+                        (*[event.get(field) for field in fields],
+                         json.dumps(event.get("usage"), default=str),
+                         json.dumps(event.get("metadata") or {}, default=str)))
+        conn.commit()
+        return True
+    except Exception:
+        if conn is not None:
+            with suppress(Exception):
+                conn.rollback()
+    finally:
+        if conn is not None:
+            with suppress(Exception):
+                conn.close()
+    if not archive_on_failure:
+        return False
+    # The archive is independent of Postgres. Keep the full metering receipt,
+    # never prompts or credentials, until the spend reader reconciles it.
+    timestamp = pd.to_datetime(event["started_at_utc"], utc=True)
+    archive = ImmutableBlobArchive(namespace=event["settings_scope"],
+                                   root="provider-attempt-outbox/" + timestamp.strftime("%Y-%m-%d"))
+    receipt = archive.put(json.dumps(event, sort_keys=True, default=str).encode(),
+                          suffix="json", content_type="application/json")
+    # Reconciliation of a start receipt must not delete a later final receipt.
+    suffix = ".started.json" if event.get("status") == "started" else ".json"
+    path = archive.point(event["attempt_id"] + suffix, receipt)
+    print(f"[warn] Provider attempt retained for database reconciliation: {path}", flush=True)
+    return True
+
+
+def reconcile_provider_attempt_receipts(*, days: int = 7, limit: int = 1000) -> dict[str, Any]:
+    """Drain durable receipts after SQL recovery, with attempt-ID idempotency."""
+    from datetime import timedelta
+    from azure.core.exceptions import ResourceNotFoundError
+    from services.work_scope import work_expired, WorkCancelled
+    from .llm import llm_settings_scope
+    scope = llm_settings_scope()
+    archive = ImmutableBlobArchive(namespace=scope, root="provider-attempt-outbox")
+    processed = reconciled = 0
+    for offset in range(max(int(days), 1)):
+        date = (datetime.now(timezone.utc) - timedelta(days=offset)).strftime("%Y-%m-%d")
+        prefix = archive.root + "/" + date + "/"
+        if work_expired():
+            return {"reconciled": reconciled, "scan_complete": False}
+        for blob in archive.container.walk_blobs(name_starts_with=prefix, delimiter="/", **_blob_io_options()):
+            name = blob.name[len(prefix):]
+            if "/" in name or not name.endswith(".json"):
+                continue
+            if processed >= limit or work_expired():
+                return {"reconciled": reconciled, "scan_complete": False}
+            processed += 1
+            pointer = archive.container.get_blob_client(blob.name)
+            try:
+                receipt = json.loads(pointer.download_blob(**_blob_io_options()).readall())
+                event = json.loads(archive.get(receipt))
+                if event.get("settings_scope") != scope:
+                    raise ValueError("Provider receipt environment does not match its archive")
+                if not record_provider_attempt(event, archive_on_failure=False):
+                    return {"reconciled": reconciled, "scan_complete": False}
+                # SQL commits before deletion. A competing reader or interrupted
+                # delete can repeat the insert safely under the attempt ID.
+                pointer.delete_blob(**_blob_io_options())
+                reconciled += 1
+            except ResourceNotFoundError:
+                continue
+            except WorkCancelled:
+                return {"reconciled": reconciled, "scan_complete": False}
+    return {"reconciled": reconciled, "scan_complete": True}
+
+
+def list_research_artifacts(*, namespace: str, subjects: list[str] | None = None,
+                            limit: int = 20) -> list[dict[str, Any]]:
+    """List latest public research within the caller's declared environment."""
+    conn = _db_connect()
+    if conn is None:
+        raise RuntimeError("Completed investigations store is unavailable")
+    try:
+        _ensure_execution_store(conn)
+        with conn.cursor() as cur:
+            cur.execute("""SELECT a.payload FROM aql_zopedia_execution_state p
+                JOIN aql_zopedia_execution_state a
+                  ON a.namespace=%s AND a.state_key=p.payload->>'artifact_id'
+                WHERE p.namespace=%s AND (%s::text[] IS NULL OR a.payload->>'subject'=ANY(%s))
+                ORDER BY p.updated_at_utc DESC LIMIT %s""",
+                        (namespace, namespace + ":latest", subjects or None, subjects or None, min(max(limit, 1), 100)))
+            return [dict(row[0]) for row in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def provider_usage_rollup(*, days: int = 7) -> pd.DataFrame:
+    """Attempt-based spend view with explicit unpriced and missing-usage counts."""
+    reconciliation = {"scan_complete": None, "deferred": True}
+    conn = _db_connect()
+    if conn is None:
+        frame = pd.DataFrame()
+        frame.attrs.update(database_available=False, receipt_reconciliation=reconciliation)
+        return frame
+    try:
+        _ensure_execution_store(conn)
+        with conn.cursor() as cur:
+            cur.execute("""SELECT settings_scope,surface,purpose,provider,reported_model,
+                count(*) AS http_attempts,
+                count(*) FILTER (WHERE status='failure') AS failed_attempts,
+                count(*) FILTER (WHERE usage_json IS NULL OR usage_json='null'::jsonb OR usage_json='{}'::jsonb) AS missing_usage_attempts,
+                sum((usage_json->>'prompt_tokens')::bigint) AS input_tokens,
+                sum((usage_json->>'completion_tokens')::bigint) AS output_tokens,
+                sum(coalesce((usage_json->>'prompt_cache_hit_tokens')::bigint,
+                             (usage_json->'prompt_tokens_details'->>'cached_tokens')::bigint)) AS cached_input_tokens,
+                sum((usage_json->'completion_tokens_details'->>'reasoning_tokens')::bigint) AS reasoning_output_tokens,
+                count(*) FILTER (WHERE metadata_json->'estimated_charge'->>'status'='estimated') AS priced_attempts,
+                sum((metadata_json->'estimated_charge'->>'usd_min')::numeric) AS estimated_usd_min,
+                sum((metadata_json->'estimated_charge'->>'usd_max')::numeric) AS estimated_usd_max
+                FROM aql_zopedia_provider_attempts
+                WHERE started_at_utc >= now() - (%s * interval '1 day')
+                GROUP BY settings_scope,surface,purpose,provider,reported_model
+                ORDER BY estimated_usd_max DESC NULLS LAST""", (max(int(days), 1),))
+            columns = [column.name for column in cur.description]
+            frame = pd.DataFrame(cur.fetchall(), columns=columns)
+            frame.attrs["receipt_reconciliation"] = reconciliation
+            return frame
+    finally:
+        conn.close()
+
+
+def research_stage_usage(*, scope: str, days: int = 7) -> dict[str, Any]:
+    """Read observed stage attempts without schema changes or archive scans."""
+    conn = _db_connect()
+    if conn is None:
+        return {"available": False, "rows": []}
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""SELECT metadata_json->>'stage' AS stage, metadata_json->>'workload' AS workload, requested_model, reported_model,
+                count(*) AS attempts, count(*) FILTER (WHERE status='failure') AS failures,
+                count(*) FILTER (WHERE status='started') AS unfinished_attempts,
+                sum(duration_ms)/1000.0 AS seconds,
+                sum((usage_json->>'prompt_tokens')::bigint) AS input_tokens,
+                sum((usage_json->>'completion_tokens')::bigint) AS output_tokens,
+                count(*) FILTER (WHERE coalesce(metadata_json->'estimated_charge'->>'status','') != 'estimated') AS unpriced_attempts,
+                sum((metadata_json->'estimated_charge'->>'usd_min')::numeric) AS estimated_usd_min,
+                sum((metadata_json->'estimated_charge'->>'usd_max')::numeric) AS estimated_usd_max
+                FROM aql_zopedia_provider_attempts
+                WHERE settings_scope=%s AND started_at_utc >= now() - (%s * interval '1 day')
+                  AND metadata_json->>'stage' IS NOT NULL
+                GROUP BY metadata_json->>'stage', metadata_json->>'workload', requested_model, reported_model
+                ORDER BY metadata_json->>'stage', count(*) DESC""", (scope, days))
+            keys = [column.name for column in cur.description]
+            return {"available": True, "days": days, "rows": [dict(zip(keys, row)) for row in cur.fetchall()]}
+    except Exception:
+        return {"available": False, "rows": []}
+    finally:
+        conn.close()
 
 
 def _model_call_telemetry_enabled() -> bool:

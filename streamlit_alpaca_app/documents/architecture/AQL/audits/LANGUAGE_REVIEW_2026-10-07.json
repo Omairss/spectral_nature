@@ -1,0 +1,68 @@
+[
+  {
+    "model": "deepseek-flash",
+    "case": "financial_explanation",
+    "elapsed_seconds": 28.5,
+    "output": {
+      "answer": "Established business: [E1] A supplier sells optical links between data centers to cloud companies and telecom operators. Demand link: [E2] More AI data centers can increase the required network capacity. But customer spending is not a guaranteed supplier order. So [E2] connects data-center demand to potential optical capacity needs, not to revenue. New order signal: [E3] On September 30, the supplier reported a $120 million order increase. Delivery is expected next year. Revenue is recognized on delivery. Therefore the $120 million order is not revenue yet. It becomes optical networking revenue only on delivery under [E3]. Limits: [E4] The evidence has no customer-specific capital expenditure (capex) figures. So the evidence cannot show which customer caused the order or how data-center capex maps to the $120 million order.",
+      "audio": "Established business: [E1] A supplier sells optical links between data centers to cloud companies and telecom operators. Demand link: [E2] More AI data centers can increase the required network capacity. But customer spending is not a guaranteed supplier order. So [E2] connects data-center demand to potential optical capacity needs, not to revenue. New order signal: [E3] On September 30, the supplier reported a $120 million order increase. Delivery is expected next year. Revenue is recognized on delivery. Therefore the $120 million order is not revenue yet. It becomes optical networking revenue only on delivery under [E3]. Limits: [E4] The evidence has no customer-specific capital expenditure figures. So the evidence cannot show which customer caused the order or how data-center spending maps to the $120 million order.",
+      "source": "E1, E2, E3, E4",
+      "code": ""
+    }
+  },
+  {
+    "model": "deepseek-flash",
+    "case": "technical_precision",
+    "elapsed_seconds": 28.5,
+    "output": {
+      "answer": "The analysis estimates a correlation of 0.72 from 24 monthly observations. The estimate does not establish causation.",
+      "audio": "The analysis estimates a correlation of 0.72 from 24 monthly observations. This correlation does not establish causation.",
+      "source": "Granular leverage analysis \u2014 https://example.com/robust/granular?view=localized",
+      "code": "result[\"leverage\"] = x / y"
+    }
+  },
+  {
+    "model": "deepseek-flash",
+    "case": "conflicting_evidence",
+    "elapsed_seconds": 30.0,
+    "output": {
+      "answer": "No. The data do not prove that revenue grew 30%. Orders grew 30% year over year in Q2 [R1]. Revenue grew 8% year over year in Q2 [R2]. Orders are not revenue. The backlog includes orders scheduled for delivery next year, so some orders may not affect current revenue [R3]. One article headline calls this 30% revenue growth, but its body reproduces the 30% orders figure [R4]. The data can establish 30% orders growth and 8% revenue growth. The data cannot establish 30% revenue growth.",
+      "audio": "No. Orders grew 30% year over year in Q2, but revenue grew 8% year over year in Q2, so orders do not prove 30% revenue growth [R1][R2].",
+      "source": "Controlled review facts: R1, R2, R3, R4",
+      "code": ""
+    }
+  },
+  {
+    "model": "deepseek-v4-pro",
+    "case": "technical_precision",
+    "elapsed_seconds": 10.0,
+    "output": {
+      "answer": "The analysis estimates a correlation of 0.72 from 24 monthly observations. This correlation does not establish causation.",
+      "audio": "",
+      "source": "Granular leverage analysis https://example.com/robust/granular?view=localized",
+      "code": "result[\"leverage\"] = x / y"
+    }
+  },
+  {
+    "model": "deepseek-v4-pro",
+    "case": "conflicting_evidence",
+    "elapsed_seconds": 12.5,
+    "output": {
+      "answer": "No. Orders do not prove that revenue grew 30%. R1 shows orders grew 30% year over year in Q2. R2 shows revenue grew 8% year over year in Q2. R3 shows some orders are scheduled for delivery next year. R4 shows a headline calls this 30% revenue growth, but its body uses the 30% orders figure. The data can establish only that orders grew 30% and revenue grew 8%. It cannot establish 30% revenue growth.",
+      "audio": "No, the orders data do not prove that revenue grew 30%. R1 shows orders grew 30% year over year, but R2 shows revenue grew 8% year over year, and R3 shows some orders are scheduled for delivery next year. R4 shows a headline calls this 30% revenue growth, but its body uses the 30% orders figure.",
+      "source": "R1; R2; R3; R4",
+      "code": ""
+    }
+  },
+  {
+    "model": "deepseek-v4-pro",
+    "case": "financial_explanation",
+    "elapsed_seconds": 15.3,
+    "output": {
+      "answer": "Data-center demand connects to optical networking revenue through purchases of optical links. [E1] A supplier sells optical links between data centers to cloud companies and telecom operators. [E2] More AI data centers can increase required network capacity, but customer spending is not a guaranteed supplier order. The established business is the sale of optical links. [E3] The new order signal is a $120 million order increase reported on September 30. Delivery is expected next year, and revenue is recognized on delivery. So this order becomes revenue only after delivery. [E4] No customer-specific capex figures are available, so the demand-to-revenue link cannot be quantified from capex.",
+      "audio": "",
+      "source": "E1; E2; E3; E4",
+      "code": ""
+    }
+  }
+]

@@ -1,0 +1,44 @@
+{
+  "execution": "trading-agent-build-dev-i5bn40g",
+  "allocation_bytes": 2147483648,
+  "samples": [
+    {
+      "utc": "2026-10-16T04:29:00Z",
+      "maximum_bytes": 539324416.0
+    },
+    {
+      "utc": "2026-10-16T04:30:00Z",
+      "maximum_bytes": 1052516352.0
+    },
+    {
+      "utc": "2026-10-16T04:31:00Z",
+      "maximum_bytes": 1193877504.0
+    },
+    {
+      "utc": "2026-10-16T04:32:00Z",
+      "maximum_bytes": 1592233984.0
+    },
+    {
+      "utc": "2026-10-16T04:33:00Z",
+      "maximum_bytes": 1595801600.0
+    },
+    {
+      "utc": "2026-10-16T04:34:00Z",
+      "maximum_bytes": 1804587008.0
+    },
+    {
+      "utc": "2026-10-16T04:35:00Z",
+      "maximum_bytes": 1696628736.0
+    },
+    {
+      "utc": "2026-10-16T04:36:00Z",
+      "maximum_bytes": 525312000.0
+    },
+    {
+      "utc": "2026-10-16T04:37:00Z",
+      "maximum_bytes": 689876992.0
+    }
+  ],
+  "replica_exit_code": 137,
+  "exact_cause_unproven": true
+}

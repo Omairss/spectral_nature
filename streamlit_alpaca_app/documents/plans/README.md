@@ -8,12 +8,14 @@ Use the docs as follows:
 
 - `../README.md`: doc hub and runtime overview
 - `../architecture/README.md`: durable architecture and system design map
+- [Master research index](../research/README.md): open investigations, failure cases and experiment evidence
 - `../operations/PROJECT_SETUP_AND_OPERATIONS.md`: setup, deployment, and operator context
 - `../reference/ATTENTION_FEED_GUIDELINES.md`: active product and evidence rules
 - files in `documents/plans/`: implementation plans, recovery notes, and short working specs
 
 ## Product and UX
 
+- [Native Markets chart clarity](NATIVE_MARKETS_CHARTS_2026-10-14.md): interpretable return comparisons, numeric colors, point identities and named return bars.
 - `BRANDING_REFRESH_PLAN.md`: app-shell branding cleanup and presentation notes
 - `BRANDING_ASSET_INTEGRATION_2026-04-03.md`: branding asset rollout notes
 - `UI_SHELL_REFINEMENT_2026-04-02.md`: shell-level UI cleanup plan
@@ -39,6 +41,8 @@ Use the docs as follows:
 
 ## Data, Analytics, and Research
 
+- [October Applied Research Fall 2026 Master plan](OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md): approved current-position and gap-closure table, evaluation objectives, cheap-open-model and +20% workload-cost constraints, and the next-agent work queue. Start with the [handoff](OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md#next-agent-handoff).
+- `ZOPEDIA_CONVERSATION_REPAIR_2026-10-14.md`: accepted conversation release; verified source/evidence/review/knowledge-policy repair handoff; proposed premium-analysis and cheap-peripheral DeepSeek routing, with acceptance and release scope
 - Architecture-level docs moved to `../architecture/README.md`.
 - AQL docs live in `../architecture/AQL/`.
 - SAA docs live in `../architecture/SAA/`.
@@ -54,11 +58,15 @@ Use the docs as follows:
 
 ## Reliability and Mistake Prevention
 
+- [Database work lifecycle and refresh coordination](DATABASE_WORK_LIFECYCLE_2026-10-16.md): cancellation ownership, shared database admission, publication caching, incremental projection and bounded independent recovery.
+
 - `MISTAKE_PREVENTION_HARDENING_2026-04-21.md`: deploy guards, secret scanning, mandatory dataset validation, LLM readiness checks, and attention service package reorganization
 - `V0_5_ROADMAP_2026-06-22.md`: v0.5 priority consolidation across pipeline simplification, Zopedia retrieval, company memory, hardcode cleanup, attention scoring, and module boundaries
 - `V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`: v0.6 deepfix for enforceable AQL/Zopedia model-call governance, request telemetry, direct-call audits, and migration of Trading Agent, Attention/Home, Zopedia memory, KG, and page summary model calls
 
 ## Infra and Operations
+
+- [Whole-stack production promotion — 2026-10-14](STACK_PARITY_PROMOTION_2026-10-14.md): accepted development frontend/API, Zopedia conversation/research and LLM cost changes across all active non-broker production workers; source guards, environment ownership, live verification and rollback.
 
 - `ALPACA_KEY_VAULT_HARDENING_2026-04-10.md`: repo and deploy hardening plan for removing tracked Alpaca secrets and enforcing Key Vault-only runtime resolution
 - `ALPACA_VAULT_CONSOLIDATION_2026-04-10.md`: migration plan for consolidating Alpaca secrets into one shared Key Vault across UI and pipeline

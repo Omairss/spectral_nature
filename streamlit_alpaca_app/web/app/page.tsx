@@ -1,11 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { Markdown } from "@/components/markdown";
 import { Visualization } from "@/components/visualizations/visualization";
+import { AttentionTickerCard } from "@/components/attention-ticker-card";
 import { TrendChart } from "@/components/visualizations/trend-chart";
 import { backendFetch } from "@/lib/server/backend";
-import type { HomeTickerSnapshot, HomeView } from "@/lib/types";
+import type { HomeView } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -52,60 +52,6 @@ function beatKind(kind: string) {
   if (kind === "event") return "Event";
   if (kind === "unresolved") return "Watch";
   return "Mover";
-}
-
-function numeric(value: number | null | undefined) {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-function formatPrice(value: number | null) {
-  const parsed = numeric(value);
-  if (parsed === null) return "—";
-  return parsed.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: parsed >= 1_000 ? 0 : 2 });
-}
-
-function formatFinancial(value: number | null) {
-  const parsed = numeric(value);
-  if (parsed === null) return "—";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(parsed);
-}
-
-function formatPercent(value: number | null) {
-  const parsed = numeric(value);
-  if (parsed === null) return "—";
-  return `${parsed > 0 ? "+" : ""}${parsed.toFixed(1)}%`;
-}
-
-function changeTone(value: number | null) {
-  const parsed = numeric(value);
-  if (parsed === null || parsed === 0) return "flat";
-  return parsed > 0 ? "positive" : "negative";
-}
-
-function TickerSnapshot({ ticker }: { ticker: HomeTickerSnapshot }) {
-  const company = ticker.company_name && ticker.company_name !== ticker.symbol ? ticker.company_name : "";
-  return (
-    <Link className="attention-ticker" href={`/stock-investigator?ticker=${encodeURIComponent(ticker.symbol)}`}>
-      <header>
-        <div><strong>{ticker.symbol}</strong>{company ? <span>{company}</span> : null}</div>
-        <div className="ticker-price">
-          <strong>{formatPrice(ticker.latest_close)}</strong>
-          <span className={changeTone(ticker.price_change_1d_pct)}>{formatPercent(ticker.price_change_1d_pct)}</span>
-        </div>
-      </header>
-      {ticker.sparkline_data_uri ? <Image alt="" aria-hidden="true" height={56} src={ticker.sparkline_data_uri} unoptimized width={164} /> : null}
-      <dl>
-        <div><dt>Market cap</dt><dd>{ticker.market_cap_label && ticker.market_cap_label !== "n/a" ? ticker.market_cap_label : formatFinancial(ticker.market_cap)}</dd></div>
-        <div><dt>1 month</dt><dd className={changeTone(ticker.price_change_1m_pct)}>{formatPercent(ticker.price_change_1m_pct)}</dd></div>
-      </dl>
-      <div className="ticker-financial-trends">{[["revenue", "Revenue", "teal"], ["net_income", "Net income", "violet"], ["free_cash_flow", "Free cash flow", "blue"]].map(([key, label, tone]) => ticker.financial_trends?.[key]?.length ? <TrendChart key={key} points={ticker.financial_trends[key]} label={label} tone={tone} compact /> : null)}</div>
-    </Link>
-  );
 }
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ date?: string | string[]; invite_token?: string | string[]; reset_token?: string | string[] }> }) {
@@ -167,7 +113,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   />
                 ) : null}
               </div>
-              {home.daily_datapoints?.length ? <aside className="daily-datapoints" aria-label="Five crucial datapoints"><p className="section-label">Key datapoints</p>{home.daily_datapoints.map((point) => <article key={point.id}><h3>{point.title}</h3><TrendChart label={point.label} unit={point.unit} points={point.points} price={point.kind === "price"} tone={point.kind === "macro" ? "violet" : "teal"} /><p>{point.significance}</p><time dateTime={point.date}>{point.period ? `${point.period} · ` : ""}{point.date}</time></article>)}</aside> : null}
+              {home.daily_datapoints?.length ? <aside className="daily-datapoints" aria-label="Five crucial datapoints"><p className="section-label">Highlights{home.daily_datapoints_as_of ? <time dateTime={home.daily_datapoints_as_of}> · {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(new Date(home.daily_datapoints_as_of))}</time> : null}</p>{home.daily_datapoints.map((point) => <article key={point.id}><h3>{point.title}</h3><TrendChart label={point.label} unit={point.unit} points={point.points} price={point.kind === "price"} tone={point.kind === "macro" ? "violet" : "teal"} /><p>{point.significance}</p><time dateTime={point.date}>{point.period ? `${point.period} · ` : ""}{point.date}</time></article>)}</aside> : null}
             </section>
           ) : null}
 
@@ -187,8 +133,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                     </div>
                     <h3>{beat.title}</h3>
                     {beat.summary ? <p>{beat.summary}</p> : null}
+                    {beat.why ? <p>{beat.why}</p> : null}
                     {beat.business_context ? <p className="business-context">{beat.business_context}</p> : null}
-                    {beat.tickers.length ? <div className="attention-ticker-grid">{beat.tickers.map((ticker) => <TickerSnapshot key={ticker.symbol} ticker={ticker} />)}</div> : null}
+                    {beat.watch_next ? <p><strong>Watch next: </strong>{beat.watch_next}</p> : null}
+                    {beat.tickers.length ? <div className="attention-ticker-grid">{beat.tickers.map((ticker) => <AttentionTickerCard key={`${home.run_id}:${home.view_date}:${ticker.symbol}`} ticker={ticker} />)}</div> : null}
                   </article>
                 </li>
               ))}

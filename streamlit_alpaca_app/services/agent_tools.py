@@ -6,7 +6,7 @@ import math
 import re
 from typing import Any
 
-from data_access.contracts import QueryRequest, coerce_object
+from data_access.contracts import QueryRequest, QueryValidationError, coerce_object
 from data_access.query_service import QueryService
 from . import zopedia_research
 from . import zopedia_analysis
@@ -291,13 +291,33 @@ def _hypothesis_tools() -> list[dict[str, Any]]:
 def _research_tools() -> list[dict[str, Any]]:
     return [
         {
+            "name": "research.read_context",
+            "description": "Read original evidence already acquired in this investigation by tool_call_id. Use offset to continue; this does not search or fetch again.",
+            "inputSchema": {"type": "object", "additionalProperties": False,
+                "properties": {"tool_call_id": {"type": "string"}, "offset": {"type": "integer", "minimum": 0},
+                               "max_characters": {"type": "integer", "minimum": 1}},
+                "required": ["tool_call_id"]},
+        },
+        {
+            "name": "research.completed_investigations",
+            "description": (
+                "Read completed shared company investigations from the current environment. "
+                "Reuse their dated findings, sources and open questions before repeating research. "
+                "Subjects use company:<ticker> identifiers. Omit subjects to list metadata; pass subjects to read complete findings. "
+                "New evidence, contradictions and useful exploration can warrant further research."
+            ),
+            "inputSchema": {"type": "object", "additionalProperties": False,
+                "properties": {"subjects": {"type": "array", "items": {"type": "string"}},
+                               "max_items": {"type": "integer"}}, "required": []},
+        },
+        {
             "name": "research.retained_context",
             "description": (
                 "Look up retained narrative context already in Spectral Nature for the query. "
                 "This is internal memory, not live web search. Use it for background, prior findings, "
                 "and source-backed context that Spectral Nature has already retained. Pass focus_symbols when the task is about "
                 "a named company, ticker, person, or other scoped subject so retained lookup stays anchored. "
-                "For current or stale-memory questions, pair this with research.live_event_evidence before final synthesis. "
+                "Current reports may already be retained; choose additional research when it helps the question. "
                 "Adjacent peer, sector, macro, and spillover context is useful; organize it around the primary subject."
             ),
             "inputSchema": {
@@ -349,25 +369,58 @@ def _research_tools() -> list[dict[str, Any]]:
         {
             "name": "research.search_evidence",
             "description": (
-                "Search Spectral Nature's retained evidence store (SAA) for documents and "
-                "chunks matching a query. This searches all previously collected research — "
-                "news articles, event summaries, ticker backgrounds, and analysis — that "
-                "have been retained from past pipeline runs and agent sessions. "
-                "This is not live web search. Use it for prior captured context and memory recall. "
-                "For today's news, current market events, or stale-memory questions, use research.live_event_evidence before final synthesis."
+                "Search all retained sources and knowledge by meaning and words. Supply varied queries for different explanations, "
+                "entities or concepts. Results distinguish original sources, knowledge and generated analysis with dependencies. "
+                "Use resolved_plan when you have already chosen the complete query list and reporting dates (null dates mean unrestricted); "
+                "it executes directly. Otherwise the tool interprets time context and query hints. "
+                "Dated searches add broad reporting from that period alongside unrestricted context searches. "
+                "Useful current sources may already be retained. Interpret the catalog by meaning and read useful sources in full with research.read_evidence or zopedia.read_page."
             ),
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Free-text search query."},
+                    "query": {
+                        "type": "string",
+                        "description": "The information need. Defaults to the current user question; an empty string browses sources without a word query.",
+                    },
+                    "queries": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Independent search formulations; include related concepts and alternatives.",
+                    },
+                    "resolved_plan": {
+                        "type": "object", "additionalProperties": False,
+                        "properties": {
+                            "queries": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+                            "reporting_start": {"type": ["string", "null"]},
+                            "reporting_end": {"type": ["string", "null"]},
+                        },
+                        "required": ["queries", "reporting_start", "reporting_end"],
+                    },
+                    "start_date": {"type": "string"},
+                    "end_date": {"type": "string"},
                     "tickers": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "Optional ticker filter (e.g. ['CAR', 'BYND']).",
+                        "description": "Optional company hints. Broad source recall remains enabled unless strict_tickers is true.",
+                    },
+                    "strict_tickers": {
+                        "type": "boolean",
+                        "description": "Restrict all sources to these tickers only when the user explicitly requires that source restriction. Default false.",
                     },
                     "max_results": {"type": "integer", "description": "Max results (default 10)."},
                 },
-                "required": ["query"],
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "research.read_evidence",
+            "description": "Read a retained passage in full with dates and source type. Set include_source_references=true to also inspect its complete inherited provenance. No browsing or knowledge write.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"chunk_record_id": {"type": "string"}, "include_source_references": {"type": "boolean"}},
+                "required": ["chunk_record_id"],
                 "additionalProperties": False,
             },
         },
@@ -382,6 +435,8 @@ def _research_tools() -> list[dict[str, Any]]:
                 "properties": {
                     "url": {"type": "string"},
                     "max_chars": {"type": "integer"},
+                    "capture_id": {"type": "string", "description": "Reuse a retained capture without fetching a changed page."},
+                    "offset": {"type": "integer", "minimum": 0},
                     "require_main_content": {
                         "type": "boolean",
                         "description": "Use true when snippets/previews are too shallow and page body evidence is required.",
@@ -420,10 +475,14 @@ def _zopedia_tools() -> list[dict[str, Any]]:
         },
         {
             "name": "zopedia.read_page",
-            "description": "Read one Zopedia page by page_id after search_pages finds it.",
+            "description": "Read a retained Zopedia page and its source dependencies. Long pages return next_offset for continued reading.",
             "inputSchema": {
                 "type": "object",
-                "properties": {"page_id": {"type": "string"}},
+                "properties": {
+                    "page_id": {"type": "string"},
+                    "offset": {"type": "integer", "minimum": 0},
+                    "max_chars": {"type": "integer", "minimum": 1000, "maximum": 100000},
+                },
                 "required": ["page_id"],
                 "additionalProperties": False,
             },
@@ -453,7 +512,7 @@ def _zopedia_tools() -> list[dict[str, Any]]:
             "name": "zopedia.sources_for_page",
             "description": (
                 "Find original source and evidence references for one Zopedia page. "
-                "Use this after read_page before treating wiki memory as support for final claims."
+                "Use this when the underlying reports would add context or resolve a useful uncertainty."
             ),
             "inputSchema": {
                 "type": "object",
@@ -791,16 +850,19 @@ def _analysis_tools() -> list[dict[str, Any]]:
         {
             "name": "analysis.run_python",
             "description": (
-                "Run bounded pandas/numpy/scipy/scikit-learn analysis over approved Spectral Nature "
-                "datasets or small inline tables. Use this for EDA, statistical checks, regressions, "
+                "Run bounded pandas/numpy/scipy/scikit-learn analysis over supplied quantities, approved Spectral Nature "
+                "datasets or small inline tables. Pure computation does not require a dataset. "
+                "Use it to verify arithmetic, units, bounds and numerical hypotheses, "
+                "as well as EDA, statistical checks, regressions, "
                 "clustering, classification, feature importance, or other quantitative analysis that "
                 "needs computation beyond direct dataset lookup. Provide dataset_refs that name QueryService "
                 "datasets plus typed params, or inline_datasets for user-uploaded tabular data. "
                 "Code must be valid multiline Python. Inputs are preloaded as pandas DataFrames in "
                 "`datasets` and as variables named by each dataset alias. Do not call load_dataset, "
                 "get_dataset, context, globals, open, or filesystem/network APIs from the code. "
-                "Normal results summarize stdout/stderr by statistics only; call analysis.read_raw_output "
-                "with the returned analysis_run_id only when exact logs are required."
+                "Return useful numerical outputs in result or through add_metric. "
+                "The index summarizes logs; original evidence includes the bounded computation output. "
+                "Use analysis.read_raw_output with the returned analysis_run_id to read logs from a retained run."
             ),
             "inputSchema": {
                 "type": "object",
@@ -909,6 +971,17 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
         },
     ]
     tools.extend(_research_tools())
+    if getattr(service, "supplied_evidence", None):
+        tools.extend([
+            {"name": "research.list_supplied_evidence", "description": "Browse the complete invocation-owned evidence catalog. Optional terms match literal titles/metadata (OR). Omit terms to browse every source; follow next_offset. This does not acquire new evidence.",
+             "inputSchema": {"type": "object", "additionalProperties": False, "properties": {
+                 "terms": {"type": "array", "items": {"type": "string"}}, "offset": {"type": "integer", "minimum": 0},
+                 "limit": {"type": "integer", "minimum": 1, "maximum": 100}}}},
+            {"name": "research.read_supplied_evidence", "description": "Read a supplied source's complete original content, optionally at a JSON Pointer (e.g. /points). Continue with next_offset. All originals remain available; catalog metadata alone does not establish a trend or cause.",
+             "inputSchema": {"type": "object", "additionalProperties": False, "required": ["source_id"], "properties": {
+                 "source_id": {"type": "string"}, "pointer": {"type": "string"}, "offset": {"type": "integer", "minimum": 0},
+                 "max_characters": {"type": "integer", "minimum": 1, "maximum": 60000}}}},
+        ])
     tools.extend(_zopedia_tools())
     tools.extend(_analysis_tools())
     tools.extend(_hypothesis_tools())
@@ -934,6 +1007,27 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
                 "inputSchema": _schema_from_capability(dict(spec or {})),
                 "resolution": spec.get("resolution"),
             }
+        )
+    for tool in tools:
+        tool["source_access"] = (
+            "supplied"
+            if tool["name"] in {"research.list_supplied_evidence", "research.read_supplied_evidence"}
+            else
+            "web"
+            if tool["name"]
+            in {"research.live_event_evidence", "research.open_page", "zopedia.ingest_youtube"}
+            else "retained_or_data"
+        )
+        tool["knowledge_effect"] = (
+            "write"
+            if tool["name"]
+            in {
+                "zopedia.ingest_source",
+                "zopedia.ingest_youtube",
+                "zopedia.apply_mutation",
+                "zopedia.rollback_mutation",
+            }
+            else "propose" if tool["name"] == "zopedia.propose_change" else "read"
         )
     return ToolRegistry(tools)
 
@@ -978,10 +1072,31 @@ def _invoke_research_tool(
     service: QueryService,
     tool_name: str,
     arguments: dict[str, Any] | None = None,
+    request_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     args = coerce_object(arguments, field_name="arguments")
     layer = _resolve_research_layer(service)
-    if tool_name == "research.retained_context":
+    if tool_name == "research.list_supplied_evidence":
+        payload = service.list_supplied_evidence(**args)
+        datasets = ("invocation_supplied_evidence",)
+    elif tool_name == "research.read_supplied_evidence":
+        payload = service.read_supplied_evidence(**args)
+        datasets = ("invocation_supplied_evidence",)
+    elif tool_name == "research.completed_investigations":
+        from .llm import llm_settings_scope
+        from .pipeline_store import list_research_artifacts
+        artifacts = list_research_artifacts(
+            namespace=f"research_artifact:{llm_settings_scope()}:public_company_research",
+            subjects=args.get("subjects"), limit=int(args.get("max_items") or 20),
+        )
+        payload = {"summary": [
+            {key: item.get(key) for key in ("artifact_id", "subject", "task", "created_at_utc")} | {
+                **({"findings": (item.get("result") or {}).get("payload") or {},
+                    "evidence": (item.get("result") or {}).get("artifact_context") or {}} if args.get("subjects") else {}),
+            } for item in artifacts
+        ]}
+        datasets = ("aql_zopedia_execution_state",)
+    elif tool_name == "research.retained_context":
         payload = zopedia_research.retained_context(
             query=str(args.get("query") or ""),
             focus_symbols=args.get("focus_symbols"),
@@ -996,10 +1111,24 @@ def _invoke_research_tool(
             max_symbols=int(args.get("max_symbols") or 8),
         )
         datasets = ("attention_market_events", "commodity_proxy_profile")
+    elif tool_name == "research.read_evidence":
+        payload = zopedia_research.read_evidence(
+            chunk_record_id=str(args.get("chunk_record_id") or ""),
+            include_source_references=bool(args.get("include_source_references")),
+        )
+        datasets = ("saa_evidence_chunks", "saa_documents")
     elif tool_name == "research.search_evidence":
         payload = zopedia_research.search_evidence(
-            query=str(args.get("query") or ""),
+            query=str(args.get("query", (request_context or {}).get("original_query", ""))),
             tickers=args.get("tickers"),
+            queries=args.get("queries"),
+            resolved_plan=args.get("resolved_plan"),
+            start_date=args.get("start_date"),
+            end_date=args.get("end_date"),
+            strict_tickers=bool(args.get("strict_tickers")),
+            asof_time_utc=(request_context or {}).get("asof_time_utc"),
+            timezone=(request_context or {}).get("timezone", "UTC"),
+            original_query=(request_context or {}).get("original_query", ""),
             max_results=int(args.get("max_results") or 10),
         )
         datasets = ("saa_evidence_chunks", "saa_documents")
@@ -1015,7 +1144,9 @@ def _invoke_research_tool(
     elif tool_name == "research.open_page":
         payload = zopedia_research.open_page(
             url=str(args.get("url") or ""),
-            max_chars=int(args.get("max_chars") or 5000),
+            max_chars=int(args["max_chars"]) if args.get("max_chars") else None,
+            capture_id=str(args.get("capture_id") or ""),
+            offset=int(args.get("offset") or 0),
             require_main_content=bool(args.get("require_main_content")),
             min_text_chars=int(args.get("min_text_chars") or 500),
         )
@@ -1025,7 +1156,9 @@ def _invoke_research_tool(
 
     tool_messages: list[str] = []
     if isinstance(payload, dict):
-        tool_messages = [str(item).strip() for item in list(payload.get("messages") or []) if str(item).strip()]
+        tool_messages = [
+            str(item).strip() for item in list(payload.get("messages") or []) if str(item).strip()
+        ]
 
     return {
         "request": {"operation": "research", "name": tool_name, "params": args},
@@ -1053,7 +1186,11 @@ def _invoke_zopedia_tool(
             page_types=args.get("page_types"),
         )
     elif tool_name == "zopedia.read_page":
-        payload = zopedia_research.zopedia_read_page(page_id=str(args.get("page_id") or ""))
+        payload = zopedia_research.zopedia_read_page(
+            page_id=str(args.get("page_id") or ""),
+            offset=int(args.get("offset") or 0),
+            max_chars=int(args.get("max_chars") or 20000),
+        )
     elif tool_name == "zopedia.read_source":
         payload = zopedia_research.zopedia_read_source(
             page_id=str(args.get("page_id") or ""),
@@ -1885,7 +2022,10 @@ def invoke_tool(
     arguments: dict[str, Any] | None = None,
     run_id: str = "",
     registry: ToolRegistry | None = None,
+    request_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    if registry is not None and registry.get(tool_name) is None:
+        raise QueryValidationError("The requested tool is outside this research run's permissions.")
     if is_tool_search_tool(tool_name):
         args = coerce_object(arguments, field_name="arguments")
         resolved_registry = registry or build_tool_registry(service)
@@ -1895,7 +2035,12 @@ def invoke_tool(
             limit=int(args.get("limit") or 8),
         )
     if is_research_tool(tool_name):
-        return _invoke_research_tool(service=service, tool_name=tool_name, arguments=arguments)
+        return _invoke_research_tool(
+            service=service,
+            tool_name=tool_name,
+            arguments=arguments,
+            request_context=request_context,
+        )
     if is_zopedia_tool(tool_name):
         return _invoke_zopedia_tool(tool_name=tool_name, arguments=arguments)
     if is_analysis_tool(tool_name):

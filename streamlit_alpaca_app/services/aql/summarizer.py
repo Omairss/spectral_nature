@@ -16,13 +16,13 @@ from ..elevenlabs_tts import (
 from ..page_browsing import browse_page
 from ..saa import prepare_retained_evidence_chunks, search_prepared_evidence_chunks
 from ..common.hypothesis import verify_hypothesis as _common_verify_hypothesis
-from .collector import _plan_summary_research, _search_query_results
 from .config import _load_search_clients
-from .constants import EmbeddingClient, LLMClient
-from .critique import critique_home_summary, judge_revise_summary
-from ..llm import NARRATIVE_STYLE_RULE, LLMAPIError, get_config_param, get_prompt, register_config_param, register_narrative_prompt
+from .constants import EmbeddingClient, LLMClient, CLAIM_SCHEMA
+from .evidence_pack import materialize_research_artifacts
+from ..llm import LLMAPIError, get_config_param, get_prompt, register_config_param, register_narrative_prompt
 from ..aql_zopedia_engine import (
     attach_aql_zopedia_summary_audio,
+    run_aql_zopedia_structured_agent,
     load_aql_zopedia_llm_client,
 )
 from .extractor import (
@@ -213,83 +213,49 @@ def _observed_beat_sentence(preview: Any, fallback: object) -> str:
 
 
 def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> list[dict[str, object]]:
-    top_events = list(home_payload.get("top_events") or [])
-    must_read = list(home_payload.get("must_read_movers") or [])
-    unresolved = list(home_payload.get("unresolved_large_moves") or [])
-
+    """Project approved stories verbatim; retain compatibility with older snapshots."""
     beats: list[dict[str, object]] = []
-    for event in top_events:
-        preview = attention_home_bundle_preview(event, bundle={})
-        summary_text = attention_home_surface_summary(preview, is_event=True)
-        cause_status = _coerce_text(preview.get("cause_status") if isinstance(preview, dict) else getattr(preview, "cause_status", "")).lower()
-        sentence = _coerce_text(event.get("event_title"))
-        if cause_status == "unresolved":
-            sentence = _observed_beat_sentence(preview, sentence)
-        primary_symbol = _coerce_text(event.get("anchor_symbol")).upper()
-        symbols = list(
-            dict.fromkeys(
-                [primary_symbol]
-                + [
-                    str(item).upper().strip()
-                    for item in list(event.get("supporting_symbols") or [])
-                    if str(item).strip()
-                ]
-            )
-        )
-        beats.append(
-            {
-                "bundle_id": _coerce_text(event.get("bundle_id")),
+    for section, kind in (("top_events", "event"), ("must_read_movers", "mover"), ("unresolved_large_moves", "unresolved")):
+        for item in home_payload.get(section) or []:
+            if not isinstance(item, dict) or not bool(item.get("publish", True)):
+                continue
+            reviewed = bool(item.get("public_surface_reviewed"))
+            primary_symbol = _coerce_text(item.get("anchor_symbol") if kind == "event" else item.get("symbol")).upper()
+            symbols = list(dict.fromkeys(
+                ([primary_symbol] if primary_symbol else [])
+                + [str(symbol).upper().strip() for symbol in item.get("supporting_symbols") or [] if str(symbol).strip()]
+            ))
+            if reviewed:
+                sentence = _coerce_text(item.get("event_title"))
+                summary = _coerce_text(item.get("surface_summary_text"))
+                business_context = _coerce_text(item.get("business_context_text"))
+                what_changed = _coerce_text(item.get("what_happened_text"))
+                why = _coerce_text(item.get("why_happened_text"))
+                watch_next = _coerce_text(item.get("watch_next_text"))
+            else:
+                preview = attention_home_bundle_preview(item, bundle={})
+                summary = attention_home_surface_summary(preview, is_event=kind == "event")
+                sentence = _coerce_text(item.get("event_title")) if kind == "event" else attention_mover_card_title(item)
+                cause_status = _coerce_text(preview.get("cause_status") if isinstance(preview, dict) else getattr(preview, "cause_status", "")).lower()
+                if kind == "unresolved" or cause_status == "unresolved":
+                    sentence = _observed_beat_sentence(preview, sentence)
+                business_context = _coerce_text(item.get("business_resolution_text") or item.get("business_context_text") or item.get("surface_business_context_text"))
+                what_changed = why = watch_next = ""
+            beat = {
+                "bundle_id": _coerce_text(item.get("bundle_id")),
                 "sentence": sentence,
-                "summary": summary_text,
-                "business_context": _coerce_text(
-                    event.get("business_resolution_text")
-                    or event.get("business_context_text")
-                    or event.get("surface_business_context_text")
-                ),
-                "symbols": [symbol for symbol in symbols if symbol],
+                "summary": summary,
+                "what_changed": what_changed,
+                "why": why,
+                "business_context": business_context,
+                "watch_next": watch_next,
+                "symbols": symbols,
                 "primary_symbol": primary_symbol or (symbols[0] if symbols else ""),
-                "change_pct": event.get("change_pct"),
-                "kind": "event",
+                "change_pct": item.get("change_pct"),
+                "kind": kind,
             }
-        )
-    for mover in must_read:
-        preview = attention_home_bundle_preview(mover, bundle={})
-        summary_text = attention_home_surface_summary(preview, is_event=False)
-        beats.append(
-            {
-                "bundle_id": _coerce_text(mover.get("bundle_id")),
-                "sentence": attention_mover_card_title(mover),
-                "summary": summary_text,
-                "business_context": _coerce_text(
-                    mover.get("business_resolution_text")
-                    or mover.get("business_context_text")
-                    or mover.get("surface_business_context_text")
-                ),
-                "symbols": [str(mover.get("symbol") or "").upper().strip()],
-                "primary_symbol": str(mover.get("symbol") or "").upper().strip(),
-                "change_pct": mover.get("change_pct"),
-                "kind": "mover",
-            }
-        )
-    for mover in unresolved:
-        preview = attention_home_bundle_preview(mover, bundle={})
-        summary_text = attention_home_surface_summary(preview, is_event=False)
-        beat = {
-            "bundle_id": _coerce_text(mover.get("bundle_id")),
-            "sentence": _observed_beat_sentence(preview, attention_mover_card_title(mover)),
-            "summary": summary_text,
-            "business_context": _coerce_text(
-                mover.get("business_resolution_text")
-                or mover.get("business_context_text")
-                or mover.get("surface_business_context_text")
-            ),
-            "symbols": [str(mover.get("symbol") or "").upper().strip()],
-            "primary_symbol": str(mover.get("symbol") or "").upper().strip(),
-            "change_pct": mover.get("change_pct"),
-            "kind": "unresolved",
-        }
-        if not _is_low_information_unresolved_beat(beat):
-            beats.append(beat)
+            if reviewed or not _is_low_information_unresolved_beat(beat):
+                beats.append(beat)
     return beats
 
 
@@ -375,10 +341,9 @@ def build_attention_home_summary(
 _HOME_SUMMARY_SYSTEM_PROMPT = register_narrative_prompt(
     name="Homepage Summary (overview / sections / audio_text)",
     file="services/aql/summarizer.py",
-    group="AQL / Research",
+    group="AQL / Research", stage='synthesis',
     prompt=(
         "You are writing the homepage summary for a professional financial markets dashboard. "
-        f"{NARRATIVE_STYLE_RULE}\n"
         "Given today's market events, movers, and structural signals, write:\n"
         "1. overview: One sentence (under 30 words) on the single most important thing happening. "
         "Name the actual asset classes, sectors, or moves. Never start with 'What matters now' or count items.\n"
@@ -479,12 +444,27 @@ def _llm_home_summary(
     if signal_context:
         user_prompt += f"\n\n{signal_context}"
     try:
-        result = llm_client.generate_json(
-            system_prompt=get_prompt(_HOME_SUMMARY_SYSTEM_PROMPT),
-            user_prompt=user_prompt,
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=user_prompt,
+            instructions=get_prompt(_HOME_SUMMARY_SYSTEM_PROMPT),
             schema_name="home_summary",
             schema=_HOME_SUMMARY_SCHEMA,
+            task="home_summary", stage='synthesis',
+            surface="services.aql.summarizer",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        result = engine_operation["payload"]
         return result
     except (LLMAPIError, Exception):
         return None
@@ -747,192 +727,12 @@ def _summary_trace_supporting_claims(
     return rows
 
 
-def _supporting_claims_from_results(
-    home_payload: dict[str, object],
-    *,
-    queries: list[str],
-    llm_client: LLMClient,
-    search_clients: list[Any] | None,
-    embedding_client: EmbeddingClient | None = None,
-) -> list[dict[str, Any]]:
-    trace = _collect_summary_research_trace(
-        home_payload,
-        queries=queries,
-        llm_client=llm_client,
-        search_clients=search_clients,
-        embedding_client=embedding_client,
-    )
-    return list(trace.get("claims") or [])
 
 
-def _collect_summary_research_trace(
-    home_payload: dict[str, object],
-    *,
-    queries: list[str],
-    llm_client: LLMClient,
-    search_clients: list[Any] | None,
-    embedding_client: EmbeddingClient | None = None,
-) -> dict[str, Any]:
-    if not queries:
-        return {"request_rows": [], "result_rows": [], "documents": [], "chunks": pd.DataFrame(), "claims": []}
-
-    serp_client, tavily_client = _resolve_summary_search_clients(search_clients)
-    if serp_client is None and tavily_client is None:
-        raise RuntimeError("No search clients available for agentic homepage summary")
-
-    run_id = _summary_run_id(home_payload)
-    asof_time_utc = _summary_asof_time(home_payload)
-    candidate = _summary_candidate(home_payload)
-    request_rows: list[dict[str, Any]] = []
-    result_rows: list[dict[str, Any]] = []
-
-    for query in queries:
-        query_requests, query_results = _search_query_results(
-            query,
-            candidate_id=str(candidate["candidate_id"]),
-            symbol="",
-            company_name="Market Activity",
-            run_id=run_id,
-            asof_time_utc=asof_time_utc,
-            serp_client=serp_client,
-            tavily_client=tavily_client,
-            llm_client=llm_client,
-            budget=6,
-            include_provider_payload=True,
-            include_provider_text=True,
-        )
-        request_rows.extend(query_requests)
-        result_rows.extend(query_results)
-
-    for row in request_rows:
-        row["research_scope"] = "home_summary"
-    for row in result_rows:
-        row["research_scope"] = "home_summary"
-
-    result_rows = _enrich_result_pages(result_rows)
-    documents = _documents_from_search_results(
-        candidate,
-        result_rows,
-        run_id=run_id,
-        asof_time_utc=asof_time_utc,
-    )
-    for row in documents:
-        row["research_scope"] = "home_summary"
-    chunks = _chunk_source_documents(
-        documents,
-        run_id=run_id,
-        asof_time_utc=asof_time_utc,
-        embedding_client=embedding_client,
-    )
-    if not chunks.empty:
-        chunks["research_scope"] = "home_summary"
-        chunks = _retrieve_summary_evidence_chunks(
-            chunks,
-            queries=queries,
-            run_id=run_id,
-            asof_time_utc=asof_time_utc,
-            candidate=candidate,
-            embedding_client=embedding_client,
-        )
-    claims = _extract_claims(
-        candidate,
-        chunks,
-        run_id=run_id,
-        asof_time_utc=asof_time_utc,
-        hypotheses=[{"kind": "cross_market", "text": "A shared cross-market explanation may connect market activity."}],
-        llm_client=llm_client,
-    )
-    claims = sorted(
-        claims,
-        key=lambda item: (
-            -float(item.get("confidence_score") or 0.0),
-            -float(item.get("relevance_score") or 0.0),
-            -float(item.get("causal_score") or 0.0),
-        ),
-    )
-    for item in claims:
-        item["research_scope"] = "home_summary"
-    return {
-        "request_rows": request_rows,
-        "result_rows": result_rows,
-        "documents": documents,
-        "chunks": chunks,
-        "claims": claims,
-        "top_sources": _summary_trace_top_sources(chunks),
-        "supporting_claims": _summary_trace_supporting_claims(claims, chunks=chunks),
-    }
 
 
-def _synthesize_attention_home_hypothesis(
-    *,
-    beats: list[dict[str, object]],
-    claims: list[dict[str, Any]],
-    queries: list[str],
-    llm_client: LLMClient,
-    signal_context: str = "",
-) -> str:
-    evidence_rows = [
-        {
-            "claim_text": _coerce_text(item.get("claim_text")),
-            "source": _coerce_text(item.get("source")),
-            "freshness_class": _coerce_text(item.get("freshness_class")),
-            "confidence_score": float(item.get("confidence_score") or 0.0),
-        }
-        for item in claims
-        if _coerce_text(item.get("claim_text"))
-    ]
-    if not evidence_rows:
-        raise RuntimeError("No supporting claims available for homepage hypothesis")
-
-    user_data = {
-        "beats": [
-            {
-                "kind": _coerce_text(beat.get("kind")),
-                "sentence": _coerce_text(beat.get("sentence")),
-                "summary": _coerce_text(beat.get("summary")),
-                "business_context": _coerce_text(beat.get("business_context")),
-                "symbols": [str(symbol).upper().strip() for symbol in list(beat.get("symbols") or []) if str(symbol).strip()],
-            }
-            for beat in _summary_prompt_beats(beats)[:int(get_config_param(_P_HYPOTHESIS_BEATS))]
-        ],
-        "supporting_claims": evidence_rows[:int(get_config_param(_P_HYPOTHESIS_CLAIMS))],
-        "research_queries": queries[:int(get_config_param(_P_HYPOTHESIS_QUERIES))],
-    }
-    user_prompt = json.dumps(user_data, ensure_ascii=False, default=str)
-    if signal_context:
-        user_prompt += f"\n\n{signal_context}"
-
-    data = llm_client.generate_json(
-        system_prompt=(
-            "You write a market hypothesis for a homepage summary. "
-            "Use the supplied beats, evidence, and structural signals. "
-            "Explain the likely macro, sector, or cross-asset narrative in one tight paragraph of 2 to 3 sentences using simple language. "
-            "Name the concrete themes behind market activity, not vague rotations. "
-            "When market structure signals (trend acceleration, regime shifts, correlation breaks, z-score extremes) "
-            "reinforce or contradict market activity, reference them concretely. "
-            "When useful, mention the strongest source families or business triggers behind the call. "
-            "Do not repeat each beat. Do not speculate beyond the evidence. "
-            "If a trigger is unsupported, omit trigger language and use the supplied business context or exact missing evidence slot."
-        ),
-        user_prompt=user_prompt,
-        schema_name="attention_home_hypothesis",
-        schema=_ATTENTION_HOME_HYPOTHESIS_SCHEMA,
-    )
-    hypothesis = _trim_text(data.get("hypothesis"), limit=2000)
-    if not hypothesis:
-        raise RuntimeError("Homepage hypothesis synthesis returned empty text")
-    return hypothesis
 
 
-def _prepend_hypothesis_section(summary_text: object, hypothesis: object) -> str:
-    base_text = _coerce_text(summary_text)
-    hypothesis_text = _trim_text(hypothesis, limit=2000)
-    if not hypothesis_text:
-        return base_text
-    lines = ["**Market Hypothesis**", hypothesis_text]
-    if base_text:
-        lines.extend(["", base_text])
-    return "\n".join(lines).strip()
 
 
 def build_attention_agentic_summary(
@@ -967,125 +767,132 @@ def build_attention_agentic_summary_with_trace(
     max_chars: int = 1400,
     query_service: Any | None = None,
 ) -> tuple[dict[str, Any], dict[str, pd.DataFrame]]:
-    """Batch pipeline entry point: research → synthesize → verify once.
-
-    For agentic multi-pass verification with tool access, use the zopedia
-    agent with the hypothesis.verify tool instead.
-
-    A critique+judge layer runs after the initial homepage summary is built:
-    the critique agent fact-checks the summary against tool-grounded evidence,
-    and the judge revises the summary based on flagged issues. Both are
-    best-effort — if either step fails, the original summary is used. See
-    documents/architecture/agents/CRITIQUE_JUDGE_HOMEPAGE_SUMMARY_2026-04-24.md.
-    """
+    """Materialize one shared-engine investigation; no feature-owned research loop."""
     if llm_client is None:
-        raise ValueError("llm_client is required for build_attention_agentic_summary_with_trace")
-
-    base_summary = build_attention_home_summary(
-        home_payload,
-        max_chars=max_chars,
-    )
-
-    critique_result: dict[str, Any] = {"issues": [], "tool_calls": [], "skipped": True}
-    try:
-        critique_result = critique_home_summary(
-            summary=base_summary,
-            home_payload=home_payload,
-            llm_client=llm_client,
-            query_service=query_service,
-        )
-    except Exception:
-        critique_result = {"issues": [], "tool_calls": [], "skipped": True, "error": True}
-
-    judge_revisions: list[dict[str, Any]] = []
-    if critique_result.get("issues"):
-        try:
-            revised = judge_revise_summary(
-                original=base_summary,
-                critique=critique_result,
-                llm_client=llm_client,
+        raise ValueError("llm_client is required for shared homepage research")
+    beats = build_attention_home_narrative_beats(home_payload)
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            **_HOME_SUMMARY_SCHEMA["properties"],
+            **CLAIM_SCHEMA["properties"],
+            "hypothesis": {"type": "string"},
+        },
+        "required": [*_HOME_SUMMARY_SCHEMA["required"], "claims", "hypothesis"],
+    }
+    result = run_aql_zopedia_structured_agent(
+        query=(
+            get_prompt(_HOME_SUMMARY_SYSTEM_PROMPT)
+            + "\n\nExplain the main connections across these completed "
+            "investigations. Reuse their findings and sources; acquire additional evidence only where it adds value. "
+            "Retain worthwhile indirect connections and alternative interpretations. Claims should reference the "
+            "source IDs or tool_call_ids in the shared evidence.\n\n"
+            + json.dumps(
+                {
+                    "beats": beats,
+                    "market_context": _build_signal_context_text(home_payload),
+                },
+                default=str,
             )
-        except Exception:
-            revised = None
-        if isinstance(revised, dict):
-            judge_revisions = list(revised.get("judge_revisions") or [])
-            base_summary = revised
-
-    base_summary["critique_issues"] = list(critique_result.get("issues") or [])
-    base_summary["critique_tool_calls"] = list(critique_result.get("tool_calls") or [])
-    base_summary["judge_revisions"] = judge_revisions
-
-    queries = _plan_summary_research(home_payload, llm_client=llm_client)[: max(int(max_search_queries), 1)]
-    if not queries:
-        raise RuntimeError("Summary research planner returned no queries")
-
-    trace = _collect_summary_research_trace(
-        home_payload,
-        queries=queries,
+        ),
+        schema_name="attention_home_research",
+        schema=schema,
+        task="attention_home_summary", stage='synthesis',
+        surface="attention.home_summary",
         llm_client=llm_client,
-        search_clients=search_clients,
-        embedding_client=embedding_client,
+        service=query_service,
+        request_context={"asof_time_utc": _summary_asof_time(home_payload).isoformat()},
+        initial_evidence=[dict(home_payload)],
+        max_tool_calls=max_search_queries,
+        persist_findings=False,
+        write_policy="none",
     )
-    claims = list(trace.get("claims") or [])
-    if not claims:
-        raise RuntimeError("Summary research produced no supporting claims")
-
-    signal_context = _build_signal_context_text(home_payload)
-    hypothesis = _synthesize_attention_home_hypothesis(
-        beats=list(base_summary.get("beats") or []),
-        claims=claims,
-        queries=queries,
-        llm_client=llm_client,
-        signal_context=signal_context,
+    if result.get("status") != "completed":
+        raise RuntimeError(
+            result.get("error") or "Shared homepage research did not complete"
+        )
+    payload, agent = result["payload"], result["agent_result"]
+    asof = _summary_asof_time(home_payload)
+    run_id = _summary_run_id(home_payload)
+    trace = materialize_research_artifacts(
+        agent,
+        candidate_id="home_summary",
+        subject="home_summary",
+        run_id=run_id,
+        asof_time_utc=asof,
     )
-
-    verification = verify_hypothesis(
-        hypothesis=hypothesis,
-        claims=claims,
-        stories=list(base_summary.get("beats") or []),
-        llm_client=llm_client,
-        signal_context=signal_context,
-    )
-
-    summary_text = _prepend_hypothesis_section(base_summary.get("summary_text"), hypothesis)
-    audio_text = _trim_text(
-        f"Market hypothesis: {_coerce_text(hypothesis)} {_coerce_text(base_summary.get('audio_text'))}",
-        limit=4000,
-    )
-
+    claims = [
+        {
+            **item,
+            "claim_id": f"claim::{agent['run_id']}::{index}",
+            "run_id": run_id,
+            "bundle_subject": "home_summary",
+            "source": "",
+            "source_authority_bucket": "research",
+            "research_scope": "home_summary",
+            "evidence_chunk_ids": [
+                chunk
+                for ref in item.get("evidence_chunk_ids") or []
+                for chunk in trace["source_aliases"].get(ref, [ref])
+            ],
+        }
+        for index, item in enumerate(payload["claims"])
+    ]
+    lines = [payload["overview"]]
+    for section in payload["sections"]:
+        lines.extend(
+            [
+                "",
+                "**" + section["title"] + "**",
+                *["- " + bullet for bullet in section["bullets"]],
+            ]
+        )
     summary = {
-        **base_summary,
-        "hypothesis": hypothesis,
-        "verification": verification,
-        "summary_text": summary_text,
-        "audio_text": audio_text or _coerce_text(base_summary.get("audio_text")) or hypothesis,
-        "research_queries": queries,
-        "top_sources": list(trace.get("top_sources") or []),
-        "supporting_claims": list(trace.get("supporting_claims") or []),
+        "headline": "Market Summary",
+        "summary_text": "\n".join(lines),
+        "audio_text": payload["audio_text"],
+        "beats": beats,
+        "event_count": sum(beat.get("kind") == "event" for beat in beats),
+        "must_read_count": sum(beat.get("kind") == "mover" for beat in beats),
+        "unresolved_count": sum(beat.get("kind") == "unresolved" for beat in beats),
+        "featured_symbols": _unique_symbols(beats),
+        "summary_status": "ok",
+        "data_gaps": [],
+        "hypothesis": payload["hypothesis"],
+        "verification": agent.get("quality_review") or {},
+        "research_queries": [row["query_text"] for row in trace["request_rows"]],
+        "top_sources": [
+            {"title": doc["title"], "url": doc["url"], "source": doc["source_provider"]}
+            for doc in trace["documents"]
+        ],
+        "supporting_claims": claims,
+        "aql_zopedia_engine": {
+            "status": agent.get("status"),
+            "run_id": agent.get("run_id"),
+            "revision": agent.get("engine", {}).get("revision"),
+            "evidence_pack_id": agent.get("aql_evidence_pack_id"),
+            "tool_call_count": len(agent.get("tool_calls") or []),
+        },
     }
-    asof_time_utc = _summary_asof_time(home_payload)
-    verification_row = {
-        **verification,
-        "hypothesis": hypothesis,
-        "run_id": _summary_run_id(home_payload),
-        "asof_time_utc": asof_time_utc,
-        "research_scope": "home_summary",
-        "supporting_claims_json": json.dumps(verification.get("supporting_claims") or []),
-        "contradicting_claims_json": json.dumps(verification.get("contradicting_claims") or []),
-        "gap_queries_json": json.dumps(verification.get("gap_queries") or []),
+    frames = {
+        "attention_search_requests": pd.DataFrame(trace["request_rows"]),
+        "attention_search_results": pd.DataFrame(trace["result_rows"]),
+        "attention_source_documents": pd.DataFrame(trace["documents"]),
+        "attention_evidence_chunks": trace["chunks"],
+        "attention_claims": _serialize_claims_frame(claims, asof_time_utc=asof),
+        "aql_zopedia_engine_runs": pd.DataFrame(
+            [
+                {
+                    "run_id": agent.get("run_id"),
+                    "research_scope": "home_summary",
+                    "engine_revision": agent.get("engine", {}).get("revision"),
+                    "status": agent.get("status"),
+                }
+            ]
+        ),
     }
-    trace_frames = {
-        "attention_search_requests": pd.DataFrame(trace.get("request_rows") or []),
-        "attention_search_results": pd.DataFrame(trace.get("result_rows") or []),
-        "attention_source_documents": pd.DataFrame(trace.get("documents") or []),
-        "attention_evidence_chunks": trace.get("chunks") if isinstance(trace.get("chunks"), pd.DataFrame) else pd.DataFrame(),
-        "attention_claims": _serialize_claims_frame(claims, asof_time_utc=asof_time_utc),
-        "attention_hypothesis_verification": pd.DataFrame([verification_row]),
-    }
-    if not trace_frames["attention_claims"].empty:
-        trace_frames["attention_claims"] = trace_frames["attention_claims"].copy()
-        trace_frames["attention_claims"]["research_scope"] = "home_summary"
-    return summary, trace_frames
+    return summary, frames
 
 
 def build_attention_home_summary_payload(

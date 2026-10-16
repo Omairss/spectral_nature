@@ -1,0 +1,897 @@
+[
+  {
+    "artifact": "claim-review-unavailable.private.json",
+    "sha256": "c0e82c4494b97c26d0a1c0167143a78d812a8bb7a31397fd54691c77ea423525",
+    "case": "source",
+    "variant": "claim_review",
+    "segment": "one existing reviewer role, no premium correction",
+    "elapsed_seconds": 114.619,
+    "status": "unavailable",
+    "payload": null,
+    "error": "LLM runtime is unavailable."
+  },
+  {
+    "artifact": "claim-review.private.json",
+    "sha256": "b1c302997ab9e0b8659a530bbec99cfda7281faf31bdc41c7d8d7dde5bbcce57",
+    "case": "source",
+    "variant": "claim_review",
+    "segment": "one existing reviewer role, no premium correction",
+    "elapsed_seconds": 62.642,
+    "status": "completed",
+    "payload": {
+      "checks": [
+        {
+          "assertion": "The HTTP 200 and the continuing blank lines show the server accepted the request and is holding the connection open exactly as documented, so they are not evidence of a server fault.",
+          "source_basis": "DeepSeek: non-streaming requests may continuously return empty lines; the HTTP request remains connected; if inference has not started after 10 minutes, the server closes the connection.",
+          "relationship": "Partly entails. The keep-alive behavior is documented. The step to 'not evidence of a server fault' is too strong. A server can be slow or faulty and still send documented blank lines.",
+          "counterexample": "A server bug or overload delays inference for 75 seconds while the server still sends documented blank lines. The cited facts are true, but a server fault exists.",
+          "proposed_change": "Say: 'The HTTP 200 and blank lines are consistent with the documented keep-alive behavior, so they do not by themselves show a server fault.'"
+        },
+        {
+          "assertion": "DeepSeek's page says non-streaming requests may continuously receive empty lines while waiting, and these lines do not affect parsing of the JSON body.",
+          "source_basis": "DeepSeek: 'Non-streaming requests: Continuously return empty lines'; 'These contents do not affect the parsing of the JSON body of the response.'",
+          "relationship": "Entails.",
+          "counterexample": "None fits; the source states this directly.",
+          "proposed_change": "No change needed."
+        },
+        {
+          "assertion": "A concurrency rejection appears as HTTP 429, so the 200 rules that status-level failure out.",
+          "source_basis": "DeepSeek: when the concurrency limit is exceeded, you receive an HTTP 429 error code.",
+          "relationship": "Entails for the initial response. A 200 rules out a concurrency rejection at that point. It does not rule out a later retry getting 429.",
+          "counterexample": "The first request gets 200 and then stalls; a later retry gets 429. The initial 200 is true, but the operation still hits a concurrency limit.",
+          "proposed_change": "Say: 'the 200 rules out a concurrency rejection at that initial response.'"
+        },
+        {
+          "assertion": "The blank lines are not a partial answer and do not show whether inference started.",
+          "source_basis": "DeepSeek: blank lines are keep-alive contents and do not affect parsing of the JSON body.",
+          "relationship": "Plausible and consistent. The source does not say blank lines indicate inference state.",
+          "counterexample": "None fits under the source; a blank line carries no answer content.",
+          "proposed_change": "Keep, or say: 'The blank lines are only keep-alive content; they do not show whether inference started.'"
+        },
+        {
+          "assertion": "The 75-second stop is a client deadline, not a DeepSeek timeout.",
+          "source_basis": "User question: the client has its own 75-second deadline. DeepSeek documents a 10-minute close if inference has not started, not a 75-second timeout.",
+          "relationship": "Plausible from the user's observation, but not fully entailed. Absence of a documented 75-second server timeout is not proof that no such server timeout exists.",
+          "counterexample": "DeepSeek has an undocumented 75-second timeout. The client deadline also expires at 75 seconds. The cited facts are true, but the assertion that it is not a DeepSeek timeout is false.",
+          "proposed_change": "Say: 'The 75-second stop is the client's own deadline; the DeepSeek page does not describe a 75-second server timeout.'"
+        },
+        {
+          "assertion": "HTTPX has connect, read, write, and pool timeouts, with a default of 5 seconds of network inactivity; each received blank line resets the read timer.",
+          "source_basis": "HTTPX: default raises TimeoutException after 5 seconds of network inactivity; read timeout is maximum wait for a chunk of data.",
+          "relationship": "Entails the timeout list and default. 'Each blank line resets the read timer' is a reasonable inference from chunk-based read timeout, not an exact quote.",
+          "counterexample": "Buffering could prevent a blank line from being delivered as a chunk, so a read timeout could fire even though the server sent it. This is an edge case, not a general counterexample.",
+          "proposed_change": "Say: 'receiving a chunk such as a blank line normally resets the read timer.'"
+        },
+        {
+          "assertion": "Because lines kept arriving, a 5-second read timeout would not have fired, so the stop points to a separate wall-clock deadline, or to a much larger or disabled read timeout after data stopped.",
+          "source_basis": "HTTPX read timeout measures inactivity; each received chunk resets it. User question: blank lines kept arriving until the 75-second deadline expired.",
+          "relationship": "First part entails if blank lines arrived within 5 seconds of each other. The alternative 'after data stopped' contradicts the observation that lines kept arriving until the deadline.",
+          "counterexample": "Lines arrive every 4 seconds until 75 seconds. The 5-second read timeout never fires. The 75-second client deadline stops the request. No larger or disabled read timeout after data stopped is needed.",
+          "proposed_change": "Remove the alternative. Say: 'Because lines kept arriving within the read-timeout window, the 75-second client deadline, not HTTPX's 5-second read timeout, stopped the request.'"
+        },
+        {
+          "assertion": "DeepSeek documents only that it closes the connection after 10 minutes if inference has not started; it promises no total-generation time.",
+          "source_basis": "DeepSeek: 'If the request has not started inference after 10 minutes, the server will close the connection.'",
+          "relationship": "Entails.",
+          "counterexample": "None fits; the source says this directly.",
+          "proposed_change": "No change needed."
+        },
+        {
+          "assertion": "The failure could be queueing or a slow start, slow generation, or a deadline too short for a legitimate long answer, and these observations alone do not separate those causes.",
+          "source_basis": "DeepSeek keep-alive and 10-minute rule; HTTPX timeout behavior.",
+          "relationship": "Plausible list of possible causes. The sources do not prove any one cause.",
+          "counterexample": "None needed; several causes fit the same observations.",
+          "proposed_change": "Keep, as a hypothesis."
+        },
+        {
+          "assertion": "For an appropriate deadline, start with a total client timeout of a few minutes for normal responses and raise it for prompts expected to produce long answers; treat it as client policy, not as a guarantee from the 10-minute server rule.",
+          "source_basis": "DeepSeek 10-minute close only if inference has not started; HTTPX timeout types and default.",
+          "relationship": "Recommendation, not entailed. The sources give no total-generation deadline or recommended total timeout.",
+          "counterexample": "A legitimate answer takes 15 minutes after inference starts. A 'few minutes' total timeout would cut it off. The source facts remain true, so the recommendation is not generally correct.",
+          "proposed_change": "Say: 'A practical starting policy is a total client timeout of a few minutes for normal answers, raised for long-answer prompts. The sources do not give a guaranteed total-generation deadline; the 10-minute close applies only when inference has not started.'"
+        },
+        {
+          "assertion": "Keep the HTTPX read timeout just above the observed gap between blank lines.",
+          "source_basis": "HTTPX read timeout is the maximum wait for a chunk of data.",
+          "relationship": "Plausible recommendation, but 'observed gap' may be too tight. The read timeout must cover the largest expected gap, or it will fire during normal queuing.",
+          "counterexample": "Keep-alive gaps are usually 4 seconds, but one normal gap is 6 seconds. A read timeout set just above 4 seconds aborts a normal request.",
+          "proposed_change": "Say: 'Set the read timeout above the largest expected gap between keep-alive lines, not merely the observed average gap.'"
+        },
+        {
+          "assertion": "Timestamped telemetry would distinguish the remaining causes: time to headers, arrival time and content of each blank line and byte, time to first real JSON byte, completion time, status and request ID, model, user_id, in-flight concurrency at request time, and which side closed the connection.",
+          "source_basis": "DeepSeek mentions status 429, user_id, concurrency. HTTPX describes timeout types. 'request ID' is not in the provided sources.",
+          "relationship": "Reasonable telemetry recommendation, but not all items are source-supported. 'request ID' is not mentioned.",
+          "counterexample": "None needed for a recommendation, but a request ID may not exist in these APIs.",
+          "proposed_change": "Say 'any available request ID' and mark the list as a recommendation."
+        },
+        {
+          "assertion": "Steady blank lines with no body and a server close near 10 minutes mean inference never started.",
+          "source_basis": "DeepSeek: 'If the request has not started inference after 10 minutes, the server will close the connection.'",
+          "relationship": "Consistent and plausible, but not entailed. The source gives a sufficient condition for a close, not a necessary one. Other causes can close the connection near 10 minutes.",
+          "counterexample": "A proxy closes the connection near 10 minutes while inference had started but no output was produced yet. The cited facts are true, but inference did start.",
+          "proposed_change": "Say: 'Steady blank lines with no body and a server close near 10 minutes point to the documented no-inference path. Confirm with server-side logs if available.'"
+        },
+        {
+          "assertion": "a late but real JSON body means slow generation",
+          "source_basis": "Blank lines continued until the JSON body arrived; HTTPX read timeout behavior.",
+          "relationship": "Not entailed. Late JSON only shows the request eventually completed. It does not separate slow queueing or slow start from slow generation.",
+          "counterexample": "The request waits 70 seconds in a queue, then generates the answer in 1 second. A late JSON body appears, but generation was fast.",
+          "proposed_change": "Say: 'A late but real JSON body shows the request eventually completed; it does not by itself distinguish slow queueing or slow start from slow generation.'"
+        },
+        {
+          "assertion": "a gap longer than the read timeout means keep-alive or network interruption",
+          "source_basis": "HTTPX: read timeout is the maximum wait for a chunk; if no data arrives within it, ReadTimeout is raised.",
+          "relationship": "Not entailed. A gap longer than the read timeout normally causes a ReadTimeout unless the timeout is disabled or larger. If observed, it means no data arrived for that period, not why.",
+          "counterexample": "The client disables the read timeout. The server delays the next line for 10 seconds. The gap is longer than a 5-second read timeout would allow, but the cause is server delay, not keep-alive failure or network interruption.",
+          "proposed_change": "Say: 'A gap longer than the read timeout means no data arrived for that period; it does not identify keep-alive failure, network interruption or server delay.'"
+        },
+        {
+          "assertion": "retries returning HTTP 429 point to concurrency limits, not latency.",
+          "source_basis": "DeepSeek: when the concurrency limit is exceeded, you receive an HTTP 429 error code.",
+          "relationship": "Entails for the status. A 429 points to concurrency limits. It does not prove latency played no role in building up concurrency.",
+          "counterexample": "High latency from other requests causes many concurrent connections, and retries then get 429. The 429 still points to the concurrency limit, but latency contributed.",
+          "proposed_change": "Say: 'Retries returning HTTP 429 point to concurrency limits rather than to the original slow response.'"
+        }
+      ],
+      "verdict": "revise"
+    }
+  },
+  {
+    "artifact": "compact-low.private.json",
+    "sha256": "eccc4d30b0724ec2e6adf0c4b26d70a776efa1e529c609a8145575d3e6e5d815",
+    "case": "source",
+    "variant": "compact_low",
+    "segment": "one existing cheap reviewer; material corrections only",
+    "elapsed_seconds": 23.775,
+    "status": "completed",
+    "payload": {
+      "corrections": [],
+      "research_requests": []
+    }
+  },
+  {
+    "artifact": "compact-none.private.json",
+    "sha256": "f228dee4b84c09a8a945cb9436831d9e2a8889172d1932aa96510d3676493285",
+    "case": "source",
+    "variant": "compact_none",
+    "segment": "one existing cheap reviewer; material corrections only",
+    "elapsed_seconds": 13.728,
+    "status": "completed",
+    "payload": {
+      "corrections": [
+        {
+          "assertion": "The draft says the 75-second stop 'points to a separate wall-clock deadline, or to a much larger or disabled read timeout after data stopped.'",
+          "basis": "The user states the client has its own 75-second deadline that expired. The draft treats the stop as ambiguous between a wall-clock deadline and a read timeout.",
+          "counterexample": "If the client's 75-second deadline is a total request deadline, it fires at 75 seconds regardless of whether blank lines are still arriving. A read timeout cannot explain a stop at exactly 75 seconds unless the read timeout value equals 75 seconds, which the user did not state.",
+          "proposed_change": "State that the 75-second stop is the client's own deadline, and that a read timeout is a separate mechanism that would only fire after a gap in data. Do not present the read timeout as an alternative explanation for the 75-second stop."
+        },
+        {
+          "assertion": "The draft says 'each received blank line resets the read timer' and 'a 5-second read timeout would not have fired.'",
+          "basis": "HTTPX read timeout is the maximum duration to wait for a chunk of data. The draft assumes each blank line counts as a chunk that resets the timer.",
+          "counterexample": "If the server sends blank lines less often than every 5 seconds, the read timeout would fire even though blank lines keep arriving. The draft's claim depends on the blank-line interval, which the user did not provide.",
+          "proposed_change": "Say that the read timeout resets when data arrives, so the blank-line interval matters. If blank lines arrive more often than the read timeout, the read timeout will not fire; if they arrive less often, it will."
+        },
+        {
+          "assertion": "The draft says 'Steady blank lines with no body and a server close near 10 minutes mean inference never started.'",
+          "basis": "DeepSeek documents that the server closes the connection after 10 minutes if inference has not started. The draft treats a close near 10 minutes as proof that inference never started.",
+          "counterexample": "The server could close the connection near 10 minutes for other reasons, such as a network interruption or a server-side error, even if inference had started. The 10-minute rule is a sufficient condition for closure when inference has not started, not a necessary condition for closure.",
+          "proposed_change": "Say that a server close near 10 minutes is consistent with inference never starting, but it does not prove it. Other telemetry, such as whether any real JSON bytes arrived, is needed to confirm."
+        }
+      ],
+      "research_requests": []
+    }
+  },
+  {
+    "artifact": "counterview.private.json",
+    "sha256": "66d4b966b46c0c6cb2abd301aba768aed610495e20af4d7a4dbe13123128fb27",
+    "case": "source",
+    "variant": "counterview",
+    "segment": "final premium synthesis only, reusing the actual baseline researcher state and paid independent Flash analysis",
+    "elapsed_seconds": 54.854,
+    "status": "completed",
+    "payload": {
+      "resolution": "The researcher and the independent review agree, and the two source pages confirm the findings. No factual conflict remains. The answer states that HTTP 200 plus blank lines is documented waiting behavior, that the 75-second expiry is client-side, that the total deadline should be at least 600 seconds with a 15-minute margin, and that timestamp and byte telemetry can separate queueing, slow inference, and network delay.",
+      "answer_markdown": "The HTTP 200 response and the continuous blank lines match the documented DeepSeek waiting behavior, not a server error. The [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page shows that a non-streaming request may keep the connection open and return empty lines while it waits for the model response; these lines are not part of the JSON. It also says the server will close the connection only if inference has not started after 10 minutes. Because a concurrency rejection would return HTTP 429, the 200 means the call passed the server's entry check. The 75-second expiry was the client's own total deadline. The [HTTPX Timeouts](https://www.python-httpx.org/advanced/timeouts/) page explains that its read timer fires after 5 seconds of network inactivity, but every blank line is received data, so that timer resets.\n\nSet the total deadline to at least 600 seconds, because the server may wait 10 minutes before closing if inference has not started. A 15-minute client deadline adds margin for the answer after inference starts. A 75-second deadline may be a deliberate fail-fast choice, but it will drop requests that could still complete. Keep the total deadline separate from the inactivity-based read timeout: a read timeout catches dead connections, while the blank lines keep resetting it.\n\nTo separate the remaining explanations, record the time each event happens and the raw bytes. Capture when the request was sent, when the 200 headers arrived, the gap between each blank line, and the time of the first non-blank byte. A first non-blank byte shows that inference had started; only blank lines show the request was still waiting. Record whether the server closes the connection near the 10-minute mark, and retry with a longer deadline or streaming enabled to see whether a JSON answer arrives and how long it takes. Those timings separate a short client deadline from queue waiting, slow inference, or a network hop that is delaying data."
+    }
+  },
+  {
+    "artifact": "flow-baseline.private.json",
+    "sha256": "65987e925b11229c1e9f2eca27d49a2abe4b623d23777ac9864de9cb289cf9dc",
+    "case": "normal_source_flow",
+    "variant": "baseline",
+    "segment": "full supplied-source analytical flow; baseline permits one acquisition but originals already supplied",
+    "elapsed_seconds": 152.202,
+    "status": "completed",
+    "run_id": "agrun_47d671be01",
+    "answer_markdown": "The HTTP 200 plus blank lines shows that the server accepted the request and is holding the connection open while it waits. This is normal, documented behavior, not a server failure. DeepSeek says a non-streaming request may “continuously return empty lines” while it waits, and these lines do not affect later JSON parsing ([Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/)). Because an over-limit request gets HTTP 429, a 200 makes that rejection unlikely. But a 200 does not prove that inference has started. If the client is HTTPX, the blank lines also explain why its default read timeout did not fire: HTTPX waits for 5 seconds of network inactivity, and each empty line counts as received data ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). The 75-second expiry is therefore the client’s own wall-clock deadline, not a server-sent error.\n\nSet the overall deadline above 600 seconds plus expected generation time, for example 15 minutes, not 75 seconds. The DeepSeek server closes a connection only if inference has not started after 10 minutes ([Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/)). So a request can wait in the queue for most of those 10 minutes and then still need time to generate the answer. Keep a short connect timeout separate from a long read or overall timeout, so a slow queue is not mistaken for a broken connection.\n\nTo separate the remaining explanations, record whether a JSON body ever arrived on the original connection, the timestamp and gap length of every blank line, the exact connection-close time, and HTTP status codes and headers. A server close near the 10-minute mark with no JSON body means inference never started. If a second request with a longer deadline delivers a JSON body after the same blank-line pattern, that supports the short-client-deadline explanation. If the blank lines stop early without a close or a body, suspect a proxy or network layer. Retry with streaming enabled: the server then sends ': keep-alive' comments, which give a second signal about server-side progress.",
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "revise",
+          "critique_summary": "The draft is accurate on the core points: HTTP 200 plus blank lines is documented DeepSeek keep-alive behavior for non-streaming requests, the over-limit response would be 429, the blank lines explain why an inactivity-based default timeout did not fire, and the 75-second expiry is client-side. Three precisions are worth making. First, the 10-minute server limit applies to the time before inference starts, not to the whole request, so a deadline must cover queue time plus generation, not just 600 seconds. Second, the HTTPX read-timeout explanation is a plausible inference, not a documented fact for this client, and the draft should label it as such. Third, the telemetry sentence about a 'fast retry just after 75 seconds' is too loose to be a diagnostic; state what the retry result would actually show.",
+          "answer_markdown": "Clarify the 10-minute figure: the DeepSeek docs say the server closes the connection only if inference has not started after 10 minutes. That caps queue time, not total request time, so a deadline of 'at least 600 seconds' can still expire during generation. Recommend a deadline above 600 seconds plus the expected generation time, for example 15 minutes, and say why.\n\nMark the HTTPX timeout explanation as an inference. The docs state a 5-second default on network inactivity and four timeout types (connect, read, write, pool), but they do not state that keep-alive blank lines reset the read timer for this client. Phrase it as: each empty line is data, so an inactivity-based read timeout would likely not fire. Also note the draft assumes the client uses HTTPX, which the question implies but does not state.\n\nSoften 'HTTP 200 shows DeepSeek accepted the request within its concurrency limit' to an inference. The docs only state that requests over the limit receive HTTP 429, so a 200 makes an over-limit rejection unlikely; it does not by itself prove a specific queue position or that inference started.\n\nRewrite the telemetry conclusion that 'a JSON body or fast retry just after 75 seconds means the short client deadline alone was the cause.' A retry is a client action; what distinguishes the hypotheses is (a) whether a JSON body ever arrived on the original connection, (b) whether the connection closed near the 10-minute mark with no body, and (c) whether blank lines stopped early. Keep the 10-minute-close and proxy/network cases as written; they are sound.\n\nKeep the streaming suggestion: on streaming requests the same keep-alive appears as ': keep-alive' SSE comments, which give a second signal about whether the server is still holding the request.",
+          "answer_points": [
+            "Clarify the 10-minute figure: the DeepSeek docs say the server closes the connection only if inference has not started after 10 minutes. That caps queue time, not total request time, so a deadline of 'at least 600 seconds' can still expire during generation. Recommend a deadline above 600 seconds plus the expected generation time, for example 15 minutes, and say why.",
+            "Mark the HTTPX timeout explanation as an inference. The docs state a 5-second default on network inactivity and four timeout types (connect, read, write, pool), but they do not state that keep-alive blank lines reset the read timer for this client. Phrase it as: each empty line is data, so an inactivity-based read timeout would likely not fire. Also note the draft assumes the client uses HTTPX, which the question implies but does not state.",
+            "Soften 'HTTP 200 shows DeepSeek accepted the request within its concurrency limit' to an inference. The docs only state that requests over the limit receive HTTP 429, so a 200 makes an over-limit rejection unlikely; it does not by itself prove a specific queue position or that inference started.",
+            "Rewrite the telemetry conclusion that 'a JSON body or fast retry just after 75 seconds means the short client deadline alone was the cause.' A retry is a client action; what distinguishes the hypotheses is (a) whether a JSON body ever arrived on the original connection, (b) whether the connection closed near the 10-minute mark with no body, and (c) whether blank lines stopped early. Keep the 10-minute-close and proxy/network cases as written; they are sound.",
+            "Keep the streaming suggestion: on streaming requests the same keep-alive appears as ': keep-alive' SSE comments, which give a second signal about whether the server is still holding the request."
+          ],
+          "confidence": "medium",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "9eb9ba8e4b62ce164254be15e7887ccc04da895f7e4b40198afff8b7966f55f4",
+      "evidence_sha256": "5ceca1dce58f9145f20e3ebfe7ef05ea29b87ef827d68a09425956add58f774d",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "synthesis"
+    },
+    "research_state": {
+      "goal": "Explain the HTTP 200 plus continuing blank lines plus 75-second client expiry using the two supplied source pages, and outline a suitable deadline and discriminating telemetry.",
+      "findings": [
+        "DeepSeek docs: non-streaming requests may continuously return empty lines while waiting; these do not affect JSON parsing.",
+        "DeepSeek docs: if inference has not started after 10 minutes, the server closes the connection.",
+        "DeepSeek docs: exceeding the concurrency limit returns HTTP 429, so HTTP 200 means the request was accepted.",
+        "HTTPX docs: default timeout fires after 5 seconds of network inactivity; separate connect, read, write, and pool timeouts are available.",
+        "Blank-line keep-alive data resets an inactivity-based read timeout, so the expired limit was the client's overall 75-second deadline."
+      ],
+      "answer_points": [
+        "HTTP 200 + blank lines is documented normal waiting behavior, not a server failure; server-side wait can last up to 10 minutes.",
+        "Use an overall deadline of at least 600 seconds (with margin, e.g. 15 minutes) rather than 75 seconds.",
+        "Telemetry to distinguish queue wait from short client deadline from proxy/network trouble: log keep-alive timestamps and gaps, JSON start time, connection close time, status codes/headers, and retry with streaming enabled."
+      ],
+      "selected_source_ids": [
+        "original-0",
+        "original-1"
+      ],
+      "alternatives": [
+        "Request was still queued and would have completed later.",
+        "The client's 75-second total deadline was simply too short for a healthy server.",
+        "A proxy or network layer stalled the connection outside the documented server behavior."
+      ],
+      "open_questions": [],
+      "next_actions": [],
+      "review_requests_addressed": []
+    },
+    "error": null
+  },
+  {
+    "artifact": "flow-blind.private.json",
+    "sha256": "f47d5b6d7d840cf1d1cba6edc046e21de1805ad6f5f45107d7be5b23efda8f81",
+    "case": "normal_source_flow",
+    "variant": "blind",
+    "segment": "full supplied-source analytical flow; baseline permits one acquisition but originals already supplied",
+    "elapsed_seconds": 147.293,
+    "status": "failed",
+    "run_id": "quality_blind_4b270f3ab9",
+    "error": "AttributeError: module 'services.zopedia_agent' has no attribute '_PRESENTATION_PROMPT'",
+    "steps": {
+      "working": {
+        "working_analysis": "An HTTP 200 with repeated blank lines matches DeepSeek's documented keep-alive for non-streaming requests, where the server keeps the connection open while the model waits or runs. An HTTP 429 would mean the rate or concurrency limit was hit; that is absent. The blank lines themselves do not show whether the model has started generating. DeepSeek says it closes the connection after 10 minutes only if generation has not started ([rate-limit and keep-alive page](https://api-docs.deepseek.com/quick_start/rate_limit/)). So the observations establish that the server accepted the request and was still in its allowed waiting or processing period when the client gave up.\n\nA 75-second total deadline is much shorter than the server's 10-minute pre-start window. Blank lines reset only an inactivity-based timeout; if the client uses a total wall-clock deadline, they cannot help. HTTPX's default is a 5-second network-inactivity timeout, and its four timeout types can be configured separately ([HTTPX timeout page](https://www.python-httpx.org/advanced/timeouts/)). A likely failure cause is that the request had not started generating within 75 seconds, or that generation had started but needed more than 75 seconds to complete. The evidence cannot separate those two cases.\n\nSet any total deadline to at least 10 to 11 minutes, and set the read-inactivity threshold above the largest observed gap between keep-alive lines; do not enforce 75 seconds. For telemetry, record timestamps for the HTTP status line, every blank line, every body byte, and which side closes the connection. Run one diagnostic attempt past 10 minutes. If the server closes near 10 minutes, generation never started. If the connection stays open or delivers JSON later, generation had started or run longer. Also verify no proxy or SDK layer introduced its own timeout.",
+        "checking_questions": [
+          "Was the 75-second deadline a total wall-clock limit, or an inactivity read timeout that should reset on each blank line? Does the client treat a blank line as received data?",
+          "Did the client log timestamps for the HTTP status line, each blank line, and any first non-blank byte? Without those, can we tell when the model started generating?",
+          "Did the client or the server close the connection at 75 seconds? Can a packet trace show which side sent the FIN or RST?",
+          "If the same request is run with a longer deadline, such as 12 minutes, does the server close near 10 minutes, or does it deliver JSON after 10 minutes? What does that imply about inference start?",
+          "Is any intermediate proxy, gateway, or SDK layer involved that may have its own timeout, or is the client's socket directly connected to DeepSeek?"
+        ]
+      },
+      "checks": {
+        "checks": [
+          {
+            "question": "Was the 75-second deadline a total wall-clock limit, or an inactivity read timeout that should reset on each blank line? Does the client treat a blank line as received data?",
+            "answer": "The sources do not say which kind of 75-second deadline the client used. Source fact: DeepSeek says a non-streaming request may continuously return empty lines while the connection stays alive. Source fact: HTTPX defines a read timeout as the maximum time to wait for a chunk of data, and it raises ReadTimeout if no data arrives. So if the client used a read-inactivity timeout and counted each empty line as data, the timer should reset. The observation that the 75-second deadline expired while empty lines arrived fits a total wall-clock limit. It also fits a read timeout that ignores empty lines as data. Not established: which deadline type was used, or whether empty lines counted as data. HTTP 200 also rules out a 429 concurrency rejection, because DeepSeek says over-limit requests get HTTP 429.",
+            "basis": "DeepSeek keep-alive and 429 rules: https://api-docs.deepseek.com/quick_start/rate_limit/ ; HTTPX read timeout: https://www.python-httpx.org/advanced/timeouts/"
+          },
+          {
+            "question": "Did the client log timestamps for the HTTP status line, each blank line, and any first non-blank byte? Without those, can we tell when the model started generating?",
+            "answer": "No. The sources do not say what the client logged. Source fact: DeepSeek says the server will close the connection if the request has not started inference after 10 minutes. The sources do not say that HTTP 200 means inference started. Without timestamps for the status line, each empty line, and the first non-blank byte, you cannot tell when the model started generating. Empty lines show connection activity only. Not established by these sources: the actual model start time.",
+            "basis": "DeepSeek 10-minute no-inference close rule: https://api-docs.deepseek.com/quick_start/rate_limit/ ; HTTPX timeout definitions: https://www.python-httpx.org/advanced/timeouts/"
+          },
+          {
+            "question": "Did the client or the server close the connection at 75 seconds? Can a packet trace show which side sent the FIN or RST?",
+            "answer": "The sources do not say who closed the connection at 75 seconds. Source fact: DeepSeek documents a server-side close after 10 minutes without inference start. Source fact: HTTPX says a timeout raises an exception. HTTPX does not describe FIN or RST behavior. A packet trace can show which side sent FIN or RST. Reasonable inference: a client-side 75-second deadline often makes the client abort the request, but the sources do not prove that here.",
+            "basis": "DeepSeek 10-minute close rule: https://api-docs.deepseek.com/quick_start/rate_limit/ ; HTTPX timeout exceptions: https://www.python-httpx.org/advanced/timeouts/"
+          },
+          {
+            "question": "If the same request is run with a longer deadline, such as 12 minutes, does the server close near 10 minutes, or does it deliver JSON after 10 minutes? What does that imply about inference start?",
+            "answer": "Source fact: DeepSeek says the server will close the connection if the request has not started inference after 10 minutes. So if you run the same request with a total deadline longer than 10 minutes, for example 12 minutes, and the server closes near 10 minutes, that implies inference had not started by 10 minutes. If JSON arrives after 10 minutes, that implies inference had started before 10 minutes, or the source condition did not apply. The source does not promise a close exactly at 10 minutes, and it does not promise that JSON cannot arrive after 10 minutes. For the objective of observing the server close threshold, use a total deadline longer than 10 minutes. Telemetry that distinguishes the remaining explanations: timestamps for the status line, each empty line, the first non-blank byte, the close time, and the FIN or RST direction.",
+            "basis": "DeepSeek keep-alive and 10-minute no-inference close rule: https://api-docs.deepseek.com/quick_start/rate_limit/ ; HTTPX timeout types: https://www.python-httpx.org/advanced/timeouts/"
+          },
+          {
+            "question": "Is any intermediate proxy, gateway, or SDK layer involved that may have its own timeout, or is the client's socket directly connected to DeepSeek?",
+            "answer": "The sources do not establish whether a proxy, gateway, or SDK layer sits between the client and DeepSeek. Source fact: HTTPX can set connect, read, write, and pool timeouts per request or per client, and its default is a TimeoutException after 5 seconds of network inactivity. Source fact: DeepSeek documents API behavior and SDK user_id examples, but it does not mention an intermediate proxy or gateway. Not established by these sources: whether the client socket is directly connected to DeepSeek, or whether another timeout layer exists. To distinguish, inspect the client HTTPX timeout configuration, any proxy or gateway settings, and a packet capture of both endpoints.",
+            "basis": "HTTPX timeout configuration and default: https://www.python-httpx.org/advanced/timeouts/ ; DeepSeek API behavior and SDK examples: https://api-docs.deepseek.com/quick_start/rate_limit/"
+          }
+        ]
+      },
+      "analysis": {
+        "resolution": "Independent checks confirmed the core findings. Corrections applied: the type of the 75-second deadline is not established by the sources; blank lines show connection keep-alive only, not that model generation started; HTTP 200 excludes an HTTP 429 rate or concurrency rejection. The deadline recommendation is now a total request limit longer than DeepSeek's 10-minute no-generation close window, paired with a separate read-inactivity limit and telemetry for timestamps, first non-blank byte, and connection-close direction.",
+        "answer_markdown": "The HTTP 200 status means the server accepted the request. It also rules out a rate or concurrency rejection, because DeepSeek returns HTTP 429 when a limit is exceeded ([Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/)). The blank lines are the documented keep-alive for non-streaming requests. They show the connection is still open while the server waits or works. They do not show whether the model has started generating its answer. DeepSeek says the server closes the connection after 10 minutes only if the request has not started generating. At 75 seconds, the server is still inside that 10-minute window. So the observations establish that the client's deadline fired before the server's documented deadline, not that the server failed.\n\nA 75-second deadline is much shorter than the server's 10-minute window. Blank lines reset only an inactivity timer that counts them as received data. If the client uses one total request limit of 75 seconds, blank lines cannot help. The source does not state which type of deadline the client used or whether it counted blank lines. HTTPX uses a read timeout as the longest wait for any data chunk, and its default is a 5-second inactivity exception ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). A likely cause is that the client stopped the request too early: the server may not have started generating, or it started but had not finished within 75 seconds. The evidence cannot separate these two cases.\n\nSet the total request limit to more than 10 minutes, such as 11 minutes, because DeepSeek may wait almost 10 minutes before it closes a not-started request. Set the read-inactivity limit above the longest gap between blank lines. Record timestamps for the status line, every blank line, the first non-blank byte, the close time, and whether the client or server closed the connection. Run one attempt past 10 minutes. If the server closes near 10 minutes with no JSON, the request never started generating. If JSON arrives or the connection stays open after 10 minutes, generation had started before the server's no-start limit. Also check your HTTPX timeout settings and any proxy or gateway layer, because a shorter hidden timeout can cause the same symptom."
+      }
+    }
+  },
+  {
+    "artifact": "initial-baseline.private.json",
+    "sha256": "3899fed65bb7317e62c37d3f8a4cfb971d26348c6e03cb8e19917ec257e0f443",
+    "case": "initial_source",
+    "variant": "baseline",
+    "segment": "initial analysis and presentation only; review disabled identically for isolation",
+    "elapsed_seconds": 70.776,
+    "status": "completed",
+    "run_id": "agrun_91b73790bd",
+    "answer_markdown": "The HTTP 200 shows the server accepted the request. It did not reject it. Over-limit requests return 429, so the request was inside the account concurrency limit ([Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/)). The blank lines are DeepSeek's documented keep-alive for non-streaming requests. They are not answer data to parse. They also count as received chunks, so HTTPX's default 5-second read-inactivity timeout keeps resetting. A read timeout did not cause this failure ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). The 75-second expiry was the client's own total deadline. It fired while the server was still inside its documented wait window. So these observations do not prove a server fault. They show the client gave up before an answer arrived.\n\nThe only server-side wait bound in these pages is that DeepSeek closes the connection if inference has not started after 10 minutes. Because 75 seconds is far below that, the server may still be queuing or generating. Three causes fit the evidence: the client deadline is too short for long inference; the request is waiting for inference capacity; or generation is slow for this request. No page states a guaranteed completion time after inference starts, so no exact correct deadline follows. A sensible deadline should be longer than 75 seconds and should reach at least the server's 10-minute no-start close. Around 10 minutes or slightly more lets the client tell a client-side cut from a server-side connection close. The trade-off is a delayed fallback while it waits.\n\nTo separate the remaining explanations, record timestamps and chunk bytes per request: request start, HTTP header receipt, first blank line, blank-line cadence, first non-whitespace JSON byte, and which timeout fired (connect, read, write, pool, or the client's total deadline). If blank lines arrive steadily and no read timeout fires, the client cut a waiting request, not a dead link. Send a small control request. If it returns quickly while the long request stalls, that points to request-specific inference length. If small requests also stall with blank lines, that points to queueing or backend congestion. Server-side request IDs or logs that separate queue entry from inference start give the strongest distinction. Rerun with a deadline beyond 10 minutes. That shows whether the server closes at 10 minutes (inference never started) or eventually returns JSON (slow inference).",
+    "quality_review": {
+      "status": "not_run",
+      "pending_research_requests": []
+    },
+    "research_state": {},
+    "error": null
+  },
+  {
+    "artifact": "initial-flash_high.private.json",
+    "sha256": "aeb205e797bcd9f3c92eaf8b6bf97f2a3802a61307015e48210335ef32445751",
+    "case": "initial_source",
+    "variant": "flash_high",
+    "segment": "initial analysis and presentation only; review disabled identically for isolation",
+    "elapsed_seconds": 41.265,
+    "status": "completed",
+    "run_id": "agrun_b002cb85b0",
+    "answer_markdown": "**What the observations establish.** The HTTP 200 and the continuing blank lines are two documented server behaviours for a non-streaming DeepSeek request. They are not a failure signal. DeepSeek's [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page says that while a request waits for a response, the connection stays open. For non-streaming calls, the server \"continuously return[s] empty lines\". These lines are not part of the JSON body, so the client must skip them when it parses the response. The evidence therefore shows that the server accepted the call, kept the socket open, and had not yet produced the JSON answer. At minimum, the wait had not finished. The page's only timing statement is that \"[i]f the request has not started inference after 10 minutes, the server will close the connection.\" The evidence does **not** show whether inference had started, how long the request had been queued, or that anything was wrong on the server. A 429 is the documented response when the account concurrency limit is exceeded (2,500 for deepseek-flash, 500 for deepseek-v4-pro). No 429 appeared, so the account-level concurrency gate did not reject this call. The 75-second expiry was therefore the client's own deadline firing, not a server limit.\n\n**Why the client's timeout behaved this way.** HTTPX, which many Python clients use, raises `TimeoutException` after 5 seconds of network **inactivity** by default. It offers four separate inactivity timers: connect, read, write and pool. The read timer is the maximum wait for a chunk of the response body. [Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/) describes these timers. A stream of blank lines counts as received data, so the read timer keeps resetting and no `ReadTimeout` fires. HTTPX has no built-in total-duration limit. A 75-second wall-clock deadline must come from the client's own timer, which is exactly what expired here. For the deadline itself, the deciding trade-off is that the server's documented outer bound is 10 minutes without inference starting. Any client deadline below that can abandon a request that would still have succeeded. Two defensible choices follow: raise the client deadline toward that ~10-minute server bound (accepting long waits), or keep the shorter 75-second deadline as a deliberate fail-fast (accepting lost answers). Either way, set the HTTPX timers explicitly and treat the total deadline as a separate outer guard, because inactivity-based timeouts cannot express it.\n\n**Telemetry and the remaining explanations.** The main competing explanations are: (1) the request was queued and inference had not started; (2) inference started but ran slowly; (3) an intermediary — proxy, load balancer or gateway — held the connection and emitted the blank lines; and (4) a client-side read or parse problem. To separate them, record the time from sending the request to the first HTTP 200 response headers. Log each blank line with a timestamp and its gap pattern, and note whether the stream then stops. Inspect raw bytes for any non-blank content; partial JSON would show that inference had started. Record whether and when the connection is closed by the peer, and compare that moment with the 10-minute bound. Check whether any 429 appears elsewhere in the account. Repeat the call with a longer deadline to see whether a JSON answer arrives and after how long. A single slow success shows only that the request *could* finish, not which of the four causes was present. Only the combination — especially the presence or absence of non-blank bytes and the peer's close behaviour — narrows it down.",
+    "quality_review": {
+      "status": "not_run",
+      "pending_research_requests": []
+    },
+    "research_state": {},
+    "error": null
+  },
+  {
+    "artifact": "initial-selfcheck.private.json",
+    "sha256": "d7ced48fc759ddcdb87b9c50fbf03778585fe73d0c7288f891a9fc47b3bfe377",
+    "case": "initial_source",
+    "variant": "selfcheck",
+    "segment": "initial analysis and presentation only; review disabled identically for isolation",
+    "elapsed_seconds": 63.086,
+    "status": "completed",
+    "run_id": "agrun_f7decbcacb",
+    "answer_markdown": "The HTTP 200 and the blank lines are normal, documented behavior for a DeepSeek non-streaming request. The [Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/) says the server can keep the connection open and continuously send empty lines as keep-alives while it works. Those empty lines do not affect JSON parsing. So a 200 shows only that the server accepted the request and is still connected. It does not show that inference has started, and it does not by itself show a server failure.\n\nThe most likely failure cause is that the client's total deadline is shorter than the server's allowed waiting period. The [Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/) page shows a default 5-second timeout for network inactivity, but incoming blank lines reset an inactivity timer. A 75-second deadline can expire while the request is still valid: DeepSeek closes the connection only if inference has not started after 10 minutes. An appropriate deadline is at least 600 seconds for the waiting or no-start phase, and longer if model generation itself can exceed that. The source gives no upper bound after inference starts.\n\nThe remaining question is whether the request is queued and waiting to start, or inference has started but is generating slowly. Blank lines in a non-streaming request cannot distinguish these states. Use the streaming endpoint instead: it sends server-sent-events (SSE) keep-alive comments such as `: keep-alive` while waiting, then real data events when generation starts. Record time-to-first-data, excluding comments, plus the keep-alive cadence and HTTP header timing. If real data arrives within the deadline, inference started and the answer is just long. If only keep-alives continue toward 10 minutes, the request is still waiting to start and the server will close it.",
+    "quality_review": {
+      "status": "not_run",
+      "pending_research_requests": []
+    },
+    "research_state": {},
+    "error": null
+  },
+  {
+    "artifact": "prepared-review.private.json",
+    "sha256": "215a1c3198d9084531fd6b87557a7d15bedcf6d927853d4c3518ac8726ba815c",
+    "case": "source",
+    "variant": "prepared_review",
+    "segment": "real retained-draft replay: two cheap non-thinking review calls, Pro/low correction and presentation; upstream acquisition/analysis excluded",
+    "elapsed_seconds": 52.598,
+    "status": "completed",
+    "run_id": "quality_prepared_823a94e154",
+    "answer_markdown": "The HTTP 200 and the continuing blank lines match the keep-alive behavior on DeepSeek's [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page. That page says a non-streaming request can keep receiving empty lines while it waits. The empty lines do not affect parsing of the JSON body. The page also says the server closes the connection if inference has not started after 10 minutes. So the 200 and the blank lines show that the server accepted the request and is holding the connection open. They do not prove that the server is healthy or that inference has started. A concurrency rejection would be HTTP 429, so the 200 rules out that status-level failure.\n\nThe 75-second stop is not a documented DeepSeek server timeout. DeepSeek documents only the 10-minute close when inference has not started, and it promises no total generation time. So the stop is probably on the client side or the proxy side, but these observations do not show the exact owner. If the client uses HTTPX, the default read timeout is 5 seconds of network inactivity ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). A received blank line is a data chunk, and it can reset that read timer. A separate total wall-clock deadline does not reset. The possible failure causes are queueing or a slow start, slow generation, or a 75-second deadline that is too short for a legitimate long answer. These causes fit the observations, but the observations do not prove them.\n\nFor an appropriate deadline, treat it as a client policy choice, not as something derived from the 10-minute server rule. That rule covers only the wait before inference starts, so it cannot set a total deadline. Measure real completion times for your prompts, then set the total client timeout above those times. If you use HTTPX, keep the read timeout just above the observed gap between blank lines. Timestamped telemetry would help separate the remaining causes: time to headers, arrival time and content of each blank line and byte, time to first real JSON byte, completion time, status and request ID, model, user_id, in-flight concurrency at request time, and which side closed the connection. A server close near 10 minutes with no body is strong evidence that inference never started, but it is not proof. A late but real JSON body shows that the request completed, but it does not separate a long queue wait from slow generation; time to first byte or first token is needed. A gap longer than the read timeout raises a ReadTimeout, which shows that data stopped arriving, but it does not show whether the server, a proxy, or the network caused the gap.",
+    "steps": {
+      "claims": {
+        "claims": [
+          {
+            "assertion": "The HTTP 200 and the continuing blank lines show the server accepted the request and is holding the connection open exactly as documented, so they are not evidence of a server fault.",
+            "basis": "DeepSeek's Rate Limit & Isolation page documents that non-streaming requests may continuously receive empty lines while waiting, and that these lines do not affect parsing of the JSON body.",
+            "source_refs": [
+              "original-0"
+            ]
+          },
+          {
+            "assertion": "A concurrency rejection appears as HTTP 429, so the 200 rules that status-level failure out.",
+            "basis": "DeepSeek's Rate Limit & Isolation page states that when the concurrency limit is exceeded, you will receive an HTTP 429 error code.",
+            "source_refs": [
+              "original-0"
+            ]
+          },
+          {
+            "assertion": "The blank lines are not a partial answer and do not show whether inference started.",
+            "basis": "DeepSeek's Rate Limit & Isolation page says the empty lines do not affect parsing of the JSON body and that the server closes the connection after 10 minutes if inference has not started; no source states that blank lines indicate inference progress.",
+            "source_refs": [
+              "original-0"
+            ]
+          },
+          {
+            "assertion": "The 75-second stop is a client deadline, not a DeepSeek timeout.",
+            "basis": "HTTPX documents connect, read, write, and pool timeouts with a default of 5 seconds of network inactivity; DeepSeek documents only a 10-minute close if inference has not started, so a 75-second stop is not a documented DeepSeek timeout.",
+            "source_refs": [
+              "original-1",
+              "original-0"
+            ]
+          },
+          {
+            "assertion": "Each received blank line resets the read timer.",
+            "basis": "HTTPX defines the read timeout as the maximum duration to wait for a chunk of data to be received; a received blank line is data, so it resets that timer.",
+            "source_refs": [
+              "original-1"
+            ]
+          },
+          {
+            "assertion": "Because lines kept arriving, a 5-second read timeout would not have fired, so the stop points to a separate wall-clock deadline, or to a much larger or disabled read timeout after data stopped.",
+            "basis": "HTTPX states the default behavior is to raise a TimeoutException after 5 seconds of network inactivity, and that timeouts can be set per request or disabled with timeout=None.",
+            "source_refs": [
+              "original-1"
+            ]
+          },
+          {
+            "assertion": "DeepSeek documents only that it closes the connection after 10 minutes if inference has not started; it promises no total-generation time.",
+            "basis": "DeepSeek's Rate Limit & Isolation page states only the 10-minute close condition and gives no total-generation time guarantee.",
+            "source_refs": [
+              "original-0"
+            ]
+          },
+          {
+            "assertion": "The failure could be queueing or a slow start, slow generation, or a deadline too short for a legitimate long answer, and these observations alone do not separate those causes.",
+            "basis": "The draft's inference from the documented keep-alive behavior and the absence of a documented total-generation time; no source directly states these causes or that the observations cannot separate them.",
+            "source_refs": [
+              "original-0",
+              "original-1"
+            ]
+          },
+          {
+            "assertion": "For an appropriate deadline, start with a total client timeout of a few minutes for normal responses and raise it for prompts expected to produce long answers; treat it as client policy, not as a guarantee from the 10-minute server rule.",
+            "basis": "The draft's recommendation, based on DeepSeek's 10-minute close rule and HTTPX's configurable timeouts; no source states this specific deadline policy.",
+            "source_refs": [
+              "original-0",
+              "original-1"
+            ]
+          },
+          {
+            "assertion": "Keep the HTTPX read timeout just above the observed gap between blank lines.",
+            "basis": "The draft's recommendation, based on HTTPX's definition of the read timeout as the maximum wait for a chunk of data.",
+            "source_refs": [
+              "original-1"
+            ]
+          },
+          {
+            "assertion": "Timestamped telemetry would distinguish the remaining causes: time to headers, arrival time and content of each blank line and byte, time to first real JSON byte, completion time, status and request ID, model, user_id, in-flight concurrency at request time, and which side closed the connection.",
+            "basis": "The draft's recommendation; no source lists this telemetry set.",
+            "source_refs": [
+              "original-0",
+              "original-1"
+            ]
+          },
+          {
+            "assertion": "Steady blank lines with no body and a server close near 10 minutes mean inference never started.",
+            "basis": "DeepSeek's Rate Limit & Isolation page states the server closes the connection if the request has not started inference after 10 minutes.",
+            "source_refs": [
+              "original-0"
+            ]
+          },
+          {
+            "assertion": "A late but real JSON body means slow generation.",
+            "basis": "The draft's inference; no source states this interpretation.",
+            "source_refs": [
+              "original-0"
+            ]
+          },
+          {
+            "assertion": "A gap longer than the read timeout means keep-alive or network interruption.",
+            "basis": "HTTPX states a ReadTimeout is raised if data is not received within the read timeout.",
+            "source_refs": [
+              "original-1"
+            ]
+          },
+          {
+            "assertion": "Retries returning HTTP 429 point to concurrency limits, not latency.",
+            "basis": "DeepSeek's Rate Limit & Isolation page states that exceeding the concurrency limit returns HTTP 429.",
+            "source_refs": [
+              "original-0"
+            ]
+          }
+        ]
+      },
+      "review": {
+        "corrections": [
+          {
+            "assertion": "The HTTP 200 and the continuing blank lines show the server accepted the request and is holding the connection open exactly as documented, so they are not evidence of a server fault.",
+            "basis": "DeepSeek's Rate Limit & Isolation page documents that non-streaming requests may continuously receive empty lines while waiting, and that these lines do not affect parsing of the JSON body.",
+            "counterexample": "The page says the server closes the connection if inference has not started after 10 minutes. A server that keeps sending blank lines past 10 minutes, or that never sends the JSON body, is not behaving exactly as documented. So the blank lines alone do not prove the server is healthy.",
+            "proposed_change": "Weaken to: the 200 and the blank lines match the documented keep-alive behavior, so they do not by themselves prove a server fault. They also do not prove the server is healthy, because the same page sets a 10-minute close rule."
+          },
+          {
+            "assertion": "The 75-second stop is a client deadline, not a DeepSeek timeout.",
+            "basis": "HTTPX documents connect, read, write, and pool timeouts with a default of 5 seconds of network inactivity; DeepSeek documents only a 10-minute close if inference has not started, so a 75-second stop is not a documented DeepSeek timeout.",
+            "counterexample": "The sources do not say the client uses HTTPX, and they do not say the client set a 75-second deadline. The client could use another library with a 75-second read timeout, or a proxy could close the connection at 75 seconds. The observations alone cannot show which side stopped the request.",
+            "proposed_change": "State only that 75 seconds is not a documented DeepSeek timeout, so the stop is probably client-side or proxy-side. Mark the exact owner as unknown until telemetry shows which side closed the connection."
+          },
+          {
+            "assertion": "Each received blank line resets the read timer.",
+            "basis": "HTTPX defines the read timeout as the maximum duration to wait for a chunk of data to be received; a received blank line is data, so it resets that timer.",
+            "counterexample": "HTTPX does not say a blank line resets the read timer. It says the read timeout is the maximum wait for a chunk of data. A blank line is a chunk, so it can reset the timer, but the source does not state this rule. Also, a client may use a total wall-clock deadline that no data resets.",
+            "proposed_change": "Change to: under HTTPX, a received blank line is a data chunk, so it can reset the read timeout. This is an inference from the read-timeout definition, not a stated rule. A separate total deadline would not reset."
+          },
+          {
+            "assertion": "Because lines kept arriving, a 5-second read timeout would not have fired, so the stop points to a separate wall-clock deadline, or to a much larger or disabled read timeout after data stopped.",
+            "basis": "HTTPX states the default behavior is to raise a TimeoutException after 5 seconds of network inactivity, and that timeouts can be set per request or disabled with timeout=None.",
+            "counterexample": "The client may not use HTTPX, and the sources do not say it does. If the client uses a library with a 75-second total timeout, the stop is explained without a separate wall-clock deadline. The observations do not show which timeout type fired.",
+            "proposed_change": "Keep the logic but add the condition: this holds only if the client uses HTTPX defaults. Otherwise the 75-second stop may be a single total timeout in another library. Treat the timeout type as unknown."
+          },
+          {
+            "assertion": "The failure could be queueing or a slow start, slow generation, or a deadline too short for a legitimate long answer, and these observations alone do not separate those causes.",
+            "basis": "The draft's inference from the documented keep-alive behavior and the absence of a documented total-generation time; no source directly states these causes or that the observations cannot separate them.",
+            "counterexample": "This is a reasonable hypothesis, not a proven fact. The sources support it only indirectly: they document keep-alive lines and a 10-minute no-inference close, and they give no total-generation time. The claim is acceptable if it stays a hypothesis.",
+            "proposed_change": "Keep as a hypothesis. Say the observations are consistent with these causes but do not prove any of them. Do not present the list as established."
+          },
+          {
+            "assertion": "For an appropriate deadline, start with a total client timeout of a few minutes for normal responses and raise it for prompts expected to produce long answers; treat it as client policy, not as a guarantee from the 10-minute server rule.",
+            "basis": "The draft's recommendation, based on DeepSeek's 10-minute close rule and HTTPX's configurable timeouts; no source states this specific deadline policy.",
+            "counterexample": "The 10-minute rule is a close condition for requests that have not started inference. It is not a total-generation limit. A client deadline of a few minutes may cut off a valid long answer, and a deadline near 10 minutes may still be too short if generation starts late.",
+            "proposed_change": "Present the deadline as a client policy choice, not a derived rule. Note that the 10-minute server rule covers only the wait before inference starts, so it cannot set the total deadline. Recommend measuring real completion times and setting the deadline above them."
+          },
+          {
+            "assertion": "Keep the HTTPX read timeout just above the observed gap between blank lines.",
+            "basis": "The draft's recommendation, based on HTTPX's definition of the read timeout as the maximum wait for a chunk of data.",
+            "counterexample": "",
+            "proposed_change": ""
+          },
+          {
+            "assertion": "Steady blank lines with no body and a server close near 10 minutes mean inference never started.",
+            "basis": "DeepSeek's Rate Limit & Isolation page states the server closes the connection if the request has not started inference after 10 minutes.",
+            "counterexample": "The page states the close rule, but it does not say the close proves inference never started. A server could close for other reasons, such as a network fault or a restart. The close near 10 minutes is strong evidence, not proof.",
+            "proposed_change": "Soften to: a server close near 10 minutes with no body is strong evidence that inference never started, because that matches the documented close condition. It is not proof."
+          },
+          {
+            "assertion": "A late but real JSON body means slow generation.",
+            "basis": "The draft's inference; no source states this interpretation.",
+            "counterexample": "A late JSON body could also come from a long queue wait followed by fast generation. The body arrival time alone does not separate queue delay from slow generation.",
+            "proposed_change": "Change to: a late but real JSON body shows the request completed, but it does not separate a long queue wait from slow generation. Time to first token or first byte is needed to tell them apart."
+          },
+          {
+            "assertion": "A gap longer than the read timeout means keep-alive or network interruption.",
+            "basis": "HTTPX states a ReadTimeout is raised if data is not received within the read timeout.",
+            "counterexample": "A gap longer than the read timeout raises a ReadTimeout, but that does not show the cause. The cause could be a slow server, a stalled proxy, or a network break. The exception type alone does not name the cause.",
+            "proposed_change": "Change to: a gap longer than the read timeout raises a ReadTimeout. That shows data stopped arriving, but it does not show whether the server, a proxy, or the network caused the gap."
+          }
+        ],
+        "research_requests": [
+          "Find whether DeepSeek documents a total-generation time limit or a maximum response time, beyond the 10-minute no-inference close rule.",
+          "Find whether DeepSeek documents the interval between keep-alive blank lines for non-streaming requests.",
+          "Find whether DeepSeek documents which side closes the connection and how a client can detect it, for example a request ID or a close code."
+        ]
+      },
+      "correction": {
+        "answer_markdown": "The HTTP 200 and the continuing blank lines match the keep-alive behavior documented on DeepSeek’s [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page. That page says non-streaming requests may continuously receive empty lines while waiting, and these lines do not affect parsing of the JSON body. It also says the server closes the connection if inference has not started after 10 minutes. So the 200 and blank lines show the server accepted the request and is holding the connection open, but they do not by themselves prove the server is healthy or that inference has started. A concurrency rejection would be HTTP 429, so the 200 rules out that status-level failure.\n\nThe 75-second stop is not a documented DeepSeek server timeout. DeepSeek documents only the 10-minute close when inference has not started, and it promises no total-generation time. The stop is therefore probably client-side or proxy-side, but the exact owner is unknown from these observations. If the client uses HTTPX, the default read timeout is 5 seconds of network inactivity ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)), and a received blank line is a data chunk that can reset that read timer. A separate total wall-clock deadline would not reset. The possible failure causes—queueing or a slow start, slow generation, or a 75-second deadline too short for a legitimate long answer—are consistent with the observations but are not proven.\n\nFor an appropriate deadline, treat it as a client policy choice, not something derived from the 10-minute server rule. That rule covers only the wait before inference starts, so it cannot set a total deadline. Measure real completion times for your prompts and set the total client timeout above those times. Keep the read timeout just above the observed gap between blank lines if using HTTPX. Timestamped telemetry would help separate the remaining causes: time to headers, arrival time and content of each blank line and byte, time to first real JSON byte, completion time, status and request ID, model, user_id, in-flight concurrency at request time, and which side closed the connection. A server close near 10 minutes with no body is strong evidence that inference never started, but not proof. A late but real JSON body shows the request completed, but it does not separate a long queue wait from slow generation; time to first byte or first token is needed. A gap longer than the read timeout raises a ReadTimeout, which shows data stopped arriving but does not show whether the server, a proxy, or the network caused the gap."
+      },
+      "presentation": {
+        "answer_markdown": "The HTTP 200 and the continuing blank lines match the keep-alive behavior on DeepSeek's [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page. That page says a non-streaming request can keep receiving empty lines while it waits. The empty lines do not affect parsing of the JSON body. The page also says the server closes the connection if inference has not started after 10 minutes. So the 200 and the blank lines show that the server accepted the request and is holding the connection open. They do not prove that the server is healthy or that inference has started. A concurrency rejection would be HTTP 429, so the 200 rules out that status-level failure.\n\nThe 75-second stop is not a documented DeepSeek server timeout. DeepSeek documents only the 10-minute close when inference has not started, and it promises no total generation time. So the stop is probably on the client side or the proxy side, but these observations do not show the exact owner. If the client uses HTTPX, the default read timeout is 5 seconds of network inactivity ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). A received blank line is a data chunk, and it can reset that read timer. A separate total wall-clock deadline does not reset. The possible failure causes are queueing or a slow start, slow generation, or a 75-second deadline that is too short for a legitimate long answer. These causes fit the observations, but the observations do not prove them.\n\nFor an appropriate deadline, treat it as a client policy choice, not as something derived from the 10-minute server rule. That rule covers only the wait before inference starts, so it cannot set a total deadline. Measure real completion times for your prompts, then set the total client timeout above those times. If you use HTTPX, keep the read timeout just above the observed gap between blank lines. Timestamped telemetry would help separate the remaining causes: time to headers, arrival time and content of each blank line and byte, time to first real JSON byte, completion time, status and request ID, model, user_id, in-flight concurrency at request time, and which side closed the connection. A server close near 10 minutes with no body is strong evidence that inference never started, but it is not proof. A late but real JSON body shows that the request completed, but it does not separate a long queue wait from slow generation; time to first byte or first token is needed. A gap longer than the read timeout raises a ReadTimeout, which shows that data stopped arriving, but it does not show whether the server, a proxy, or the network caused the gap."
+      }
+    }
+  },
+  {
+    "artifact": "reader.private.json",
+    "sha256": "628aa632204da24035ac8f2a16e5f6a04c7679c5d985da7ea24a029c804f9da3",
+    "case": "initial_source",
+    "variant": "reader",
+    "segment": "source reader plus initial analysis and presentation; review disabled identically",
+    "elapsed_seconds": 73.232,
+    "status": "completed",
+    "run_id": "agrun_716bc16f91",
+    "answer_markdown": "The observations do not show a server failure. HTTP 200 means the server accepted the request and the account stayed under its allowed number of simultaneous requests; an over-limit request would return HTTP 429. The blank lines are DeepSeek's documented keep-alive for non-streaming requests while the connection waits. They are not JSON data and not an error, and the client should skip them ([Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/)). The only stated server deadline is 10 minutes, or 600 seconds, when inference has not started. The client deadline fired at 75 seconds, so the server limit was not reached. The server was likely still in its normal waiting state when the client ended the request.\n\nThe likely cause is a client total deadline that was too short for slow inference, not a server timeout. HTTPX has separate connect, read, write, and pool timeouts. The read timeout resets whenever a chunk arrives. Blank lines are chunks, so continuing blank lines should stop an idle-wait timeout from firing ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). A 75-second deadline that expires while blank lines continue therefore looks like a total request deadline, not an idle-read timeout. The request may have been waiting for capacity or for inference to start, but the sources do not show that the server failed or that a JSON answer was guaranteed within 75 seconds.\n\nSet the total deadline above the server's 10-minute pre-inference limit and add expected inference time. At least 600 seconds is the minimum grounded number, with a separate short read timeout so blank lines count as signs of life. To distinguish the remaining explanations, record the HTTP status and response headers, the time of the 200 response, the timestamp of every blank line, and the timeout type that actually fired: read, total, connect, or pool. Then retry once with a deadline longer than 600 seconds. Continuing blank lines up to the client deadline points to a total deadline problem. A long gap before failure points to a read timeout. A server close near 600 seconds points to the no-inference-start limit. A JSON answer in the longer retry points to the 75-second deadline being too short.",
+    "quality_review": {
+      "status": "not_run",
+      "pending_research_requests": []
+    },
+    "research_state": {},
+    "error": null
+  },
+  {
+    "artifact": "source-baseline.private.json",
+    "sha256": "92759a496f222caebb9ab1e33f7d3816ffdfde6177a52bc68b475c4b36606185",
+    "case": "source",
+    "variant": "baseline",
+    "segment": "review and correction of identical supplied draft; acquisition and initial synthesis excluded",
+    "elapsed_seconds": 26.999,
+    "status": "completed",
+    "run_id": "agrun_b6ad68f4e8",
+    "answer_markdown": "The HTTP 200 and the continuing blank lines show the server accepted the request and is holding the connection open. They are not evidence of a server fault. DeepSeek's [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page says non-streaming requests may continuously receive empty lines while waiting, and these lines do not affect parsing of the JSON body. A concurrency rejection appears as HTTP 429, so the 200 rules that status-level failure out. The blank lines are not a partial answer and do not show whether inference started.\n\nThe 75-second stop is a client deadline, not a DeepSeek timeout. HTTPX has connect, read, write, and pool timeouts, with a default of 5 seconds of network inactivity ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)); each received blank line resets the read timer. Because lines kept arriving, a 5-second read timeout would not have fired, so the stop points to a separate wall-clock deadline, or to a much larger or disabled read timeout after data stopped. DeepSeek documents only that it closes the connection after 10 minutes if inference has not started; it promises no total-generation time. The failure could be queueing or a slow start, slow generation, or a deadline too short for a legitimate long answer, and these observations alone do not separate those causes.\n\nFor an appropriate deadline, start with a total client timeout of a few minutes for normal responses and raise it for prompts expected to produce long answers; treat it as client policy, not as a guarantee from the 10-minute server rule. Keep the HTTPX read timeout just above the observed gap between blank lines. Timestamped telemetry would distinguish the remaining causes: time to headers, arrival time and content of each blank line and byte, time to first real JSON byte, completion time, status and request ID, model, user_id, in-flight concurrency at request time, and which side closed the connection. Steady blank lines with no body and a server close near 10 minutes mean inference never started; a late but real JSON body means slow generation; a gap longer than the read timeout means keep-alive or network interruption; and retries returning HTTP 429 point to concurrency limits, not latency.",
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "accept",
+          "critique_summary": "The draft answers the three requested parts: what the observations establish, an appropriate deadline, and the telemetry that would separate the remaining causes. Its factual claims track the two sources: HTTP 200 plus continuous blank lines match DeepSeek's documented non-streaming keep-alive, concurrency rejection is HTTP 429 (so 200 rules that out), HTTPX defaults to 5 seconds of network inactivity across connect/read/write/pool timeouts, and DeepSeek only promises to close the connection after 10 minutes if inference has not started. The 75-second stop is correctly framed as a client-side wall-clock deadline rather than a server timeout. Cause hypotheses (queueing/slow start, slow generation, too-short deadline) are reasonable and not overstated. Only minor precision gains are available; none are material corrections.",
+          "answer_markdown": "Make one inference explicit rather than implicit: 'each received blank line resets the read timer' assumes each blank line arrives as a separate data chunk. State it as a reasonable inference, since HTTPX's read timeout is defined per chunk of received data (https://www.python-httpx.org/advanced/timeouts/).\n\nConsider noting that 75 seconds of continued blank lines shows the server had not closed the connection, so DeepSeek's documented 10-minute no-inference close was not reached; that fact alone argues the request was still held open, which slightly favors queueing/slow start or slow generation over a server-side connection teardown.\n\nThe suggestion to keep the HTTPX read timeout 'just above the observed gap between blank lines' is sound but could be phrased as: set read timeout above the largest observed inter-chunk gap, and a separate total/overall deadline above the read timeout, since these are different limits.\n\nPreserve the point that the 10-minute server rule is a startup limit, not a generation-time guarantee, and must not be used as the client deadline basis.",
+          "answer_points": [
+            "Make one inference explicit rather than implicit: 'each received blank line resets the read timer' assumes each blank line arrives as a separate data chunk. State it as a reasonable inference, since HTTPX's read timeout is defined per chunk of received data (https://www.python-httpx.org/advanced/timeouts/).",
+            "Consider noting that 75 seconds of continued blank lines shows the server had not closed the connection, so DeepSeek's documented 10-minute no-inference close was not reached; that fact alone argues the request was still held open, which slightly favors queueing/slow start or slow generation over a server-side connection teardown.",
+            "The suggestion to keep the HTTPX read timeout 'just above the observed gap between blank lines' is sound but could be phrased as: set read timeout above the largest observed inter-chunk gap, and a separate total/overall deadline above the read timeout, since these are different limits.",
+            "Preserve the point that the 10-minute server rule is a startup limit, not a generation-time guarantee, and must not be used as the client deadline basis."
+          ],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "57d6bace4a794f46690974a1a56be16d78d16ca5e4099b9407d5c671a6ccd9fc",
+      "evidence_sha256": "6e8a222367761da315a086895d53a1dde0dd4177d60943daaba26dca9dcec289",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "accepted_existing_analysis"
+    },
+    "research_state": {},
+    "error": null
+  },
+  {
+    "artifact": "source-focused.private.json",
+    "sha256": "c0b64e77fbc78ec8664f8852df7f3cddbc12c2ba47d3020b21df688037cc8fc9",
+    "case": "source",
+    "variant": "focused",
+    "segment": "review and correction of identical supplied draft; acquisition and initial synthesis excluded",
+    "elapsed_seconds": 91.466,
+    "status": "completed",
+    "run_id": "agrun_306e0b9c0a",
+    "answer_markdown": "The HTTP 200 and the blank lines do not prove a server fault. HTTP 200 means DeepSeek accepted the request and opened the connection. It also rules out an immediate over-limit response, because DeepSeek returns HTTP 429 when a request exceeds the concurrency limit. The blank lines are the documented keep-alive behavior for non-streaming requests while the server is waiting. They do not affect the JSON body ([Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/)). They show the connection is alive, but they do not show that the answer is ready or that inference has started.\n\nThe 75-second stop is a client-side deadline, not a DeepSeek timeout. HTTPX says a read timeout is the maximum time to wait for one chunk of data. A blank line is a chunk, so repeated blank lines would keep resetting the read timer ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). That resetting follows from the HTTPX definition, but it is not stated on the page. Given the reported continuous blank lines, the stop is best explained by a separate total wall-clock deadline that expired while data was still arriving. DeepSeek documents only one server-side timing limit: if inference has not started after 10 minutes, the server closes the connection. So the observed failure could be queueing before inference, very slow generation, or a 75-second client deadline that is too short for a legitimate long answer. These observations alone do not separate those causes.\n\nFor the deadline, use the 10-minute server rule as the anchor when the goal is to see whether the server itself closes the connection. A total client deadline of about 10–11 minutes will let that documented test happen. A 75-second deadline is fine for normal responses, but it cannot distinguish the \"inference never started\" case. Keep the HTTPX read timeout longer than the observed gap between blank lines. The telemetry that distinguishes the remaining explanations is: time to headers and status; timestamp of every keep-alive line; timestamp of the first real JSON byte; completion time; request ID, model, and user_id; in-flight concurrency at request time; which side closed the connection; and which client exception fired. Steady blank lines, no JSON, and a server close near 10 minutes point to inference never starting. A late but real JSON body points to slow generation or an over-short client deadline. A gap longer than the read timeout points to a keep-alive or network interruption, and repeated HTTP 429 results point to concurrency limits.",
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "revise",
+          "critique_summary": "The draft is well-grounded in the two supplied pages and correctly separates the documented keep-alive behavior (HTTP 200 plus empty lines is normal and not a fault; not a partial body) from the client-side 75-second stop. The HTTPX reasoning is sound: a read timeout measures the wait for a chunk of data, and arriving blank lines reset it, so the stop points to a separate wall-clock deadline. The main gap is the requested \"appropriate deadline\": the draft says \"a few minutes\" but does not anchor that to the only server-side timing fact available, namely that DeepSeek closes the connection only if inference has not started after 10 minutes. A deadline that short cannot reveal whether the server would have closed the connection, so the recommendation is under-developed rather than wrong. A second point is that the read-timer-reset statement is an inference from the HTTPX definition and should be labelled as such.",
+          "answer_points": [
+            "Replace the vague \"a few minutes\" deadline with an explicit anchor: because DeepSeek documents only one server-side limit (it closes the connection if inference has not started after 10 minutes), a client total deadline just above that mark (for example about 10–11 minutes) is the appropriate test when the goal is to see whether the server will close the connection, which would confirm the \"inference never started\" case. Shorter deadlines (like the 75-second one) fit normal responses but cannot distinguish that case.",
+            "Mark \"each received blank line resets the read timer\" as an inference from the HTTPX definition, not a source fact: HTTPX defines the read timeout as the maximum time to wait for a chunk of data ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)), and a blank line is data, so the reset follows — but the source does not state this directly.",
+            "Clarify the ambiguous branch \"or to a much larger or disabled read timeout after data stopped\": the observations show data kept arriving, so the 75-second stop is best explained by a wall-clock deadline firing while blanks were still arriving, not by a read timeout. State it that way to avoid a confusing alternative.",
+            "Keep, but make explicit, that HTTP 200 only shows the server accepted the request and opened the documented keep-alive; it does not show the JSON body is ready, which is why the answer never arrived before the client deadline."
+          ],
+          "confidence": "medium",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "57d6bace4a794f46690974a1a56be16d78d16ca5e4099b9407d5c671a6ccd9fc",
+      "evidence_sha256": "6e8a222367761da315a086895d53a1dde0dd4177d60943daaba26dca9dcec289",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "synthesis"
+    },
+    "research_state": {},
+    "error": null
+  },
+  {
+    "artifact": "source-focused_high.private.json",
+    "sha256": "50f2fdeca1e1694339f5acbc8bd193197f7cc20a55b3cb6f04fe74f028eadce2",
+    "case": "source",
+    "variant": "focused_high",
+    "segment": "review and correction of identical supplied draft; acquisition and initial synthesis excluded",
+    "elapsed_seconds": 128.708,
+    "status": "completed",
+    "run_id": "agrun_5c347a2325",
+    "answer_markdown": "The HTTP 200 and the continuing blank lines show only that DeepSeek accepted the request and is holding the connection open. They do not show a server fault, and they do not show that the model has started generating. The status line arrives before the body, so the 200 is not proof that a valid JSON answer will follow. The blank lines match DeepSeek's documented non-streaming keep-alive: the server may continuously return empty lines while it waits, and those lines do not affect parsing of the JSON body ([Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/)). DeepSeek returns HTTP 429 when the account or a user_id goes over its concurrency limit at that moment, with limits of 2500 for deepseek-flash and 500 for deepseek-v4-pro. The 200 therefore rules out only an initial concurrency rejection; in-flight load can change on a later retry. The observations are also consistent with the request being accepted but queued before the model starts.\n\nThe 75-second stop is a client event, not a documented DeepSeek timeout. HTTPX offers only connect, read, write, and pool timeouts, with a default of 5 seconds of network inactivity ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)); it has no total-duration timeout. Each received blank line resets the read timer. If blank lines continued to arrive until 75 seconds, an inactivity-style read timeout would not fire, so the stop must come from a caller-enforced wall-clock deadline, such as asyncio.wait_for or an elapsed-time check. The alternative shape is that blank lines stopped earlier and a configured read timeout longer than the remaining time fired at 75 seconds. DeepSeek documents one server cutoff: if inference (the model's generation work) has not started after 10 minutes, the server closes the connection. It does not state the blank-line interval or promise a total generation limit, so the observed stop does not identify a server-side timeout.\n\nSet deadlines as client policy, not as a reading of the 10-minute rule. If the goal is to learn whether DeepSeek would eventually answer, set the total client cap just above 10 minutes; a 75-second cap gives up before that server cutoff. If 75 seconds is a product latency budget, keep it and accept that legitimate long answers may be cut off. For HTTPX, set the read timeout well above the largest expected gap between blank lines, or disable the read timeout inside the caller's wall-clock deadline; do not tune it to one observed gap, because DeepSeek does not state the keep-alive interval. To separate the remaining causes, record the exact exit path at 75 seconds (caller deadline versus an HTTPX ReadTimeout), the effective timeout configuration, timestamps for the status line, each blank line, and the first JSON byte, the request ID, model, user_id, in-flight concurrency at send, and which side closed the connection. Steady blank lines with no JSON and a server close near 10 minutes point to inference never starting; a late JSON body points to slow generation; a gap longer than the read timeout points to network or keep-alive interruption; and a later retry receiving 429 points to changed concurrency load, which remains a hypothesis because no retry data was reported.",
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "economy",
+            "thinking": "high",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "revise",
+          "critique_summary": "The draft is factually sound on both source pages and its main inference is well supported: HTTP 200 plus continuous blank lines is the documented non-streaming keep-alive, so it shows the request was accepted, not that inference started or failed. The remaining fixes are precision and clarity, not a change of conclusion. The strongest one: the draft implies a wall-clock cap can come from HTTPX config, but the httpx page lists only connect, read, write and pool timeouts, so the 75-second stop must come from the caller's own code. The deadline advice should also be tied to the documented 10-minute server cutoff, and one sentence in paragraph 2 describes two scenarios that cannot both hold at once.",
+          "answer_points": [
+            "Keep, but tighten, the 200 statement: the HTTP status line is delivered before the body, so 200 plus blank lines proves only that DeepSeek accepted the request and was holding the connection, exactly as the [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page describes. It does not show that inference started or that the answer will be valid JSON.",
+            "Make the 429 point exact: DeepSeek returns HTTP 429 when the account (2400/2500 for deepseek-flash, 500 for deepseek-v4-pro) or a user_id exceeds its concurrency limit, so the 200 rules out a concurrency rejection at send time only. A later retry can still receive 429 if in-flight load changed.",
+            "Correct the source of the 75-second stop: the [HTTPX timeouts](https://www.python-httpx.org/advanced/timeouts/) page lists only connect, read, write and pool timeouts, and no total-duration timeout, so a 75-second wall-clock cap cannot be an httpx default and must be imposed by the caller (for example asyncio.wait_for or a manual elapsed-time check). Label this as an inference, since the page does not say how callers build a total deadline.",
+            "Rewrite the clause 'or to a much larger or disabled read timeout after data stopped' as two clear, separate shapes of the same event: either blank lines kept arriving until 75 seconds, so the caller's wall-clock cap fired; or blank lines stopped earlier and the configured read timeout was longer than the remaining time. They cannot both apply at once.",
+            "Ground the deadline recommendation in the documented 10-minute rule: the server closes the connection only if inference has not started after 10 minutes. So a client cap below 10 minutes gives up before the server's own cutoff. If the goal is to learn whether DeepSeek would answer, set the total deadline just above 10 minutes; if 75 seconds is a product latency budget, keep it and state that long answers will be cut off.",
+            "Weaken 'keep the HTTPX read timeout just above the observed gap between blank lines': the docs do not state the keep-alive interval, so an observed gap is a weak basis. Recommend a read timeout well above the largest expected gap, or no read timeout inside a caller-enforced wall-clock deadline. Draft already says 'much larger or disabled'; drop the 'just above' wording.",
+            "Add two telemetry items that separate the hypotheses: the exact exception or exit path at 75 seconds (an httpx ReadTimeout versus the caller's own deadline) and the httpx timeout configuration actually in effect, since environment or proxy defaults can change it. The existing list already covers request ID, time to headers, byte timing, concurrency and close direction.",
+            "Mark 'retries returning HTTP 429 point to concurrency limits' as a hypothesis: the draft reports no retry data, so it is a possible test, not a finding."
+          ],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": [
+            "Only within the supplied source scope: whether DeepSeek documents the interval between keep-alive blank lines, or any total request duration limit beyond the 10-minute pre-inference connection close. The supplied page states neither, so the read-timeout recommendation stays a heuristic."
+          ]
+        }
+      ],
+      "draft_sha256": "57d6bace4a794f46690974a1a56be16d78d16ca5e4099b9407d5c671a6ccd9fc",
+      "evidence_sha256": "6e8a222367761da315a086895d53a1dde0dd4177d60943daaba26dca9dcec289",
+      "research_requests": [
+        "Only within the supplied source scope: whether DeepSeek documents the interval between keep-alive blank lines, or any total request duration limit beyond the 10-minute pre-inference connection close. The supplied page states neither, so the read-timeout recommendation stays a heuristic."
+      ],
+      "corrections_applied": true,
+      "pending_research_requests": [
+        "Only within the supplied source scope: whether DeepSeek documents the interval between keep-alive blank lines, or any total request duration limit beyond the 10-minute pre-inference connection close. The supplied page states neither, so the read-timeout recommendation stays a heuristic."
+      ],
+      "resolution": "synthesis"
+    },
+    "research_state": {
+      "next_actions": [
+        "Only within the supplied source scope: whether DeepSeek documents the interval between keep-alive blank lines, or any total request duration limit beyond the 10-minute pre-inference connection close. The supplied page states neither, so the read-timeout recommendation stays a heuristic."
+      ]
+    },
+    "error": null
+  },
+  {
+    "artifact": "source-focused_pro.private.json",
+    "sha256": "4a375f6d048662e68aa3c26f784a224d858d6a9de67edb47db41301903031b8f",
+    "case": "source",
+    "variant": "focused_pro",
+    "segment": "review and correction of identical supplied draft; acquisition and initial synthesis excluded",
+    "elapsed_seconds": 33.51,
+    "status": "completed",
+    "run_id": "agrun_dd09419ca2",
+    "answer_markdown": "The HTTP 200 and the continuing blank lines show that the server accepted the request and is holding the connection open. They are not evidence of a server fault. DeepSeek's [Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/) page says that non-streaming requests can continuously receive empty lines while waiting, and that these lines do not affect parsing of the JSON body. A concurrency rejection appears as HTTP 429, so the 200 rules out that status-level failure. The blank lines are not a partial answer, and they do not show whether inference started.\n\nThe 75-second stop is a client deadline, not a DeepSeek timeout. HTTPX has connect, read, write, and pool timeouts, with a default of 5 seconds of network inactivity ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). Each received blank line resets the read timer. Because lines kept arriving, a 5-second read timeout would not have fired. So the stop points to a separate wall-clock deadline, or to a much larger or disabled read timeout after data stopped. DeepSeek documents only that it closes the connection after 10 minutes if inference has not started. It promises no total-generation time. The failure could be queueing or a slow start, slow generation, or a deadline too short for a legitimate long answer. These observations alone do not separate those causes.\n\nFor an appropriate deadline, start with a total client timeout of a few minutes for normal responses, and raise it for prompts expected to produce long answers. Treat it as client policy, not as a guarantee from the 10-minute server rule. Keep the HTTPX read timeout just above the observed gap between blank lines. Timestamped telemetry would distinguish the remaining causes: time to headers, arrival time and content of each blank line and byte, time to first real JSON byte, completion time, status and request ID, model, user_id, in-flight concurrency at request time, and which side closed the connection. Steady blank lines with no body and a server close near 10 minutes mean inference never started. A late but real JSON body means slow generation. A gap longer than the read timeout means a keep-alive or network interruption. Retries that return HTTP 429 point to concurrency limits, not latency.",
+    "quality_review": {
+      "status": "completed",
+      "reviews": [
+        {
+          "reviewer": {
+            "id": "reviewer_1",
+            "name": "Reviewer 1",
+            "profile": "analysis",
+            "thinking": "low",
+            "focus": "Evidence, reasoning and clarity"
+          },
+          "status": "completed",
+          "verdict": "accept",
+          "critique_summary": "The draft correctly uses both sources to interpret the 200/blank lines as documented keep-alive behavior, distinguishes the 75-second client deadline from HTTPX and DeepSeek timeouts, and offers plausible failure causes with telemetry to separate them. No material factual or reasoning errors found.",
+          "answer_points": [],
+          "confidence": "high",
+          "limitations": [],
+          "unsupported_claims": [],
+          "evidence_gaps": [],
+          "research_requests": []
+        }
+      ],
+      "draft_sha256": "57d6bace4a794f46690974a1a56be16d78d16ca5e4099b9407d5c671a6ccd9fc",
+      "evidence_sha256": "6e8a222367761da315a086895d53a1dde0dd4177d60943daaba26dca9dcec289",
+      "research_requests": [],
+      "corrections_applied": true,
+      "pending_research_requests": [],
+      "resolution": "accepted_existing_analysis"
+    },
+    "research_state": {},
+    "error": null
+  },
+  {
+    "artifact": "structured.private.json",
+    "sha256": "10214dc3734e3367a6cff37a1dff6602729c8340441d6048cdc18dfc2f637fab",
+    "case": "source",
+    "variant": "structured",
+    "segment": "one premium analytical call; no reviewer or presentation added",
+    "elapsed_seconds": 99.816,
+    "status": "completed",
+    "payload": {
+      "conclusions": [
+        {
+          "observation": "A non-streaming DeepSeek request returned HTTP 200 and continuous blank lines, but no JSON body arrived within 75 seconds.",
+          "interpretation": "The connection is alive and the request was accepted. The DeepSeek page says non-streaming requests can continuously return blank lines as a keep-alive while waiting, and those lines do not affect the JSON body. HTTP 200 instead of 429 also means the request was not rejected for the documented concurrency limit. The server has not completed the answer; this is not proof of server failure.",
+          "other_explanations": [
+            "The request is waiting for model inference to start.",
+            "Model inference has started but has not finished generating the answer.",
+            "The client deadline is shorter than normal response latency."
+          ],
+          "distinguishing_information": "Record server-side request lifecycle timestamps (queued, inference start, completion), exact timestamps of blank lines, and whether JSON arrives if the client waits longer than 75 seconds."
+        },
+        {
+          "observation": "The client's own 75-second deadline expired before a JSON answer arrived.",
+          "interpretation": "The DeepSeek keep-alive mechanism allows the server to hold the connection for up to 10 minutes if inference has not started. A 75-second deadline is below that server wait period, so the timeout is likely a client configuration problem, not a server failure. An appropriate deadline must exceed 600 seconds and add margin for generation and transfer time.",
+          "other_explanations": [
+            "The server was still processing within its documented keep-alive window.",
+            "The response would have arrived if the client had waited longer.",
+            "The client implemented the deadline as a total timeout rather than a read timeout, so arriving blank lines did not reset it."
+          ],
+          "distinguishing_information": "Identify which type of HTTPX timeout fired (read, connect, write, pool, or an overall deadline); record intervals between blank lines; and wait once up to 600 seconds to see whether the server returns JSON or closes."
+        },
+        {
+          "observation": "The connection remained open but produced no JSON body by 75 seconds.",
+          "interpretation": "This cannot separate a request that has not started inference from one that is generating output. Both can produce the same blank-line keep-alive in non-streaming mode. DeepSeek only documents a close condition for the not-started case at 10 minutes.",
+          "other_explanations": [
+            "The server has not started inference and is holding the connection open.",
+            "The server is generating the response but has not completed it.",
+            "The client is not handling the keep-alive lines correctly, even though the lines should be ignored before the JSON body."
+          ],
+          "distinguishing_information": "Run a matching streaming request and record SSE keep-alive comments versus content tokens; compare with server-side inference-start and completion logs; wait beyond 75 seconds to observe either the JSON response or a server close near 10 minutes."
+        }
+      ],
+      "answer_markdown": "The server has accepted the request and is keeping it alive. A non-streaming DeepSeek request can return HTTP 200 and then continuously return empty lines; this is a documented keep-alive while the server waits for model inference to begin or finish. Those blank lines do not affect the JSON body ([DeepSeek Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/)). The status being 200 rather than 429 also shows the request was not rejected for exceeding the account concurrency limit. So the observations establish an unfinished request on a live connection, not a server failure.\n\nA 75-second client deadline is too short and is the likely failure point. The same DeepSeek page says the server can hold the connection open in this state and will close it only if inference has not started after 10 minutes. A deadline under 600 seconds can therefore expire while the request is still valid. Choose a deadline longer than 600 seconds and add margin for actual generation and network transfer, using your own observed response times. The HTTPX page distinguishes read timeouts, or the maximum wait between received chunks, from other limits; because blank lines are received data, a read timeout is normally reset. If your 75-second limit is a total deadline, it is too short ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)).\n\nTo separate the remaining causes, record when each blank line arrives, its byte size, the HTTP status, any request or response IDs, and which timeout type fired. Run a matching streaming request: in streaming mode DeepSeek sends keep-alive comments, and if only those comments appear, inference has not started, while content tokens show generation is underway ([DeepSeek Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/)). Wait once past 75 seconds up to the 10-minute server close: a JSON response in that window means the deadline was too short, while a server close near 10 minutes means inference did not start. Server-side request lifecycle timestamps, if available, give the same answer directly."
+    }
+  },
+  {
+    "artifact": "flow-blind-working_analysis.private.json",
+    "sha256": "594dc6cc5513fd10583559fb13dff9eb14b5b64bc7f7bdf25d2083d6e131a02f",
+    "status": "completed",
+    "payload": {
+      "working_analysis": "An HTTP 200 with repeated blank lines matches DeepSeek's documented keep-alive for non-streaming requests, where the server keeps the connection open while the model waits or runs. An HTTP 429 would mean the rate or concurrency limit was hit; that is absent. The blank lines themselves do not show whether the model has started generating. DeepSeek says it closes the connection after 10 minutes only if generation has not started ([rate-limit and keep-alive page](https://api-docs.deepseek.com/quick_start/rate_limit/)). So the observations establish that the server accepted the request and was still in its allowed waiting or processing period when the client gave up.\n\nA 75-second total deadline is much shorter than the server's 10-minute pre-start window. Blank lines reset only an inactivity-based timeout; if the client uses a total wall-clock deadline, they cannot help. HTTPX's default is a 5-second network-inactivity timeout, and its four timeout types can be configured separately ([HTTPX timeout page](https://www.python-httpx.org/advanced/timeouts/)). A likely failure cause is that the request had not started generating within 75 seconds, or that generation had started but needed more than 75 seconds to complete. The evidence cannot separate those two cases.\n\nSet any total deadline to at least 10 to 11 minutes, and set the read-inactivity threshold above the largest observed gap between keep-alive lines; do not enforce 75 seconds. For telemetry, record timestamps for the HTTP status line, every blank line, every body byte, and which side closes the connection. Run one diagnostic attempt past 10 minutes. If the server closes near 10 minutes, generation never started. If the connection stays open or delivers JSON later, generation had started or run longer. Also verify no proxy or SDK layer introduced its own timeout.",
+      "checking_questions": [
+        "Was the 75-second deadline a total wall-clock limit, or an inactivity read timeout that should reset on each blank line? Does the client treat a blank line as received data?",
+        "Did the client log timestamps for the HTTP status line, each blank line, and any first non-blank byte? Without those, can we tell when the model started generating?",
+        "Did the client or the server close the connection at 75 seconds? Can a packet trace show which side sent the FIN or RST?",
+        "If the same request is run with a longer deadline, such as 12 minutes, does the server close near 10 minutes, or does it deliver JSON after 10 minutes? What does that imply about inference start?",
+        "Is any intermediate proxy, gateway, or SDK layer involved that may have its own timeout, or is the client's socket directly connected to DeepSeek?"
+      ]
+    }
+  },
+  {
+    "artifact": "flow-blind-independent_checks.private.json",
+    "sha256": "3a18b95e117dd4e8965447bede0abda2c4aeadc7d74fac5bcd7fb519ee5ec110",
+    "status": "completed",
+    "payload": {
+      "checks": [
+        {
+          "question": "Was the 75-second deadline a total wall-clock limit, or an inactivity read timeout that should reset on each blank line? Does the client treat a blank line as received data?",
+          "answer": "The sources do not say which kind of 75-second deadline the client used. Source fact: DeepSeek says a non-streaming request may continuously return empty lines while the connection stays alive. Source fact: HTTPX defines a read timeout as the maximum time to wait for a chunk of data, and it raises ReadTimeout if no data arrives. So if the client used a read-inactivity timeout and counted each empty line as data, the timer should reset. The observation that the 75-second deadline expired while empty lines arrived fits a total wall-clock limit. It also fits a read timeout that ignores empty lines as data. Not established: which deadline type was used, or whether empty lines counted as data. HTTP 200 also rules out a 429 concurrency rejection, because DeepSeek says over-limit requests get HTTP 429.",
+          "basis": "DeepSeek keep-alive and 429 rules: https://api-docs.deepseek.com/quick_start/rate_limit/ ; HTTPX read timeout: https://www.python-httpx.org/advanced/timeouts/"
+        },
+        {
+          "question": "Did the client log timestamps for the HTTP status line, each blank line, and any first non-blank byte? Without those, can we tell when the model started generating?",
+          "answer": "No. The sources do not say what the client logged. Source fact: DeepSeek says the server will close the connection if the request has not started inference after 10 minutes. The sources do not say that HTTP 200 means inference started. Without timestamps for the status line, each empty line, and the first non-blank byte, you cannot tell when the model started generating. Empty lines show connection activity only. Not established by these sources: the actual model start time.",
+          "basis": "DeepSeek 10-minute no-inference close rule: https://api-docs.deepseek.com/quick_start/rate_limit/ ; HTTPX timeout definitions: https://www.python-httpx.org/advanced/timeouts/"
+        },
+        {
+          "question": "Did the client or the server close the connection at 75 seconds? Can a packet trace show which side sent the FIN or RST?",
+          "answer": "The sources do not say who closed the connection at 75 seconds. Source fact: DeepSeek documents a server-side close after 10 minutes without inference start. Source fact: HTTPX says a timeout raises an exception. HTTPX does not describe FIN or RST behavior. A packet trace can show which side sent FIN or RST. Reasonable inference: a client-side 75-second deadline often makes the client abort the request, but the sources do not prove that here.",
+          "basis": "DeepSeek 10-minute close rule: https://api-docs.deepseek.com/quick_start/rate_limit/ ; HTTPX timeout exceptions: https://www.python-httpx.org/advanced/timeouts/"
+        },
+        {
+          "question": "If the same request is run with a longer deadline, such as 12 minutes, does the server close near 10 minutes, or does it deliver JSON after 10 minutes? What does that imply about inference start?",
+          "answer": "Source fact: DeepSeek says the server will close the connection if the request has not started inference after 10 minutes. So if you run the same request with a total deadline longer than 10 minutes, for example 12 minutes, and the server closes near 10 minutes, that implies inference had not started by 10 minutes. If JSON arrives after 10 minutes, that implies inference had started before 10 minutes, or the source condition did not apply. The source does not promise a close exactly at 10 minutes, and it does not promise that JSON cannot arrive after 10 minutes. For the objective of observing the server close threshold, use a total deadline longer than 10 minutes. Telemetry that distinguishes the remaining explanations: timestamps for the status line, each empty line, the first non-blank byte, the close time, and the FIN or RST direction.",
+          "basis": "DeepSeek keep-alive and 10-minute no-inference close rule: https://api-docs.deepseek.com/quick_start/rate_limit/ ; HTTPX timeout types: https://www.python-httpx.org/advanced/timeouts/"
+        },
+        {
+          "question": "Is any intermediate proxy, gateway, or SDK layer involved that may have its own timeout, or is the client's socket directly connected to DeepSeek?",
+          "answer": "The sources do not establish whether a proxy, gateway, or SDK layer sits between the client and DeepSeek. Source fact: HTTPX can set connect, read, write, and pool timeouts per request or per client, and its default is a TimeoutException after 5 seconds of network inactivity. Source fact: DeepSeek documents API behavior and SDK user_id examples, but it does not mention an intermediate proxy or gateway. Not established by these sources: whether the client socket is directly connected to DeepSeek, or whether another timeout layer exists. To distinguish, inspect the client HTTPX timeout configuration, any proxy or gateway settings, and a packet capture of both endpoints.",
+          "basis": "HTTPX timeout configuration and default: https://www.python-httpx.org/advanced/timeouts/ ; DeepSeek API behavior and SDK examples: https://api-docs.deepseek.com/quick_start/rate_limit/"
+        }
+      ]
+    }
+  },
+  {
+    "artifact": "flow-blind-resolved_analysis.private.json",
+    "sha256": "064290dd7c3402dce5d7362d1a64bc64e225183d0a557ef89cd85aa9e10a47b2",
+    "status": "completed",
+    "payload": {
+      "resolution": "Independent checks confirmed the core findings. Corrections applied: the type of the 75-second deadline is not established by the sources; blank lines show connection keep-alive only, not that model generation started; HTTP 200 excludes an HTTP 429 rate or concurrency rejection. The deadline recommendation is now a total request limit longer than DeepSeek's 10-minute no-generation close window, paired with a separate read-inactivity limit and telemetry for timestamps, first non-blank byte, and connection-close direction.",
+      "answer_markdown": "The HTTP 200 status means the server accepted the request. It also rules out a rate or concurrency rejection, because DeepSeek returns HTTP 429 when a limit is exceeded ([Rate Limit & Isolation](https://api-docs.deepseek.com/quick_start/rate_limit/)). The blank lines are the documented keep-alive for non-streaming requests. They show the connection is still open while the server waits or works. They do not show whether the model has started generating its answer. DeepSeek says the server closes the connection after 10 minutes only if the request has not started generating. At 75 seconds, the server is still inside that 10-minute window. So the observations establish that the client's deadline fired before the server's documented deadline, not that the server failed.\n\nA 75-second deadline is much shorter than the server's 10-minute window. Blank lines reset only an inactivity timer that counts them as received data. If the client uses one total request limit of 75 seconds, blank lines cannot help. The source does not state which type of deadline the client used or whether it counted blank lines. HTTPX uses a read timeout as the longest wait for any data chunk, and its default is a 5-second inactivity exception ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). A likely cause is that the client stopped the request too early: the server may not have started generating, or it started but had not finished within 75 seconds. The evidence cannot separate these two cases.\n\nSet the total request limit to more than 10 minutes, such as 11 minutes, because DeepSeek may wait almost 10 minutes before it closes a not-started request. Set the read-inactivity limit above the longest gap between blank lines. Record timestamps for the status line, every blank line, the first non-blank byte, the close time, and whether the client or server closed the connection. Run one attempt past 10 minutes. If the server closes near 10 minutes with no JSON, the request never started generating. If JSON arrives or the connection stays open after 10 minutes, generation had started before the server's no-start limit. Also check your HTTPX timeout settings and any proxy or gateway layer, because a shorter hidden timeout can cause the same symptom."
+    }
+  }
+]

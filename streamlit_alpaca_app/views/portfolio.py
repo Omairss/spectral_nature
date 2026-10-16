@@ -1014,7 +1014,7 @@ def _render_opportunity_sets(
                 },
             )
         with overlap_tab:
-            comparison_names = comparison_rankings["group"].astype(str).tolist()
+            comparison_names = comparison_rankings["group_key"].astype(str).tolist()
             comparison_correlation = analytics.get("correlation", pd.DataFrame())
             if not comparison_correlation.empty:
                 comparison_names = [
@@ -1026,6 +1026,8 @@ def _render_opportunity_sets(
                     comparison_names,
                     comparison_names,
                 ]
+                display_names = comparison_rankings.set_index("group_key")["group"].to_dict()
+                comparison_correlation = comparison_correlation.rename(index=display_names, columns=display_names)
             correlation_figure = _correlation_figure(
                 comparison_correlation,
                 "Clustered group-return correlation",

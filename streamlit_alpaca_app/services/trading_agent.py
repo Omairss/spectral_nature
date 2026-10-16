@@ -11,45 +11,45 @@ from typing import Any, Callable
 
 import pandas as pd
 
-from .aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
+from compute.fundamentals import fundamental_snapshots_by_symbol
+
+from .llm_context import serialize_llm_context
+from .llm_execution import current_research_access_scope
+
 from .json_utils import to_jsonable, to_list
 from .llm import (
     LLMAPIError,
-    NARRATIVE_STYLE_RULE,
     get_prompt,
     register_narrative_prompt,
 )
 
 
 _TRADING_AGENT_SYSTEM_PROMPT = register_narrative_prompt(
-    name="Trading Agent Experiment",
+    name="Trading Agent Directional Calls",
     file="services/trading_agent.py",
     group="Trading Agent",
     prompt=(
-        f"You are the Spectral Nature market research analyst. {NARRATIVE_STYLE_RULE} "
-        "Use only the supplied summaries and evidence. Do not assume access to unseen quotes or news. "
-        "Follow this process: broad economic backdrop, momentum, hypothesis, validation, risk, watchlist candidate. "
-        "Return a ranked market-research watchlist. "
-        "Evaluate upside/watch setups and downside/risk-control setups. Include downside or avoid candidates only when the supplied evidence supports fading momentum or risk-control logic. "
-        "Separate the research classification from the directional call. Use stance='long' or stance='short' only when the evidence supports a scoreable directional call; otherwise use stance='no_call'. "
-        "Use research_status='supported' only for a directional call, and use watch, avoid, or insufficient_evidence when stance='no_call'. "
-        "State the classification, conditions, and evidence directly. "
-        "An avoid classification means the evidence does not support the upside thesis. "
-        "Write every returned field for an investor, not for an engineer operating the research system. Discuss the company, market move, catalyst, and thesis. "
-        "Use ordinary language and concise sentences. Do not describe database records, rows, tools, storage, retrieval, prompts, provenance machinery, screens, scanner scores, or internal labels in candidate prose. "
-        "Do not say that information was supplied, appeared in an input, or was not in evidence; state what is known or unknown directly. "
-        "Do not repeat a raw metric merely to say it cannot be interpreted; omit it when it has no useful comparison or definition. "
-        "Do not repeat the same fact across setup, hypothesis, evidence, and risks. Keep the market backdrop to two short sentences, portfolio posture to one sentence, "
-        "each candidate prose field to at most two short sentences, and each evidence, risk, or follow-up list to the three most decision-relevant items. "
-        "Keep three concepts separate: evidence is a supported fact; a tail risk is a market or business event that could hurt the thesis; "
-        "and an evidence limit is a forward-looking research question or fact to obtain next. Evidence limits must say what should be learned and why it matters, "
-        "not describe defects in the supplied data or repeat numbers that cannot be interpreted. Missing sources, unavailable filings, and incomplete records are not market risks. "
-        "If the available facts cannot support substantive investor analysis, return no candidate. "
-        "Every candidate needs an invalidation trigger and at least one genuine market or business risk."
+        f"You are the Spectral Nature market research analyst. "
+        "Produce ranked, falsifiable share-price calls for the exact requested horizon using the dated company research and market observations. "
+        "Every selected company needs your preferred long or short direction, including close decisions. Confidence describes the strength of the reasoning, not permission to make a call. "
+        "These are research ideas, not existing portfolio holdings or instructions to place orders. "
+        "Explain the business mechanism, what the current share price appears to expect, and what can change those expectations before this horizon ends. "
+        "Separate business quality from purchase price and incremental future changes from developments that have already happened. "
+        "For each call identify the strongest opposing case, the assumptions that decide between the two, and an observable development that would reverse your view. "
+        "Use comparable reporting periods and per-share economics when interpreting growth, financing and valuation. Financing provides cash as well as changing claims on the business; a transaction price does not guarantee a stock-price floor. "
+        "A long-term business development is not a near-term price driver without a reason it can change expectations inside the requested horizon. "
+        "Facts must come from the brief. Label forward assumptions as estimates, retain dates and distinguish a market snapshot's availability time from the actual price session date. "
+        "Do not invent probabilities, price targets, valuations or quantities to make a direction sound precise. State material unknowns and lower confidence where assumptions carry the call. "
+        "Research execution failure or unresolved identity is a failure, never a neutral forecast or a fabricated call. "
+        "Write ordinary investor language. Each prose field is at most two short sentences; each list has at most three distinct, useful items. "
+        "Evidence states dated facts; risks are events that would hurt this particular long or short call; research next states what to learn and why it could change the call. "
+        "Keep these distinct and avoid repeating the same fact. The backdrop describes the market and shared exposure describes the ideas' common risks, without claiming they are held. "
+        "Discuss companies and markets directly, without narrating records, inputs, tools, missing sources or the app's internal operation."
     ),
 )
 
-TRADING_AGENT_NARRATIVE_CONTRACT_VERSION = "plain_investor_research_v2"
+TRADING_AGENT_NARRATIVE_CONTRACT_VERSION = "directional_price_calls_v3"
+TRADING_AGENT_LEGACY_NARRATIVE_CONTRACTS = {"plain_investor_research_v2"}
 
 _TRADING_AGENT_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -61,20 +61,25 @@ _TRADING_AGENT_SCHEMA: dict[str, Any] = {
         },
         "portfolio_posture": {
             "type": "string",
-            "description": "One short sentence stating the portfolio implication.",
+            "description": "One short sentence explaining shared risks among these ideas. Do not claim they are existing holdings or recite candidate counts.",
         },
         "candidates": {
             "type": "array",
+            "minItems": 1,
             "items": {
                 "type": "object",
                 "additionalProperties": False,
                 "properties": {
                     "ticker": {"type": "string"},
-                    "direction": {"type": "string", "enum": ["long", "short", "watch", "avoid"]},
-                    "stance": {"type": "string", "enum": ["long", "short", "no_call"]},
-                    "research_status": {
-                        "type": "string",
-                        "enum": ["supported", "watch", "avoid", "insufficient_evidence"],
+                    "stance": {"type": "string", "enum": ["long", "short"]},
+                    "forecast": {
+                        "type": "object", "additionalProperties": False,
+                        "properties": {
+                            "pricing_assessment": {"type": "string", "description": "Why the observed share price leaves upside or downside at this horizon. Separate estimates from facts; do not invent a valuation when inputs are unknown. Two short sentences."},
+                            "assumptions": {"type": "array", "maxItems": 3, "items": {"type": "string"}, "description": "The uncertain forward conditions on which the direction depends, stated as assumptions rather than facts."},
+                            "opposing_case": {"type": "string", "description": "The strongest substantive argument for the other direction, including counterevidence. Two short sentences."},
+                        },
+                        "required": ["pricing_assessment", "assumptions", "opposing_case"],
                     },
                     "setup": {
                         "type": "string",
@@ -111,9 +116,8 @@ _TRADING_AGENT_SCHEMA: dict[str, Any] = {
                 },
                 "required": [
                     "ticker",
-                    "direction",
                     "stance",
-                    "research_status",
+                    "forecast",
                     "setup",
                     "hypothesis",
                     "evidence",
@@ -313,7 +317,7 @@ _TRADING_AGENT_REVIEW_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/trading_agent.py",
     group="Trading Agent",
     prompt=(
-        f"You are reviewing a completed or interim Spectral Nature Trading Agent research call. {NARRATIVE_STYLE_RULE} "
+        f"You are reviewing a completed or interim Spectral Nature Trading Agent research call. "
         "Use only the supplied candidate, evidence, and measured outcome. Evaluate the original call without creating a new one. "
         "Judge whether the stated thesis, evidence, direction, and horizon were supported. "
         "Name concrete research contract, prompt, retrieval, or candidate-selection improvements without mutating memory, prompts, rankings, or broker behavior."
@@ -428,13 +432,8 @@ def _append_distinct_text(items: list[str], text: object, *, similarity: float =
 
 
 def _compact_json(value: Any, *, limit: int = 18000) -> str:
-    try:
-        text = json.dumps(to_jsonable(value), ensure_ascii=True, sort_keys=True, default=str)
-    except Exception:
-        text = str(value)
-    if len(text) <= limit:
-        return text
-    return text[: limit - 3].rstrip() + "..."
+    # Preserve all model context; share exact repeated values by reference.
+    return serialize_llm_context(value)
 
 
 def _json_text(value: Any) -> str:
@@ -548,6 +547,10 @@ def _market_observation_for_prompt(
         "horizon": selected_label,
         "horizon_return_pct": _prompt_number(opportunity.get(selected_column)) if selected_column else None,
     }
+    price = _prompt_number(opportunity.get("close"))
+    if price is not None and price > 0:
+        payload["reference_price"] = price
+        payload["reference_price_basis"] = "last daily close observed by the market snapshot"
     return {key: value for key, value in payload.items() if value not in ("", None)}
 
 
@@ -593,6 +596,7 @@ def _ticker_research_brief(ticker_context: dict[str, Any]) -> dict[str, Any]:
         ],
         "market_observations": observations,
         "company_summary": _research_summary_for_prompt(ticker_context.get("stock_summary")),
+        "financials": ticker_context.get("financials") or {},
         "recent_company_context": recent_context,
         "recent_news": [
             _clean(item)
@@ -616,6 +620,7 @@ def _research_prompt_context(
     return {
         "research_scope": {
             "business_focus": _clean(controls.get("business_filter")),
+            "forecast_windows": context.get("forecast_windows") or [context.get("forecast_window") or {}],
             "selected_horizon": _clean(
                 controls.get("selected_horizon_label") or controls.get("momentum_horizon")
             ),
@@ -654,6 +659,7 @@ def _synthesis_prompt_context(
     return {
         "research_scope": {
             "business_focus": _clean(controls.get("business_filter")),
+            "forecast_window": context.get("forecast_window") or {},
             "selected_horizon": _clean(
                 controls.get("selected_horizon_label") or controls.get("momentum_horizon")
             ),
@@ -759,10 +765,12 @@ def _ticker_contexts_from_context(context: dict[str, Any]) -> list[dict[str, Any
             "company_name": _clean((base or {}).get("company_name") or feed_record.get("company_name")),
             "market_opportunity": feed_record,
             "stock_summary": {},
+            "financials": {},
             "attention_context": {},
             "news_summary_lines": [],
         }
         if isinstance(base, dict):
+            merged["financials"] = base.get("financials") if isinstance(base.get("financials"), dict) else {}
             stock_summary = base.get("stock_summary")
             if isinstance(stock_summary, dict):
                 merged["stock_summary"] = stock_summary
@@ -831,6 +839,12 @@ def _fallback_direction(value: object) -> str:
 
 
 def _candidate_semantics(candidate: dict[str, Any]) -> tuple[str, str, str]:
+    contract = candidate.get("narrative_contract_version") or _json_object_from_text(candidate.get("candidate_json")).get("narrative_contract_version")
+    if contract == TRADING_AGENT_NARRATIVE_CONTRACT_VERSION:
+        stance = _clean(candidate.get("stance")).lower()
+        if stance not in _TRADING_AGENT_DIRECTION_MULTIPLIER:
+            raise ValueError("A price forecast must choose long or short.")
+        return stance, "forecast", stance
     direction = _fallback_direction(candidate.get("direction"))
     stance = _clean(candidate.get("stance")).lower()
     if stance not in _TRADING_AGENT_STANCES:
@@ -869,7 +883,7 @@ def normalize_trading_agent_candidate(candidate: dict[str, Any]) -> dict[str, An
         for item in to_list(normalized.get("evidence_limits"))
         if _clean(item)
     ][:5]
-    normalized["narrative_contract_version"] = TRADING_AGENT_NARRATIVE_CONTRACT_VERSION
+    normalized["narrative_contract_version"] = normalized.get("narrative_contract_version") or "plain_investor_research_v2"
     return normalized
 
 
@@ -1000,6 +1014,7 @@ def build_trading_agent_context(
             "daily_move_retrieval_rank",
             "trend_quality_retrieval_rank",
             "sparkline_3m",
+            "close",
             "daily_change_pct",
             horizon_col,
             "horizon_metric_available",
@@ -1082,6 +1097,8 @@ def _build_trading_agent_horizon_contexts(
     research_candidate_limit: int,
     horizon_specs: tuple[dict[str, str], ...],
     generation_mode: str,
+    quarterly_fundamentals: pd.DataFrame | None = None,
+    asof_time_utc: object = None,
 ) -> list[tuple[dict[str, str], dict[str, Any]]]:
     contexts: list[tuple[dict[str, str], dict[str, Any]]] = []
     for raw_spec in horizon_specs:
@@ -1101,7 +1118,19 @@ def _build_trading_agent_horizon_contexts(
             research_candidate_limit=research_candidate_limit,
         )
         context["controls"]["generation_mode"] = _clean(generation_mode)
+        start = pd.Timestamp(_utc_iso(asof_time_utc))
+        context["forecast_window"] = {
+            "horizon": spec["label"], "start_utc": start.isoformat(),
+            "end_utc": (start + pd.Timedelta(days=_TRADING_AGENT_HORIZON_DAYS[spec["key"]])).isoformat(),
+        }
         contexts.append((spec, context))
+    symbols = list(dict.fromkeys(item["ticker"] for _, context in contexts for item in context["ticker_evidence"]))
+    financials = fundamental_snapshots_by_symbol(quarterly_fundamentals, symbols, asof_time_utc=asof_time_utc)
+    for _, context in contexts:
+        for item in context["ticker_evidence"]:
+            snapshot = dict(financials.get(item["ticker"]) or {})
+            trends = _json_object_from_text(snapshot.pop("financial_trends_json", ""))
+            item["financials"] = {**snapshot, "history": trends, "source": "quarterly_fundamentals"} if snapshot else {}
     return contexts
 
 
@@ -1240,6 +1269,7 @@ def build_trading_agent_materialized_frames(
     llm_client: Any | None,
     run_id: str,
     asof_time_utc: object,
+    quarterly_fundamentals: pd.DataFrame | None = None,
     business_filter: str = "All Market",
     max_candidates: int = 4,
     horizon_specs: tuple[dict[str, str], ...] = TRADING_AGENT_HORIZON_SPECS,
@@ -1256,6 +1286,7 @@ def build_trading_agent_materialized_frames(
         research_candidate_limit=candidate_limit,
         horizon_specs=horizon_specs,
         generation_mode="legacy_per_horizon_v1",
+        quarterly_fundamentals=quarterly_fundamentals, asof_time_utc=asof_time_utc,
     )
     builder = suggestion_builder or build_trading_agent_suggestions
     return _materialize_trading_agent_results(
@@ -1277,7 +1308,7 @@ def _prepare_trading_agent_price_history(frame: pd.DataFrame) -> pd.DataFrame:
     columns = ["symbol", "timestamp", "close"]
     if not isinstance(frame, pd.DataFrame) or frame.empty:
         return pd.DataFrame(columns=columns)
-    out = frame.copy()
+    out = frame[[column for column in ("symbol", "ticker", "timestamp", "close") if column in frame]].copy()
     if "symbol" not in out.columns and "ticker" in out.columns:
         out["symbol"] = out["ticker"]
     if "symbol" not in out.columns:
@@ -1300,8 +1331,8 @@ def _prepare_trading_agent_price_history(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _candidate_anchor_ts(row: pd.Series) -> pd.Timestamp | None:
-    candidate_time = _clean(row.get("asof_time_utc")) or _clean(row.get("generated_at_utc"))
-    return _utc_timestamp(candidate_time)
+    observed = [_utc_timestamp(row.get(key)) for key in ("asof_time_utc", "generated_at_utc")]
+    return max((value for value in observed if value is not None), default=None)
 
 
 def _scoring_direction(*, stance: object, direction: object) -> str:
@@ -1328,8 +1359,8 @@ def _aligned_price_return(
         return pd.NA
     aligned = prices.copy()
     aligned["_bar_day"] = aligned["timestamp"].dt.normalize()
-    entry_candidates = aligned[aligned["_bar_day"] >= entry_day.normalize()]
-    exit_candidates = aligned[aligned["_bar_day"] >= exit_day.normalize()]
+    entry_candidates = aligned[aligned["_bar_day"] == entry_day.normalize()]
+    exit_candidates = aligned[aligned["_bar_day"] == exit_day.normalize()]
     if entry_candidates.empty or exit_candidates.empty:
         return pd.NA
     entry_close = _numeric_or_na(entry_candidates.iloc[0].get("close"))
@@ -1404,7 +1435,9 @@ def build_trading_agent_outcomes(
     if candidate_frame.empty:
         return empty_trading_agent_outcome_frame()
 
-    prepared_prices = _prepare_trading_agent_price_history(price_history)
+    from .trading_call_tracking import completed_daily_prices
+    evaluation_iso = _utc_iso(evaluation_time_utc)
+    prepared_prices = completed_daily_prices(_prepare_trading_agent_price_history(price_history), evaluation_iso)
     prices_by_symbol = {
         str(symbol): symbol_prices.drop(columns=["symbol"]).reset_index(drop=True)
         for symbol, symbol_prices in prepared_prices.groupby("symbol", sort=False)
@@ -1414,7 +1447,6 @@ def build_trading_agent_outcomes(
         benchmark_ticker,
         pd.DataFrame(columns=["timestamp", "close"]),
     ).copy()
-    evaluation_iso = _utc_iso(evaluation_time_utc)
     row_items: list[dict[str, Any]] = []
 
     for _, row in candidate_frame.iterrows():
@@ -1450,13 +1482,15 @@ def build_trading_agent_outcomes(
             outcome_status = "missing_entry"
         elif not ticker_prices.empty:
             ticker_prices["_bar_day"] = ticker_prices["timestamp"].dt.normalize()
-            entry_candidates = ticker_prices[ticker_prices["_bar_day"] >= anchor_day].copy()
+            call_day = anchor_ts.tz_convert("America/New_York").strftime("%Y-%m-%d")
+            entry_candidates = ticker_prices[ticker_prices["session_date"] > call_day].copy()
             if entry_candidates.empty:
                 outcome_status = "missing_entry"
             else:
                 entry = entry_candidates.iloc[0]
                 entry_ts = _maybe_iso(entry.get("timestamp"))
                 entry_close = _numeric_or_na(entry.get("close"))
+                target_ts = (pd.Timestamp(entry.get("session_date")) + pd.Timedelta(days=_horizon_days(row))).tz_localize("America/New_York").tz_convert("UTC").isoformat()
                 future = ticker_prices[ticker_prices["timestamp"] > entry.get("timestamp")].copy()
                 if future.empty:
                     outcome_status = "no_future_bar"
@@ -1688,31 +1722,44 @@ def _call_trading_agent_research_review(
     if llm_client is None or not hasattr(llm_client, "generate_json"):
         return _review_unavailable_payload("Trading Agent research review requires an LLM runtime.")
     try:
-        payload = generate_json_via_aql_zopedia_gateway(
-            llm_client=llm_client,
-            surface="trading_agent.review",
-            purpose="research_review",
-            call_type="research_grade",
-            system_prompt=_TRADING_AGENT_REVIEW_SYSTEM_PROMPT,
-            user_prompt=(
-                "Review this Trading Agent call as a research-quality post-mortem. "
-                "Return only the schema fields and evaluate the original call.\n\n"
-                f"Review input JSON:\n{_compact_json(review_input, limit=12000)}"
-            ),
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=f"Review this Trading Agent call as a research-quality post-mortem. Return only the schema fields and evaluate the original call.\n\nReview input JSON:\n{_compact_json(review_input, limit=12000)}",
+            instructions=_TRADING_AGENT_REVIEW_SYSTEM_PROMPT,
             schema_name="trading_agent_research_review",
+            reuse_scope=current_research_access_scope(),
             schema=_TRADING_AGENT_REVIEW_SCHEMA,
-            metadata={
-                "candidate_id": _clean((review_input.get("candidate") or {}).get("candidate_id"))
-                if isinstance(review_input.get("candidate"), dict)
-                else "",
-                "ticker": _clean((review_input.get("outcome") or {}).get("ticker"))
-                if isinstance(review_input.get("outcome"), dict)
-                else "",
-                "horizon_key": _clean((review_input.get("outcome") or {}).get("horizon_key"))
-                if isinstance(review_input.get("outcome"), dict)
-                else "",
+            task="research_review", stage="review",
+            surface="trading_agent.review",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="research_grade",
+            operation_metadata={
+                "candidate_id": (
+                    _clean((review_input.get("candidate") or {}).get("candidate_id"))
+                    if isinstance(review_input.get("candidate"), dict)
+                    else ""
+                ),
+                "ticker": (
+                    _clean((review_input.get("outcome") or {}).get("ticker"))
+                    if isinstance(review_input.get("outcome"), dict)
+                    else ""
+                ),
+                "horizon_key": (
+                    _clean((review_input.get("outcome") or {}).get("horizon_key"))
+                    if isinstance(review_input.get("outcome"), dict)
+                    else ""
+                ),
             },
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        payload = engine_operation["payload"]
     except Exception as exc:
         unavailable = _review_unavailable_payload(_safe_error_text(f"{type(exc).__name__}: {exc}"))
         unavailable["review_status"] = "error"
@@ -1871,8 +1918,16 @@ def _aql_ticker_query(context: dict[str, Any], ticker_context: dict[str, Any]) -
         f"Focus ticker: {identity_line}. Research this ticker only; use peers, sector, or macro only when they directly explain this ticker. "
         "Zopedia pages and retained context are useful memory when present, but their absence is not a failure; "
         "ground the research with the supplied market observation, company context, filings, fundamentals, recent news, and source search as available. "
-        "Do not synthesize a final portfolio view. The package may complete with an unknown or watch-only verdict when evidence is thin; "
-        "do not exhaust the budget trying to fill every missing source. Verify company identity, "
+        "Develop competing forward-looking bullish and bearish hypotheses for the requested horizons, with the business mechanism, "
+        "supporting facts, assumptions, counterevidence and observable invalidation. State your preferred price direction for each requested horizon and why, even when the balance is close. "
+        "This is research, not portfolio allocation or trade execution. An unresolved cause of a past price move, incomplete coverage, "
+        "or missing long-term price history does not by itself rule out a useful forward-looking thesis. "
+        "Uncertainty belongs in the strength of the forecast and its assumptions, not in a refusal to choose. "
+        "Separate established facts from estimated scenarios. Assess what today's price already expects: a good business can still be overpriced. "
+        "Compare like reporting periods, distinguish recurring operations from financing and one-off items, and explain how a development changes per-share value before the horizon ends. "
+        "Check whether each invalidation actually opposes its thesis and applies to that horizon. Use a numerical threshold only when its economic basis can be explained. "
+        "Identify the strongest competing mechanism and the observation most likely to change your preferred direction. "
+        "Do not exhaust the budget filling every missing source. Verify company identity, "
         "gather high-signal business/current evidence when available, then write what is supported and name exact gaps. "
         "Write for an investor: discuss the company, catalyst, price move, and business facts, not the app or its research machinery. "
         "If a number has no useful definition or comparison, omit it from the analysis. Write limitations as forward-looking research questions or facts to obtain next, "
@@ -1981,6 +2036,7 @@ def _ticker_package_from_result(
         "error": _safe_error_text((result or {}).get("error"), fallback="") if isinstance(result, dict) else "",
         "market_opportunity": ticker_context.get("market_opportunity") if isinstance(ticker_context.get("market_opportunity"), dict) else {},
         "stock_summary": ticker_context.get("stock_summary") if isinstance(ticker_context.get("stock_summary"), dict) else {},
+        "financials": ticker_context.get("financials") or {},
         "horizon_keys": [_clean(item) for item in to_list(ticker_context.get("horizon_keys")) if _clean(item)],
         "horizon_labels": [_clean(item) for item in to_list(ticker_context.get("horizon_labels")) if _clean(item)],
         "selection_trace": ticker_context.get("selection_trace")
@@ -2009,6 +2065,7 @@ def _failed_ticker_package(
         "error": _clean(error),
         "market_opportunity": ticker_context.get("market_opportunity") if isinstance(ticker_context.get("market_opportunity"), dict) else {},
         "stock_summary": ticker_context.get("stock_summary") if isinstance(ticker_context.get("stock_summary"), dict) else {},
+        "financials": ticker_context.get("financials") or {},
         "horizon_keys": [_clean(item) for item in to_list(ticker_context.get("horizon_keys")) if _clean(item)],
         "horizon_labels": [_clean(item) for item in to_list(ticker_context.get("horizon_labels")) if _clean(item)],
         "selection_trace": ticker_context.get("selection_trace")
@@ -2227,6 +2284,7 @@ def _shared_research_context(
             **research_controls,
         },
         "source_summaries": source_summaries,
+        "forecast_windows": [context.get("forecast_window") or {} for _, context in horizon_contexts],
         "market_opportunity_feed": [
             item.get("market_opportunity")
             for item in ticker_contexts
@@ -2414,43 +2472,62 @@ def _synthesize_trading_agent_suggestions(
     user_prompt = (
         "Investor research brief JSON:\n"
         f"{_compact_json(synthesis_context)}\n\n"
-        "Return the strongest watchlist candidates only, using each company's research findings as its evidence boundary. "
-        "Prefer no candidate over weak evidence. Use only the supplied brief. "
-        "Use stance='no_call' with research_status='watch', 'avoid', or 'insufficient_evidence' when evidence does not support a directional call. "
-        "Use stance='long' or 'short' and research_status='supported' only when the supplied evidence supports a scoreable directional call for this exact horizon. "
-        "Keep direction as the compatible display label: long or short for supported calls, watch or avoid for no-call classifications. "
-        "A missing selected-horizon measure, an unsupported business identity, or a package that cannot form a substantive hypothesis must not become a directional call. "
-        "Candidate setup, hypothesis, evidence, invalidation, and tail risks are displayed directly. Rewrite the research; do not copy process language. "
-        "Keep the result brief: setup in one sentence; hypothesis and invalidation in at most two short sentences; no more than three evidence items, three risks, and three follow-up items. "
-        "Evidence must say what happened and why it matters. Tail risks must be market, company, regulatory, financial, or execution events that could hurt the thesis. "
-        "Missing or unverified information is never a tail risk. Put decision-critical follow-up work in evidence_limits as forward-looking questions or facts to obtain next. "
-        "Do not narrate why an input is incomplete and do not repeat an uninterpretable number in evidence_limits. Put broad missing market facts in data_gaps. "
-        "Do not mention records, rows, fields, tools, feeds, packages, storage, source plumbing, the research process, screens, scanner scores, or labels in candidate prose. "
-        "Do not say supplied, input, or in evidence. Translate classifications such as Up / cooling into direct statements such as price momentum is cooling. "
-        "Do not repeat a return series or catalyst in multiple fields. "
-        "Ignore proprietary scanner scores and omit raw numbers that lack a useful label, definition, date, or comparison. Use exact dates from evidence; do not infer weekdays."
+        "Rank up to the existing maximum number of companies as explicit long or short calls for the exact requested horizon. "
+        "Use the completed company findings as the factual boundary and the market observations for the reference price; earlier reports can describe older prices. "
+        "Earlier watch-only conclusions are not binding. Reassess their facts, pricing and competing arguments and choose your preferred direction even with low confidence. "
+        "Explain what is already reflected in price, the incremental business or market change that supports the call, and why it can matter within this horizon. "
+        "Use the explicit forecast_window dates. An event after end_utc cannot be this call's within-window trigger or invalidation; distinguish later research follow-up. "
+        "State your critical assumptions and the strongest opposing case in forecast, instead of inventing numerical forecasts when valuation inputs are unknown. "
+        "Hypothesis states the preferred forward outcome, invalidation must oppose that outcome, and tail risks must hurt the chosen position rather than reinforce it. "
+        "Keep the brief concise and substantive: two short sentences per prose field, up to three distinct items per list. "
+        "Missing historical returns or an unresolved explanation for a past move do not alone veto a forward-looking call; failed research and unresolved business identity remain failures. "
+        "Write the backdrop and shared exposures from the calls actually returned, without assuming any are approved or held. "
+        "Retain exact observation dates where known. A snapshot availability timestamp is not the trading session date of the last observed close."
     )
     try:
-        payload = generate_json_via_aql_zopedia_gateway(
-            llm_client=llm_client,
-            surface="trading_agent.synthesis",
-            purpose="candidate_synthesis",
-            call_type="formatter_over_aql",
-            system_prompt=get_prompt(_TRADING_AGENT_SYSTEM_PROMPT),
-            user_prompt=user_prompt,
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=user_prompt,
+            instructions=get_prompt(_TRADING_AGENT_SYSTEM_PROMPT),
             schema_name="trading_agent_experiment",
+            reuse_scope=current_research_access_scope(),
             schema=_TRADING_AGENT_SCHEMA,
-            metadata={
-                "horizon_label": _clean((normalized_context.get("controls") or {}).get("selected_horizon_label"))
-                if isinstance(normalized_context.get("controls"), dict)
-                else "",
-                "horizon_column": _clean((normalized_context.get("controls") or {}).get("selected_horizon_col"))
-                if isinstance(normalized_context.get("controls"), dict)
-                else "",
+            task="candidate_synthesis", stage='synthesis',
+            surface="trading_agent.synthesis",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata={
+                "horizon_label": (
+                    _clean(
+                        (normalized_context.get("controls") or {}).get(
+                            "selected_horizon_label"
+                        )
+                    )
+                    if isinstance(normalized_context.get("controls"), dict)
+                    else ""
+                ),
+                "horizon_column": (
+                    _clean(
+                        (normalized_context.get("controls") or {}).get(
+                            "selected_horizon_col"
+                        )
+                    )
+                    if isinstance(normalized_context.get("controls"), dict)
+                    else ""
+                ),
                 "ticker_count": len(ticker_contexts),
                 "aql_status": _clean(aql_context.get("status")),
             },
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        payload = engine_operation["payload"]
     except LLMAPIError as exc:
         safe_message = _safe_error_text(exc)
         return {
@@ -2471,7 +2548,8 @@ def _synthesize_trading_agent_suggestions(
             "error": f"{type(exc).__name__}: {exc}",
         }
 
-    allowed_tickers = {_clean(item.get("ticker")).upper() for item in ticker_contexts if _clean(item.get("ticker"))}
+    contexts_by_ticker = {_clean(item.get("ticker")).upper(): item for item in ticker_contexts if _clean(item.get("ticker"))}
+    allowed_tickers = set(contexts_by_ticker)
     candidates: list[dict[str, Any]] = []
     for item in to_list(payload.get("candidates")):
         if not isinstance(item, dict):
@@ -2481,15 +2559,22 @@ def _synthesize_trading_agent_suggestions(
             continue
         if allowed_tickers and ticker not in allowed_tickers:
             continue
-        direction = _clean(item.get("direction")).lower()
-        if direction not in {"long", "short", "watch", "avoid"}:
-            direction = "watch"
+        stance = _clean(item.get("stance")).lower()
+        reference = _market_observation_for_prompt(contexts_by_ticker[ticker].get("market_opportunity"))
+        forecast = {
+            **(item.get("forecast") or {}),
+            "reference_price": reference.get("reference_price"),
+            "reference_snapshot_as_of": reference.get("as_of") or "",
+            "reference_price_basis": reference.get("reference_price_basis") or "",
+            "start_at_utc": (normalized_context.get("forecast_window") or {}).get("start_utc"),
+            "end_at_utc": (normalized_context.get("forecast_window") or {}).get("end_utc"),
+        }
         candidates.append(
             normalize_trading_agent_candidate({
+                "narrative_contract_version": TRADING_AGENT_NARRATIVE_CONTRACT_VERSION,
                 "ticker": ticker,
-                "direction": direction,
-                "stance": _clean(item.get("stance")),
-                "research_status": _clean(item.get("research_status")),
+                "stance": stance,
+                "forecast": forecast,
                 "setup": _clean(item.get("setup")),
                 "hypothesis": _clean(item.get("hypothesis")),
                 "evidence": [_clean(value) for value in to_list(item.get("evidence")) if _clean(value)][:5],
@@ -2563,6 +2648,7 @@ def build_trading_agent_shared_research_frames(
     llm_client: Any | None,
     run_id: str,
     asof_time_utc: object,
+    quarterly_fundamentals: pd.DataFrame | None = None,
     business_filter: str = "All Market",
     max_candidates: int = 4,
     research_candidate_limit: int = 6,
@@ -2588,6 +2674,7 @@ def build_trading_agent_shared_research_frames(
         research_candidate_limit=scout_limit,
         horizon_specs=horizon_specs,
         generation_mode="shared_research_v2",
+        quarterly_fundamentals=quarterly_fundamentals, asof_time_utc=asof_time_utc,
     )
     ticker_contexts = _balanced_shared_research_pool(
         horizon_contexts,

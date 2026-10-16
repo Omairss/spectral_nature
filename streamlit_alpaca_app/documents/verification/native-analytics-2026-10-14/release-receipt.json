@@ -1,0 +1,405 @@
+{
+  "date_local": "2026-10-14",
+  "status": "Native parity build 5 installed and launched on the physical iPhone; compatible production stack already deployed",
+  "development": {
+    "api": {
+      "name": "sn-api-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-dev@sha256:e025eb5b6cd93b61dcc0aa91c9b3dcfecfe87b6ade1f7c4ff2c513ed951a73ef",
+      "revision": "sn-api-next-dev--0000029",
+      "ready_revision": "sn-api-next-dev--0000029"
+    },
+    "web": {
+      "name": "sn-next-ui-dev",
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-web-dev@sha256:fa9cee18da4a0d9349457bd068d14785a22991112a996f30a3f17936c14c0572",
+      "revision": "sn-next-ui-dev--0000017",
+      "ready_revision": "sn-next-ui-dev--0000017"
+    },
+    "home_producer": {
+      "name": "attention-home-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-home-dev@sha256:03cc53b2ea8426400d1c58d99917361d8049aa9111475176ece21d6bfae6dd44",
+      "revision": null,
+      "ready_revision": null
+    },
+    "ticker_producer": {
+      "name": "attention-ticker-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-ticker-dev@sha256:548f3330eece8455460bf3214fa9c2f6aa942ab7b55dbad4452b2e35979ee44e",
+      "revision": null,
+      "ready_revision": null
+    }
+  },
+  "data_acceptance": {
+    "home_status": "available",
+    "tickers": 21,
+    "intraday_charts": 19,
+    "maximum_daily_points": 1250,
+    "daily_history_end": "2026-10-09",
+    "fundamentals": {
+      "environment": "development",
+      "namespace": "development",
+      "rows": 182887,
+      "coverage": {
+        "GS": 351,
+        "JPM": 273,
+        "BAC": 182,
+        "HUM": 313,
+        "C": 0
+      }
+    },
+    "current_portfolio_groups": 38,
+    "unique_group_labels": 38,
+    "private_route_unauthenticated_http": 401,
+    "private_route_cache_control": "no-store",
+    "session_change_source": "Previous regular-session close from the same prefetched bar feed"
+  },
+  "development_executions": {
+    "fundamentals": "attention-home-next-dev-m8lvh8s",
+    "ticker": "attention-ticker-next-dev-3it152x"
+  },
+  "native": {
+    "bundle": "com.torrescapital.spectralnature",
+    "version": "1.0.0",
+    "candidate_build": "5",
+    "signed_simulator_build": true,
+    "signed_device_build": true,
+    "full_app_development_gateway_reviewed": true,
+    "installed_on_physical_phone": true,
+    "last_known_physical_build": "5",
+    "paired_phone_transport": "wired",
+    "paired_phone_tunnel": "connected",
+    "reviewed_source_sha256": {
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/SpectralNatureMVPApp.swift": "8f27bf244f9c2bf7d30e92c63217311520a946c71b58f5992bb6428d002e4de2",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AttentionCharts.swift": "4202bb40a7250c4e2242e21149b49f6f23735dbb6e7cb1a2384ff1d01b8a7e8a",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/MarkdownView.swift": "f1725608eca9b7529ccb0d13ec5113c01e935bff2e04b2bb546cef95cf2a2ad7",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/WorkbenchDesign.swift": "1b111d4b952b8532389950cad90ba789aca7be139d5be2021db7bc48db525628",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/SankeyChart.swift": "bcdc01232b5014c63fd405423d7853c58b255040fb9b78a7fa514c5ffbe1d287",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AnalysisCharts.swift": "c617a29ff228d15a31aea5689b5055ea681b05666ac1371b2cb789182c8a433c",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/AppSession.swift": "fc21cd8a0fe31a689799ba86474345d85d8c1e35eded0f7da7d43259e958bea9",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/RootView.swift": "f647b554e74d517da9f5c961662c5bb35bcc8284dca4eec88e0a53ed353e1eec",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/AppEnvironment.swift": "0e3fc7f42e217d793373a76021d8cfd19f63dcb150bd93071f3356ea83c7d674",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/JSONValue.swift": "76c28c762629fceefe327a7c2d6b65e46e1b3352c7145424043bb42df4b26eb3",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIClient.swift": "52019336cb201971c5fa3141d70587860110c5973dd62d53a552597af41f0988",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift": "7c89abbb5db2c982923fa75fb65942a3d944bebc8c37187b4dcdce3800afd3eb",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift": "a9b3b7b952ea14d76ebf5582978ff16d2183eb9603642e4a8fac3c90710f09ba",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Home/HomeView.swift": "f846de1b657b068e8be92022de0f37dae965c51abfbf43db363ceae8cc5d0bee",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Auth/LoginView.swift": "7a3f53141e5adeeb94847ba3c4c16043f0f90337cb03e81d3d5783fbfa0b011d",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Auth/AccountLink.swift": "5a6350f12044d755c7343a293d1d0ec32a651eadc7d62a8fad2b4e824bc3d4b1",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/AdminView.swift": "dea88efb78860b53f09a81ee10a38acb293275bb72f5bfe611ddee4952269ca7",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/AttentionGraphView.swift": "e52dcfda838866d51c8fc30120686440b4176688cff94004a3081bd219b9d305",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/OptionsView.swift": "d2a3f3aa558e1d7d318e6accff3f9c5253202c7da5c477f023f3d2b93995c882",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/InvestigatorView.swift": "c596a7d034d46e8210b8b180d0ba8f02aa4349f6bcee36e5262555686f20f7a5",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/MacroView.swift": "90a4e56584a68154739e8134392f240fab96dc887798816de498e6f54c44093a",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/TradingView.swift": "0d078187f113f0135067673e20fb3099e93fad028345ce24f99deda16be8e9c7",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketsView.swift": "4b2493e4e6cadf5f287867cd4212a8a1da8fb77cf34e6a182e45984b4085d882",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioListsView.swift": "142862a61969579f2aa9ab34076f5f4e73499ef58262255ee6cd6ed74cda0def",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioView.swift": "a03012c9a1a3888eeb1cb1c0596d43f9491356d0ad4e22775d544eccabe4e8ad",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Core/Security/KeychainTokenStore.swift": "a3690e1b7c5843fb43ee179e470ed5014b75d50a4e25ed303a8a58b45db29660",
+      "ios_app/SpectralNatureMVP/project.yml": "e76fd99d7f222da90cb2876d20577b622137c30fd81d221504731d7a626e48a7",
+      "ios_app/SpectralNatureMVP/SpectralNature.xcodeproj/project.pbxproj": "250442402e4f00da92573c32f0c30ea6745244ddc28d591e701a07d31098b279"
+    },
+    "sankey_layout": "Separate scalable label slots from magnitude-proportional node bars and ribbons; signs retained",
+    "final_sankey_visual_review": "Return and risk lenses inspected after label/geometry correction",
+    "physical_install_attempt": {
+      "outcome": "success",
+      "installed_build": "5",
+      "launch_outcome": "success",
+      "pid": 29992,
+      "date_local": "2026-10-14",
+      "prior_failures": "Earlier build 4 transport failure and initial build 5 iOS trust rejection are historical"
+    },
+    "last_launch_pid": 29992,
+    "build5_receipt": "build5/release.json",
+    "build4_reviewed_source_sha256": {
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/SankeyChart.swift": "bcdc01232b5014c63fd405423d7853c58b255040fb9b78a7fa514c5ffbe1d287",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/WorkbenchDesign.swift": "8c8e6579d55b5e2dabde8ce83487a622953bfd10779f501c3908e90b9d286d24",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AnalysisCharts.swift": "c617a29ff228d15a31aea5689b5055ea681b05666ac1371b2cb789182c8a433c",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Home/HomeView.swift": "67aef68b6b8a186df8267f10c0f3302ee54b5b3e0f0aaabb02b47a103196b5a6",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioListsView.swift": "142862a61969579f2aa9ab34076f5f4e73499ef58262255ee6cd6ed74cda0def",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioView.swift": "a03012c9a1a3888eeb1cb1c0596d43f9491356d0ad4e22775d544eccabe4e8ad",
+      "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift": "7974732fdf1c1b7685749311a461860033c305150174fee022f23a583f4799a9"
+    }
+  },
+  "checks": {
+    "portfolio_and_group_identity": 15,
+    "session_clock": 2,
+    "web_types": "passed",
+    "targeted_web_lint": "passed"
+  },
+  "production_candidates": [
+    {
+      "name": "sn-api-next",
+      "candidate_image": "snpipelineacr03130136.azurecr.io/ios-analytics-api-prod@sha256:c5ebfdb1e439fead4868ae3e57e0db1f3c77408cb023bdd073e521c319cc7219",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b0acf1bc4ed1dd8e8f7c7ddd783b6da1de924140038cb35e66c1b1049f628f8f",
+      "baseline_revision": "sn-api-next--0000005"
+    },
+    {
+      "name": "attention-home-build",
+      "candidate_image": "snpipelineacr03130136.azurecr.io/ios-analytics-home-prod@sha256:47e75fe72c5451d9f5401af748e63a9d8b7c7e2a6bbefe15354824f56d6d03e3",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:fc060864d8ae99f31b572e188e920e6c4b78825178a31438cfe25959eeac897f",
+      "baseline_revision": null
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "candidate_image": "snpipelineacr03130136.azurecr.io/ios-analytics-fundamentals-prod@sha256:7a091e68ec9737408ec2461bc9d9aa87ee2379f3e8c094df3c146c38f9449334",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "baseline_revision": null
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "candidate_image": "snpipelineacr03130136.azurecr.io/ios-analytics-web-dev@sha256:fa9cee18da4a0d9349457bd068d14785a22991112a996f30a3f17936c14c0572",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+      "baseline_revision": "sn-streamlit-ui--0000089"
+    },
+    {
+      "name": "sn-next-ui",
+      "candidate_image": "snpipelineacr03130136.azurecr.io/ios-analytics-web-dev@sha256:fa9cee18da4a0d9349457bd068d14785a22991112a996f30a3f17936c14c0572",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+      "baseline_revision": "sn-next-ui--0000005"
+    }
+  ],
+  "release_scope": [
+    "Private API numeric Home DTO and separate membership/environment-scoped list analytics endpoint",
+    "Both modern production frontends using the exact accepted development web digest",
+    "Existing Home and quarterly fundamentals producers on their own production baselines",
+    "Quarterly source refresh and independent numeric ticker refresh using an execution-only Home template override; retained research/audio untouched",
+    "Install native build 4 only when the phone is reachable"
+  ],
+  "source_scopes": {
+    "services/home_view.py": [
+      "_ticker_snapshot_view",
+      "_intraday_price_history",
+      "_financial_trends"
+    ],
+    "services/attention_ticker_snapshots.py": [
+      "prefetch_attention_intraday_prices",
+      "build_attention_ticker_snapshot_frame",
+      "_fundamental_snapshots_by_symbol"
+    ],
+    "compute/fundamentals.py": [
+      "_statement_path",
+      "_load_statement",
+      "_build_metric_frame"
+    ],
+    "services/simfin_refresh.py": [
+      "refresh_simfin_quarterly_cache"
+    ],
+    "services/portfolio_view.py": [
+      "build_portfolio_view",
+      "build_portfolio_opportunity_view"
+    ],
+    "services/robinhood_main_analytics.py": [
+      "opportunity_analytics"
+    ],
+    "api/main.py": [
+      "portfolio_opportunities"
+    ],
+    "pipeline/jobs/attention_ticker_snapshot_build.py": [
+      "run_attention_ticker_snapshot_build"
+    ]
+  },
+  "web_source_proof": {
+    "base_commit": "5744fd12ba3b384665cb8607e02a97b226dddaa8",
+    "task_paths": [
+      "web/components/attention-ticker-card.tsx",
+      "web/components/portfolio-lists.tsx",
+      "web/app/page.tsx",
+      "web/app/portfolio/page.tsx",
+      "web/app/api/portfolio/opportunities/route.ts",
+      "web/lib/types.ts",
+      "web/app/globals.css"
+    ],
+    "retained_accepted_frontend_changes": [
+      "web/app/admin/page.tsx",
+      "web/app/zopedia/page.tsx",
+      "web/app/zopedia/runs/[runId]/research-run-view.tsx",
+      "web/components/shell-nav.tsx",
+      "web/app/api/admin/llm/route.ts",
+      "web/components/admin/llm-settings.tsx"
+    ],
+    "sha256": {
+      "web/components/attention-ticker-card.tsx": "6e5b5ee868f13f9e9be9fd01f8adfaf5e37016259272a24ce377929f2f8c1473",
+      "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
+      "web/app/page.tsx": "b379636e5d6dd8df44b658cbb7145989c398b15c01687beb4eb42ec879514a45",
+      "web/app/portfolio/page.tsx": "2dc3c513f466061affa3601069be7c7ef70792411c356d48c656f4a6ce57f659",
+      "web/app/api/portfolio/opportunities/route.ts": "6a5994f1da893d0878e8a8e8e51f3e8db976b904c35f7dff64c216e0f730a6e9",
+      "web/lib/types.ts": "720f7c33abd15f66bc3051b1fc26e8441e1317befab1bead44dddee726d60b3b",
+      "web/app/globals.css": "52983dfd2ea81230810851c505ee8cb78ff502339d4e1adb6340d5e8a3995105",
+      "web/app/admin/page.tsx": "f774ea8c16bbff1af70eda0a1677745325346c4ac9745e85c23b9ca9de4a14ac",
+      "web/app/zopedia/page.tsx": "9a73ecc13c346d8395c81d446c9b5ce5fb24eb84187528396f445fc23f1ae890",
+      "web/app/zopedia/runs/[runId]/research-run-view.tsx": "404fc1c2b7b98a2bd18000d6b858eeed351f23d0b07429ab81f689cef1588140",
+      "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
+      "web/app/api/admin/llm/route.ts": "e690cc642b586d50a6d43fe5ef52b9787a3b130ebe9924b6e19482ec552f4865",
+      "web/components/admin/llm-settings.tsx": "6b435cb03eb2048a15bbf8c88b0faeee6175061e5141a237d5b9ef5f11fbaaac"
+    }
+  },
+  "concurrent_backend_and_llm_changes_deployed": false,
+  "production_approval": {
+    "approved_by": "owner",
+    "date_local": "2026-10-14",
+    "request": "Yes approved"
+  },
+  "production": {
+    "sn-api-next": {
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-api-prod@sha256:c5ebfdb1e439fead4868ae3e57e0db1f3c77408cb023bdd073e521c319cc7219",
+      "revision": "sn-api-next--0000006",
+      "ready_revision": "sn-api-next--0000006",
+      "protected_configuration_preserved": true,
+      "updated_utc": "2026-10-14T17:32:11.076805+00:00",
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    "attention-home-build": {
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-home-prod@sha256:47e75fe72c5451d9f5401af748e63a9d8b7c7e2a6bbefe15354824f56d6d03e3",
+      "revision": null,
+      "ready_revision": null,
+      "protected_configuration_preserved": true,
+      "updated_utc": "2026-10-14T17:32:30.890572+00:00"
+    },
+    "fundamentals-quarterly-refresh": {
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-fundamentals-prod@sha256:7a091e68ec9737408ec2461bc9d9aa87ee2379f3e8c094df3c146c38f9449334",
+      "revision": null,
+      "ready_revision": null,
+      "protected_configuration_preserved": true,
+      "updated_utc": "2026-10-14T17:32:50.744203+00:00"
+    },
+    "sn-streamlit-ui": {
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-web-dev@sha256:fa9cee18da4a0d9349457bd068d14785a22991112a996f30a3f17936c14c0572",
+      "revision": "sn-streamlit-ui--0000090",
+      "ready_revision": "sn-streamlit-ui--0000090",
+      "protected_configuration_preserved": true,
+      "updated_utc": "2026-10-14T17:33:06.626395+00:00",
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    "sn-next-ui": {
+      "image": "snpipelineacr03130136.azurecr.io/ios-analytics-web-dev@sha256:fa9cee18da4a0d9349457bd068d14785a22991112a996f30a3f17936c14c0572",
+      "revision": "sn-next-ui--0000006",
+      "ready_revision": "sn-next-ui--0000006",
+      "protected_configuration_preserved": true,
+      "updated_utc": "2026-10-14T17:33:22.611708+00:00",
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    }
+  },
+  "production_executions": {
+    "fundamentals": "fundamentals-quarterly-refresh-jq0lbh1",
+    "fundamentals_status": "Succeeded",
+    "ticker": "attention-home-build-x7gghka",
+    "ticker_status": "Succeeded"
+  },
+  "production_data_acceptance": {
+    "portfolio": {
+      "environment": "production",
+      "holdings_status": "available",
+      "provider": "robinhood_main",
+      "holdings_count": 34,
+      "portfolio_history_points": 636,
+      "opportunities_status": "available",
+      "groups": 38,
+      "unique_ids": 38,
+      "unique_labels": 38,
+      "series": 38,
+      "contribution_rows": 589,
+      "correlation_size": 38,
+      "as_of": "2026-10-14 17:00:30.381319+00:00",
+      "return_period": "5Y",
+      "risk_period": "1Y",
+      "seconds": 14.32
+    },
+    "portfolio_verification_boundary": "Read-only deployed service using active membership and production connection checks; isolated schema-readiness probe replaces bootstrap DDL; no authenticated browser session available",
+    "private_route_unauthenticated_http": 401,
+    "private_route_cache_control": "no-store",
+    "fundamentals": {
+      "environment": "production",
+      "namespace": "",
+      "dataset_version": "quarterly_fundamentals__20261014T173332Z__e3cc28ac",
+      "as_of": "2026-10-14 17:33:32.894568+00:00",
+      "rows": 187792,
+      "coverage": {
+        "GS": 351,
+        "JPM": 273,
+        "BAC": 182,
+        "WFC": 0,
+        "HUM": 313,
+        "C": 0
+      }
+    },
+    "home": {
+      "status": "available",
+      "visible_tickers": 17,
+      "visible_intraday_charts": 17,
+      "bank_financial_histories": {
+        "BAC": {
+          "revenue": 20,
+          "net_income": 20,
+          "free_cash_flow": 0,
+          "operating_cash_flow": 20,
+          "total_assets": 20,
+          "stockholders_equity": 20
+        },
+        "JPM": {
+          "revenue": 20,
+          "net_income": 20,
+          "free_cash_flow": 0,
+          "operating_cash_flow": 20,
+          "total_assets": 20,
+          "stockholders_equity": 20
+        },
+        "WFC": {
+          "revenue": 0,
+          "net_income": 0,
+          "free_cash_flow": 0,
+          "operating_cash_flow": 0,
+          "total_assets": 0,
+          "stockholders_equity": 0
+        }
+      },
+      "narrative_unchanged_by_numeric_refresh": true
+    }
+  },
+  "installation_readiness_audit": {
+    "date_local": "2026-10-14",
+    "prepared_device_build": "4",
+    "ready_for_latest_web_parity": false,
+    "attention": "Native still has period selector and stacked fundamentals; accepted web now combines week/intraday and uses compact history/value grid",
+    "conversation": "Native source and newer simulator include conversations; prepared physical binary predates them; conversation server is development only",
+    "portfolio_reviewed_paths": "Web portfolio component/page/BFF and native portfolio/list/Sankey source hashes match accepted analytics release",
+    "development_api_revision": "sn-api-next-dev--0000030",
+    "development_web_revision": "sn-next-ui-dev--0000020",
+    "production_api_revision": "sn-api-next--0000006",
+    "production_web_revision": "sn-streamlit-ui--0000091",
+    "physical_phone_tunnel": "disconnected",
+    "native_default_gateway": "https://spectral-nature.com",
+    "production_changes_in_readiness_audit": false,
+    "resolved_by_build": "5",
+    "current_production_conversation_dependency": "Resolved by separate stack promotion: API 7 and web 92/8",
+    "superseded_by_successful_build5_installation": true
+  },
+  "subsequent_stack_release_receipt": "../stack-parity-production-2026-10-14/release.json",
+  "current_installation_status": {
+    "build": "5",
+    "installed": true,
+    "launched": true,
+    "running": true,
+    "aligned_surfaces": [
+      "Attention combined price chart",
+      "Compact financial history grid",
+      "Conversation client",
+      "Portfolio list analytics and Sankeys"
+    ],
+    "server": "production",
+    "api_revision": "sn-api-next--0000007",
+    "web_revision": "sn-streamlit-ui--0000092"
+  }
+}

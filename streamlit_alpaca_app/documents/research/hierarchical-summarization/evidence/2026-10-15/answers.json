@@ -1,0 +1,1217 @@
+{
+  "scope": "All 38 corrected-catalog final-batch answers; no exploratory answers included.",
+  "answers": [
+    {
+      "record": "database-0-adaptive-catalog.private.json",
+      "retained_record_sha256": "875a2204597d3b239b0fb0e323cad70029688b3505a1c7b35b22ccb20d02cb45",
+      "domain": "database",
+      "question_index": 0,
+      "question": "We use Azure PostgreSQL Burstable B1ms, max_connections=50 and superuser_reserved_connections=10. Several research workers open connections before lengthy remote calls. Suggest practical reliability changes using the current paid tier.",
+      "variant": "adaptive",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** On Burstable B1ms you cannot use Azure's built-in PgBouncer, because that feature is not supported on the Burstable tier (\"PgBouncer in Azure Database for PostgreSQL flexible server\", last updated 2026-10-03). So the practical reliability fix is a client-side connection pool in each research worker, plus server-side timeouts that release connections held during long remote calls. Keep the pool small and bounded so the workers never approach the 50-connection ceiling.\n\n**Why the ceiling is the real problem.** Your server allows 50 connections total, and 10 of those are reserved for superusers. That leaves about 40 usable slots for normal roles. The PostgreSQL documentation (\"19.3. Connections and Authentication\", PostgreSQL 18) states that when active connections reach max_connections minus superuser_reserved_connections, new connections are accepted only for superusers. So if your workers each open a connection before a long remote call and hold it while waiting, a handful of slow calls can fill the 40 slots and block everyone else. The same page notes that PostgreSQL sizes shared memory and other resources directly from max_connections, so raising the limit is not free, especially on a small Burstable instance.\n\n**What to change.**\n\n1. **Put a pool in front of each worker process.** The psycopg 3 \"Connection pools\" page describes `psycopg_pool.ConnectionPool`: it keeps between `min_size` and `max_size` connections, hands a ready connection to a caller, and makes other callers wait in a queue. Set `min_size` small (for example 1–2) and `max_size` to a number that, multiplied by the number of worker processes, stays well under 40. The page says the right pool size is an open question and suggests `get_stats()` to monitor and `resize()` to change size at runtime, so start conservative and measure.\n\n2. **Do not hold a connection during the remote call.** The pool only helps if the worker returns the connection before the slow network call. Structure the code as: acquire connection, read or write what you need, return the connection, then make the remote call. If the worker must keep a transaction open across the call, that is the case the pool cannot fix, and you should shorten or split the transaction.\n\n3. **Set server-side idle timeouts.** The PostgreSQL page documents `idle_session_timeout` and `idle_in_transaction_session_timeout` as the settings that close sessions left idle. These are not in the supplied passage text, but they are the standard PostgreSQL settings for this problem and are the server-side complement to the client pool. Confirm the exact names and defaults against your server's parameter list before changing them.\n\n4. **Check for broken connections.** The psycopg page warns that the pool does not actively check idle connections, so a client can receive a broken connection unless `check` is configured. Set `check=ConnectionPool.check_connection` so a dead connection is discarded and replaced rather than handed to a worker.\n\n5. **Consider `NullConnectionPool` if workers are mostly idle.** The page notes that `NullConnectionPool` (added in version 3.1) creates no connection beforehand and closes returned connections unless other clients are waiting. For workers that spend most of their time on remote calls, this avoids holding idle server connections at all.\n\n**What this does and does not establish.** A client-side pool plus idle timeouts will keep the number of open server connections bounded and release them when workers are not using them. It does not increase the 50-connection limit, and it does not make Burstable B1ms support PgBouncer. If your worker count times the per-worker pool maximum can exceed 40, you need either fewer workers, a smaller per-worker pool, or a move to a tier that supports PgBouncer. The Azure page says PgBouncer is supported on General Purpose and Memory Optimized tiers, and that changing from those tiers to Burstable removes the capability.\n\n**One caution on the Azure page.** It says PgBouncer is \"enabled by default on port 6432\" and also says you enable it by setting `pgbouncer.enabled` to `true`. Those two statements sit together in the source and are not reconciled there. This does not affect your Burstable case, because the same page states PgBouncer is not supported on Burstable at all.",
+      "seconds": 52.08530116599286,
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [
+        "postgres",
+        "azure"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_2"
+        },
+        {
+          "tool_call_id": "agtc_3",
+          "max_characters": 6000
+        }
+      ],
+      "answer_work": {
+        "attempts": 7,
+        "states": {
+          "success": 7
+        },
+        "input_tokens": 42136,
+        "output_tokens": 4500,
+        "cached_tokens": 14592,
+        "estimated_usd_max": 0.006875376,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 7
+        }
+      }
+    },
+    {
+      "record": "database-0-flat-catalog.private.json",
+      "retained_record_sha256": "b355f2a42a5c190096bfce8d3967c24415f080148bd22b1347b28ee0041152c2",
+      "domain": "database",
+      "question_index": 0,
+      "question": "We use Azure PostgreSQL Burstable B1ms, max_connections=50 and superuser_reserved_connections=10. Several research workers open connections before lengthy remote calls. Suggest practical reliability changes using the current paid tier.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** On Burstable B1ms you cannot use Azure's built-in PgBouncer, because that feature is not supported on the Burstable tier. So the practical reliability fix is to stop holding a database connection open during the remote calls. Open the connection only when you need the database, and return it immediately afterward. A connection pool in your worker code does this for you.\n\n**Why this is the main problem**\n\nYour server allows 50 connections total (`max_connections=50`), and 10 of those are held back for superusers (`superuser_reserved_connections=10`). That leaves only 40 slots for normal application connections. If several workers each open a connection and then wait on a slow remote call, those connections sit idle but still occupy slots. When enough workers do this at once, new connections are refused. PostgreSQL documents this behavior: once active connections reach `max_connections` minus `superuser_reserved_connections`, only superusers can connect (PostgreSQL documentation, 19.3 Connections and Authentication).\n\n**What to change**\n\n1. **Do not hold a connection across the remote call.** Restructure each worker so it connects, does its database work, and releases the connection before it makes the lengthy remote call. This alone removes the idle-connection buildup.\n\n2. **Use a connection pool in the worker process.** A pool keeps a small set of connections and hands one out only while it is in use. The psycopg pool documentation explains that a caller gets a connection immediately if one is free, and otherwise waits in a queue until one is returned (psycopg Connection pools). This caps how many connections your workers can hold at once and makes waiting explicit instead of causing connection errors.\n\n3. **Set the pool size below the 40 usable slots.** Leave headroom for admin and monitoring connections. The psycopg documentation notes that the right pool size is usually smaller than people expect and recommends watching pool statistics to tune it (psycopg Connection pools).\n\n4. **Add a connection health check.** If the server or network drops an idle connection, a pool can hand out a dead one. psycopg provides `ConnectionPool.check_connection` for this (psycopg Connection pools).\n\n5. **Use a short timeout when waiting for a connection.** This turns a long hang into a clear error your worker can retry, rather than a stuck job.\n\n**What is not available to you**\n\nAzure's built-in PgBouncer would normally be the clean answer for many short-lived or idle connections, and it can scale to 10,000 client connections with low overhead. But Microsoft states plainly that PgBouncer is not supported on the Burstable compute tier, and that moving to Burstable removes the capability (PgBouncer in Azure Database for PostgreSQL flexible server, updated 2026-10-03). So on B1ms you must solve this in the application, not with the platform feature.\n\n**Trade-offs**\n\nA pool adds a small wait when all pooled connections are busy, and a health check adds a little network time per checkout. Both are usually cheaper than refused connections. If your workload still needs more concurrency than 40 slots allow, the real fix is to move off Burstable to a tier that supports PgBouncer, but that is a tier change, not a setting change.",
+      "seconds": 33.30917641700944,
+      "original_characters": 60413,
+      "initial_characters": 63442,
+      "original_reads": [
+        "azure"
+      ],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 38355,
+        "output_tokens": 3068,
+        "cached_tokens": 14592,
+        "estimated_usd_max": 0.005449026,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      }
+    },
+    {
+      "record": "database-0-guided_hierarchy-catalog.private.json",
+      "retained_record_sha256": "65acec5806c72e2a97eae09355f441d40eae67e67c65fbb11aeb1175693382e0",
+      "domain": "database",
+      "question_index": 0,
+      "question": "We use Azure PostgreSQL Burstable B1ms, max_connections=50 and superuser_reserved_connections=10. Several research workers open connections before lengthy remote calls. Suggest practical reliability changes using the current paid tier.",
+      "variant": "guided_hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** On Burstable B1ms you cannot use the built-in PgBouncer, because Azure's documentation says the PgBouncer feature is not supported on the Burstable compute tier (PgBouncer in Azure Database for PostgreSQL flexible server, last updated 2026-10-03). So the practical fix is a client-side connection pool in your workers, sized well below your connection ceiling, plus a check that replaces dead connections. That directly addresses the pattern you describe: workers holding a connection open during a long remote call.\n\n**Why the current setup is fragile.** Your server allows 50 connections total, and 10 of those are reserved for superusers, so ordinary roles can use at most 40. Each research worker that opens a connection before a lengthy remote call holds one of those 40 slots while doing no database work. With enough workers, new connections are refused even though the database is idle. A client-side pool changes this: it keeps a small set of connections and hands one to a caller only when that caller needs it, making other callers wait in a queue instead of opening new connections (psycopg \"Connection pools\"). The pool can be fixed size (no max_size, or max_size equal to min_size) or dynamic (max_size greater than min_size), and connections above min_size close one at a time after max_idle. The psycopg page itself says the right pool size is an open question and suggests get_stats() to monitor and resize() to change size at runtime.\n\n**What to change, in order of value.**\n\n1. Move the connection acquisition to after the remote call, or wrap only the database work in the pool's context manager. The pool commits an open transaction on normal exit and rolls back on an exception, and returns the connection for reuse. This is the single biggest reduction in held connections.\n2. Set a pool with min_size small (for example 2) and max_size clearly below 40, so the pool cannot exhaust the non-superuser allowance. The exact number depends on how many workers run at once and how long each database step takes; the psycopg page gives no formula, so measure with get_stats() and adjust with resize().\n3. Configure the pool's check so a client does not receive a broken connection. The psycopg page warns the pool does not actively check idle connections, so a client can get a broken connection unless check is configured; ConnectionPool.check_connection is a simple check. This matters on Azure because PgBouncer and the VM restart on scale operations, HA failover or a server restart, and existing connections must be re-established (Azure page).\n4. Set max_lifetime so old connections are discarded and replaced, and set reconnect_timeout with a reconnect_failed() callback so failed attempts retry with exponential backoff and then surface a clear error instead of hanging.\n5. Monitor pool_available, requests_waiting, requests_wait_ms, returns_bad, connections_errors and connections_lost. Keys with value 0 may be omitted and the metric set may change, so do not build alerts that assume a fixed key list.\n\n**What this does not fix.** A client-side pool reduces the number of server connections, but it does not make a single Burstable B1ms server handle more concurrent database work. If the real problem is query load rather than connection count, pooling will not help. Also, if you later move to General Purpose or Memory Optimized, the built-in PgBouncer becomes available on port 6432 with pgbouncer.default_pool_size = 50 server connections per user/database pair, pgbouncer.max_client_conn = 5000, pgbouncer.pool_mode = transaction, pgbouncer.query_wait_timeout = 120 seconds and pgbouncer.server_idle_timeout = 600 seconds. Azure recommends transaction pooling for most users, and prepared-statement support in transaction mode requires setting pgbouncer.max_prepared_statements above its default of 0; that applies only to protocol-level prepared statements such as those sent through libpq's PQprepare, not to text commands like PREPARE proc AS. Note that the Azure page contains an unreconciled conflict: it says PgBouncer is enabled by default on port 6432, and also says you enable it by setting pgbouncer.enabled to true. Treat the enablement state as something to verify in your own portal rather than assume.\n\n**One caution about the reserved connections.** The PostgreSQL 18 documentation says superuser_reserved_connections defaults to three and must be less than max_connections minus reserved_connections. Your value of 10 is a deliberate choice, not a default. It reduces the pool available to ordinary roles to 40. If your research workers connect as ordinary roles, that 40 is your real ceiling; if any connect as superusers, they draw on the reserved 10. Confirm which roles your workers use before sizing the pool.",
+      "seconds": 39.02441979199648,
+      "original_characters": 60413,
+      "initial_characters": 16945,
+      "original_reads": [
+        "azure"
+      ],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 27668,
+        "output_tokens": 3900,
+        "cached_tokens": 12800,
+        "estimated_usd_max": 0.0046086,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      }
+    },
+    {
+      "record": "database-0-hierarchy-catalog.private.json",
+      "retained_record_sha256": "42c0432ee0658b08dc19280e07682a9ffa3492082f2148db966d403884d46409",
+      "domain": "database",
+      "question_index": 0,
+      "question": "We use Azure PostgreSQL Burstable B1ms, max_connections=50 and superuser_reserved_connections=10. Several research workers open connections before lengthy remote calls. Suggest practical reliability changes using the current paid tier.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** On Burstable B1ms you cannot use the built-in PgBouncer pool, because the Azure documentation says PgBouncer is not supported on the Burstable tier. So the practical fix is a client-side connection pool in each research worker, sized so that all workers together stay under your 50-connection limit. The main reliability gain comes from not holding a database connection open during a long remote call.\n\n**What your numbers mean.** Your server allows 50 connections total, and 10 of those are reserved for superusers. That leaves about 40 usable by normal roles. The PostgreSQL 18 page \"19.3. Connections and Authentication\" (postgres) states that `superuser_reserved_connections` defaults to 3 and must be less than `max_connections` minus `reserved_connections`; your values of 50 and 10 are consistent with that rule. The same page notes that PostgreSQL sizes some resources, including shared memory, directly from `max_connections`, so raising the limit is not free. On B1ms, the safer direction is to reduce concurrent connections, not raise the ceiling.\n\n**The core problem.** A worker that opens a connection and then makes a lengthy remote call holds that connection idle for the whole call. With several workers doing this, connections pile up, and once the 40 normal slots are gone, new workers fail to connect. The psycopg 3.3.7.dev1 page \"Connection pools\" (pooling) describes the tool for this: a client-side pool keeps between `min_size` and `max_size` connections, hands a ready connection to a caller immediately, and makes other callers wait in a queue. A background worker creates new connections. On return, an open transaction is committed on normal exit or rolled back on an exception. A broken connection, or one older than `max_lifetime`, is discarded and replaced. The page also warns that the pool does not actively check idle connections, so a client can receive a broken connection unless `check` is configured; `ConnectionPool.check_connection` is a simple check. That matters here because long idle periods are exactly when a connection can go stale.\n\n**Practical changes, in order of value:**\n\n1. **Do not hold a connection across the remote call.** Acquire a connection, do the database work, return it, then make the remote call. This alone removes most of the pressure. The pool's queue-and-wait behavior means a worker that needs a connection waits instead of opening a new one.\n2. **Use one shared pool per process, not one connection per worker.** Set `min_size` small (for example 1–2) and `max_size` so that (number of worker processes) × `max_size` stays below about 40. The pooling page says the right pool size is an open question and suggests `get_stats()` to monitor and `resize()` to change size at runtime. Use those rather than guessing.\n3. **Configure `check` and a `max_lifetime`.** This replaces connections that died during idle periods or grew too old, which is the failure mode your long-call pattern creates.\n4. **Set a connection timeout and handle failure.** The pool retries failed attempts with exponential backoff up to `reconnect_timeout`, then calls `reconnect_failed()` if given. Give workers a bounded wait and a clear failure path instead of hanging.\n5. **Monitor the pool.** `get_stats()` and `pop_stats()` return the same values, but `pop_stats()` resets counters. Useful metrics include `pool_size`, `pool_available`, `requests_waiting`, `requests_queued`, `requests_wait_ms`, `requests_errors`, `returns_bad`, `connections_errors` and `connections_lost`. Keys with value 0 may be omitted and the set may change, so do not depend on a fixed key list.\n\n**What this does not fix.** A client-side pool cannot exceed the server limit; it only shares the connections you already have. If the total demand genuinely exceeds about 40 concurrent connections, you need fewer workers, shorter connection hold times, or a larger compute tier. The Azure page \"PgBouncer in Azure Database for PostgreSQL flexible server\" (azure, last updated 2026-10-03) describes a server-side pool that would help, but it is supported only on General Purpose and Memory Optimized tiers, not Burstable. That page also notes PgBouncer is single-threaded and calls it a potential single point of failure, so it is not a complete answer even where available.\n\n**One caution about the reserved slots.** The 10 superuser-reserved connections are not a pool for your workers. They exist so an administrator can still connect when normal slots are exhausted. Do not plan to use them for research traffic.\n\n**Uncertainty to keep in mind.** The three sources are separate documents and none corroborates another. The Azure page contains an unreconciled conflict: it says PgBouncer is enabled by default on port 6432, and also says you enable it by setting `pgbouncer.enabled` to true. That conflict does not affect your case, because Burstable is excluded either way.",
+      "seconds": 36.84548750001704,
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 3000,
+          "max_characters": 6000
+        }
+      ],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 23582,
+        "output_tokens": 3949,
+        "cached_tokens": 12928,
+        "estimated_usd_max": 0.004006284,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      }
+    },
+    {
+      "record": "database-1-flat-catalog.private.json",
+      "retained_record_sha256": "1aa44c1154d752d3f09c677612f7ff357684064f58f161c0691ed6b6dc348082",
+      "domain": "database",
+      "question_index": 1,
+      "question": "On Azure PostgreSQL B1ms with max_connections=50 and superuser_reserved_connections=10, we have four worker processes and each creates a pool with max_size=10. Does that establish adequate capacity on the stated server? Explain concurrency, idle resources and the tradeoffs of waiting versus raising connection limits.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**No. Four pools with `max_size=10` do not establish adequate capacity on a B1ms server with `max_connections=50` and `superuser_reserved_connections=10`.** They establish a *ceiling* of 40 connections, which is exactly the number of slots available to non-superusers. That is a coincidence of arithmetic, not a capacity plan. Whether it is adequate depends on how many connections are actually in use at the same time, and on whether the server can do useful work with that many.\n\n**The arithmetic.** PostgreSQL accepts at most `max_connections` connections at once. When active connections reach `max_connections - superuser_reserved_connections` (50 - 10 = 40), new connections are accepted only for superusers (PostgreSQL documentation, \"19.3. Connections and Authentication\"). So ordinary application roles can hold at most 40 connections. Four pools × 10 = 40. If all four workers fill their pools, the server is exactly at the non-superuser limit. Any additional client — a monitoring probe, an admin session, a migration job, a fifth worker — is refused unless it connects as a superuser. There is no headroom.\n\n**Concurrency is not the same as pool size.** A pool's `max_size` is a limit on connections the pool will open, not a promise that it opens them. Psycopg's pool starts with `min_size` connections and only creates more when more than `min_size` clients ask at the same time; if a connection is free, the caller gets it immediately, and if none is free the caller waits in a queue (psycopg connection pool documentation). So the real concurrent demand is the number of workers *simultaneously* holding a connection, not 4 × 10. If each worker runs one query at a time, peak demand is about 4 connections, and 40 is far more than needed. If each worker runs many threads or async tasks that each hold a connection, demand can reach 40 and then queue.\n\n**Idle resources.** Connections that are open but not running a query still consume a server process and memory. PostgreSQL uses a process per connection, so idle connections are not free. Azure's own guidance says Postgres \"runs into resource constraints when the server runs more than a few thousand connections\" and that the main benefit of PgBouncer is to improve idle and short-lived connections (Azure Database for PostgreSQL flexible server PgBouncer documentation). On a B1ms (burstable, 1 vCore, 2 GiB), 40 mostly idle connections are a meaningful share of a small server. A pool that is sized at 10 per worker but usually uses 1–2 is holding idle capacity that costs memory and can slow the server.\n\n**Waiting versus raising limits.** Waiting is not automatically bad. When a pool is full, the caller queues and is served as soon as a connection is returned; the pool can also create a new connection in the background up to `max_size` (psycopg documentation). A short wait is usually cheaper than adding connections, because more concurrent connections on a small server increase context switching and memory pressure and can reduce throughput. Raising `max_connections` is also not free: PostgreSQL sizes shared memory and other resources from `max_connections`, and the parameter can only be set at server start (PostgreSQL documentation). On B1ms the practical ceiling is low, and raising it may not be possible or wise.\n\n**What to do instead of guessing.** Measure before changing anything. Use the pool's `get_stats()` to see `requests_waiting`, `requests_queued`, `requests_wait_ms`, `pool_size` and `pool_available` (psycopg documentation). If `requests_waiting` is usually zero and `pool_available` is high, the pools are oversized and you can lower `max_size`. If waits are frequent and long, first check whether queries are slow or transactions are held open; only then consider more connections. A shared pooler such as the built-in PgBouncer on port 6432 can multiplex many client connections onto few server connections, which is the usual fix for idle-connection pressure on small servers (Azure documentation). Note that PgBouncer is not supported on the Burstable tier, so on B1ms it is not an option.\n\n**Bottom line.** The configuration is arithmetically at the non-superuser limit, so it is not \"adequate\" in the sense of leaving room to grow, and it may be wasteful if actual concurrency is low. Treat 40 as a ceiling to stay under, not a target to reach, and size each pool from measured concurrent demand.",
+      "seconds": 20.515266333008185,
+      "original_characters": 60413,
+      "initial_characters": 63442,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 23700,
+        "output_tokens": 1998,
+        "cached_tokens": 3968,
+        "estimated_usd_max": 0.004170504,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "database-1-hierarchy-catalog.private.json",
+      "retained_record_sha256": "fe86ed43b2279787a878d3901a3d6ae059af60a39b269071d697d64eb67bc8fe",
+      "domain": "database",
+      "question_index": 1,
+      "question": "On Azure PostgreSQL B1ms with max_connections=50 and superuser_reserved_connections=10, we have four worker processes and each creates a pool with max_size=10. Does that establish adequate capacity on the stated server? Explain concurrency, idle resources and the tradeoffs of waiting versus raising connection limits.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer: the numbers fit exactly, but that is not adequate capacity.** Four pools with `max_size=10` can open 40 connections. The server allows 50 total, but 10 are reserved for superusers, so ordinary roles can use only 40. Your pools can therefore consume the whole non-reserved budget, leaving no room for an admin session, monitoring, migrations, or a fifth worker. That is a fragile fit, not a comfortable one.\n\n**How the numbers work**\n\n- `max_connections=50` is the total server limit. PostgreSQL sizes shared memory and other resources from this value, so raising it is not free.\n- `superuser_reserved_connections=10` keeps 10 slots for superusers only. Normal roles get 50 − 10 = 40.\n- 4 workers × `max_size=10` = 40 possible connections. If all four pools fill at once, normal-role slots are exhausted.\n- Superuser connections still work, but a normal-role connection beyond 40 fails with \"too many clients already\".\n\n**Concurrency and idle resources**\n\nA pool with `max_size=10` does not open 10 connections immediately. It opens connections on demand up to that ceiling and hands a ready connection to a caller at once. Other callers wait in a queue. So the real concurrency is not 40 simultaneous queries; it is up to 40 open connections, with extra callers queued. If each worker runs one query at a time, you rarely reach 40. If each worker runs many concurrent tasks, you can hit the ceiling and start failing.\n\nIdle connections are the other half. Connections above `min_size` close one at a time after `max_idle`, so a pool can shrink when quiet. But if `min_size` is high, or traffic keeps all four pools warm, you hold 40 server slots doing little work. That wastes server memory and makes the limit easy to hit. The pool also does not actively check idle connections, so a client can receive a broken connection unless `check` is configured.\n\n**Waiting versus raising limits**\n\nWaiting is usually the better first move. A queue in the pool is cheap; a new server connection costs memory and a backend process. If queries are short, letting callers wait for a free connection often gives better throughput than adding connections, because too many active backends cause context switching and lock contention. Use `get_stats()` to watch `requests_waiting`, `requests_wait_ms`, `pool_size` and `pool_available`. If waits are long and connections are always busy, you have a real capacity problem. If waits are short and connections sit idle, you have a sizing problem, not a capacity problem.\n\nRaising limits helps only when the server has headroom. On B1ms the instance is small, so raising `max_connections` costs memory and can hurt performance. A better pattern is to lower each pool's `max_size` so the total stays below 40, and add a server-side pooler such as PgBouncer. Azure Database for PostgreSQL flexible server supports PgBouncer, which lets many client connections share a smaller number of real server connections. That decouples application concurrency from `max_connections`. Note that PgBouncer is not supported on the Burstable tier, so on B1ms you would need to move to General Purpose or Memory Optimized to use it.\n\n**Practical recommendation**\n\n- Keep total pool connections below 40, for example 4 × 8 = 32, leaving room for admin and monitoring sessions.\n- Set `min_size` low so idle pools release connections.\n- Monitor pool stats before changing server limits.\n- If you need more concurrency, consider a server-side pooler rather than raising `max_connections` on a small instance.\n\nSources: [psycopg connection pools](https://www.psycopg.org/psycopg3/docs/advanced/pool.html), [PostgreSQL connections and authentication](https://www.postgresql.org/docs/current/runtime-config-connection.html), [PgBouncer in Azure Database for PostgreSQL](https://learn.microsoft.com/en-us/azure/postgresql/connectivity/concepts-pgbouncer).",
+      "seconds": 34.16447545803385,
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 11493,
+        "output_tokens": 3082,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.0030651180000000004,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "database-2-adaptive-catalog.private.json",
+      "retained_record_sha256": "5e4583a176615d3d26fac1d65636e8ccae074a40df4be558c3222b3299b376bc",
+      "domain": "database",
+      "question_index": 2,
+      "question": "Compare NullConnectionPool with ConnectionPool(min_size=0), including what happens when several clients wait and a connection is returned. What does max_size bound, and what remains outside that bound?",
+      "variant": "adaptive",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** `NullConnectionPool` and `ConnectionPool(min_size=0)` look the same to a caller, but they differ in what happens to a connection when it comes back. `max_size` bounds only the number of connections the pool keeps. It does not bound the number of waiting clients, and it does not bound the server's own connection limit.\n\n**How they are the same**\n\nBoth start with no ready connection. A caller that arrives when no connection is free waits in a queue. When another client finishes and returns its connection, the pool can hand that existing connection to a waiting client instead of making a new one. On return, an open transaction is committed on normal exit or rolled back if an exception occurred. A broken connection, or one older than `max_lifetime`, is discarded and replaced. This is reported by the psycopg page \"Connection pools\" (psycopg 3.3.7.dev1).\n\n**How they differ on return**\n\n- `NullConnectionPool` (added in psycopg 3.1) creates no connection beforehand. A returned connection is closed, unless other clients are waiting, in which case it is passed to one of them.\n- `ConnectionPool(min_size=0)` keeps a floor of zero, so it also creates nothing up front. But it is a normal pool: returned connections go back into the pool and are kept (up to `max_size`), then closed one at a time after `max_idle` once the pool is above `min_size`.\n\nSo the practical difference is what happens when nobody is waiting: `NullConnectionPool` closes the connection, while `ConnectionPool(min_size=0)` keeps it for the next caller until it has been idle longer than `max_idle`.\n\n**What `max_size` bounds**\n\n`max_size` is the upper limit on the connections the pool holds. The pool keeps between `min_size` and `max_size` connections. A pool is fixed-size when there is no `max_size` or when `max_size = min_size`; it is dynamic when `max_size > min_size`. A background worker creates new connections as needed up to that ceiling.\n\n**What stays outside that bound**\n\n- Waiting clients. They queue in the pool; `max_size` limits connections, not the number of callers that can wait. The stats key `requests_waiting` tracks them.\n- The server-side connection limit. That is a separate PostgreSQL setting, not something the client pool's `max_size` controls.\n- Connections above `min_size` are not permanent: they close one at a time after `max_idle`.\n\nOne caveat from the same source: the pool does not actively check idle connections, so a client can receive a broken connection unless `check` is configured (`ConnectionPool.check_connection` is a simple check). The page also says the right pool size is an open question and suggests `get_stats()` to monitor and `resize()` to change size at runtime.",
+      "seconds": 21.87434649997158,
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 11302,
+        "output_tokens": 2538,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.002898228,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "database-2-flat-catalog.private.json",
+      "retained_record_sha256": "e733ab5f7042829ba78e945a181dbfb8d202f3eeea473db7a89327d733bac136",
+      "domain": "database",
+      "question_index": 2,
+      "question": "Compare NullConnectionPool with ConnectionPool(min_size=0), including what happens when several clients wait and a connection is returned. What does max_size bound, and what remains outside that bound?",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** `NullConnectionPool` and `ConnectionPool(min_size=0)` look similar at startup — neither keeps connections open in advance — but they differ in what happens when a connection comes back. A `NullConnectionPool` closes the returned connection immediately unless another client is already waiting. A `ConnectionPool(min_size=0)` keeps the returned connection in the pool's idle state, so the next client can reuse it. `max_size` bounds the number of connections the pool itself holds or hands out at one time; it does not bound total connections on the PostgreSQL server, connections held by other pools or processes, or the number of clients waiting in the queue.\n\n**What each pool does**\n\n- `ConnectionPool` manages a number of connections between `min_size` and `max_size`. If a connection is ready in the pool state, it is served immediately; otherwise the caller is put in a queue and served as soon as one is available (psycopg, \"Connection pools\"). With `min_size=0`, the pool starts with no connections and creates them on demand, but it still keeps returned connections in its idle state for reuse.\n- `NullConnectionPool` has the same interface and largely the same behavior, but \"doesn't create any connection beforehand. When a connection is returned, unless there are other clients already waiting, it is closed immediately and not kept in the pool state\" (psycopg, \"Null connection pools\"). It was added in psycopg_pool 3.1.\n\n**Several clients waiting, then a connection is returned**\n\nIn both pools, when no connection is available the client is queued. When a connection is returned, the pool first commits or rolls back any open transaction, runs the `reset` callback if one was provided, discards the connection if it is broken or past `max_lifetime`, and then hands it to the first client waiting in the queue (psycopg, \"Connections life cycle\"). The difference is what happens when nobody is waiting: `ConnectionPool` puts the connection back into its idle state; `NullConnectionPool` closes it. The psycopg docs also note that queued clients in a null pool receive an already established connection once a previous client finishes, after the pool has returned it to idle state and called `reset()` if necessary.\n\n**What `max_size` bounds, and what it does not**\n\n`max_size` bounds the number of connections the pool itself creates and manages at one time. For a null pool, the docs state: \"If `max_size` is set to a value greater than 0, the pool will make sure that no more than `max_size` connections are created at any given time. If more clients ask for further connections, they will be queued and served a connection as soon as a previous client has finished using it\" (psycopg, \"Null connection pools\"). The same idea applies to `ConnectionPool`: connections are created up to `max_size`, and additional requests wait.\n\nWhat `max_size` does not bound:\n\n- The total number of connections on the PostgreSQL server. That is controlled by the server's `max_connections` setting, which \"determines the maximum number of concurrent connections to the database server\" (PostgreSQL, \"Connections and Authentication\"). Other pools, other applications, and administrative connections all count against that server limit, not against one pool's `max_size`.\n- The number of clients waiting in the queue. `max_size` limits connections, not waiters. The pool stats expose `requests_waiting` as \"Number of requests currently waiting in a queue to receive a connection\" (psycopg, \"Pool stats\").\n- Connections held by other pools or by an external pooler such as PgBouncer. PgBouncer, for example, has its own `pgbouncer.default_pool_size` (default 50) and `pgbouncer.max_client_conn` (default 5000) settings (Azure Database for PostgreSQL, \"PgBouncer in Azure Database for PostgreSQL flexible server\").\n\n**Practical difference**\n\n`ConnectionPool(min_size=0)` is usually the better choice when you want to reuse connections and avoid paying the connection-establishment cost repeatedly. `NullConnectionPool` is useful when you want the pool API but do not want connections kept open between uses — for example, when an external pooler such as PgBouncer already manages server-side connections, or when you want to cap concurrent connections without retaining idle ones. In both cases, `max_size` is a per-pool cap on open connections, not a global cap on database connections or on waiting clients.",
+      "seconds": 69.00081620796118,
+      "original_characters": 60413,
+      "initial_characters": 63442,
+      "original_reads": [
+        "pooling"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 3000,
+          "max_characters": 6000
+        },
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 4000,
+          "max_characters": 6000
+        }
+      ],
+      "answer_work": {
+        "attempts": 12,
+        "states": {
+          "success": 12
+        },
+        "input_tokens": 70074,
+        "output_tokens": 5710,
+        "cached_tokens": 36864,
+        "estimated_usd_max": 0.008518092,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 12
+        }
+      }
+    },
+    {
+      "record": "database-2-guided_hierarchy-catalog.private.json",
+      "retained_record_sha256": "1ab95db898d214ac270542ff7a126c745ce9f06aac5197348038bd9ffc5d354b",
+      "domain": "database",
+      "question_index": 2,
+      "question": "Compare NullConnectionPool with ConnectionPool(min_size=0), including what happens when several clients wait and a connection is returned. What does max_size bound, and what remains outside that bound?",
+      "variant": "guided_hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "## Short answer\n\n`NullConnectionPool` and `ConnectionPool(min_size=0)` look almost the same to a caller. Both start with no open connections, both create connections when needed, and both make extra callers wait in a queue. The difference appears when a connection comes back. `NullConnectionPool` closes the returned connection unless another client is already waiting for one. `ConnectionPool(min_size=0)` keeps the returned connection open so the next caller can reuse it at once.\n\n`max_size` bounds only the number of connections the pool itself holds. It does not bound the number of waiting clients, connections opened outside the pool, or the server's own `max_connections` limit.\n\n## Waiting clients and a returned connection\n\nBoth pools hand a ready connection to a caller at once. If no connection is ready, the caller waits in a queue, and a background worker creates new connections. On return, an open transaction is committed on normal exit or rolled back if an exception occurred. A broken connection, or one older than `max_lifetime`, is discarded and replaced.\n\nWhen a client finishes and returns a connection:\n\n- **NullConnectionPool:** the connection is closed, *unless* other clients are waiting. If clients are waiting, the connection goes to one of them instead of being closed. So a returned connection survives only when there is demand for it.\n- **ConnectionPool(min_size=0):** the connection goes back into the pool and stays open, ready for the next caller. It is closed later, one at a time, after it has been idle longer than `max_idle`.\n\n## What max_size bounds\n\n`max_size` is the upper limit on connections the pool keeps. A pool is fixed size when there is no `max_size` or when `max_size = min_size`; it is dynamic when `max_size > min_size`.\n\nWhat stays outside that bound:\n\n- **Waiting clients.** `max_size` does not limit how many callers can queue. The pool reports `requests_waiting` separately.\n- **Connections made outside the pool.** Any code that opens its own connection is not counted.\n- **The server limit.** PostgreSQL's `max_connections` (typically 100 by default) is a separate server-side cap. A pool with `max_size` below that can still exhaust the server if other clients connect directly.\n\n## Practical meaning\n\nUse `NullConnectionPool` when you want connections to be short-lived and not held open between bursts. Use `ConnectionPool(min_size=0)` when you want a warm connection to be reused by the next caller without the cost of reconnecting. In both cases, size the pool against the server's `max_connections`, and watch `requests_waiting` to see whether callers are queuing.\n\n*Source: psycopg 3.3.7.dev1, [\"Connection pools\"](https://www.psycopg.org/psycopg3/docs/advanced/pool.html). The return behavior is stated in that page; the note that `max_size` does not bound waiting clients or server limits follows from the page's separate metrics and from the PostgreSQL [\"Connections and Authentication\"](https://www.postgresql.org/docs/current/runtime-config-connection.html) documentation.*",
+      "seconds": 20.12259012501454,
+      "original_characters": 60413,
+      "initial_characters": 16945,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 11358,
+        "output_tokens": 2258,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.002550468,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "database-2-hierarchy-catalog.private.json",
+      "retained_record_sha256": "5edf073069c8cb60a5569763aaaca0930c6085ff9ac25a1f2a5f749b62bba6e0",
+      "domain": "database",
+      "question_index": 2,
+      "question": "Compare NullConnectionPool with ConnectionPool(min_size=0), including what happens when several clients wait and a connection is returned. What does max_size bound, and what remains outside that bound?",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer.** `NullConnectionPool` and `ConnectionPool(min_size=0)` behave the same while clients are waiting: both cap the number of live connections at `max_size` and queue extra clients. They differ when a connection is returned and nobody is waiting. `ConnectionPool(min_size=0)` keeps that connection idle in the pool for reuse. `NullConnectionPool` closes it immediately. So `max_size` bounds only the number of connections the pool itself creates and manages. It does not bound the total number of connections to the database, because connections outside the pool are not counted.\n\n**What each pool does.** The psycopg 3.3.7.dev1 page \"Connection pools\" says a `ConnectionPool` keeps between `min_size` and `max_size` connections. It hands a ready connection to a caller at once; if none is ready, the caller waits in a queue and is served \"as soon as it's available\" (psycopg, \"Connection pools\"). `NullConnectionPool`, added in version 3.1, has the same interface and \"largely the same behaviour,\" but \"doesn't create any connection beforehand.\" When a connection is returned, \"unless there are other clients already waiting, it is closed immediately and not kept in the pool state.\" With `min_size=0`, a normal `ConnectionPool` also creates no connection beforehand, so the two look identical at startup. The difference is only on return: the normal pool keeps the connection, the null pool closes it.\n\n**Several clients waiting, then a return.** The page describes the same queue behavior for both. If more clients ask than `max_size` allows, they are queued and \"served a connection as soon as a previous client has finished using it, like for the basic pool.\" The page's note adds that queued clients get \"an already established connection, as soon as a previous client has finished using it (and after the pool has returned it to idle state and called `reset()` on it, if necessary).\" So the returned connection goes to the first waiting client, not back to idle storage. The page also says other throttles such as `timeout` and `max_waiting` still apply. One consequence it states for the null pool: because normally every client gets a new connection, \"the time to obtain the connection is paid by the waiting client; background workers are not normally involved in obtaining new connections.\" In a normal pool, background workers create connections, and a waiting client can be served an existing connection if another client finishes first.\n\n**What `max_size` bounds, and what it does not.** The page says that if `max_size` is greater than 0, the pool \"will make sure that no more than `max_size` connections are created at any given time.\" That is a bound on connections the pool creates and manages. It is not a bound on all connections to the server. Connections made outside the pool are not counted. The PostgreSQL 18 page \"19.3. Connections and Authentication\" gives the server-side ceiling: `max_connections` defaults to typically 100, and PostgreSQL sizes some resources, including shared memory, directly from it. The Azure page \"PgBouncer in Azure Database for PostgreSQL flexible server\" (last updated 2026-10-03) describes a separate server-side pool with its own limits, including `pgbouncer.max_client_conn = 5000` and `pgbouncer.default_pool_size = 50` server connections per user/database pair. Those are different layers and different bounds. The evidence does not compare them directly.\n\n**Practical reading.** Choose `NullConnectionPool` when you want the pool API but do not want idle connections held open, for example when an external pooler such as PgBouncer already manages connections. Choose `ConnectionPool(min_size=0)` when you want connections reused after a burst. In both cases, `max_size` limits only what the pool itself creates; it does not limit total database connections from other clients, other pools, or other processes.",
+      "seconds": 39.99697387497872,
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [
+        "pooling"
+      ],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 29329,
+        "output_tokens": 2982,
+        "cached_tokens": 12800,
+        "estimated_usd_max": 0.00430695,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      }
+    },
+    {
+      "record": "fed-0-flat-catalog.private.json",
+      "retained_record_sha256": "596bde5da256b6b5e9806288a80d0b403b1b7df96e2364aac1526870e163b054",
+      "domain": "fed",
+      "question_index": 0,
+      "question": "Describe the policy change in this dated FOMC statement and the balance of risks it expresses. What does it establish about future decisions?",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**The change.** On September 17, 2025, the Federal Reserve lowered its target range for the federal funds rate by 1/4 percentage point, to 4 to 4-1/4 percent ([FOMC statement](https://www.federalreserve.gov/newsevents/pressreleases/monetary20250917a.htm)). This was a cut, not a hold or an increase. The Committee said it acted \"in support of its goals and in light of the shift in the balance of risks.\" It also said it will keep reducing its holdings of Treasury securities and agency debt and agency mortgage-backed securities.\n\n**The balance of risks.** The statement describes an economy where growth \"moderated in the first half of the year,\" job gains \"have slowed,\" and the unemployment rate \"has edged up but remains low.\" At the same time, inflation \"has moved up and remains somewhat elevated.\" The Committee says uncertainty about the outlook \"remains elevated,\" that it is \"attentive to the risks to both sides of its dual mandate,\" and that it judges \"downside risks to employment have risen.\" In plain terms: the Fed still worries about inflation, but it now treats a weaker job market as the larger near-term danger. That shift is the stated reason for the cut.\n\n**What it establishes about future decisions.** The cut is not a promise of a fixed path. The Committee says that in considering \"additional adjustments\" it \"will carefully assess incoming data, the evolving outlook, and the balance of risks.\" It repeats that it \"would be prepared to adjust the stance of monetary policy as appropriate if risks emerge\" that could block its goals, and that it watches labor market conditions, inflation pressures and expectations, and financial and international developments. So future moves are data-dependent and decided meeting by meeting, not pre-committed.\n\n**One caveat on unity.** The vote was not unanimous. Stephen I. Miran dissented because he preferred a larger 1/2 percentage point cut. That shows the debate was about how fast to ease, not about whether to ease.",
+      "seconds": 31.953925708017778,
+      "original_characters": 3822,
+      "initial_characters": 4129,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 8129,
+        "output_tokens": 1919,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.0018627179999999998,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "fed-0-hierarchy-catalog.private.json",
+      "retained_record_sha256": "d539c8f5934a02b7bfb9e2f4548971d8b639bc94d2f36859f4d2472f6e20e9fd",
+      "domain": "fed",
+      "question_index": 0,
+      "question": "Describe the policy change in this dated FOMC statement and the balance of risks it expresses. What does it establish about future decisions?",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**The change.** On September 17, 2025, the Federal Open Market Committee (FOMC) — the group inside the Federal Reserve that sets interest rates — lowered the target range for the federal funds rate by 0.25 percentage points, to 4 to 4.25 percent. The federal funds rate is the rate banks charge each other for overnight loans, and the Fed uses it to steer the economy. The Fed announced this in its official FOMC statement ([federalreserve.gov](https://www.federalreserve.gov/newsevents/pressreleases/monetary20250917a.htm)).\n\n**Why the Fed acted.** The statement said recent indicators suggest economic growth moderated in the first half of the year. Job gains slowed, and the unemployment rate edged up but stayed low. Inflation moved up and remained somewhat elevated. The Fed aims for maximum employment and 2 percent inflation over the longer run.\n\n**The balance of risks.** The Fed said uncertainty about the outlook remained elevated. It watches risks on both sides of its dual mandate, and it judged that downside risks to employment have risen. In plain terms, the Fed treated a weaker job market as the bigger near-term danger, even though inflation was still above its 2 percent goal. That reading is consistent with the cut, but the statement does not state this as the sole cause, so the link is an interpretation rather than a direct quote.\n\n**What it establishes about future decisions.** The statement does not promise a set path for rates. It says the Fed will keep reducing its holdings of Treasury securities and agency debt and agency mortgage-backed securities, so the balance sheet continues to shrink. On rates, the language leaves the door open to further moves rather than committing to a series of cuts. The vote shows the committee was not unanimous: Stephen I. Miran voted against the action and preferred a larger cut of 0.5 percentage points. The other eleven voters supported the 0.25-point cut: Jerome H. Powell (Chair), John C. Williams (Vice Chair), Michael S. Barr, Michelle W. Bowman, Susan M. Collins, Lisa D. Cook, Austan D. Goolsbee, Philip N. Jefferson, Alberto G. Musalem, Jeffrey R. Schmid and Christopher J. Waller.\n\nOne caveat: this summary comes from a single source document, so it is a derived view and not independent corroboration. The statement also refers to an Implementation Note issued the same day, but that note is not included in the supplied evidence.",
+      "seconds": 25.75466791697545,
+      "original_characters": 3822,
+      "initial_characters": 2276,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6617,
+        "output_tokens": 2093,
+        "cached_tokens": 3200,
+        "estimated_usd_max": 0.00177795,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "fed-1-flat-catalog.private.json",
+      "retained_record_sha256": "786f04e97f85e9b8dee9ce2bc175073917d41a650397c02126df33e3e7b2af93",
+      "domain": "fed",
+      "question_index": 1,
+      "question": "A colleague says this statement guarantees a continuing sequence of rate cuts. Assess that interpretation and describe useful implications without treating forecasts as certain.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer: no. The statement does not guarantee a continuing sequence of rate cuts.**\n\nThe September 17, 2025 FOMC statement lowered the target range for the federal funds rate by 1/4 percentage point, to 4 to 4¼ percent ([Federal Reserve, September 17, 2025](https://www.federalreserve.gov/newsevents/pressreleases/monetary20250917a.htm)). It then says the Committee \"will carefully assess incoming data, the evolving outlook, and the balance of risks\" before considering \"additional adjustments.\" That is a conditional, meeting-by-meeting approach. It commits the Fed to look at new information, not to cut again and again.\n\nThe statement also shows why a fixed sequence is unlikely. It notes that job gains have slowed and unemployment has edged up, but that inflation \"has moved up and remains somewhat elevated.\" Those two problems pull in opposite directions: weak employment argues for lower rates, while high inflation argues for keeping rates higher. The Fed says it is \"attentive to the risks to both sides of its dual mandate.\" A single cut that balances both risks is not the same as the start of a guaranteed series.\n\nThere is also visible disagreement inside the committee. Stephen I. Miran voted against the action because he preferred a 1/2-point cut. A dissent about the size of this cut shows the debate is about how fast to move, not agreement on a preset path.\n\n**Useful implications, without treating forecasts as certain:**\n\n- Treat the cut as a change in the balance of risks, not a schedule. The Fed itself says downside risks to employment have risen.\n- Watch the data the Fed names: labor market conditions, inflation pressures and inflation expectations, and financial and international developments. A run of weak jobs reports would support more cuts; sticky inflation would work against them.\n- Expect each meeting to be decided on its own. The statement language (\"incoming data,\" \"evolving outlook\") is designed to preserve that flexibility.\n- Plan for more than one path. A continuing series is possible, but so is a pause or a reversal if inflation reaccelerates. Anyone presenting the cut as a guaranteed sequence is reading more certainty into the statement than it contains.",
+      "seconds": 18.652435125026386,
+      "original_characters": 3822,
+      "initial_characters": 4129,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 8173,
+        "output_tokens": 1985,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.001908918,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "fed-1-hierarchy-catalog.private.json",
+      "retained_record_sha256": "649a08901a4a3a059e264bb2925fee8759463041cd0a7d011b71acf91d582994",
+      "domain": "fed",
+      "question_index": 1,
+      "question": "A colleague says this statement guarantees a continuing sequence of rate cuts. Assess that interpretation and describe useful implications without treating forecasts as certain.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer: the statement does not guarantee a continuing sequence of rate cuts.** It records one cut and explains why the Fed made it. A guarantee of future cuts would need a promise, and the Fed did not make one.\n\n**What the statement actually says.** On September 17, 2025, the Federal Open Market Committee (FOMC) — the group inside the Fed that sets interest rates — lowered the target range for the federal funds rate by 0.25 percentage points, to 4 to 4.25 percent ([Fed statement](https://www.federalreserve.gov/newsevents/pressreleases/monetary20250917a.htm)). The federal funds rate is the rate banks charge each other for overnight loans, and the Fed uses it to steer the economy. The Fed gave its reasons in the same statement: growth moderated in the first half of the year, job gains slowed, the unemployment rate edged up but stayed low, and inflation moved up and remained somewhat elevated. It said uncertainty about the outlook remained elevated, that it watches risks on both sides of its dual mandate (maximum employment and 2 percent inflation), and that it judges downside risks to employment have risen.\n\n**Why \"guarantee\" is the wrong word.** The Fed describes conditions, not a path. It says it watches risks on both sides, which means it could cut again, hold, or raise rates depending on what happens. One official, Stephen I. Miran, voted against the action because he wanted a larger 0.5-point cut; the other eleven voters supported 0.25 points. A split like that shows the committee is weighing trade-offs, not following a fixed plan. The statement also says the Fed will keep reducing its holdings of Treasury and mortgage-backed securities, a separate policy action that is not a rate cut.\n\n**Useful implications, without treating them as certain.** The cut signals that the Fed sees more risk in a weakening job market than in inflation staying above target for now. That framing makes further cuts plausible if job data keep softening and inflation does not reaccelerate. But the same statement leaves room for a pause or a reversal if inflation moves up again. For planning, treat the September cut as a data-dependent step, not the first item in a promised series. Watch the next FOMC statement, the vote split, and the updated economic projections for the real signal about direction. This summary comes from one source document, so it is a derived view and not independent corroboration.",
+      "seconds": 20.40302949998295,
+      "original_characters": 3822,
+      "initial_characters": 2276,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6661,
+        "output_tokens": 2230,
+        "cached_tokens": 3200,
+        "estimated_usd_max": 0.00186675,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "financial-0-adaptive-catalog.private.json",
+      "retained_record_sha256": "475af5bd3e627449d8a29e41c77dfa8816bbacd0245f4664f90c133c7a6c1fb8",
+      "domain": "financial",
+      "question_index": 0,
+      "question": "Explain how this manufacturer changed between the supplied years and assess the analyst memo. Give a useful next investigation.",
+      "variant": "adaptive",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**How the manufacturer changed**\n\nRevenue rose from 84 to 96 (up 12), but gross profit fell from 36 to 33 (down 3). Gross margin — the share of each sales dollar left after the direct cost of the goods — dropped from about 42.9% (36/84) to about 34.4% (33/96). Operating expenses also rose, from 24 to 27. So the extra sales did not carry extra profit at the gross-profit level: each sales dollar kept less profit, and overhead grew at the same time. The records give no net income, so we cannot say whether total profit rose or fell.\n\nOperating cash flow did improve, from 6 to 11 (up 5), while capital expenditure rose only from 4 to 5. That is a real reported change.\n\n**Assessment of the analyst memo**\n\nThe memo says \"stronger cash collection proves the earnings improvement is sustainable.\" This is not supported. First, the records show no earnings improvement: gross profit fell. Second, the memo gives no collection figures and no cash-flow reconciliation, so nothing in the records shows that cash rose because customers paid faster. The cash gain could come from slower supplier payments, inventory reductions, or one-time timing. The memo states a conclusion the data cannot carry.\n\n**Useful next investigation**\n\nGet the cash-flow reconciliation and the collection figures for both years: days sales outstanding (the average number of days customers take to pay) and accounts-receivable balances. Compare the cash-flow change with the gross-profit change. If receivables fell while sales rose, the cash gain is likely a one-time collection effect, not a repeatable improvement. If receivables grew in line with sales, the cash gain needs another explanation. This test separates a durable change from a timing effect. Source: supplied-financial, analyst memo and earnings table.",
+      "seconds": 17.775784666009713,
+      "original_characters": 661,
+      "initial_characters": 2486,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6561,
+        "output_tokens": 1771,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.0017268780000000003,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "financial-0-flat-catalog.private.json",
+      "retained_record_sha256": "8f4d9f4d88414a2b68174b52805d1dc575609627667bd9dfd7e411fb72f56e7e",
+      "domain": "financial",
+      "question_index": 0,
+      "question": "Explain how this manufacturer changed between the supplied years and assess the analyst memo. Give a useful next investigation.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**What changed**\n\nRevenue rose 14.3% (84 → 96 USD millions), but profit fell. Gross margin dropped from 42.9% (36/84) to 34.4% (33/96), and operating expenses rose from 24 to 27. Operating profit therefore fell from 12 to 6 — a 50% decline — and operating margin fell from 14.3% to 6.3%. The company sold more but kept much less of each dollar.\n\nCash flow moved the other way. Operating cash flow rose from 6 to 11, and capital expenditure rose only from 4 to 5, so free cash flow rose from 2 to 6. Cash conversion (operating cash flow ÷ operating profit) went from 0.50 to 1.83. In year A, cash flow was only half of accounting profit; in year B, cash flow was nearly twice the profit.\n\n**The memo**\n\nThe memo's first claim — \"revenue growth improved profitability\" — is wrong. Profit fell in both absolute and margin terms. Its second claim — \"stronger cash collection proves the earnings improvement is sustainable\" — is unsupported. There was no earnings improvement to sustain, and the memo gives no cash-flow reconciliation or collection figures. The cash gain could come from collecting old receivables, stretching payables, or drawing down inventory, none of which repeat indefinitely. The memo also ignores the margin decline, which is the central fact.\n\n**Useful next investigation**\n\nGet the cash-flow statement detail and working-capital balances (receivables, inventory, payables) for both years. That shows whether the cash gain is a one-time release from the balance sheet or a durable change in how the business converts sales into cash. Also get a gross-margin bridge — price, volume, and input cost — to explain why revenue growth did not carry through to profit.",
+      "seconds": 17.785895375011023,
+      "original_characters": 661,
+      "initial_characters": 824,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 5720,
+        "output_tokens": 1868,
+        "cached_tokens": 2816,
+        "estimated_usd_max": 0.001564848,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "financial-0-guided_hierarchy-catalog.private.json",
+      "retained_record_sha256": "05b78069c1362f39fa9d13d5027813d1ffab9772fb68b39b434710483b218ead",
+      "domain": "financial",
+      "question_index": 0,
+      "question": "Explain how this manufacturer changed between the supplied years and assess the analyst memo. Give a useful next investigation.",
+      "variant": "guided_hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**How the manufacturer changed**\n\nThe records (source: supplied-financial, earnings table, USD millions) show a company that sold more but kept less of each sale:\n\n| Item | Year A | Year B | Change |\n|---|---|---|---|\n| Revenue | 84 | 96 | +12 |\n| Gross profit | 36 | 33 | -3 |\n| Operating expenses | 24 | 27 | +3 |\n| Operating cash flow | 6 | 11 | +5 |\n| Capital expenditure | 4 | 5 | +1 |\n\nGross margin fell from about 42.9% (36/84) to about 34.4% (33/96). So the extra revenue came with a lower gross margin and higher operating costs. The table gives no net income, so we cannot say whether total profit rose or fell.\n\n**Assessment of the analyst memo**\n\nThe memo says \"stronger cash collection proves the earnings improvement is sustainable.\" The records do not support this. Operating cash flow did rise by 5 (from 6 to 11), and that is a real reported change. But the records contain no cash-flow reconciliation and no collection figures, so the cause of the cash gain is unknown. It could come from faster customer payments, slower supplier payments, lower inventory, or other timing effects. The memo also assumes an earnings improvement, yet gross profit fell. The memo's conclusion is an assertion, not something the records prove.\n\n**Useful next investigation**\n\nGet the cash-flow reconciliation and the collection figures (days sales outstanding and accounts-receivable balances) for Year A and Year B. Compare the cash-flow change with the gross-profit change. That will show whether the cash gain is repeatable or a one-time timing effect.",
+      "seconds": 16.007948583050165,
+      "original_characters": 661,
+      "initial_characters": 3088,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7022,
+        "output_tokens": 1543,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.001471068,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "financial-0-hierarchy-catalog.private.json",
+      "retained_record_sha256": "9035e198cec0e4e8047860f4a474f65abef221726e03d0499d98cc0cb1bb2381",
+      "domain": "financial",
+      "question_index": 0,
+      "question": "Explain how this manufacturer changed between the supplied years and assess the analyst memo. Give a useful next investigation.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**What changed between the two years**\n\nThe manufacturer sold more but kept less of each sales dollar. Revenue rose from 84 to 96 (all figures in USD millions), a gain of 12. Gross profit fell from 36 to 33, a loss of 3. So gross margin dropped from about 42.9% (36/84) to about 34.4% (33/96). Operating expenses also rose, from 24 to 27. The extra sales therefore came with a thinner product margin and higher running costs. The records do not give net income, so we cannot say whether total profit rose or fell.\n\nOperating cash flow improved from 6 to 11, a gain of 5, while capital expenditure rose only from 4 to 5. That cash gain is real and reported, but the records contain no cash-flow reconciliation and no collection figures, so the cause is unknown. It could come from faster customer payments, slower supplier payments, lower inventory, or other timing effects.\n\n**Assessment of the analyst memo**\n\nThe memo says that \"stronger cash collection proves the earnings improvement is sustainable.\" The records do not support this. First, the records show no earnings improvement: gross profit fell by 3. Second, the memo supplies no collection figures and no reconciliation, so the cash-collection claim is an assertion, not a demonstrated fact. The cash-flow rise is genuine, but the memo's causal story and its sustainability conclusion are not proven by the supplied data.\n\n**Useful next investigation**\n\nGet the cash-flow reconciliation and the receivables data for both years, such as days sales outstanding and accounts-receivable balances. Compare the cash-flow change with the gross-profit change. This will show whether the cash gain is repeatable or a one-time timing effect, and it will test the memo's claim directly.\n\nSource: supplied-financial, original earnings table and analyst memo (User-supplied manufacturer records and analyst memo).",
+      "seconds": 17.28672904195264,
+      "original_characters": 661,
+      "initial_characters": 2486,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6674,
+        "output_tokens": 1883,
+        "cached_tokens": 3200,
+        "estimated_usd_max": 0.0016605,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "financial-1-adaptive-catalog.private.json",
+      "retained_record_sha256": "8f84942884c5de59d1477a50c1ca3b6c84b7b20fce79c12b374f3c8708f8c908",
+      "domain": "financial",
+      "question_index": 1,
+      "question": "Could the supplied earnings and cash-flow observations support different business interpretations? Develop useful hypotheses and explain what would change your assessment.",
+      "variant": "adaptive",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer: yes.** The same two years of numbers can support more than one story about the business. The records show what changed, but not why. So each story is a hypothesis, not a proven fact.\n\n**What the records actually show** (source: supplied-financial, earnings table, USD millions):\n\n| Item | Year A | Year B | Change |\n|---|---|---|---|\n| Revenue | 84 | 96 | +12 |\n| Gross profit | 36 | 33 | -3 |\n| Operating expenses | 24 | 27 | +3 |\n| Operating cash flow | 6 | 11 | +5 |\n| Capital expenditure | 4 | 5 | +1 |\n\nGross margin fell from about 42.9% (36/84) to about 34.4% (33/96). Operating cash flow rose by 5. The table gives no net income, no cash-flow reconciliation and no collection figures.\n\n**Hypothesis 1 — Growth bought with price cuts.** The company sold more units but at lower prices or with heavier discounts. Gross profit fell even as revenue rose. This fits a firm trading margin for volume.\n\n**Hypothesis 2 — Cost squeeze, not pricing.** Input costs, freight or wages rose faster than the company could raise prices. Revenue grew, but each sale earned less. This fits a firm with weak pricing power.\n\n**Hypothesis 3 — Mix shift.** The company sold more low-margin products and fewer high-margin ones. Total revenue rose while the blended margin fell.\n\n**Hypothesis 4 — The cash gain is a timing effect.** Operating cash flow improved by 5, but the records do not say where the cash came from. It could be faster customer payments, slower payments to suppliers, or inventory reductions. A one-time timing gain is not repeatable.\n\n**Hypothesis 5 — The cash gain is real and repeatable.** If collections genuinely improved (for example, lower days sales outstanding) and the margin decline is a deliberate investment in market share, the cash improvement could persist.\n\n**What would change the assessment:**\n- A cash-flow reconciliation for both years. This shows whether the +5 came from operations, working capital or one-off items.\n- Collection figures (days sales outstanding, accounts-receivable balances). These test the memo's claim that \"stronger cash collection proves the earnings improvement is sustainable.\" The memo supplies no such figures, so that claim is an assertion, not a fact shown by the records.\n- Net income and unit volumes. These show whether total profit rose or fell, and whether growth came from volume or price.\n- Segment or product-level margins. These test the mix-shift story.\n\n**Bottom line:** The records prove revenue rose, gross margin fell and operating cash flow rose. They do not prove an earnings improvement, because gross profit fell. The analyst memo's conclusion is not supported by the supplied numbers. The most useful next step is to obtain the cash-flow reconciliation and collection figures, then compare the cash change with the gross-profit change.",
+      "seconds": 19.99797133303946,
+      "original_characters": 661,
+      "initial_characters": 2486,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6856,
+        "output_tokens": 2406,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.002152128,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "financial-1-flat-catalog.private.json",
+      "retained_record_sha256": "8b28aad08f7f8e45da5e38d4c59b09fe9c258f72b3831e2fbe7507b0b77d6986",
+      "domain": "financial",
+      "question_index": 1,
+      "question": "Could the supplied earnings and cash-flow observations support different business interpretations? Develop useful hypotheses and explain what would change your assessment.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer: yes — the same two records can support several different business stories. The analyst memo picks one story that the numbers do not support.**\n\nStart with what the supplied table actually shows (USD millions):\n\n| | Year A | Year B | Change |\n|---|---|---|---|\n| Revenue | 84 | 96 | +14.3% |\n| Gross profit | 36 | 33 | −3 |\n| Gross margin | 42.9% | 34.4% | −8.5 points |\n| Operating expenses | 24 | 27 | +3 |\n| Operating profit | 12 | 6 | −6 (halved) |\n| Operating cash flow | 6 | 11 | +5 |\n| Capital expenditure | 4 | 5 | +1 |\n| Free cash flow | 2 | 6 | +4 |\n\nRevenue grew, but profit fell. Gross margin dropped about 8.5 points and operating profit halved. At the same time, operating cash flow nearly doubled. So the memo's first claim — \"revenue growth improved profitability\" — is contradicted by the table. Its second claim — that stronger cash collection \"proves the earnings improvement is sustainable\" — rests on an earnings improvement that did not happen. The memo also gives no cash-flow reconciliation and no collection figures, so the collection story is an assertion, not a shown fact.\n\n**Hypotheses that fit the same observations.**\n\n1. **Working-capital release (most consistent with the data).** Cash rose because the company collected receivables, sold inventory, or stretched payables — not because it earned more. This is a one-time cash event. It explains rising cash flow alongside falling profit, and it would not be sustainable.\n2. **Lower-quality revenue mix.** Revenue grew through discounting or a cheaper product mix. That would lower gross margin while raising cash turnover, explaining both movements at once. Growth would be real but less profitable.\n3. **Timing.** Revenue earned in Year A was collected in Year B, or some costs and cash outflows fall in different periods. This shifts cash between years without changing the underlying economics.\n4. **Genuine collection improvement.** The company really did collect faster. This is possible, but the supplied records cannot confirm it, and even if true it does not repair the margin decline.\n\n**What would change the assessment.** A cash-flow reconciliation (net income to operating cash flow) would show whether the cash came from profit or from working capital. Receivable days, inventory days and payable days would show which working-capital item moved. Revenue by product or segment, and a price-versus-volume split, would show whether the margin drop is mix, discounting or cost. If the cash gain came from durable collection gains and margins stabilize, the sustainability claim gains support. If it came from a working-capital release or stretched payables, it is a one-time effect and the memo's conclusion fails.\n\n**Useful next investigation:** obtain the cash-flow reconciliation and working-capital days for both years, then compare the source of the cash-flow increase with the margin decline.",
+      "seconds": 34.444007249956485,
+      "original_characters": 661,
+      "initial_characters": 824,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6018,
+        "output_tokens": 2882,
+        "cached_tokens": 2816,
+        "estimated_usd_max": 0.002217948,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "financial-1-hierarchy-catalog.private.json",
+      "retained_record_sha256": "d627ff98038aa76f6f28d7b1cc3b52ba213fd0515b5f0ceca3a32410c39a47f5",
+      "domain": "financial",
+      "question_index": 1,
+      "question": "Could the supplied earnings and cash-flow observations support different business interpretations? Develop useful hypotheses and explain what would change your assessment.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** Yes. The same two years of numbers support more than one business story, and the records cannot yet separate them. The analyst memo picks one story — that \"stronger cash collection proves the earnings improvement is sustainable\" — but the supplied figures do not prove it.\n\n**What the records show** (source: supplied-financial, earnings table, USD millions):\n\n| Item | Year A | Year B | Change |\n|---|---|---|---|\n| Revenue | 84 | 96 | +12 |\n| Gross profit | 36 | 33 | -3 |\n| Operating expenses | 24 | 27 | +3 |\n| Operating cash flow | 6 | 11 | +5 |\n| Capital expenditure | 4 | 5 | +1 |\n\nGross margin fell from about 42.9% (36/84) to about 34.4% (33/96). So sales grew, but profit at the gross level fell. Operating cash flow rose by 5. The table gives no net income, no cash-flow reconciliation and no collection figures. Because gross profit fell, the records do not show an earnings improvement.\n\n**Hypothesis 1 — Growth bought with price cuts (weak quality of growth).** The company sold more units at lower prices or a worse mix. Gross profit fell even though revenue rose. The cash gain could be a one-time timing effect: customers paid old invoices, or the company delayed paying suppliers or built up less stock. Under this story the cash improvement is not repeatable, and the margin loss is the real signal.\n\n**Hypothesis 2 — Deliberate investment in scale (temporary margin dip).** The company cut prices or spent on promotion to win volume, expecting unit costs to fall later. Operating expenses rose by 3, which fits added selling or marketing cost. If the extra volume later lowers unit cost, gross margin recovers and the cash gain becomes durable. The records cannot confirm this because they show no unit volumes or cost per unit.\n\n**Hypothesis 3 — Mix shift toward lower-margin products.** Revenue rose because a low-margin line grew faster, not because prices fell. Total gross profit still dropped, so the shift was large enough to outweigh the extra sales. This is a portfolio story, not a pricing story, and it needs a product-level breakdown to test.\n\n**What would change the assessment:**\n- A cash-flow reconciliation for both years. It would show whether the +5 operating cash flow came from collections, payables, inventory or profit. If it came from payables or inventory, the gain is a timing effect, not an earnings improvement.\n- Collection figures (days sales outstanding, accounts-receivable balances). The memo's claim about \"stronger cash collection\" is an assertion; these figures would confirm or refute it.\n- Net income and unit volumes or price/mix data. These separate the pricing story from the mix story and show whether total profit rose or fell.\n- A third year of data. A single two-year move cannot show whether the margin drop is a trend or a one-off.\n\n**Bottom line:** The records prove only that revenue rose, gross margin fell and operating cash flow rose. They do not prove an earnings improvement, because gross profit fell. The memo's sustainability claim is unsupported by the supplied figures. The most useful next step is the cash-flow reconciliation plus receivable and payable balances for both years.",
+      "seconds": 24.869711124978494,
+      "original_characters": 661,
+      "initial_characters": 2486,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6958,
+        "output_tokens": 2487,
+        "cached_tokens": 3200,
+        "estimated_usd_max": 0.0020655,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "microsoft-0-flat-catalog.private.json",
+      "retained_record_sha256": "cd9e2d0ebddfde76db10806b9c76ab7824d606600295b8ae07f92300348f7e61",
+      "domain": "microsoft",
+      "question_index": 0,
+      "question": "Using the dated earnings release, explain what drove Microsoft performance and which distinctions matter between reported growth, constant currency and forward-looking commentary.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer.** Microsoft's June 2025 quarter was driven by cloud and AI demand, above all Azure. Revenue rose 18% to $76.4 billion, but only 17% in constant currency, so about one point of the reported growth came from currency moves rather than the business. The release gives no numbers for future guidance — it only says guidance will come on the earnings call.\n\n**What drove the quarter (quarter ended June 30, 2025, reported July 30, 2025)**\n\n- Total revenue: $76.4 billion, up 18% (up 17% in constant currency).\n- Operating income: $34.3 billion, up 23% (up 22% in constant currency).\n- Net income: $27.2 billion, up 24% (up 22% in constant currency).\n- Diluted earnings per share: $3.65, up 24% (up 22% in constant currency).\n- Microsoft Cloud revenue: $46.7 billion, up 27% (up 25% in constant currency).\n\nThe engine was the Intelligent Cloud segment: revenue of $29.9 billion, up 26% (up 25% in constant currency). Inside it, server products and cloud services rose 27%, and Azure and other cloud services grew 39%. CEO Satya Nadella said Azure passed $75 billion in revenue for the year, up 34%, \"driven by growth across all workloads.\"\n\nThe other two segments grew more slowly. Productivity and Business Processes revenue was $33.1 billion, up 16% (up 14% in constant currency), helped by Microsoft 365 Commercial cloud revenue up 18% (up 16% in constant currency) and Dynamics 365 up 23% (up 21% in constant currency). More Personal Computing revenue was $13.5 billion, up 9%, with Windows OEM and Devices up 3%, Xbox content and services up 13% (up 12% in constant currency), and search and news advertising excluding traffic acquisition costs up 21% (up 20% in constant currency). Microsoft returned $9.4 billion to shareholders through dividends and buybacks in the quarter.\n\nFor the full fiscal year 2025, revenue was $281.7 billion, up 15%; operating income $128.5 billion, up 17% (up 18% in constant currency); net income $101.8 billion, up 16% (up 15% in constant currency); and diluted EPS $13.64, up 16%.\n\n**The three distinctions that matter**\n\n1. *Reported growth* is the change in dollars actually booked, including the effect of exchange rates. It is what shareholders receive in reported results.\n2. *Constant-currency growth* removes the effect of currency movements, so it shows how much the underlying business grew. When reported growth is higher than constant-currency growth, currency helped; when it is lower, currency was a drag. Here currency added roughly one point to revenue (18% vs 17%), but it subtracted about two points from net income and EPS (24% vs 22%) and one point from operating income (23% vs 22%). So the currency effect was not uniform across the income statement — it helped the top line and hurt the bottom line. The same pattern appears in the segments: Productivity and Business Processes 16% vs 14%, Microsoft Cloud 27% vs 25%, Intelligent Cloud 26% vs 25%.\n3. *Forward-looking commentary* is different in kind from both. It is management's expectation about future periods, not a measured result. This release contains no guidance figures at all. It states only that \"Microsoft will provide forward-looking guidance in connection with this quarterly earnings announcement on its earnings conference call and webcast.\" So the release tells you what already happened; the outlook must be taken from the call, and it should not be mixed with the reported or constant-currency growth rates above.\n\n**Practical reading.** Use reported growth to judge what was actually delivered, constant-currency growth to judge business momentum, and the gap between them to see how much currency flattered or weighed on the numbers. Treat any guidance as a separate, forward-looking statement with its own assumptions, not as another growth rate.\n\nSource: [Microsoft FY25 Q4 earnings release, July 30, 2025](https://www.microsoft.com/en-us/Investor/earnings/FY-2025-Q4/press-release-webcast).",
+      "seconds": 26.79115925001679,
+      "original_characters": 20250,
+      "initial_characters": 22142,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 14679,
+        "output_tokens": 3223,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.0036088020000000004,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "microsoft-0-hierarchy-catalog.private.json",
+      "retained_record_sha256": "fbfaf18f6c8381f8ceba0195b4c8a231c72db557c11dd687b8bed73be51b0d0d",
+      "domain": "microsoft",
+      "question_index": 0,
+      "question": "Using the dated earnings release, explain what drove Microsoft performance and which distinctions matter between reported growth, constant currency and forward-looking commentary.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer.** Microsoft's growth in the quarter ended June 30, 2025 came mainly from cloud and AI products, not from the company as a whole. Total revenue rose 18%, but Microsoft Cloud rose 27% and Azure rose 39%. Reported growth and constant-currency growth differ only by currency movements, and the forward-looking commentary is a separate, conditional statement about the future, not a result.\n\n**What drove performance.** The dated release (fiscal year 2025, fourth quarter, ended June 30, 2025) reports revenue of $76.4 billion, up 18%. Operating income was $34.3 billion, up 23%, and diluted earnings per share were $3.65, up 24%. The fastest parts of the business were cloud and AI. Microsoft Cloud revenue reached $46.7 billion, up 27%. Azure and other cloud services grew 39%. CEO Satya Nadella said Azure passed $75 billion in revenue for the year, up 34%. By segment, Intelligent Cloud grew 26%, Productivity and Business Processes grew 16%, and More Personal Computing grew 9%. So the pattern is: cloud and AI grew much faster than the company average, while the consumer and PC side grew slowly. The release does not name a single cause; it presents the segment and product numbers as the explanation. For the full year, revenue was $281.7 billion, up 15%, and operating income was $128.5 billion, up 17%.\n\n**Reported versus constant currency.** Reported growth uses the actual exchange rates in the period. Constant-currency growth recalculates the result as if exchange rates had not moved. Microsoft states that constant-currency figures are non-GAAP measures and should not replace GAAP figures. The gap shows how much currency helped or hurt. In this quarter the gap was small and mostly negative: revenue was up 18% reported but 17% in constant currency, operating income 23% versus 22%, net income 24% versus 22%, and EPS 24% versus 22%. Microsoft Cloud was 27% reported versus 25% constant currency, and Productivity and Business Processes 16% versus 14%. Azure was 39% on both bases, and More Personal Computing was 9% on both. A small reported-versus-constant gap means currency movements added a little to the reported numbers; the underlying business growth is the constant-currency figure. One exception: for the full year, operating income was 17% reported but 18% in constant currency, so currency slightly reduced that figure.\n\n**Forward-looking commentary.** The release also contains forward-looking statements, which are predictions or expectations about future results, not reported facts. Microsoft warns that actual results could differ materially and lists many risk factors. It also says all information is as of June 30, 2025, and that it has no duty to update forward-looking statements. This matters because forward-looking commentary is conditional and can change; reported and constant-currency figures are historical results for a closed period. The release also notes that some prior-period amounts were recast to match how Microsoft now manages the business, and that the information is unaudited unless noted. The release does not compare Microsoft with other companies, and it does not state whether the growth is good or bad.",
+      "seconds": 22.64540116704302,
+      "original_characters": 20250,
+      "initial_characters": 4606,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 8847,
+        "output_tokens": 2640,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.0023842019999999998,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "microsoft-1-adaptive-catalog.private.json",
+      "retained_record_sha256": "8906c3efcc76f7fdb50604c554b2d7e67acb6ae593e55555f827fe2268a294d7",
+      "domain": "microsoft",
+      "question_index": 1,
+      "question": "As of this earnings release, what useful connections can an investor investigate between cloud demand, AI infrastructure and cash generation? Separate reported results from plausible implications.",
+      "variant": "adaptive",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer.** Microsoft's FY25 Q4 release (quarter and year ended June 30, 2025) shows cloud demand growing faster than the company overall, a large and rising AI-related spending program, and cash generation that still covers that spending. The release does not say the spending is caused by cloud demand, nor that it will pay off. It gives you the numbers to test those ideas over time.\n\n**What the release reports (facts).** Microsoft Cloud revenue was $46.7 billion in the quarter, up 27% (25% in constant currency). Azure and other cloud services grew 39%, and CEO Satya Nadella said Azure passed $75 billion for the year, up 34%. Total quarterly revenue was $76.4 billion, up 18%. For the full year, revenue was $281.7 billion, up 15%, and net income was $101.8 billion, up 16%. On the spending side, additions to property and equipment were $64.551 billion for FY25, against $44.477 billion the year before. Net cash from operations was $136.162 billion, against $118.548 billion the year before. Cash, cash equivalents and short-term investments rose to $94.565 billion from $75.543 billion. Microsoft returned $9.4 billion to shareholders in the quarter through dividends and buybacks. Source: Microsoft FY25 Q4 earnings press release and webcast page (source_id: microsoft).\n\n**Connections worth investigating (implications, not reported facts).** Three links are plausible and testable. First, faster Azure growth may be pulling capital spending up: cloud revenue is growing faster than the company, and property and equipment additions rose by about $20 billion year over year. The release does not state that link, so treat it as a hypothesis. Second, the gap between operating cash flow and capital additions is the key number to watch. At $136.162 billion versus $64.551 billion, operations still fund the build-out with room to spare. If that gap narrows in later quarters, the build-out is consuming a larger share of the cash the business makes. Third, because spending is recorded now while the revenue it supports arrives later, one quarter cannot show whether the AI investment pays off. A useful check is to track Azure growth against the change in capital additions across several quarters.\n\n**What this does not establish.** The release does not break out how much capital spending is AI-specific, does not give depreciation timing, and gives no forward capital-spending guidance. It also does not state financing plans. The rising cash balance and the $9.4 billion of quarterly shareholder returns are consistent with funding the build-out from operations rather than from the existing cash pile, but that is an inference, not a stated fact. An alternative explanation for the same numbers is that spending supports many products, not only AI, or that some growth comes from price, mix or currency effects. Constant-currency figures are non-GAAP measures that Microsoft says should not replace GAAP measures, and the release is unaudited and as of June 30, 2025.",
+      "seconds": 19.83663479104871,
+      "original_characters": 20250,
+      "initial_characters": 4606,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 8466,
+        "output_tokens": 2297,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.002328228,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "microsoft-1-flat-catalog.private.json",
+      "retained_record_sha256": "65ac0d8fff773ac8b8a950cfc64d4bc80737886e6b7b6bc897e84f78c21b30ad",
+      "domain": "microsoft",
+      "question_index": 1,
+      "question": "As of this earnings release, what useful connections can an investor investigate between cloud demand, AI infrastructure and cash generation? Separate reported results from plausible implications.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** The FY2025 fourth-quarter release (quarter ended June 30, 2025, published July 30, 2025) shows that cloud demand and AI spending are producing strong reported profit and large cash returns to shareholders. However, the release does not include capital spending or a cash-flow statement, so the link between AI infrastructure investment and cash generation is a plausible implication that an investor must test against the same filing's capex and cash-flow sections.\n\n**What the release reports** ([Microsoft FY25 Q4 release](https://www.microsoft.com/en-us/Investor/earnings/FY-2025-Q4/press-release-webcast)):\n\n- Total revenue $76.4 billion, up 18% year over year (17% in constant currency); operating income $34.3 billion, up 23%; net income $27.2 billion, up 24%; diluted earnings per share $3.65, up 24%.\n- Microsoft Cloud revenue $46.7 billion, up 27% (25% in constant currency).\n- Intelligent Cloud segment revenue $29.9 billion, up 26%; server products and cloud services revenue up 27%, driven by Azure and other cloud services growth of 39%.\n- CEO Satya Nadella said Azure surpassed $75 billion in revenue for the fiscal year, up 34%, \"driven by growth across all workloads.\"\n- Full fiscal year 2025: revenue $281.7 billion (+15%), operating income $128.5 billion (+17%), net income $101.8 billion (+16%), diluted earnings per share $13.64 (+16%).\n- Microsoft returned $9.4 billion to shareholders through dividends and share repurchases in the quarter.\n\n**Plausible implications to investigate (not reported in this release):**\n\n1. **Cloud demand is growing much faster than the total business.** Azure's 39% growth is more than double total company growth of 18%, so cloud is taking a larger share of the mix. A useful question is whether that mix shift keeps lifting margins, because cloud revenue can carry different margin economics than device or advertising revenue. The release does not give segment margin detail, so this stays a question, not a conclusion.\n\n2. **AI infrastructure spending is the missing middle link.** The release names \"Cloud and AI\" as the driver but gives no capital expenditure, data-center spend, or depreciation figures. To test whether AI investment is converting into cash, an investor should pull the capex line and cash-flow statement from the same filing and compare capex growth with Azure growth. If capex rises faster than cloud revenue, near-term free cash flow can fall even while reported net income rises.\n\n3. **Cash generation looks strong at the earnings level, but \"cash\" here means profit, not cash flow.** Net income of $27.2 billion and $9.4 billion returned to shareholders are reported facts. Free cash flow is not reported in this release. The gap between net income and operating cash flow is where depreciation of new AI servers and working-capital swings would appear.\n\n4. **Watch the durability of the 39% Azure rate.** A single quarter's growth rate can reflect capacity coming online or one-time demand. The useful follow-up is management's guidance on cloud capacity and AI demand on the earnings call, plus whether growth holds as new data centers are depreciated.\n\n**Bottom line:** The release confirms strong reported cloud demand and profit, and it confirms shareholder cash returns. It does not confirm that AI infrastructure spending is generating free cash flow. That connection is plausible but unproven from this document alone. The next evidence to check is the capex and cash-flow sections of the same quarterly filing.",
+      "seconds": 24.08167229196988,
+      "original_characters": 20250,
+      "initial_characters": 22142,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 14550,
+        "output_tokens": 2999,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.0034550519999999997,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "microsoft-1-hierarchy-catalog.private.json",
+      "retained_record_sha256": "dbe8b256d0a60db36eeb60bdf9e61727875265a87e8882eb85c29ba42e873011",
+      "domain": "microsoft",
+      "question_index": 1,
+      "question": "As of this earnings release, what useful connections can an investor investigate between cloud demand, AI infrastructure and cash generation? Separate reported results from plausible implications.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** Microsoft's FY25 Q4 release (quarter and year ended June 30, 2025) shows cloud demand growing faster than the company overall, while spending on property and equipment — mostly AI data-center capacity — grew even faster. Cash from operations still rose, so the company funded the build-out from its own cash flow. The release does not state that AI caused the cloud growth, or that the spending will earn a good return. Those are reasonable things to investigate, not reported facts.\n\n**What the release reports (facts)**\n\n- Quarter revenue: $76.4 billion, up 18%. Microsoft Cloud revenue: $46.7 billion, up 27%. Azure and other cloud services grew 39%. CEO Satya Nadella said Azure passed $75 billion in revenue for the year, up 34% ([Microsoft FY25 Q4 release](https://www.microsoft.com/en-us/Investor/earnings/FY-2025-Q4/press-release-webcast)).\n- Full-year revenue: $281.7 billion, up 15%. Net income: $101.8 billion, up 16%. Diluted EPS: $13.64, up 16%.\n- Cash from operations for the year: $136.162 billion, up from $118.548 billion the year before.\n- Additions to property and equipment for the year: $64.551 billion, up from $44.477 billion. That is the money spent on long-lived assets such as data centers and servers.\n- Cash, equivalents and short-term investments: $94.565 billion on June 30, 2025, up from $75.543 billion a year earlier.\n- The company returned $9.4 billion to shareholders in the quarter through dividends and buybacks.\n\n**Connections an investor can investigate (implications, not reported facts)**\n\n1. **Demand is pulling capacity, not the reverse.** Azure grew 39% while capital spending rose about 45% year over year ($64.6 billion vs. $44.5 billion). A useful question is whether this spending is a response to demand already booked, or a bet on demand that has not arrived. The release does not give backlog or utilization data, so an investor would need the earnings call and the 10-K for that.\n\n2. **The build-out is self-funded so far.** Operating cash flow ($136.2 billion) is more than double the property and equipment additions ($64.6 billion). Even after that spending, cash and short-term investments rose by about $19 billion. This suggests the AI infrastructure program has not yet forced the company to rely on outside financing. Watch whether that gap narrows in later quarters.\n\n3. **Growth is concentrated in the cloud and AI-linked lines.** Intelligent Cloud revenue rose 26% and Server products and cloud services rose 27%, both faster than the 18% company-wide growth. Productivity and Business Processes rose 16% and More Personal Computing rose 9%. The mix is shifting toward the faster-growing cloud business, which matters for future margins.\n\n4. **Depreciation is the delayed cost.** Large equipment purchases do not hit profit immediately; they do so over the asset's life. So today's cash flow looks strong relative to today's reported profit. An investor should track whether depreciation and the cost of running AI capacity start to weigh on operating margin as the new assets come into service.\n\n5. **Return on the spending is the open question.** The release shows the spending and the revenue growth side by side but does not link them. A reasonable next step is to compare Azure growth and capital spending over several quarters to see whether each dollar of new capacity produces a matching rise in cloud revenue.\n\n**Caveats stated in the source:** constant-currency figures are non-GAAP and should not replace GAAP figures; some prior-period amounts were recast; the release contains forward-looking statements and risk factors, and all information is as of June 30, 2025.",
+      "seconds": 34.63657641701866,
+      "original_characters": 20250,
+      "initial_characters": 4606,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 9210,
+        "output_tokens": 3217,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.002784852,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "summarization-0-flat-catalog.private.json",
+      "retained_record_sha256": "62363ad6f392a0f02702f33a48ef274036178cff95945e7d307ccb401551fb47",
+      "domain": "summarization",
+      "question_index": 0,
+      "question": "What does this paper demonstrate about hierarchical retrieval, and what would we still need to evaluate before adopting it in a financial research agent?",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**What the paper shows**\n\nRAPTOR (Sarthi et al., [RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval](https://arxiv.org/html/2401.18059v1), 31 January 2024) tests one idea: do not retrieve only short, adjacent text blocks. Instead, build a tree of summaries. The system splits text into chunks of about 100 tokens, embeds them, groups similar chunks with a clustering method, summarizes each group with a language model, and repeats this upward. At question time it retrieves from several levels of the tree at once. The paper's preferred query method is the \"collapsed tree,\" which flattens all levels and picks the best nodes up to about 2,000 tokens (roughly the top 20 nodes).\n\nThe paper reports that this helps most on questions that need several reasoning steps or a whole-document view. Its headline claim is a 20% absolute accuracy gain on the QuALITY benchmark when RAPTOR retrieval is paired with GPT-4. The authors argue that ordinary retrieval fails on \"thematic\" questions because a few short chunks cannot represent the overall structure of a long document. The controlled results are smaller than the headline: on QASPER, RAPTOR beat DPR by 1.8 points with GPT-3, 2.7 with GPT-4 and 4.5 with UnifiedQA; on QuALITY with GPT-3 it reached 62.4% against DPR's 60.4%. The paper also reports that 18.5% to 57% of retrieved nodes came from non-leaf levels, and that searching all layers beat searching single layers. One caveat: the paper's own hallucination check found about 4% of summaries contained minor hallucinations, which it says did not propagate to parent nodes or affect question answering.\n\n**What is still unproven for a financial research agent**\n\nThe evidence comes from general reading-comprehension benchmarks (NarrativeQA, QASPER, QuALITY), not finance. Before adopting it, we would need to test:\n\n- **Numbers, dates and tables.** Financial answers depend on exact figures, fiscal periods and table structure. Summarization can round or drop these. We would need accuracy tests on numeric extraction and time-stamped facts, not just narrative questions.\n- **Freshness and point-in-time correctness.** A summary tree freezes a view of the corpus. We would need to show that updates propagate correctly and that the agent never cites a summary that mixes pre- and post-event information.\n- **Cost and latency.** Building and maintaining the tree adds embedding, clustering and summarization work at index time, plus multi-level retrieval at query time. The paper reports linear scaling in build time and token cost, but gives no absolute cost or latency figures. We would need measured cost per query and per corpus refresh against a flat-chunk baseline.\n- **Attribution.** A parent summary blends many source documents. We would need to verify that citations still point to the exact filing or paragraph, which matters for audit and compliance.\n- **Hallucination and failure modes.** Summaries can introduce errors that then get retrieved as if they were source text. The paper's 4% figure is a starting point, but we would need error-rate comparisons on adversarial and ambiguous financial questions.\n- **Baselines and domain fit.** The gains should be compared against strong alternatives (hybrid keyword-plus-vector search, reranking, query decomposition) on real financial tasks such as earnings analysis or risk-factor comparison.\n\nIn short, the paper gives good evidence that hierarchical summary retrieval helps multi-step, whole-document questions. It does not yet show that the same design is safe, cheap or accurate enough for financial research, where exact numbers, dates and traceable sources are the core requirement.",
+      "seconds": 78.69445891602663,
+      "original_characters": 79021,
+      "initial_characters": 83578,
+      "original_reads": [
+        "raptor"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 4000,
+          "max_characters": 6000
+        },
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 6000,
+          "max_characters": 12000
+        }
+      ],
+      "answer_work": {
+        "attempts": 10,
+        "states": {
+          "success": 10
+        },
+        "input_tokens": 63479,
+        "output_tokens": 6236,
+        "cached_tokens": 26496,
+        "estimated_usd_max": 0.009368538000000001,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 10
+        }
+      }
+    },
+    {
+      "record": "summarization-0-hierarchy-catalog.private.json",
+      "retained_record_sha256": "51814f5edaac3288d22c598e382455723457f5d24bcab251633fa14061c4bb67",
+      "domain": "summarization",
+      "question_index": 0,
+      "question": "What does this paper demonstrate about hierarchical retrieval, and what would we still need to evaluate before adopting it in a financial research agent?",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "## What the paper demonstrates\n\nThe paper is **RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval** (arXiv 2401.18059, 31 Jan 2024). It shows that hierarchical retrieval — retrieving from a *tree of summaries* instead of a flat list of text chunks — improves question answering on long documents.\n\n**How the hierarchy is built.** The system starts with short text chunks of about 100 tokens. It embeds each chunk with SBERT, groups similar chunks with a soft clustering method based on Gaussian Mixture Models, and summarizes each group with gpt-3.5-turbo. It repeats this clustering-and-summarizing step to make higher layers, which produces a tree. At query time it can either walk the tree (tree traversal) or search all nodes at once (collapsed tree). Collapsed tree with a 2000-token budget gave the best result on 20 QASPER stories, so the authors used it for the main experiments.\n\n**Reported results.** With UnifiedQA 3B as the reader, RAPTOR beat the same retriever without RAPTOR on NarrativeQA, QASPER and QuALITY. On QASPER F-1 it scored 53.1 (GPT-3), 55.7 (GPT-4) and 36.6 (UnifiedQA) — the paper says 1.8, 2.7 and 4.5 points above DPR, and 6.5, 5.5 and 10.2 points above BM25. On QuALITY accuracy it scored 62.4 (GPT-3) and 56.6 (UnifiedQA), at least 2.0 points above DPR and BM25. With GPT-4 it reached 82.6 accuracy on the QuALITY test set (above CoLISA at 62.3) and 76.2 on QuALITY-HARD (21.5 points above CoLISA). On NarrativeQA with UnifiedQA it reached ROUGE-L 30.8, BLEU-1 23.5, BLEU-4 6.4 and METEOR 19.1 — a reported new state of the art for METEOR in that setting.\n\n**Ablation and limits the paper itself reports.** A recency-based tree with the same embeddings and reader scored 55.8% on QuALITY versus 56.6% for the clustering-based tree, so the clustering step adds only a small margin. About 4% of sampled summaries contained minor hallucinations; the paper says these did not spread to parent nodes and had no clear effect on question answering. Between 18.5% and 57% of retrieved nodes came from non-leaf layers, and full-tree search beat searches limited to single layers in the story examples tested. Build time and token cost scale linearly, tested on an Apple M1 Mac with 16GB RAM for documents from 12,500 to 78,000 tokens. The code was to be released publicly. These are the paper's own claims, not independent verification.\n\n## What still needs evaluation before use in a financial research agent\n\n1. **Domain transfer.** All reported benchmarks are open-domain narrative and QA datasets (NarrativeQA, QASPER, QuALITY). None involve financial filings, earnings calls or market data. Financial text has dense numbers, tables, dates and entity names, where a lossy summary layer can silently change meaning. The paper does not test whether abstractive summaries preserve figures, units or negation.\n\n2. **Numeric and citation fidelity.** A financial agent must return exact figures with traceable citations. RAPTOR retrieves *summaries* at higher layers, and the paper already reports about 4% minor hallucinations in summaries. Even if those did not hurt multiple-choice QA, they could corrupt a number or a date. You would need an evaluation that measures numeric accuracy and citation correctness, not just F-1 or accuracy.\n\n3. **Recency and point-in-time correctness.** Financial research is time-sensitive. The paper does not address how the tree handles updated documents, restatements or as-of-date retrieval. A stale summary node could mix pre- and post-revision facts.\n\n4. **Cost, latency and update behavior.** Linear scaling is reported for build time and tokens, but a production agent must also weigh re-clustering and re-summarizing costs when new documents arrive, plus query latency against a flat retriever.\n\n5. **Independent replication and baselines.** The results are self-reported. Before adoption you would want independent replication and comparisons against strong flat baselines (hybrid BM25 plus dense retrieval, and rerankers) on your own financial corpus.\n\n6. **Failure modes and auditability.** You would need to know when the hierarchy helps versus hurts — for example, single-fact lookup versus multi-document synthesis — and whether a reviewer can trace an answer back to the original source text rather than a generated summary.\n\nIn short, the paper gives good evidence that hierarchical summary retrieval helps on long, narrative QA benchmarks, with a modest gain from clustering and a small hallucination rate in summaries. It does not yet show that this holds for financial documents, where exact numbers, dates and citations matter more than narrative comprehension.",
+      "seconds": 32.9475865829736,
+      "original_characters": 79021,
+      "initial_characters": 3118,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7901,
+        "output_tokens": 3876,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.003002718,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "summarization-1-flat-catalog.private.json",
+      "retained_record_sha256": "a2482c1cb9d5301d2fd3d7926764c69ef9e05af9d4c953adc2f97b2a0e875954",
+      "domain": "summarization",
+      "question_index": 1,
+      "question": "How does the method preserve access across different abstraction levels, and which experimental results bear on choosing a fixed summary depth for every question?",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "RAPTOR keeps access to a document at several levels of detail by building a tree of summaries. It first splits the text into short pieces of about 100 tokens (a token is a small piece of text, roughly a word part). It embeds each piece (turns it into a numeric vector that represents meaning), groups similar pieces with a clustering method, and asks a language model to summarize each group. The summaries become parent nodes. The system then embeds those summaries and repeats the grouping and summarizing until grouping is no longer possible. The leaves hold the original text; higher layers hold summaries of increasing scope. At query time, the method can reach any of these levels, so a question can draw on fine detail or on a broad theme. The paper describes two ways to search: tree traversal, which goes down layer by layer, and collapsed tree, which flattens all nodes into one set and picks the best matches. The authors chose the collapsed tree with a 2000-token limit (about the top 20 nodes) because it performed best on 20 QASPER stories. They say this works because the search can pick information at the right level of detail for each question, while tree traversal keeps a fixed ratio of high-level to detailed nodes no matter what is asked. For UnifiedQA, which has a 512-token limit, they used 400 tokens of context for both RAPTOR and the baselines.\n\nThe experiments bear on a fixed summary depth in two ways. First, the layer study shows that using all layers beats using only some. For Story 1 from QuALITY, querying one layer gave 57.9% at the leaf layer, 57.8% at layer 1, and 57.9% at layer 2; two layers starting at layer 1 gave 52.6% and starting at layer 2 gave 63.15%; all three layers gave 73.68%. The other stories in Appendix I show the same pattern in most cases, though not every subset improves: Story 2 with all three layers scored 47.1%, below its leaf-only 58.8%, and Story 4 with two layers scored 89.4%, below its leaf-only 94.7%. So the full tree is usually best, but the evidence is not uniform. Second, the retrieval counts show that non-leaf nodes are used often: across datasets and retrievers, 18.5% to 57% of retrieved nodes came from non-leaf layers. For NarrativeQA with DPR, 57.36% were non-leaf; for QASPER with SBERT, 18.49%. This means a fixed depth that only used leaves, or only one summary level, would miss a large share of the nodes the method actually selects. The paper also reports that RAPTOR with GPT-4 reached 82.6% accuracy on the QuALITY test set and 76.2% on the hard subset, and 55.7% F-1 on QASPER, but those results compare the whole system against other systems, not one summary depth against another. They support keeping multiple levels available; they do not by themselves prove that any single fixed depth is wrong for every question. The direct evidence for depth choice is the layer ablation and the node-source counts, and both point to keeping the full range of layers rather than fixing one depth.",
+      "seconds": 46.963727750000544,
+      "original_characters": 79021,
+      "initial_characters": 83578,
+      "original_reads": [
+        "raptor"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 6000,
+          "max_characters": 12000
+        }
+      ],
+      "answer_work": {
+        "attempts": 7,
+        "states": {
+          "success": 7
+        },
+        "input_tokens": 50795,
+        "output_tokens": 3824,
+        "cached_tokens": 19200,
+        "estimated_usd_max": 0.00709125,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 7
+        }
+      }
+    },
+    {
+      "record": "summarization-1-hierarchy-catalog.private.json",
+      "retained_record_sha256": "3e8d522d94619e26611a98d48e66e5af519a916204e1894061aa0792178af288",
+      "domain": "summarization",
+      "question_index": 1,
+      "question": "How does the method preserve access across different abstraction levels, and which experimental results bear on choosing a fixed summary depth for every question?",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**How access across levels is preserved**\n\nRAPTOR does not flatten a document into one level of text. It builds a tree. The bottom layer holds short chunks of about 100 tokens. Similar chunks are grouped and summarized into a parent layer, and that grouping-and-summarizing step repeats upward. So the same content exists at several levels of detail: raw passages at the leaves, and increasingly condensed summaries above them.\n\nAt question time, the method keeps every level reachable. The paper describes two query methods. Tree traversal walks down the tree level by level. Collapsed tree puts all nodes from all layers into one pool and retrieves from that pool. The collapsed-tree method with a 2000-token budget gave the best result on 20 QASPER stories, so the authors used it for the main experiments. Because the pool contains leaves and summaries together, a question can pull a fine-grained passage when it needs detail, or a high-level summary when it needs the broad picture. That is how access across abstraction levels is preserved.\n\n**What the experiments say about one fixed summary depth**\n\nThe paper's own tests argue against fixing a single depth for every question. In the story examples it tested, full-tree search beat searches limited to single layers. The paper also reports that 18.5% to 57% of retrieved nodes came from non-leaf layers, depending on dataset and retriever. In other words, a large share of the useful evidence sat above the leaf level, and that share varied a lot by task. A fixed depth would either miss those higher-level nodes or force every question through the same granularity.\n\nA second result bears on the clustering step that creates the layers. On QuALITY, RAPTOR with SBERT and UnifiedQA scored 56.6%, while a recency-based tree with the same embeddings and reader scored 55.8%. The paper reports that about 4% of sampled summaries contained minor hallucinations, which it says did not spread to parent nodes and had no clear effect on question answering. These are the paper's reported results, not independent verification.\n\n**Practical reading**\n\nThe evidence supports keeping all levels available and letting retrieval choose, rather than committing to one summary depth. The variation in non-leaf retrieval (18.5–57%) is the clearest signal that no single depth fits all questions. The paper does not report a direct experiment that sweeps a fixed depth across all questions, so that specific comparison remains untested in the retained material.",
+      "seconds": 21.48972783301724,
+      "original_characters": 79021,
+      "initial_characters": 3118,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7311,
+        "output_tokens": 2208,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.001913418,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "summarization-2-adaptive-catalog.private.json",
+      "retained_record_sha256": "e5d1e5e5dbe7eb41d9fcaff45298b576f8521f74d2a0a1783439d59c63be539c",
+      "domain": "summarization",
+      "question_index": 2,
+      "question": "Reconcile the QuALITY controlled comparison and state-of-the-art comparison in this paper: what are the GPT-3 RAPTOR and DPR results, the GPT-4 RAPTOR and CoLISA test and hard-subset results, and how should we interpret the size and cause of the gains? Use the layer ablation to discuss limits on generalization.",
+      "variant": "adaptive",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer.** In the paper's own numbers, RAPTOR's gain on QuALITY is small when the reader is held fixed and only the retriever changes, but large when the reader is also upgraded to GPT-4. The layer ablation shows the retrieval benefit is real but modest, so the headline jump mostly reflects the stronger reader, not the summary tree.\n\n**Controlled comparison (same reader, retriever changes).** With UnifiedQA 3B as the reader, RAPTOR reached 62.4 accuracy on QuALITY with GPT-3 and 56.6 with UnifiedQA. The paper says this is at least 2.0 points above DPR and BM25. So when only the retriever changes, the gain is about 2 points — a real but small improvement. (The paper does not give a separate GPT-3 DPR figure in the supplied passage; the \"at least 2.0 points above DPR and BM25\" statement is the paper's own comparison.)\n\n**State-of-the-art comparison (reader also changes).** RAPTOR with GPT-4 scored 82.6 on the QuALITY test set, against CoLISA at 62.3. On the QuALITY-HARD subset, RAPTOR with GPT-4 scored 76.2, which the paper says is 21.5 points above CoLISA. These are the headline numbers.\n\n**How to read the size and cause of the gains.** The two comparisons are not like-for-like. The controlled test holds the reader fixed and isolates retrieval; the state-of-the-art test changes both the retriever and the reader (GPT-3/UnifiedQA to GPT-4). The 20-point test-set gap and the 21.5-point hard-subset gap therefore mix two effects: better retrieval from the summary tree, and a much stronger language model. The controlled result suggests the retrieval component alone contributes only a few points. The paper's own framing supports this: it presents the GPT-4 numbers as a new state of the art, but the ablation is what actually measures the tree's contribution.\n\n**Layer ablation and limits on generalization.** The clustering ablation on QuALITY gave 56.6% for RAPTOR with SBERT and UnifiedQA versus 55.8% for a recency-based tree with the same embeddings and reader — a 0.8-point difference. That is close to noise, so the specific clustering step is not clearly the source of the gain. The paper also reports that 18.5% to 57% of retrieved nodes came from non-leaf layers, depending on dataset and retriever, and that full-tree search beat single-layer searches in the story examples tested. Two limits follow. First, the benefit of the tree varies a lot by dataset and retriever, so the QuALITY result should not be assumed to transfer. Second, the paper tested full-tree search only on story examples, so the layer results are not a broad generalization test. The paper also notes about 4% of sampled summaries contained minor hallucinations, though it says these did not spread to parent nodes and had no clear effect on question answering. All of these are the paper's own reported results, not independent verification.\n\nSource: [RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval](https://arxiv.org/html/2401.18059v1) (arXiv, 31 Jan 2024).",
+      "seconds": 19.641282750002574,
+      "original_characters": 79021,
+      "initial_characters": 3118,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7660,
+        "output_tokens": 2677,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.0024353279999999996,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "summarization-2-flat-catalog.private.json",
+      "retained_record_sha256": "a73a6f8cfc9c8aef78348823f3a0c235e77083f912183b8d1fc7d7ccd9f203e2",
+      "domain": "summarization",
+      "question_index": 2,
+      "question": "Reconcile the QuALITY controlled comparison and state-of-the-art comparison in this paper: what are the GPT-3 RAPTOR and DPR results, the GPT-4 RAPTOR and CoLISA test and hard-subset results, and how should we interpret the size and cause of the gains? Use the layer ablation to discuss limits on generalization.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer.** On QuALITY, the controlled comparison and the state-of-the-art comparison measure different things. The controlled comparison holds the reader model fixed and changes only the retriever, so it isolates the retrieval effect. The state-of-the-art comparison changes both the retriever and the reader model, so it measures the combined system. The paper reports GPT-3 RAPTOR at 62.4% versus DPR at 60.4% on the QuALITY dev set (a 2.0-point gain), and GPT-4 RAPTOR at 82.6% on the test set and 76.2% on the hard subset, versus CoLISA at 62.3% and 54.7% (gains of 20.3 and 21.5 points). The layer ablation shows that no single layer is best and that the full tree usually wins, which limits how far the result generalizes.\n\n**The controlled comparison (GPT-3).** In Table 4 of RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval, the QuALITY dev accuracies with GPT-3 are BM25 57.3, DPR 60.4, and RAPTOR 62.4. So RAPTOR beats DPR by 2.0 points and BM25 by 5.1 points. The same table gives UnifiedQA 3B results (BM25 49.9, DPR 53.9, RAPTOR 56.6). The paper states that RAPTOR outperforms BM25 and DPR by at least 2.0% in accuracy. This is the clean comparison: same reader, same data, only the retrieval method changes. The gain is real but modest, and it is the number that best supports the claim that the tree structure itself helps.\n\n**The state-of-the-art comparison (GPT-4).** Table 7 reports QuALITY test-set and hard-subset accuracies. Longformer-base is 39.5 / 35.3; DPR with DeBERTaV3-large is 55.4 / 46.1; CoLISA (DeBERTaV3-large) is 62.3 / 54.7; RAPTOR + GPT-4 is 82.6 / 76.2. The paper says RAPTOR + GPT-4 sets a new state of the art and outperforms CoLISA by 21.5% on QuALITY-HARD. The abstract describes this as improving the best QuALITY performance by 20% in absolute accuracy. Note the two comparisons are not like-for-like: CoLISA is a fine-tuned DeBERTaV3-large reader, while RAPTOR + GPT-4 is a much larger general model plus retrieval. The 20-point gap therefore mixes the reader upgrade with the retrieval upgrade. The controlled GPT-3 result (2.0 points) is the better estimate of the retrieval contribution alone.\n\n**What the layer ablation shows.** Table 8, for Story 1, reports accuracy when retrieval is limited to different layers. One layer only: leaf nodes 57.9, layer 1 57.8, layer 2 57.9. Two layers: starting at layer 1 gives 52.6, starting at layer 2 gives 63.15. Three layers (the full tree) gives 73.68. The paper concludes that full-tree search outperforms strategies focused on specific layers, and that upper nodes matter for thematic or multi-hop questions. Appendix I adds more stories with mixed patterns: Story 2 peaks at 64.7 with two layers starting at layer 1; Story 3 peaks at 83.3 with all three layers; Story 4 is best with leaf nodes alone at 94.7; Story 5 peaks at 68.4 with two layers starting at layer 1. Appendix I also reports that 18.5% to 57% of retrieved nodes come from non-leaf layers, varying by dataset and retriever (for example, NarrativeQA with DPR is 57.36%, QuALITY with SBERT is 24.41%).\n\n**How to interpret the size and cause of the gains.** The controlled gain is small and consistent with the idea that summaries add useful context without replacing the original text. The state-of-the-art gain is large but confounded, because the reader changed from a fine-tuned DeBERTaV3-large to GPT-4. The layer ablation supports a narrower claim: the tree helps when questions need information spread across the document, and the full tree is usually best, but the benefit is not uniform. Story 4 shows leaf-only retrieval winning, so higher layers can hurt on detail-oriented questions. The ablation is also limited: it uses one story per table in the main text, the appendix stories disagree on which layer is best, and the paper does not report a single averaged ablation across all QuALITY stories. So the ablation establishes that layer choice matters and that full-tree search is often strong, but it does not establish a general rule that upper layers always help or that the gains will transfer to other datasets or readers.\n\n**Caveats to keep.** The GPT-3 numbers are on the QuALITY dev set, while the GPT-4 numbers are on the test set and hard subset, so they are not directly comparable. The paper's own abstract says the 20% figure is an absolute accuracy improvement over the previous best, which is the CoLISA comparison. The summarization model is gpt-3.5-turbo, and the paper reports about 4% of summaries contained minor hallucinations that did not propagate to parent nodes and had no discernible impact on QA. The controlled comparison uses dpr-multiset-base for the DPR experiments in Tables 1 and 2, which the paper notes differs from dpr-single-nq-base used elsewhere.",
+      "seconds": 69.67508354102029,
+      "original_characters": 79021,
+      "initial_characters": 83578,
+      "original_reads": [
+        "raptor"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 6000,
+          "max_characters": 12000
+        },
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 12000,
+          "max_characters": 12000
+        }
+      ],
+      "answer_work": {
+        "attempts": 10,
+        "states": {
+          "success": 10
+        },
+        "input_tokens": 63448,
+        "output_tokens": 6207,
+        "cached_tokens": 27136,
+        "estimated_usd_max": 0.009252408,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 10
+        }
+      }
+    },
+    {
+      "record": "summarization-2-guided_hierarchy-catalog.private.json",
+      "retained_record_sha256": "873ded0a1347b1a1cac321e6c0ee324ea69c2edded34286bbd8a52912afe8b94",
+      "domain": "summarization",
+      "question_index": 2,
+      "question": "Reconcile the QuALITY controlled comparison and state-of-the-art comparison in this paper: what are the GPT-3 RAPTOR and DPR results, the GPT-4 RAPTOR and CoLISA test and hard-subset results, and how should we interpret the size and cause of the gains? Use the layer ablation to discuss limits on generalization.",
+      "variant": "guided_hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer.** The paper makes two different comparisons, and they answer different questions. The controlled comparison keeps the reader and the retriever fixed, so it shows what RAPTOR's tree retrieval adds by itself. The state-of-the-art comparison changes the reader to GPT-4, so it shows the best system the authors could build, not RAPTOR alone. The controlled gain is small (about 2 points on QuALITY), the headline gain is large (about 20 points), and the layer ablation shows the benefit depends on the dataset and on searching the whole tree.\n\n**Controlled comparison (same reader, same retriever).** With GPT-3 as the reader, RAPTOR reached 62.4 accuracy on QuALITY, and with UnifiedQA 3B it reached 56.6. The paper says these are at least 2.0 points above DPR and BM25. On QASPER F-1, RAPTOR scored 53.1 with GPT-3, 55.7 with GPT-4 and 36.6 with UnifiedQA, which the paper says is 1.8, 2.7 and 4.5 points above DPR. So when nothing else changes, the retrieval method adds a small but consistent margin. The paper's own numbers for the QuALITY dev set are DPR 60.4 and BM25 57.3 with GPT-3, and DPR 53.9 and BM25 49.9 with UnifiedQA.\n\n**State-of-the-art comparison (GPT-4 reader).** RAPTOR with GPT-4 reached 82.6 accuracy on the QuALITY test set, against CoLISA at 62.3. On the QuALITY-HARD subset, RAPTOR with GPT-4 scored 76.2, which the paper says is 21.5 points above CoLISA (54.7). The same GPT-4 setup reached 55.7 F-1 on QASPER, above CoLT5 XL at 53.9.\n\n**How to read the size and cause of the gains.** The controlled numbers show the retrieval contribution is small: about 2 points on QuALITY. The SOTA numbers are much larger, but they mix two changes at once: a stronger reader (GPT-4 instead of GPT-3 or UnifiedQA) and the RAPTOR tree. The paper does not report a GPT-4 run with DPR or BM25 on QuALITY, so the 20-point gap over CoLISA cannot be attributed to RAPTOR alone. The likely cause of the large gap is the combination: GPT-4 reads and reasons better, and RAPTOR supplies summaries from higher layers that give it more compact context. The paper's own evidence for the retrieval side is the non-leaf usage: 18.5% to 57% of retrieved nodes came from non-leaf layers, depending on dataset and retriever, so the tree is actually being used, not ignored.\n\n**What the layer ablation says about generalization.** The paper reports that full-tree search beat searches limited to single layers in the story examples it tested. That means the method works because it can pull from several levels at once; restricting it to one layer loses part of the benefit. The share of non-leaf nodes used varies widely (18.5% to 57%), so how much the tree helps depends on the dataset. The clustering ablation points the same way: RAPTOR with SBERT and UnifiedQA scored 56.6% on QuALITY, while a recency-based tree with the same embeddings and reader scored 55.8%, a gap of only 0.8 points. So the specific clustering step is not the main source of the gain; a simpler tree does almost as well. The paper also reports that about 4% of sampled summaries contained minor hallucinations, though it says these did not spread to parent nodes and had no clear effect on question answering. Taken together, these results support a cautious reading: RAPTOR's advantage is consistent but small in controlled tests, it depends on searching multiple layers, and its size varies by dataset. The headline SOTA margins should not be read as the size of the retrieval effect. These are the paper's own reported results and claims, not independent verification.\n\nSource: [RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval](https://arxiv.org/html/2401.18059v1), 31 Jan 2024.",
+      "seconds": 62.20161491702311,
+      "original_characters": 79021,
+      "initial_characters": 3720,
+      "original_reads": [
+        "raptor"
+      ],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 44778,
+        "output_tokens": 5357,
+        "cached_tokens": 14592,
+        "estimated_usd_max": 0.007785876,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      }
+    },
+    {
+      "record": "summarization-2-hierarchy-catalog.private.json",
+      "retained_record_sha256": "a45adbeb8fecb8fdade0c57bd448f790d6f27e4a4fcbdf4095d7abd79c8bf8b1",
+      "domain": "summarization",
+      "question_index": 2,
+      "question": "Reconcile the QuALITY controlled comparison and state-of-the-art comparison in this paper: what are the GPT-3 RAPTOR and DPR results, the GPT-4 RAPTOR and CoLISA test and hard-subset results, and how should we interpret the size and cause of the gains? Use the layer ablation to discuss limits on generalization.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer.** The RAPTOR paper reports two different kinds of comparison, and they measure different things. The controlled comparison holds the reader model fixed, so it isolates the retrieval method: RAPTOR scores 62.4 on QuALITY with GPT-3 and 56.6 with UnifiedQA 3B, at least 2.0 points above DPR and BM25. The state-of-the-art comparison changes the reader at the same time: RAPTOR with GPT-4 scores 82.6 on the QuALITY test set against CoLISA's 62.3, and 76.2 on the QuALITY-HARD subset, which the paper says is 21.5 points above CoLISA. The large headline gap therefore mixes two causes — a stronger reader and the tree retrieval — while the controlled ~2-point gain is the cleaner estimate of what the retrieval structure adds. The layer ablation shows the method's distinctive clustering step adds only 0.8 points on QuALITY, so the advantage is fragile and may not generalize.\n\n**The numbers.**\n\n| Setting | RAPTOR | Baseline |\n|---|---|---|\n| QuALITY, GPT-3 reader | 62.4 accuracy | DPR and BM25 at least 2.0 points lower |\n| QuALITY, UnifiedQA 3B reader | 56.6 | recency-based tree, same embeddings and reader: 55.8 |\n| QuALITY test, GPT-4 | 82.6 | CoLISA 62.3 |\n| QuALITY-HARD, GPT-4 | 76.2 | CoLISA 62.3 (paper says 21.5 points above) |\n| QASPER F-1, GPT-4 | 55.7 | CoLT5 XL 53.9 |\n\n**How to read the size and cause of the gains.** The controlled comparison holds the reader fixed, so the ~2-point QuALITY gain (62.4 with GPT-3, 56.6 with UnifiedQA) is attributable to the retrieval structure. The state-of-the-art comparison changes the reader at the same time: RAPTOR with GPT-4 reaches 82.6, while CoLISA's 62.3 is a different system with a different reader. The paper's own framing supports this reading — it reports the GPT-4 result as a new state of the art, and the 21.5-point hard-subset gap is against CoLISA's overall score, not a CoLISA hard-subset score. So the headline gap mixes two causes: a stronger reader and the tree retrieval. The controlled numbers are the cleaner estimate of retrieval's contribution, and they are modest.\n\n**What the layer ablation says about generalization.** The ablation replaces RAPTOR's soft clustering with a recency-based tree using the same embeddings and reader: 56.6% vs 55.8% on QuALITY, a 0.8-point difference. That means the clustering step — the paper's distinctive contribution — adds little on this dataset; most of the gain comes from having a tree at all. The paper also reports that 18.5% to 57% of retrieved nodes came from non-leaf layers depending on dataset and retriever, and that full-tree search beat searches limited to single layers in the story examples tested. Those results are dataset-dependent and tested on a small set of stories, so they do not establish that multi-layer retrieval helps everywhere. The paper also notes about 4% of sampled summaries contained minor hallucinations, though it says these did not spread to parent nodes and had no clear effect on question answering. Together, these findings limit how far the large state-of-the-art gaps can be generalized: they rest on one reader (GPT-4), one benchmark family, and a clustering component whose measured benefit is small.\n\n**Bottom line.** Treat the controlled comparison as the real evidence for RAPTOR's retrieval gain (about 2 points on QuALITY) and the state-of-the-art comparison as a combined reader-plus-retrieval result. The layer ablation shows the method's edge is fragile: it depends on mixing layers, not on the clustering that defines RAPTOR, and the supporting tests are narrow. These are the paper's own reported results, not independent verification. Source: [RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval](https://arxiv.org/html/2401.18059v1), dated 31 Jan 2024.",
+      "seconds": 25.13949304196285,
+      "original_characters": 79021,
+      "initial_characters": 3118,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7782,
+        "output_tokens": 3270,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.0026212680000000004,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "technical-0-flat-catalog.private.json",
+      "retained_record_sha256": "825e866d69929171ff30ac6a7042a4b8833a3aff9ef9271697799183052c84dd",
+      "domain": "technical",
+      "question_index": 0,
+      "question": "Our client enforces a 75-second total request deadline. DeepSeek kept sending blank lines and then our connection closed at 75 seconds. What do these observations establish about why it closed, and what should we inspect next?",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer:** The blank lines are DeepSeek's documented keep-alive signal for a request that is still waiting to start inference. They are not an error. DeepSeek's own server closes a connection only after 10 minutes with no inference start. So the 75-second close was almost certainly your client's own deadline, not DeepSeek's. The blank lines show the request was accepted and queued, not that it failed.\n\n**What the evidence supports**\n\nDeepSeek's API docs state that while a request waits for inference to begin, a non-streaming request will \"continuously return empty lines,\" and a streaming request will return `: keep-alive` comments. The same page says: \"If the request has not started inference after 10 minutes, the server will close the connection.\" ([Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/))\n\nThat gives two separate facts. First, blank lines are expected keep-alive traffic, so they do not explain the close. Second, DeepSeek's server-side close threshold is 600 seconds, which is far longer than your 75-second deadline. The close at 75 seconds therefore matches the client's own limit, not the server's. The blank lines also tell you the request had not yet started inference when the client cut it.\n\nOne alternative remains possible: a proxy, load balancer, or gateway between the client and DeepSeek could have closed the connection at 75 seconds instead of the client itself. The evidence does not rule that out. It only rules out DeepSeek's documented 10-minute server close as the cause.\n\n**What to inspect next**\n\n1. Find which layer enforced the 75-second limit. Check the HTTP client timeout settings and any gateway or proxy idle timeout in front of it. The httpx documentation explains that connect, read, write, and pool timeouts are separate settings ([Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/)). A read timeout, for example, fires when no data arrives for the set period, and blank lines may or may not reset it depending on how the client counts them.\n2. Check whether the request was streaming or non-streaming. Streaming returns keep-alive comments and partial output; non-streaming returns only blank lines until the full answer is ready. If you need output before 75 seconds, streaming is the relevant change.\n3. Measure time-to-first-token separately from total time. If inference had not started before 75 seconds, the fix is a longer deadline or a less loaded model, not retry logic.\n4. Check for HTTP 429 responses. DeepSeek returns 429 when the account concurrency limit is exceeded, which can delay or reject requests ([Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/)).\n5. Log the exact close reason (client timeout, server close, or connection reset) so the next incident is unambiguous.\n\n**What this does not establish**\n\nThe observations do not prove why inference had not started within 75 seconds. Queueing, account concurrency limits, or model load could all produce the same blank-line pattern. The blank lines establish that the request was accepted and waiting; they do not identify the cause of the wait.",
+      "seconds": 19.15234375,
+      "original_characters": 6339,
+      "initial_characters": 7010,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 9495,
+        "output_tokens": 2207,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.0022216019999999996,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "technical-0-hierarchy-catalog.private.json",
+      "retained_record_sha256": "9e4a1c19e583fcdab4a042778e9b43c55775c94dc2d0781f6ede94a5bf31238b",
+      "domain": "technical",
+      "question_index": 0,
+      "question": "Our client enforces a 75-second total request deadline. DeepSeek kept sending blank lines and then our connection closed at 75 seconds. What do these observations establish about why it closed, and what should we inspect next?",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**The short answer**\n\nThe 75-second close was almost certainly your own client deadline firing, not DeepSeek ending the connection. DeepSeek's documented server-side close only happens if inference has not started after **10 minutes** (600 seconds). That is far longer than 75 seconds. So the close at 75 seconds matches your client's total request deadline, not a DeepSeek timeout.\n\nThe blank lines are a separate, expected signal. DeepSeek's API docs say that while a request waits, non-streaming requests return empty lines and streaming requests return Server-Sent Events (SSE) keep-alive comments (`: keep-alive`). These do not change the JSON body. So the blank lines mean the request was **waiting**, not failing.\n\n**What the observations do not establish**\n\nThe observations do not tell you *why* the request was waiting. The most likely cause is concurrency: DeepSeek limits concurrent connections per account (2500 for deepseek-flash, 500 for deepseek-v4-pro), and one request counts as one connection from send until the model response is complete. Going over the limit returns HTTP 429. But the evidence does not state what happens to in-flight requests when a limit is hit, so you cannot conclude from the blank lines alone that you were rate-limited. The request may simply have been queued behind other work and would have completed if given more time.\n\n**What to inspect next**\n\n1. **Check the HTTP status code** on the response. A 429 confirms rate limiting; a 200 with an empty body confirms queuing.\n2. **Log the request start and first-token time.** If inference never started before 75 seconds, the request was still queued.\n3. **Count concurrent connections** against your account limit (2500 or 500 depending on model).\n4. **Check your HTTP client's timeout settings.** HTTPX applies timeouts by default and raises `TimeoutException` if the network is inactive for 5 seconds. But keep-alive comments count as data, so a 5-second read timeout may not fire. Verify which timeout type (connect, read, write or pool) is actually triggering.\n5. **Consider raising the client deadline** or using streaming with keep-alive handling, since DeepSeek allows up to 10 minutes before closing.\n\nSources: [Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/) and [Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/).",
+      "seconds": 18.983601000043564,
+      "original_characters": 6339,
+      "initial_characters": 3481,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7391,
+        "output_tokens": 2291,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.001956402,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "technical-1-flat-catalog.private.json",
+      "retained_record_sha256": "fc154935c19969c75bef0a8cf126b5b5d60db3043ac16f21afe47a8fc412dcb6",
+      "domain": "technical",
+      "question_index": 1,
+      "question": "A complete non-streaming JSON body arrived 70 seconds after submission. Does that tell us how long inference took? Explain the useful competing explanations and observations that could distinguish them.",
+      "variant": "flat",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**No. The 70 seconds is total elapsed time, not inference time.** It measures everything between sending the request and receiving the last byte of the JSON body. So it is an upper bound on inference time, not a measurement of it.\n\n**What the 70 seconds contains**\n\n- Network travel in both directions (request out, response back).\n- Time waiting in the provider's queue before the model starts working.\n- Time the model spends generating tokens.\n- Time to serialize and transmit the finished JSON body.\n\n**Competing explanations for the 70 seconds**\n\n1. **Queueing or scheduling delay.** The request sat waiting for a free slot. The DeepSeek API docs (\"Rate Limit & Isolation\") say a request counts as one concurrent connection \"from the time it is sent until the model response is complete,\" and that \"if the request has not started inference after 10 minutes, the server will close the connection.\" That 10-minute rule only makes sense if a request can wait a long time before inference begins. So a 70-second wait can be mostly queue time.\n2. **Slow generation.** The model was working the whole time, producing a long answer token by token.\n3. **Network or client overhead.** Slow upload, slow download, or a client that buffers the whole body before reporting completion.\n4. **Server-side processing around inference.** Prompt parsing, safety checks, routing, or logging.\n5. **A mix of the above.** Most real cases are a combination, and the 70 seconds alone cannot split them.\n\n**Observations that would distinguish them**\n\n- **Keep-alive empty lines.** The same DeepSeek page states that for non-streaming requests the server \"continuously return[s] empty lines\" while the request is pending, and these \"do not affect the parsing of the JSON body.\" If you log the time of the first byte (the first empty line), you separate waiting-before-inference from generation time. A late first byte points to queueing; an early first byte with a late body points to generation or transmission.\n- **Streaming the same prompt.** With streaming, the time to the first token approximates the wait before generation, and the time from first to last token approximates generation. Compare that split with the 70-second non-streaming run.\n- **Token counts.** If the response is long, generation time scales with output tokens; if it is short but still took 70 seconds, queueing or network is more likely.\n- **Repeat runs at different times.** Queue delay varies with load; pure generation time for the same prompt is more stable. High variance across runs favors queueing.\n- **Server-side timestamps.** If the API returns timing fields or request IDs with server logs, they can show when inference started and ended.\n- **Client-side timing.** Measure DNS, connect, time-to-first-byte, and time-to-last-byte separately. A large gap before the first byte is not inference.\n\n**Practical takeaway**\n\nTreat 70 seconds as an upper bound on inference time, not a measurement of it. To get real inference time, use streaming or server-side timing, and record time-to-first-byte separately from total time. The HTTPX timeouts documentation is also relevant: client timeout settings can cut off or distort what you observe, so confirm the client is not adding its own delay or retry.",
+      "seconds": 32.48645016702358,
+      "original_characters": 6339,
+      "initial_characters": 7010,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 9710,
+        "output_tokens": 2431,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.002388252,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    },
+    {
+      "record": "technical-1-hierarchy-catalog.private.json",
+      "retained_record_sha256": "e5a2dd2a15f30d7f11e21f4484cfaf646f7be838c118cbfb06b350e327648726",
+      "domain": "technical",
+      "question_index": 1,
+      "question": "A complete non-streaming JSON body arrived 70 seconds after submission. Does that tell us how long inference took? Explain the useful competing explanations and observations that could distinguish them.",
+      "variant": "hierarchy",
+      "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+      "status": "completed",
+      "answer_markdown": "**Short answer: no.** The 70 seconds is the total time from when you sent the request to when the complete JSON body arrived. Inference is only one part of that path. The number alone cannot separate model compute time from queueing, network travel, connection setup, or client-side waiting.\n\n**What the 70 seconds actually measures**\n\nIt is end-to-end wall-clock latency: send → server accepts → (possibly waits) → model generates → response travels back → client finishes reading. DeepSeek's API documentation (Rate Limit & Isolation | DeepSeek API Docs) describes one request as one connection held open \"from send until the model response is complete,\" and notes that while a non-streaming request waits, the server sends empty lines as keep-alive padding. So a long wait can be the server holding the connection open before or during generation, not proof of heavy computation.\n\n**Competing explanations for the 70 seconds**\n\n1. **Queueing / concurrency limit.** If the account is at its concurrency ceiling, requests wait. DeepSeek returns HTTP 429 when over the limit, but a request that is merely waiting its turn can sit before inference starts. The docs say the server closes the connection if inference has not started after 10 minutes — so a 70-second wait is well inside the \"still waiting\" window.\n2. **Slow inference (long generation).** The model genuinely took most of the 70 seconds to produce tokens. This is the explanation people usually assume, but it is not established by the number.\n3. **Network / transport delay.** Connection setup (TCP, TLS), geographic distance, and slow links add time at both ends. HTTPX applies timeouts by default — 5 seconds of network inactivity raises a TimeoutException — and separates connect, read, write, and pool timeouts (Timeouts - HTTPX). A slow connect or a stalled read can consume seconds without any model work.\n4. **Client-side waiting or retries.** If the client retried after a timeout, or waited for a connection from a pool, the measured 70 seconds includes that overhead. HTTPX's pool timeout and retry behavior can inflate the observed time.\n5. **Server-side preprocessing.** Prompt validation, content-safety checks, and scheduling (the docs mention user_id used for content safety, KVCache privacy, and scheduling isolation) happen before or around inference and are not model compute.\n\n**Observations that would distinguish them**\n\n- **Streaming vs non-streaming.** If you repeat the request with streaming enabled, the time to the first token separates \"waiting to start\" from \"generating.\" A long gap before the first token points to queueing or setup; a short gap followed by slow token delivery points to slow generation.\n- **Server-reported timings.** If the API returns usage or timing fields (prompt tokens, completion tokens, tokens/sec), those give the actual generation duration. Compare that to the 70 seconds.\n- **Response headers.** Look for rate-limit or retry headers, and any server timing headers. A 429 or a retry header indicates queueing or throttling.\n- **Repeat runs at different times.** If the same request takes 5 seconds at one time and 70 seconds at another, queueing or load is the likely cause. If it is consistently ~70 seconds, generation or a fixed processing step is more likely.\n- **Client-side instrumentation.** Time the connect, the first byte received, and the last byte received separately. HTTPX's separate connect/read/write/pool timeouts let you see which phase is slow. A long connect phase is network; a long read phase after the first byte is generation or server processing.\n- **Payload size.** A large prompt or a request for a long completion naturally takes longer. Compare a short prompt with a long one.\n- **Error and retry logs.** If the client logged a timeout and retried, the 70 seconds may be two attempts, not one slow inference.\n\n**Bottom line**\n\nA 70-second end-to-end time is consistent with slow inference, but it is equally consistent with queueing, network delay, or client-side retries. To attribute the time to inference, you need a phase-level measurement (time to first byte or first token) or server-reported generation timing. Without that, the honest conclusion is: the request took 70 seconds, and inference time is unknown.",
+      "seconds": 28.025193665991537,
+      "original_characters": 6339,
+      "initial_characters": 3481,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7870,
+        "output_tokens": 3853,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.002965452,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      }
+    }
+  ]
+}

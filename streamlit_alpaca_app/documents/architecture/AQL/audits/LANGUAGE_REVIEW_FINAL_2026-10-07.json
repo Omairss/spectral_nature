@@ -1,0 +1,24 @@
+[
+  {
+    "model": "deepseek-v4-pro",
+    "case": "conflicting_evidence",
+    "elapsed_seconds": 24.9,
+    "output": {
+      "answer": "No. Orders grew 30% year over year in Q2 [R1]. Revenue grew 8% year over year in Q2 [R2]. The data establish order growth, not 30% revenue growth. One headline mislabels the 30% figure as revenue growth [R4]. Some orders are scheduled for delivery next year [R3], so they do not count as Q2 revenue.",
+      "audio": "Orders grew 30% in Q2, but revenue grew 8%. Therefore, orders do not prove 30% revenue growth; a headline mislabeled the orders figure as revenue.",
+      "source": "R1; R2; R3; R4",
+      "code": ""
+    }
+  },
+  {
+    "model": "deepseek-flash",
+    "case": "conflicting_evidence",
+    "elapsed_seconds": 27.6,
+    "output": {
+      "answer": "No. Orders grew 30% year over year in Q2 [R1], but revenue grew 8% year over year in Q2 [R2]. The 30% figure is orders growth, not revenue growth. [R4] shows one article headline mislabels it as revenue growth, while the article body reproduces the 30% orders figure. [R3] notes that backlog orders can be scheduled for delivery next year, so orders do not equal current revenue. The data can establish separate orders and revenue growth rates; it cannot prove revenue grew 30%.",
+      "audio": "No, orders did not prove that revenue grew 30%. Orders grew 30% year over year in Q2 [R1], but revenue grew 8% [R2], and the article headline conflicts with its body [R4].",
+      "source": "Controlled review facts: [R1], [R2], [R3], [R4]",
+      "code": ""
+    }
+  }
+]

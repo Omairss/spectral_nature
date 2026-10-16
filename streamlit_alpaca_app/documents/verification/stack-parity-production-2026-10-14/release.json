@@ -1,0 +1,422 @@
+{
+  "checked_at_utc": "2026-10-15T01:08:10.953747+00:00",
+  "authorization": "Owner: Brign them to prod",
+  "scope": "currently deployed development web, private API, conversation/research and LLM cost changes; active non-broker pipeline consumers",
+  "shared_engine_revision": "7242a828ab189e15faa4",
+  "shared_core_hashes": {
+    "services/aql_zopedia_engine.py": "34967708ef89803f13c678214fb5bef7020ede29fe1b36d397b3aadffea08b04",
+    "services/zopedia_agent.py": "6c897f8e068ca50fe805fcab92b42f44ef0f1f34ab29182d84987d6253abbeb2",
+    "services/zopedia_research.py": "5c4a9a57ac66b652ecddfd773de84dd225d2f954af9b356dfee13a4bb1de430e",
+    "services/agent_tools.py": "bb1326354d5a53b53c171ce58a904de6b01241870d9c3f662497362d9035bc04",
+    "services/agents/research_session.py": "10591fd3eca981b14453fec89aa68849dc13da15798906461808a7d530d378d7",
+    "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
+    "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
+    "services/llm_execution.py": "c84301321ceec8695171f89a8117613cefcdcce401f81b3551d8b867f876503c",
+    "services/zopedia_runtime.py": "c5f6a8c9f6e9a8baab3aeab15429f7f028475dabe1cf22ba3b4e1e51b24ad188",
+    "services/llm.py": "f06267cbf10c19be995f4e08bbaf5e5076ec33df7f506e0d9b610e7cf59631a5"
+  },
+  "production_targets": [
+    {
+      "target": "sn-streamlit-ui",
+      "kind": "app",
+      "image": "snpipelineacr03130136.azurecr.io/attention-fundamentals-dev@sha256:8380f82bf07cc249ee8a6761569c0a344fc30aed162d64ab3c45618292fd2c1d",
+      "development_target": "sn-next-ui-dev",
+      "previous_image": "snpipelineacr03130136.azurecr.io/attention-fundamentals-prod@sha256:46dc7015427b659a197c308fb1404cb0f95f05318c7f590f46f67e0653b67467",
+      "add_environment": {},
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded",
+      "revision": "sn-streamlit-ui--0000092",
+      "health": "Healthy",
+      "traffic_percent": 100
+    },
+    {
+      "target": "sn-next-ui",
+      "kind": "app",
+      "image": "snpipelineacr03130136.azurecr.io/attention-fundamentals-dev@sha256:8380f82bf07cc249ee8a6761569c0a344fc30aed162d64ab3c45618292fd2c1d",
+      "development_target": "sn-next-ui-dev",
+      "previous_image": "snpipelineacr03130136.azurecr.io/attention-fundamentals-prod@sha256:46dc7015427b659a197c308fb1404cb0f95f05318c7f590f46f67e0653b67467",
+      "add_environment": {},
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded",
+      "revision": "sn-next-ui--0000008",
+      "health": "Healthy",
+      "traffic_percent": 100
+    },
+    {
+      "target": "sn-api-next",
+      "kind": "app",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:2e9085fdfb623d13594712d9a879b4e90ab10382e952e5536e700908385f27db",
+      "development_target": "sn-api-next-dev",
+      "previous_image": "snpipelineacr03130136.azurecr.io/ios-analytics-api-prod@sha256:c5ebfdb1e439fead4868ae3e57e0db1f3c77408cb023bdd073e521c319cc7219",
+      "add_environment": {},
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded",
+      "revision": "sn-api-next--0000007",
+      "health": "Healthy",
+      "traffic_percent": 100
+    },
+    {
+      "target": "universe-builder",
+      "kind": "job",
+      "build_index": 0,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "build_run": "cj14c",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "equities-intraday-preload",
+      "kind": "job",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+      "development_target": "equities-next-dev",
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:fc060864d8ae99f31b572e188e920e6c4b78825178a31438cfe25959eeac897f",
+      "add_environment": {
+        "LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE": "public_company_research"
+      },
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "macro-fred-daily",
+      "kind": "job",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+      "development_target": "macro-fred-daily-dev",
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:0c24b682208817a3b6aa2da41ff439abeff5a1e358448c006c6a421bfde9d873",
+      "add_environment": {
+        "LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE": "public_company_research"
+      },
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "commodities-regime",
+      "kind": "job",
+      "build_index": 0,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "build_run": "cj14c",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "options-liquid-universe",
+      "kind": "job",
+      "build_index": 0,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "build_run": "cj14c",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "news-ingest-and-features",
+      "kind": "job",
+      "build_index": 0,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "add_environment": {
+        "LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE": "public_company_research"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "build_run": "cj14c",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "entity-taxonomy-refresh",
+      "kind": "job",
+      "build_index": 0,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "build_run": "cj14c",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "attention-home-build",
+      "kind": "job",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+      "development_target": "attention-home-next-dev",
+      "previous_image": "snpipelineacr03130136.azurecr.io/ios-analytics-home-prod@sha256:47e75fe72c5451d9f5401af748e63a9d8b7c7e2a6bbefe15354824f56d6d03e3",
+      "add_environment": {
+        "LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE": "public_company_research"
+      },
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "fundamentals-quarterly-refresh",
+      "kind": "job",
+      "build_index": 1,
+      "previous_image": "snpipelineacr03130136.azurecr.io/ios-analytics-fundamentals-prod@sha256:7a091e68ec9737408ec2461bc9d9aa87ee2379f3e8c094df3c146c38f9449334",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
+      "build_run": "cj14a",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "company-baseline-prefetch",
+      "kind": "job",
+      "build_index": 0,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "build_run": "cj14c",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "trading-agent-build",
+      "kind": "job",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:474ea722c40f90f1d5f24a144e845ffca2d443d0c04dfb173a3e2d63a9a41fdf",
+      "development_target": "trading-agent-build-dev",
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:e9844bc752280d36ef4e2e04822caa794e7e319615d5c99961bd5ce9eb607587",
+      "add_environment": {
+        "LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE": "public_company_research"
+      },
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "zopedia-maintenance",
+      "kind": "job",
+      "build_index": 0,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "build_run": "cj14c",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "zopedia-learning",
+      "kind": "job",
+      "build_index": 0,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:03ce773cf710a5025dba62dd1d4777164d1f1a24d67254e86281d54bd00d862b",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "build_run": "cj14c",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "system-health",
+      "kind": "job",
+      "build_index": 2,
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:f590484cf0df9ce255b18506a572e0c911d3838024d284e4fb7b1d348a178164",
+      "add_environment": {},
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
+      "build_run": "cj14b",
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "target": "sn-research-run",
+      "kind": "job",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:124218fe2a1ecbd515068f0c9098805b4e6544a9519a631f326d4def3d7450ed",
+      "development_target": "sn-research-run-dev",
+      "previous_image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:5dfb67be690d8b28de96f8ef304ec2092ccc64039b651f65f0498e5b8e9cdf74",
+      "add_environment": {},
+      "configuration_verified": true,
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "excluded_resources_unchanged": [
+    "sn-streamlit-ui-dev",
+    "sn-api-dev",
+    "sn-api",
+    "sn-api-next-dev",
+    "sn-next-ui-dev",
+    "trading-agent-build-dev",
+    "macro-fred-daily-dev",
+    "sn-research-run-dev",
+    "robinhood-main-sync-dev",
+    "robinhood-main-sync-prod",
+    "dataset-refresh-dev",
+    "attention-home-next-dev",
+    "attention-ticker-next-dev",
+    "daily-datapoints-next-dev",
+    "technical-history-next-dev",
+    "equities-next-dev",
+    "evidence-index-dev"
+  ],
+  "http": [
+    {
+      "host": "spectral-nature.com",
+      "/health": 200,
+      "/api/home": 200,
+      "home": {
+        "status": "available",
+        "run_id": "3fa5fba2-b392-479e-9404-1760b22c6345",
+        "beats": 7,
+        "daily_datapoints": 0,
+        "audio_available": true
+      },
+      "/api/research-conversations": 401,
+      "/api/admin": 401
+    },
+    {
+      "host": "www.spectral-nature.com",
+      "/health": 200,
+      "/api/home": 200,
+      "home": {
+        "status": "available",
+        "run_id": "3fa5fba2-b392-479e-9404-1760b22c6345",
+        "beats": 7,
+        "daily_datapoints": 0,
+        "audio_available": true
+      },
+      "/api/research-conversations": 401,
+      "/api/admin": 401
+    },
+    {
+      "host": "torres-cap.com",
+      "/health": 200,
+      "/api/home": 200,
+      "home": {
+        "status": "available",
+        "run_id": "3fa5fba2-b392-479e-9404-1760b22c6345",
+        "beats": 7,
+        "daily_datapoints": 0,
+        "audio_available": true
+      },
+      "/api/research-conversations": 401,
+      "/api/admin": 401
+    },
+    {
+      "host": "www.torres-cap.com",
+      "/health": 200,
+      "/api/home": 200,
+      "home": {
+        "status": "available",
+        "run_id": "3fa5fba2-b392-479e-9404-1760b22c6345",
+        "beats": 7,
+        "daily_datapoints": 0,
+        "audio_available": true
+      },
+      "/api/research-conversations": 401,
+      "/api/admin": 401
+    },
+    {
+      "host": "sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+      "/health": 200,
+      "/api/home": 200,
+      "home": {
+        "status": "available",
+        "run_id": "3fa5fba2-b392-479e-9404-1760b22c6345",
+        "beats": 7,
+        "daily_datapoints": 0,
+        "audio_available": true
+      },
+      "/api/research-conversations": 401,
+      "/api/admin": 401
+    }
+  ],
+  "compatibility_builds": [
+    {
+      "index": 0,
+      "build_run": "cj14c",
+      "status": "Succeeded",
+      "images": [
+        {
+          "digest": "sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "registry": "snpipelineacr03130136.azurecr.io",
+          "repository": "stack-parity-prod",
+          "tag": "20261014-0"
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "build_run": "cj14a",
+      "status": "Succeeded",
+      "images": [
+        {
+          "digest": "sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
+          "registry": "snpipelineacr03130136.azurecr.io",
+          "repository": "stack-parity-prod",
+          "tag": "20261014-1"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "build_run": "cj14b",
+      "status": "Succeeded",
+      "images": [
+        {
+          "digest": "sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
+          "registry": "snpipelineacr03130136.azurecr.io",
+          "repository": "stack-parity-prod",
+          "tag": "20261014-2"
+        }
+      ]
+    }
+  ],
+  "proposed_research_depth_and_model_split_deployed": false,
+  "acceptance_status": "infrastructure and HTTP checks passed; live research blocked by provider timeout and HTTP 503; provider choice requested",
+  "browser_acceptance": {
+    "signed_in_production_portfolio_loaded": true,
+    "production_conversation_ui_and_legacy_grouping_visible": true,
+    "home_cards": 20,
+    "home_fundamental_charts": 70,
+    "home_selectors": 0,
+    "home_overflow": false
+  },
+  "live_research_acceptance": {
+    "conversation_id": "zthread_0b92845c1279420faea7d0cb",
+    "same_conversation_after_failure": true,
+    "turns": [
+      {
+        "run_id": "agrun_35dfa6bc3717432aa35eaab7",
+        "status": "failed",
+        "execution": "sn-research-run-68zjocn",
+        "engine_revision": "7242a828ab189e15faa4",
+        "failure": {
+          "type": "ResearchStepTimeout",
+          "stage": "research planning",
+          "message": "ResearchStepTimeout: research planning timed out after 90.0s."
+        }
+      },
+      {
+        "run_id": "agrun_772ccb94430346fdaf0860bc",
+        "status": "failed",
+        "execution": "sn-research-run-8k1huph",
+        "engine_revision": "7242a828ab189e15faa4",
+        "failure": {
+          "type": "LLMAPIError",
+          "stage": null,
+          "message": "LLMAPIError: DeepSeek request failed: HTTP 503. Service is too busy. We advise users to temporarily switch to alternative LLM API service providers. (request_id: ef82bd19-96f7-4961-b08f-a309bf0ba4f6)"
+        }
+      }
+    ],
+    "provider_attempts": [
+      {
+        "parent_run_id": "agrun_772ccb94430346fdaf0860bc",
+        "purpose": "agent.research_step",
+        "status": "failure",
+        "http_status": 503,
+        "duration_ms": 636.9202509999923,
+        "reported_model": null,
+        "usage": null
+      }
+    ],
+    "provider_configuration_changed": false,
+    "note": "No completed answer or qualitative research acceptance is claimed. The timed-out first call has unavailable usage; the HTTP 503 attempt was recorded with usage unavailable."
+  },
+  "rollback": {
+    "order": [
+      "restore both frontend previous images",
+      "restore private API previous image",
+      "restore worker previous images"
+    ],
+    "images": "previous_image in each production_targets entry",
+    "configuration": "remove only the five public producer opt-ins recorded in add_environment; preserve every other setting",
+    "database": "additive conversation and accounting schema remains; do not erase existing conversations or provider receipts"
+  }
+}

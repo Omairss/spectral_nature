@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
+from functools import cached_property
+import hashlib
+import json
 from typing import Any
 
 import pandas as pd
@@ -122,6 +125,61 @@ def _normalize_params(raw_params: dict[str, Any] | None, *, param_specs: tuple[P
 @dataclass(frozen=True)
 class QueryService:
     data_access: DataAccessLayer
+    supplied_evidence: dict[str, dict[str, Any]] = field(default_factory=dict, repr=False, compare=False)
+
+    def with_supplied_evidence(self, records: dict[str, dict[str, Any]]) -> "QueryService":
+        """Bind originals to this invocation only, independently of shared memory."""
+        return replace(self, supplied_evidence=dict(records))
+
+    @cached_property
+    def supplied_evidence_manifest(self) -> dict[str, Any]:
+        digest = hashlib.sha256()
+        encoder = json.JSONEncoder(ensure_ascii=False, sort_keys=True, default=str)
+        for source_id, record in sorted(self.supplied_evidence.items()):
+            for part in encoder.iterencode([source_id, record]):
+                digest.update(part.encode("utf-8"))
+        return {"source_count": len(self.supplied_evidence), "sha256": digest.hexdigest(),
+                "catalog_tool": "research.list_supplied_evidence", "read_tool": "research.read_supplied_evidence"}
+
+    def list_supplied_evidence(self, *, terms: list[str] | None = None, offset: int = 0, limit: int = 50) -> dict[str, Any]:
+        """Browse all records or search literal metadata; no semantic admission rules."""
+        terms = [str(term).casefold() for term in (terms or []) if str(term).strip()]
+        matches = []
+        for source_id, record in self.supplied_evidence.items():
+            entry = {"source_id": source_id, "title": record.get("title", source_id), "metadata": record.get("metadata") or {}}
+            content = record.get("content")
+            entry["content_type"] = type(content).__name__
+            if isinstance(content, dict):
+                entry["fields"] = list(content)
+            if not terms or any(term in json.dumps(entry, ensure_ascii=False, default=str).casefold() for term in terms):
+                matches.append(entry)
+        offset, limit = max(0, int(offset)), min(100, max(1, int(limit)))
+        end = min(offset + limit, len(matches))
+        return {"sources": matches[offset:end], "total_matches": len(matches), "offset": offset,
+                "next_offset": end if end < len(matches) else None, "total_sources": len(self.supplied_evidence)}
+
+    def read_supplied_evidence(self, *, source_id: str, pointer: str = "", offset: int = 0, max_characters: int = 16000) -> dict[str, Any]:
+        """Read an original or a JSON Pointer within it, with lossless continuation."""
+        if source_id not in self.supplied_evidence:
+            raise QueryValidationError(f"Unknown supplied source: {source_id}")
+        record = self.supplied_evidence[source_id]
+        content = record.get("content")
+        if pointer:
+            if not pointer.startswith("/"):
+                raise QueryValidationError("pointer must be a JSON Pointer beginning with /.")
+            for part in pointer[1:].split("/"):
+                key = part.replace("~1", "/").replace("~0", "~")
+                try:
+                    content = content[int(key)] if isinstance(content, list) else content[key]
+                except (KeyError, IndexError, TypeError, ValueError) as exc:
+                    raise QueryValidationError(f"Unknown evidence pointer: {pointer}") from exc
+        original = content if isinstance(content, str) else json.dumps(content, ensure_ascii=False, default=str)
+        offset, size = max(0, int(offset)), min(60000, max(1, int(max_characters)))
+        end = min(offset + size, len(original))
+        return {"source_id": source_id, "title": record.get("title", source_id), "pointer": pointer,
+                "metadata": record.get("metadata") or {},
+                "text": original[offset:end], "offset": offset, "total_characters": len(original),
+                "next_offset": end if end < len(original) else None}
 
     @classmethod
     def from_environment(cls) -> "QueryService":

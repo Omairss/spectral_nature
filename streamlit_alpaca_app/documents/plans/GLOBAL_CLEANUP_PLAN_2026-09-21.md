@@ -2,6 +2,123 @@
 
 Status: in progress. Grounded in `documents/architecture/overall/GLOBAL_OPTIMIZATION_AUDIT_2026-09-21.md`, the 2026-09-21 static probes, and the 2026-10-02 Next.js vertical-slice deployment.
 
+## 2026-10-08 event-led discovery and coordinated research
+
+Today's OpenAI-report selloff exposed a concrete missing path. The FT headline
+was retained before Home's 18:20 UTC run, but none of its tagged instruments
+entered the 78 candidates or 12 primary research plans. The 146 primary research
+documents contained no OpenAI mention. All 12 ticker Zopedia enrichments recorded
+timeouts; the market summary failed. The page led with Bitcoin weakness and
+taxonomy cohorts. [Captured evidence and direct research traces](../architecture/overall/audits/evidence/AI_SELLOFF_DISCOVERY_AUDIT_2026-10-08.json).
+
+Three direct shared-agent probes also missed the event. Their retrieval returned
+unrelated headlines or old memory; two supplied article reads timed out. A
+provider comparison returned zero Serper news results and nine general-web
+results for the same short query. More research subjects or concurrency alone
+cannot repair those admission, retrieval and execution failures.
+
+The implementation priority is a shared event and investigation path:
+
+1. Retain and index source events independently of daily ticker selection and
+   downstream business-resolution success. Headlines and incomplete articles can
+   nominate research. Private entities and concepts need no price row or fixed
+   public-company mapping.
+2. Use LLM/embedding retrieval to connect new claims with prior claims and
+   relevant businesses. Cluster related reporting and joint numerical behavior;
+   retain uncertainty and alternative connections. Learn event importance from
+   reviewed usefulness and observed outcomes rather than fixed ticker lists,
+   financial patterns, percentage thresholds or source-count requirements.
+3. Let the shared AQL/Zopedia agent plan focused investigations around an event,
+   retain their outputs, compare interpretations and synthesize one coherent Home
+   lead with linked company context. The agent chooses the questions and number
+   of investigations; there is no coded workflow specific to this example.
+4. Give shared acquisition access to general-web and news search, retained raw
+   news, memory and source reading. Query reformulation and semantic relevance
+   belong to the shared agent. A news-only endpoint and exact ticker/word gates
+   must not silently define available knowledge.
+5. Use existing durable research execution to retain progress and schedule
+   follow-ups with realistic provider budgets. Replace discarded 90-second whole
+   investigations with explicit run/step state; do not merely increase the same
+   blocking wrapper. Fresh source events must be able to update an investigation
+   and Home between full scheduled builds.
+
+The temporal and relationship learners in revision 2 remain useful inputs, but
+training them is not a prerequisite for investigating an explicit ingested
+headline. Evaluate event-to-research and event-to-publication latency, source and
+relationship retrieval, usefulness and organization of the actual synthesized
+lead, alongside chronological numerical evaluation. This is an architecture
+correction and a read-only audit; no application code or deployment changed.
+
+## 2026-10-07 historical training corpus
+
+Free and existing-entitlement acquisition is running into the development Blob namespace. The shared-source implementation retains raw/cleaned data, revisions, complete pagination and immutable receipts; frozen frames separate available-at-time inputs from forward returns/downside targets. Full ingestion and broader free-source coverage remain incomplete. Follow the [collection plan](HISTORICAL_CONTEXT_TRAINING_HARNESS_2026-10-07.md), [status](../training/HISTORICAL_CORPUS_STATUS_2026-10-07.json), and [priced source TODO](../training/HISTORICAL_SOURCE_TODO_2026-10-07.md). Returns drive research direction; source/frame plumbing is not a trained discovery model or prospective evaluation.
+
+## 2026-10-07 discovery model architecture — revision 2
+
+The [14-page technical redesign](../../output/pdf/SPECTRAL_NATURE_LLM_DISCOVERY_REDESIGN_2026-10-07.pdf)
+replaces the rejected product-oriented proposal. The editable specification is
+[DISCOVERY_MODEL_ARCHITECTURE_2026-10-07.json](../architecture/overall/redesigns/DISCOVERY_MODEL_ARCHITECTURE_2026-10-07.json).
+The original companies diagnose selection failures; they are neither model
+classes nor coded inclusion rules. DeepSeek is restored.
+
+Move learning before the research shortlist. A shared, causal temporal encoder
+represents all covered entities with masked multiresolution reconstruction and
+future-block likelihood objectives. Compare it with dynamic-factor/state-space
+and simple historical baselines. Preserve observed trajectories, shared behavior,
+and conditional surprise separately; residual surprise is not research utility.
+
+Estimate signed empirical relationships and learned cohorts from histories;
+regularized conditional lag models assess information beyond shared factors and
+own history. Independently retrieve article-derived relationships through
+Zopedia, with open descriptions, conditions and contextual entity recovery.
+Neither modality requires confirmation by the other. No fixed signs, target
+lists, named financial patterns, exact-source matches or complete provenance
+requirements define admission.
+
+Use broad nomination and shared LLM reranking initially. Collect personally
+reviewed comparisons of investigation usefulness before training a pairwise
+preference ranker. Retain selection history, cost and known-probability exploration
+to expose blind spots. Evaluate with chronological folds, matched-budget
+ablations, low-exposure samples and prospective qualitative review; old
+deterministic selections cannot establish outcomes for unchosen research.
+
+Separate numerical publication from narrative availability at existing owners.
+Fit models in analytical jobs, not page renders or the bounded Zopedia analysis
+sandbox. Market Explorer's ranked view requests 80 rows while Broad Markets
+already exposes full-universe data. Separate result breadth, numerical compute,
+12-versus-24 research subjects and provider concurrency when sizing work.
+
+Sequence: establish the available-at-time training view; benchmark numerical
+learners; connect both relationship sources; run broad research in shadow; then
+learn and promote selection when reviewed data supports it. This remains an
+architecture proposal; no application implementation or deployment occurred.
+
+## 2026-10-07 stock decline discovery audit
+
+The [production discovery audit](../architecture/overall/audits/DECLINE_DISCOVERY_AUDIT_2026-10-07.md)
+adds a product-critical dependency to the cleanup priorities. Since July 1,
+Home recorded 310 failed attempts and 13 successes; 309 failures report provider
+balance errors. Numerical `market_opportunity_feed` publication remains downstream
+of the mandatory Home narrative review, so an LLM outage freezes discovery data
+while equities ingestion continues. A September 18 Trading Agent package used
+August 14 opportunities. Moving ticker snapshots independently did not remove
+this remaining dependency.
+
+After availability is repaired, discovery still needs an architectural change:
+sustained company drawdowns and broad industry weakness cannot depend on a daily
+mover shortlist or peer-relative anomaly qualification. The data exists, but
+research selection, universe continuity, source acquisition, and public surfaces
+do not consistently preserve those concerns. Current macro-role tags also conflate
+economic exposure with a measuring instrument, and a public NIB card resolves the
+cocoa instrument to an Australian insurer.
+
+Prioritize numerical publication at the existing equities owner, source-version
+freshness and producer health, then company/cohort discovery and persistent
+research priorities inside AQL/Zopedia. Preserve shared instrument identity and
+one return-window definition. These are audit recommendations; no runtime change
+or deployment was made. The linked report and captured evidence contain the
+historical coverage, selection replay, precise scope, and proposed evaluation.
+
 ## 2026-10-07 implementation update
 
 Checkpoint `35ea4cb6` preserves all pending work, including the native iPhone app.
@@ -31,6 +148,72 @@ Development release completed: `sn-api-next-dev--0000012`. Health, public Home,
 and retained-bundle refresh passed on the running revision; the unavailable path
 also returned correctly without live research. The dataset contained 79 retained
 bundles. Exact image and rollback are recorded in `infra/UI_DEPLOYMENT_STATUS.md`.
+
+## Next cleanup priorities — source review 2026-10-07
+
+This is an assessment, not an implementation or performance benchmark. The
+current production roots (`app.py`, `api`, `compute`, `data_access`, `pipeline`,
+`presentation`, `services`, `views`) contain 162 Python files and 120,813 lines.
+An AST import-reference graph finds a 26-module circular dependency group spanning
+DAL/QueryService and AQL/Zopedia, plus a two-module SAA storage/Zopedia group.
+The graph includes function-local imports: these counts describe coupling, not
+proof of eager import failures or measured startup time. The old debt score has
+not been recomputed.
+
+Recommended order:
+
+1. **Remove runtime schema work from jobs and telemetry.**
+   `pipeline/jobs/main.py::_db_bootstrap` runs CREATE/ALTER statements at job start;
+   `pipeline_store.py::record_connector_call_event` and model-call recording call
+   table-creation functions before inserts. Move schema evolution into explicit
+   deployment migrations, retain bounded readiness checks, and remove the legacy
+   schema fallback branches after the target environments are verified. This
+   reduces database work and lock exposure. `latest_job_status_table` also makes
+   one latest-row query per job; fetch those rows together.
+2. **Bound and reuse retained-data reads at their owner.**
+   The DAL's single-ticker snapshot, metadata, and research-bundle paths load full
+   datasets before selecting a row. `pipeline_store` already supports bounded
+   symbol slices, but several consumers bypass them. Use filtered/batch reads and
+   reuse a dataset version within one request. Preserve namespace, authorization,
+   freshness, and replay identity. Measure actual frame sizes, I/O, allocations,
+   and route latency before choosing broader caching or new partition schemes.
+3. **Separate persisted contracts from research execution imports.**
+   Even `services.aql.evidence_index::parse_json_list` imports the AQL package,
+   whose initializer eagerly re-exports collectors, synthesis, and the engine.
+   Baseline/page-summary modules also mix readers with producers. Put persisted
+   decoding and transport contracts in the existing lower-level ownership boundary;
+   research imports those contracts. Remove unused re-export facades and the
+   test-only patch-propagating module replacement in `attention_agentic.py` once
+   callers and tests use the actual owner. Reduce dependency cycles by deleting
+   reverse dependencies, not by adding lazy-import workarounds.
+4. **Consolidate the second loader policy layer.**
+   `presentation/dashboard_loaders.py` still has 60 functions and global callback
+   configuration alongside QueryService's dataset/chart registry. Keep UI-specific
+   caching/session mechanics there; use the existing query contracts for data
+   selection and refresh policy. Retire Streamlit routes only after verifying their
+   required behavior is available in the replacement surface.
+5. **Simplify pipeline declarations and persistence ownership.**
+   Job dispatch, source-to-job mappings, runtime bootstrap, and dataset persistence
+   still span the 3,276-line job runner and pipeline store. Consolidate existing
+   declarations and storage behavior; avoid adding a framework or merely moving
+   functions to more files. Readiness/migrations in item 1 should precede this.
+6. **Unify dependencies and retire verified legacy roots.**
+   Root `src/` has 62 tracked legacy files and a separate Dash/Flask requirements
+   file. Active API/pipeline Dockerfiles install the application's broad shared
+   requirements, including UI and acquisition dependencies. Establish one resolved
+   dependency source with role-specific selections and a common supported Python
+   contract, then archive legacy launch paths after reference verification. This
+   is expected to reduce build/image overhead; no image-size savings are measured.
+
+An additional iPhone efficiency opportunity is `APIClient.data`: every request
+waits on one global task chain. That protects cookie/refresh-token rotation, but
+also queues independent reads. Evaluate public-read concurrency first; private
+read concurrency requires a shared session-refresh design and cancellation/logout
+correctness across the native client and web gateway. Do not simply remove the
+queue or weaken refresh serialization.
+
+Start with items 1 and 2 for operational efficiency, then item 3 for architectural
+simplification. No runtime changes or deployments were made during this review.
 
 ## Intent
 

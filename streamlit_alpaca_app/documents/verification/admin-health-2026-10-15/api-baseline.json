@@ -1,0 +1,6 @@
+{
+  "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:4ed18f208f3665efce61e3a0fa41c436034ded1242a019cc7302920a8e792763",
+  "layers": 65,
+  "api_main_sha256": "e5381252bd8e7e737974081322854abea2157433daa7b5e54a2f613d301c0397",
+  "source": "/tmp/sn-reliability-20261015/deployed-api-base/api/main.py"
+}

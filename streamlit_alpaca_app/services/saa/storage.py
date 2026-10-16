@@ -1,17 +1,20 @@
 from __future__ import annotations
 
+from services.database import open_database_session
+
 from datetime import datetime, timezone
 import hashlib
 import json
 import math
 import os
 import re
+import uuid
 from typing import Any, Callable
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import pandas as pd
 
-from services.llm import load_embedding_client
+from services.llm import load_embedding_client, remaining_request_timeout
 from services.secrets import build_azure_credential, postgres_connect_timeout_seconds, resolve_secret_value
 
 
@@ -52,6 +55,60 @@ def _coerce_text(value: object) -> str:
         text = str(value).strip()
     return "" if text.upper() in {"NAN", "<NA>", "NONE", "NULL"} else text
 
+
+def canonical_source_references(references: list[Any]) -> list[Any]:
+    """Represent provenance as records and links, never copied ancestry trees.
+
+    Every distinct metadata record and ancestry edge survives. A record's
+    source_reference_id names its complete metadata; a source_refs entry with
+    only that ID links to the record in this collection. Repeated links are
+    not independent evidence. Original captures remain in the retained store.
+    This representation is idempotent for both legacy trees and linked records.
+    """
+    records: dict[str, dict[str, Any]] = {}
+    unresolved: dict[str, dict[str, Any]] = {}
+    opaque: list[Any] = []
+
+    def visit(reference):
+        if not isinstance(reference, dict):
+            return reference
+        if set(reference) == {"source_reference_id"}:
+            unresolved[reference["source_reference_id"]] = reference
+            return reference
+        value = {key: item for key, item in reference.items()
+                 if key not in {"source_reference_id", "source_refs"}}
+        if "source_refs" in reference:
+            children = {}
+            for child in reference.get("source_refs") or []:
+                link = visit(child)
+                children.setdefault(json.dumps(link, sort_keys=True, ensure_ascii=False, default=str), link)
+            value["source_refs"] = list(children.values())
+        identity = reference.get("source_reference_id") or "source_ref_" + hashlib.sha256(
+            json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":"), default=str).encode()
+        ).hexdigest()
+        records.setdefault(identity, {**value, "source_reference_id": identity})
+        return {"source_reference_id": identity}
+
+    for reference in references:
+        if isinstance(reference, dict):
+            visit(reference)
+        else:
+            opaque.append(reference)
+    return [*records.values(), *(value for key, value in unresolved.items() if key not in records), *opaque]
+
+def _canonical_reference_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
+    metadata = dict(metadata)
+    if isinstance(metadata.get("source_refs"), list):
+        metadata["source_refs"] = canonical_source_references(metadata["source_refs"])
+    trace = metadata.get("source_trace")
+    if isinstance(trace, str):
+        try:
+            trace = json.loads(trace)
+        except (ValueError, TypeError):
+            trace = None
+    if isinstance(trace, list):
+        metadata["source_trace"] = json.dumps(canonical_source_references(trace), ensure_ascii=False)
+    return metadata
 
 def _slug(value: object, *, default: str = "unknown") -> str:
     text = re.sub(r"[^a-z0-9]+", "-", _coerce_text(value).lower()).strip("-")
@@ -309,19 +366,14 @@ def _db_connection() -> Any | None:
             seconds = int(default_seconds)
         return max(seconds, 1) * 1000
 
-    session_options = " ".join(
-        (
-            f"-c statement_timeout={_timeout_ms('SAA_POSTGRES_STATEMENT_TIMEOUT_SECONDS', _DEFAULT_DB_STATEMENT_TIMEOUT_SECONDS)}",
-            f"-c lock_timeout={_timeout_ms('SAA_POSTGRES_LOCK_TIMEOUT_SECONDS', _DEFAULT_DB_LOCK_TIMEOUT_SECONDS)}",
-            f"-c idle_in_transaction_session_timeout={_timeout_ms('SAA_POSTGRES_IDLE_TRANSACTION_TIMEOUT_SECONDS', _DEFAULT_DB_IDLE_TRANSACTION_TIMEOUT_SECONDS)}",
-        )
-    )
     try:
-        return psycopg.connect(
+        return open_database_session(
             conn_str,
             connect_timeout=postgres_connect_timeout_seconds(),
             application_name="spectral_nature_saa",
-            options=session_options,
+            statement_timeout_ms=_timeout_ms('SAA_POSTGRES_STATEMENT_TIMEOUT_SECONDS', _DEFAULT_DB_STATEMENT_TIMEOUT_SECONDS),
+            lock_timeout_ms=_timeout_ms('SAA_POSTGRES_LOCK_TIMEOUT_SECONDS', _DEFAULT_DB_LOCK_TIMEOUT_SECONDS),
+            idle_transaction_timeout_ms=_timeout_ms('SAA_POSTGRES_IDLE_TRANSACTION_TIMEOUT_SECONDS', _DEFAULT_DB_IDLE_TRANSACTION_TIMEOUT_SECONDS),
         )
     except Exception:
         return None
@@ -735,10 +787,10 @@ def prepare_retained_source_documents(
                 _parse_json_text(item.get("mentioned_dates_json")) or "[]",
                 _coerce_text(item.get("mentioned_dates_key")) or None,
                 json.dumps(
-                    {
+                    _canonical_reference_metadata({
                         "query_text": _coerce_text(item.get("query_text")),
                         "source_trace": _coerce_text(item.get("source_trace")),
-                    },
+                    }),
                     ensure_ascii=False,
                 ),
             )
@@ -747,6 +799,9 @@ def prepare_retained_source_documents(
 
 
 def _upsert_retained_document_records(conn: Any, records: list[tuple[Any, ...]]) -> None:
+    # pandas.NaT is a datetime subclass. psycopg adapts it to a real, far-future
+    # timestamp unless the persistence boundary converts missing dates to NULL.
+    records = [tuple(None if value is pd.NaT else value for value in row) for row in records]
     if not records:
         return
     with conn.cursor() as cur:
@@ -881,7 +936,9 @@ def prepare_retained_evidence_chunks(
         if not chunk_text:
             continue
         title = _coerce_text(item.get("title"))
-        display_excerpt = _trim(_coerce_text(item.get("display_excerpt")) or chunk_text, _DISPLAY_EXCERPT_MAX_CHARS)
+        display_excerpt = _trim(
+            _coerce_text(item.get("display_excerpt")) or chunk_text, _DISPLAY_EXCERPT_MAX_CHARS
+        )
         search_text = _chunk_search_text({**item, "display_excerpt": display_excerpt})
         chunk_identity_sha256 = _sha256_text(
             "|".join(
@@ -905,10 +962,18 @@ def prepare_retained_evidence_chunks(
             if part
         )
         chunk_record_id = f"saa_chunk::{_sha256_text(chunk_record_key)[:24]}"
-        mentioned_tickers_key = _coerce_text(item.get("mentioned_tickers_key")) or _json_key_from_text(item.get("mentioned_tickers_json"))
-        mentioned_commodities_key = _coerce_text(item.get("mentioned_commodities_key")) or _json_key_from_text(item.get("mentioned_commodities_json"))
-        event_tags_key = _coerce_text(item.get("event_tags_key")) or _json_key_from_text(item.get("event_tags_json"))
-        mentioned_dates_key = _coerce_text(item.get("mentioned_dates_key")) or _json_key_from_text(item.get("mentioned_dates_json"))
+        mentioned_tickers_key = _coerce_text(item.get("mentioned_tickers_key")) or _json_key_from_text(
+            item.get("mentioned_tickers_json")
+        )
+        mentioned_commodities_key = _coerce_text(
+            item.get("mentioned_commodities_key")
+        ) or _json_key_from_text(item.get("mentioned_commodities_json"))
+        event_tags_key = _coerce_text(item.get("event_tags_key")) or _json_key_from_text(
+            item.get("event_tags_json")
+        )
+        mentioned_dates_key = _coerce_text(item.get("mentioned_dates_key")) or _json_key_from_text(
+            item.get("mentioned_dates_json")
+        )
 
         base.at[idx, "chunk_record_id"] = chunk_record_id
         base.at[idx, "chunk_identity_sha256"] = chunk_identity_sha256
@@ -959,12 +1024,28 @@ def prepare_retained_evidence_chunks(
                 _parse_json_text(item.get("mentioned_dates_json")) or "[]",
                 mentioned_dates_key or None,
                 json.dumps(
-                    {
+                    _canonical_reference_metadata({
                         "query_text": _coerce_text(item.get("query_text")),
                         "source_trace": _coerce_text(item.get("source_trace")),
                         "document_content_sha256": _coerce_text(item.get("document_content_sha256")),
                         "provider_payload_sha256": _coerce_text(item.get("provider_payload_sha256")),
-                    },
+                        **{
+                            key: item[key]
+                            for key in (
+                                "canonical_url",
+                                "url",
+                                "evidence_type",
+                                "source_refs",
+                                "page_id",
+                                "source_version",
+                                "retrieved_at",
+                                "raw_text_blob_path",
+                                "capture_metadata",
+                                "captured_at",
+                            )
+                            if key in item
+                        },
+                    }),
                     ensure_ascii=False,
                 ),
             )
@@ -973,6 +1054,7 @@ def prepare_retained_evidence_chunks(
 
 
 def _upsert_retained_evidence_chunk_records(conn: Any, records: list[tuple[Any, ...]]) -> None:
+    records = [tuple(None if value is pd.NaT else value for value in row) for row in records]
     if not records:
         return
     with conn.cursor() as cur:
@@ -1076,6 +1158,59 @@ def persist_retained_evidence_chunks(
     return prepared_frame
 
 
+def retain_web_capture(*, url: str, title: str, text: str, metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Keep a complete browser capture in the existing source/chunk corpus."""
+    now = datetime.now(timezone.utc)
+    text = str(text).strip()
+    if not text:
+        return {"status": "empty", "reason": "no_visible_text"}
+    digest = hashlib.sha256(text.encode()).hexdigest()
+    capture_run_id = "capture_" + uuid.uuid4().hex
+    frame = pd.DataFrame([{"url": url, "title": title, "raw_text": text, "provider_payload_json": json.dumps(metadata or {}),
+                           "source_kind": "web", "source_provider": "page_browsing", "evidence_type": "source_capture",
+                           "capture_metadata": metadata or {}, "captured_at": now.isoformat(),
+                           "document_id": "capture::" + digest, "chunk_id": digest, "raw_text_chars": len(text)}])
+    conn = _db_connection()
+    blob = _blob_service_client()
+    if conn is None or blob is None:
+        if conn is not None:
+            conn.close()
+        return {"status": "unavailable", "reason": "capture_storage_unavailable"}
+    try:
+        bootstrap_saa_storage(conn)
+        def upload(path, payload, content_type):
+            from azure.storage.blob import ContentSettings
+            blob.get_blob_client(container=_storage_container(), blob=path).upload_blob(payload, overwrite=True, content_settings=ContentSettings(content_type=content_type))
+        frame = persist_retained_source_documents("web_capture", frame, dataset_version_id=digest, run_id=capture_run_id, asof_time_utc=now, universe_version="", conn=conn, upload_bytes_fn=upload)
+        # Index lossless windows, retaining the complete immutable source body.
+        document = frame.iloc[0].to_dict()
+        windows = [text[start:start + 4000] for start in range(0, len(text), 3600)]
+        chunks = pd.DataFrame([{**document, "chunk_text": piece, "chunk_id": f"{digest}:{index}", "chunk_index": index, "document_chunk_count": len(windows)} for index, piece in enumerate(windows)])
+        frame = persist_retained_evidence_chunks("web_capture", chunks, dataset_version_id=digest, run_id=capture_run_id, asof_time_utc=now, conn=conn)
+        row = frame.iloc[0]
+        return {"status": "retained", "capture_id": str(row["chunk_record_id"]), "chunk_record_id": str(row["chunk_record_id"]), "canonical_document_id": str(row["canonical_document_id"]), "content_sha256": digest, "captured_at": now.isoformat()}
+    finally:
+        conn.close()
+
+
+def load_web_capture(capture_id: str) -> dict[str, Any]:
+    """Read the exact archived body referenced by a capture's retained chunk."""
+    row = load_retained_evidence_chunk(capture_id)
+    if row is None or row.get("source_kind") != "web" or not str(row.get("document_id") or "").startswith("capture::"):
+        raise ValueError("Source capture is unavailable; use read_evidence for an ordinary retained chunk.")
+    metadata = json.loads(row.get("metadata_json") or "{}")
+    body = _read_blob_json(metadata.get("raw_text_blob_path") or "")
+    if body is None:
+        raise ValueError("Archived source capture is unavailable.")
+    text = str(body.get("raw_text") or "")
+    if hashlib.sha256(text.encode()).hexdigest() != metadata.get("document_content_sha256"):
+        raise ValueError("Source capture content does not match its retained reference.")
+    return {"url": row.get("canonical_url") or body.get("canonical_url"), "title": row.get("title") or body.get("title"), "text": text,
+            "canonical_document_id": row.get("canonical_document_id"),
+            "captured_at": metadata.get("captured_at"),
+            "capture_metadata": metadata["capture_metadata"] if "capture_metadata" in metadata else json.loads(body.get("provider_payload_json") or "{}")}
+
+
 def persist_agent_research_evidence(
     *,
     run_id: str,
@@ -1083,6 +1218,7 @@ def persist_agent_research_evidence(
     answer: str,
     claims: list[str],
     symbols: list[str],
+    source_refs: list[dict[str, Any]] | None = None,
 ) -> pd.DataFrame:
     """Persist agent findings as retained evidence for future searches."""
     conn = _db_connection()
@@ -1104,6 +1240,8 @@ def persist_agent_research_evidence(
                 "source_kind": "agent_research",
                 "source_provider": "zopedia_agent",
                 "research_scope": "agent_answer",
+                "evidence_type": "generated_analysis",
+                "source_refs": source_refs or [],
                 "bundle_subject": query[:200],
                 "published_at": now,
                 "published_date": now.strftime("%Y-%m-%d"),
@@ -1125,6 +1263,8 @@ def persist_agent_research_evidence(
                 "source_kind": "agent_research",
                 "source_provider": "zopedia_agent",
                 "research_scope": "agent_evidence",
+                "evidence_type": "retained_tool_capture",
+                "source_refs": source_refs or [],
                 "bundle_subject": query[:200],
                 "published_at": now,
                 "published_date": now.strftime("%Y-%m-%d"),
@@ -1197,8 +1337,7 @@ def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame
         "ts_rank_score",
     ]
     normalized_rows = [
-        tuple(list(row) + [None] * max(len(columns) - len(row), 0))[: len(columns)]
-        for row in rows
+        tuple(list(row) + [None] * max(len(columns) - len(row), 0))[: len(columns)] for row in rows
     ]
     frame = pd.DataFrame(normalized_rows, columns=columns)
     if frame.empty:
@@ -1212,6 +1351,56 @@ def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame
         ("mentioned_dates_json", "mentioned_dates"),
     ):
         frame[list_column] = frame[json_column].map(_safe_json_list)
+    frame["canonical_url"] = ""
+    for column in ("page_id", "source_version", "evidence_type", "retrieved_at"):
+        frame[column] = ""
+    frame["source_refs"] = [[] for _ in range(len(frame))]
+    for index, row in frame.iterrows():
+        try:
+            meta = json.loads(row.get("metadata_json") or "{}")
+        except (TypeError, ValueError):
+            meta = {}
+        meta = _canonical_reference_metadata(meta)
+        if not meta.get("source_refs") and meta.get("source_trace"):
+            try:
+                trace = (
+                    json.loads(meta["source_trace"])
+                    if isinstance(meta["source_trace"], str)
+                    else meta["source_trace"]
+                )
+                if isinstance(trace, list):
+                    meta["source_refs"] = [ref for ref in trace if isinstance(ref, dict)]
+            except (TypeError, ValueError):
+                pass
+        # SQL retains the original; frames use linked provenance.
+        frame.at[index, "metadata_json"] = json.dumps(meta, ensure_ascii=False)
+        for key in ("source_refs", "page_id", "source_version", "evidence_type", "retrieved_at"):
+            if key in meta:
+                frame.at[index, key] = (
+                    (meta[key] if isinstance(meta[key], list) else [])
+                    if key == "source_refs"
+                    else _coerce_text(meta[key])
+                )
+        if not frame.at[index, "canonical_url"]:
+            frame.at[index, "canonical_url"] = meta.get("canonical_url") or meta.get("url") or ""
+        if not _coerce_text(frame.at[index, "evidence_type"] if "evidence_type" in frame.columns else ""):
+            frame.at[index, "evidence_type"] = (
+                (
+                    "prior_tool_capture"
+                    if row.get("research_scope") == "agent_evidence"
+                    else "generated_analysis"
+                )
+                if row.get("source_kind") == "agent_research"
+                else (
+                    "retained_knowledge"
+                    if row.get("source_kind") == "zopedia_memory"
+                    else (
+                        "prior_tool_capture"
+                        if row.get("source_kind") == "research"
+                        else ("model_context" if row.get("source_kind") == "context" else "source_capture")
+                    )
+                )
+            )
     return frame
 
 
@@ -1614,6 +1803,13 @@ def _append_or_like_clauses(
     params.extend(clean_values)
 
 
+_RETAINED_SEARCH_IDENTITY_COLUMNS = [
+    "chunk_record_id", "chunk_identity_sha256", "canonical_document_id",
+    "source_kind", "published_at", "published_date", "asof_time_utc",
+    "authority_rank", "chunk_index",
+]
+
+
 def _fetch_retained_chunk_rows(
     conn: Any,
     *,
@@ -1621,19 +1817,19 @@ def _fetch_retained_chunk_rows(
     params: list[Any],
     limit: int,
     ts_query_text: str = "",
+    diversify_sources: bool = False,
+    identity_only: bool = False,
+    include_source_references: bool = True,
 ) -> list[tuple[Any, ...]]:
     # When a tsvector query is provided, include ts_rank for SQL-side relevance scoring
     ts_rank_col = "0.0 AS ts_rank_score"
     ts_order = ""
     extra_params: list[Any] = []
     if ts_query_text:
-        ts_rank_col = "ts_rank(search_tsvector, plainto_tsquery('english', %s), 32) AS ts_rank_score"
+        ts_rank_col = "ts_rank(search_tsvector, websearch_to_tsquery('english', %s), 32) AS ts_rank_score"
         ts_order = "ts_rank_score DESC, "
         extra_params.append(ts_query_text)
-    with conn.cursor() as cur:
-        cur.execute(
-            f"""
-            SELECT
+    projection = """
                 chunk_record_id, chunk_identity_sha256, canonical_document_id, document_id,
                 chunk_id, chunk_index, document_chunk_count, title, display_excerpt,
                 chunk_text, search_text, bundle_subject, source_kind, source_provider,
@@ -1642,15 +1838,38 @@ def _fetch_retained_chunk_rows(
                 dataset_name, dataset_version_id, run_id, asof_time_utc::text AS asof_time_utc, embedding_model, embedding_vector_json,
                 mentioned_tickers_json::text, mentioned_tickers_key, mentioned_commodities_json::text,
                 mentioned_commodities_key, event_tags_json::text, event_tags_key,
-                mentioned_dates_json::text, mentioned_dates_key, metadata_json::text,
-                {ts_rank_col}
+                mentioned_dates_json::text, mentioned_dates_key, metadata_json::text
+    """
+    if not include_source_references:
+        # Keep complete passages; inherited provenance is an explicit read.
+        projection = projection.replace("metadata_json::text", "(metadata_json - ARRAY['source_trace','source_refs']::text[])::text")
+    if identity_only:
+        # Rank the complete candidate set without transferring bodies, vectors
+        # or recursive metadata for candidates that will not be returned.
+        projection = ", ".join(
+            f"{column}::text AS {column}" if column in {"published_at", "asof_time_utc"} else column
+            for column in _RETAINED_SEARCH_IDENTITY_COLUMNS
+        )
+    query_sql = f"""
+            SELECT {projection}, {ts_rank_col}
             FROM saa_evidence_chunks
             WHERE {" AND ".join(clauses)}
-            ORDER BY {ts_order}COALESCE(published_date, published_at::text, asof_time_utc::text) DESC NULLS LAST, authority_rank ASC NULLS LAST, chunk_index ASC NULLS LAST
-            LIMIT %s
-            """,
-            (*extra_params, *params, limit),
-        )
+            """
+    order_sql = f"{ts_order}COALESCE(published_date, published_at::text, asof_time_utc::text) DESC NULLS LAST, authority_rank ASC NULLS LAST, chunk_index ASC NULLS LAST, chunk_record_id ASC"
+    if diversify_sources:
+        # Repeated captures of one document must not fill the candidate budget.
+        query_sql = f"""WITH matches AS ({query_sql}), unique_documents AS (
+            SELECT *, row_number() OVER (
+                PARTITION BY coalesce(nullif(canonical_document_id,''),chunk_identity_sha256)
+                ORDER BY {order_sql}) AS document_rank FROM matches
+            ), diverse AS (
+                SELECT *,row_number() OVER(PARTITION BY CASE WHEN source_kind='zopedia_memory' THEN 'knowledge' WHEN source_kind IN ('agent_research','research','context') THEN 'derived' ELSE 'original' END ORDER BY {order_sql}) AS kind_rank
+                FROM unique_documents WHERE document_rank=1)
+            SELECT * FROM diverse ORDER BY kind_rank,{order_sql} LIMIT %s"""
+    else:
+        query_sql += f" ORDER BY {order_sql} LIMIT %s"
+    with conn.cursor() as cur:
+        cur.execute(query_sql, (*extra_params, *params, limit))
         return cur.fetchall()
 
 
@@ -1705,6 +1924,7 @@ def load_retained_document_metadata(
     canonical_document_id: str,
     *,
     conn: Any | None = None,
+    include_source_references: bool = True,
 ) -> dict[str, Any] | None:
     normalized_id = _coerce_text(canonical_document_id)
     if not normalized_id:
@@ -1717,9 +1937,11 @@ def load_retained_document_metadata(
     if active_conn is None:
         return None
     try:
+        metadata_projection = ("metadata_json::text" if include_source_references
+                               else "(metadata_json - ARRAY['source_trace','source_refs']::text[])::text")
         with active_conn.cursor() as cur:
             cur.execute(
-                """
+                f"""
                 SELECT
                     canonical_document_id, canonical_url, url_host, title, display_excerpt, search_text,
                     source_kind, source_provider, search_provider, bundle_subject, source_authority_bucket,
@@ -1728,7 +1950,7 @@ def load_retained_document_metadata(
                     last_dataset_version_id, last_run_id, last_asof_time_utc::text AS last_asof_time_utc, mentioned_tickers_json::text,
                     mentioned_tickers_key, mentioned_commodities_json::text, mentioned_commodities_key,
                     event_tags_json::text, event_tags_key, mentioned_dates_json::text, mentioned_dates_key,
-                    metadata_json::text
+                    {metadata_projection}
                 FROM saa_documents
                 WHERE canonical_document_id = %s
                 """,
@@ -1884,16 +2106,26 @@ def search_retained_evidence_chunks(
     canonical_document_id: str | None = None,
     limit: int = 20,
     use_semantic: bool = True,
+    publication_dates_only: bool = False,
+    include_source_references: bool = True,
     embedding_client: Any | None = None,
     conn: Any | None = None,
 ) -> pd.DataFrame:
+    remaining_request_timeout(0)
+    retrieval = {"requested": "hybrid" if use_semantic else "lexical", "actual": "lexical", "semantic": {"status": "not_requested"}}
     active_conn = conn
     should_close = False
     if active_conn is None:
         active_conn = _db_connection()
         should_close = active_conn is not None
     if active_conn is None:
-        return pd.DataFrame()
+        unavailable = pd.DataFrame()
+        unavailable.attrs["retrieval"] = {**retrieval, "actual": "unavailable", "reason": "retained_store_unavailable"}
+        return unavailable
+    if should_close:
+        # This read owns its connection. Embedding requests must not hold an
+        # implicit SQL transaction open while an external provider responds.
+        active_conn.autocommit = True
 
     normalized_run_id = _coerce_text(run_id)
     normalized_document_id = _coerce_text(canonical_document_id)
@@ -1905,9 +2137,9 @@ def search_retained_evidence_chunks(
     normalized_event_tags = [item.lower() for item in list(event_tags or []) if _coerce_text(item)]
     exact_dates = [_coerce_text(item) for item in list(dates or []) if _coerce_text(item)]
     query_text = _coerce_text(query)
-    query_tokens = [token for token in _normalized_tokens(query_text) if len(token) >= 3]
+    if not query_text:
+        retrieval["actual"] = "catalog"
     scan_limit = max(min(max(int(limit), 1) * 12, _DEFAULT_SEARCH_SCAN_LIMIT * 4), max(int(limit), 1))
-    semantic_scan_limit = max(min(max(int(limit), 1) * 10, _DEFAULT_SEMANTIC_SCAN_LIMIT), max(int(limit), 1))
 
     base_clauses = ["1=1"]
     base_params: list[Any] = []
@@ -1927,13 +2159,16 @@ def search_retained_evidence_chunks(
         base_clauses.append("lower(research_scope) = ANY(%s)")
         base_params.append(normalized_scopes)
 
-    parsed_start = pd.to_datetime(start_date, utc=True, errors="coerce") if _coerce_text(start_date) else pd.NaT
+    parsed_start = (
+        pd.to_datetime(start_date, utc=True, errors="coerce") if _coerce_text(start_date) else pd.NaT
+    )
     parsed_end = pd.to_datetime(end_date, utc=True, errors="coerce") if _coerce_text(end_date) else pd.NaT
+    date_column = "published_at" if publication_dates_only else "COALESCE(published_at, asof_time_utc)"
     if pd.notna(parsed_start):
-        base_clauses.append("COALESCE(published_at, asof_time_utc) >= %s")
+        base_clauses.append(f"{date_column} >= %s")
         base_params.append(parsed_start)
     if pd.notna(parsed_end):
-        base_clauses.append("COALESCE(published_at, asof_time_utc) <= %s")
+        base_clauses.append(f"{date_column} <= %s")
         base_params.append(parsed_end)
 
     if normalized_tickers:
@@ -1964,17 +2199,22 @@ def search_retained_evidence_chunks(
         values=[f"%|{item}|%" for item in exact_dates],
     )
 
-    # Full-text search: tsvector @@ with ILIKE fallback for exact substring matches
+    lexical_query = " OR ".join(_normalized_tokens(query_text))
+    # Broad lexical candidates complement corpus-wide semantic neighbours.
     tsvector_clauses = list(base_clauses)
     tsvector_params = list(base_params)
     ilike_clauses = list(base_clauses)
     ilike_params = list(base_params)
     if query_text:
         # Primary: tsvector full-text search (uses GIN index, stemming, ranking)
-        tsvector_clauses.append("search_tsvector @@ plainto_tsquery('english', %s)")
-        tsvector_params.append(query_text)
+        tsvector_clauses.append("search_tsvector @@ websearch_to_tsquery('english', %s)")
+        tsvector_params.append(lexical_query)
         # Fallback: ILIKE for exact substrings tsvector might miss (ticker symbols, acronyms)
-        ilike_parts = ["lower(search_text) LIKE %s", "lower(title) LIKE %s", "lower(chunk_text) LIKE %s"]
+        ilike_parts = [
+            "lower(search_text) LIKE %s",
+            "lower(title) LIKE %s",
+            "lower(chunk_text) LIKE %s",
+        ]
         ilike_search_params: list[Any] = [f"%{query_text.lower()}%"] * 3
         ilike_clauses.append("(" + " OR ".join(ilike_parts) + ")")
         ilike_params.extend(ilike_search_params)
@@ -1987,7 +2227,9 @@ def search_retained_evidence_chunks(
                 clauses=tsvector_clauses,
                 params=tsvector_params,
                 limit=scan_limit,
-                ts_query_text=query_text,
+                ts_query_text=lexical_query,
+                diversify_sources=True,
+                identity_only=True,
             )
             # ILIKE fallback — catches exact substrings that stemming misses
             ilike_rows = _fetch_retained_chunk_rows(
@@ -1995,6 +2237,8 @@ def search_retained_evidence_chunks(
                 clauses=ilike_clauses,
                 params=ilike_params,
                 limit=scan_limit,
+                diversify_sources=True,
+                identity_only=True,
             )
             # Merge: tsvector results first, then any ILIKE-only matches
             row_map: dict[str, tuple[Any, ...]] = {}
@@ -2007,57 +2251,138 @@ def search_retained_evidence_chunks(
                 if key and key not in row_map:
                     row_map[key] = row
             lexical_rows = list(row_map.values())
+            semantic_ids = []
             if use_semantic:
-                semantic_rows = _fetch_retained_chunk_rows(
+                try:
+                    from .semantic_index import semantic_candidates
+
+                    semantic_ids = semantic_candidates(
+                        active_conn,
+                        query=query_text,
+                        clauses=base_clauses,
+                        params=base_params,
+                        limit=scan_limit,
+                        client=embedding_client,
+                        status=retrieval["semantic"],
+                    )
+                    if retrieval["semantic"].get("status") == "available":
+                        retrieval["actual"] = "hybrid"
+                except Exception as exc:
+                    retrieval["semantic"] = {"status": "unavailable", "reason": type(exc).__name__}
+                    # An expired caller is cancellation, not degraded search.
+                    # Do not start more SQL or log it as a provider outage.
+                    remaining_request_timeout(0)
+                    import logging
+
+                    logging.getLogger(__name__).exception(
+                        "Corpus semantic retrieval failed; lexical retrieval remains available"
+                    )
+                    active_conn.rollback()
+            semantic_rows = (
+                _fetch_retained_chunk_rows(
                     active_conn,
-                    clauses=base_clauses,
-                    params=base_params,
-                    limit=max(scan_limit, semantic_scan_limit),
+                    clauses=["chunk_record_id = ANY(%s)"],
+                    params=[semantic_ids],
+                    limit=scan_limit,
+                    identity_only=True,
                 )
-                row_map: dict[str, tuple[Any, ...]] = {}
-                for row in lexical_rows + semantic_rows:
-                    key = _coerce_text(row[0]) if row else ""
-                    if key and key not in row_map:
-                        row_map[key] = row
-                rows = list(row_map.values())
-            else:
-                rows = lexical_rows
+                if semantic_ids
+                else []
+            )
+            row_map = {_coerce_text(row[0]): row for row in lexical_rows + semantic_rows}
+            rows = list(row_map.values())
         else:
             rows = _fetch_retained_chunk_rows(
                 active_conn,
                 clauses=base_clauses,
                 params=base_params,
                 limit=scan_limit,
+                diversify_sources=True,
+                identity_only=True,
             )
+        out = pd.DataFrame(
+            [row[:len(_RETAINED_SEARCH_IDENTITY_COLUMNS) + 1] for row in rows],
+            columns=[*_RETAINED_SEARCH_IDENTITY_COLUMNS, "ts_rank_score"],
+        )
+        out["published_at"] = pd.to_datetime(out["published_at"], utc=True, errors="coerce")
+        if out.empty:
+            out = _frame_from_retained_chunk_rows([])
+            out.attrs["retrieval"] = retrieval
+            return out
+        lexical_ranks = (
+            {_coerce_text(row[0]): rank for rank, row in enumerate(lexical_rows, 1)} if query_text else {}
+        )
+        semantic_ranks = {key: rank for rank, key in enumerate(semantic_ids, 1)} if query_text else {}
+        # Reciprocal rank fusion keeps both recall paths useful without a semantic
+        # similarity admission threshold or a phrase-match boost for prior answers.
+        out["search_score"] = out["chunk_record_id"].map(
+            lambda key: (1 / (60 + lexical_ranks[key]) if key in lexical_ranks else 0)
+            + (1 / (60 + semantic_ranks[key]) if key in semantic_ranks else 0)
+        )
+        out["match_source"] = out["chunk_record_id"].map(
+            lambda key: (
+                "hybrid"
+                if key in lexical_ranks and key in semantic_ranks
+                else "semantic" if key in semantic_ranks else "lexical"
+            )
+        )
+        out = out.sort_values(["search_score", "published_at"], ascending=[False, False], na_position="last")
+        out = out.drop_duplicates("chunk_identity_sha256")
+        out["_source_group"] = out["canonical_document_id"].where(
+            out["canonical_document_id"].fillna("") != "", out["chunk_identity_sha256"]
+        )
+        out = out.drop_duplicates("_source_group")
+        origin = out["source_kind"].map(
+            lambda kind: (
+                "knowledge"
+                if kind == "zopedia_memory"
+                else "derived" if kind in {"agent_research", "research", "context"} else "original"
+            )
+        )
+        out["_kind_rank"] = out.groupby(origin, dropna=False).cumcount()
+        out = out.sort_values(["_kind_rank", "search_score"], ascending=[True, False], kind="stable")
+        out = out.head(max(int(limit), 1)).drop(columns=["_source_group", "_kind_rank"]).reset_index(drop=True)
+        # Only now acquire complete originals and metadata for the unchanged
+        # selected set. No body/metadata projection is used in the result.
+        selected = out.set_index("chunk_record_id")
+        full_rows = _fetch_retained_chunk_rows(
+            active_conn,
+            clauses=["chunk_record_id = ANY(%s)"],
+            params=[list(selected.index)],
+            limit=len(selected),
+            include_source_references=include_source_references,
+        )
+        out = _frame_from_retained_chunk_rows(full_rows)
+        if out.empty:
+            out.attrs["retrieval"] = retrieval
+            return out
+        out = out.set_index("chunk_record_id").reindex(selected.index).dropna(subset=["chunk_identity_sha256"])
+        out["ts_rank_score"] = selected["ts_rank_score"]
+        out["search_score"] = selected["search_score"]
+        out["match_source"] = selected["match_source"]
+        out = out.reset_index()
+        out["source_references_loaded"] = include_source_references
+        document_ids = out["canonical_document_id"].dropna().astype(str).unique().tolist()
+        with active_conn.cursor() as cur:
+            cur.execute(
+                "SELECT canonical_document_id,canonical_url FROM saa_documents WHERE canonical_document_id=ANY(%s)",
+                (document_ids,),
+            )
+            urls = dict(cur.fetchall())
+        out["canonical_url"] = out["canonical_document_id"].map(urls).fillna(out["canonical_url"])
+        out.attrs["retrieval"] = retrieval
+        return out
     finally:
         if should_close:
             active_conn.close()
 
-    out = _frame_from_retained_chunk_rows(rows)
-    return _filter_and_score_retained_chunk_frame(
-        out,
-        query=query_text,
-        tickers=normalized_tickers,
-        commodities=normalized_commodities,
-        event_tags=normalized_event_tags,
-        dates=exact_dates,
-        start_date=_coerce_text(start_date),
-        end_date=_coerce_text(end_date),
-        source_kinds=normalized_source_kinds,
-        providers=normalized_providers,
-        research_scopes=normalized_scopes,
-        run_id=normalized_run_id,
-        canonical_document_id=normalized_document_id,
-        limit=limit,
-        use_semantic=use_semantic,
-        embedding_client=embedding_client,
-    )
 
 
 def load_retained_evidence_chunk(
     chunk_record_id: str,
     *,
     conn: Any | None = None,
+    include_source_references: bool = True,
 ) -> dict[str, Any] | None:
     normalized_id = _coerce_text(chunk_record_id)
     if not normalized_id:
@@ -2075,6 +2400,7 @@ def load_retained_evidence_chunk(
             clauses=["chunk_record_id = %s"],
             params=[normalized_id],
             limit=1,
+            include_source_references=include_source_references,
         )
     finally:
         if should_close:
@@ -2082,7 +2408,7 @@ def load_retained_evidence_chunk(
     frame = _frame_from_retained_chunk_rows(rows)
     if frame.empty:
         return None
-    return frame.iloc[0].to_dict()
+    return {**frame.iloc[0].to_dict(), "source_references_loaded": include_source_references}
 
 
 def load_retained_document(

@@ -267,6 +267,7 @@ class EdgarClient:
         timeout_seconds: int | None = None,
         pause_seconds: float | None = None,
         max_context_chars: int | None = None,
+        before_request=None,
     ) -> None:
         resolved_user_agent = (
             user_agent
@@ -286,6 +287,7 @@ class EdgarClient:
             ),
         )
         self.session = session or requests.Session()
+        self.before_request = before_request
 
     @property
     def _headers(self) -> dict[str, str]:
@@ -300,6 +302,8 @@ class EdgarClient:
             time.sleep(self.config.pause_seconds)
 
     def _request_json(self, url: str) -> Any:
+        if self.before_request is not None:
+            self.before_request()
         response = self.session.get(url, headers=self._headers, timeout=self.config.timeout_seconds)
         if response.status_code != 200:
             raise EdgarAPIError(f"SEC request failed status={response.status_code} url={url}")
@@ -308,6 +312,19 @@ class EdgarClient:
             return response.json()
         except Exception as exc:
             raise EdgarAPIError(f"SEC returned invalid JSON for {url}: {exc}") from exc
+
+    def iter_submission_pages(self, cik: int, *, start: str, end: str):
+        """Original submission pages, including referenced historical files."""
+        payload = self._request_json(f"{self.config.data_base_url}/submissions/CIK{cik:010d}.json")
+        yield f"CIK{cik:010d}.json", payload
+        for source in (payload.get("filings") or {}).get("files", []):
+            if source.get("filingTo", end) < start or source.get("filingFrom", start) >= end:
+                continue
+            name = source["name"]
+            yield name, self._request_json(f"{self.config.data_base_url}/submissions/{name}")
+
+    def get_company_facts(self, cik: int):
+        return self._request_json(f"{self.config.data_base_url}/api/xbrl/companyfacts/CIK{cik:010d}.json")
 
     def _request_text(self, url: str) -> str:
         response = self.session.get(url, headers=self._headers, timeout=self.config.timeout_seconds)

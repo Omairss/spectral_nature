@@ -1,0 +1,1146 @@
+{
+  "release": "prod-home-repair-20261008-d6e60e",
+  "environment": "production",
+  "user_authorization": "Okay deploy to prod — October 8, 2026",
+  "verified_at_utc": "2026-10-09T02:10:31.696878+00:00",
+  "status": "Production promoted; fresh recovered publication verified in retained artifacts, custom-domain API and browser. Research remains degraded.",
+  "site": "https://spectral-nature.com",
+  "acr_runs": {
+    "api": "cjt7",
+    "legacy": "cjt6",
+    "loader": "cjt8",
+    "transport-0": "cjtb",
+    "transport-1": "cjta",
+    "transport-2": "cjt9",
+    "transport-3": "cjtc",
+    "transport-4": "cjtd",
+    "transport-5": "cjte",
+    "transport-6": "cjtf",
+    "transport-7": "cjtg"
+  },
+  "targets": [
+    {
+      "name": "sn-streamlit-ui",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:c5077aac653ee980245d680fbf517267446ce331a17b3734e5f5f0c0994e1679",
+      "revision": "sn-streamlit-ui--0000089",
+      "ready_revision": "sn-streamlit-ui--0000089",
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "name": "sn-next-ui",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/next-ui-dev@sha256:c5077aac653ee980245d680fbf517267446ce331a17b3734e5f5f0c0994e1679",
+      "revision": "sn-next-ui--0000005",
+      "ready_revision": "sn-next-ui--0000005",
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "name": "sn-api-next",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b0acf1bc4ed1dd8e8f7c7ddd783b6da1de924140038cb35e66c1b1049f628f8f",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:2c91dc77d99424aa5c93fe4ca2160c6546acdb168ac440198bb4e0bc07fcce5a",
+      "revision": "sn-api-next--0000005",
+      "ready_revision": "sn-api-next--0000005",
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:e4af3d69dade46f5997ab7c90002ee0cd86d1b992501ffe7cd1b0a2fb22f10fe",
+      "transport_correction": "cjtb",
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ]
+    },
+    {
+      "name": "universe-builder",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_loader_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7",
+      "loader_correction": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+      "transport_correction": "cjt9"
+    },
+    {
+      "name": "macro-fred-daily",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:9eccf5a14f7635fe37604853ca5045976db19ca7c30457aa63201749055366e6",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:13d0b2659d7d42f01dec36a1852f374819e213d17f8ae645e02a7ba32a5ac784",
+      "transport_correction": "cjtc"
+    },
+    {
+      "name": "commodities-regime",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "options-liquid-universe",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "attention-home-build",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {
+        "cron": {
+          "before": "20 14,16,18,20 * * 1-5",
+          "after": "50 14,16,18,20 * * 1-5"
+        }
+      },
+      "other_config_preserved": true,
+      "pre_loader_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7",
+      "loader_correction": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+      "transport_correction": "cjt9"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "trading-agent-build",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7659630a6c21a2481ac7b8961c41fbbabbb9daffb2c9fe82a05dd7f8b8012c6e",
+      "transport_correction": "cjtd"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "zopedia-learning",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "system-health",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+      "transport_correction": "cjta"
+    },
+    {
+      "name": "sn-research-run",
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+      "rollback_image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:4c957261c88bbb4f31a8f74c9d0dc3f1bf202c889a4bc8341b2a8050770f8c6e",
+      "revision": null,
+      "ready_revision": null,
+      "added_env": {},
+      "config_delta": {},
+      "other_config_preserved": true,
+      "pre_transport_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:cd5f9628e6992d8ef7b7bd6c35f2eab08c3583c3b923e4533044cdebfb36bfaf",
+      "transport_correction": "cjte"
+    }
+  ],
+  "excluded_resources": [
+    {
+      "name": "sn-api",
+      "unchanged": true
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "unchanged": true
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "unchanged": true
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "unchanged": true
+    }
+  ],
+  "source_artifacts": [
+    {
+      "name": "api",
+      "base": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:2c91dc77d99424aa5c93fe4ca2160c6546acdb168ac440198bb4e0bc07fcce5a",
+      "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-api",
+      "targets": [
+        "sn-api-next"
+      ],
+      "source_sha256": {
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "fd2bc186307f0f12745a7d0a2cbd43194d38fd3af0d0eeefa79d1438661c7916",
+        "data_access/layer.py": "5602f83da3d29eae1dfb5586686d0654d0f609a1fe59375c3c77e132c40f2881",
+        "services/agents/research_session.py": "93824d4c01779586551fab3be8a22fff2066f1df5651b18015fecb900431b1cc",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/home_view.py": "d70d8d5b7a86c1439adef8ec88cf6fd5a79a81d394776f709a957b5b8fb443a7",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a"
+      },
+      "projection": "Exact accepted shared repair; source-guard actual production baseline. API preserves production Home and data-layer contract. Legacy preserves accepted older session implementation; older planner/fallback differences are superseded by the accepted shared refactor."
+    },
+    {
+      "name": "legacy",
+      "base": "snpipelineacr03130136.azurecr.io/harness-prod@sha256:3ce636d2ad3794863b0416ec32b2bce3f20d71e5297b213604d2011cf2473d7a",
+      "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-legacy",
+      "targets": [
+        "universe-builder",
+        "commodities-regime",
+        "options-liquid-universe",
+        "news-ingest-and-features",
+        "entity-taxonomy-refresh",
+        "fundamentals-quarterly-refresh",
+        "company-baseline-prefetch",
+        "zopedia-maintenance",
+        "zopedia-learning",
+        "system-health"
+      ],
+      "source_sha256": {
+        "data_access/layer.py": "b0cd4d7d04e107f719738b20e2e1c81eb33cde6d18a7f12f6ebfd282f909905e",
+        "services/zopedia_agent.py": "8a7dee2a7ad445bcfdee7793cf3a41522fda5a0d864276742c4be520b37fc665",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/agents/research_session.py": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a"
+      },
+      "projection": "Exact accepted shared repair; source-guard actual production baseline. API preserves production Home and data-layer contract. Legacy preserves accepted older session implementation; older planner/fallback differences are superseded by the accepted shared refactor."
+    },
+    {
+      "name": "web",
+      "targets": [
+        "sn-streamlit-ui",
+        "sn-next-ui"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+      "validated_dev_target": "sn-next-ui-dev",
+      "source_sha256": {
+        "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
+        "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
+        "web/CLAUDE.md": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
+        "web/app/admin/page.tsx": "f774ea8c16bbff1af70eda0a1677745325346c4ac9745e85c23b9ca9de4a14ac",
+        "web/app/api/admin/invites/route.ts": "cb7fd40ef84e5a2588620c2de63c23d685fe5e05b35c424421c2b2d316adbf45",
+        "web/app/api/admin/llm/route.ts": "e690cc642b586d50a6d43fe5ef52b9787a3b130ebe9924b6e19482ec552f4865",
+        "web/app/api/admin/password-resets/route.ts": "550149dec6ce9874657c422d5d20501a0449346bd592f7ecd6200a6b33ca3935",
+        "web/app/api/admin/route.ts": "f005d46afb4135461d09fb8f63c1223f474d0254153cc4d5abd4bd510ce64636",
+        "web/app/api/auth/account/[action]/route.ts": "23357c4b702c8401641efc504f1966ce525e3008acbd9acf2951780626475acb",
+        "web/app/api/auth/csrf/route.ts": "b71321e40ce309f5f8cf9530be67f6dcdc65ddb9e72c661ebe99c1e7b5fe6740",
+        "web/app/api/auth/login/route.ts": "c3c992cd5fe2eb27f53ca846f0ab9cc1cba5a6950c62557ce6a313543ac74651",
+        "web/app/api/auth/logout/route.ts": "dc45e493af97de27351e6b298b2f710ceb00b4c504cf0b86ab22f301ee2e30f3",
+        "web/app/api/auth/session/route.ts": "fb71a4d428eee038074f5d9c410c66640862c262abc94c02a77e54fca6755d03",
+        "web/app/api/datasets/[name]/route.ts": "dc1107d2ae169956f3d9e0412ed56484a7b4083afb100355eab90a6050211816",
+        "web/app/api/home/audio/route.ts": "5a35d13ac9c9b847df1ab300a1b97dc2d45bbb9d9b92b48db70e64e16a4e819e",
+        "web/app/api/home/route.ts": "32c4ffdf84ac1083dd06a3203515053298d3533b2e82fef66913034f1b3a6b9c",
+        "web/app/api/investigator/[ticker]/route.ts": "f7a5feff57f3628c33237aef703f7209ad711305aedda6c76bf426ab08bcb044",
+        "web/app/api/market-lenses/route.ts": "afb09216f0686217a9b2817eb2bf0022f17da049c40f79ada58ecac8fe092a63",
+        "web/app/api/portfolio/route.ts": "c2d3d0efd2b74e85ad26eaa0d34d1fb129e33f834d7bd05d93930b5d823c1945",
+        "web/app/api/research-runs/[runId]/cancel/route.ts": "d739fc33dfb5d2e860290c078bef8d68a47adc6c33da253b843544e13a7d3cb4",
+        "web/app/api/research-runs/[runId]/events/route.ts": "0874d469c39200703a9f75285788c62efc4467f3bde73cf73a71f056abad63a5",
+        "web/app/api/research-runs/[runId]/route.ts": "824d24987168aaf9c54de397d0dc8a2d080f0ae2d44c7472bf81d9fe6e2e5aad",
+        "web/app/api/research-runs/route.ts": "e13794ca118bcb31b2098ce71a665aa783aec4efb2ca241d6d996b735766c35e",
+        "web/app/api/trading-agent/decisions/route.ts": "99a759da8113d1dc91a0acf3f0ae49b71462f85455efc90cef11658fe620f5dd",
+        "web/app/api/trading-agent/route.ts": "1c2c6b68e07f541b613dddd614f82797b1b6b49ac8321b24bc94e1da4f71bd07",
+        "web/app/api/visualizations/[name]/route.ts": "fcc3a1b098fa9ee4233ffa1aaae7c8b6743499b3574b2ce78a399d24fa48da78",
+        "web/app/api/zopedia/pages/route.ts": "f02a50d65ddf14c99a489a88e9f0eb60e92c67d02fc90e1ab548b0195c63858b",
+        "web/app/api/zopedia/sources/upload/route.ts": "8fd6cea3bcd5b27b5a1396b05f08eda573941ca5e1f623a457071b43997a0edd",
+        "web/app/api/zopedia/workspace/route.ts": "f5c765bf859b32cd930705d5b9de6b92364576b27a14ab7be51286166abc6941",
+        "web/app/broad-economy/page.tsx": "21619a2722d30578852df528f46cf0e768f28620338bb47a68c60cbf61cdaf45",
+        "web/app/globals.css": "510c7df6372a4d1e4364e0ef00bc3be580ea945465e6b4793c8dbc4539b472ce",
+        "web/app/health/route.ts": "fbd86280d0a005e41947c611db300c2859bec610cf383e779cc01c06322c61a3",
+        "web/app/layout.tsx": "85fe444f2059a58d0c89962c7a13032c829a316c69844708f9353dd902a80254",
+        "web/app/login/login-form.tsx": "ed85bc9477761542aa2f79892332205a92f1b93d610f90a3d47906d9c7d617ff",
+        "web/app/login/page.tsx": "e9e71e0871c4ffc2e53de19b0deef1a0005886597f08fcea2e550f9ffda3bf20",
+        "web/app/market-explorer/page.tsx": "7d7c8f11319b0dd59381ad23dc5979b04b6f5db8a34c18d58c469603121ffd32",
+        "web/app/options/page.tsx": "697a32f3657f48bb72a581f28729f65868fd4a7b6a00f3deb8a780a63ea3eea2",
+        "web/app/page.tsx": "6996778951125614c1c368f96a9ee9211a26cadb6403fa9eb88c0e5199ece3cf",
+        "web/app/portfolio/page.tsx": "9d9af664417542ae0071dfe05ca19d78c373d9d4208c113a18b4a9987f590418",
+        "web/app/portfolio-performance/page.tsx": "fbaf6d62c06d0f0b06ddb75bc9a3b73185b76f2bcad28eeb357227329852199c",
+        "web/app/stock-investigator/page.tsx": "2875209e58497c67c75471f73d23b3f2751f9f86c80f8b5aa57e84c533eb7cef",
+        "web/app/trading-agent/page.tsx": "bd44b82d5f36cee6da0b785f9379e8eb3b4f1c3d9517e98716b28ecc8a86e545",
+        "web/app/zopedia/page.tsx": "642902e9e4a43dc686464f1e708cf042191601e4bfe23cd369008715a92b1f5b",
+        "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
+        "web/app/zopedia/runs/[runId]/research-run-view.tsx": "aaf70b92ae78ab2555ac7ef3c53b69f44b86dc2b1aa48e2d9a5dee8d0cafba24",
+        "web/components/admin/llm-settings.tsx": "6b435cb03eb2048a15bbf8c88b0faeee6175061e5141a237d5b9ef5f11fbaaac",
+        "web/components/agent-rail.tsx": "daf6f7bc3563453c5711c54c86fbaa4b9ef6456b3f1815fb3957765e47841730",
+        "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
+        "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
+        "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
+        "web/components/visualizations/data-plot.tsx": "cc6ae2da3397a70d46a1dd12d02d0dc3b70f9dbb54564388650684af972d5a64",
+        "web/components/visualizations/plotly-renderer.tsx": "ef001b939efe9d5a257a58453b43ce17d294f3ef2a6987ff517ec4edaf9cd298",
+        "web/components/visualizations/trend-chart.tsx": "79fb06b9f53b5e789322541056341aa33dea18f426e578c2d98e84215ebae807",
+        "web/components/visualizations/visualization.tsx": "f3dcb5cc76d16bd0c57e4136bba14cd3fcbb6c0415f07f8e17c91194bbf54f3c",
+        "web/components/workbench-shell.tsx": "319e4d70f12cdbb707b1e7186ca4ed77dd38bb1038dc8dbc8785b049eae3b438",
+        "web/components/workbook.tsx": "0e5e9572c970c094ed75d28b55970d88a340f8af84d830b4ea4fbdb16830e35b",
+        "web/eslint.config.mjs": "77e9f34454d52f5986545c76c35c90aa6c82f29d00612fe85b7519d34031bb8b",
+        "web/lib/client/api.ts": "201417ee7b63542b681f8413b497a5ac02c6e357b5a073ecf282652009b86d84",
+        "web/lib/client/portfolio.ts": "fd30d19290b5d2ea5de957cf05989b6059d7ad9c50280f95066ddaacf7ae49e1",
+        "web/lib/client/session.ts": "e72697ac958a90841b4809a1bb162faea8175c523961a74d55e53d31e0468c9b",
+        "web/lib/server/auth.ts": "611189dff46ec6ac36a2766ec2566f7038667698d19244d14f714cbbcc8a52bd",
+        "web/lib/server/backend.ts": "279b569361522b998e083c2072e7e097045231afa723d791f9f8d33d64bc66af",
+        "web/lib/server/http.ts": "cb9f125624e54d0017385b20d9279ea71b6b85b31b674a7a094f0bc69f7796a8",
+        "web/lib/types.ts": "5a989e61e1f4c8ff40ce1c2fedbe9aa13fe8d73edc943af61a194c5e26723b3b",
+        "web/next-env.d.ts": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b",
+        "web/next.config.ts": "304db7c8cad0928ec4fd92fd1c56c1d6ec26b9078e45ed1a626bf95a92a8b440",
+        "web/package-lock.json": "04f70dfd9398ad53693c7a481defd5be0b1ca2113943e5ace748b7b1670b0f6e",
+        "web/package.json": "3c39b5d57b99099a754322bed1bfe37c78d1722a24db83201c71345d4753dc37",
+        "web/proxy.ts": "791579da0d48b397c5084d20d5f4ecf9c293d4e8678b1eb2326337cc3f6ccde7",
+        "web/tests/auth-boundary.test.mjs": "de5ebf6263c5f9554de5dbe6055057d414a1ef3167f578e87e19bb4997fef1c6",
+        "web/tsconfig.json": "9c73cf280ef044e5b2557572af01310c7bb24a714ec22d1a7bdb85e6f152cb0b"
+      }
+    },
+    {
+      "name": "group-1",
+      "targets": [
+        "trading-agent-build"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7659630a6c21a2481ac7b8961c41fbbabbb9daffb2c9fe82a05dd7f8b8012c6e",
+      "validated_dev_target": "trading-agent-build-dev",
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "8a7dee2a7ad445bcfdee7793cf3a41522fda5a0d864276742c4be520b37fc665",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "b0cd4d7d04e107f719738b20e2e1c81eb33cde6d18a7f12f6ebfd282f909905e"
+      }
+    },
+    {
+      "name": "group-2",
+      "targets": [
+        "macro-fred-daily"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:13d0b2659d7d42f01dec36a1852f374819e213d17f8ae645e02a7ba32a5ac784",
+      "validated_dev_target": "macro-fred-daily-dev",
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "8a7dee2a7ad445bcfdee7793cf3a41522fda5a0d864276742c4be520b37fc665",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "b0cd4d7d04e107f719738b20e2e1c81eb33cde6d18a7f12f6ebfd282f909905e"
+      }
+    },
+    {
+      "name": "group-3",
+      "targets": [
+        "sn-research-run"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:cd5f9628e6992d8ef7b7bd6c35f2eab08c3583c3b923e4533044cdebfb36bfaf",
+      "validated_dev_target": "sn-research-run-dev",
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "fd2bc186307f0f12745a7d0a2cbd43194d38fd3af0d0eeefa79d1438661c7916",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "93824d4c01779586551fab3be8a22fff2066f1df5651b18015fecb900431b1cc",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "ef27f6cc06550fba0fd5e60d8215fe9e466156bcc6aa36b6b5d0a41bd53684e9"
+      }
+    },
+    {
+      "name": "group-4",
+      "targets": [
+        "attention-home-build",
+        "equities-intraday-preload"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+      "validated_dev_target": "attention-home-next-dev",
+      "source_sha256": {
+        "services/llm.py": "fdcc3be8f683217a58e72fa4bd45e5583add5a416b69bcab1bb368763d3ffa15",
+        "services/zopedia_agent.py": "fd2bc186307f0f12745a7d0a2cbd43194d38fd3af0d0eeefa79d1438661c7916",
+        "services/aql_zopedia_engine.py": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+        "services/agents/research_session.py": "93824d4c01779586551fab3be8a22fff2066f1df5651b18015fecb900431b1cc",
+        "services/zopedia_research.py": "418ece5371ffb3aaddbd6811d6d1091384ab8b05732917d93862140547529c5a",
+        "services/web_research.py": "513abfb6c471b0d8911a9909a15507187405de52d9b2de86d5dd64ba7e246b1e",
+        "services/attention_live_research.py": "178908328d685b7c5d2f18313a9a81dc18443d44a20543ae4b5f7bd03dcbec97",
+        "services/aql/events.py": "5db4bc20fe2355bfbe0cc62f8ea5b142b53d3665ca079b41cc476538e810d91a",
+        "services/aql/pipeline.py": "b3e615cf79a8d6c14fc99835fc6f2b0c1d4ea40d566a8e6533a2c4e05fed8f5b",
+        "services/aql/assembler.py": "5bd26ffd606eb4525750bef6b3e9874e440f964bcee531a634d59d9bc06ebc91",
+        "services/aql/writer.py": "ae7150e74083cc2b1761e152d31e0dd86fd590a78e8ede73bdd55b235ea8cc31",
+        "pipeline/jobs/attention_home_build.py": "cbee17bb38a11f89d34666d7afc759e16c7c5b599427f806bd1b775b2cd69264",
+        "pipeline/jobs/main.py": "5ba368e45972a81073f554c6a81efc25e4effed08b217e7732e4039dc3d68822",
+        "services/aql/summarizer.py": "2dbbf4f82dad24cda70998465f4cde5551055ec1eae6b422de837e9ec50b1aa4",
+        "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
+        "data_access/layer.py": "5602f83da3d29eae1dfb5586686d0654d0f609a1fe59375c3c77e132c40f2881"
+      },
+      "loader_correction_build": "cjt8",
+      "accepted_parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:57be9e7539279e6bba30fc224d4ae42466bbef5b261ede63f11d8c03cd429ca7"
+    }
+  ],
+  "accepted_development_receipt": "DEV_HOME_DISCOVERY_REPAIR_2026-10-08.json",
+  "runtime_configuration": "Preserved except Home cron minute 20 to 50; existing research budgets unchanged. Acceptance-only execution disables knowledge writes; permanent policy unchanged.",
+  "public_http_acceptance": [
+    {
+      "url": "https://spectral-nature.com/",
+      "http": 200
+    },
+    {
+      "url": "https://spectral-nature.com/health",
+      "http": 200
+    },
+    {
+      "url": "https://spectral-nature.com/api/home",
+      "http": 200,
+      "status": "available",
+      "run_id": "4893138a-fa36-4ecd-8d38-2557600ab07e",
+      "cards": 16,
+      "canonical_fields_verified_per_card": 6,
+      "collected_at_utc": "2026-10-09T02:08:06.878480+00:00"
+    },
+    {
+      "url": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io/health",
+      "http": 200
+    }
+  ],
+  "loader_correction": {
+    "initial_execution": "attention-home-build-2rkjp18",
+    "initial_run_id": "fd13afd9-e983-4e49-bf4c-d15a009cffbf",
+    "initial_status": "Failed",
+    "cause": "Timestamp addition treated PipelineDataset metadata as a dictionary; shared loader swallowed the error.",
+    "fix": "Use typed asof_time_utc; log actual load exceptions.",
+    "real_loader_reads": [
+      {
+        "dataset": "daily_movers",
+        "rows": 999,
+        "version": "daily_movers__20261008T203530Z__6b559731",
+        "observed_at": "2026-10-08 20:35:30.040171+00:00"
+      },
+      {
+        "dataset": "macro_anchor_daily_movers",
+        "rows": 570,
+        "version": "macro_anchor_daily_movers__20261008T203530Z__6b559731",
+        "observed_at": "2026-10-08 20:35:30.040171+00:00"
+      }
+    ]
+  },
+  "known_limitations": [
+    "Unseen-day attribution accuracy has not been established by a blind evaluation.",
+    "Previously disclosed duplicate groups, identity and reasoning errors remain possible.",
+    "Older Home phrase confidence/failure heuristics remain; no company, ticker or revenue-specific promotion rule was added.",
+    "Hard cancellation and optional page-summary completion remain separate operational concerns.",
+    "A complete pre-publication Home/bundle checkpoint is missing; this operational publication continuation rehydrates retained research with the previous layout.",
+    "The recovered publication advisory answer review and daily-datapoints review timed out; research health remains degraded.",
+    "Current personal read found overlapping SpaceX stories, an unexplained name and some stronger-than-supported causal/instrument assertions."
+  ],
+  "excluded_workspace_work": [
+    "Concurrent broker and native changes",
+    "Historical extractor/corpus work",
+    "Other API/data-access modifications"
+  ],
+  "transport_correction": {
+    "verified_at_utc": "2026-10-09T01:56:54.220742+00:00",
+    "targets": [
+      {
+        "name": "sn-api-next",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b0acf1bc4ed1dd8e8f7c7ddd783b6da1de924140038cb35e66c1b1049f628f8f",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:e4af3d69dade46f5997ab7c90002ee0cd86d1b992501ffe7cd1b0a2fb22f10fe",
+        "acr_run": "cjtb",
+        "ready_revision": "sn-api-next--0000005",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "universe-builder",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "equities-intraday-preload",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "acr_run": "cjt9",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "macro-fred-daily",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:13d0b2659d7d42f01dec36a1852f374819e213d17f8ae645e02a7ba32a5ac784",
+        "acr_run": "cjtc",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "commodities-regime",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "options-liquid-universe",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "news-ingest-and-features",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "entity-taxonomy-refresh",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "attention-home-build",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "acr_run": "cjt9",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "fundamentals-quarterly-refresh",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "company-baseline-prefetch",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "trading-agent-build",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7659630a6c21a2481ac7b8961c41fbbabbb9daffb2c9fe82a05dd7f8b8012c6e",
+        "acr_run": "cjtd",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "zopedia-maintenance",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "zopedia-learning",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "system-health",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "acr_run": "cjta",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "sn-research-run",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:cd5f9628e6992d8ef7b7bd6c35f2eab08c3583c3b923e4533044cdebfb36bfaf",
+        "acr_run": "cjte",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "sn-api-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:38f1d40b0692dbba44fb5c90869193a1583970c1ff8efb5fd3dc1f37e813364c",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7d0af4cd8077529ec8eeed1692a31fe9100aa3ed02ea4da7898fff50ce80a286",
+        "acr_run": "cjtf",
+        "ready_revision": "sn-api-next-dev--0000019",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "trading-agent-build-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7659630a6c21a2481ac7b8961c41fbbabbb9daffb2c9fe82a05dd7f8b8012c6e",
+        "acr_run": "cjtd",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "macro-fred-daily-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:13d0b2659d7d42f01dec36a1852f374819e213d17f8ae645e02a7ba32a5ac784",
+        "acr_run": "cjtc",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "sn-research-run-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:cd5f9628e6992d8ef7b7bd6c35f2eab08c3583c3b923e4533044cdebfb36bfaf",
+        "acr_run": "cjte",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "attention-home-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "acr_run": "cjt9",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "attention-ticker-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:2819d77370a0a26e312e5e0d1ce1091da2e7cb6211651a54a73d20efdc6828c4",
+        "acr_run": "cjtg",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "daily-datapoints-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "acr_run": "cjt9",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "technical-history-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:2819d77370a0a26e312e5e0d1ce1091da2e7cb6211651a54a73d20efdc6828c4",
+        "acr_run": "cjtg",
+        "protected_config_preserved": true
+      },
+      {
+        "name": "equities-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "parent_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "acr_run": "cjt9",
+        "protected_config_preserved": true
+      }
+    ],
+    "source_artifacts": [
+      {
+        "name": "transport-0",
+        "context": "/tmp/prod-home-repair-20261008-d6e60e/transport-0",
+        "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:e4af3d69dade46f5997ab7c90002ee0cd86d1b992501ffe7cd1b0a2fb22f10fe",
+        "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-transport-0",
+        "targets": [
+          "sn-api-next"
+        ],
+        "source_sha256": {
+          "services/llm.py": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f"
+        },
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b0acf1bc4ed1dd8e8f7c7ddd783b6da1de924140038cb35e66c1b1049f628f8f"
+      },
+      {
+        "name": "transport-1",
+        "context": "/tmp/prod-home-repair-20261008-d6e60e/transport-1",
+        "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:ea5881ce6efbd52db07e671d8b0043e205f94622ffdea71a4d39e4fb6a2e35ce",
+        "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-transport-1",
+        "targets": [
+          "universe-builder",
+          "commodities-regime",
+          "options-liquid-universe",
+          "news-ingest-and-features",
+          "entity-taxonomy-refresh",
+          "fundamentals-quarterly-refresh",
+          "company-baseline-prefetch",
+          "zopedia-maintenance",
+          "zopedia-learning",
+          "system-health"
+        ],
+        "source_sha256": {
+          "services/llm.py": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f"
+        },
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af"
+      },
+      {
+        "name": "transport-2",
+        "context": "/tmp/prod-home-repair-20261008-d6e60e/transport-2",
+        "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:4a64ee1067725b95fc35bbdbfede930b9cb3dab912affb303c5ce623a40c0282",
+        "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-transport-2",
+        "targets": [
+          "equities-intraday-preload",
+          "attention-home-build",
+          "attention-home-next-dev",
+          "daily-datapoints-next-dev",
+          "equities-next-dev"
+        ],
+        "source_sha256": {
+          "services/llm.py": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f"
+        },
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7"
+      },
+      {
+        "name": "transport-3",
+        "context": "/tmp/prod-home-repair-20261008-d6e60e/transport-3",
+        "base": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:13d0b2659d7d42f01dec36a1852f374819e213d17f8ae645e02a7ba32a5ac784",
+        "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-transport-3",
+        "targets": [
+          "macro-fred-daily",
+          "macro-fred-daily-dev"
+        ],
+        "source_sha256": {
+          "services/llm.py": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f"
+        },
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae"
+      },
+      {
+        "name": "transport-4",
+        "context": "/tmp/prod-home-repair-20261008-d6e60e/transport-4",
+        "base": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7659630a6c21a2481ac7b8961c41fbbabbb9daffb2c9fe82a05dd7f8b8012c6e",
+        "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-transport-4",
+        "targets": [
+          "trading-agent-build",
+          "trading-agent-build-dev"
+        ],
+        "source_sha256": {
+          "services/llm.py": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f"
+        },
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede"
+      },
+      {
+        "name": "transport-5",
+        "context": "/tmp/prod-home-repair-20261008-d6e60e/transport-5",
+        "base": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:cd5f9628e6992d8ef7b7bd6c35f2eab08c3583c3b923e4533044cdebfb36bfaf",
+        "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-transport-5",
+        "targets": [
+          "sn-research-run",
+          "sn-research-run-dev"
+        ],
+        "source_sha256": {
+          "services/llm.py": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f"
+        },
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc"
+      },
+      {
+        "name": "transport-6",
+        "context": "/tmp/prod-home-repair-20261008-d6e60e/transport-6",
+        "base": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:7d0af4cd8077529ec8eeed1692a31fe9100aa3ed02ea4da7898fff50ce80a286",
+        "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-transport-6",
+        "targets": [
+          "sn-api-next-dev"
+        ],
+        "source_sha256": {
+          "services/llm.py": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f"
+        },
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:38f1d40b0692dbba44fb5c90869193a1583970c1ff8efb5fd3dc1f37e813364c"
+      },
+      {
+        "name": "transport-7",
+        "context": "/tmp/prod-home-repair-20261008-d6e60e/transport-7",
+        "base": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:2819d77370a0a26e312e5e0d1ce1091da2e7cb6211651a54a73d20efdc6828c4",
+        "tag": "home-repair-prod:prod-home-repair-20261008-d6e60e-transport-7",
+        "targets": [
+          "attention-ticker-next-dev",
+          "technical-history-next-dev"
+        ],
+        "source_sha256": {
+          "services/llm.py": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f"
+        },
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f"
+      }
+    ],
+    "acr_runs": {
+      "transport-0": "cjtb",
+      "transport-1": "cjta",
+      "transport-2": "cjt9",
+      "transport-3": "cjtc",
+      "transport-4": "cjtd",
+      "transport-5": "cjte",
+      "transport-6": "cjtf",
+      "transport-7": "cjtg"
+    }
+  },
+  "fresh_full_producer": {
+    "execution": "attention-home-build-1rmaf4b",
+    "run_id": "f905bd8a-9c63-4b97-8abc-0b482e74d9a1",
+    "database_status": "Failed",
+    "azure_status": "Stopped",
+    "source_investigations_completed": 4,
+    "candidate_investigations_completed": 12,
+    "company_enrichments_completed": 12,
+    "retained_datasets": 20,
+    "documents": 230,
+    "claims": 129,
+    "failure": "ChunkedEncodingError: Response ended prematurely during publication",
+    "duplicate_full_run_retry_stopped": true
+  },
+  "publication_resume": {
+    "execution": "attention-home-build-bcw7x2s",
+    "source_research_run_id": "f905bd8a-9c63-4b97-8abc-0b482e74d9a1",
+    "prior_layout_run_id": "6954c830-330f-4511-bfcc-fecdb3a058ab",
+    "status": "Published and verified",
+    "dev_content_copied": false,
+    "knowledge_write_policy": "none",
+    "responses_or_narratives_mocked": false,
+    "run_id": "4893138a-fa36-4ecd-8d38-2557600ab07e",
+    "azure_status": "Succeeded",
+    "database_status": "Warning",
+    "job": {
+      "run_id": "4893138a-fa36-4ecd-8d38-2557600ab07e",
+      "status": "Warning",
+      "start_time_utc": "2026-10-09 01:58:53.349766+00:00",
+      "end_time_utc": "2026-10-09 02:07:40.591814+00:00",
+      "error_summary": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
+      "progress_stage": "research_degraded",
+      "progress_message": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed."
+    },
+    "artifact_metadata": {
+      "attention_home_1d": {
+        "version": "attention_home_1d__20261009T015852Z__4893138a",
+        "asof": "2026-10-09 01:58:52.227625+00:00",
+        "rows": 1
+      },
+      "attention_research_bundles": {
+        "version": "attention_research_bundles__20261009T015852Z__4893138a",
+        "asof": "2026-10-09 01:58:52.227625+00:00",
+        "rows": 104
+      },
+      "attention_research_health": {
+        "version": "attention_research_health__20261009T015852Z__4893138a",
+        "asof": "2026-10-09 01:58:52.227625+00:00",
+        "rows": 1
+      },
+      "attention_home_publication_reviews": {
+        "version": "attention_home_publication_reviews__20261009T015852Z__4893138a",
+        "asof": "2026-10-09 01:58:52.227625+00:00",
+        "rows": 1
+      },
+      "attention_source_event_plans": {
+        "version": "attention_source_event_plans__20261009T012527Z__f905bd8a",
+        "asof": "2026-10-09 01:25:27.681446+00:00",
+        "rows": 4
+      },
+      "attention_source_event_research": {
+        "version": "attention_source_event_research__20261009T012527Z__f905bd8a",
+        "asof": "2026-10-09 01:25:27.681446+00:00",
+        "rows": 4
+      }
+    },
+    "public_cards": 16,
+    "canonical_dto_checks": [
+      {
+        "id": "event::source-9786474da0694d8a13a9",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "event::source-1bb8865ea95961873130",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "event::source-ae54c3e6821d6c768280",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "event::source-831eccab9e070c5a8701",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "event::home-e80dba520c6bdacfbc9c",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::AAOI",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::IREN",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::CMG",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::RIOT",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::AXTI",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::ALAB",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::FLUT",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::HUT",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::MXL",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::CSGP",
+        "canonical_fields_preserved": true
+      },
+      {
+        "id": "symbol::BNO",
+        "canonical_fields_preserved": true
+      }
+    ],
+    "research_health": [
+      {
+        "run_id": "4893138a-fa36-4ecd-8d38-2557600ab07e",
+        "asof_time_utc": "2026-10-09 01:58:52.227625+00:00",
+        "status": "degraded",
+        "summary": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
+        "stage_statuses_json": "{\"source_events\": \"completed\", \"ticker_enrichment\": \"completed\", \"ticker_answer_review\": \"completed\", \"market_summary\": \"completed\", \"group_synthesis\": \"consolidated_in_public_editor\", \"public_editor\": \"completed\", \"public_answer_review\": \"timeout\", \"market_inputs\": \"partial\"}",
+        "failed_tickers_json": "[]",
+        "errors_json": "[]"
+      }
+    ],
+    "publication_review": {
+      "status": "completed",
+      "model": "deepseek-reasoner",
+      "agent_run_id": "agrun_f3685e4d2a",
+      "quality_review": {
+        "status": "timeout",
+        "reason": "timed out after 158.64225322700008s"
+      },
+      "runtime": {
+        "run_id": "agrun_f3685e4d2a",
+        "event_count": 68,
+        "durable_event_log": false,
+        "resumable": false,
+        "budget": {
+          "timeout_seconds": 299.999211003,
+          "elapsed_seconds": 300.016,
+          "research_budget_exhausted": true,
+          "run_budget_exhausted": true
+        }
+      },
+      "issues": [
+        "Symbol NIB may conflate nib Holdings Limited with NIP Group (NIPG) or other entities; source evidence contains NIPG filings and an unrelated XRP ETF article.",
+        "The BNO candidate +51.65% move refers to a BNO Oct 2026 64.000 put contract, not the BNO ETF; instrument_context is missing.",
+        "MaxLinear (MXL) has no confirmed same-day catalyst in supplied evidence; draft mentions a rating cut and legal risk without source support.",
+        "Several top-event cohort candidates (indices 1–4) are taxonomy labels without specific drivers; set publish=false.",
+        "Sector rotation data and sector labels are missing from market coverage.",
+        "Some source evidence for IREN relies on SemiAnalysis social-media posts, not company disclosures.",
+        "NIB dividend and profit data conflict across headlines and text (34.0 cents vs 21 cents; profit falls vs underlying operating profit rises 9.1%)."
+      ],
+      "changed": 30,
+      "dropped": 4,
+      "reviewed": 34,
+      "discovered": 12,
+      "source_input_count": 50
+    },
+    "model_calls": [
+      {
+        "surface": "attention_home.public_surface_quality",
+        "purpose": "agent.final_synthesis",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-flash",
+        "status": "success",
+        "duration_ms": 140453.99811799984,
+        "error_type": ""
+      },
+      {
+        "surface": "attention_home.public_surface_quality",
+        "purpose": "agent.answer_judge",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-reasoner",
+        "status": "failure",
+        "duration_ms": 173073.30969999998,
+        "error_type": "LLMDeadlineExceeded"
+      },
+      {
+        "surface": "attention_home.daily_datapoints",
+        "purpose": "daily_market_datapoints.direct",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-flash",
+        "status": "success",
+        "duration_ms": 54970.30037600007,
+        "error_type": ""
+      },
+      {
+        "surface": "attention_home.daily_datapoints.review",
+        "purpose": "daily_market_datapoints_review.direct",
+        "requested_model": "deepseek-reasoner",
+        "resolved_model": "deepseek-reasoner",
+        "status": "failure",
+        "duration_ms": 76181.78262300012,
+        "error_type": "LLMDeadlineExceeded"
+      }
+    ],
+    "complete_prepublication_checkpoint_available": false,
+    "full_standard_producer_succeeded": false
+  },
+  "browser_acceptance": {
+    "url": "https://spectral-nature.com/",
+    "verified_at_utc": "2026-10-09T02:10:31.696878+00:00",
+    "browser": "Chrome",
+    "public_page_without_sign_in": true,
+    "visible_timestamp": "Oct 9, 1:58 AM UTC",
+    "visible_cards": 16,
+    "overview_visible": true,
+    "first_story": "OpenAI Revenue Signal Is About $20 Billion Below Earlier Reports; AI Infrastructure Shares Slide",
+    "explanation_context_follow_up_visible": true,
+    "visual_layout_inspected": true,
+    "cache_behavior": "Initial old page refreshed through normal background revalidation; fresh content then observed."
+  },
+  "qualitative_read": {
+    "method": "Personally read overview, all sixteen public cards, eleven additional retained stories, and selected retained source traces; no fixed semantic tests.",
+    "result": "Material improvement in recall and explanations; imperfect reasoning remains.",
+    "source_intake": "Three ordinary retained reports cover the OpenAI revenue story; two already connect it to ORCL/NVDA. No company, ticker, revenue figure or article-specific promotion rule added.",
+    "limitations": [
+      "Overlapping SpaceX stories and listed/private wording contradiction.",
+      "TSMC follow-up references Williams without introducing him.",
+      "Some causal and options conclusions exceed their retained context; a search-result title does not prove the BNO instrument conclusion.",
+      "Reported intraday Oracle decline differs from the dated quote observation.",
+      "Known-example development and read-through do not establish unseen-day attribution accuracy.",
+      "Final-editor advisory review and daily-datapoints review timed out; valid output preserved with degraded health."
+    ]
+  }
+}

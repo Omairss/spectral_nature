@@ -552,12 +552,27 @@ def _extract_claims(
         default=str,
     )
     try:
-        data = llm_client.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=user_prompt,
+            instructions=system_prompt,
             schema_name="attention_claims",
             schema=CLAIM_SCHEMA,
+            task="attention_claims", stage='summary',
+            surface="services.aql.extractor",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
     except Exception:
         return []
     claims: list[dict[str, Any]] = []

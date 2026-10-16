@@ -1,0 +1,392 @@
+{
+  "probe": "Actual final and review paths using controlled long retained-source tool results; no account conversation or knowledge writes.",
+  "results": [
+    {
+      "case": "correlation_vs_cause",
+      "query": "Does this study establish that new data centers caused the supplier sales increase? Explain what the study shows and cite source IDs.",
+      "collected_rows": [
+        {
+          "title": "Controlled source E1",
+          "ref": "E1",
+          "url": "https://example.test/correlation_vs_cause/1",
+          "summary_text": "The study reports a 0.72 correlation between new data-center capacity and the supplier sales, using 24 monthly observations."
+        },
+        {
+          "title": "Controlled source E2",
+          "ref": "E2",
+          "url": "https://example.test/correlation_vs_cause/2",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E3",
+          "ref": "E3",
+          "url": "https://example.test/correlation_vs_cause/3",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E4",
+          "ref": "E4",
+          "url": "https://example.test/correlation_vs_cause/4",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled source E5",
+          "ref": "E5",
+          "url": "https://example.test/correlation_vs_cause/5",
+          "summary_text": "A connection between data-center growth and optical networking is a business mechanism. Evidence about that mechanism differs from evidence about a specific new contract. A company can serve both cloud and telecom customers. A broad market opportunity cannot show which customer placed a reported order or how much of that order relates to AI."
+        },
+        {
+          "title": "Controlled source E6",
+          "ref": "E6",
+          "url": "https://example.test/correlation_vs_cause/6",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E7",
+          "ref": "E7",
+          "url": "https://example.test/correlation_vs_cause/7",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E8",
+          "ref": "E8",
+          "url": "https://example.test/correlation_vs_cause/8",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled source E9",
+          "ref": "E9",
+          "url": "https://example.test/correlation_vs_cause/9",
+          "summary_text": "A connection between data-center growth and optical networking is a business mechanism. Evidence about that mechanism differs from evidence about a specific new contract. A company can serve both cloud and telecom customers. A broad market opportunity cannot show which customer placed a reported order or how much of that order relates to AI."
+        },
+        {
+          "title": "Controlled source E10",
+          "ref": "E10",
+          "url": "https://example.test/correlation_vs_cause/10",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E11",
+          "ref": "E11",
+          "url": "https://example.test/correlation_vs_cause/11",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E12",
+          "ref": "E12",
+          "url": "https://example.test/correlation_vs_cause/12",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled correction E13",
+          "ref": "E13",
+          "chunk_id": "correlation_vs_cause-tail",
+          "url": "https://example.test/correlation_vs_cause/13",
+          "summary_text": "The study did not control for telecom capital spending, product cycles, or price changes. It did not identify customer purchases. The observed correlation cannot establish causation or a customer-specific order."
+        }
+      ],
+      "evidence_characters": 5628,
+      "planner_characters": 3074,
+      "configured_model": "deepseek-reasoner",
+      "provider_reported_model": "deepseek-flash",
+      "elapsed_seconds": 11.5,
+      "final": {
+        "answer_markdown": "**No. The study reports a correlation, not causation, so it does not establish that new data centers caused the supplier sales increase.**\n\n### What the study shows\n\n- The study reports a **0.72 correlation** between new data-center capacity and supplier sales (source **E1**, https://example.test/correlation_vs_cause/1).\n- The sample has **24 monthly observations** (source **E1**).\n- A correlation of 0.72 shows that the two measures moved together in that window. It does not show which one moved first, or why.\n\n### Why causation is not established\n\nThe study did not control for other forces that can move supplier sales (source **E13**, https://example.test/correlation_vs_cause/13).\n\n- Missing controls include **telecom capital spending**, **product cycles**, and **price changes** (source **E13**).\n- The study **did not identify customer purchases** (source **E13**).\n- The observed correlation **cannot establish causation or a customer-specific order** (source **E13**).\n\n### Business mechanism is not proof of a sale\n\nA link between data-center growth and optical networking is a **business mechanism** (source **E5**). Evidence about a mechanism is not evidence about a specific contract (source **E5**).\n\n- A broad market opportunity cannot show which customer placed an order, or how much of that order relates to AI (source **E5**).\n- Customer spending does not establish an order for this supplier (sources **E2**, **E6**, **E10**).\n\n### Orders, backlog, and revenue are different measures\n\nThe supplier books an order when a customer commits to buy (source **E3**). Backlog contains orders that are not yet revenue (source **E3**).\n\n- Delivery dates can span several reporting periods (source **E3**).\n- An order increase can support future sales. It does not prove that sales rose in the same period (source **E3**).\n- Equipment must ship before reported revenue can be tied to that shipment (source **E4**).\n\n### Takeaway\n\nTreat the 0.72 result as a **same-period association only**. To claim that data centers caused the sales increase, the study needs customer-level order data and controls for capital spending, product cycles, and price. Those items are absent (source **E13**). Watch for a later study with named customer orders, delivery dates, and controlled variables.",
+        "confidence": "high",
+        "limitations": [
+          "Tool evidence is limited to controlled sources E1-E13; no live market data, price history, or daily movers were collected.",
+          "The supplier is unnamed, so the result cannot be tied to a specific ticker.",
+          "The study's full method, control list, and data series are not shown beyond the summaries in E1 and E13."
+        ],
+        "used_tool_call_ids": [
+          "controlled-1"
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "accept",
+        "critique_summary": "The draft answers the question directly and stays inside the evidence. It states the study result correctly (0.72 correlation, 24 monthly observations, source E1) and correctly reports that the study did not establish causation because it did not control for telecom capital spending, product cycles, or price changes and did not identify customer purchases (source E13). The supporting points on orders versus revenue (E3), delivery timing (E4), business mechanism versus contract (E5), and customer spending not proving an order (E2, E6, E10) all match the source text. No market-impact, price-move, or current-driver claims appear, so no market-evidence gap applies. Confidence of high is appropriate because E13 states the causal limit explicitly. Only minor wording is imprecise: 'same-period association' is a reasonable reading of a correlation on 24 monthly observations, and the closing 'watch for a later study' line is forward-looking commentary, not a factual claim.",
+        "answer_markdown": "**No. The study reports a correlation, not causation, so it does not establish that new data centers caused the supplier sales increase.**\n\n### What the study shows\n\n- The study reports a **0.72 correlation** between new data-center capacity and supplier sales (source **E1**, https://example.test/correlation_vs_cause/1).\n- The sample has **24 monthly observations** (source **E1**).\n- A correlation of 0.72 shows that the two measures moved together in that window. It does not show which one moved first, or why.\n\n### Why causation is not established\n\nThe study did not control for other forces that can move supplier sales (source **E13**, https://example.test/correlation_vs_cause/13).\n\n- Missing controls include **telecom capital spending**, **product cycles**, and **price changes** (source **E13**).\n- The study **did not identify customer purchases** (source **E13**).\n- The observed correlation **cannot establish causation or a customer-specific order** (source **E13**).\n\n### Business mechanism is not proof of a sale\n\nA link between data-center growth and optical networking is a **business mechanism** (source **E5**). Evidence about a mechanism is not evidence about a specific contract (source **E5**).\n\n- A broad market opportunity cannot show which customer placed an order, or how much of that order relates to AI (source **E5**).\n- Customer spending does not establish an order for this supplier (sources **E2**, **E6**, **E10**).\n\n### Orders, backlog, and revenue are different measures\n\nThe supplier books an order when a customer commits to buy (source **E3**). Backlog contains orders that are not yet revenue (source **E3**).\n\n- Delivery dates can span several reporting periods (source **E3**).\n- An order increase can support future sales. It does not prove that sales rose in the same period (source **E3**).\n- Equipment must be delivered before reported revenue can be linked to that delivery (source **E4**).\n\n### Takeaway\n\nThe 0.72 result is a **contemporaneous association only**. A causation claim would need customer-level order data and controls for capital spending, product cycles, and price changes. Those items are absent (source **E13**).",
+        "confidence": "high",
+        "limitations": [
+          "Tool evidence is limited to controlled sources E1-E13; no live market data, price history, or daily movers were collected.",
+          "The supplier is unnamed, so the result cannot be tied to a specific ticker.",
+          "The study's full method, control list, and data series are not shown beyond the summaries in E1 and E13."
+        ],
+        "unsupported_claims": [],
+        "evidence_gaps": [
+          "No source shows a named customer order, delivery date, or contract value that links new data centers to this supplier's sales.",
+          "No source shows the study's full regression specification, so the extent of omitted-variable bias is unknown."
+        ]
+      },
+      "incorrect_draft_review": null,
+      "knowledge_writes": false
+    },
+    {
+      "case": "orders_vs_revenue",
+      "query": "Did the supplied Q2 order report prove that revenue grew 30%? Explain the actual change and cite source IDs.",
+      "collected_rows": [
+        {
+          "title": "Controlled source E1",
+          "ref": "E1",
+          "url": "https://example.test/orders_vs_revenue/1",
+          "summary_text": "Orders grew 30% year over year in Q2. An industry headline describes this as 30% revenue growth."
+        },
+        {
+          "title": "Controlled source E2",
+          "ref": "E2",
+          "url": "https://example.test/orders_vs_revenue/2",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E3",
+          "ref": "E3",
+          "url": "https://example.test/orders_vs_revenue/3",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E4",
+          "ref": "E4",
+          "url": "https://example.test/orders_vs_revenue/4",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled source E5",
+          "ref": "E5",
+          "url": "https://example.test/orders_vs_revenue/5",
+          "summary_text": "A connection between data-center growth and optical networking is a business mechanism. Evidence about that mechanism differs from evidence about a specific new contract. A company can serve both cloud and telecom customers. A broad market opportunity cannot show which customer placed a reported order or how much of that order relates to AI."
+        },
+        {
+          "title": "Controlled source E6",
+          "ref": "E6",
+          "url": "https://example.test/orders_vs_revenue/6",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E7",
+          "ref": "E7",
+          "url": "https://example.test/orders_vs_revenue/7",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E8",
+          "ref": "E8",
+          "url": "https://example.test/orders_vs_revenue/8",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled source E9",
+          "ref": "E9",
+          "url": "https://example.test/orders_vs_revenue/9",
+          "summary_text": "A connection between data-center growth and optical networking is a business mechanism. Evidence about that mechanism differs from evidence about a specific new contract. A company can serve both cloud and telecom customers. A broad market opportunity cannot show which customer placed a reported order or how much of that order relates to AI."
+        },
+        {
+          "title": "Controlled source E10",
+          "ref": "E10",
+          "url": "https://example.test/orders_vs_revenue/10",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E11",
+          "ref": "E11",
+          "url": "https://example.test/orders_vs_revenue/11",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E12",
+          "ref": "E12",
+          "url": "https://example.test/orders_vs_revenue/12",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled correction E13",
+          "ref": "E13",
+          "chunk_id": "orders_vs_revenue-tail",
+          "url": "https://example.test/orders_vs_revenue/13",
+          "summary_text": "The Q2 financial table reports revenue growth of 8% year over year. The 30% figure is orders, not revenue. Some backlog deliveries are scheduled next year."
+        }
+      ],
+      "evidence_characters": 5502,
+      "planner_characters": 3024,
+      "configured_model": "deepseek-reasoner",
+      "provider_reported_model": "deepseek-flash",
+      "elapsed_seconds": 15.5,
+      "final": {
+        "answer_markdown": "**No. The supplied Q2 order report does not prove 30% revenue growth; the same evidence set corrects the figure to 8% revenue growth, while 30% is order growth.**\n\n### What the report actually shows\n\n- Orders grew **30%** year over year in Q2 (source **E1**).\n- Revenue grew **8%** year over year in Q2 (source **E13**).\n- The **30%** figure is orders, not revenue (source **E13**).\n- An industry headline described the 30% order figure as \"30% revenue growth\" (source **E1**). That headline is the source of the error.\n\n### Why orders and revenue differ\n\nThe supplier records an order when a customer commits to a purchase. Backlog holds orders that have not yet become revenue. Delivery dates can span several reporting periods (source **E3**).\n\nManagement reports orders and revenue as separate measures. An order increase can support future sales. It does not prove that sales rose in the same period (source **E3**).\n\nSome backlog deliveries are scheduled for next year (source **E13**). Those orders therefore cannot appear in Q2 revenue.\n\n### The correction\n\nSource **E13** is the controlling correction: \"The Q2 financial table reports revenue growth of 8% year over year. The 30% figure is orders, not revenue.\" Source **E1** carries the mistaken framing, so you should not use it as the revenue number.\n\n### Takeaway\n\nUse **8%** for Q2 revenue growth and **30%** for Q2 order growth. Watch the next Q2 filing for backlog conversion, because next-year delivery dates delay when those orders become revenue. The evidence does not name the company or give revenue in currency units, so a dollar-level check is still missing.",
+        "confidence": "high",
+        "limitations": [
+          "Evidence is a retained controlled context set (controlled-1); it contains no live or current market source tool result.",
+          "The evidence does not name the company or ticker, and gives no revenue values in currency units.",
+          "No independent financial statement was read; the 8% revenue figure rests on source E13 alone."
+        ],
+        "used_tool_call_ids": [
+          "controlled-1"
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft correctly rejects the false 30% revenue premise and cites E1 and E13. Two sentences go slightly beyond the evidence: it calls the headline 'the source of the error' (E1 only shows the headline repeats the 30% figure as revenue growth), and it gives forward-looking advice to watch the next filing for backlog conversion. Both are trimmed; everything else is supported by E1, E3 and E13.",
+        "answer_markdown": "**No. The supplied Q2 order report does not prove 30% revenue growth. The same evidence set reports 8% revenue growth for Q2, while the 30% figure is order growth.**\n\n### What the evidence shows\n\n- Orders grew **30%** year over year in Q2 (source **E1**).\n- Revenue grew **8%** year over year in Q2 (source **E13**).\n- The **30%** figure is orders, not revenue (source **E13**).\n- An industry headline repeats the 30% order figure as \"30% revenue growth\" (source **E1**). The headline does not match the financial table.\n\n### Why orders and revenue differ\n\nThe supplier records an order when a customer commits to a purchase. Backlog holds orders that have not yet become revenue. Delivery dates can span several reporting periods (source **E3**).\n\nManagement reports orders and revenue as separate measures. An order increase can support future sales. It does not prove that sales rose in the same period (source **E3**).\n\nSome backlog deliveries are scheduled for next year (source **E13**). Those orders cannot appear in Q2 revenue.\n\n### The controlling correction\n\nSource **E13** is the controlling correction: \"The Q2 financial table reports revenue growth of 8% year over year. The 30% figure is orders, not revenue.\" Do not use the E1 headline as the revenue number.\n\n### Takeaway\n\nUse **8%** for Q2 revenue growth and **30%** for Q2 order growth. The evidence does not name the company or the ticker, and it gives no revenue values in currency units, so a dollar-level check is still missing.",
+        "confidence": "medium",
+        "limitations": [
+          "The evidence set is retained controlled context (controlled-1). It contains no live market source tool result.",
+          "The evidence does not name the company or ticker and gives no revenue values in currency units.",
+          "The 8% revenue figure rests on source E13 alone; no independent financial statement was read."
+        ],
+        "unsupported_claims": [
+          "'That headline is the source of the error' - E1 shows the headline repeats the 30% figure as revenue growth, but no evidence proves the headline caused the error.",
+          "'Watch the next Q2 filing for backlog conversion' - forward-looking advice that no source supports."
+        ],
+        "evidence_gaps": [
+          "No evidence identifies the company, ticker, or reporting period date.",
+          "No revenue values in currency units are given.",
+          "No second independent source confirms the 8% revenue figure."
+        ]
+      },
+      "incorrect_draft_review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft reverses the evidence. E13 states Q2 revenue growth was 8% year over year and that the 30% figure is orders, not revenue. E1 only shows orders grew 30%, and E1 notes that an industry headline mislabels this as revenue growth. E3, E7, and E11 explain that orders, backlog, and revenue are different measures, so an order increase does not prove same-period revenue growth. The draft confidence of high is also wrong for a claim that contradicts the correction source.",
+        "answer_markdown": "No. The supplied Q2 order report did not prove that revenue grew 30%.\n\n**Actual change**\n\nThe 30% figure is orders growth, not revenue growth. Q2 revenue grew 8% year over year. [E13] Orders and revenue are different measures. An order is recorded when a customer commits to a purchase, and backlog holds orders that have not yet become revenue. [E3][E11] Delivery dates can span several reporting periods, so an order increase can support future sales without proving that sales rose in the same period. [E3]\n\nSome backlog deliveries are scheduled for next year. [E13]\n\n**Why the 30% claim is wrong**\n\nE1 reports 30% year-over-year order growth in Q2. E1 also notes that an industry headline describes this as 30% revenue growth. The correction source E13 fixes that error: revenue growth was 8%, and the 30% number belongs to orders.\n\n**Source IDs**\n\n- E1: 30% order growth in Q2; an industry headline mislabels it as revenue growth.\n- E3, E7, E11: orders, backlog, and revenue are separate measures; order growth does not prove same-period revenue growth.\n- E13: Q2 revenue growth was 8% year over year; the 30% figure is orders; some backlog deliveries are scheduled next year.\n\n**Answer**\n\nThe report proved 30% order growth, not 30% revenue growth. Revenue grew 8% year over year. [E13]",
+        "confidence": "high",
+        "limitations": [
+          "The evidence gives only two figures, 30% orders growth and 8% revenue growth, with no full financial table.",
+          "The evidence does not give the absolute revenue or order values, so growth rates cannot be recomputed."
+        ],
+        "unsupported_claims": [
+          "The draft claim that revenue grew 30% in Q2 is contradicted by E13.",
+          "The draft claim that the order surge has already become revenue is contradicted by E3, E7, and E11.",
+          "The draft cites E1 for revenue growth, but E1 reports order growth and a mislabeling headline."
+        ],
+        "evidence_gaps": [
+          "No full Q2 financial table with absolute revenue and order values.",
+          "No breakdown of which orders converted to revenue in Q2 versus later periods."
+        ]
+      },
+      "knowledge_writes": false
+    },
+    {
+      "case": "business_vs_new_signal",
+      "query": "Explain the optical business link to data centers. Separate established context from the new September order and state when it affects revenue. Cite source IDs.",
+      "collected_rows": [
+        {
+          "title": "Controlled source E1",
+          "ref": "E1",
+          "url": "https://example.test/business_vs_new_signal/1",
+          "summary_text": "The supplier has sold optical interconnect equipment to data-center operators for several years. September commentary describes stronger demand."
+        },
+        {
+          "title": "Controlled source E2",
+          "ref": "E2",
+          "url": "https://example.test/business_vs_new_signal/2",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E3",
+          "ref": "E3",
+          "url": "https://example.test/business_vs_new_signal/3",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E4",
+          "ref": "E4",
+          "url": "https://example.test/business_vs_new_signal/4",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled source E5",
+          "ref": "E5",
+          "url": "https://example.test/business_vs_new_signal/5",
+          "summary_text": "A connection between data-center growth and optical networking is a business mechanism. Evidence about that mechanism differs from evidence about a specific new contract. A company can serve both cloud and telecom customers. A broad market opportunity cannot show which customer placed a reported order or how much of that order relates to AI."
+        },
+        {
+          "title": "Controlled source E6",
+          "ref": "E6",
+          "url": "https://example.test/business_vs_new_signal/6",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E7",
+          "ref": "E7",
+          "url": "https://example.test/business_vs_new_signal/7",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E8",
+          "ref": "E8",
+          "url": "https://example.test/business_vs_new_signal/8",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled source E9",
+          "ref": "E9",
+          "url": "https://example.test/business_vs_new_signal/9",
+          "summary_text": "A connection between data-center growth and optical networking is a business mechanism. Evidence about that mechanism differs from evidence about a specific new contract. A company can serve both cloud and telecom customers. A broad market opportunity cannot show which customer placed a reported order or how much of that order relates to AI."
+        },
+        {
+          "title": "Controlled source E10",
+          "ref": "E10",
+          "url": "https://example.test/business_vs_new_signal/10",
+          "summary_text": "The supplier sells optical transport equipment to telecom operators and cloud companies. These systems carry data over fiber between sites. Network demand can rise when customers build more data centers or need more capacity between existing sites. Customer spending does not establish an order for this supplier."
+        },
+        {
+          "title": "Controlled source E11",
+          "ref": "E11",
+          "url": "https://example.test/business_vs_new_signal/11",
+          "summary_text": "The supplier records an order when a customer commits to a purchase. Backlog includes orders that have not yet become revenue. Delivery dates can span several reporting periods. Management reports orders and revenue as different measures. An order increase can support future sales without proving that sales rose in the same period."
+        },
+        {
+          "title": "Controlled source E12",
+          "ref": "E12",
+          "url": "https://example.test/business_vs_new_signal/12",
+          "summary_text": "Installed networks can need upgrades as data traffic rises. The timing of upgrades depends on customer budgets, product availability, and installation schedules. A broad demand trend does not establish the timing or value of a purchase from one supplier. Equipment must be delivered before the reported revenue can be linked to that delivery."
+        },
+        {
+          "title": "Controlled correction E13",
+          "ref": "E13",
+          "chunk_id": "business_vs_new_signal-tail",
+          "url": "https://example.test/business_vs_new_signal/13",
+          "summary_text": "A September 30 notice reports a new $120 million order. Delivery is expected next year. Revenue is recognized on delivery. The notice does not identify the customer or the AI share of the order."
+        }
+      ],
+      "evidence_characters": 5659,
+      "planner_characters": 3074,
+      "configured_model": "deepseek-reasoner",
+      "provider_reported_model": "deepseek-flash",
+      "elapsed_seconds": 20.2,
+      "final": {
+        "answer_markdown": "**Verdict:** The optical-to-data-center link is an established business mechanism, not proof of current revenue; the new September 30 order is a **$120 million** customer commitment whose revenue is recognized on delivery, expected next year (E13).\n\n### Established context\n\nThe supplier has sold optical interconnect equipment to data-center operators for several years (E1). It sells optical transport equipment to telecom operators and cloud companies, and these systems carry data over fiber between sites (E2, E6, E10).\n\nData-center growth can raise demand for more capacity between sites. It can also push upgrades of installed networks (E2, E4, E6, E8, E10, E12).\n\nUpgrade timing depends on customer budgets, product availability, and installation schedules (E4, E8, E12). A broad demand trend does not establish the timing or value of one supplier's purchase (E4, E8, E12).\n\nCustomer spending alone does not establish an order for this supplier (E2, E6, E10). A company can serve both cloud and telecom customers, and a broad market opportunity does not show which customer placed a reported order or how much relates to AI (E5, E9).\n\n### New September order\n\nThe September 30 notice (E13; https://example.test/business_vs_new_signal/13) reports a new **$120 million** order (E13). The notice does not identify the customer or the AI share of the order (E13).\n\n### Revenue timing\n\nThe supplier records an order when a customer commits to a purchase. Backlog is not revenue, and delivery dates can span several reporting periods (E3, E7, E11).\n\nThe new order is expected to deliver next year. Revenue is recognized on delivery (E13). Therefore, the order supports future sales, not revenue in the same period as the order notice. The evidence does not give a specific quarter within next year.\n\n### What to watch\n\nWatch delivery next year and the revenue recognition date (E13). Also watch for customer identity and AI share, which the September notice did not provide (E13).\n\nThe run uses retained controlled evidence E1-E13. It does not include live market, price, or filing data.",
+        "confidence": "medium",
+        "limitations": [
+          "No live or current market, price, or filing data was collected; evidence is controlled retained context E1-E13.",
+          "The September notice does not identify the customer or the AI share, and it does not give a specific delivery quarter within next year.",
+          "The evidence names only a generic supplier; no ticker or company name is provided."
+        ],
+        "used_tool_call_ids": [
+          "controlled-1"
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "accept",
+        "critique_summary": "The draft correctly separates durable background (optical transport/interconnect sales to cloud and telecom customers, data-center-driven capacity demand) from the new September 30 signal (a $120 million order with revenue recognized on delivery, expected next year), and it cites E1-E13. Each claim traces to E1-E13, and the draft avoids turning the new order into current-period revenue or naming an unidentified customer, AI share, or delivery quarter. No market, price, or rate-impact claims appear, so no market-evidence check is needed. Markdown is well formed; there are no tables to repair.",
+        "answer_markdown": "**Verdict:** The optical-to-data-center link is an established business mechanism, not proof of current revenue. The new September 30 order is a **$120 million** customer commitment. Revenue is recognized on delivery, expected next year (E13).\n\n### Established context\n\nThe supplier has sold optical interconnect equipment to data-center operators for several years (E1). It sells optical transport equipment to telecom operators and cloud companies, and these systems carry data over fiber between sites (E2, E6, E10).\n\nData-center growth can raise demand for more capacity between sites. It can also push upgrades of installed networks (E2, E4, E6, E8, E10, E12).\n\nUpgrade timing depends on customer budgets, product availability, and installation schedules (E4, E8, E12). A broad demand trend does not establish the timing or value of one supplier's purchase (E4, E8, E12).\n\nCustomer spending alone does not establish an order for this supplier (E2, E6, E10). A company can serve both cloud and telecom customers, and a broad market opportunity does not show which customer placed a reported order or how much relates to AI (E5, E9).\n\n### New September order\n\nThe September 30 notice (E13; https://example.test/business_vs_new_signal/13) reports a new **$120 million** order (E13). The notice does not identify the customer or the AI share of the order (E13).\n\n### Revenue timing\n\nThe supplier records an order when a customer commits to a purchase. Backlog is not revenue, and delivery dates can span several reporting periods (E3, E7, E11).\n\nThe new order is expected to deliver next year. Revenue is recognized on delivery (E13). Therefore, the order supports future sales, not revenue in the same period as the order notice. The evidence does not give a specific quarter within next year.\n\n### What to watch\n\nWatch delivery next year and the revenue recognition date (E13). Also watch for customer identity and AI share, which the September notice did not provide (E13).\n\nEvidence scope: the run uses retained controlled evidence E1-E13 only. It includes no live market, price, or filing data.",
+        "confidence": "high",
+        "limitations": [
+          "No live or current market, price, or filing data was collected; evidence is controlled retained context E1-E13.",
+          "The September notice does not identify the customer or the AI share, and it does not give a specific delivery quarter within next year.",
+          "The evidence names only a generic supplier; no ticker or company name is provided."
+        ],
+        "unsupported_claims": [],
+        "evidence_gaps": [
+          "No customer identity and no AI share for the $120 million order (E13).",
+          "No specific delivery quarter within next year and no confirmed revenue recognition date (E13).",
+          "No live market, price, or filing data to confirm current-period revenue effect."
+        ]
+      },
+      "incorrect_draft_review": null,
+      "knowledge_writes": false
+    }
+  ]
+}

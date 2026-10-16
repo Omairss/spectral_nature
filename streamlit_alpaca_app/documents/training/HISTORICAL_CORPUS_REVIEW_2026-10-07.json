@@ -1,0 +1,44 @@
+{
+  "reviewed_at_utc": "2026-10-08T06:19:23.451772+00:00",
+  "release_sha256": "737ba073644f212121fa08b18956f8440d4627a2533ca194ac46696f59172446",
+  "readback_sha256_verified": true,
+  "availability_contract_version": 2,
+  "label_contract_version": 4,
+  "price_path_review": "NKE March 2020 next-session entries, returns and adverse paths read from uploaded version-4 targets",
+  "price_path_sample": [
+    {
+      "decision_at": "2020-03-20 04:00:00+00:00",
+      "entry_session": "2020-03-20 04:00:00+00:00",
+      "entry_adjusted_open": "64.44",
+      "forward_return": "-0.05664183736809436",
+      "maximum_adverse_return": "-0.06021104903786456"
+    },
+    {
+      "decision_at": "2020-03-21 04:00:00+00:00",
+      "entry_session": "2020-03-23 04:00:00+00:00",
+      "entry_adjusted_open": "58.58",
+      "forward_return": "-0.03397063844315462",
+      "maximum_adverse_return": "-0.0681119836121542"
+    },
+    {
+      "decision_at": "2020-03-24 04:00:00+00:00",
+      "entry_session": "2020-03-24 04:00:00+00:00",
+      "entry_adjusted_open": "59.21",
+      "forward_return": "0.10082756291167039",
+      "maximum_adverse_return": "-0.025840229690930583"
+    }
+  ],
+  "source_text_review": "EIA oil chronology, WHO early outbreak, Fed emergency policy, Claude Code adoption milestone and package daily/monthly counts personally inspected; raw and selected verbatim bodies retained",
+  "strict_frame_id": "4973d51d9fc87335cd162000",
+  "strict_sample_rows": 6692,
+  "strict_sample_max_available_at": "2020-02-19 05:00:00+00:00",
+  "macro_sample_rows": 30411,
+  "macro_latest_vintage_unique_per_series_date": true,
+  "treasury_bill_rows_2026": 193,
+  "treasury_bill_schema_version": 2,
+  "treasury_bill_first_available_at": "2026-01-03 05:00:00+00:00",
+  "outcomes_excluded_from_input_reader": true,
+  "split_crossing_targets_excluded": true,
+  "coverage_status": "partial; full backfill and free expansion pending",
+  "model_research_quality": "not_evaluated; no trained selector or prospective evaluation claimed"
+}

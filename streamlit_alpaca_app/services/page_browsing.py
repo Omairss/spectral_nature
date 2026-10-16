@@ -4,6 +4,13 @@ import asyncio
 from html.parser import HTMLParser
 import os
 import re
+import json
+from pathlib import Path
+import signal
+import subprocess
+import sys
+import tempfile
+import threading
 from typing import Any
 from urllib.parse import urlparse
 
@@ -51,7 +58,7 @@ def _clean(value: object) -> str:
 
 
 def _trim(text: object, *, limit: int) -> str:
-    clean = _clean(text)
+    clean = str(text or "").strip()
     if len(clean) <= limit:
         return clean
     return clean[: limit - 3].rstrip() + "..."
@@ -70,6 +77,71 @@ def _env_int(name: str, default: int, *, minimum: int, maximum: int) -> int:
     except Exception:
         parsed = default
     return min(max(parsed, minimum), maximum)
+
+
+# Browser processes are much heavier than search/HTTP requests. All callers of
+# the shared reader queue browser work here without dropping planned sources.
+_BROWSER_CAPACITY = threading.BoundedSemaphore(
+    _env_int("PAGE_BROWSING_MAX_CONCURRENT_BROWSERS", 2, minimum=1, maximum=16)
+)
+_SEEKING_ALPHA_PROFILE_LOCK = threading.Lock()
+
+
+def _run_browser_process(
+    method: str, url: str, *, timeout_seconds: int, max_text_chars: int, warning: str = ""
+) -> dict[str, Any]:
+    """Own the driver and its descendants, including a crashed driver's cleanup."""
+    request = {"method": method, "url": url, "timeout_seconds": timeout_seconds,
+               "max_text_chars": max_text_chars, "warning": warning}
+    worker_timeout = max(timeout_seconds, _env_int(
+        "PAGE_BROWSING_WORKER_DEADLINE_SECONDS", 90, minimum=1, maximum=600
+    ))
+    with tempfile.TemporaryDirectory(prefix="source-browser-") as directory:
+        result_path = Path(directory) / "result.json"
+        process = subprocess.Popen(
+            [sys.executable, "-m", "services.page_browsing", "--browser-result", str(result_path)],
+            stdin=subprocess.PIPE, text=True, start_new_session=True,
+        )
+        try:
+            try:
+                process.communicate(json.dumps(request), timeout=worker_timeout)
+            except subprocess.TimeoutExpired as exc:
+                raise PageBrowsingError(f"{method} browser exceeded its {worker_timeout}s worker deadline") from exc
+            if not result_path.exists():
+                raise PageBrowsingError(f"{method} browser worker exited with code {process.returncode}")
+            result = json.loads(result_path.read_text())
+            if result.get("error"):
+                raise PageBrowsingError(result["error"])
+            return result["payload"]
+        finally:
+            # Drivers can leave Chromium/Node alive even after their Python parent
+            # exits. The whole process group belongs to this single attempt.
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.wait()
+
+
+def _browser_worker(result_path: Path) -> None:
+    request = json.load(sys.stdin)
+    method = request.pop("method")
+    warning = request.pop("warning", "")
+    try:
+        if method == "seeking_alpha":
+            payload = _run_async(browse_seeking_alpha_page(**request))
+        elif method == "playwright":
+            payload = _run_async(_browse_with_playwright(**request))
+        elif method == "scrapling":
+            payload = _browse_with_scrapling(**request, warning=warning)
+        else:
+            raise ValueError("Unknown browser method")
+        result = {"payload": payload}
+    except Exception as exc:
+        result = {"error": f"{type(exc).__name__}: {exc}"}
+    with result_path.open("x") as output:
+        result_path.chmod(0o600)
+        json.dump(result, output)
 
 
 def _normalized_url(url: str) -> str:
@@ -101,6 +173,11 @@ class _HTMLTextExtractor(HTMLParser):
         if normalized == "title":
             self._in_title = True
             return
+        if self._ignore_depth == 0:
+            if normalized in {"article", "main", "section", "div", "p", "h1", "h2", "h3", "h4", "li", "blockquote", "pre", "tr", "br"}:
+                self._text_parts.append("\n")
+            elif normalized in {"td", "th"}:
+                self._text_parts.append("\t")
         if normalized == "meta":
             attrs_map = {str(key).lower(): str(value or "") for key, value in attrs}
             name = attrs_map.get("name", "").lower()
@@ -120,6 +197,8 @@ class _HTMLTextExtractor(HTMLParser):
             return
         if normalized == "title":
             self._in_title = False
+        elif self._ignore_depth == 0 and normalized in {"article", "main", "section", "div", "p", "h1", "h2", "h3", "h4", "li", "blockquote", "pre", "tr"}:
+            self._text_parts.append("\n")
 
     def handle_data(self, data: str) -> None:
         clean = _clean(data)
@@ -128,7 +207,7 @@ class _HTMLTextExtractor(HTMLParser):
         if self._in_title:
             self._title_parts.append(clean)
         else:
-            self._text_parts.append(clean)
+            self._text_parts.append(data)
 
     @property
     def title(self) -> str:
@@ -136,7 +215,7 @@ class _HTMLTextExtractor(HTMLParser):
 
     @property
     def text(self) -> str:
-        return _clean(" ".join(self._text_parts))
+        return "".join(self._text_parts).strip()
 
 
 def _parse_html_document(html: str) -> dict[str, str]:
@@ -221,43 +300,19 @@ def page_quality_issue(payload: dict[str, Any] | None, *, min_text_chars: int = 
     return ""
 
 
-async def _extract_readable_text_blocks(page: Any, *, max_blocks: int = 90) -> list[str]:
+async def _extract_page_text(page: Any) -> str:
+    """Preserve visible source text, including short observations, tables and code."""
     try:
-        blocks = await page.evaluate(
-            """
-            ({ maxBlocks }) => {
-              const roots = [
-                document.querySelector('article'),
-                document.querySelector('main'),
-                document.querySelector('[role="main"]'),
-                document.body
-              ].filter(Boolean);
-              const root = roots[0];
-              const selectors = ['h1', 'h2', 'h3', 'p', 'li', 'blockquote', 'td', 'th'];
-              const reject = /cookie|privacy|terms of use|skip to|navigation|subscribe|sign in|accept all|browser vulnerability/i;
-              const isVisible = (node) => {
-                const style = window.getComputedStyle(node);
-                const rect = node.getBoundingClientRect();
-                return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
-              };
-              const output = [];
-              for (const node of root.querySelectorAll(selectors.join(','))) {
-                if (!isVisible(node)) continue;
-                const tag = node.tagName.toLowerCase();
-                const text = (node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim();
-                const minLength = tag.startsWith('h') ? 8 : 35;
-                if (!text || text.length < minLength || reject.test(text)) continue;
-                output.push(text);
-                if (output.length >= maxBlocks) break;
-              }
-              return output;
-            }
-            """,
-            {"maxBlocks": max_blocks},
+        text = await page.evaluate(
+            """() => {
+                const root = document.querySelector('article') || document.querySelector('main')
+                    || document.querySelector('[role="main"]') || document.body;
+                return root ? (root.innerText || root.textContent || '') : '';
+            }"""
         )
     except Exception:
-        blocks = []
-    return [_clean(item) for item in list(blocks or []) if _clean(item)]
+        return ""
+    return str(text or "").strip()
 
 
 async def _browse_with_playwright(
@@ -277,6 +332,7 @@ async def _browse_with_playwright(
             browser = await playwright.chromium.launch(headless=True)
             try:
                 page = await browser.new_page(user_agent=DEFAULT_BROWSER_USER_AGENT)
+                page.set_default_timeout(timeout_ms)
                 await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
                 try:
                     await page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 2500))
@@ -286,13 +342,14 @@ async def _browse_with_playwright(
                 final_url = _clean(page.url)
                 description = ""
                 try:
-                    description = _clean(await page.locator("meta[name='description']").first.get_attribute("content"))
+                    description = _clean(await page.evaluate(
+                        "document.querySelector('meta[name=\"description\"]')?.content || ''"
+                    ))
                 except Exception:
                     description = ""
-                blocks = await _extract_readable_text_blocks(page)
-                text = _clean("\n".join(blocks))
+                text = await _extract_page_text(page)
                 if not text:
-                    text = _clean(await page.locator("body").inner_text(timeout=min(timeout_ms, 2000)))
+                    text = (await page.locator("body").inner_text(timeout=min(timeout_ms, 2000))).strip()
             finally:
                 await browser.close()
     except (PlaywrightTimeoutError, PlaywrightError) as exc:
@@ -342,13 +399,13 @@ def _scrapling_response_text(response: Any) -> str:
         if node is None:
             continue
         try:
-            text = _clean(node.get_all_text(strip=True))
+            text = str(node.get_all_text(strip=False)).strip()
         except Exception:
             text = ""
         if len(text) >= minimum_length:
             return text
     try:
-        return _clean(response.get_all_text(strip=True))
+        return str(response.get_all_text(strip=False)).strip()
     except Exception:
         return ""
 
@@ -451,7 +508,7 @@ def _browse_with_firecrawl(
     if not isinstance(data, dict):
         raise PageBrowsingError("Firecrawl returned no data object.")
     metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
-    text = _clean(data.get("markdown") or data.get("summary") or data.get("html") or data.get("rawHtml"))
+    text = str(data.get("markdown") or data.get("summary") or data.get("html") or data.get("rawHtml") or "").strip()
     if not text:
         raise PageBrowsingError("Firecrawl returned no markdown or text content.")
     final_url = _clean(metadata.get("sourceURL") or metadata.get("url") or url)
@@ -505,7 +562,7 @@ def _browse_with_http(
     raw_text = response.text
     title = ""
     description = ""
-    text = _clean(raw_text)
+    text = raw_text.strip()
     if "html" in content_type.lower() or "<html" in raw_text.lower():
         parsed = _parse_html_document(raw_text)
         title = parsed["title"]
@@ -557,13 +614,12 @@ def browse_page(
 
     if prefer_browser and is_seeking_alpha_url(normalized_url):
         try:
-            payload = _run_async(
-                browse_seeking_alpha_page(
-                    normalized_url,
-                    timeout_seconds=safe_timeout,
-                    max_text_chars=safe_max_chars,
+            # A persistent authenticated profile has one browser owner.
+            with _SEEKING_ALPHA_PROFILE_LOCK, _BROWSER_CAPACITY:
+                payload = _run_browser_process(
+                    "seeking_alpha", normalized_url,
+                    timeout_seconds=safe_timeout, max_text_chars=safe_max_chars,
                 )
-            )
             if not require_main_content or not _remember(payload):
                 return payload
             fallback_warning = _warning_with(fallback_warning, f"Seeking Alpha browse quality issue: {best_issue}.")
@@ -572,13 +628,11 @@ def browse_page(
 
     if prefer_browser:
         try:
-            payload = _run_async(
-                _browse_with_playwright(
-                    normalized_url,
-                    timeout_seconds=safe_timeout,
-                    max_text_chars=safe_max_chars,
+            with _BROWSER_CAPACITY:
+                payload = _run_browser_process(
+                    "playwright", normalized_url,
+                    timeout_seconds=safe_timeout, max_text_chars=safe_max_chars,
                 )
-            )
             if not require_main_content or not _remember(payload):
                 return payload
             fallback_warning = _warning_with(fallback_warning, f"Playwright quality issue: {best_issue}.")
@@ -600,12 +654,13 @@ def browse_page(
 
     if require_main_content:
         try:
-            payload = _browse_with_scrapling(
-                normalized_url,
-                timeout_seconds=safe_timeout,
-                max_text_chars=safe_max_chars,
-                warning=fallback_warning,
-            )
+            with _BROWSER_CAPACITY:
+                payload = _run_browser_process(
+                    "scrapling", normalized_url,
+                    timeout_seconds=safe_timeout,
+                    max_text_chars=safe_max_chars,
+                    warning=fallback_warning,
+                )
             if not _remember(payload):
                 return payload
             fallback_warning = _warning_with(fallback_warning, f"Scrapling quality issue: {best_issue}.")
@@ -641,3 +696,9 @@ __all__ = [
     "browse_page",
     "page_quality_issue",
 ]
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3 or sys.argv[1] != "--browser-result":
+        raise SystemExit("Expected --browser-result PATH")
+    _browser_worker(Path(sys.argv[2]))

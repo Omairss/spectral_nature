@@ -1,0 +1,1090 @@
+{
+  "status": "ok",
+  "narrative_contract_version": "plain_investor_research_v2",
+  "regime_read": "The broad market and economic backdrop is not known from the available facts. The only clear backdrop is company-specific: strong Amtagvi demand and a raised revenue guide drove a very large price move in Iovance.",
+  "portfolio_posture": "Treat Iovance as one event-driven long with modest size, because the next quarterly report is the main test of the raised guidance.",
+  "candidates": [
+    {
+      "ticker": "IOVA",
+      "direction": "long",
+      "stance": "long",
+      "research_status": "supported",
+      "setup": "Iovance sells Amtagvi, a cell therapy for advanced melanoma, and on October 14, 2026 the company raised its full-year 2026 revenue guidance to $410\u2013420 million from $350\u2013370 million, sending the stock to a multi-year high.",
+      "hypothesis": "Amtagvi demand and better manufacturing can lift quarterly revenue toward $120\u2013125 million in the second half of 2026, so the new guidance is reachable and the stock can hold its gain over the next three months. Narrowing losses as sales grow support that path.",
+      "evidence": [
+        "Q2 2026 revenue was $99.31 million, up 65.7% from a year earlier, while the net loss narrowed to $47.3 million from $111.7 million. Growing sales with a smaller loss is the first sign of operating leverage.",
+        "First-half 2026 revenue was $170.7 million ($71.4 million in Q1 plus $99.3 million in Q2), so the raised $410\u2013420 million guide needs about $120\u2013125 million per quarter in the second half. That is a real step up from Q2, not simple continuation.",
+        "The stock rose 185.6% in three months and 543.4% in one year and closed at $14.21 on October 14, 2026. Price momentum is now cooling after this run, so near-term gains may pause even if the business trend holds."
+      ],
+      "invalidation": "A Q3 2026 revenue result clearly below roughly $120 million, or any cut to the $410\u2013420 million guidance, would disprove the acceleration thesis. A continued loss of price momentum with no new company news would also weaken it.",
+      "tail_risks": [
+        "Much of the good news is already in the price, so a quarter that only matches the implied second-half pace, rather than beats it, could cause a sharp fall.",
+        "Manufacturing or patient-cell collection problems would slow Amtagvi revenue and put the guidance out of reach.",
+        "The company spends more cash than it earns (operating cash flow was -$60.8 million in Q2 2026), so a future share sale could dilute holders."
+      ],
+      "evidence_limits": [
+        "Does Iovance have real demand or pipeline value outside advanced melanoma? A second market would extend the growth story beyond 2026.",
+        "How many months of cash remain at the current burn rate? This decides whether a share sale, and the dilution it brings, is likely within the next year.",
+        "What are rival cell-therapy programs for melanoma doing? A competing approval or stronger data would cap Iovance's pricing and market share."
+      ],
+      "suggested_horizon": "3 months",
+      "confidence": "medium",
+      "narrative_contract_version": "plain_investor_research_v2"
+    }
+  ],
+  "data_gaps": [
+    "Interest-rate expectations and the direction of the wider equity market are not known.",
+    "Valuations across cell-therapy companies, which set the comparison for Iovance, are not known."
+  ],
+  "error": "",
+  "aql_agent": {
+    "run_id": "",
+    "evidence_pack_id": "",
+    "status": "completed",
+    "answer_markdown": "IOVA: ## Iovance Biotherapeutics (IOVA): Forward-Looking Research Brief **Company and catalyst.** Iovance sells Amtagvi, a tumor-infiltrating lymphocyte (TIL) cell therapy for advanced melanoma. As of Oct 15, 2026, IOVA was up about 43.7% in one month, 185.6% in three months, and 543.4% over one year. The reported trigger for the latest leg: Iovance raised its full-year 2026 revenue guidance to $410\u2013420 million from $350\u2013370 million, citing strong Amtagvi demand and improving manufacturing; shares surged over 31% to a fresh multi-year high ([Perplexity Finance](https://www.perplexity.ai/finance/IOVA?comparing=IOVA,FATE,BLRX,GERN,ADAPY,RCKT); [Yahoo Finance](https://finance.yahoo.com/quote/IOVA/)). On Oct 14, 2026 the stock closed at $14.21, down 2% that day after the surge ([Heygotrade](https://www.heygotrade.com/en/us-stock/iova/)). Quarterly fundamentals back the growth story: Q2 2026 revenue was $99.31 million, up 65.7% year over year; net loss narrowed to $47.3 million from $111.7 million a year earlier; operating cash flow was -$60.8 million. The balance sheet shows $736.0 million of stockholders' equity against $179.5 million of total liabilities. A simple check of the guidance: first-half 2026 revenue was $170.7 million ($71.4M + $99.3M). To reach the low end of $410 million, the second half must produce about $239 million; to reach $420 million, about $249 million. That implies roughly $120\u2013125 million per quarter in H2, a step up from Q2's $99.3 million. So the guidance requires a real acceleration, not just continuation. **Bullish thesis by horizon.** - **1 Month:** Momentum and a fresh guidance raise support the stock. The screen pattern \"Up / cooling\" says the move is strong but maturing, so consolidation is possible, but there is no reported negative company news to contradict the demand trend. - **3 Month:** The next quarterly report is the first test of the implicit H2 ramp. If revenue tracks toward $120 million-plus per quarter and losses keep narrowing, the bull case holds. Operating leverage is visible in Q2: revenue rose 66% while the net loss shrank more than half. - **1 Year:** Improving manufacturing and durable Amtagvi demand could push revenue above the new guide as capacity scales. The main unknown is whether the company can show demand or pipeline value beyond advanced melanoma; that evidence is not in the retained material. **Bearish thesis by horizon.** - **1 Month:** After a 543% one-year gain and a >31% guidance rally, the near-term positive news is likely already in the price. The \"cooling\" pattern and the Oct 14 down close are consistent with momentum fading. - **3 Month:** Any sign of manufacturing or collection-rate friction, or a quarter below the new implied pace, would be a negative surprise against elevated expectations. - **1 Year:** The company still burns cash, has no proven path to profitability in evidence, and faces competition in cell therapy. Dilution from future financing is a live risk if the cash burn persists. The bull case beyond current approved use lacks supporting evidence in this research. **Which thesis the facts favor.** The reported facts favor the bullish case on the 1\u20133 month horizon: raised guidance, 66% revenue growth, narrowing losses, and manufacturing improvement are all concrete and current. The bear case is not invalidated, but its strongest point at 1\u20133 months is valuation after a very large run. At one year, neither thesis has a clear edge: the commercial trend is real, but evidence for the pipeline, cash runway, and durable demand outside the current indication is missing. The next earnings report is the key checkpoint for both sides.",
+    "confidence": "medium",
+    "limitations": [
+      "Synthesis unavailable: ResearchStepTimeout"
+    ],
+    "tool_calls": [
+      {
+        "tool_name": "research.search_evidence",
+        "status": "failed",
+        "arguments": {
+          "queries": [
+            "Iovance Biotherapeutics IOVA stock surge catalyst October 2026",
+            "Iovance lifileucel Amtagvi sales guidance approval news",
+            "Iovance Biotherapeutics Amtagvi revenue launch demand 2026",
+            "IOVA stock price move reason news"
+          ],
+          "tickers": [
+            "IOVA"
+          ],
+          "max_results": 14
+        },
+        "preview": "research.search_evidence timed out after 45.0s."
+      },
+      {
+        "tool_name": "research.completed_investigations",
+        "status": "completed",
+        "arguments": {
+          "subjects": [
+            "company:IOVA"
+          ]
+        },
+        "preview": "research summary with 0 rows; columns=n/a; sample=[]"
+      },
+      {
+        "tool_name": "research.live_event_evidence",
+        "status": "completed",
+        "arguments": {
+          "query": "Iovance Biotherapeutics IOVA stock surge October 2026 catalyst",
+          "focus_symbols": [
+            "IOVA"
+          ],
+          "max_results": 12,
+          "force_refresh": false
+        },
+        "preview": "research summary with 3 rows; columns=scope, symbol, headline, summary_text, source, published_at, url; sample=[{\"headline\": \"Iovance Biotherapeutics, Inc. (IOVA)\", \"published_at\": \"\", \"scope\": \"market_event\", \"source\": \"serper\", \"summary_text\": \"Iovance Biotherapeutics has been driven by strong Amtagvi demand, a raised 2026 revenue guide of $410 million to $420 million, and improving manufacturing ...\", \"symbol\": \"\", \"url\": \"https://finance.yahoo.com/quote/IOVA/\"}, {\"headline\": \"Iovance Biother"
+      }
+    ],
+    "macro_package": {
+      "status": "materialized",
+      "market_explorer": {},
+      "broad_economy": {}
+    },
+    "ticker_packages": [
+      {
+        "ticker": "IOVA",
+        "company_name": "Iovance Biotherapeutics, Inc. - Common Stock",
+        "status": "completed",
+        "answer_markdown": "## Iovance Biotherapeutics (IOVA): Forward-Looking Research Brief **Company and catalyst.** Iovance sells Amtagvi, a tumor-infiltrating lymphocyte (TIL) cell therapy for advanced melanoma. As of Oct 15, 2026, IOVA was up about 43.7% in one month, 185.6% in three months, and 543.4% over one year. The reported trigger for the latest leg: Iovance raised its full-year 2026 revenue guidance to $410\u2013420 million from $350\u2013370 million, citing strong Amtagvi demand and improving manufacturing; shares surged over 31% to a fresh multi-year high ([Perplexity Finance](https://www.perplexity.ai/finance/IOVA?comparing=IOVA,FATE,BLRX,GERN,ADAPY,RCKT); [Yahoo Finance](https://finance.yahoo.com/quote/IOVA/)). On Oct 14, 2026 the stock closed at $14.21, down 2% that day after the surge ([Heygotrade](https://www.heygotrade.com/en/us-stock/iova/)). Quarterly fundamentals back the growth story: Q2 2026 revenue was $99.31 million, up 65.7% year over year; net loss narrowed to $47.3 million from $111.7 million a year earlier; operating cash flow was -$60.8 million. The balance sheet shows $736.0 million of stockholders' equity against $179.5 million of total liabilities. A simple check of the guidance: first-half 2026 revenue was $170.7 million ($71.4M + $99.3M). To reach the low end of $410 million, the second half must produce about $239 million; to reach $420 million, about $249 million. That implies roughly $120\u2013125 million per quarter in H2, a step up from Q2's $99.3 million. So the guidance requires a real acceleration, not just continuation. **Bullish thesis by horizon.** - **1 Month:** Momentum and a fresh guidance raise support the stock. The screen pattern \"Up / cooling\" says the move is strong but maturing, so consolidation is possible, but there is no reported negative company news to contradict the demand trend. - **3 Month:** The next quarterly report is the first test of the implicit H2 ramp. If revenue tracks toward $120 million-plus per quarter and losses keep narrowing, the bull case holds. Operating leverage is visible in Q2: revenue rose 66% while the net loss shrank more than half. - **1 Year:** Improving manufacturing and durable Amtagvi demand could push revenue above the new guide as capacity scales. The main unknown is whether the company can show demand or pipeline value beyond advanced melanoma; that evidence is not in the retained material. **Bearish thesis by horizon.** - **1 Month:** After a 543% one-year gain and a >31% guidance rally, the near-term positive news is likely already in the price. The \"cooling\" pattern and the Oct 14 down close are consistent with momentum fading. - **3 Month:** Any sign of manufacturing or collection-rate friction, or a quarter below the new implied pace, would be a negative surprise against elevated expectations. - **1 Year:** The company still burns cash, has no proven path to profitability in evidence, and faces competition in cell therapy. Dilution from future financing is a live risk if the cash burn persists. The bull case beyond current approved use lacks supporting evidence in this research. **Which thesis the facts favor.** The reported facts favor the bullish case on the 1\u20133 month horizon: raised guidance, 66% revenue growth, narrowing losses, and manufacturing improvement are all concrete and current. The bear case is not invalidated, but its strongest point at 1\u20133 months is valuation after a very large run. At one year, neither thesis has a clear edge: the commercial trend is real, but evidence for the pipeline, cash runway, and durable demand outside the current indication is missing. The next earnings report is the key checkpoint for both sides.",
+        "confidence": "medium",
+        "limitations": [
+          "Synthesis unavailable: ResearchStepTimeout",
+          "Synthesis unavailable: ResearchStepTimeout",
+          "Synthesis unavailable: ResearchStepTimeout"
+        ],
+        "tool_calls": [
+          {
+            "tool_name": "research.search_evidence",
+            "status": "failed",
+            "arguments": {
+              "queries": [
+                "Iovance Biotherapeutics IOVA stock surge catalyst October 2026",
+                "Iovance lifileucel Amtagvi sales guidance approval news",
+                "Iovance Biotherapeutics Amtagvi revenue launch demand 2026",
+                "IOVA stock price move reason news"
+              ],
+              "tickers": [
+                "IOVA"
+              ],
+              "max_results": 14
+            },
+            "preview": "research.search_evidence timed out after 45.0s."
+          },
+          {
+            "tool_name": "research.completed_investigations",
+            "status": "completed",
+            "arguments": {
+              "subjects": [
+                "company:IOVA"
+              ]
+            },
+            "preview": "research summary with 0 rows; columns=n/a; sample=[]"
+          },
+          {
+            "tool_name": "research.live_event_evidence",
+            "status": "completed",
+            "arguments": {
+              "query": "Iovance Biotherapeutics IOVA stock surge October 2026 catalyst",
+              "focus_symbols": [
+                "IOVA"
+              ],
+              "max_results": 12,
+              "force_refresh": false
+            },
+            "preview": "research summary with 3 rows; columns=scope, symbol, headline, summary_text, source, published_at, url; sample=[{\"headline\": \"Iovance Biotherapeutics, Inc. (IOVA)\", \"published_at\": \"\", \"scope\": \"market_event\", \"source\": \"serper\", \"summary_text\": \"Iovance Biotherapeutics has been driven by strong Amtagvi demand, a raised 2026 revenue guide of $410 million to $420 million, and improving manufacturing ...\", \"symbol\": \"\", \"url\": \"https://finance.yahoo.com/quote/IOVA/\"}, {\"headline\": \"Iovance Biother"
+          }
+        ],
+        "evidence_pack_id": "aqlpack::172eb67844c99160ccf3a1d2",
+        "error": "",
+        "market_opportunity": {
+          "symbol": "IOVA",
+          "company_name": "Iovance Biotherapeutics, Inc. - Common Stock",
+          "opportunity": "Momentum rotation",
+          "direction": "Up / cooling",
+          "opportunity_score": 52.2,
+          "retrieval_method": "reciprocal_rank_fusion_v1",
+          "retrieval_signal_count": 4,
+          "horizon_retrieval_rank": 11.0,
+          "momentum_change_retrieval_rank": 135.0,
+          "daily_move_retrieval_rank": 682,
+          "trend_quality_retrieval_rank": 13.0,
+          "sparkline_3m": "[100.0, 101.69, 97.32, 93.15, 86.4, 122.74, 128.8, 138.73, 158.99, 164.75, 160.48, 162.07, 171.6, 172.99, 171.0, 186.3, 203.57, 202.18, 218.17, 293.74, 281.03, 264.75, 288.98, 285.6]",
+          "daily_change_pct": 1.2319605773,
+          "return_1m_pct": 43.6563436563,
+          "horizon_metric_available": true,
+          "selected_horizon_col": "return_1m_pct",
+          "selected_horizon_label": "1 Month",
+          "asof_time_utc": "2026-10-15T18:50:41.361672+00:00",
+          "run_id": "674be746-f139-451b-840c-148792d473b8",
+          "momentum_roc_score": -2.3863297737,
+          "trend_fit_gap": 0.0787865445,
+          "details": "1D +1.2% | 1 Month +43.7% | RoC -2.39 | trend gap 0.08"
+        },
+        "stock_summary": {},
+        "financials": {
+          "revenue": 99313000.0,
+          "revenue_yoy_pct": 65.6541900186816,
+          "operating_income": -51905000.0,
+          "net_income": -47315000.0,
+          "net_income_yoy_pct": -57.625069408372,
+          "operating_cash_flow": -60841000.0,
+          "free_cash_flow": -66282000.0,
+          "total_assets": 915531000.0,
+          "total_liabilities": 179486000.0,
+          "stockholders_equity": 736045000.0,
+          "fundamentals_report_date": "2026-06-30",
+          "fundamentals_period": "2026Q2",
+          "history": {
+            "revenue": [
+              {
+                "date": "2023-06-30",
+                "period": "2023Q2",
+                "value": 238000.0
+              },
+              {
+                "date": "2023-09-30",
+                "period": "2023Q3",
+                "value": 469000.0
+              },
+              {
+                "date": "2023-12-31",
+                "period": "2023Q4",
+                "value": 482000.0
+              },
+              {
+                "date": "2024-03-31",
+                "period": "2024Q1",
+                "value": 715000.0
+              },
+              {
+                "date": "2024-06-30",
+                "period": "2024Q2",
+                "value": 31106000.0
+              },
+              {
+                "date": "2024-09-30",
+                "period": "2024Q3",
+                "value": 58555000.0
+              },
+              {
+                "date": "2024-12-31",
+                "period": "2024Q4",
+                "value": 73694000.0
+              },
+              {
+                "date": "2025-03-31",
+                "period": "2025Q1",
+                "value": 49324000.0
+              },
+              {
+                "date": "2025-06-30",
+                "period": "2025Q2",
+                "value": 59952000.0
+              },
+              {
+                "date": "2025-09-30",
+                "period": "2025Q3",
+                "value": 67455000.0
+              },
+              {
+                "date": "2025-12-31",
+                "period": "2025Q4",
+                "value": 86771000.0
+              },
+              {
+                "date": "2026-03-31",
+                "period": "2026Q1",
+                "value": 71430000.0
+              },
+              {
+                "date": "2026-06-30",
+                "period": "2026Q2",
+                "value": 99313000.0
+              }
+            ],
+            "operating_income": [
+              {
+                "date": "2021-09-30",
+                "period": "2021Q3",
+                "value": -86242000.0
+              },
+              {
+                "date": "2021-12-31",
+                "period": "2021Q4",
+                "value": -99465000.0
+              },
+              {
+                "date": "2022-03-31",
+                "period": "2022Q1",
+                "value": -91713000.0
+              },
+              {
+                "date": "2022-06-30",
+                "period": "2022Q2",
+                "value": -99734000.0
+              },
+              {
+                "date": "2022-09-30",
+                "period": "2022Q3",
+                "value": -100395000.0
+              },
+              {
+                "date": "2022-12-31",
+                "period": "2022Q4",
+                "value": -107036000.0
+              },
+              {
+                "date": "2023-03-31",
+                "period": "2023Q1",
+                "value": -110856000.0
+              },
+              {
+                "date": "2023-06-30",
+                "period": "2023Q2",
+                "value": -110086000.0
+              },
+              {
+                "date": "2023-09-30",
+                "period": "2023Q3",
+                "value": -118361000.0
+              },
+              {
+                "date": "2023-12-31",
+                "period": "2023Q4",
+                "value": -121256000.0
+              },
+              {
+                "date": "2024-03-31",
+                "period": "2024Q1",
+                "value": -117722000.0
+              },
+              {
+                "date": "2024-06-30",
+                "period": "2024Q2",
+                "value": -101914000.0
+              },
+              {
+                "date": "2024-09-30",
+                "period": "2024Q3",
+                "value": -89066000.0
+              },
+              {
+                "date": "2024-12-31",
+                "period": "2024Q4",
+                "value": -86576000.0
+              },
+              {
+                "date": "2025-03-31",
+                "period": "2025Q1",
+                "value": -121221000.0
+              },
+              {
+                "date": "2025-06-30",
+                "period": "2025Q2",
+                "value": -113774000.0
+              },
+              {
+                "date": "2025-09-30",
+                "period": "2025Q3",
+                "value": -89758000.0
+              },
+              {
+                "date": "2025-12-31",
+                "period": "2025Q4",
+                "value": -73460000.0
+              },
+              {
+                "date": "2026-03-31",
+                "period": "2026Q1",
+                "value": -81043000.0
+              },
+              {
+                "date": "2026-06-30",
+                "period": "2026Q2",
+                "value": -51905000.0
+              }
+            ],
+            "net_income": [
+              {
+                "date": "2021-09-30",
+                "period": "2021Q3",
+                "value": -86122000.0
+              },
+              {
+                "date": "2021-12-31",
+                "period": "2021Q4",
+                "value": -99330000.0
+              },
+              {
+                "date": "2022-03-31",
+                "period": "2022Q1",
+                "value": -91607000.0
+              },
+              {
+                "date": "2022-06-30",
+                "period": "2022Q2",
+                "value": -99349000.0
+              },
+              {
+                "date": "2022-09-30",
+                "period": "2022Q3",
+                "value": -99618000.0
+              },
+              {
+                "date": "2022-12-31",
+                "period": "2022Q4",
+                "value": -105319000.0
+              },
+              {
+                "date": "2023-03-31",
+                "period": "2023Q1",
+                "value": -107370000.0
+              },
+              {
+                "date": "2023-06-30",
+                "period": "2023Q2",
+                "value": -106528000.0
+              },
+              {
+                "date": "2023-09-30",
+                "period": "2023Q3",
+                "value": -113760000.0
+              },
+              {
+                "date": "2023-12-31",
+                "period": "2023Q4",
+                "value": -116379000.0
+              },
+              {
+                "date": "2024-03-31",
+                "period": "2024Q1",
+                "value": -112976000.0
+              },
+              {
+                "date": "2024-06-30",
+                "period": "2024Q2",
+                "value": -97101000.0
+              },
+              {
+                "date": "2024-09-30",
+                "period": "2024Q3",
+                "value": -83541000.0
+              },
+              {
+                "date": "2024-12-31",
+                "period": "2024Q4",
+                "value": -78559000.0
+              },
+              {
+                "date": "2025-03-31",
+                "period": "2025Q1",
+                "value": -116163000.0
+              },
+              {
+                "date": "2025-06-30",
+                "period": "2025Q2",
+                "value": -111658000.0
+              },
+              {
+                "date": "2025-09-30",
+                "period": "2025Q3",
+                "value": -91253000.0
+              },
+              {
+                "date": "2025-12-31",
+                "period": "2025Q4",
+                "value": -71904000.0
+              },
+              {
+                "date": "2026-03-31",
+                "period": "2026Q1",
+                "value": -79045000.0
+              },
+              {
+                "date": "2026-06-30",
+                "period": "2026Q2",
+                "value": -47315000.0
+              }
+            ],
+            "operating_cash_flow": [
+              {
+                "date": "2021-09-30",
+                "period": "2021Q3",
+                "value": -57693000.0
+              },
+              {
+                "date": "2021-12-31",
+                "period": "2021Q4",
+                "value": -53849000.0
+              },
+              {
+                "date": "2022-03-31",
+                "period": "2022Q1",
+                "value": -73802000.0
+              },
+              {
+                "date": "2022-06-30",
+                "period": "2022Q2",
+                "value": -77635000.0
+              },
+              {
+                "date": "2022-09-30",
+                "period": "2022Q3",
+                "value": -63649000.0
+              },
+              {
+                "date": "2022-12-31",
+                "period": "2022Q4",
+                "value": -77671000.0
+              },
+              {
+                "date": "2023-03-31",
+                "period": "2023Q1",
+                "value": -99815000.0
+              },
+              {
+                "date": "2023-06-30",
+                "period": "2023Q2",
+                "value": -93952000.0
+              },
+              {
+                "date": "2023-09-30",
+                "period": "2023Q3",
+                "value": -84083000.0
+              },
+              {
+                "date": "2023-12-31",
+                "period": "2023Q4",
+                "value": -83970000.0
+              },
+              {
+                "date": "2024-03-31",
+                "period": "2024Q1",
+                "value": -122279000.0
+              },
+              {
+                "date": "2024-06-30",
+                "period": "2024Q2",
+                "value": -98429000.0
+              },
+              {
+                "date": "2024-09-30",
+                "period": "2024Q3",
+                "value": -58973000.0
+              },
+              {
+                "date": "2024-12-31",
+                "period": "2024Q4",
+                "value": -73296000.0
+              },
+              {
+                "date": "2025-03-31",
+                "period": "2025Q1",
+                "value": -103694000.0
+              },
+              {
+                "date": "2025-06-30",
+                "period": "2025Q2",
+                "value": -67447000.0
+              },
+              {
+                "date": "2025-09-30",
+                "period": "2025Q3",
+                "value": -78702000.0
+              },
+              {
+                "date": "2025-12-31",
+                "period": "2025Q4",
+                "value": -52565000.0
+              },
+              {
+                "date": "2026-03-31",
+                "period": "2026Q1",
+                "value": -72074000.0
+              },
+              {
+                "date": "2026-06-30",
+                "period": "2026Q2",
+                "value": -60841000.0
+              }
+            ],
+            "free_cash_flow": [
+              {
+                "date": "2021-09-30",
+                "period": "2021Q3",
+                "value": -67378000.0
+              },
+              {
+                "date": "2021-12-31",
+                "period": "2021Q4",
+                "value": -61417000.0
+              },
+              {
+                "date": "2022-03-31",
+                "period": "2022Q1",
+                "value": -85242000.0
+              },
+              {
+                "date": "2022-06-30",
+                "period": "2022Q2",
+                "value": -82211000.0
+              },
+              {
+                "date": "2022-09-30",
+                "period": "2022Q3",
+                "value": -65036000.0
+              },
+              {
+                "date": "2022-12-31",
+                "period": "2022Q4",
+                "value": -80693000.0
+              },
+              {
+                "date": "2023-03-31",
+                "period": "2023Q1",
+                "value": -105479000.0
+              },
+              {
+                "date": "2023-06-30",
+                "period": "2023Q2",
+                "value": -103472000.0
+              },
+              {
+                "date": "2023-09-30",
+                "period": "2023Q3",
+                "value": -87660000.0
+              },
+              {
+                "date": "2023-12-31",
+                "period": "2023Q4",
+                "value": -87499000.0
+              },
+              {
+                "date": "2024-03-31",
+                "period": "2024Q1",
+                "value": -126450000.0
+              },
+              {
+                "date": "2024-06-30",
+                "period": "2024Q2",
+                "value": -98871000.0
+              },
+              {
+                "date": "2024-09-30",
+                "period": "2024Q3",
+                "value": -61261000.0
+              },
+              {
+                "date": "2024-12-31",
+                "period": "2024Q4",
+                "value": -77464000.0
+              },
+              {
+                "date": "2025-03-31",
+                "period": "2025Q1",
+                "value": -109905000.0
+              },
+              {
+                "date": "2025-06-30",
+                "period": "2025Q2",
+                "value": -74908000.0
+              },
+              {
+                "date": "2025-09-30",
+                "period": "2025Q3",
+                "value": -89546000.0
+              },
+              {
+                "date": "2025-12-31",
+                "period": "2025Q4",
+                "value": -61885000.0
+              },
+              {
+                "date": "2026-03-31",
+                "period": "2026Q1",
+                "value": -78682000.0
+              },
+              {
+                "date": "2026-06-30",
+                "period": "2026Q2",
+                "value": -66282000.0
+              }
+            ],
+            "total_assets": [
+              {
+                "date": "2021-09-30",
+                "period": "2021Q3",
+                "value": 828825000.0
+              },
+              {
+                "date": "2021-12-31",
+                "period": "2021Q4",
+                "value": 777333000.0
+              },
+              {
+                "date": "2022-03-31",
+                "period": "2022Q1",
+                "value": 701251000.0
+              },
+              {
+                "date": "2022-06-30",
+                "period": "2022Q2",
+                "value": 610878000.0
+              },
+              {
+                "date": "2022-09-30",
+                "period": "2022Q3",
+                "value": 545924000.0
+              },
+              {
+                "date": "2022-12-31",
+                "period": "2022Q4",
+                "value": 663982000.0
+              },
+              {
+                "date": "2023-03-31",
+                "period": "2023Q1",
+                "value": 824767000.0
+              },
+              {
+                "date": "2023-06-30",
+                "period": "2023Q2",
+                "value": 757293000.0
+              },
+              {
+                "date": "2023-09-30",
+                "period": "2023Q3",
+                "value": 852315000.0
+              },
+              {
+                "date": "2023-12-31",
+                "period": "2023Q4",
+                "value": 780351000.0
+              },
+              {
+                "date": "2024-03-31",
+                "period": "2024Q1",
+                "value": 869830000.0
+              },
+              {
+                "date": "2024-06-30",
+                "period": "2024Q2",
+                "value": 964322000.0
+              },
+              {
+                "date": "2024-09-30",
+                "period": "2024Q3",
+                "value": 991115000.0
+              },
+              {
+                "date": "2024-12-31",
+                "period": "2024Q4",
+                "value": 910426000.0
+              },
+              {
+                "date": "2025-03-31",
+                "period": "2025Q1",
+                "value": 966740000.0
+              },
+              {
+                "date": "2025-06-30",
+                "period": "2025Q2",
+                "value": 907437000.0
+              },
+              {
+                "date": "2025-09-30",
+                "period": "2025Q3",
+                "value": 904948000.0
+              },
+              {
+                "date": "2025-12-31",
+                "period": "2025Q4",
+                "value": 913170000.0
+              },
+              {
+                "date": "2026-03-31",
+                "period": "2026Q1",
+                "value": 925665000.0
+              },
+              {
+                "date": "2026-06-30",
+                "period": "2026Q2",
+                "value": 915531000.0
+              }
+            ],
+            "total_liabilities": [
+              {
+                "date": "2021-09-30",
+                "period": "2021Q3",
+                "value": 130495000.0
+              },
+              {
+                "date": "2021-12-31",
+                "period": "2021Q4",
+                "value": 155674000.0
+              },
+              {
+                "date": "2022-03-31",
+                "period": "2022Q1",
+                "value": 149259000.0
+              },
+              {
+                "date": "2022-06-30",
+                "period": "2022Q2",
+                "value": 138188000.0
+              },
+              {
+                "date": "2022-09-30",
+                "period": "2022Q3",
+                "value": 152188000.0
+              },
+              {
+                "date": "2022-12-31",
+                "period": "2022Q4",
+                "value": 164344000.0
+              },
+              {
+                "date": "2023-03-31",
+                "period": "2023Q1",
+                "value": 157886000.0
+              },
+              {
+                "date": "2023-06-30",
+                "period": "2023Q2",
+                "value": 178724000.0
+              },
+              {
+                "date": "2023-09-30",
+                "period": "2023Q3",
+                "value": 178307000.0
+              },
+              {
+                "date": "2023-12-31",
+                "period": "2023Q4",
+                "value": 195738000.0
+              },
+              {
+                "date": "2024-03-31",
+                "period": "2024Q1",
+                "value": 189806000.0
+              },
+              {
+                "date": "2024-06-30",
+                "period": "2024Q2",
+                "value": 195782000.0
+              },
+              {
+                "date": "2024-09-30",
+                "period": "2024Q3",
+                "value": 217660000.0
+              },
+              {
+                "date": "2024-12-31",
+                "period": "2024Q4",
+                "value": 200021000.0
+              },
+              {
+                "date": "2025-03-31",
+                "period": "2025Q1",
+                "value": 198875000.0
+              },
+              {
+                "date": "2025-06-30",
+                "period": "2025Q2",
+                "value": 208949000.0
+              },
+              {
+                "date": "2025-09-30",
+                "period": "2025Q3",
+                "value": 202661000.0
+              },
+              {
+                "date": "2025-12-31",
+                "period": "2025Q4",
+                "value": 214587000.0
+              },
+              {
+                "date": "2026-03-31",
+                "period": "2026Q1",
+                "value": 203911000.0
+              },
+              {
+                "date": "2026-06-30",
+                "period": "2026Q2",
+                "value": 179486000.0
+              }
+            ],
+            "stockholders_equity": [
+              {
+                "date": "2021-09-30",
+                "period": "2021Q3",
+                "value": 698330000.0
+              },
+              {
+                "date": "2021-12-31",
+                "period": "2021Q4",
+                "value": 621659000.0
+              },
+              {
+                "date": "2022-03-31",
+                "period": "2022Q1",
+                "value": 551992000.0
+              },
+              {
+                "date": "2022-06-30",
+                "period": "2022Q2",
+                "value": 472690000.0
+              },
+              {
+                "date": "2022-09-30",
+                "period": "2022Q3",
+                "value": 393736000.0
+              },
+              {
+                "date": "2022-12-31",
+                "period": "2022Q4",
+                "value": 499638000.0
+              },
+              {
+                "date": "2023-03-31",
+                "period": "2023Q1",
+                "value": 666881000.0
+              },
+              {
+                "date": "2023-06-30",
+                "period": "2023Q2",
+                "value": 578569000.0
+              },
+              {
+                "date": "2023-09-30",
+                "period": "2023Q3",
+                "value": 674008000.0
+              },
+              {
+                "date": "2023-12-31",
+                "period": "2023Q4",
+                "value": 584613000.0
+              },
+              {
+                "date": "2024-03-31",
+                "period": "2024Q1",
+                "value": 680024000.0
+              },
+              {
+                "date": "2024-06-30",
+                "period": "2024Q2",
+                "value": 768540000.0
+              },
+              {
+                "date": "2024-09-30",
+                "period": "2024Q3",
+                "value": 773455000.0
+              },
+              {
+                "date": "2024-12-31",
+                "period": "2024Q4",
+                "value": 710405000.0
+              },
+              {
+                "date": "2025-03-31",
+                "period": "2025Q1",
+                "value": 767865000.0
+              },
+              {
+                "date": "2025-06-30",
+                "period": "2025Q2",
+                "value": 698488000.0
+              },
+              {
+                "date": "2025-09-30",
+                "period": "2025Q3",
+                "value": 702287000.0
+              },
+              {
+                "date": "2025-12-31",
+                "period": "2025Q4",
+                "value": 698583000.0
+              },
+              {
+                "date": "2026-03-31",
+                "period": "2026Q1",
+                "value": 721754000.0
+              },
+              {
+                "date": "2026-06-30",
+                "period": "2026Q2",
+                "value": 736045000.0
+              }
+            ]
+          },
+          "source": "quarterly_fundamentals"
+        },
+        "horizon_keys": [
+          "1m",
+          "3m",
+          "1y"
+        ],
+        "horizon_labels": [
+          "1 Month",
+          "3 Month",
+          "1 Year"
+        ],
+        "selection_trace": {
+          "method": "horizon_tier_rrf_v1",
+          "pool_rank": 1,
+          "rrf_score": 0.04891592,
+          "horizon_ranks": {
+            "1m": 2,
+            "3m": 1,
+            "1y": 1
+          }
+        },
+        "horizon_opportunities": [
+          {
+            "horizon_key": "1m",
+            "horizon_label": "1 Month",
+            "selected_horizon_col": "return_1m_pct",
+            "scout_rank": 2,
+            "market_opportunity": {
+              "symbol": "IOVA",
+              "company_name": "Iovance Biotherapeutics, Inc. - Common Stock",
+              "opportunity": "Momentum rotation",
+              "direction": "Up / cooling",
+              "opportunity_score": 52.2,
+              "retrieval_method": "reciprocal_rank_fusion_v1",
+              "retrieval_signal_count": 4,
+              "horizon_retrieval_rank": 11.0,
+              "momentum_change_retrieval_rank": 135.0,
+              "daily_move_retrieval_rank": 682,
+              "trend_quality_retrieval_rank": 13.0,
+              "sparkline_3m": "[100.0, 101.69, 97.32, 93.15, 86.4, 122.74, 128.8, 138.73, 158.99, 164.75, 160.48, 162.07, 171.6, 172.99, 171.0, 186.3, 203.57, 202.18, 218.17, 293.74, 281.03, 264.75, 288.98, 285.6]",
+              "daily_change_pct": 1.2319605773,
+              "return_1m_pct": 43.6563436563,
+              "horizon_metric_available": true,
+              "selected_horizon_col": "return_1m_pct",
+              "selected_horizon_label": "1 Month",
+              "asof_time_utc": "2026-10-15T18:50:41.361672+00:00",
+              "run_id": "674be746-f139-451b-840c-148792d473b8",
+              "momentum_roc_score": -2.3863297737,
+              "trend_fit_gap": 0.0787865445,
+              "details": "1D +1.2% | 1 Month +43.7% | RoC -2.39 | trend gap 0.08"
+            }
+          },
+          {
+            "horizon_key": "3m",
+            "horizon_label": "3 Month",
+            "selected_horizon_col": "return_3m_pct",
+            "scout_rank": 1,
+            "market_opportunity": {
+              "symbol": "IOVA",
+              "company_name": "Iovance Biotherapeutics, Inc. - Common Stock",
+              "opportunity": "Momentum rotation",
+              "direction": "Up / cooling",
+              "opportunity_score": 55.4,
+              "retrieval_method": "reciprocal_rank_fusion_v1",
+              "retrieval_signal_count": 4,
+              "horizon_retrieval_rank": 2.0,
+              "momentum_change_retrieval_rank": 135.0,
+              "daily_move_retrieval_rank": 682,
+              "trend_quality_retrieval_rank": 13.0,
+              "sparkline_3m": "[100.0, 101.69, 97.32, 93.15, 86.4, 122.74, 128.8, 138.73, 158.99, 164.75, 160.48, 162.07, 171.6, 172.99, 171.0, 186.3, 203.57, 202.18, 218.17, 293.74, 281.03, 264.75, 288.98, 285.6]",
+              "daily_change_pct": 1.2319605773,
+              "return_3m_pct": 185.6007944389,
+              "horizon_metric_available": true,
+              "selected_horizon_col": "return_3m_pct",
+              "selected_horizon_label": "3 Month",
+              "asof_time_utc": "2026-10-15T18:50:41.361672+00:00",
+              "run_id": "674be746-f139-451b-840c-148792d473b8",
+              "momentum_roc_score": -2.3863297737,
+              "trend_fit_gap": 0.0787865445,
+              "details": "1D +1.2% | 3 Month +185.6% | RoC -2.39 | trend gap 0.08"
+            }
+          },
+          {
+            "horizon_key": "1y",
+            "horizon_label": "1 Year",
+            "selected_horizon_col": "return_1y_pct",
+            "scout_rank": 1,
+            "market_opportunity": {
+              "symbol": "IOVA",
+              "company_name": "Iovance Biotherapeutics, Inc. - Common Stock",
+              "opportunity": "Momentum rotation",
+              "direction": "Up / cooling",
+              "opportunity_score": 54.6,
+              "retrieval_method": "reciprocal_rank_fusion_v1",
+              "retrieval_signal_count": 4,
+              "horizon_retrieval_rank": 4.0,
+              "momentum_change_retrieval_rank": 135.0,
+              "daily_move_retrieval_rank": 682,
+              "trend_quality_retrieval_rank": 13.0,
+              "sparkline_3m": "[100.0, 101.69, 97.32, 93.15, 86.4, 122.74, 128.8, 138.73, 158.99, 164.75, 160.48, 162.07, 171.6, 172.99, 171.0, 186.3, 203.57, 202.18, 218.17, 293.74, 281.03, 264.75, 288.98, 285.6]",
+              "daily_change_pct": 1.2319605773,
+              "return_1y_pct": 543.4004474273,
+              "horizon_metric_available": true,
+              "selected_horizon_col": "return_1y_pct",
+              "selected_horizon_label": "1 Year",
+              "asof_time_utc": "2026-10-15T18:50:41.361672+00:00",
+              "run_id": "674be746-f139-451b-840c-148792d473b8",
+              "momentum_roc_score": -2.3863297737,
+              "trend_fit_gap": 0.0787865445,
+              "details": "1D +1.2% | 1 Year +543.4% | RoC -2.39 | trend gap 0.08"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

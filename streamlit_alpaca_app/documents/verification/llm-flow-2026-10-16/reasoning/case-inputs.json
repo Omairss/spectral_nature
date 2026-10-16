@@ -1,0 +1,83 @@
+[
+  {
+    "id": "source",
+    "question": "A client receives HTTP 200 from a non-streaming DeepSeek request and continues receiving blank lines. Its own 75-second deadline then expires before a JSON answer arrives. Using the two acquired source pages, explain what these observations establish about the server, timeouts and possible failure cause. Outline an appropriate deadline and what telemetry would distinguish the remaining explanations. Keep it to three short paragraphs with useful source links.",
+    "originals_path": "/tmp/sn-reasoning-repair-20261016/cases.json",
+    "sources": [
+      {
+        "title": "Rate Limit & Isolation | DeepSeek API Docs",
+        "url": "https://api-docs.deepseek.com/quick_start/rate_limit/",
+        "source_id": "original-0",
+        "sha256": "0a939522d6a77c6892ab44a1cdd9954326d9f90fa2efee02bda6de2bdcbbc842"
+      },
+      {
+        "title": "Timeouts - HTTPX",
+        "url": "https://www.python-httpx.org/advanced/timeouts/",
+        "source_id": "original-1",
+        "sha256": "e54260ef681fbf2d974876bd8cade89c4567c761e9bc1718a7a0cad133b9681a"
+      }
+    ]
+  },
+  {
+    "id": "operations",
+    "question": "Use only the two supplied operating records. A logistics company's on-time deliveries improved from 88% to 94%, while its mix shifted from 70% standard / 30% express to 50% / 50%. A manager says a new routing model caused the improvement. The rollout note says routes scoring below 0.6 are always reviewed by a dispatcher, and the review log records only that a review occurred; it does not record which rule triggered it. One route was reviewed and its score is missing. Assume nobody manually requested that review. Explain what can be concluded about operating improvement, the routing model's effect and that route's score. The operations team must assign a driver within 90 seconds: recommend the decision deadline and the most useful missing comparison. Keep it to three short paragraphs.",
+    "originals_path": "/tmp/sn-reasoning-repair-20261016/cases.json",
+    "sources": [
+      {
+        "title": "Monthly operating record",
+        "url": null,
+        "source_id": "operations",
+        "sha256": "4242cb105aeab7a3e9bf6616791aa6979a0a4423569b1e5919d944cdfad8a205"
+      },
+      {
+        "title": "Routing and dispatcher review policy",
+        "url": null,
+        "source_id": "policy",
+        "sha256": "8b71996867730aa9dba41a6d0045c5710f0d1080271b7a90e28d89a0701340fe"
+      }
+    ]
+  },
+  {
+    "id": "retailer",
+    "question": "Assess this retailer using only the records. Assume audited figures and no acquisitions. Year A revenue 100, gross profit 30, operating expenses 18, operating cash flow 8, capex 4. Year B revenue 120, gross profit 32, operating expenses 24, operating cash flow 14, capex 6. A broker claims revenue growth improved profitability and rising cash proves better collections and sustainable earnings. There is no working-capital or collections breakdown. Give a concise explanation and one useful next investigation.",
+    "originals_path": "/tmp/sn-reasoning-repair-20261016/cases.json",
+    "sources": []
+  },
+  {
+    "id": "replacement",
+    "question": "Use only the policy and task assumptions. A vendor says a device can be replaced only if its serial number is registered. A serial number is registered; the replacement status is unavailable. Assume the customer owns the device and submitted the request correctly. Explain what registration establishes and what to ask next.",
+    "originals_path": "/tmp/sn-reasoning-repair-20261016/cases.json",
+    "sources": [
+      {
+        "title": "Replacement policy",
+        "url": null,
+        "source_id": "policy",
+        "sha256": "eadb4a312da74bc98150f0dd1d438ea06ca019e3532d51d5fa017f5ccff222b1"
+      }
+    ]
+  },
+  {
+    "id": "mix_feasible",
+    "question": "Use only these records. Hospital satisfaction rose from 90% to 94% while the mix changed from 80% outpatient and 20% inpatient to 40% outpatient and 60% inpatient. Class-specific satisfaction rates are unavailable. Assess whether the aggregate rise establishes improved care.",
+    "originals_path": "/tmp/sn-reasoning-repair-20261016/cases.json",
+    "sources": []
+  },
+  {
+    "id": "trial",
+    "question": "Interpret a randomized website trial. Each arm has 1000 visitors: 95 conversions in control, 106 in treatment. Randomization and measurement worked as stated. Explain what changed and whether this proves a durable benefit. Keep it brief.",
+    "originals_path": "/tmp/sn-reasoning-repair-20261016/cases.json",
+    "sources": []
+  },
+  {
+    "id": "business_hypothesis",
+    "question": "Write a brief company interpretation using only the records. A manufacturer reports a signed three-year supply agreement with an existing customer, starting January 2027. Value and volume are undisclosed. Management says existing capacity can serve it. Retained research already described the customer relationship but not this agreement. Explain the useful change without inventing a revenue forecast.",
+    "originals_path": "/tmp/sn-reasoning-repair-20261016/cases.json",
+    "sources": []
+  },
+  {
+    "id": "factory",
+    "question": "Use only these operating figures. A factory reports that overall yield rose from 86% to 95%. Its product mix changed from 80% legacy and 20% new designs to 40% legacy and 60% new designs. Yield by design is not reported. Management credits a process upgrade introduced during the interval. Assess what the figures establish about operating improvement, whether a mix change alone can explain the rise, and the process upgrade. Keep it brief.",
+    "originals_path": "/tmp/sn-reasoning-repair-20261016/cases.json",
+    "sources": []
+  }
+]

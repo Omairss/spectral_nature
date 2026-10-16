@@ -1,0 +1,42 @@
+[
+  [
+    10,
+    "research_update",
+    {
+      "finding": "",
+      "summary": "I am checking Apple's own rules for what a free Personal Team can do and what push notifications need.",
+      "next_step": "Find Apple documentation on supported capabilities and APNs entitlements."
+    },
+    "2026-10-16 04:26:01.081115+00:00"
+  ],
+  [
+    23,
+    "research_update",
+    {
+      "finding": "",
+      "summary": "Checking Apple documentation on whether a free Personal Team can enable push notifications.",
+      "next_step": "Find Apple's capability and entitlement documentation."
+    },
+    "2026-10-16 04:26:52.481896+00:00"
+  ],
+  [
+    38,
+    "research_update",
+    {
+      "finding": "",
+      "summary": "Checking Apple's documentation on which capabilities a free Personal Team can use.",
+      "next_step": "Confirm the Push Notifications entitlement needs a paid Apple Developer Program membership."
+    },
+    "2026-10-16 04:27:53.660207+00:00"
+  ],
+  [
+    54,
+    "research_update",
+    {
+      "finding": "",
+      "summary": "Checking Apple's supported-capabilities reference for what a free Personal Team can and cannot enable.",
+      "next_step": "Confirm from Apple's page whether Push Notifications needs a paid Developer Program membership."
+    },
+    "2026-10-16 04:28:56.958130+00:00"
+  ]
+]

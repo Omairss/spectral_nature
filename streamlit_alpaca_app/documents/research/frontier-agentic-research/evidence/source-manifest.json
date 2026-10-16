@@ -1,0 +1,284 @@
+{
+  "survey_date": "2026-10-16",
+  "paper_count": 26,
+  "papers": [
+    {
+      "arxiv_id": "2307.03172v3",
+      "title": "Lost in the Middle: How Language Models Use Long Contexts",
+      "abstract_url": "https://arxiv.org/abs/2307.03172v3",
+      "full_text_url": "https://arxiv.org/html/2307.03172v3",
+      "inspection": "abstract/scope screening only",
+      "abstract_text_sha256": "b3704615b8b64a3593c0901a968d8354b3cc4f78656a2f5474d31b6d786904b8",
+      "abstract_fetched_at_utc": "2026-10-16T18:42:17.752775+00:00",
+      "full_text_extraction_sha256": "a57ea527bb6f7b3b44dc20718a5702aeb9f9aacc28c91edd50ce166cf20e45ce"
+    },
+    {
+      "arxiv_id": "2409.19839v5",
+      "title": "ForecastBench: A Dynamic Benchmark of AI Forecasting Capabilities",
+      "abstract_url": "https://arxiv.org/abs/2409.19839v5",
+      "full_text_url": "https://arxiv.org/html/2409.19839v5",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "831da57ebfffa1b6be6d1266bc621789afd21f064f8074bc641ee1de65ade6e1",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.961008+00:00",
+      "full_text_extraction_sha256": "fbff91bba9131ed890823978b5eacee2552f1f2cd452cb125c3700429b565200"
+    },
+    {
+      "arxiv_id": "2411.06037v3",
+      "title": "Sufficient Context: A New Lens on Retrieval Augmented Generation Systems",
+      "abstract_url": "https://arxiv.org/abs/2411.06037v3",
+      "full_text_url": "https://arxiv.org/html/2411.06037v3",
+      "inspection": "abstract/scope screening only",
+      "abstract_text_sha256": "66f0ccd2d4dacbf4602d1251569a3edc7d1d7df85ed46debedb54c90d0c8007e",
+      "abstract_fetched_at_utc": "2026-10-16T18:42:58.566182+00:00",
+      "full_text_extraction_sha256": "d54f706e5932ecbd1be9bdb01a3401db1b7f373eedae5d4ae1dcc455816fb804"
+    },
+    {
+      "arxiv_id": "2507.19457v2",
+      "title": "GEPA: Reflective Prompt Evolution Can Outperform Reinforcement Learning",
+      "abstract_url": "https://arxiv.org/abs/2507.19457v2",
+      "full_text_url": "https://arxiv.org/html/2507.19457v2",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "adf4ffa0ea2c8cd0b2f56402479f6ccab35eceee687bc28a060792bd8e38fcf7",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.065535+00:00",
+      "full_text_extraction_sha256": "c279e7f81cb2c29bfa5fc21604208c972a7eb6fcabaa79be2bba95c19c4a7e0e"
+    },
+    {
+      "arxiv_id": "2509.13160v1",
+      "title": "FinSearchComp: Towards a Realistic, Expert-Level Evaluation of Financial Search and Reasoning",
+      "abstract_url": "https://arxiv.org/abs/2509.13160v1",
+      "full_text_url": "https://arxiv.org/html/2509.13160v1",
+      "inspection": "abstract/scope screening only",
+      "abstract_text_sha256": "b947c2cc0bee1e1d7d84eae3d2faad321f03bd8825dcd8024e5b36fd9df48dba",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.372013+00:00",
+      "full_text_extraction_sha256": "24ffbbbe46349fedc2e42f45fbe1900033aa4cf794cdf6b392a17be3678799fb"
+    },
+    {
+      "arxiv_id": "2510.04618v3",
+      "title": "Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models",
+      "abstract_url": "https://arxiv.org/abs/2510.04618v3",
+      "full_text_url": "https://arxiv.org/html/2510.04618v3",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "060b6c892f0b4631d46112c31c0a4295419d0ecb5e656ede01016384f50f211b",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:41.366351+00:00",
+      "full_text_extraction_sha256": "2e2ebd6e219ef2fdc3ff7110cb8722f11b1680b61b081c6798d9a2f8855f59aa"
+    },
+    {
+      "arxiv_id": "2510.10448v2",
+      "title": "RECON: Reasoning with Condensation for Efficient Retrieval-Augmented Generation",
+      "abstract_url": "https://arxiv.org/abs/2510.10448v2",
+      "full_text_url": "https://arxiv.org/html/2510.10448v2",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "40d9afc61163ed38760d72f07c6257fa896fd1ffaa7d1288d3118cec3eb135c5",
+      "abstract_fetched_at_utc": "2026-10-16T18:42:17.752773+00:00",
+      "full_text_extraction_sha256": "3ee30079e07088fa1bcbd4cd28ecdf02162f0ec1cd38e298531932c5bcc8a635"
+    },
+    {
+      "arxiv_id": "2512.24601v3",
+      "title": "Recursive Language Models",
+      "abstract_url": "https://arxiv.org/abs/2512.24601v3",
+      "full_text_url": "https://arxiv.org/html/2512.24601v3",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "c824869e5f8eab1c8a3da8af682f0280da2b409dfe7e9f45ed593ea089c7b1a0",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:41.375309+00:00",
+      "full_text_extraction_sha256": "da76a9fae8f45d6ee0b59480bddd5961bb0975e6d9db953843d6cfdc8c79dec3"
+    },
+    {
+      "arxiv_id": "2601.08536v3",
+      "title": "DeepResearch Bench II: Diagnosing Deep Research Agents via Rubrics from Expert Reports",
+      "abstract_url": "https://arxiv.org/abs/2601.08536v3",
+      "full_text_url": "https://arxiv.org/html/2601.08536v3",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "54aa2c11e16c555515e69679356c52e3ce39c6644297f4e6fb480f38da19f7b9",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.351006+00:00",
+      "full_text_extraction_sha256": "7eea10d1c8d655eb9f3a9b557c000c19c1d461dbdf900daef183fcf10e5b7d1b"
+    },
+    {
+      "arxiv_id": "2601.13770v1",
+      "title": "Look-Ahead-Bench: a Standardized Benchmark of Look-ahead Bias in Point-in-Time LLMs for Finance",
+      "abstract_url": "https://arxiv.org/abs/2601.13770v1",
+      "full_text_url": "https://arxiv.org/html/2601.13770v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "ac611ca709a1edf02170cc427ca51d138fac38e2d15f8b449f163e928784eac7",
+      "abstract_fetched_at_utc": "2026-10-16T18:42:17.752816+00:00",
+      "full_text_extraction_sha256": "8a3194c5bc0600fae31ba463fbb5748b9e4eaef7a54cb13d11322b78c38613f2"
+    },
+    {
+      "arxiv_id": "2602.16313v2",
+      "title": "MemoryArena: Benchmarking Agent Memory in Interdependent Multi-Session Agentic Tasks",
+      "abstract_url": "https://arxiv.org/abs/2602.16313v2",
+      "full_text_url": "https://arxiv.org/html/2602.16313v2",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "5cb96622894a936ee936cf87cc8b77618d2594047314378d7c5c121c6120b7a6",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.645770+00:00",
+      "full_text_extraction_sha256": "21a06c84d3bcc0b06a2b0a981afba9ea1e761ee3b060d43aedde94ea8ec7c321"
+    },
+    {
+      "arxiv_id": "2602.22769v4",
+      "title": "AMA-Bench: Evaluating Long-Horizon Memory for Agentic Applications",
+      "abstract_url": "https://arxiv.org/abs/2602.22769v4",
+      "full_text_url": "https://arxiv.org/html/2602.22769v4",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "74449ec4a94b5d47848ab463a6c3b0161b655c22570aad13078414454e78723f",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.755581+00:00",
+      "full_text_extraction_sha256": "3018b930210488a95e92cd4a98600605a0e02f3bdb4788741e4c176616f3d9d0"
+    },
+    {
+      "arxiv_id": "2603.02615v1",
+      "title": "Think, But Don't Overthink: Reproducing Recursive Language Models",
+      "abstract_url": "https://arxiv.org/abs/2603.02615v1",
+      "full_text_url": "https://arxiv.org/html/2603.02615v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "a3cdbb108761abda4ac4044a09baa036cb90be0705f127318c3badbd4e04695f",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:41.659272+00:00",
+      "full_text_extraction_sha256": "2338e495ee8e23a47f77c54731335bd70d3ad8e74308b13a9917396dc54ce77e"
+    },
+    {
+      "arxiv_id": "2604.05912v1",
+      "title": "FrontierFinance: A Long-Horizon Computer-Use Benchmark of Real-World Financial Tasks",
+      "abstract_url": "https://arxiv.org/abs/2604.05912v1",
+      "full_text_url": "https://arxiv.org/html/2604.05912v1",
+      "inspection": "abstract/scope screening only",
+      "abstract_text_sha256": "a86fd4a3ebdba96d79e743afc59a93c55a51b3768119b9b488f9285ca4616486",
+      "abstract_fetched_at_utc": "2026-10-16T18:32:24.801808+00:00",
+      "full_text_extraction_sha256": "1a3e4096fdcd6cb927c5a368472c229ed76aaeb508110e3ceddc8805943fcb0a"
+    },
+    {
+      "arxiv_id": "2605.04018v1",
+      "title": "Rethinking Reasoning-Intensive Retrieval: Evaluating and Advancing Retrievers in Agentic Search Systems",
+      "abstract_url": "https://arxiv.org/abs/2605.04018v1",
+      "full_text_url": "https://arxiv.org/html/2605.04018v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "23e442f5626dd6fc242af22bdce67ba0bc4711314a8ce9617c15d6cf2727cb9f",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.645742+00:00",
+      "full_text_extraction_sha256": "3036d9efaec9d826441cad0364a7782b06b3296768a6ce9bd13753232e9852b8"
+    },
+    {
+      "arxiv_id": "2605.16358v2",
+      "title": "LEAF: A Living Benchmark for Event-Augmented Forecasting",
+      "abstract_url": "https://arxiv.org/abs/2605.16358v2",
+      "full_text_url": "https://arxiv.org/html/2605.16358v2",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "ac716b9c3fd78f4933bbd62ba93af4d75ba6bd299802bfcc13129ac573c1e894",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.966324+00:00",
+      "full_text_extraction_sha256": "dbca8aa27049743181da94bfb714c30c7ee499c3a013c8c0baf31cadf40e0972"
+    },
+    {
+      "arxiv_id": "2606.03829v1",
+      "title": "BigFinanceBench: A Workflow-Grounded Benchmark for Financial-Research Agents",
+      "abstract_url": "https://arxiv.org/abs/2606.03829v1",
+      "full_text_url": "https://arxiv.org/html/2606.03829v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "273bca029a789a1520702fcacf3650a5da5b079b10a1314fe6ee98a7c17e4720",
+      "abstract_fetched_at_utc": "2026-10-16T18:32:24.793566+00:00",
+      "full_text_extraction_sha256": "65997f28c54c185d9dc9590379554ef8d9e084982e372066788f2cc62f96000f"
+    },
+    {
+      "arxiv_id": "2606.09863v1",
+      "title": "From Confident Closing to Silent Failure: Characterizing False Success in LLM Agents",
+      "abstract_url": "https://arxiv.org/abs/2606.09863v1",
+      "full_text_url": "https://arxiv.org/html/2606.09863v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "115ea86de4f4a7bd5479739dd9003e9ace27ba7e71ee319e4bdb3abc3f2dc47c",
+      "abstract_fetched_at_utc": "2026-10-16T18:35:00.609689+00:00",
+      "full_text_extraction_sha256": "74cda8a47707993052ca51d0ec0d2e7f1659dc39b929661d95bfeb956e90146a"
+    },
+    {
+      "arxiv_id": "2606.18686v1",
+      "title": "ForecastBench-Sim: A Simulated-World Forecasting Benchmark",
+      "abstract_url": "https://arxiv.org/abs/2606.18686v1",
+      "full_text_url": "https://arxiv.org/html/2606.18686v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "98d546a522db673d829995e296139613b75786e407c4295542d64b17f6a3d19a",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.987514+00:00",
+      "full_text_extraction_sha256": "1e1113558a52e22a907f3585a475e264d577f9859fb4797f8c7053910af9e7b2"
+    },
+    {
+      "arxiv_id": "2606.28361v1",
+      "title": "ConCise: Training-Free Conclusion-Chain State Compression for Cost-Efficient Multi-Step RAG Services",
+      "abstract_url": "https://arxiv.org/abs/2606.28361v1",
+      "full_text_url": "https://arxiv.org/html/2606.28361v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "e39a1d09a27d19254a832f71d820e73cf463945aa87a9174b1199e09893526e8",
+      "abstract_fetched_at_utc": "2026-10-16T18:42:17.752804+00:00",
+      "full_text_extraction_sha256": "3009527d7150329d840a6901c984814f5bc95d3822439248fe455ada91cd18dc"
+    },
+    {
+      "arxiv_id": "2607.12252v2",
+      "title": "FinResearchBench II: A Deep Research Benchmark with Consensus-Derived Gold Rubrics for Distinguishing Financial Report Quality",
+      "abstract_url": "https://arxiv.org/abs/2607.12252v2",
+      "full_text_url": "https://arxiv.org/html/2607.12252v2",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "d7bbf8c4c0aab066b8715b6416e3e3340e63fcfeb2a2e7a5cbd9c9f085ba6095",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.439013+00:00",
+      "full_text_extraction_sha256": "318c5c9d4ace500a22344c92bdc200ee028376c76fcd1bb09d204017718338bc"
+    },
+    {
+      "arxiv_id": "2608.11683v1",
+      "title": "FrontierFinance: A Challenging Benchmark for Measuring Frontier Intelligence of Finance Agents",
+      "abstract_url": "https://arxiv.org/abs/2608.11683v1",
+      "full_text_url": "https://arxiv.org/html/2608.11683v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "91f9fd29a05ed9e23226c56ef1214b9aff9a06063d7bfec10811e8d80f47343f",
+      "abstract_fetched_at_utc": "2026-10-16T18:32:24.796620+00:00",
+      "full_text_extraction_sha256": "42f1b5ce4afe4f05ba1435531c73ea5c62f5231d16cd8ae9882aa837f8ed8724"
+    },
+    {
+      "arxiv_id": "2609.05736v2",
+      "title": "Beyond Prompts: Measuring and Optimizing LLM Tool-Agent Harnesses",
+      "abstract_url": "https://arxiv.org/abs/2609.05736v2",
+      "full_text_url": "https://arxiv.org/html/2609.05736v2",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "8c847d72c55aaeabd0ae63534f8303d3d66ba690eb24e297b3545f707df3e3d4",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.134390+00:00",
+      "full_text_extraction_sha256": "2eb505daa9edc602c1565be48745b059aed7cf19ec2564a329b22fd6ff197c53"
+    },
+    {
+      "arxiv_id": "2609.34712v1",
+      "title": "RSI-Router: Evolving Subtask-Level LLM Routing and Skills for Cost-Efficient Agents",
+      "abstract_url": "https://arxiv.org/abs/2609.34712v1",
+      "full_text_url": "https://arxiv.org/html/2609.34712v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "5d7b50799d89c269ab143ec5eec1dc32c9f6f32ad3e15cf77db2abec54e1019d",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.134321+00:00",
+      "full_text_extraction_sha256": "c737e5af5e662bd88405bfa7cedeedbd3719b2550959131f6552ee690592cd22"
+    },
+    {
+      "arxiv_id": "2609.38762v1",
+      "title": "Adaptive-GEPA: Make Your Harness Fit Heterogeneous Requests",
+      "abstract_url": "https://arxiv.org/abs/2609.38762v1",
+      "full_text_url": "https://arxiv.org/html/2609.38762v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "3c8adc274a9713ae780d8b74db851cbdcdd91bd873cb637424ac6f4cde090993",
+      "abstract_fetched_at_utc": "2026-10-16T18:27:40.137656+00:00",
+      "full_text_extraction_sha256": "2e582f229320ed3358dfe9f50d838c22f84fcbe53a6783d61a55a5fd022b5399"
+    },
+    {
+      "arxiv_id": "2610.13000v1",
+      "title": "Hindsight Structured Advice Distillation: Steering Executor Agents with Advisors Trained on Their Failures and Task Characteristics",
+      "abstract_url": "https://arxiv.org/abs/2610.13000v1",
+      "full_text_url": "https://arxiv.org/html/2610.13000v1",
+      "inspection": "targeted full-text sections; see survey for claims and limits",
+      "abstract_text_sha256": "6ce312756451678d6dce4ea58274410fc3f70c72fafec0b0bb8f954882415ed3",
+      "abstract_fetched_at_utc": "2026-10-16T18:32:24.799070+00:00",
+      "full_text_extraction_sha256": "c6ba2672187479c0db3428e24f2021b30413611baf0389abb199fb14ebe4bd1c"
+    }
+  ],
+  "leaderboard_snapshot": {
+    "space": "muset-ai/DeepResearch-Bench-Leaderboard",
+    "revision": "1cf1c508a0d3788c3fca324984304166738295f9",
+    "csv_url": "https://huggingface.co/spaces/muset-ai/DeepResearch-Bench-Leaderboard/resolve/1cf1c508a0d3788c3fca324984304166738295f9/data_drb2/leaderboard.csv",
+    "protocol_source_url": "https://huggingface.co/spaces/muset-ai/DeepResearch-Bench-Leaderboard/blob/1cf1c508a0d3788c3fca324984304166738295f9/tabs/leaderboard_tab_drb2.py",
+    "csv_sha256": "754b6715ce25c47e6fddc72000fb3b257516ccd2a57581ba2cf4a763c53d2b77",
+    "captured_at_utc": "2026-10-16T18:35:00.891371+00:00"
+  },
+  "other_official_sources": [
+    "https://samaya.ai/benchmarks/frontier-finance",
+    "https://bigfinancebench.com/",
+    "https://forecastbench.org/leaderboards/",
+    "https://forecastbench.org/docs/",
+    "https://github.com/imlrz/DeepResearch-Bench-II",
+    "https://research.google/pubs/sufficient-context-a-new-lens-on-retrieval-augmented-generation-systems-2/",
+    "https://aclanthology.org/2024.tacl-1.9/"
+  ],
+  "scope": "Read-only literature survey. No independent reproduction, new LLM evaluation, backtest, implementation or deployment. Extracted paper text remains a temporary reading cache and is not redistributed here."
+}

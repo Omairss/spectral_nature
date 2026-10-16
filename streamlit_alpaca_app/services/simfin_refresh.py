@@ -6,7 +6,7 @@ from typing import Any
 
 import pandas as pd
 
-from compute.fundamentals import load_quarterly_fundamentals
+from compute.fundamentals import STATEMENT_FAMILIES, _load_statement, _statement_path, load_quarterly_fundamentals
 from .secrets import get_secret_value_from_vault, resolve_secret_value
 
 
@@ -99,14 +99,23 @@ def refresh_simfin_quarterly_cache(
     sf.set_data_dir(target_dir)
 
     # These calls refresh the local CSV cache in SimFin's expected on-disk format.
-    sf.load_income(variant="quarterly", market="us", refresh_days=max(int(refresh_days), 0))
-    sf.load_balance(variant="quarterly", market="us", refresh_days=max(int(refresh_days), 0))
-    sf.load_cashflow(variant="quarterly", market="us", refresh_days=max(int(refresh_days), 0))
+    datasets = []
+    for family in STATEMENT_FAMILIES:
+        for statement in ("income", "balance", "cashflow"):
+            name = f"{statement}_{family}" if family else statement
+            getattr(sf, f"load_{name}")(
+                variant="quarterly", market="us", refresh_days=max(int(refresh_days), 0)
+            )
+            datasets.append(name)
+    # A refreshed CSV must replace the previously cached in-process statement.
+    _statement_path.cache_clear()
+    _load_statement.cache_clear()
 
     return {
         "provider": "simfin",
         "data_dir": target_dir,
         "refresh_days": max(int(refresh_days), 0),
+        "statement_datasets": datasets,
     }
 
 

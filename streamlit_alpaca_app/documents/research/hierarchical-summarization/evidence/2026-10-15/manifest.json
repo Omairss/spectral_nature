@@ -1,0 +1,30 @@
+{
+  "captured_for_research_index": "2026-10-16",
+  "engine_source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+  "original_archive": "tmp/hierarchy-experiments-20261015/",
+  "final_answer_count": 38,
+  "source_count": 9,
+  "summary_count": 11,
+  "files": {
+    "accounting.json": {
+      "sha256": "c56ba125b09b65c8c23635950cdb3fd7a1bcfdba027c130eaee984127fc36ead",
+      "bytes": 39847
+    },
+    "answers.json": {
+      "sha256": "a2757fc10efc3b693fda11ce103f241889c3d57e7d2334b4d0d3d89e44ceed17",
+      "bytes": 169731
+    },
+    "experiment-harness.py": {
+      "sha256": "0faa5bd9f4ff7f0f2482d9a7292b74a7e23a3f429a575612a7cd9e9476d12a9d",
+      "bytes": 12445
+    },
+    "inputs.json": {
+      "sha256": "b1572bb5775faf4e0d04e0e4e09fb67d5b08ecda5dc6dd1c5af7e1802fbf5a95",
+      "bytes": 242411
+    },
+    "source-manifest.json": {
+      "sha256": "00dd8b083207a8ceac91d18e4bc9db1136f733fd855ca4b92b3668292ef2967e",
+      "bytes": 16450
+    }
+  }
+}

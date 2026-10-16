@@ -3,6 +3,8 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 import os
+import json
+from typing import Any
 import re
 
 import pandas as pd
@@ -32,6 +34,7 @@ STATEMENT_FILES = {
     "balance": "us-balance-quarterly.csv",
     "cashflow": "us-cashflow-quarterly.csv",
 }
+STATEMENT_FAMILIES = ("", "banks", "insurance")
 
 
 def _normalized(value: str) -> str:
@@ -81,8 +84,8 @@ def _candidate_data_dirs(data_dir: str | None = None) -> list[Path]:
 
 
 @lru_cache(maxsize=None)
-def _statement_path(statement: str, data_dir: str = "") -> Path:
-    filename = STATEMENT_FILES[statement]
+def _statement_path(statement: str, data_dir: str = "", family: str = "") -> Path:
+    filename = STATEMENT_FILES[statement] if not family else f"us-{statement}-{family}-quarterly.csv"
     for root in _candidate_data_dirs(data_dir or None):
         path = root / filename
         if path.exists():
@@ -93,7 +96,18 @@ def _statement_path(statement: str, data_dir: str = "") -> Path:
 
 @lru_cache(maxsize=None)
 def _load_statement(statement: str, data_dir: str = "") -> pd.DataFrame:
-    return pd.read_csv(_statement_path(statement, data_dir), sep=";", low_memory=False)
+    frames = []
+    for family in STATEMENT_FAMILIES:
+        try:
+            path = _statement_path(statement, data_dir, family)
+        except FileNotFoundError:
+            if not family:
+                raise
+            continue
+        frame = pd.read_csv(path, sep=";", low_memory=False)
+        frame["statement_family"] = family or "general"
+        frames.append(frame)
+    return pd.concat(frames, ignore_index=True, sort=False)
 
 
 def _resolve_column(columns: list[str], candidates: list[str]) -> str | None:
@@ -136,6 +150,7 @@ def _build_metric_frame(rows: pd.DataFrame, ticker: str, statement: str, metric_
             "value": pd.to_numeric(values, errors="coerce"),
             "ticker": ticker.upper(),
             "statement": statement,
+            "statement_family": rows.get("statement_family", "general"),
         }
     )
     return frame.dropna(subset=["report_date", "value"])
@@ -312,3 +327,102 @@ __all__ = [
     "share_count_asof",
     "share_counts_asof",
 ]
+
+
+def _quarterly_yoy_pct(rows: pd.DataFrame) -> float | None:
+    if rows.empty:
+        return None
+    ordered = rows.dropna(subset=["report_date", "value"]).sort_values("report_date")
+    if len(ordered) < 2:
+        return None
+    latest = ordered.iloc[-1]
+    previous = pd.DataFrame()
+    period = (str(latest.get("year_quarter") or "").strip() if pd.notna(latest.get("year_quarter")) else "")
+    if len(period) >= 6 and period[:4].isdigit() and period[-2:-1].upper() == "Q" and period[-1:].isdigit():
+        prior_period = f"{int(period[:4]) - 1}Q{period[-1]}"
+        previous = ordered[ordered["year_quarter"].astype(str).str.upper() == prior_period]
+    if previous.empty:
+        latest_date = pd.Timestamp(latest["report_date"])
+        candidates = ordered[
+            (ordered["report_date"] >= latest_date - pd.Timedelta(days=460))
+            & (ordered["report_date"] <= latest_date - pd.Timedelta(days=270))
+        ]
+        previous = candidates.tail(1)
+    if previous.empty:
+        return None
+    current_value = float(latest["value"])
+    prior_value = float(previous.iloc[-1]["value"])
+    if prior_value == 0:
+        return None
+    return float((current_value / prior_value - 1.0) * 100.0)
+
+
+def fundamental_snapshots_by_symbol(
+    fundamentals_frame: pd.DataFrame | None,
+    symbols: list[str],
+    *,
+    asof_time_utc: object | None,
+) -> dict[str, dict[str, Any]]:
+    """Dated latest financial values and retained fiscal histories shared by product and research."""
+    normalized = [symbol for symbol in dict.fromkeys(str(item or "").upper().strip() for item in symbols) if symbol]
+    empty = {symbol: {} for symbol in normalized}
+    required = {"ticker", "metric", "report_date", "value"}
+    if not isinstance(fundamentals_frame, pd.DataFrame) or fundamentals_frame.empty or not required.issubset(fundamentals_frame.columns):
+        return empty
+
+    frame = fundamentals_frame.copy()
+    frame["ticker"] = frame["ticker"].astype(str).str.upper().str.strip()
+    frame = frame[frame["ticker"].isin(normalized)].copy()
+    if frame.empty:
+        return empty
+    frame["report_date"] = pd.to_datetime(frame["report_date"], errors="coerce")
+    frame["value"] = pd.to_numeric(frame["value"], errors="coerce")
+    frame = frame.dropna(subset=["report_date", "value"])
+    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
+    if pd.notna(asof_ts):
+        frame = frame[frame["report_date"] <= asof_ts.tz_localize(None)]
+
+    metric_fields = {
+        "Total Revenue": "revenue",
+        "Operating Income": "operating_income",
+        "Net Income": "net_income",
+        "Operating Cash Flow": "operating_cash_flow",
+        "Free Cash Flow": "free_cash_flow",
+        "Total Assets": "total_assets",
+        "Total Liabilities": "total_liabilities",
+        "Stockholders Equity": "stockholders_equity",
+    }
+    frame = frame[frame["metric"].astype(str).isin(metric_fields)].copy()
+    out: dict[str, dict[str, Any]] = {symbol: {} for symbol in normalized}
+    for symbol, symbol_rows in frame.groupby("ticker", sort=False):
+        snapshot: dict[str, Any] = {}
+        trends: dict[str, list[dict[str, Any]]] = {}
+        latest_dates: list[pd.Timestamp] = []
+        latest_period = ""
+        for metric_name, field_name in metric_fields.items():
+            rows = symbol_rows[symbol_rows["metric"].astype(str) == metric_name].sort_values("report_date")
+            if rows.empty:
+                continue
+            rows = rows.drop_duplicates(subset=["report_date"], keep="last")
+            trends[field_name] = [
+                {
+                    "date": pd.Timestamp(point["report_date"]).date().isoformat(),
+                    "period": (str(point.get("year_quarter") or "").strip() if pd.notna(point.get("year_quarter")) else ""),
+                    "value": float(point["value"]),
+                }
+                for point in rows.tail(20).to_dict("records")
+            ]
+            latest = rows.iloc[-1]
+            snapshot[field_name] = float(latest["value"])
+            latest_dates.append(pd.Timestamp(latest["report_date"]))
+            period = (str(latest.get("year_quarter") or "").strip() if pd.notna(latest.get("year_quarter")) else "")
+            if period:
+                latest_period = period
+            if metric_name in {"Total Revenue", "Net Income"}:
+                snapshot[f"{field_name}_yoy_pct"] = _quarterly_yoy_pct(rows)
+        if latest_dates:
+            snapshot["fundamentals_report_date"] = max(latest_dates).date().isoformat()
+        snapshot["fundamentals_period"] = latest_period
+        snapshot["financial_trends_json"] = json.dumps(trends, ensure_ascii=False)
+        out[str(symbol)] = snapshot
+    return out

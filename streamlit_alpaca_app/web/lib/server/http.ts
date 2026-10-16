@@ -21,3 +21,7 @@ export async function forwardJson(response: Response, fallback: string) {
 export function validRunId(value: string) {
   return /^agrun_[a-zA-Z0-9_-]{8,64}$/.test(value);
 }
+
+export function validUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}

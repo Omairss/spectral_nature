@@ -6,6 +6,7 @@ Boundary rule: AQL may call SAA through `services.saa`, market data through publ
 
 ## Docs
 
+- [Research index](../../research/README.md): open context/reasoning questions, indexed failure cases and complete retained experiments
 - `AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md`: north-star AQL plus SAA architecture
 - `AQL_EVIDENCE_INDEX_2026-04-14.md`: deterministic evidence indexing and search contract
 - `KG_AQL_INTEGRATION_2026-04-25.md`: plan for using the persistent knowledge graph as AQL graph memory, search context, and hypothesis source

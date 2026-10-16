@@ -30,7 +30,7 @@ class _FakeBlobClient:
     def __init__(self, payload: bytes) -> None:
         self._payload = payload
 
-    def download_blob(self) -> _FakeDownload:
+    def download_blob(self, **kwargs) -> _FakeDownload:
         return _FakeDownload(self._payload)
 
 

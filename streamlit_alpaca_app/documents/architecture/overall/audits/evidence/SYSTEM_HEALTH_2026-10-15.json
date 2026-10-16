@@ -1,0 +1,512 @@
+{
+  "date_pacific": "2026-10-15",
+  "captured_at_utc": "2026-10-16T02:53:57.107954+00:00",
+  "verdict": "available_with_degraded_research",
+  "scope": "preceding 24 hours; platform execution lists have retention limits",
+  "public_home": {
+    "production": {
+      "status": "available",
+      "as_of": "2026-10-15T20:50:31.789319+00:00",
+      "run_id": "2bb1d253-16bd-49b3-bacc-cbb2f00fe1ca",
+      "story_groups": 8,
+      "daily_datapoints": 0
+    },
+    "development": {
+      "status": "available",
+      "as_of": "2026-10-14T05:55:36.031874+00:00",
+      "run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+      "story_groups": 8,
+      "daily_datapoints": 5
+    }
+  },
+  "materialized_outputs": [
+    {
+      "name": "attention_home_1d",
+      "rows": 1,
+      "manifest_asof": "2026-10-15T20:50:31.789319+00:00",
+      "manifest_version": "attention_home_1d__20261015T205031Z__2bb1d253",
+      "db_version": "attention_home_1d__20261015T185041Z__674be746"
+    },
+    {
+      "name": "attention_research_health",
+      "rows": 1,
+      "manifest_asof": "2026-10-15T20:50:31.789319+00:00",
+      "manifest_version": "attention_research_health__20261015T205031Z__2bb1d253",
+      "db_version": "attention_research_health__20261015T185041Z__674be746",
+      "status_counts": {
+        "degraded": 1
+      },
+      "details": [
+        {
+          "run_id": "2bb1d253-16bd-49b3-bacc-cbb2f00fe1ca",
+          "asof_time_utc": "2026-10-15 20:50:31.789319+00:00",
+          "status": "degraded",
+          "summary": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
+          "stage_statuses": {
+            "source_events": "completed",
+            "ticker_enrichment": "completed",
+            "ticker_answer_review": "partial",
+            "market_summary": "completed",
+            "group_synthesis": "consolidated_in_public_editor",
+            "public_editor": "completed",
+            "public_answer_review": "completed",
+            "market_inputs": "ok"
+          },
+          "failed_tickers": [],
+          "errors": []
+        }
+      ]
+    },
+    {
+      "name": "market_opportunity_feed",
+      "rows": 11694,
+      "manifest_asof": "2026-10-15T20:50:31.789319+00:00",
+      "manifest_version": "market_opportunity_feed__20261015T205031Z__2bb1d253",
+      "db_version": "market_opportunity_feed__20261015T185041Z__674be746"
+    },
+    {
+      "name": "page_agentic_summaries",
+      "rows": 5,
+      "manifest_asof": "2026-10-15T20:50:31.789319+00:00",
+      "manifest_version": "page_agentic_summaries__20261015T205031Z__2bb1d253",
+      "db_version": "page_agentic_summaries__20261015T185041Z__674be746",
+      "status_counts": {
+        "ok": 5
+      },
+      "details": [
+        {
+          "status": "ok",
+          "run_id": "2bb1d253-16bd-49b3-bacc-cbb2f00fe1ca"
+        },
+        {
+          "status": "ok",
+          "run_id": "2bb1d253-16bd-49b3-bacc-cbb2f00fe1ca"
+        },
+        {
+          "status": "ok",
+          "run_id": "2bb1d253-16bd-49b3-bacc-cbb2f00fe1ca"
+        },
+        {
+          "status": "ok",
+          "run_id": "2bb1d253-16bd-49b3-bacc-cbb2f00fe1ca"
+        },
+        {
+          "status": "ok",
+          "run_id": "2bb1d253-16bd-49b3-bacc-cbb2f00fe1ca"
+        }
+      ]
+    },
+    {
+      "name": "trading_agent_candidates",
+      "rows": 16,
+      "manifest_asof": "2026-10-15T20:35:33.829433+00:00",
+      "manifest_version": "trading_agent_candidates__20261015T203533Z__742e5755",
+      "db_version": "trading_agent_candidates__20261015T203533Z__742e5755"
+    },
+    {
+      "name": "trading_agent_runs",
+      "rows": 5,
+      "manifest_asof": "2026-10-15T20:35:33.829433+00:00",
+      "manifest_version": "trading_agent_runs__20261015T203533Z__742e5755",
+      "db_version": "trading_agent_runs__20261015T203533Z__742e5755",
+      "status_counts": {
+        "ok": 4,
+        "error": 1
+      },
+      "details": [
+        {
+          "horizon_key": "1w",
+          "status": "ok",
+          "error": "",
+          "candidate_count": 4,
+          "run_id": "742e5755-ee34-4160-a81f-98f4db1dbf41"
+        },
+        {
+          "horizon_key": "1m",
+          "status": "ok",
+          "error": "",
+          "candidate_count": 4,
+          "run_id": "742e5755-ee34-4160-a81f-98f4db1dbf41"
+        },
+        {
+          "horizon_key": "3m",
+          "status": "error",
+          "error": "RuntimeError: LLMDeadlineExceeded: LLM request deadline expired.",
+          "candidate_count": 0,
+          "run_id": "742e5755-ee34-4160-a81f-98f4db1dbf41"
+        },
+        {
+          "horizon_key": "1y",
+          "status": "ok",
+          "error": "",
+          "candidate_count": 4,
+          "run_id": "742e5755-ee34-4160-a81f-98f4db1dbf41"
+        },
+        {
+          "horizon_key": "5y",
+          "status": "ok",
+          "error": "",
+          "candidate_count": 4,
+          "run_id": "742e5755-ee34-4160-a81f-98f4db1dbf41"
+        }
+      ]
+    },
+    {
+      "name": "zopedia_news_business_resolutions",
+      "rows": 12,
+      "manifest_asof": "2026-10-15T20:05:30.499537+00:00",
+      "manifest_version": "zopedia_news_business_resolutions__20261015T200530Z__e3c173e8",
+      "db_version": "zopedia_news_business_resolutions__20261015T200530Z__e3c173e8",
+      "status_counts": {
+        "resolved": 10,
+        "cold_start_prepared": 2
+      }
+    }
+  ],
+  "failed_platform_executions": {
+    "evidence-index-dev": [
+      {
+        "execution": "evidence-index-dev-29868315",
+        "status": "Failed",
+        "startTime": "2026-10-15T21:15:00+00:00",
+        "endTime": null
+      },
+      {
+        "execution": "evidence-index-dev-29868280",
+        "status": "Failed",
+        "startTime": "2026-10-15T20:40:00+00:00",
+        "endTime": null
+      }
+    ],
+    "news-ingest-and-features": [
+      {
+        "execution": "news-ingest-and-features-29868125",
+        "status": "Failed",
+        "startTime": "2026-10-15T18:05:00+00:00",
+        "endTime": null
+      }
+    ],
+    "system-health": [
+      {
+        "execution": "system-health-29868315",
+        "status": "Failed",
+        "startTime": "2026-10-15T21:15:00+00:00",
+        "endTime": null
+      }
+    ],
+    "trading-agent-build": [
+      {
+        "execution": "trading-agent-build-29868155",
+        "status": "Failed",
+        "startTime": "2026-10-15T18:35:00+00:00",
+        "endTime": null
+      },
+      {
+        "execution": "trading-agent-build-29867915",
+        "status": "Failed",
+        "startTime": "2026-10-15T14:35:00+00:00",
+        "endTime": null
+      }
+    ]
+  },
+  "database_capacity": [
+    {
+      "name": "idle_in_transaction_session_timeout",
+      "setting": "0"
+    },
+    {
+      "name": "max_connections",
+      "setting": "50"
+    },
+    {
+      "name": "shared_buffers",
+      "setting": "32768"
+    },
+    {
+      "name": "superuser_reserved_connections",
+      "setting": "10"
+    }
+  ],
+  "metrics": {
+    "sn-pg-03130136": {
+      "cpu_percent": {
+        "peak": {
+          "average": 95.97662771285475,
+          "maximum": 100.0,
+          "timeStamp": "2026-10-15T08:24:00Z"
+        },
+        "last": {
+          "average": 19.321063691036883,
+          "maximum": 25.804289544235925,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      },
+      "memory_percent": {
+        "peak": {
+          "average": 78.31230143059274,
+          "maximum": 91.54761597644057,
+          "timeStamp": "2026-10-15T21:17:00Z"
+        },
+        "last": {
+          "average": 57.91945895851895,
+          "maximum": 58.79242018030746,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      },
+      "active_connections": {
+        "peak": {
+          "average": 46.5,
+          "maximum": 47.0,
+          "timeStamp": "2026-10-15T19:04:00Z"
+        },
+        "last": {
+          "average": 9.0,
+          "maximum": 10.0,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      },
+      "connections_failed": {
+        "peak": {
+          "average": 1.0,
+          "maximum": 1.0,
+          "timeStamp": "2026-10-15T16:39:00Z"
+        },
+        "last": {
+          "average": 0.0,
+          "maximum": 0.0,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      },
+      "storage_percent": {
+        "peak": {
+          "average": 21.48277202737696,
+          "maximum": 22.437713500441365,
+          "timeStamp": "2026-10-15T21:18:00Z"
+        },
+        "last": {
+          "average": 18.214176551568993,
+          "maximum": 18.214176551568993,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      }
+    },
+    "sn-control-pg3-03130136": {
+      "cpu_percent": {
+        "peak": {
+          "average": 82.64430271022094,
+          "maximum": 88.82588392261509,
+          "timeStamp": "2026-10-15T05:54:00Z"
+        },
+        "last": {
+          "average": 6.281767617920987,
+          "maximum": 6.527590847913863,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      },
+      "memory_percent": {
+        "peak": {
+          "average": 79.56382740434543,
+          "maximum": 82.33358447535075,
+          "timeStamp": "2026-10-15T22:15:00Z"
+        },
+        "last": {
+          "average": 55.585941477122326,
+          "maximum": 55.83905190494614,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      },
+      "active_connections": {
+        "peak": {
+          "average": 12.0,
+          "maximum": 12.0,
+          "timeStamp": "2026-10-15T05:59:00Z"
+        },
+        "last": {
+          "average": 7.0,
+          "maximum": 7.0,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      },
+      "connections_failed": {
+        "peak": {
+          "average": 0.0,
+          "maximum": 0.0,
+          "timeStamp": "2026-10-15T02:47:00Z"
+        },
+        "last": {
+          "average": 0.0,
+          "maximum": 0.0,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      },
+      "storage_percent": {
+        "peak": {
+          "average": 14.127646671899491,
+          "maximum": 14.127658898123762,
+          "timeStamp": "2026-10-15T23:53:00Z"
+        },
+        "last": {
+          "average": 14.127658898123762,
+          "maximum": 14.127658898123762,
+          "timeStamp": "2026-10-16T02:46:00Z"
+        }
+      }
+    },
+    "trading-agent-build": {
+      "UsageBytes": {
+        "peak": {
+          "average": 2261581824.0,
+          "maximum": 2261823488.0,
+          "timeStamp": "2026-10-15T18:48:00Z"
+        },
+        "last": {
+          "average": 1498816512.0,
+          "maximum": 1498816512.0,
+          "timeStamp": "2026-10-15T20:51:00Z"
+        }
+      }
+    }
+  },
+  "provider_attempts_production": [
+    {
+      "settings_scope": "production",
+      "provider": "deepseek",
+      "requested_model": "deepseek-reasoner",
+      "status": "success",
+      "http_status": 200,
+      "count": 2777,
+      "first": "2026-10-15 06:54:40.644864+00:00",
+      "last": "2026-10-15 22:35:26.387292+00:00",
+      "avg_ms": 22274.0
+    },
+    {
+      "settings_scope": "production",
+      "provider": "deepseek",
+      "requested_model": "deepseek-reasoner",
+      "status": "failure",
+      "http_status": null,
+      "count": 67,
+      "first": "2026-10-15 06:57:32.859082+00:00",
+      "last": "2026-10-15 21:33:10.458075+00:00",
+      "avg_ms": 29450.0
+    },
+    {
+      "settings_scope": "production",
+      "provider": "deepseek",
+      "requested_model": "deepseek-reasoner",
+      "status": "failure",
+      "http_status": 400,
+      "count": 9,
+      "first": "2026-10-15 15:20:44.876386+00:00",
+      "last": "2026-10-15 21:29:50.793582+00:00",
+      "avg_ms": 5624.0
+    },
+    {
+      "settings_scope": "production",
+      "provider": "elevenlabs",
+      "requested_model": "eleven_multilingual_v2",
+      "status": "success",
+      "http_status": 200,
+      "count": 4,
+      "first": "2026-10-15 15:28:38.153828+00:00",
+      "last": "2026-10-15 21:28:10.763638+00:00",
+      "avg_ms": 16684.0
+    }
+  ],
+  "model_call_errors": {
+    "LLMDeadlineExceeded": 78,
+    "LLMAPIError": 8,
+    "LLMJSONParseError": 2
+  },
+  "research_sessions": [
+    {
+      "environment": "production",
+      "status": "completed",
+      "count": 5,
+      "first": "2026-10-15 06:54:09.522453+00:00",
+      "last": "2026-10-15 22:32:04.764286+00:00"
+    }
+  ],
+  "incidents": [
+    {
+      "incident_key": "pipeline-job-failed-news-ingest-and-features",
+      "severity": "critical",
+      "title": "Pipeline job news-ingest-and-features failed",
+      "details": "Azure execution news-ingest-and-features-29868125 ended with status Failed; the process did not finalize its database run.",
+      "status": "resolved",
+      "opened_at_utc": "2026-10-09 18:30:41.294062+00:00",
+      "last_detected_at_utc": "2026-10-15 22:00:38.198231+00:00",
+      "resolved_at_utc": "2026-10-15 22:00:38.198231+00:00",
+      "opened_notified_at_utc": "2026-10-15 19:45:38.705005+00:00",
+      "recovery_notified_at_utc": "2026-10-15 22:00:38.198231+00:00"
+    },
+    {
+      "incident_key": "trading-agent-build-failed",
+      "severity": "critical",
+      "title": "The Trading Agent update failed",
+      "details": "Azure execution trading-agent-build-29868155 ended with status Failed; the process did not finalize its database run.",
+      "status": "resolved",
+      "opened_at_utc": "2026-09-19 23:03:01.814617+00:00",
+      "last_detected_at_utc": "2026-10-15 21:00:47.512439+00:00",
+      "resolved_at_utc": "2026-10-15 21:00:47.512439+00:00",
+      "opened_notified_at_utc": "2026-10-15 19:15:30.457278+00:00",
+      "recovery_notified_at_utc": "2026-10-15 21:00:47.512439+00:00"
+    },
+    {
+      "incident_key": "pipeline-job-failed-options-liquid-universe",
+      "severity": "critical",
+      "title": "Pipeline job options-liquid-universe failed",
+      "details": "RuntimeError: Pipeline work database connection is unavailable.",
+      "status": "resolved",
+      "opened_at_utc": "2026-10-15 20:45:31.625718+00:00",
+      "last_detected_at_utc": "2026-10-15 21:00:47.512439+00:00",
+      "resolved_at_utc": "2026-10-15 21:00:47.512439+00:00",
+      "opened_notified_at_utc": "2026-10-15 20:45:31.625718+00:00",
+      "recovery_notified_at_utc": "2026-10-15 21:00:47.512439+00:00"
+    },
+    {
+      "incident_key": "attention-home-stale",
+      "severity": "critical",
+      "title": "The market overview is stale",
+      "details": "The latest market overview was written at 2026-10-14T21:20:29.978189+00:00 and is older than 12 hours.",
+      "status": "resolved",
+      "opened_at_utc": "2026-10-09 15:00:38.364041+00:00",
+      "last_detected_at_utc": "2026-10-15 15:45:31.257737+00:00",
+      "resolved_at_utc": "2026-10-15 15:45:31.257737+00:00",
+      "opened_notified_at_utc": "2026-10-15 15:00:49.116796+00:00",
+      "recovery_notified_at_utc": "2026-10-15 15:45:31.257737+00:00"
+    }
+  ],
+  "stale_running_rows": [
+    {
+      "job_name": "news-ingest-and-features",
+      "count": 182,
+      "min": "2026-05-25 20:05:31.483356+00:00",
+      "max": "2026-09-25 20:55:14.883604+00:00",
+      "exact_execution_ids": 0
+    },
+    {
+      "job_name": "attention-home-build",
+      "count": 23,
+      "min": "2026-04-24 16:20:31.413494+00:00",
+      "max": "2026-09-20 00:26:54.969349+00:00",
+      "exact_execution_ids": 0
+    },
+    {
+      "job_name": "zopedia-learning",
+      "count": 4,
+      "min": "2026-07-16 19:20:33.540312+00:00",
+      "max": "2026-09-21 19:20:33.086251+00:00",
+      "exact_execution_ids": 0
+    },
+    {
+      "job_name": "development::attention-home-build",
+      "count": 1,
+      "min": "2026-09-21 05:03:08.817363+00:00",
+      "max": "2026-09-21 05:03:08.817363+00:00",
+      "exact_execution_ids": 0
+    }
+  ],
+  "raw_evidence_directory": "tmp/health-audit-20261015/",
+  "runtime_mutations": []
+}

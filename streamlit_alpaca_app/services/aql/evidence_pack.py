@@ -8,6 +8,51 @@ from typing import Any
 EVIDENCE_PACK_SCHEMA_VERSION = "aql_evidence_pack_v1"
 
 
+def resolve_evidence_selection(tool_calls: list[dict[str, Any]], selected_source_ids: list[str] | None = None) -> dict[str, Any]:
+    """Resolve tool, capture, document, page and chunk IDs against one catalog.
+
+    None selects all sources; [] selects none. Numeric observations and execution
+    outcomes remain available independently. Unresolved IDs retain the available
+    evidence and are reported, rather than silently losing it.
+    """
+    identity_fields = ("tool_call_id", "source_id", "capture_id", "canonical_document_id", "document_id", "page_id", "chunk_record_id", "chunk_id", "ref", "url", "canonical_url")
+    requested = None if selected_source_ids is None else {str(x) for x in selected_source_ids}
+    resolved: set[str] = set()
+    records, catalog = [], []
+    for call in tool_calls:
+        summary = _summary(call)
+        call_ids = {str(call[k]) for k in identity_fields if call.get(k)}
+        candidates = summary.get("candidate_sources") or summary.get("evidence_refs") or summary.get("source_links") or []
+        selected = []
+        for source in candidates:
+            if not isinstance(source, dict):
+                continue
+            identities = call_ids | {str(source[k]) for k in identity_fields if source.get(k)}
+            matched = set() if requested is None else requested & identities
+            resolved.update(matched)
+            catalog.append({k: source[k] for k in (*identity_fields, "title", "published_at", "published_date", "source_kind", "evidence_type") if source.get(k)} | {"tool_call_id": call.get("tool_call_id")})
+            if requested is None or matched:
+                selected.append(source)
+        call_match = set() if requested is None else requested & call_ids
+        resolved.update(call_match)
+        if requested is None or selected or call_match or not candidates:
+            records.append({
+                "tool_call_id": call.get("tool_call_id"), "tool_name": call.get("tool_name"),
+                "origin_run_id": call.get("origin_run_id"), "origin_turn_id": call.get("origin_turn_id"),
+                "carried_forward": call.get("carried_forward", False), "status": call.get("status"),
+                "arguments": call.get("arguments") or {},
+                "evidence": selected if summary.get("candidate_sources") else summary,
+                "original_documents": summary.get("source_documents") or [],
+                "retrieval_context": summary.get("retrieval_context") or {},
+                "error": call.get("error"),
+            })
+    unresolved = sorted((requested or set()) - resolved)
+    if unresolved:
+        records = resolve_evidence_selection(tool_calls)["records"]
+    return {"selection": "all" if requested is None else "unresolved" if unresolved else "selected" if requested else "empty",
+            "unresolved_source_ids": unresolved, "records": records, "source_catalog": catalog}
+
+
 def _clean(value: object) -> str:
     text = str(value if value is not None else "").strip()
     return "" if text.lower() == "nan" else text
@@ -21,7 +66,8 @@ def _dedupe_dicts(rows: list[dict[str, Any]], *, keys: tuple[str, ...]) -> list[
     out: list[dict[str, Any]] = []
     seen: set[tuple[str, ...]] = set()
     for row in rows:
-        key = tuple(_clean(row.get(item)) for item in keys)
+        key = ((_clean(row["source_reference_id"]),) if row.get("source_reference_id")
+               else tuple(_clean(row.get(item)) for item in keys))
         if not any(key) or key in seen:
             continue
         seen.add(key)
@@ -73,7 +119,8 @@ def _evidence_refs(call: dict[str, Any]) -> list[dict[str, Any]]:
         if not isinstance(item, dict):
             continue
         stable_id = (
-            _clean(item.get("chunk_record_id"))
+            _clean(item.get("source_reference_id"))
+            or _clean(item.get("chunk_record_id"))
             or _clean(item.get("canonical_document_id"))
             or _clean(item.get("ref"))
             or _clean(item.get("url"))
@@ -199,3 +246,186 @@ def build_aql_evidence_pack(
 
 
 __all__ = ["EVIDENCE_PACK_SCHEMA_VERSION", "build_aql_evidence_pack"]
+
+
+def materialize_research_artifacts(
+    agent_result: dict[str, Any],
+    *,
+    candidate_id: str,
+    subject: str,
+    run_id: str,
+    asof_time_utc: Any,
+) -> dict[str, Any]:
+    """Project the shared engine's exact acquisition into AQL storage rows.
+
+    This is a pure storage adapter. It never searches, calls a model, re-extracts
+    claims or treats a rendered preview as the complete evidence.
+    """
+    import pandas as pd
+
+    documents, chunks, requests, results = [], [], [], []
+    aliases: dict[str, list[str]] = {}
+    for call in agent_result.get("tool_calls") or []:
+        call_id = _clean(call.get("tool_call_id"))
+        arguments = call.get("arguments") or {}
+        query = _clean(arguments.get("query") or arguments.get("search_text"))
+        base = {
+            "run_id": run_id,
+            "asof_time_utc": asof_time_utc,
+            "candidate_id": candidate_id,
+            "symbol": subject,
+            "request_id": f"{agent_result.get('run_id')}::{call_id}",
+            "provider": _clean(call.get("tool_name")),
+            "query_text": query,
+        }
+        if query:
+            requests.append(
+                {
+                    **base,
+                    "status": call.get("status"),
+                    "error_text": call.get("error") or "",
+                }
+            )
+        if call.get("status") != "completed":
+            results.append(
+                {
+                    **base,
+                    "result_id": base["request_id"],
+                    "result_kind": "error",
+                    "error_text": call.get("error") or "",
+                }
+            )
+            continue
+        summary = call.get("result_summary") or {}
+        sources = (
+            summary.get("source_documents") or summary.get("candidate_sources") or []
+        )
+        if not sources:
+            text = (
+                summary.get("evidence_context_text")
+                or summary.get("llm_context_text")
+                or ""
+            )
+            if not text:
+                continue
+            links = summary.get("source_links") or []
+            refs = summary.get("evidence_refs") or []
+            # An aggregate tool result stays aggregate; it is not attributed to
+            # every original URL as though each page contained the entire text.
+            sources = [
+                {
+                    "chunk_text": text,
+                    "title": (
+                        links[0].get("label")
+                        if len(links) == 1
+                        else call.get("tool_name")
+                    ),
+                    "url": links[0].get("url") if len(links) == 1 else "",
+                    "source_refs": refs,
+                    "source_kind": "research_tool_result",
+                }
+            ]
+        for index, source in enumerate(sources):
+            text = (
+                source.get("chunk_text")
+                or source.get("text")
+                or source.get("content")
+                or ""
+            )
+            if not text:
+                continue
+            identity = f"{agent_result.get('run_id')}::{call_id}::{index}"
+            document_id = (
+                "agent_source::" + hashlib.sha256(identity.encode()).hexdigest()[:20]
+            )
+            canonical_id = (
+                _clean(source.get("canonical_document_id") or source.get("document_id"))
+                or document_id
+            )
+            chunk_id = (
+                _clean(source.get("chunk_record_id") or source.get("chunk_id"))
+                or document_id + "::1"
+            )
+            for alias in (
+                call_id,
+                source.get("source_id"),
+                source.get("chunk_record_id"),
+                source.get("chunk_id"),
+                source.get("canonical_document_id"),
+                document_id,
+            ):
+                if alias:
+                    references = aliases.setdefault(str(alias), [])
+                    if chunk_id not in references:
+                        references.append(chunk_id)
+            published = pd.to_datetime(
+                source.get("published_date") or source.get("published_at"),
+                utc=True,
+                errors="coerce",
+            )
+            doc = {
+                **base,
+                "document_id": document_id,
+                "canonical_document_id": canonical_id,
+                "bundle_subject": subject,
+                "title": _clean(
+                    source.get("title")
+                    or source.get("headline")
+                    or call.get("tool_name")
+                ),
+                "url": _clean(source.get("url")),
+                "canonical_url": _clean(source.get("url")),
+                "raw_text": text,
+                "display_excerpt": text[:240],
+                "published_at": published,
+                "source_provider": _clean(
+                    source.get("source")
+                    or source.get("source_provider")
+                    or call.get("tool_name")
+                ),
+                "source_kind": _clean(
+                    source.get("source_kind") or source.get("evidence_type")
+                )
+                or "retained_evidence",
+                "source_authority_bucket": _clean(source.get("authority_bucket"))
+                or "research",
+                "authority_rank": 3,
+                "source_refs_json": _json_dumps(
+                    source.get("source_refs") or ([{
+                        key: source[key] for key in ("chunk_record_id", "canonical_document_id", "source_reference_resource")
+                        if source.get(key)
+                    }] if source.get("source_references_loaded") is False else [])
+                ),
+            }
+            documents.append(doc)
+            chunks.append(
+                {
+                    **doc,
+                    "chunk_id": chunk_id,
+                    "chunk_text": text,
+                    "chunk_index": 1,
+                    "document_chunk_count": 1,
+                    "embedding_model": "",
+                    "embedding_vector_json": "",
+                }
+            )
+            results.append(
+                {
+                    **base,
+                    "result_id": identity,
+                    "result_kind": "result",
+                    "title": doc["title"],
+                    "snippet": text,
+                    "url": doc["url"],
+                    "source": doc["source_provider"],
+                    "published_at": published,
+                    "authority_bucket": doc["source_authority_bucket"],
+                }
+            )
+    return {
+        "documents": documents,
+        "chunks": pd.DataFrame(chunks),
+        "request_rows": requests,
+        "result_rows": results,
+        "source_aliases": aliases,
+    }

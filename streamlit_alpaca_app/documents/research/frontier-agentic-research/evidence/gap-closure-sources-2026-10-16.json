@@ -1,0 +1,58 @@
+{
+  "checked_at_utc": "2026-10-16T19:38:06.768803+00:00",
+  "scope": "Focused extension to the initial 26-paper survey for the current gap closure sequence. Four additional papers plus an established sizing baseline. No inference or backtest.",
+  "papers": [
+    {
+      "id": "2601.05039v1",
+      "title": "FinDeepForecast: A Live Multi-Agent System for Benchmarking Deep Research Agents in Financial Forecasting",
+      "url": "https://arxiv.org/html/2601.05039v1",
+      "inspection": "Abstract and targeted full-text protocol/method/results/limitations excerpts; no reproduction.",
+      "abstract_sha256": "830469750e07c3a63f247cbac962024ed16bf929d453ab804e41cb5d1bd34ee5",
+      "full_text_extraction_sha256": "4a7a8d688a8d3cecb3eb32b76a976e38fe2851b825391b88f91ed2f20e5b6aaf",
+      "fetched_at_utc": "2026-10-16T19:34:54.031205+00:00"
+    },
+    {
+      "id": "2510.15821v1",
+      "title": "Chronos-2: From Univariate to Universal Forecasting",
+      "url": "https://arxiv.org/html/2510.15821v1",
+      "inspection": "Abstract and targeted full-text protocol/method/results/limitations excerpts; no reproduction.",
+      "abstract_sha256": "f12fbb69468fc6ea67dec60b296f44d9aa3c04e5a83d28ac4a0db79951b32f4f",
+      "full_text_extraction_sha256": "ab78cb27bc97ab75128d7c3f83dfdaa501003110ab0afaad7712ad94ea40fe5c",
+      "fetched_at_utc": "2026-10-16T19:34:53.517057+00:00"
+    },
+    {
+      "id": "2605.00501v1",
+      "title": "LambdaRankIC: Directly Optimizing Rank IC for Financial Prediction",
+      "url": "https://arxiv.org/html/2605.00501v1",
+      "inspection": "Abstract and targeted full-text protocol/method/results/limitations excerpts; no reproduction.",
+      "abstract_sha256": "375d98415c8e9335e2d567617b173765f8b54dd0b9bd02618eda9e0b4f771b57",
+      "full_text_extraction_sha256": "73c48bd258a455c6a6bcb7faeb6d398611e69b54723636670dd83de180cb92fe",
+      "fetched_at_utc": "2026-10-16T19:34:53.507616+00:00"
+    },
+    {
+      "id": "2601.04062v1",
+      "title": "Smart Predict--then--Optimize Paradigm for Portfolio Optimization in Real Markets",
+      "url": "https://arxiv.org/html/2601.04062v1",
+      "inspection": "Abstract and targeted full-text protocol/method/results/limitations excerpts; no reproduction.",
+      "abstract_sha256": "d85257804bd30df7a1f98e7ea13c80fe91b81eb7a8078a8aa4896ed23cffbff3",
+      "full_text_extraction_sha256": "69d66ec438c8093625b26ff339a7ef85285bd3333d842fdbdf5837d87ecf017b",
+      "fetched_at_utc": "2026-10-16T19:34:53.517152+00:00"
+    }
+  ],
+  "established_decision_baseline": {
+    "title": "Risk-Constrained Kelly Gambling",
+    "year": 2016,
+    "url": "https://www.web.stanford.edu/~boyd/papers/kelly.html",
+    "inspection": "Primary author publication page and abstract; not a current SOTA claim."
+  },
+  "open_forecasting_model": {
+    "id": "amazon/chronos-2",
+    "revision": "29ec3766d36d6f73f0696f85560a422f50e8498c",
+    "license": "apache-2.0",
+    "weight_files": [
+      "model.safetensors"
+    ],
+    "source": "https://huggingface.co/amazon/chronos-2",
+    "role": "Open forecasting baseline candidate, not a claim of financial SOTA or measured serving cost."
+  }
+}

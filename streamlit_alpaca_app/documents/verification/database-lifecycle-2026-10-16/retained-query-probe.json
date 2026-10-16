@@ -1,0 +1,43 @@
+{
+  "checks": [
+    {
+      "query": "",
+      "status": "completed",
+      "rows": 5,
+      "seconds": 10.641,
+      "retrieval": null
+    },
+    {
+      "query": "Moderna clinical trial",
+      "status": "completed",
+      "rows": 5,
+      "seconds": 8.88,
+      "retrieval": null
+    }
+  ],
+  "session_stats": {
+    "leases": 9,
+    "wait_seconds": 14.826754998997785,
+    "acquisition_failures": 0,
+    "admission_wait_seconds": 0.0,
+    "admission_waits": 0,
+    "cancellations": 0,
+    "scope": "current_process",
+    "admission_scope": "physical_database",
+    "global_active_limit": 3,
+    "global_background_limit": 1,
+    "pools": [
+      {
+        "requests_num": 9,
+        "connections_num": 9,
+        "connections_ms": 12361,
+        "pool_min": 0,
+        "pool_max": 2,
+        "pool_size": 0,
+        "pool_available": 0,
+        "requests_waiting": 0
+      }
+    ]
+  },
+  "model_calls": 0
+}

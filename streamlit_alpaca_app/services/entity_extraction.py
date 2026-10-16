@@ -304,17 +304,28 @@ def _llm_entity_mentions(text: str, *, llm_client: Any | None) -> list[EntityMen
     if llm_client is None or not _coerce_text(text):
         return []
     try:
-        data = llm_client.generate_json(
-            system_prompt=(
-                "Extract finance-relevant named entities from market text. "
-                "Prefer companies, tickers, commodities, products, technologies, policies, infrastructure, macro concepts, "
-                "supply-chain inputs, end markets, and durable themes. "
-                "Do not return generic words such as stock, market, company, demand, supply, growth, risk, or sentiment."
-            ),
-            user_prompt=json.dumps({"text": _coerce_text(text)[:4000]}, ensure_ascii=False),
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=json.dumps({"text": _coerce_text(text)[:4000]}, ensure_ascii=False),
+            instructions="Extract finance-relevant named entities from market text. Prefer companies, tickers, commodities, products, technologies, policies, infrastructure, macro concepts, supply-chain inputs, end markets, and durable themes. Do not return generic words such as stock, market, company, demand, supply, growth, risk, or sentiment.",
             schema_name="aql_entity_extraction",
             schema=_ENTITY_EXTRACTION_SCHEMA,
+            task="aql_entity_extraction", stage="summary",
+            surface="services.entity_extraction",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
+            run_timeout_seconds=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
     except Exception:
         return []
     mentions: list[EntityMention] = []

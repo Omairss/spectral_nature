@@ -1,0 +1,33 @@
+{
+  "status": "locally_accepted_deployment_pending_backend_handoff",
+  "contract_checks": 7,
+  "checks_run_on": [
+    "workspace",
+    "accepted_api_baseline_plus_scoped_backend_admin_overlay"
+  ],
+  "web_typecheck": "passed_task_only_release_source",
+  "real_cloud_metrics": {
+    "postgresql": 5,
+    "container_app": 4,
+    "container_job": 2
+  },
+  "latest_database_probe_seconds": 5.43,
+  "desktop": {
+    "width": 1440,
+    "height": 1000,
+    "page_errors": [],
+    "whole_page_overflow": false
+  },
+  "phone": {
+    "width": 390,
+    "height": 844,
+    "page_errors": [],
+    "whole_page_overflow": false
+  },
+  "ui_fixture": "synthetic_local_admin_identity_and_captured_real_telemetry",
+  "runtime_identity_check": "pending_dev_only_identity_and_deployment",
+  "deployment_mutations_by_this_thread": false,
+  "api_feature_request_routes_preserved": true,
+  "api_source_baseline_sha256": "e5381252bd8e7e737974081322854abea2157433daa7b5e54a2f613d301c0397",
+  "backend_readiness": "LLM-cost coordination placeholder explicitly null; actual backend handoff pending"
+}

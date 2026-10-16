@@ -1,0 +1,812 @@
+{
+  "audit_date": "2026-10-08",
+  "captured_at_utc": "2026-10-08T20:23:54.158077+00:00",
+  "scope": "Read-only production inspection and three local shared AQL/Zopedia research runs; no runtime change, publication or deployment.",
+  "public_home": {
+    "metadata": {
+      "dataset_name": "attention_home_1d",
+      "dataset_version_id": "attention_home_1d__20261008T182030Z__584a033a",
+      "blob_path": "datasets/attention_home_1d/dt=2026-10-08/asof=2026-10-08T18-20-30Z/universe=20260919/part-584a033a.parquet",
+      "asof_time_utc": "2026-10-08T18:20:30.972175+00:00",
+      "ingested_at_utc": "2026-10-08T18:44:48.275205+00:00",
+      "row_count": 1,
+      "partitioning": {}
+    },
+    "as_of": "2026-10-08T18:20:30.972175+00:00",
+    "run_id": "584a033a-d455-4c43-8232-86e29f9dee42",
+    "summary": null,
+    "beats": [
+      {
+        "id": "event::cluster-02-559935949f",
+        "title": "Bitcoin weakness compresses miner margins and drags AI and data-center suppliers lower",
+        "summary": "Bitcoin weakness hit miners HUT and CLSK and reached suppliers AAOI, AXTI, TSEM and IREN.",
+        "business_context": "Bitcoin miners convert power and hardware into hashing revenue. A lower Bitcoin price cuts revenue per hash, while power contracts and hardware costs stay fixed, so margins compress.",
+        "symbols": [
+          "HUT",
+          "AAOI",
+          "MXL",
+          "CLSK",
+          "AXTI",
+          "CIFR",
+          "TSEM",
+          "IREN"
+        ]
+      },
+      {
+        "id": "event::observed-cohort-sector-1fb63b896b",
+        "title": "Bitcoin Mining, Bitcoin, and Cryptocurrency Mining Infrastructure stocks fell together",
+        "summary": "A connected Bitcoin mining and crypto infrastructure group fell about 8.9% in one session.",
+        "business_context": "The group shares taxonomy labels such as Bitcoin Mining, Bitcoin, Cryptocurrency Mining Infrastructure, Digital Assets, Semiconductor Cycle, and AI Infrastructure, so this is a connected cohort move rather than an isolated single-name move.",
+        "symbols": [
+          "HUT",
+          "BSP",
+          "AAOI",
+          "MXL",
+          "CLSK",
+          "AXTI",
+          "CIFR",
+          "TSEM"
+        ]
+      },
+      {
+        "id": "event::observed-cohort-tag_token-d021ad0ee9",
+        "title": "AI Infrastructure, Broadband Infrastructure, and Space Economy stocks fell together",
+        "summary": "A connected AI, broadband and space infrastructure group fell about 7.8% in one session.",
+        "business_context": "The group shares taxonomy labels such as AI Infrastructure, Broadband Infrastructure, and Space Economy, so this is a connected cohort move rather than an isolated single-name move.",
+        "symbols": [
+          "AAOI",
+          "MXL",
+          "ASTS",
+          "CIFR",
+          "CRWV",
+          "RDW",
+          "ECHO",
+          "SMCI"
+        ]
+      },
+      {
+        "id": "event::observed-cohort-tag_token-c0aee805ef",
+        "title": "Nuclear Energy, Clean Energy, and Electric Power stocks fell together",
+        "summary": "A connected nuclear, clean energy and power group fell about 7.6% in one session.",
+        "business_context": "The group shares taxonomy labels such as Nuclear Energy, Clean Energy, Electric Power, Energy Transition, Fuel Cell Manufacturer, and Power Generation, so this is a connected cohort move rather than an isolated single-name move.",
+        "symbols": [
+          "CLSK",
+          "VST",
+          "OKLO",
+          "VICR",
+          "CEG",
+          "FCEL",
+          "SMR",
+          "BE"
+        ]
+      },
+      {
+        "id": "event::observed-cohort-tag_token-ea8f7f37f8",
+        "title": "Space Economy stocks fell together",
+        "summary": "A connected Space Economy group fell about 6.7% in one session.",
+        "business_context": "The group shares taxonomy labels such as Space Economy, so this is a connected cohort move rather than an isolated single-name move.",
+        "symbols": [
+          "ASTS",
+          "PL",
+          "FCEL",
+          "RDW",
+          "LUNR"
+        ]
+      },
+      {
+        "id": "symbol::NIB",
+        "title": "NIB completes a AUD 97.6 million travel sale as its shares move 22.61%",
+        "summary": "NIB completed a AUD 97.6 million travel sale while its shares moved 22.61%.",
+        "business_context": "NIB is an Australian health insurer that also sells travel insurance. Selling the travel unit moves that risk off the balance sheet and adds cash.",
+        "symbols": [
+          "NIB"
+        ]
+      },
+      {
+        "id": "symbol::SBUX",
+        "title": "The company is absorbing an estimated $300 million restructuring charge tied to closing roughly 250 North American locations.",
+        "summary": "The company is absorbing an estimated $300 million restructuring charge tied to closing roughly 250 North American locations. The charge report is dated to early October.",
+        "business_context": "Starbucks is taking an estimated $300 million restructuring charge tied to closing roughly 250 North American locations.",
+        "symbols": [
+          "SBUX"
+        ]
+      }
+    ]
+  },
+  "news_versions": [
+    {
+      "metadata": {
+        "dataset_name": "news_articles",
+        "dataset_version_id": "news_articles__20261008T200528Z__8b0a1191",
+        "blob_path": "datasets/news_articles/dt=2026-10-08/asof=2026-10-08T20-05-28Z/universe=20260919/part-8b0a1191.parquet",
+        "asof_time_utc": "2026-10-08 20:05:28.658734+00:00",
+        "ingested_at_utc": "2026-10-08 20:05:30.976262+00:00",
+        "row_count": 50,
+        "partitioning": {}
+      },
+      "openai_rows": [
+        {
+          "published_at": "2026-10-08 18:54:13+00:00",
+          "headline": "Oracle Stock Drops Thursday: What's Happening?",
+          "url": "https://www.benzinga.com/trading-ideas/movers/26/10/62258380/oracle-stock-drops-thursday-whats-happening"
+        },
+        {
+          "published_at": "2026-10-08 18:18:39+00:00",
+          "headline": "OpenAI Revenue $20B Below Previous Reports, ORCL, NVDA Tumble",
+          "url": "https://www.benzinga.com/markets/prediction-markets/26/10/62257221/openai-revenue-run-rate-ai-stocks"
+        },
+        {
+          "published_at": "2026-10-08 16:45:03+00:00",
+          "headline": "'OpenAI annualised revenues $20bn less than previously signalled' - Financial Times",
+          "url": "https://www.benzinga.com/news/26/10/62253618/openai-annualised-revenues-20bn-less-than-previously-signalled-financial-times"
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "dataset_name": "news_articles",
+        "dataset_version_id": "news_articles__20261008T181916Z__741361d5",
+        "blob_path": "datasets/news_articles/dt=2026-10-08/asof=2026-10-08T18-19-16Z/universe=20260919/part-741361d5.parquet",
+        "asof_time_utc": "2026-10-08 18:19:16.814715+00:00",
+        "ingested_at_utc": "2026-10-08 18:19:18.867541+00:00",
+        "row_count": 50,
+        "partitioning": {}
+      },
+      "openai_rows": [
+        {
+          "published_at": "2026-10-08 16:45:03+00:00",
+          "headline": "'OpenAI annualised revenues $20bn less than previously signalled' - Financial Times",
+          "url": "https://www.benzinga.com/news/26/10/62253618/openai-annualised-revenues-20bn-less-than-previously-signalled-financial-times"
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "dataset_name": "news_articles",
+        "dataset_version_id": "news_articles__20261008T180529Z__93c8efe0",
+        "blob_path": "datasets/news_articles/dt=2026-10-08/asof=2026-10-08T18-05-29Z/universe=20260919/part-93c8efe0.parquet",
+        "asof_time_utc": "2026-10-08 18:05:29.991253+00:00",
+        "ingested_at_utc": "2026-10-08 18:05:32.274133+00:00",
+        "row_count": 50,
+        "partitioning": {}
+      },
+      "openai_rows": [
+        {
+          "published_at": "2026-10-08 16:45:03+00:00",
+          "headline": "'OpenAI annualised revenues $20bn less than previously signalled' - Financial Times",
+          "url": "https://www.benzinga.com/news/26/10/62253618/openai-annualised-revenues-20bn-less-than-previously-signalled-financial-times"
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "dataset_name": "news_articles",
+        "dataset_version_id": "news_articles__20261008T161037Z__f27a16db",
+        "blob_path": "datasets/news_articles/dt=2026-10-08/asof=2026-10-08T16-10-37Z/universe=20260919/part-f27a16db.parquet",
+        "asof_time_utc": "2026-10-08 16:10:37.799825+00:00",
+        "ingested_at_utc": "2026-10-08 16:10:39.816153+00:00",
+        "row_count": 50,
+        "partitioning": {}
+      },
+      "openai_rows": [
+        {
+          "published_at": "2026-10-08 14:42:22+00:00",
+          "headline": "OpenAI Says Recently Banned 2 IO One From Russia And One From Iran That Used Our Models In Combination With More Traditional Techniques And Technologies To Support Sophisticated \u201cFalse Front\u201d Entities",
+          "url": "https://www.benzinga.com/news/26/10/62249118/openai-says-recently-banned-2-io-one-russia-and-one-iran-used-our-models-combination-more-traditiona"
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "dataset_name": "news_articles",
+        "dataset_version_id": "news_articles__20261008T160532Z__b0be8e16",
+        "blob_path": "datasets/news_articles/dt=2026-10-08/asof=2026-10-08T16-05-32Z/universe=20260919/part-b0be8e16.parquet",
+        "asof_time_utc": "2026-10-08 16:05:32.510705+00:00",
+        "ingested_at_utc": "2026-10-08 16:05:35.023462+00:00",
+        "row_count": 50,
+        "partitioning": {}
+      },
+      "openai_rows": [
+        {
+          "published_at": "2026-10-08 14:42:22+00:00",
+          "headline": "OpenAI Says Recently Banned 2 IO One From Russia And One From Iran That Used Our Models In Combination With More Traditional Techniques And Technologies To Support Sophisticated \u201cFalse Front\u201d Entities",
+          "url": "https://www.benzinga.com/news/26/10/62249118/openai-says-recently-banned-2-io-one-russia-and-one-iran-used-our-models-combination-more-traditiona"
+        }
+      ]
+    },
+    {
+      "metadata": {
+        "dataset_name": "news_articles",
+        "dataset_version_id": "news_articles__20261008T143404Z__fa445643",
+        "blob_path": "datasets/news_articles/dt=2026-10-08/asof=2026-10-08T14-34-04Z/universe=20260919/part-fa445643.parquet",
+        "asof_time_utc": "2026-10-08 14:34:04.637851+00:00",
+        "ingested_at_utc": "2026-10-08 14:34:06.998178+00:00",
+        "row_count": 50,
+        "partitioning": {}
+      },
+      "openai_rows": []
+    },
+    {
+      "metadata": {
+        "dataset_name": "news_articles",
+        "dataset_version_id": "news_articles__20261008T140529Z__55ed7b7f",
+        "blob_path": "datasets/news_articles/dt=2026-10-08/asof=2026-10-08T14-05-29Z/universe=20260919/part-55ed7b7f.parquet",
+        "asof_time_utc": "2026-10-08 14:05:29.054356+00:00",
+        "ingested_at_utc": "2026-10-08 14:05:31.029686+00:00",
+        "row_count": 50,
+        "partitioning": {}
+      },
+      "openai_rows": [
+        {
+          "published_at": "2026-10-08 10:45:19+00:00",
+          "headline": "'OpenAI Recruits Second Sales Executive From Musk\u2019s SpaceX in Last Month' - Bloomberg",
+          "url": "https://www.benzinga.com/news/26/10/62240481/openai-recruits-second-sales-executive-musk-s-spacex-last-month-bloomberg"
+        }
+      ]
+    }
+  ],
+  "pre_home_article": {
+    "author": "Benzinga News-desk",
+    "content": "",
+    "published_at": "2026-10-08 16:45:03+00:00",
+    "headline": "'OpenAI annualised revenues $20bn less than previously signalled' - Financial Times",
+    "id": 62253618,
+    "images": "[]",
+    "source": "benzinga",
+    "summary": "",
+    "symbols": "[\"MSFT\", \"NVDA\", \"ORCL\", \"SPY\"]",
+    "updated_at": "2026-10-08 17:14:27+00:00",
+    "url": "https://www.benzinga.com/news/26/10/62253618/openai-annualised-revenues-20bn-less-than-previously-signalled-financial-times"
+  },
+  "selection": {
+    "metadata": {
+      "dataset_name": "attention_candidates_1d",
+      "dataset_version_id": "attention_candidates_1d__20261008T182030Z__584a033a",
+      "blob_path": "datasets/attention_candidates_1d/dt=2026-10-08/asof=2026-10-08T18-20-30Z/universe=20260919/part-584a033a.parquet",
+      "asof_time_utc": "2026-10-08T18:20:30.972175+00:00",
+      "ingested_at_utc": "2026-10-08T18:44:37.267955+00:00",
+      "row_count": 78,
+      "partitioning": {}
+    },
+    "candidate_count": 78,
+    "primary_research_symbols": [
+      "NIB",
+      "CMG",
+      "BNO",
+      "HUT",
+      "BSP",
+      "UGA",
+      "AAOI",
+      "MXL",
+      "PM",
+      "CLSK",
+      "SBUX",
+      "AXTI"
+    ],
+    "article_tags": [
+      "MSFT",
+      "NVDA",
+      "ORCL",
+      "SPY"
+    ],
+    "article_tags_in_candidates": [],
+    "selected_example_candidates": [
+      {
+        "rank": 4,
+        "symbol": "HUT",
+        "candidate_score": 106.9,
+        "change_pct": -8.89,
+        "headline": "Hut 8 initiated with Buy rating at Roth (HUT:NASDAQ)",
+        "cause_status": "supported"
+      },
+      {
+        "rank": 18,
+        "symbol": "IREN",
+        "candidate_score": 84.8,
+        "change_pct": -6.4,
+        "headline": "IREN (Nasdaq:IREN) - Stock Analysis",
+        "cause_status": "supported"
+      },
+      {
+        "rank": 24,
+        "symbol": "CRWV",
+        "candidate_score": 76.9,
+        "change_pct": -4.76,
+        "headline": "Glynn Capital Management LLC Cuts Stock Position in CoreWeave Inc. $CRWV",
+        "cause_status": "supported"
+      }
+    ]
+  },
+  "observations": {
+    "metadata": {
+      "dataset_name": "daily_movers",
+      "dataset_version_id": "daily_movers__20261008T183530Z__fd9bacbb",
+      "blob_path": "datasets/daily_movers/dt=2026-10-08/asof=2026-10-08T18-35-30Z/universe=20260919/part-fd9bacbb.parquet",
+      "asof_time_utc": "2026-10-08T18:35:30.935789+00:00",
+      "ingested_at_utc": "2026-10-08T18:35:35.976218+00:00",
+      "row_count": 999,
+      "partitioning": {}
+    },
+    "rows": [
+      {
+        "symbol": "MSFT",
+        "close": 522.38,
+        "prev_close": 529.7,
+        "change_pct": -1.3819142911081883,
+        "volume": 653357
+      },
+      {
+        "symbol": "NVDA",
+        "close": 230.96,
+        "prev_close": 237.4,
+        "change_pct": -2.712721145745578,
+        "volume": 2705535
+      },
+      {
+        "symbol": "AMD",
+        "close": 618.43,
+        "prev_close": 645.905,
+        "change_pct": -4.253721522514919,
+        "volume": 417006
+      },
+      {
+        "symbol": "ORCL",
+        "close": 136.0,
+        "prev_close": 143.58,
+        "change_pct": -5.279286808747741,
+        "volume": 1000697
+      },
+      {
+        "symbol": "NBIS",
+        "close": 221.51,
+        "prev_close": 237.13,
+        "change_pct": -6.587104120102905,
+        "volume": 560737
+      },
+      {
+        "symbol": "CRWV",
+        "close": 82.48,
+        "prev_close": 88.47,
+        "change_pct": -6.770656719792012,
+        "volume": 720462
+      },
+      {
+        "symbol": "IREN",
+        "close": 35.725,
+        "prev_close": 38.7,
+        "change_pct": -7.687338501291996,
+        "volume": 1338388
+      },
+      {
+        "symbol": "HUT",
+        "close": 79.78,
+        "prev_close": 89.3,
+        "change_pct": -10.660694288913774,
+        "volume": 237103
+      }
+    ],
+    "comparison_note": "These 18:35 UTC observations are later than Home's 18:20 UTC as-of time; they show current coverage, not the exact move at research selection."
+  },
+  "home_primary_documents": {
+    "metadata": {
+      "dataset_name": "attention_source_documents",
+      "dataset_version_id": "attention_source_documents__20261008T182030Z__584a033a",
+      "blob_path": "datasets/attention_source_documents/dt=2026-10-08/asof=2026-10-08T18-20-30Z/universe=20260919/part-584a033a.parquet",
+      "asof_time_utc": "2026-10-08T18:20:30.972175+00:00",
+      "ingested_at_utc": "2026-10-08T18:44:45.187161+00:00",
+      "row_count": 146,
+      "partitioning": {}
+    },
+    "count": 146,
+    "openai_matches": 0,
+    "match_fields": [
+      "title",
+      "raw_text",
+      "content",
+      "summary"
+    ],
+    "note": "No claim about all historical or user-initiated Zopedia research."
+  },
+  "enrichments": {
+    "metadata": {
+      "dataset_name": "attention_ticker_zopedia_enrichments",
+      "dataset_version_id": "attention_ticker_zopedia_enrichments__20261008T182030Z__584a033a",
+      "blob_path": "datasets/attention_ticker_zopedia_enrichments/dt=2026-10-08/asof=2026-10-08T18-20-30Z/universe=20260919/part-584a033a.parquet",
+      "asof_time_utc": "2026-10-08T18:20:30.972175+00:00",
+      "ingested_at_utc": "2026-10-08T18:44:47.425178+00:00",
+      "row_count": 13,
+      "partitioning": {}
+    },
+    "rows": [
+      {
+        "symbol": "__MARKET_SUMMARY__",
+        "status": "failed",
+        "failure_categories_json": null,
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "HUT",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "AAOI",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "MXL",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "CLSK",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "CIFR",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "TSEM",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "IREN",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "AXTI",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "CRWV",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "BTDR",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "COHR",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      },
+      {
+        "symbol": "VICR",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "model": "",
+        "quality_review_json": "{}"
+      }
+    ]
+  },
+  "job_runs": [
+    {
+      "run_id": "8b0a1191-fd2a-47ff-8e81-95987310bc4a",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-08 20:05:29.879102+00:00",
+      "end_time_utc": null,
+      "status": "Running",
+      "error_summary": null,
+      "progress_stage": "news_business_resolution"
+    },
+    {
+      "run_id": "584a033a-d455-4c43-8232-86e29f9dee42",
+      "job_name": "attention-home-build",
+      "start_time_utc": "2026-10-08 18:20:32.186202+00:00",
+      "end_time_utc": "2026-10-08 18:53:57.270061+00:00",
+      "status": "Succeeded",
+      "error_summary": null,
+      "progress_stage": "completed"
+    },
+    {
+      "run_id": "741361d5-a6a8-4bd9-b6eb-b3186f65e35d",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-08 18:19:18.014951+00:00",
+      "end_time_utc": null,
+      "status": "Running",
+      "error_summary": null,
+      "progress_stage": "news_business_resolution"
+    },
+    {
+      "run_id": "93c8efe0-dcf7-4c16-81e8-06c8e96df899",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-08 18:05:31.109915+00:00",
+      "end_time_utc": null,
+      "status": "Running",
+      "error_summary": null,
+      "progress_stage": "news_business_resolution"
+    },
+    {
+      "run_id": "907953db-72ae-4213-a16b-4acc1ed35883",
+      "job_name": "attention-home-build",
+      "start_time_utc": "2026-10-08 16:20:30.449915+00:00",
+      "end_time_utc": "2026-10-08 16:51:10.161330+00:00",
+      "status": "Succeeded",
+      "error_summary": null,
+      "progress_stage": "completed"
+    },
+    {
+      "run_id": "f27a16db-291a-44ce-9f23-dedb30759f9d",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-08 16:10:38.881216+00:00",
+      "end_time_utc": null,
+      "status": "Running",
+      "error_summary": null,
+      "progress_stage": "news_business_resolution"
+    },
+    {
+      "run_id": "b0be8e16-ed5a-4ae0-b54e-39d6e0a83067",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-08 16:05:33.719576+00:00",
+      "end_time_utc": null,
+      "status": "Running",
+      "error_summary": null,
+      "progress_stage": "news_business_resolution"
+    },
+    {
+      "run_id": "fa445643-ca57-4b59-8d6a-a3fef039ff0a",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-08 14:34:05.703236+00:00",
+      "end_time_utc": null,
+      "status": "Running",
+      "error_summary": null,
+      "progress_stage": "news_business_resolution"
+    },
+    {
+      "run_id": "1d280e6d-d7e4-492d-96f6-e7296fe6bdc6",
+      "job_name": "attention-home-build",
+      "start_time_utc": "2026-10-08 14:20:36.149052+00:00",
+      "end_time_utc": "2026-10-08 14:52:44.148227+00:00",
+      "status": "Succeeded",
+      "error_summary": null,
+      "progress_stage": "completed"
+    },
+    {
+      "run_id": "55ed7b7f-b965-4685-945e-bd6b93937613",
+      "job_name": "news-ingest-and-features",
+      "start_time_utc": "2026-10-08 14:05:30.036626+00:00",
+      "end_time_utc": null,
+      "status": "Running",
+      "error_summary": null,
+      "progress_stage": "news_business_resolution"
+    }
+  ],
+  "current_home_job_configuration": {
+    "schedule_utc": "20 14,16,18,20 * * 1-5",
+    "research_limit": 12,
+    "zopedia_enrichment_limit": 12,
+    "zopedia_enrichment_timeout_seconds": 90,
+    "zopedia_enrichment_max_workers": 4,
+    "zopedia_agent_max_tool_calls": 8,
+    "zopedia_agent_tool_timeout_seconds": 60,
+    "zopedia_agent_llm_timeout_seconds": 60,
+    "source": "read-only Azure job show"
+  },
+  "zopedia_probes": [
+    {
+      "task": "claim_context",
+      "elapsed_seconds": 201.49189091613516,
+      "status": "completed",
+      "model": "deepseek-reasoner",
+      "answer_status": "reviewed",
+      "review_verdict": "insufficient",
+      "openai_event_recovered": false,
+      "trace": "AI_SELLOFF_ZOPEDIA_2026-10-08/claim_context.json"
+    },
+    {
+      "task": "event_discovery",
+      "elapsed_seconds": 162.58248395938426,
+      "status": "completed",
+      "model": "deepseek-reasoner",
+      "answer_status": "reviewed",
+      "review_verdict": "revise",
+      "openai_event_recovered": false,
+      "trace": "AI_SELLOFF_ZOPEDIA_2026-10-08/event_discovery.json"
+    },
+    {
+      "task": "relationship_context",
+      "elapsed_seconds": 200.3656104588881,
+      "status": "completed",
+      "model": "deepseek-reasoner",
+      "answer_status": "reviewed",
+      "review_verdict": "accept",
+      "openai_event_recovered": false,
+      "trace": "AI_SELLOFF_ZOPEDIA_2026-10-08/relationship_context.json"
+    }
+  ],
+  "provider_probes": [
+    {
+      "query": "OpenAI revenue 50 billion 70 billion October 8 2026",
+      "rows": []
+    },
+    {
+      "query": "AI infrastructure cloud semiconductor stocks selloff October 8 2026",
+      "rows": [
+        {
+          "title": "Front-Running the AI Hardware Shift with Cerebras",
+          "url": "https://www.marketbeat.com/articles/front-running-the-ai-hardware-shift-with-cerebras/",
+          "snippet": "Cerebras Systems posts 74.3% revenue growth and a $7.5 billion cash position as institutional buyers absorb insider selling ahead of its...",
+          "published_at": "7 hours ago"
+        },
+        {
+          "title": "The Best AI Stocks to Buy Now",
+          "url": "https://www.morningstar.com/stocks/best-ai-stocks-buy-now",
+          "snippet": "Artificial intelligence stocks maintain their allure, thanks to industry momentum and appealing valuations. Tori Brovet Oct 7, 2026.",
+          "published_at": "3 days ago"
+        },
+        {
+          "title": "Best AI Stocks to Buy in 2026: 10 Top Picks & How to Invest",
+          "url": "https://www.fool.com/investing/stock-market/market-sectors/information-technology/ai-stocks/",
+          "snippet": "AI stocks are at the forefront of the AI revolution as artificial intelligence is reshaping industries and driving real revenue growth for...",
+          "published_at": "2 days ago"
+        },
+        {
+          "title": "Top 10 AI Stocks To Buy On The Seasonal Dip",
+          "url": "https://seekingalpha.com/article/4950828-top-10-ai-stocks-to-buy-on-the-seasonal-dip",
+          "snippet": "AI stocks have rebounded from July's selloff, but continued seasonal volatility could create attractive opportunities in fundamentally...",
+          "published_at": "1 week ago"
+        },
+        {
+          "title": "5 Best Artificial Intelligence (AI) ETFs to Buy in 2026",
+          "url": "https://www.fool.com/investing/stock-market/market-sectors/information-technology/ai-stocks/ai-etfs/",
+          "snippet": "An in-depth look at the top artificial intelligence (AI) ETFs in the U.S. stock market this year.",
+          "published_at": "3 days ago"
+        },
+        {
+          "title": "AI Bubble Risk: Bank of England Warns Boom Could Trigger Market Shocks",
+          "url": "https://cryptorank.io/news/feed/fe705-ai-bubble-risk-bank-of-england-warns-boom-could-trigger-market-shocks",
+          "snippet": "Share: AI Overview. The Bank of England warned in its September 2026 Financial Policy Committee record that AI-related debt issuance surged...",
+          "published_at": "1 week ago"
+        },
+        {
+          "title": "Amazon Jumps 4% on Expanded AWS Chip Deal: Why Is NVIDIA Falling 4%?",
+          "url": "https://247wallst.com/investing/2026/08/28/amazon-jumps-4-on-expanded-aws-chip-deal-why-is-nvidia-falling-4/",
+          "snippet": "Amazon is surging 4% on a massive GPU expansion deal with the very chip supplier that is simultaneously sinking 4% on the same news.",
+          "published_at": "1 month ago"
+        },
+        {
+          "title": "Microsoft stock gains 2%: Why MSFT is rising amid AI selloff",
+          "url": "https://m.economictimes.com/markets/us-stocks/wall-street-guide/microsoft-stock-gains-2-why-msft-is-rising-amid-ai-selloff/microsoft-stock-gains/slideshow/134254952.cms",
+          "snippet": "Microsoft shares gained around 2% as investors reassessed growing concerns over the pace and risks of artificial intelligence development.",
+          "published_at": "3 weeks ago"
+        },
+        {
+          "title": "The Largest Technology Companies by Market Cap in October 2026",
+          "url": "https://www.fool.com/research/largest-tech-companies/",
+          "snippet": "Nvidia (NVDA -0.74%) is the world's largest technology company, followed by Apple (AAPL +0.91%) and Microsoft (MSFT +0.09%). AI is the most...",
+          "published_at": "3 days ago"
+        },
+        {
+          "title": "AI infrastructure, chip stocks fall after report Meta building cloud business for excess AI compute",
+          "url": "https://seekingalpha.com/news/4609003-ai-infrastructure-chip-stocks-fall-after-report-meta-building-cloud-business-for-excess-ai-compute",
+          "snippet": "Chip and AI infrastructure-related stocks fell on Wednesday after a report that Meta (META) is planning for a cloud infrastructure business...",
+          "published_at": "Jul 1, 2026"
+        }
+      ]
+    },
+    {
+      "query": "OpenAI revenue 50 70",
+      "news": true,
+      "rows": []
+    },
+    {
+      "query": "OpenAI revenue 50 70",
+      "news": false,
+      "rows": [
+        {
+          "title": "OpenAI's revenue is reportedly $20 billion less than ...",
+          "url": "https://techcrunch.com/2026/10/08/openais-revenue-is-reportedly-20-billion-less-than-previously-projected/",
+          "snippet": "OpenAI's annualized revenue was approaching $70 billion, its annualized revenue is \u201capproaching $50 billion.\u201d",
+          "published_at": "2 hours ago"
+        },
+        {
+          "title": "OpenAI annualised revenues $20bn less than previously ...",
+          "url": "https://finance.yahoo.com/technology/ai/articles/openai-annualised-revenues-20bn-less-164234940.html",
+          "snippet": "The company has recently told investors its revenues were approaching $50bn on an annualised basis at the end of September, far short of the $70 ...",
+          "published_at": "4 hours ago"
+        },
+        {
+          "title": "FT OpenAI recently told investors its annualized revenue ...",
+          "url": "https://x.com/wallstengine/status/2108238659690643933?s=46",
+          "snippet": "OpenAI recently told investors its annualized revenue was approaching $50B at the end of September, roughly $20B below the figure widely ...",
+          "published_at": "3 hours ago"
+        },
+        {
+          "title": "Deedy Das' Post",
+          "url": "https://www.linkedin.com/posts/debarghyadas_huge-ai-news-openai-tells-investors-their-activity-7514020923411316737-NSY7",
+          "snippet": "OpenAI tells investors their annualized revenue is $50B for end of September, up from $30B in July, short of the $70B previously reported.",
+          "published_at": "2 hours ago"
+        },
+        {
+          "title": "OpenAI corrects annualized revenue figure to $50 billion",
+          "url": "https://qz.com/openai-annualized-revenue-50-billion-correction-ai-stocks-100826",
+          "snippet": "At the time, reports put the figure at nearly $70 billion. OpenAI posted a net loss of $38.5 billion in 2025 on $13.07 billion in revenue.",
+          "published_at": "2 hours ago"
+        },
+        {
+          "title": "OPENAI'S ANNUALIZED REVENUE NEARS $50B, FAR ...",
+          "url": "https://www.reddit.com/r/stocks/comments/1x0x3qh/openais_annualized_revenue_nears_50b_far_below/",
+          "snippet": "OpenAI recently told investors its annualized revenue was approaching $50B at the end of September, roughly $20B below the figure widely ...",
+          "published_at": "2 hours ago"
+        },
+        {
+          "title": "OpenAI's Revenue Is Surging Toward $70 Billion ...",
+          "url": "https://www.facebook.com/quartznews/posts/openais-revenue-is-surging-toward-70-billionopenais-annualized-revenue-run-rate-/1451995013462979/",
+          "snippet": "OpenAI's annualized revenue run rate has skyrocketed nearly 70% since the third quarter began, with enterprise sales more than doubling.",
+          "published_at": "1 week ago"
+        },
+        {
+          "title": "OpenAI Revenue 2026: ARR Reportedly Nears $70B",
+          "url": "https://valueaddvc.com/blog/openai-revenue-2026-20b-arr-4b-month-path-to-profitability",
+          "snippet": "OpenAI's annualized recurring revenue is reportedly nearing $70 billion, on September 29, 2026 \u2014 up more than 70% since July",
+          "published_at": "Sep 30, 2026"
+        },
+        {
+          "title": "70% of AI revenue comes from OpenAI and Anthropic | Ed Zitron",
+          "url": "https://www.youtube.com/watch?v=68X8yEatepQ",
+          "snippet": "... OpenAI and Anthropic make up 70% of AI revenue: ... The AI boom isn't real: 70% of AI revenue comes from OpenAI and Anthropic | Ed Zitron.",
+          "published_at": "2 months ago"
+        }
+      ]
+    }
+  ],
+  "findings": [
+    "FT headline retained before the successful Home build; no tagged instrument in the candidate dataset or primary research plans.",
+    "Raw news is routed through a daily symbol shortlist; private/concept events do not independently own Home research.",
+    "All 12 ticker enrichments have timeout failure category; market summary failed and public summary is null.",
+    "Three shared-agent probes completed but did not recover the central event; dated source acquisition and retrieval were inadequate.",
+    "Same short query returned zero Serper news results and nine web results; current live-event source path invokes news mode.",
+    "Two-hour news/Home cadence and long blocking enrichment add latency; increasing subject count or concurrency alone does not resolve the failure."
+  ],
+  "source_paths": [
+    "pipeline/jobs/main.py::run_news",
+    "pipeline/jobs/attention_home_build.py::build_attention_home_output_frames",
+    "pipeline/jobs/attention_home_build.py::_news_payloads_from_articles_frame",
+    "pipeline/jobs/attention_home_build.py::_run_single_zopedia_enrichment",
+    "services/aql/pipeline.py::build_bottom_up_attention_artifacts",
+    "services/zopedia_research.py::live_event_evidence",
+    "services/attention_live_research.py::search_market_event_news_payload"
+  ],
+  "external_context": [
+    {
+      "url": "https://www.axios.com/2026/10/08/openai-50-billion-arr-anthropic-revenue-accounting",
+      "note": "Reporting distinguishes grossed-up partner-comparable revenue from reported revenue; not evidence that sales fell by $20B."
+    },
+    {
+      "url": "https://www.ft.com/content/b66a9858-f8fb-46cb-b506-44bfe26fca2a",
+      "note": "Original report named by the pre-Home ingested headline; direct source reads timed out in the agent probes."
+    }
+  ]
+}

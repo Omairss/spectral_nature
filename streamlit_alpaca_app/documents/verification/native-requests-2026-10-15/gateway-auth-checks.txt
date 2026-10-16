@@ -1,0 +1,20 @@
+
+> spectral-nature-web@0.1.0 test:auth
+> node --test tests/auth-boundary.test.mjs
+
+✔ post-login return paths remain on the application origin after URL normalization (713.564833ms)
+✔ production aliases retain same-host origin and CSRF enforcement (184.504666ms)
+✔ auth service failure is not a signed-out session and does not destroy cookies (937.846792ms)
+✔ an explicitly rejected refresh clears the rejected session (92.842583ms)
+✔ successful refresh preserves token rotation and retries with the new access token (98.080375ms)
+✔ shell and route share one session read and failures can be retried (91.879458ms)
+✔ account actions keep credentials and recovery diagnostics behind the BFF (57.422333ms)
+✔ account action rejects missing origin/CSRF before reading credentials or calling auth (53.174083ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3792.543708

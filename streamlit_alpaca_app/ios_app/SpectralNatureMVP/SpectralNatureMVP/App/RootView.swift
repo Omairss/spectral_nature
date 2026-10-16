@@ -9,13 +9,17 @@ struct RootView: View {
         .tabItem { Label("Brief", systemImage: "waveform.path") }
       NavigationStack { AccessGate { MarketsView() } }
         .tabItem { Label("Markets", systemImage: "chart.xyaxis.line") }
-      NavigationStack { AccessGate { ResearchView() } }
-        .tabItem { Label("Research", systemImage: "bubble.left.and.text.bubble.right") }
+      if session.context?.isAdmin == true {
+        NavigationStack { TradingView() }
+          .tabItem { Label("Trading", systemImage: "arrow.triangle.branch") }
+      }
       NavigationStack { AccessGate { PortfolioView() } }
         .tabItem { Label("Portfolio", systemImage: "chart.pie") }
       NavigationStack { WorkspaceList() }
         .tabItem { Label("Explore", systemImage: "square.grid.2x2") }
     }
+    .environmentObject(session.research)
+    .modifier(ResearchPresentationHost(activity: session.research))
     .id(session.revision)
     .tint(Theme.teal)
     .preferredColorScheme(.dark)
@@ -23,6 +27,10 @@ struct RootView: View {
       NavigationStack { LoginView() }.preferredColorScheme(.dark).tint(Theme.teal)
     }
     .task { await session.restore() }
+    .task(id: "\(session.context?.userId ?? "")|\(scenePhase == .active)") {
+      guard scenePhase == .active, session.authenticated else { return }
+      await session.research.monitor()
+    }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active { Task { await session.restore() } }
     }
@@ -65,11 +73,6 @@ private struct WorkspaceList: View {
         }
         if session.context?.isAdmin == true {
           NavigationLink {
-            TradingView()
-          } label: {
-            Label("Trading Agent", systemImage: "arrow.triangle.branch")
-          }
-          NavigationLink {
             AdminView()
           } label: {
             Label("Admin", systemImage: "slider.horizontal.3")
@@ -77,6 +80,11 @@ private struct WorkspaceList: View {
         }
       }
       Section {
+        NavigationLink {
+          AccessGate { FeatureRequestsView() }
+        } label: {
+          Label("Feature requests", systemImage: "lightbulb")
+        }
         if let context = session.context {
           VStack(alignment: .leading, spacing: 6) {
             Text(context.displayName).font(.headline)
@@ -97,6 +105,6 @@ private struct WorkspaceList: View {
     }
     .scrollContentBackground(.hidden)
     .navigationTitle("Explore")
-    .workbench()
+    .workbench().researchContext("Explore")
   }
 }

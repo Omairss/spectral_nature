@@ -1,0 +1,39 @@
+{
+  "info" : {
+    "arguments" : [
+      "devicectl",
+      "device",
+      "install",
+      "app",
+      "--device",
+      "D68A8FC7-41B9-4579-8D77-62E9D95657C4",
+      "/tmp/sn-ios-phone-analytics-derived/Build/Products/Debug-iphoneos/SpectralNature.app",
+      "--timeout",
+      "60",
+      "--json-output",
+      "/tmp/sn-markets-build6-phone-install.json"
+    ],
+    "commandType" : "devicectl.device.install.app",
+    "environment" : {
+      "TERM" : "dumb"
+    },
+    "jsonVersion" : 2,
+    "outcome" : "success",
+    "version" : "397.28"
+  },
+  "result" : {
+    "deviceIdentifier" : "D68A8FC7-41B9-4579-8D77-62E9D95657C4",
+    "installedApplications" : [
+      {
+        "bundleID" : "com.torrescapital.spectralnature",
+        "databaseSequenceNumber" : 2644,
+        "databaseUUID" : "A1F6475A-616F-486C-886D-F927BD8EAF41",
+        "installationURL" : "file:///private/var/containers/Bundle/Application/491C91F5-8E96-4A0B-B66B-336F96AC2898/SpectralNature.app/",
+        "launchServicesIdentifier" : "unknown",
+        "options" : {
+
+        }
+      }
+    ]
+  }
+}

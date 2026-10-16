@@ -24,10 +24,11 @@ from services.agents.research_runs import (
     ResearchRunRepository,
     dispatch_research_run,
 )
-from services.admin_view import build_admin_view
+from services.admin_view import build_admin_view, build_llm_settings_view, update_llm_settings
 from services.home_view import build_public_home_audio, build_public_home_view
+from api.feature_requests import create_feature_request_router
 from services.market_view import build_market_lenses_view
-from services.portfolio_view import build_portfolio_view
+from services.portfolio_view import build_portfolio_view, build_portfolio_opportunity_view
 from services.stock_view import build_stock_investigator_view
 from services.trading_agent_view import build_trading_agent_view, record_trading_agent_decision
 from services.zopedia_view import build_zopedia_workspace, build_zopedia_page_view, store_uploaded_zopedia_source
@@ -352,8 +353,13 @@ class ResearchExportRequest(BaseModel):
 
 
 class ResearchRunCreateRequest(BaseModel):
-    query: str = Field(min_length=3, max_length=4000)
+    query: str = Field(min_length=1, max_length=4000)
     parent_run_id: str = Field(default="", max_length=80)
+    conversation_id: str = Field(default="", max_length=80)
+    timezone: str | None = Field(default=None, max_length=80)
+    asof_time_utc: str = Field(default="", max_length=80)
+    allow_web: bool | None = None
+    visible_artifacts: list[dict[str, Any]] | None = Field(default=None, max_length=20)
 
 
 class TradingAgentDecisionRequest(BaseModel):
@@ -384,24 +390,52 @@ class PasswordResetRequest(BaseModel):
     new_password: str = Field(min_length=1, max_length=1024)
 
 
+class ResearchReviewResponse(BaseModel):
+    status: str = ""
+    verdict: str = ""
+
+
 class ResearchRunResultResponse(BaseModel):
     status: str
     answer_markdown: str
+    answer_status: str = ""
+    quality_review: ResearchReviewResponse = Field(default_factory=ResearchReviewResponse)
     confidence: str
     limitations: list[str] = Field(default_factory=list)
     citations: list[dict[str, str]] = Field(default_factory=list)
     provider: str = ""
     model: str = ""
     evidence_pack_id: str = ""
+    engine_revision: str = ""
+    failure: dict[str, Any] = Field(default_factory=dict)
     error: str = ""
+
+
+class ResearchPublicContextResponse(BaseModel):
+    timezone: str = "UTC"
+    asof_time_utc: str = ""
+    allow_web: bool = True
+    visible_artifacts: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ResearchRunMetadataResponse(BaseModel):
+    parent_run_id: str = ""
+    engine_revision: str = ""
+    request_context: ResearchPublicContextResponse = Field(
+        default_factory=ResearchPublicContextResponse
+    )
 
 
 class ResearchRunResponse(BaseModel):
     run_id: str
+    conversation_id: str = ""
+    turn_id: str = ""
     surface: str
     task: str
     query: str
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    metadata: ResearchRunMetadataResponse = Field(
+        default_factory=ResearchRunMetadataResponse
+    )
     status: str
     result: ResearchRunResultResponse | None = None
     last_event_sequence: int
@@ -431,6 +465,31 @@ class ResearchRunEventsResponse(BaseModel):
     run_id: str
     events: list[ResearchRunEventResponse] = Field(default_factory=list)
     last_event_sequence: int
+
+
+class ResearchConversationSummaryResponse(BaseModel):
+    conversation_id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    latest_run_id: str
+    status: str
+    turn_count: int
+
+
+class ResearchTurnResponse(BaseModel):
+    turn_id: str
+    query: str
+    created_at: datetime
+    attempts: list[ResearchRunResponse]
+
+
+class ResearchConversationResponse(BaseModel):
+    conversation_id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    turns: list[ResearchTurnResponse]
 
 
 app = FastAPI(
@@ -530,6 +589,21 @@ def portfolio_view(
         raise _error("Portfolio data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
+@app.get("/v1/portfolio/opportunities")
+def portfolio_opportunities(
+    response: Response, period: str = "5Y",
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    context = _require_user_context(principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return build_portfolio_opportunity_view(context, period=period)
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        raise _error("List analytics are unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
 @app.get("/v1/trading-agent")
 def trading_agent_view(
     response: Response,
@@ -538,7 +612,7 @@ def trading_agent_view(
     _require_admin_user(principal)
     response.headers["Cache-Control"] = "private, no-store"
     try:
-        return build_trading_agent_view()
+        return build_trading_agent_view(_require_user_context(principal))
     except Exception:
         raise _error("Trading Agent data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -562,6 +636,24 @@ def trading_agent_decision(
         raise _error(str(exc), status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
+@app.get("/v1/trading-agent/calls/{tracking_id}")
+def trading_agent_tracked_call(
+    tracking_id: str,
+    response: Response,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _require_admin_user(principal)
+    context = _require_user_context(principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    from services.trading_call_tracking import tracking_view
+    try:
+        return tracking_view(owner_id=context.user_id, tracking_id=tracking_id)["calls"][0]
+    except LookupError:
+        raise _error("Tracked call not found.", status.HTTP_404_NOT_FOUND)
+    except Exception:
+        raise _error("Call tracking is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
 @app.get("/v1/admin")
 def admin_view(
     response: Response,
@@ -574,6 +666,23 @@ def admin_view(
         return build_admin_view(days=days)
     except Exception:
         raise _error("Admin data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.get("/v1/admin/health")
+def admin_operational_health(
+    response: Response,
+    hours: int = 24,
+    resource: str = "",
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _require_admin_user(principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    from services.operational_health import build_operational_health_view
+
+    try:
+        return build_operational_health_view(hours=hours, resource_name=resource)
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
 
 
 @app.post("/v1/admin/invites")
@@ -592,6 +701,36 @@ def admin_invite(
     if not result.get("ok"):
         raise _error(str(result.get("message") or "Invite could not be created."), status.HTTP_400_BAD_REQUEST)
     return result
+
+
+class AdminLLMSettingsRequest(BaseModel):
+    changes: dict[str, str | int | float | None] = Field(min_length=1, max_length=200)
+
+
+@app.get("/v1/admin/llm")
+def admin_llm_settings(response: Response, principal: api_auth.AuthPrincipal = Depends(_require_principal)) -> dict[str, Any]:
+    _require_admin_user(principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return build_llm_settings_view()
+    except RuntimeError as exc:
+        raise _error(str(exc), status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@app.patch("/v1/admin/llm")
+def admin_update_llm_settings(
+    body: AdminLLMSettingsRequest,
+    response: Response,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    _require_admin_user(principal)
+    response.headers["Cache-Control"] = "private, no-store"
+    try:
+        return update_llm_settings(body.changes, context=_require_user_context(principal))
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except RuntimeError as exc:
+        raise _error(str(exc), status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 @app.post("/v1/admin/password-resets")
@@ -914,10 +1053,15 @@ def create_research_run(
             query=payload.query,
             idempotency_key=idempotency_key,
             parent_run_id=payload.parent_run_id,
+            conversation_id=payload.conversation_id,
+            request_context={
+                "timezone": payload.timezone,
+                "asof_time_utc": payload.asof_time_utc,
+                "allow_web": payload.allow_web,
+                "visible_artifacts": payload.visible_artifacts,
+            },
         )
-        if run["status"] == "queued" and (
-            created or run["dispatch_status"] in {"pending", "failed"}
-        ):
+        if run["status"] == "queued" and (created or run["dispatch_status"] in {"pending", "failed"}):
             dispatch_research_run(repository, run_id=run["run_id"])
             run = repository.get_for_user(run_id=run["run_id"], owner_id=context.user_id)
         return run
@@ -925,8 +1069,65 @@ def create_research_run(
         raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
     except ResearchRunConflict as exc:
         raise _error(str(exc), status.HTTP_409_CONFLICT)
+    except ResearchRunNotFound:
+        raise _error("Research conversation not found.", status.HTTP_404_NOT_FOUND)
     except ResearchRunError:
         raise _error("Research service is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
+    finally:
+        if repository is not None:
+            repository.close()
+
+
+@app.get(
+    "/v1/research-conversations",
+    response_model=list[ResearchConversationSummaryResponse],
+)
+def list_research_conversations(
+    response: Response,
+    limit: int = 50,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> list[dict[str, Any]]:
+    response.headers["Cache-Control"] = "no-store"
+    context = _require_user_context(principal)
+    _ensure_zopedia_resolve_scope(principal)
+    repository: ResearchRunRepository | None = None
+    try:
+        repository = ResearchRunRepository.from_environment()
+        return repository.list_conversations(owner_id=context.user_id, limit=limit)
+    except ResearchRunError:
+        raise _error(
+            "Research conversations are unavailable.",
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    finally:
+        if repository is not None:
+            repository.close()
+
+
+@app.get(
+    "/v1/research-conversations/{conversation_id}",
+    response_model=ResearchConversationResponse,
+)
+def get_research_conversation(
+    conversation_id: str,
+    response: Response,
+    principal: api_auth.AuthPrincipal = Depends(_require_principal),
+) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
+    context = _require_user_context(principal)
+    _ensure_zopedia_resolve_scope(principal)
+    repository: ResearchRunRepository | None = None
+    try:
+        repository = ResearchRunRepository.from_environment()
+        return repository.get_conversation(
+            conversation_id=conversation_id, owner_id=context.user_id
+        )
+    except (ValueError, ResearchRunNotFound):
+        raise _error("Research conversation not found.", status.HTTP_404_NOT_FOUND)
+    except ResearchRunError:
+        raise _error(
+            "Research conversation is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE
+        )
     finally:
         if repository is not None:
             repository.close()
@@ -1200,3 +1401,6 @@ def get_research_export(
     if result is None:
         raise _error(f"Export job '{job_id}' not found.", status.HTTP_404_NOT_FOUND)
     return result
+
+
+app.include_router(create_feature_request_router(_require_principal))

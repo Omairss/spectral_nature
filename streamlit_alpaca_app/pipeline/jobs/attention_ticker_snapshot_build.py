@@ -8,6 +8,7 @@ from services.attention_materialized import deserialize_attention_home_payload
 from services.attention_ticker_snapshots import (
     build_attention_ticker_snapshot_frame,
     collect_attention_ticker_symbols,
+    prefetch_attention_intraday_prices,
 )
 
 
@@ -63,6 +64,9 @@ def run_attention_ticker_snapshot_build(
             f"Ticker snapshot build cannot proceed because required datasets are missing or empty: {missing}."
         )
 
+    job_progress_fn(ctx, conn, stage="prefetching_intraday_prices",
+                    message=f"Prefetching intraday price charts for {len(symbols)} Home symbols.", progress_pct=35.0)
+    intraday = prefetch_attention_intraday_prices(symbols, asof_time_utc=ctx.asof)
     job_progress_fn(
         ctx,
         conn,
@@ -75,6 +79,7 @@ def run_attention_ticker_snapshot_build(
         price_history_frame=required_frames["price_history"],
         universe_snapshot_frame=required_frames["universe_snapshot"],
         quarterly_fundamentals_frame=required_frames["quarterly_fundamentals"],
+        intraday_prices=intraday,
         asof_time_utc=ctx.asof,
         run_id=ctx.run_id,
     )

@@ -1,0 +1,13 @@
+{
+  "execution": "sn-research-run-dev-siplxed",
+  "status": "Succeeded",
+  "worker_template_unchanged": true,
+  "worker_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+  "objects": [
+    {
+      "path": "verification/llm-flow-20261015/79c87b919af243c38fbae2ef4843b841.json",
+      "sha256": "53d26216391f4ad7af83ad3374c0f99b9a3662088eb29f633b821a819cf68c23",
+      "last_modified": "2026-10-15T07:09:42+00:00"
+    }
+  ]
+}

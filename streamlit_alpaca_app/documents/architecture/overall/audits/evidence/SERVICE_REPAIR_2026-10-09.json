@@ -1,0 +1,1420 @@
+{
+  "status": "complete",
+  "captured_at_utc": "2026-10-09T18:17:04.528063+00:00",
+  "diagnosis_evidence": "SERVICE_HEALTH_2026-10-09.json",
+  "authorization": "User requested Fix it after production outage diagnosis.",
+  "repairs": {
+    "research_clock": "Restored the missing time import in every affected worker variant. Final images execute the budget methods.",
+    "market_data_memory": "Fully paginate and convert each API batch before fetching the next; no history or symbol cap added.",
+    "equity_capacity": {
+      "before": {
+        "cpu": 1,
+        "memory": "2Gi"
+      },
+      "after": {
+        "cpu": 2,
+        "memory": "4Gi"
+      },
+      "development_peak_rss_kib": 2206832
+    },
+    "monitoring": "Record Azure job/execution IDs at run creation; reconcile exact terminal platform status with namespace guards. Platform success without a completion receipt is Warning. Monitor all tracked jobs.",
+    "identity_permission": {
+      "role": "Spectral Nature Job Execution Reader",
+      "actions": [
+        "Microsoft.App/jobs/executions/read"
+      ],
+      "scope": "sn-pipeline-rg-03130136"
+    },
+    "future_image_guard": "Normal pipeline Dockerfile imports the actual entrypoint and executes the research-budget methods after COPY."
+  },
+  "validation": {
+    "local_reader_equivalence": {
+      "symbols": 1001,
+      "rows": 1471470,
+      "requests": 161,
+      "close_sum": 183860176.5,
+      "before_peak_rss_mib": 1011.1,
+      "after_peak_rss_mib": 240.2
+    },
+    "local_existing_checks": {
+      "stock_bars": "2 passed",
+      "system_health": "2 passed",
+      "python_compile": "passed",
+      "deployment_shell_syntax": "passed",
+      "diff_whitespace": "passed"
+    },
+    "cloud_monitor_probe": {
+      "execution": "trading-agent-build-dev-py9nhq9",
+      "result": "Succeeded; actual managed identity detected a failed execution, left active/untracked/other namespace rows untouched.",
+      "production_incident_state_changed": false,
+      "emails_sent": 0
+    },
+    "cloud_health_resource_probe": {
+      "execution": "trading-agent-build-dev-uepqa9m",
+      "cpu": 0.25,
+      "memory": "0.5Gi",
+      "peak_rss_kib": 237724,
+      "result": "Succeeded; real production reads and final entrypoint import passed.",
+      "emails_sent": 0
+    },
+    "jobs": [
+      {
+        "run_id": "5c37486f-8030-4f14-87d9-830777a909c6",
+        "job_name": "development::trading-agent-build",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-09 17:42:34.406350+00:00",
+        "end_time_utc": "2026-10-09 17:55:03.917276+00:00",
+        "progress_stage": "completed",
+        "progress_message": "Completed successfully.",
+        "platform_job_name": "trading-agent-build-dev",
+        "platform_execution_name": "trading-agent-build-dev-yfirs5m"
+      },
+      {
+        "run_id": "0c4148d4-01a1-428b-a783-a4c83a40695e",
+        "job_name": "development::equities-intraday-preload",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-09 17:51:17.507178+00:00",
+        "end_time_utc": "2026-10-09 17:56:02.087820+00:00",
+        "progress_stage": "completed",
+        "progress_message": "Completed successfully.",
+        "platform_job_name": "equities-next-dev",
+        "platform_execution_name": "equities-next-dev-39l0htr"
+      },
+      {
+        "run_id": "ec88b066-0b67-4ee7-b0a0-9dcdd249a67d",
+        "job_name": "trading-agent-build",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-09 17:56:54.121228+00:00",
+        "end_time_utc": "2026-10-09 18:11:24.768478+00:00",
+        "progress_stage": "completed",
+        "progress_message": "Completed successfully.",
+        "platform_job_name": "trading-agent-build",
+        "platform_execution_name": "trading-agent-build-vxouj0s"
+      },
+      {
+        "run_id": "465cbc2c-037d-4cb6-9f7d-00bda504c26c",
+        "job_name": "equities-intraday-preload",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-09 17:58:02.821823+00:00",
+        "end_time_utc": "2026-10-09 18:03:13.826061+00:00",
+        "progress_stage": "completed",
+        "progress_message": "Completed successfully.",
+        "platform_job_name": "equities-intraday-preload",
+        "platform_execution_name": "equities-intraday-preload-fz1ys8m"
+      }
+    ],
+    "datasets": [
+      {
+        "dataset_name": "development::trading_agent_candidates",
+        "dataset_version_id": "development__trading_agent_candidates__20261009T174233Z__5c37486f",
+        "row_count": 16,
+        "asof_time_utc": "2026-10-09 17:42:33.269931+00:00",
+        "ingested_at_utc": "2026-10-09 17:54:20.190231+00:00"
+      },
+      {
+        "dataset_name": "development::trading_agent_outcomes",
+        "dataset_version_id": "development__trading_agent_outcomes__20261009T174233Z__5c37486f",
+        "row_count": 96,
+        "asof_time_utc": "2026-10-09 17:42:33.269931+00:00",
+        "ingested_at_utc": "2026-10-09 17:55:03.644133+00:00"
+      },
+      {
+        "dataset_name": "development::trading_agent_ranked_opportunities",
+        "dataset_version_id": "development__trading_agent_ranked_opportunities__20261009T174233Z__5c37486f",
+        "row_count": 5994,
+        "asof_time_utc": "2026-10-09 17:42:33.269931+00:00",
+        "ingested_at_utc": "2026-10-09 17:54:19.761641+00:00"
+      },
+      {
+        "dataset_name": "development::trading_agent_research_packages",
+        "dataset_version_id": "development__trading_agent_research_packages__20261009T174233Z__5c37486f",
+        "row_count": 8,
+        "asof_time_utc": "2026-10-09 17:42:33.269931+00:00",
+        "ingested_at_utc": "2026-10-09 17:54:19.490045+00:00"
+      },
+      {
+        "dataset_name": "development::trading_agent_research_reviews",
+        "dataset_version_id": "development__trading_agent_research_reviews__20261009T174233Z__5c37486f",
+        "row_count": 1,
+        "asof_time_utc": "2026-10-09 17:42:33.269931+00:00",
+        "ingested_at_utc": "2026-10-09 17:55:03.799395+00:00"
+      },
+      {
+        "dataset_name": "development::trading_agent_runs",
+        "dataset_version_id": "development__trading_agent_runs__20261009T174233Z__5c37486f",
+        "row_count": 5,
+        "asof_time_utc": "2026-10-09 17:42:33.269931+00:00",
+        "ingested_at_utc": "2026-10-09 17:54:19.967419+00:00"
+      },
+      {
+        "dataset_name": "development::anomaly_events",
+        "dataset_version_id": "development__anomaly_events__20261009T175116Z__0c4148d4",
+        "row_count": 114,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:56:01.686394+00:00"
+      },
+      {
+        "dataset_name": "development::attention_candidates",
+        "dataset_version_id": "development__attention_candidates__20261009T175116Z__0c4148d4",
+        "row_count": 4977,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:56:01.544844+00:00"
+      },
+      {
+        "dataset_name": "development::attention_feed",
+        "dataset_version_id": "development__attention_feed__20261009T175116Z__0c4148d4",
+        "row_count": 20,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:56:01.971838+00:00"
+      },
+      {
+        "dataset_name": "development::attention_rollups",
+        "dataset_version_id": "development__attention_rollups__20261009T175116Z__0c4148d4",
+        "row_count": 63,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:56:01.847609+00:00"
+      },
+      {
+        "dataset_name": "development::correlation_phase_shift_history",
+        "dataset_version_id": "development__correlation_phase_shift_history__20261009T175116Z__0c4148d4",
+        "row_count": 248670,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:55:28.993185+00:00"
+      },
+      {
+        "dataset_name": "development::correlation_phase_shift_summary",
+        "dataset_version_id": "development__correlation_phase_shift_summary__20261009T175116Z__0c4148d4",
+        "row_count": 997,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:55:28.310327+00:00"
+      },
+      {
+        "dataset_name": "development::daily_movers",
+        "dataset_version_id": "development__daily_movers__20261009T175116Z__0c4148d4",
+        "row_count": 999,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:51:21.405886+00:00"
+      },
+      {
+        "dataset_name": "development::macro_anchor_daily_movers",
+        "dataset_version_id": "development__macro_anchor_daily_movers__20261009T175116Z__0c4148d4",
+        "row_count": 563,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:51:23.361356+00:00"
+      },
+      {
+        "dataset_name": "development::momentum_profiles",
+        "dataset_version_id": "development__momentum_profiles__20261009T175116Z__0c4148d4",
+        "row_count": 999,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:55:18.401358+00:00"
+      },
+      {
+        "dataset_name": "development::peer_group_membership",
+        "dataset_version_id": "development__peer_group_membership__20261009T175116Z__0c4148d4",
+        "row_count": 1000,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:56:00.870604+00:00"
+      },
+      {
+        "dataset_name": "development::portfolio_timeseries_snapshot",
+        "dataset_version_id": "development__portfolio_timeseries_snapshot__20261009T175116Z__0c4148d4",
+        "row_count": 350,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:51:24.902837+00:00"
+      },
+      {
+        "dataset_name": "development::positions_snapshot",
+        "dataset_version_id": "development__positions_snapshot__20261009T175116Z__0c4148d4",
+        "row_count": 0,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:51:24.001852+00:00"
+      },
+      {
+        "dataset_name": "development::price_expectations",
+        "dataset_version_id": "development__price_expectations__20261009T175116Z__0c4148d4",
+        "row_count": 4977,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:56:01.342913+00:00"
+      },
+      {
+        "dataset_name": "development::price_history",
+        "dataset_version_id": "development__price_history__20261009T175116Z__0c4148d4",
+        "row_count": 1467928,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:55:15.748063+00:00"
+      },
+      {
+        "dataset_name": "development::taxonomy_peer_group_catalog",
+        "dataset_version_id": "development__taxonomy_peer_group_catalog__20261009T175116Z__0c4148d4",
+        "row_count": 666,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:56:01.174132+00:00"
+      },
+      {
+        "dataset_name": "development::taxonomy_peer_group_membership",
+        "dataset_version_id": "development__taxonomy_peer_group_membership__20261009T175116Z__0c4148d4",
+        "row_count": 1000,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:56:01.053374+00:00"
+      },
+      {
+        "dataset_name": "development::technical_signal_history",
+        "dataset_version_id": "development__technical_signal_history__20261009T175116Z__0c4148d4",
+        "row_count": 1466367,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:55:54.579497+00:00"
+      },
+      {
+        "dataset_name": "development::technical_signals_latest",
+        "dataset_version_id": "development__technical_signals_latest__20261009T175116Z__0c4148d4",
+        "row_count": 1000,
+        "asof_time_utc": "2026-10-09 17:51:16.486824+00:00",
+        "ingested_at_utc": "2026-10-09 17:55:54.715649+00:00"
+      },
+      {
+        "dataset_name": "trading_agent_candidates",
+        "dataset_version_id": "trading_agent_candidates__20261009T175652Z__ec88b066",
+        "row_count": 16,
+        "asof_time_utc": "2026-10-09 17:56:52.640372+00:00",
+        "ingested_at_utc": "2026-10-09 18:11:20.640682+00:00"
+      },
+      {
+        "dataset_name": "trading_agent_outcomes",
+        "dataset_version_id": "trading_agent_outcomes__20261009T175652Z__ec88b066",
+        "row_count": 134,
+        "asof_time_utc": "2026-10-09 17:56:52.640372+00:00",
+        "ingested_at_utc": "2026-10-09 18:11:24.519771+00:00"
+      },
+      {
+        "dataset_name": "trading_agent_ranked_opportunities",
+        "dataset_version_id": "trading_agent_ranked_opportunities__20261009T175652Z__ec88b066",
+        "row_count": 5994,
+        "asof_time_utc": "2026-10-09 17:56:52.640372+00:00",
+        "ingested_at_utc": "2026-10-09 18:11:20.151435+00:00"
+      },
+      {
+        "dataset_name": "trading_agent_research_packages",
+        "dataset_version_id": "trading_agent_research_packages__20261009T175652Z__ec88b066",
+        "row_count": 8,
+        "asof_time_utc": "2026-10-09 17:56:52.640372+00:00",
+        "ingested_at_utc": "2026-10-09 18:11:19.853627+00:00"
+      },
+      {
+        "dataset_name": "trading_agent_research_reviews",
+        "dataset_version_id": "trading_agent_research_reviews__20261009T175652Z__ec88b066",
+        "row_count": 0,
+        "asof_time_utc": "2026-10-09 17:56:52.640372+00:00",
+        "ingested_at_utc": "2026-10-09 18:11:24.660589+00:00"
+      },
+      {
+        "dataset_name": "trading_agent_runs",
+        "dataset_version_id": "trading_agent_runs__20261009T175652Z__ec88b066",
+        "row_count": 5,
+        "asof_time_utc": "2026-10-09 17:56:52.640372+00:00",
+        "ingested_at_utc": "2026-10-09 18:11:20.330048+00:00"
+      },
+      {
+        "dataset_name": "anomaly_events",
+        "dataset_version_id": "anomaly_events__20261009T175801Z__465cbc2c",
+        "row_count": 189,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:13.388872+00:00"
+      },
+      {
+        "dataset_name": "attention_candidates",
+        "dataset_version_id": "attention_candidates__20261009T175801Z__465cbc2c",
+        "row_count": 4975,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:13.214034+00:00"
+      },
+      {
+        "dataset_name": "attention_feed",
+        "dataset_version_id": "attention_feed__20261009T175801Z__465cbc2c",
+        "row_count": 20,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:13.713582+00:00"
+      },
+      {
+        "dataset_name": "attention_rollups",
+        "dataset_version_id": "attention_rollups__20261009T175801Z__465cbc2c",
+        "row_count": 110,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:13.527385+00:00"
+      },
+      {
+        "dataset_name": "correlation_phase_shift_history",
+        "dataset_version_id": "correlation_phase_shift_history__20261009T175801Z__465cbc2c",
+        "row_count": 248498,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:02:40.786075+00:00"
+      },
+      {
+        "dataset_name": "correlation_phase_shift_summary",
+        "dataset_version_id": "correlation_phase_shift_summary__20261009T175801Z__465cbc2c",
+        "row_count": 996,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:02:40.075372+00:00"
+      },
+      {
+        "dataset_name": "daily_movers",
+        "dataset_version_id": "daily_movers__20261009T175801Z__465cbc2c",
+        "row_count": 999,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 17:58:07.159208+00:00"
+      },
+      {
+        "dataset_name": "macro_anchor_daily_movers",
+        "dataset_version_id": "macro_anchor_daily_movers__20261009T175801Z__465cbc2c",
+        "row_count": 571,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 17:58:09.170259+00:00"
+      },
+      {
+        "dataset_name": "momentum_profiles",
+        "dataset_version_id": "momentum_profiles__20261009T175801Z__465cbc2c",
+        "row_count": 998,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:02:30.609478+00:00"
+      },
+      {
+        "dataset_name": "peer_group_membership",
+        "dataset_version_id": "peer_group_membership__20261009T175801Z__465cbc2c",
+        "row_count": 1000,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:12.497987+00:00"
+      },
+      {
+        "dataset_name": "portfolio_timeseries_snapshot",
+        "dataset_version_id": "portfolio_timeseries_snapshot__20261009T175801Z__465cbc2c",
+        "row_count": 350,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 17:58:10.669291+00:00"
+      },
+      {
+        "dataset_name": "positions_snapshot",
+        "dataset_version_id": "positions_snapshot__20261009T175801Z__465cbc2c",
+        "row_count": 0,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 17:58:09.568700+00:00"
+      },
+      {
+        "dataset_name": "price_expectations",
+        "dataset_version_id": "price_expectations__20261009T175801Z__465cbc2c",
+        "row_count": 4975,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:12.937411+00:00"
+      },
+      {
+        "dataset_name": "price_history",
+        "dataset_version_id": "price_history__20261009T175801Z__465cbc2c",
+        "row_count": 1463634,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:02:28.088204+00:00"
+      },
+      {
+        "dataset_name": "taxonomy_peer_group_catalog",
+        "dataset_version_id": "taxonomy_peer_group_catalog__20261009T175801Z__465cbc2c",
+        "row_count": 648,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:12.755583+00:00"
+      },
+      {
+        "dataset_name": "taxonomy_peer_group_membership",
+        "dataset_version_id": "taxonomy_peer_group_membership__20261009T175801Z__465cbc2c",
+        "row_count": 1000,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:12.618966+00:00"
+      },
+      {
+        "dataset_name": "technical_signal_history",
+        "dataset_version_id": "technical_signal_history__20261009T175801Z__465cbc2c",
+        "row_count": 1462073,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:06.448665+00:00"
+      },
+      {
+        "dataset_name": "technical_signals_latest",
+        "dataset_version_id": "technical_signals_latest__20261009T175801Z__465cbc2c",
+        "row_count": 1000,
+        "asof_time_utc": "2026-10-09 17:58:01.697479+00:00",
+        "ingested_at_utc": "2026-10-09 18:03:06.589420+00:00"
+      }
+    ],
+    "development_trading_artifacts": {
+      "trading_agent_runs": {
+        "version": "development__trading_agent_runs__20261009T174233Z__5c37486f",
+        "rows": 5,
+        "columns": [
+          "trading_agent_run_id",
+          "run_id",
+          "horizon_key",
+          "horizon_label",
+          "selected_horizon_col",
+          "business_filter",
+          "status",
+          "regime_read",
+          "portfolio_posture",
+          "candidate_count",
+          "data_gaps_json",
+          "error",
+          "aql_agent_json",
+          "context_json",
+          "result_json",
+          "asof_time_utc",
+          "generated_at_utc"
+        ],
+        "statuses": {
+          "ok": 5
+        }
+      },
+      "trading_agent_research_packages": {
+        "version": "development__trading_agent_research_packages__20261009T174233Z__5c37486f",
+        "rows": 8,
+        "columns": [
+          "research_package_id",
+          "run_id",
+          "ticker",
+          "company_name",
+          "status",
+          "confidence",
+          "answer_markdown",
+          "limitations_json",
+          "tool_calls_json",
+          "evidence_pack_id",
+          "horizon_keys_json",
+          "horizon_labels_json",
+          "selection_trace_json",
+          "opportunity_context_json",
+          "error",
+          "asof_time_utc",
+          "generated_at_utc"
+        ],
+        "statuses": {
+          "completed": 8
+        }
+      },
+      "trading_agent_candidates": {
+        "version": "development__trading_agent_candidates__20261009T174233Z__5c37486f",
+        "rows": 16,
+        "columns": [
+          "candidate_id",
+          "trading_agent_run_id",
+          "run_id",
+          "horizon_key",
+          "horizon_label",
+          "selected_horizon_col",
+          "business_filter",
+          "rank",
+          "ticker",
+          "direction",
+          "stance",
+          "research_status",
+          "setup",
+          "hypothesis",
+          "evidence_json",
+          "invalidation",
+          "tail_risks_json",
+          "evidence_limits_json",
+          "suggested_horizon",
+          "confidence",
+          "decision_status",
+          "candidate_json",
+          "context_json",
+          "asof_time_utc",
+          "generated_at_utc"
+        ]
+      }
+    },
+    "prod_trading_artifacts": {
+      "trading_agent_runs": {
+        "version": "trading_agent_runs__20261009T175652Z__ec88b066",
+        "rows": 5,
+        "columns": [
+          "trading_agent_run_id",
+          "run_id",
+          "horizon_key",
+          "horizon_label",
+          "selected_horizon_col",
+          "business_filter",
+          "status",
+          "regime_read",
+          "portfolio_posture",
+          "candidate_count",
+          "data_gaps_json",
+          "error",
+          "aql_agent_json",
+          "context_json",
+          "result_json",
+          "asof_time_utc",
+          "generated_at_utc"
+        ],
+        "statuses": {
+          "ok": 5
+        }
+      },
+      "trading_agent_research_packages": {
+        "version": "trading_agent_research_packages__20261009T175652Z__ec88b066",
+        "rows": 8,
+        "columns": [
+          "research_package_id",
+          "run_id",
+          "ticker",
+          "company_name",
+          "status",
+          "confidence",
+          "answer_markdown",
+          "limitations_json",
+          "tool_calls_json",
+          "evidence_pack_id",
+          "horizon_keys_json",
+          "horizon_labels_json",
+          "selection_trace_json",
+          "opportunity_context_json",
+          "error",
+          "asof_time_utc",
+          "generated_at_utc"
+        ],
+        "statuses": {
+          "completed": 8
+        }
+      },
+      "trading_agent_candidates": {
+        "version": "trading_agent_candidates__20261009T175652Z__ec88b066",
+        "rows": 16,
+        "columns": [
+          "candidate_id",
+          "trading_agent_run_id",
+          "run_id",
+          "horizon_key",
+          "horizon_label",
+          "selected_horizon_col",
+          "business_filter",
+          "rank",
+          "ticker",
+          "direction",
+          "stance",
+          "research_status",
+          "setup",
+          "hypothesis",
+          "evidence_json",
+          "invalidation",
+          "tail_risks_json",
+          "evidence_limits_json",
+          "suggested_horizon",
+          "confidence",
+          "decision_status",
+          "candidate_json",
+          "context_json",
+          "asof_time_utc",
+          "generated_at_utc"
+        ]
+      }
+    },
+    "development_memory_log": [
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 11132, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"6303744\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:51:16.7421246Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 960016, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"896077824\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:51:46.8597759Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 960016, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"899092480\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:52:16.7052809Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 960016, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"899284992\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:52:46.7688237Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 960016, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"900431872\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:53:17.0454983Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 960016, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"902242304\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:53:46.9202262Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 960016, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"902467584\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:54:17.0341761Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 960016, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"902598656\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:54:46.7809545Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 2206832, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"1186643968\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:55:17.6783825Z"
+      },
+      {
+        "Log_s": "repair_memory={\"rss_peak_kib\": 2206832, \"cgroup\": {\"/sys/fs/cgroup/memory/memory.usage_in_bytes\": \"1395380224\", \"/sys/fs/cgroup/memory/memory.limit_in_bytes\": \"4294967296\", \"/sys/fs/cgroup/memory/memory.failcnt\": \"0\"}}",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:55:46.5647649Z"
+      },
+      {
+        "Log_s": "repair_peak_rss_kib=2206832",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:56:02.638969Z"
+      }
+    ],
+    "development_trading_completion_log": [
+      {
+        "Log_s": "[info] job_progress stage=done progress=100.0% message=Trading Agent materialization complete: mode=shared_research_v2 packages=8 successful_horizons=5/5 candidates=16 outcomes=96 reviews=1.",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:55:05.2244567Z"
+      },
+      {
+        "Log_s": "repair_peak_rss_kib=994464",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T17:55:05.2244567Z"
+      }
+    ],
+    "production_read_model": {
+      "status": "available",
+      "run_id": "ec88b066-0b67-4ee7-b0a0-9dcdd249a67d",
+      "as_of": "2026-10-09 17:56:52.640372+00:00",
+      "horizons": [
+        {
+          "key": "1w",
+          "status": "ok",
+          "candidates": 4
+        },
+        {
+          "key": "1m",
+          "status": "ok",
+          "candidates": 2
+        },
+        {
+          "key": "3m",
+          "status": "ok",
+          "candidates": 4
+        },
+        {
+          "key": "1y",
+          "status": "ok",
+          "candidates": 3
+        },
+        {
+          "key": "5y",
+          "status": "ok",
+          "candidates": 3
+        }
+      ]
+    },
+    "literal_namespace_probe": {
+      "namespace": "dev_x",
+      "other_namespace": "devAx",
+      "result": "Only the exact namespace was read and reconciled in a real PostgreSQL temporary-table probe."
+    },
+    "final_build_runs": {
+      "0": "cjuf",
+      "1": "cju6",
+      "2": "cju8",
+      "3": "cju5",
+      "4": "cju7",
+      "5": "cju9",
+      "6": "cjua",
+      "7": "cjub",
+      "8": "cjuc",
+      "9": "cjud",
+      "10": "cjuh"
+    },
+    "azure_execution_statuses": [
+      {
+        "execution": "trading-agent-build-dev-yfirs5m",
+        "status": "Succeeded",
+        "end_time_utc": "2026-10-09T17:55:08Z"
+      },
+      {
+        "execution": "equities-next-dev-39l0htr",
+        "status": "Succeeded",
+        "end_time_utc": "2026-10-09T17:56:07Z"
+      },
+      {
+        "execution": "trading-agent-build-vxouj0s",
+        "status": "Succeeded",
+        "end_time_utc": "2026-10-09T18:11:29Z"
+      },
+      {
+        "execution": "equities-intraday-preload-fz1ys8m",
+        "status": "Succeeded",
+        "end_time_utc": "2026-10-09T18:03:16Z"
+      },
+      {
+        "execution": "system-health-29859495",
+        "status": "Succeeded",
+        "end_time_utc": "2026-10-09T18:15:49Z"
+      }
+    ]
+  },
+  "images": [
+    {
+      "index": 0,
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "targets": [
+        "universe-builder",
+        "commodities-regime",
+        "options-liquid-universe",
+        "news-ingest-and-features",
+        "entity-taxonomy-refresh",
+        "fundamentals-quarterly-refresh",
+        "company-baseline-prefetch",
+        "zopedia-maintenance",
+        "zopedia-learning"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "9e8c16f3f2fce1c5ed7c8b3d5328c74ad34844c3ef27927f8a52ef1bc10cd58b",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac",
+        "services/agents/research_session.py": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "af9a1355da0ecb73c972620e4d5ed0c822a626bd5e2be5c22120132233d603c3",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e",
+        "services/agents/research_session.py": "1827476c781609a2d9de4de04198de7729f528b8b5cdeac80a4a1d6372dd2a31"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d"
+    },
+    {
+      "index": 1,
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+      "targets": [
+        "equities-intraday-preload",
+        "attention-home-build"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "5ba368e45972a81073f554c6a81efc25e4effed08b217e7732e4039dc3d68822",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "e725ed87c2f64101be4c66ab069644e64581f8d0122f907e2750dca3c1f72015",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:55ca8fef2f1720d1e80a538f826475cf14a5a62dd5898ff889bee564cd6eb9c3"
+    },
+    {
+      "index": 2,
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+      "targets": [
+        "macro-fred-daily"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "9dd60dbd916f76bf0e247ba3b375473e54da54132493ab1ccc0bae232b937198",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac",
+        "services/agents/research_session.py": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "0cd2380c8e2d67734543ef83dcb55d206410b8dd94eb1934dc06a36854f570ab",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e",
+        "services/agents/research_session.py": "1827476c781609a2d9de4de04198de7729f528b8b5cdeac80a4a1d6372dd2a31"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:55e839364827323b68d31304db94313a71c9b2fe2407fba331f5af0214a01e88"
+    },
+    {
+      "index": 3,
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+      "targets": [
+        "trading-agent-build"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "16097dc784e09b5dd9f08da3f16c2abae458ec6c3e27976d9717e27866034903",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac",
+        "services/agents/research_session.py": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "c287a41faa245f651194e26c30852f62736ac6aae237ab17c370ae44c3145cb8",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e",
+        "services/agents/research_session.py": "1827476c781609a2d9de4de04198de7729f528b8b5cdeac80a4a1d6372dd2a31"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:ec76f016f86a7b7010142f22174afa80bbfd0c367c868508527fcea46a95e220"
+    },
+    {
+      "index": 4,
+      "base": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9919767d11ceb70e9e3e4fc5d0cabd0ab96f8f82eceef9567fdee5334c173fec",
+      "targets": [
+        "trading-agent-build-dev"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "16097dc784e09b5dd9f08da3f16c2abae458ec6c3e27976d9717e27866034903",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "c287a41faa245f651194e26c30852f62736ac6aae237ab17c370ae44c3145cb8",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:962ebd4ef87542aeba2c5152a815d40c1531fcaf777ce0bcf55b7bbbd2e647f9"
+    },
+    {
+      "index": 5,
+      "base": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:c9f320e2fbd7dcd77707de4eac484fc4ff30c86cb57c5760e957bd06413064ce",
+      "targets": [
+        "macro-fred-daily-dev"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "9dd60dbd916f76bf0e247ba3b375473e54da54132493ab1ccc0bae232b937198",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "0cd2380c8e2d67734543ef83dcb55d206410b8dd94eb1934dc06a36854f570ab",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:df34246fa1ad598f7735269b185c23be3b386de987e3501e7b091378b597313f"
+    },
+    {
+      "index": 6,
+      "base": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:125d369ade1684c2e39c5c0a977ddc07c096edfe129be46f058c41b2107ada7c",
+      "targets": [
+        "sn-research-run-dev"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "c706b234dc6b117cd6057d1500fb5e44e05a1f4a6b5a290557b9b523a61e1fb7",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "14765f93e099c2692a46e39c5762fe09733cceb1878ffb17e1266c97a083ceff",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:8e132e86e1b9213d1848590f19aefeb12b17825752b602e6eab1bc6e75654d2d"
+    },
+    {
+      "index": 7,
+      "base": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+      "targets": [
+        "attention-home-next-dev",
+        "daily-datapoints-next-dev",
+        "equities-next-dev",
+        "evidence-index-dev"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "9a9a999554fb5532ad533353eec7f191a0eab8e759cbd21564b80622f9417581",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "39ca198b02ab07b01c948d3709a148b1ecc17d2a353bc023a146a9fee08890ff",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:3bf696fbc21cf1448cc92ac7acefee4a0b77a3fd062b55db93c0bc3f9e96ddc3"
+    },
+    {
+      "index": 8,
+      "base": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:09d62d939d8f85ea1a9703ad0bc02b9dbb8928bf4ffb158705f733ecc64a3b66",
+      "targets": [
+        "attention-ticker-next-dev",
+        "technical-history-next-dev"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "540d3e1820a9345c95662ab7683a2429bc75c69c2aebf0805e5c575717187c7b",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "43b08d4617a3bd93da54d32c1be79e0c05856d6112de13d5487ff9f61bf12d3d",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:0e4073d427cbd308b61e3e37a296302516951491d604f4bcae936991b092b59f"
+    },
+    {
+      "index": 9,
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+      "targets": [
+        "sn-research-run"
+      ],
+      "source_before_sha256": {
+        "pipeline/jobs/main.py": "c706b234dc6b117cd6057d1500fb5e44e05a1f4a6b5a290557b9b523a61e1fb7",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac"
+      },
+      "source_after_sha256": {
+        "pipeline/jobs/main.py": "14765f93e099c2692a46e39c5762fe09733cceb1878ffb17e1266c97a083ceff",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:27ddc667e19f82f3cd62f00d4bf05bb5c64744dcb88f70cbb40c0adb509df702"
+    },
+    {
+      "index": 10,
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+      "targets": [
+        "system-health"
+      ],
+      "source_before_sha256": {
+        "services/system_health.py": "1bd9dd0a1b133ede9818ae91aae8ad36413d81b5167c0a4dec4220fb04b34ce2",
+        "pipeline/jobs/main.py": "5ba368e45972a81073f554c6a81efc25e4effed08b217e7732e4039dc3d68822",
+        "services/alpaca_api.py": "d7f113f6b06155b1ffc10f38be176a0bcb2b5694a8f72416fdd74ba1a08a5eac"
+      },
+      "source_after_sha256": {
+        "services/system_health.py": "07f272bf693550106dfd4e5eee8ae2aad17c9affa01fb8648e3f5e10ac87a84f",
+        "pipeline/jobs/main.py": "e725ed87c2f64101be4c66ab069644e64581f8d0122f907e2750dca3c1f72015",
+        "services/alpaca_api.py": "33d7ad3f812e56143e42481c841c373ea0765a9845eac4630c9c0e1e7db2be7e"
+      },
+      "base_change": "Use the verified current producer image with the shared namespaced data store; retire the incompatible legacy health-worker base.",
+      "image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:c0108dde5340ffb211257a92e6b62bc76110da6a5fe5cf9dda374182da33bdb6"
+    }
+  ],
+  "verified_targets": [
+    {
+      "job": "universe-builder",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "1eefb18811bb11d7d529bac4b10d2ac6932a40a16bb274dcdffb0a3d82eb070d",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:05.934924+00:00"
+    },
+    {
+      "job": "commodities-regime",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "8938b10189afb022c756243b59b19254a2715394b0b6783a868fc0ba8045902d",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:05.899220+00:00"
+    },
+    {
+      "job": "options-liquid-universe",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "9e3dbfd1c2ab08b12f42906ea1229fb66f1daf6f6c51a8d3c7254e7f0686fd83",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:05.813114+00:00"
+    },
+    {
+      "job": "news-ingest-and-features",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "160e70bedafd8d608c2bea7715baa11b60a5ebd70845b4415f413587011c8260",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:05.535925+00:00"
+    },
+    {
+      "job": "entity-taxonomy-refresh",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "1a66ee23d045a8ac7d8cd44c5b27599765d6b36fafe63a9900f167e7a5ca4ab7",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:05.675168+00:00"
+    },
+    {
+      "job": "fundamentals-quarterly-refresh",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "9bc87586afe6a23985729de728e8340c750a9a1cf9f5bd3c0566372da26be88d",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 0.5,
+        "memory": "1Gi"
+      },
+      "at_utc": "2026-10-09T18:10:05.955696+00:00"
+    },
+    {
+      "job": "company-baseline-prefetch",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "dd421db88715cbf8d5d4a729a6108921b3aac62a5e07c8ee4b11b412f0fc61a9",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 0.5,
+        "memory": "1Gi"
+      },
+      "at_utc": "2026-10-09T18:10:07.125195+00:00"
+    },
+    {
+      "job": "zopedia-maintenance",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "a04b5781676f81b38b350e35c91440da644f46bb048fb1f3c4636a6f0fa9cbbd",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 0.5,
+        "memory": "1Gi"
+      },
+      "at_utc": "2026-10-09T18:10:07.183564+00:00"
+    },
+    {
+      "job": "zopedia-learning",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:b48a385c54f356670d352225e551a77873e683cfc9fc67b9272efc4fc8e0ca4d",
+      "protected_configuration_sha256": "51d524188048585a19eb2c25634f3b6dc1b110f89d3f4b142e65d32d24c3bfd5",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 0.5,
+        "memory": "1Gi"
+      },
+      "at_utc": "2026-10-09T18:10:07.264019+00:00"
+    },
+    {
+      "job": "equities-intraday-preload",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:55ca8fef2f1720d1e80a538f826475cf14a5a62dd5898ff889bee564cd6eb9c3",
+      "protected_configuration_sha256": "45aa3ca2147099b263c5022cd3ba3892a2a588a15879c2403f5e78587b63ada1",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 2.0,
+        "memory": "4Gi"
+      },
+      "at_utc": "2026-10-09T18:10:07.441215+00:00"
+    },
+    {
+      "job": "attention-home-build",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:55ca8fef2f1720d1e80a538f826475cf14a5a62dd5898ff889bee564cd6eb9c3",
+      "protected_configuration_sha256": "ac75dd5ca633a8f28f217c957197c5c6b84639d8bca9760586dcb0ef243910f1",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:07.285079+00:00"
+    },
+    {
+      "job": "macro-fred-daily",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:55e839364827323b68d31304db94313a71c9b2fe2407fba331f5af0214a01e88",
+      "protected_configuration_sha256": "b778d13dff06dd4de225460291d7b8bd3f3d4cac0cb26c4a1910d216423badde",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:07.464986+00:00"
+    },
+    {
+      "job": "trading-agent-build",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:ec76f016f86a7b7010142f22174afa80bbfd0c367c868508527fcea46a95e220",
+      "protected_configuration_sha256": "580c30612bcd4ff89c121dce83622cdc8359e403399d90c527a38b6759354927",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:08.308694+00:00"
+    },
+    {
+      "job": "trading-agent-build-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9919767d11ceb70e9e3e4fc5d0cabd0ab96f8f82eceef9567fdee5334c173fec",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:962ebd4ef87542aeba2c5152a815d40c1531fcaf777ce0bcf55b7bbbd2e647f9",
+      "protected_configuration_sha256": "ec0e39dd3efdb617bed69ef66eab940cec9577f0fd98361166b81d6f2633c30e",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:08.653973+00:00"
+    },
+    {
+      "job": "macro-fred-daily-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:c9f320e2fbd7dcd77707de4eac484fc4ff30c86cb57c5760e957bd06413064ce",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:df34246fa1ad598f7735269b185c23be3b386de987e3501e7b091378b597313f",
+      "protected_configuration_sha256": "88a82041a4610eca83c241b921eff45f264d04ff222a1ef5f32712870478123e",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:08.663180+00:00"
+    },
+    {
+      "job": "sn-research-run-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:125d369ade1684c2e39c5c0a977ddc07c096edfe129be46f058c41b2107ada7c",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:8e132e86e1b9213d1848590f19aefeb12b17825752b602e6eab1bc6e75654d2d",
+      "protected_configuration_sha256": "293b2d7981e6dfae679a497391eb9726a2ce37b714b82681d28efb80517a2f8c",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 2.0,
+        "memory": "4Gi"
+      },
+      "at_utc": "2026-10-09T18:10:08.401886+00:00"
+    },
+    {
+      "job": "attention-home-next-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:3bf696fbc21cf1448cc92ac7acefee4a0b77a3fd062b55db93c0bc3f9e96ddc3",
+      "protected_configuration_sha256": "f6e373224f74ff69a87d3cbd038d5507389801755da77d700bd3733bd5d50719",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:08.875926+00:00"
+    },
+    {
+      "job": "daily-datapoints-next-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:3bf696fbc21cf1448cc92ac7acefee4a0b77a3fd062b55db93c0bc3f9e96ddc3",
+      "protected_configuration_sha256": "51bcf86bc715726cd25359eec4c5288f7a1fe7a4f203b29467d7b6b9d6856235",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 0.5,
+        "memory": "1Gi"
+      },
+      "at_utc": "2026-10-09T18:10:08.892081+00:00"
+    },
+    {
+      "job": "equities-next-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:3bf696fbc21cf1448cc92ac7acefee4a0b77a3fd062b55db93c0bc3f9e96ddc3",
+      "protected_configuration_sha256": "f4fe6ea179875592641f37f302c6c3a0dc6175ed3e38e82731d74ee3abf3fb3f",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 2.0,
+        "memory": "4Gi"
+      },
+      "at_utc": "2026-10-09T18:10:09.674957+00:00"
+    },
+    {
+      "job": "evidence-index-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:3bf696fbc21cf1448cc92ac7acefee4a0b77a3fd062b55db93c0bc3f9e96ddc3",
+      "protected_configuration_sha256": "730abdfc06c48d20dc51b7002006284b2bbb93402f713afce985ea7845ca9703",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 0.5,
+        "ephemeralStorage": "",
+        "memory": "1Gi"
+      },
+      "at_utc": "2026-10-09T18:10:09.608987+00:00"
+    },
+    {
+      "job": "attention-ticker-next-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:09d62d939d8f85ea1a9703ad0bc02b9dbb8928bf4ffb158705f733ecc64a3b66",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:0e4073d427cbd308b61e3e37a296302516951491d604f4bcae936991b092b59f",
+      "protected_configuration_sha256": "98471d24cbeaff03d3fac2fbfd258ff862797370a49fad95342463c33574736f",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 0.5,
+        "memory": "1Gi"
+      },
+      "at_utc": "2026-10-09T18:10:09.943014+00:00"
+    },
+    {
+      "job": "technical-history-next-dev",
+      "environment": "development",
+      "before_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:09d62d939d8f85ea1a9703ad0bc02b9dbb8928bf4ffb158705f733ecc64a3b66",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:0e4073d427cbd308b61e3e37a296302516951491d604f4bcae936991b092b59f",
+      "protected_configuration_sha256": "d086bec0692daa21990a8cf5fa487f110fb0297366a13ee332f78e827d75314b",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 1.0,
+        "memory": "2Gi"
+      },
+      "at_utc": "2026-10-09T18:10:10.119088+00:00"
+    },
+    {
+      "job": "sn-research-run",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:27ddc667e19f82f3cd62f00d4bf05bb5c64744dcb88f70cbb40c0adb509df702",
+      "protected_configuration_sha256": "fff1509b67423a5b5cebad9dfaeab44e5e46a2123813778835755935efc5953a",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 2.0,
+        "memory": "4Gi"
+      },
+      "at_utc": "2026-10-09T18:10:10.143334+00:00"
+    },
+    {
+      "job": "system-health",
+      "environment": "production",
+      "before_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:f64a62f5a494103f29922c39cb85181bdac48d7ebc9496cd3ab3de5348ffd2af",
+      "after_image": "snpipelineacr03130136.azurecr.io/service-repair@sha256:c0108dde5340ffb211257a92e6b62bc76110da6a5fe5cf9dda374182da33bdb6",
+      "protected_configuration_sha256": "e67796d66e3a4a7f495a14c64afefb34239b26f35ecd3a381c86393a42a1d973",
+      "configuration_verified": true,
+      "resources": {
+        "cpu": 0.25,
+        "memory": "0.5Gi"
+      },
+      "at_utc": "2026-10-09T18:10:10.198289+00:00"
+    }
+  ],
+  "incident_row_reconciliation": {
+    "association_evidence": "Azure console logs for equities-intraday-preload-29859395-x4wzd and -xghns each record the exact run_id before price_history fetch.",
+    "before": [
+      [
+        "7e6d3a5b-454c-4773-b2a6-4d3b7444ef9d",
+        "equities-intraday-preload",
+        "Running",
+        null,
+        null
+      ],
+      [
+        "66c57707-0046-41fb-94f5-3dadc5fcfce6",
+        "equities-intraday-preload",
+        "Running",
+        null,
+        null
+      ]
+    ],
+    "platform_ids_assigned": 2,
+    "production_rows_reconciled": 2,
+    "after": [
+      [
+        "7e6d3a5b-454c-4773-b2a6-4d3b7444ef9d",
+        "equities-intraday-preload",
+        "Failed",
+        "platform_terminated",
+        "2026-10-09 17:48:23.483820+00:00",
+        "Azure execution equities-intraday-preload-29859395 ended with status Failed; the process did not finalize its database run."
+      ],
+      [
+        "66c57707-0046-41fb-94f5-3dadc5fcfce6",
+        "equities-intraday-preload",
+        "Failed",
+        "platform_terminated",
+        "2026-10-09 17:48:23.483820+00:00",
+        "Azure execution equities-intraday-preload-29859395 ended with status Failed; the process did not finalize its database run."
+      ]
+    ],
+    "development_rows_reconciled": 2,
+    "at_utc": "2026-10-09T17:48:26.239737+00:00"
+  },
+  "public_availability": {
+    "at_utc": "2026-10-09T18:03:08.553908+00:00",
+    "checks": [
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/health",
+        "status": 200
+      },
+      {
+        "path": "/api/home",
+        "status": 200,
+        "keys": [
+          "status",
+          "view_date",
+          "is_replay",
+          "as_of",
+          "run_id",
+          "summary",
+          "graph",
+          "beats",
+          "daily_datapoints",
+          "coverage",
+          "provenance"
+        ],
+        "status_field": "available",
+        "as_of": "2026-10-09T16:50:30.509158+00:00",
+        "run_id": "9a42be35-2eb8-4c31-9359-16fc71e94220"
+      },
+      {
+        "path": "/zopedia",
+        "status": 200
+      }
+    ]
+  },
+  "latest_monitor_runs": [
+    {
+      "run_id": "77a440ad-6653-44ad-a661-0a98cdbfd0cb",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 18:15:37.282362+00:00",
+      "end_time_utc": "2026-10-09 18:15:41.730695+00:00",
+      "progress_message": "Completed successfully.",
+      "platform_execution_name": "system-health-29859495"
+    },
+    {
+      "run_id": "c65dc556-c1ac-440c-a901-14948fff79fe",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 18:00:40.633518+00:00",
+      "end_time_utc": "2026-10-09 18:00:44.183966+00:00",
+      "progress_message": "Completed successfully.",
+      "platform_execution_name": null
+    },
+    {
+      "run_id": "516278fb-9588-47c9-a851-97b96b69e2ca",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 17:45:27.224152+00:00",
+      "end_time_utc": "2026-10-09 17:45:27.635668+00:00",
+      "progress_message": "Completed successfully.",
+      "platform_execution_name": null
+    }
+  ],
+  "incidents": [
+    {
+      "incident_key": "trading-agent-build-failed",
+      "status": "resolved",
+      "last_detected_at_utc": "2026-10-09 18:00:39.599752+00:00",
+      "resolved_at_utc": "2026-10-09 18:00:39.599752+00:00",
+      "opened_notified_at_utc": "2026-10-09 14:45:40.377365+00:00",
+      "recovery_notified_at_utc": "2026-10-09 18:00:39.599752+00:00"
+    },
+    {
+      "incident_key": "trading-agent-no-successful-horizons",
+      "status": "resolved",
+      "last_detected_at_utc": "2026-10-09 18:15:36.003570+00:00",
+      "resolved_at_utc": "2026-10-09 18:15:36.003570+00:00",
+      "opened_notified_at_utc": "2026-10-09 18:00:39.599752+00:00",
+      "recovery_notified_at_utc": "2026-10-09 18:15:36.003570+00:00"
+    },
+    {
+      "incident_key": "attention-home-stale",
+      "status": "resolved",
+      "last_detected_at_utc": "2026-10-09 15:30:29.047968+00:00",
+      "resolved_at_utc": "2026-10-09 15:30:29.047968+00:00",
+      "opened_notified_at_utc": "2026-10-09 15:00:38.364041+00:00",
+      "recovery_notified_at_utc": "2026-10-09 15:30:29.047968+00:00"
+    }
+  ],
+  "release_corrections": {
+    "rejected_initial_projection": "A no-op normalization removed modern job-record namespaces. Two development runs exposed it; actual datasets remained development-only. Corrected their proven labels and rebuilt with namespace/platform-ID execution checks. No rejected image was promoted to a production template.",
+    "rejected_health_base": "Legacy health image lacked the namespaced store API; its build failed before deployment. The final health worker uses the current producer base.",
+    "receipt_reconstruction": "Independent promotion loops collided on a shared receipt. Final independent resource verification reconstructed all targets."
+  },
+  "research_quality": "Personally read all eight development answers. Company context and dated source leads are restored, but excessive watch-only/provenance language, financial-pattern labels, missing filing exhibits and some overconfident residual/causal interpretations remain. These were not patched sentence by sentence. This incident repair does not complete the ML discovery redesign. Personally read all sixteen production candidate narratives. Fifteen are no_call; unsupported financial pattern language persists, and several invalidation thresholds compare quarterly revenue against full-year guidance. These remain general research-objective and semantic-reasoning defects; the runtime repair does not claim to resolve them.",
+  "monitor_recovery": {
+    "scheduled_execution": "system-health-29859495",
+    "database_run_id": "77a440ad-6653-44ad-a661-0a98cdbfd0cb",
+    "status": "Succeeded",
+    "remaining_open_incidents": 0,
+    "recovery_notification_recorded_at_utc": "2026-10-09T18:15:36.003570Z",
+    "manual_notifications_sent": 0
+  }
+}

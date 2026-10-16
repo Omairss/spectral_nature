@@ -82,12 +82,27 @@ def verify_hypothesis(
         user_data["signal_context"] = _trim_text(signal_context, limit=800)
 
     try:
-        data = llm_client.generate_json(
-            system_prompt=get_prompt(_HYPOTHESIS_VERIFICATION_SYSTEM_PROMPT),
-            user_prompt=json.dumps(user_data, ensure_ascii=False, default=str),
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=json.dumps(user_data, ensure_ascii=False, default=str),
+            instructions=get_prompt(_HYPOTHESIS_VERIFICATION_SYSTEM_PROMPT),
             schema_name="hypothesis_verification",
             schema=HYPOTHESIS_VERIFICATION_SCHEMA,
+            task="hypothesis_verification", stage='synthesis',
+            surface="services.common.hypothesis",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
     except (LLMAPIError, Exception):
         return _unverified_result("LLM verification failed; no verdict was generated.")
 

@@ -5,8 +5,10 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import threading
+import time
 from typing import Any, Callable, Protocol
 import uuid
+from zoneinfo import ZoneInfo
 
 from services import pipeline_store
 
@@ -33,6 +35,95 @@ _SENSITIVE_KEYS = {
 
 class ResearchCancellationRequested(RuntimeError):
     """Raised at a harness progress boundary when a durable run is cancelled."""
+
+
+class ResearchStepTimeout(TimeoutError):
+    def __init__(self, stage: str, message: str) -> None:
+        super().__init__(message)
+        self.stage = stage
+
+
+def research_request_context(
+    query: str, context: dict[str, Any] | None = None, *, write_policy: str = "none"
+) -> dict[str, Any]:
+    """Application-owned context; the model may narrow source scope, never widen it."""
+    context = dict(context or {})
+    if write_policy not in {"none", "propose", "safe_auto"}:
+        raise ValueError("Invalid research knowledge policy.")
+    requested_policy = context.get("write_policy", write_policy)
+    policies = ("none", "propose", "safe_auto")
+    if requested_policy not in policies:
+        raise ValueError("Invalid requested research knowledge policy.")
+    write_policy = policies[min(policies.index(write_policy), policies.index(requested_policy))]
+    zone = str(context.get("timezone") or "UTC")
+    try:
+        ZoneInfo(zone)
+    except KeyError as exc:
+        raise ValueError("Unknown research timezone.") from exc
+    asof = context.get("asof_time_utc") or datetime.now(timezone.utc).isoformat()
+    parsed = datetime.fromisoformat(str(asof).replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise ValueError("Research as-of time requires a timezone.")
+    source_access = context.get("allowed_source_access")
+    if source_access is not None and (
+        not isinstance(source_access, list) or not all(isinstance(value, str) for value in source_access)
+        or not set(source_access) <= {"supplied", "retained_or_data", "web"}
+    ):
+        raise ValueError("Invalid research source access scope")
+    return {
+        "original_query": str(query).strip(),
+        "asof_time_utc": parsed.astimezone(timezone.utc).isoformat(),
+        "timezone": zone,
+        "requested_time_period": str(context.get("requested_time_period") or ""),
+        "visible_artifacts": list(context.get("visible_artifacts") or []),
+        "allow_web": context.get("allow_web", True) is True,
+        "allowed_source_access": source_access,
+        "task_context": dict(context.get("task_context") or {}),
+        "write_policy": write_policy,
+        "conversation_id": str(context.get("conversation_id") or ""),
+        "turn_id": str(context.get("turn_id") or ""),
+        "conversation_runs": list(context.get("conversation_runs") or []),
+    }
+
+
+@dataclass(frozen=True)
+class ResearchBudget:
+    """One run clock, with time reserved for returning and reviewing evidence."""
+
+    started: float
+    deadline: float | None
+    research_deadline: float | None
+    synthesis_deadline: float | None
+
+    @classmethod
+    def start(
+        cls, timeout_seconds: float | None, step_seconds: float, *, research_required: bool = True
+    ) -> "ResearchBudget":
+        started = time.monotonic()
+        if timeout_seconds is None:
+            return cls(started, None, None, None)
+        total = max(float(timeout_seconds), 0.0)
+        if not research_required:
+            return cls(started, started + total, started, started + total * 0.65)
+        completion = min(1.5 * float(step_seconds), total * 0.35)
+        end = started + total
+        return cls(started, end, end - completion, end - completion / 3)
+
+    def remaining(self, phase: str = "research", maximum: float | None = None) -> float:
+        end = self.research_deadline if phase == "research" else self.synthesis_deadline if phase == "synthesis" else self.deadline
+        remaining = max(end - time.monotonic(), 0.0) if end is not None else float("inf")
+        return min(remaining, float(maximum)) if maximum is not None else remaining
+
+    def step_deadline(self, phase: str, maximum: float) -> float:
+        return time.monotonic() + self.remaining(phase, maximum)
+
+    def metadata(self) -> dict[str, Any]:
+        return {
+            "timeout_seconds": None if self.deadline is None else self.deadline - self.started,
+            "elapsed_seconds": round(time.monotonic() - self.started, 3),
+            "research_budget_exhausted": self.remaining("research") <= 0,
+            "run_budget_exhausted": self.remaining("completion") <= 0,
+        }
 
 
 def _clean(value: object) -> str:
@@ -91,6 +182,7 @@ class ResearchSessionEvent:
 
 
 class ResearchSessionStore(Protocol):
+    def save_checkpoint(self, run_id: str, checkpoint: dict[str, Any]) -> None: ...
     def start(
         self,
         *,
@@ -123,6 +215,9 @@ class ResearchSessionStore(Protocol):
 
 
 class NullResearchSessionStore:
+    def save_checkpoint(self, run_id: str, checkpoint: dict[str, Any]) -> None:
+        pass
+
     def start(self, **_: Any) -> None:
         return None
 
@@ -152,39 +247,69 @@ class PostgresResearchSessionStore:
             if _SCHEMA_BOOTSTRAPPED:
                 return
             with self.connection.cursor() as cur:
-                cur.execute(
-                    """
+                cur.execute("""
                     SELECT table_name, column_name
                     FROM information_schema.columns
                     WHERE table_schema = current_schema()
                       AND table_name IN ('aql_research_sessions', 'aql_research_session_events')
-                    """
-                )
+                    """)
                 existing_columns: dict[str, set[str]] = {}
                 for table_name, column_name in cur.fetchall():
                     existing_columns.setdefault(str(table_name), set()).add(str(column_name))
             self.connection.commit()
             required_session_columns = {
-                "run_id", "surface", "task", "query", "query_sha256", "status", "provider", "model",
-                "metadata_json", "result_summary_json", "last_event_sequence", "started_at", "updated_at",
-                "completed_at", "owner_type", "owner_id", "owner_email", "idempotency_key", "environment",
-                "write_policy", "budget_json", "result_json", "error_code", "dispatch_error",
-                "cancel_requested_at", "claimed_at", "dispatched_at", "executor_id", "attempt_count",
+                "run_id",
+                "surface",
+                "task",
+                "query",
+                "query_sha256",
+                "status",
+                "provider",
+                "model",
+                "metadata_json",
+                "result_summary_json",
+                "last_event_sequence",
+                "started_at",
+                "updated_at",
+                "completed_at",
+                "owner_type",
+                "owner_id",
+                "owner_email",
+                "idempotency_key",
+                "environment",
+                "write_policy",
+                "budget_json",
+                "result_json",
+                "error_code",
+                "dispatch_error",
+                "cancel_requested_at",
+                "claimed_at",
+                "dispatched_at",
+                "executor_id",
+                "attempt_count",
+                "checkpoint_json",
+                "conversation_id",
+                "turn_id",
             }
             required_event_columns = {
-                "event_id", "run_id", "sequence", "event_type", "stage", "message", "progress",
-                "payload_json", "created_at",
+                "event_id",
+                "run_id",
+                "sequence",
+                "event_type",
+                "stage",
+                "message",
+                "progress",
+                "payload_json",
+                "created_at",
             }
-            if (
-                required_session_columns.issubset(existing_columns.get("aql_research_sessions", set()))
-                and required_event_columns.issubset(existing_columns.get("aql_research_session_events", set()))
-            ):
+            if required_session_columns.issubset(
+                existing_columns.get("aql_research_sessions", set())
+            ) and required_event_columns.issubset(existing_columns.get("aql_research_session_events", set())):
                 _SCHEMA_BOOTSTRAPPED = True
                 return
 
             with self.connection.cursor() as cur:
-                cur.execute(
-                    """
+                cur.execute("""
                     CREATE TABLE IF NOT EXISTS aql_research_sessions (
                         run_id TEXT PRIMARY KEY,
                         surface TEXT NOT NULL,
@@ -201,8 +326,7 @@ class PostgresResearchSessionStore:
                         updated_at TIMESTAMPTZ NOT NULL,
                         completed_at TIMESTAMPTZ
                     )
-                    """
-                )
+                    """)
                 for statement in (
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS owner_type TEXT",
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS owner_id TEXT",
@@ -212,6 +336,9 @@ class PostgresResearchSessionStore:
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS write_policy TEXT",
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS budget_json JSONB",
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS result_json JSONB",
+                    "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS checkpoint_json JSONB",
+                    "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS conversation_id TEXT",
+                    "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS turn_id TEXT",
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS error_code TEXT",
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS dispatch_error TEXT",
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS cancel_requested_at TIMESTAMPTZ",
@@ -221,27 +348,24 @@ class PostgresResearchSessionStore:
                     "ALTER TABLE aql_research_sessions ADD COLUMN IF NOT EXISTS attempt_count INTEGER NOT NULL DEFAULT 0",
                 ):
                     cur.execute(statement)
-                cur.execute(
-                    """
+                cur.execute("""
                     CREATE INDEX IF NOT EXISTS idx_aql_research_sessions_surface_status
                     ON aql_research_sessions (surface, status, started_at DESC)
-                    """
-                )
-                cur.execute(
-                    """
+                    """)
+                cur.execute("""
                     CREATE INDEX IF NOT EXISTS idx_aql_research_sessions_queue
                     ON aql_research_sessions (environment, status, started_at ASC)
-                    """
-                )
-                cur.execute(
-                    """
+                    """)
+                cur.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_aql_research_sessions_conversation
+                    ON aql_research_sessions (owner_id, environment, conversation_id, started_at)
+                    """)
+                cur.execute("""
                     CREATE UNIQUE INDEX IF NOT EXISTS idx_aql_research_sessions_owner_idempotency
                     ON aql_research_sessions (owner_id, idempotency_key)
                     WHERE owner_id IS NOT NULL AND idempotency_key IS NOT NULL
-                    """
-                )
-                cur.execute(
-                    """
+                    """)
+                cur.execute("""
                     CREATE TABLE IF NOT EXISTS aql_research_session_events (
                         event_id TEXT PRIMARY KEY,
                         run_id TEXT NOT NULL REFERENCES aql_research_sessions(run_id) ON DELETE CASCADE,
@@ -254,14 +378,11 @@ class PostgresResearchSessionStore:
                         created_at TIMESTAMPTZ NOT NULL,
                         UNIQUE (run_id, sequence)
                     )
-                    """
-                )
-                cur.execute(
-                    """
+                    """)
+                cur.execute("""
                     CREATE INDEX IF NOT EXISTS idx_aql_research_session_events_run_sequence
                     ON aql_research_session_events (run_id, sequence)
-                    """
-                )
+                    """)
             self.connection.commit()
             _SCHEMA_BOOTSTRAPPED = True
 
@@ -293,6 +414,7 @@ class PostgresResearchSessionStore:
                     SET provider = COALESCE(NULLIF(EXCLUDED.provider, ''), aql_research_sessions.provider),
                         model = COALESCE(NULLIF(EXCLUDED.model, ''), aql_research_sessions.model),
                         metadata_json = COALESCE(aql_research_sessions.metadata_json, '{}'::jsonb) || EXCLUDED.metadata_json,
+                        budget_json = COALESCE(aql_research_sessions.budget_json, '{}'::jsonb) || COALESCE(EXCLUDED.metadata_json->'effective_budget','{}'::jsonb),
                         updated_at = EXCLUDED.updated_at
                     """,
                     {
@@ -306,6 +428,23 @@ class PostgresResearchSessionStore:
                         "metadata_json": json.dumps(metadata, ensure_ascii=True, default=str),
                         "started_at": started_at,
                     },
+                )
+            self.connection.commit()
+
+    def load_checkpoint(self, run_id: str) -> dict[str, Any]:
+        with self._lock:
+            with self.connection.cursor() as cur:
+                cur.execute("SELECT checkpoint_json FROM aql_research_sessions WHERE run_id=%s", (run_id,))
+                row = cur.fetchone()
+            self.connection.commit()
+        return dict(row[0]) if row and isinstance(row[0], dict) else {}
+
+    def save_checkpoint(self, run_id: str, checkpoint: dict[str, Any]) -> None:
+        with self._lock:
+            with self.connection.cursor() as cur:
+                cur.execute(
+                    "UPDATE aql_research_sessions SET checkpoint_json=%s::jsonb,updated_at=now() WHERE run_id=%s",
+                    (json.dumps(checkpoint, ensure_ascii=False, default=str), run_id),
                 )
             self.connection.commit()
 
@@ -448,6 +587,10 @@ class ResearchSession:
         safe_metadata = _safe_value(metadata or {})
         if not isinstance(safe_metadata, dict):
             safe_metadata = {}
+        if isinstance((metadata or {}).get("configuration_snapshot"), dict):
+            # This application-owned snapshot contains no connection secrets.
+            # Preserve complete prompts; generic log shortening breaks retries.
+            safe_metadata["configuration_snapshot"] = metadata["configuration_snapshot"]
         try:
             self.store.start(
                 run_id=self.run_id,
@@ -505,11 +648,44 @@ class ResearchSession:
                     self.durable = False
             return event
 
-    def progress_callback(self, callback: ProgressCallback | None) -> ProgressCallback:
+    def progress_callback(
+        self, callback: ProgressCallback | None, *,
+        checkpoint_callback: ProgressCallback | None = None,
+    ) -> ProgressCallback:
         def _record_progress(raw_event: dict[str, Any]) -> None:
-            sanitized = _safe_value(dict(raw_event or {}))
+            raw_event = dict(raw_event or {})
+            checkpoint = raw_event.pop("_checkpoint", None)
+            if isinstance(checkpoint, dict) and checkpoint_callback is not None:
+                # Operational recovery is independent of knowledge mutation.
+                # Private evidence never enters the public progress callback.
+                checkpoint_callback(checkpoint)
+            if isinstance(checkpoint, dict) and self.durable:
+                try:
+                    self.store.save_checkpoint(self.run_id, checkpoint)
+                except Exception:
+                    self.durable = False
+                    import logging
+
+                    logging.getLogger(__name__).exception("Research checkpoint persistence failed")
+            if isinstance(checkpoint, dict):
+                return
+            sanitized = _safe_value(raw_event)
             event = dict(sanitized) if isinstance(sanitized, dict) else {}
             stage_name = _clean(event.get("stage"))
+            activity_labels = {
+                "preparing": "Preparing research",
+                "start": "Preparing research",
+                "planner_start": "Planning the next step",
+                "planner_heartbeat": "Planning the next step",
+                "tool_start": "Reading sources",
+                "tool_heartbeat": "Reading sources",
+                "final_synthesis_start": "Writing the answer",
+                "final_synthesis_heartbeat": "Writing the answer",
+                "answer_judge_start": "Reviewing the answer",
+                "answer_judge_heartbeat": "Reviewing the answer",
+            }
+            if stage_name in activity_labels:
+                event["activity_label"] = activity_labels[stage_name]
             if stage_name == "planner_reasoning":
                 event["message"] = "Planner selected the next research step."
             elif stage_name == "model_reasoning_trace":
@@ -577,7 +753,7 @@ class ResearchSession:
             "run_id": self.run_id,
             "event_count": len(self.events),
             "durable_event_log": self.durable,
-            "resumable": False,
+            "resumable": self.durable,
         }
 
     def close(self) -> None:

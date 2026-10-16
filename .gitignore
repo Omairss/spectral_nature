@@ -1,5 +1,10 @@
 # .gitignore
 
+# Local metadata, private diagnostics and temporary release copies
+.DS_Store
+*.private.json
+streamlit_alpaca_app/tmp/
+
 .env
 .env.*
 !.env.example
@@ -8,6 +13,7 @@ streamlit_alpaca_app/infra/.generated/
 streamlit_alpaca_app/infra/deployment.outputs.env
 streamlit_alpaca_app/infra/email_delivery.outputs.env
 streamlit_alpaca_app/cache/pipeline_store/*
+streamlit_alpaca_app/cache/historical_corpus/
 !streamlit_alpaca_app/cache/pipeline_store/.gitignore
 streamlit_alpaca_app/web/.next/
 streamlit_alpaca_app/web/node_modules/

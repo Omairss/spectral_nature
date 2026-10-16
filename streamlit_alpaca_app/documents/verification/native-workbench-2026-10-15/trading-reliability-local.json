@@ -1,0 +1,411 @@
+{
+  "status": "production_promoted_build8_installed_trading_refresh_verified",
+  "captured_at_utc": "2026-10-16T05:22:25Z",
+  "source_manifest": {
+    "api": {
+      "base": "native-workbench-api-dev@sha256:2751bcf177c88601470b601f8f4520ee26a353a71a7c51063d87886a1be79a4e",
+      "files": {
+        "services/pipeline_store.py": "cbf4e10f4b9e20de4130922ab6445599084c19a2a9395594690ba6f6a3943827",
+        "services/saa/storage.py": "ae38935d9b55cc4e1c29df9cc702569989716f7837b11b8262f02d57170ef417",
+        "services/llm_execution.py": "35fc3961155f6800e0f71f79103396853df792dfb1d9cb513d099b518037aae5",
+        "services/aql_zopedia_engine.py": "06f1c5b8aaca6a2f761d5b571ec44ef002dae99828a5c8f0102e6fb2588eefa7",
+        "services/zopedia_agent.py": "dd7e35dc85a8d33c8a907b495b9da50c1f5755b4eb98f8cfe1a73745f11df9a4",
+        "services/agents/research_session.py": "b1c5b32331caea0ca0f93ddf79f71f7ec7a4708f3b27358a9ef21bbab23cfdb8",
+        "services/page_browsing.py": "f0b5254fb7465a773f02b80f3de06851b658e3357a90bb9d9bddfb04ee927858"
+      }
+    },
+    "research": {
+      "base": "zopedia-conversation-dev@sha256:124218fe2a1ecbd515068f0c9098805b4e6544a9519a631f326d4def3d7450ed",
+      "files": {
+        "services/pipeline_store.py": "cbf4e10f4b9e20de4130922ab6445599084c19a2a9395594690ba6f6a3943827",
+        "services/saa/storage.py": "ae38935d9b55cc4e1c29df9cc702569989716f7837b11b8262f02d57170ef417",
+        "services/llm_execution.py": "35fc3961155f6800e0f71f79103396853df792dfb1d9cb513d099b518037aae5",
+        "services/aql_zopedia_engine.py": "06f1c5b8aaca6a2f761d5b571ec44ef002dae99828a5c8f0102e6fb2588eefa7",
+        "services/zopedia_agent.py": "dd7e35dc85a8d33c8a907b495b9da50c1f5755b4eb98f8cfe1a73745f11df9a4",
+        "services/agents/research_session.py": "b1c5b32331caea0ca0f93ddf79f71f7ec7a4708f3b27358a9ef21bbab23cfdb8",
+        "services/page_browsing.py": "f0b5254fb7465a773f02b80f3de06851b658e3357a90bb9d9bddfb04ee927858"
+      }
+    },
+    "worker": {
+      "base": "zopedia-conversation-dev@sha256:474ea722c40f90f1d5f24a144e845ffca2d443d0c04dfb173a3e2d63a9a41fdf",
+      "files": {
+        "services/pipeline_store.py": "cbf4e10f4b9e20de4130922ab6445599084c19a2a9395594690ba6f6a3943827",
+        "services/saa/storage.py": "ae38935d9b55cc4e1c29df9cc702569989716f7837b11b8262f02d57170ef417",
+        "services/llm_execution.py": "35fc3961155f6800e0f71f79103396853df792dfb1d9cb513d099b518037aae5",
+        "services/aql_zopedia_engine.py": "06f1c5b8aaca6a2f761d5b571ec44ef002dae99828a5c8f0102e6fb2588eefa7",
+        "services/zopedia_agent.py": "dd7e35dc85a8d33c8a907b495b9da50c1f5755b4eb98f8cfe1a73745f11df9a4",
+        "services/agents/research_session.py": "b1c5b32331caea0ca0f93ddf79f71f7ec7a4708f3b27358a9ef21bbab23cfdb8",
+        "services/page_browsing.py": "f0b5254fb7465a773f02b80f3de06851b658e3357a90bb9d9bddfb04ee927858",
+        "services/trading_agent.py": "4375abf7c0efa82962b4d122de53bd1195090a60f1c53f91f9104ab40fd1337f",
+        "pipeline/jobs/main.py": "b0f7f5bb04dcab3679fc92a05fec3f049f7b9daa4998ad49cf0b742d2c022b70",
+        "compute/fundamentals.py": "94af1e9ab7e02db1886797c3c63ec778021044e3a7b6197ca594f2c38ff53cfc"
+      },
+      "packaging": "single owned source layer; original accepted base avoids exhausted inherited layer chain"
+    }
+  },
+  "builds": {
+    "api": "cj14m",
+    "research": "cj14j",
+    "worker_failed_packaging": "cj14k",
+    "worker": "cj14n"
+  },
+  "retrieval": {
+    "python_peak_before_bytes": 26589875,
+    "python_peak_after_bytes": 1934883,
+    "selected_rows": 40,
+    "equivalence": "all fields/order/scores identical within one read-only snapshot, stable SQL tie ordering in both paths"
+  },
+  "outcomes": {
+    "requested_versions": 12,
+    "available_versions": 6,
+    "candidates": 96,
+    "all_price_bars": 1467928,
+    "selected_price_bars": 31021,
+    "peak_process_before_bytes": 742916096,
+    "peak_process_after_bytes": 222937088,
+    "equivalence": "all output/provenance fields identical",
+    "missing_price_unchanged": 2
+  },
+  "recovery_checks": {
+    "model_calls": 0,
+    "private_checkpoints": true,
+    "full_evidence_resume": true,
+    "stable_identity": true,
+    "completed_reuse": true,
+    "fresh_execution_isolation": true,
+    "sql_lease_ownership": true,
+    "required_store_unavailable_stops_inference": true,
+    "instruction_changes_invalidate_reuse": true,
+    "input_versions_pinned": true,
+    "replica_run_asof_stable": true,
+    "default_structured_budget_seconds": 300,
+    "explicit_budgets_preserved": true
+  },
+  "qualitative_review": {
+    "company_results_read": 8,
+    "exact_research_briefs_reused": 8,
+    "initial_horizons_completed": 4,
+    "initial_5y_failure": "LLMDeadlineExceeded, retained",
+    "5y_only_retry": "completed; no company or earlier horizon re-buy",
+    "complete_horizons_read": 5,
+    "limitation": "Not a full cloud-run/headroom acceptance or a forecast-performance claim"
+  },
+  "production_changed": true,
+  "phone_installed": true,
+  "engine_revision": "b96611be709270d5a95d",
+  "images": {
+    "api": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:4ed18f208f3665efce61e3a0fa41c436034ded1242a019cc7302920a8e792763",
+    "research": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:ad0bb05bcff2dababf0765853af6a7c9d534cc410788e2495478b9c7ce051375",
+    "worker": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:c6cef33ac29eccebad255f9def3d6cd4c54fb43357612e5990852d5cd2ff837d"
+  },
+  "dev": {
+    "api_revision": "sn-api-next-dev--0000032",
+    "image_only_configuration_checks": {
+      "api": true,
+      "research": true,
+      "worker": true
+    },
+    "trading_execution": "trading-agent-build-dev-9h67txj",
+    "trading_run_id": "1d1e0d6e-19c0-4340-93af-fc7e624a717b",
+    "trading_replica": "trading-agent-build-dev-9h67txj-m4xnm",
+    "container_memory_limit_bytes": 2147483648,
+    "observed_peak_through_first_three_companies_bytes": 606601216,
+    "full_run_accepted": false,
+    "home": {
+      "status": "available",
+      "highlights": 5,
+      "groups": 8,
+      "selection_time_utc": "2026-10-14T05:55:36.031874+00:00"
+    },
+    "anonymous_request_inbox_status": 401,
+    "native_followup": {
+      "run_id": "agrun_f8a19308a94441aca42cdf71",
+      "conversation_id": "zthread_dd9348447e5743e0b2c34701",
+      "status": "completed",
+      "event_count": 27,
+      "public_updates": 3,
+      "completion_delivered_once": true,
+      "read_full_answer": true,
+      "sign_in_preserved": true
+    },
+    "execution_status": "Succeeded",
+    "company_completed": 7,
+    "company_failed": [
+      "MRNA"
+    ],
+    "successful_horizons": 5,
+    "candidates": 17,
+    "outcomes": 113,
+    "reviews": 1,
+    "observed_cgroup_peak_bytes": 2147483648,
+    "completed_at_utc": "2026-10-16T06:01:31Z"
+  },
+  "memory_attribution": {
+    "tool": "research.search_evidence",
+    "raw_tool_record_bytes": 197939859,
+    "candidate_sources": 160,
+    "largest_source_reference_bytes": 22418024,
+    "largest_source_references": 8034,
+    "source_id": "saa_chunk::0c2558961ed4bc23781eb24a",
+    "full_originals_preserved": true,
+    "accepted": false
+  },
+  "provenance_repair": {
+    "linked_graph": {
+      "references_before": 8034,
+      "nodes_after": 689,
+      "bytes_before": 21859318,
+      "bytes_after": 819017,
+      "seconds": 2.5447732909815386,
+      "python_peak_bytes": 2007352,
+      "all_links_resolved": true,
+      "idempotent": true
+    },
+    "recorded_baseline": {
+      "mode": "baseline",
+      "recorded_sources": 160,
+      "source_ids_sha256": "ce96832ed57cfaa5e050ab8962836afc7c9207758c0e00d29116254e98d0c2bc",
+      "all_source_text_sha256": "722c899ff9c62d4c4dcd633e332316f95e2ca20af50ab058aedb68ff48bb83e0",
+      "all_source_dates_sha256": "f9e55d380e8865197e93c41edb533584f4f17d28094bd1cfc7fb4effed5d0faf",
+      "prompt_bytes": 6382784,
+      "checkpoint_bytes": 196904579,
+      "python_peak_bytes": 841363640,
+      "python_current_bytes": 618526184,
+      "peak_process_bytes": 1031307264,
+      "seconds": 34.179018084018026,
+      "metadata_and_ancestry_preserved": false
+    },
+    "recorded_projection": {
+      "mode": "projected",
+      "recorded_sources": 160,
+      "source_ids_sha256": "ce96832ed57cfaa5e050ab8962836afc7c9207758c0e00d29116254e98d0c2bc",
+      "all_source_text_sha256": "722c899ff9c62d4c4dcd633e332316f95e2ca20af50ab058aedb68ff48bb83e0",
+      "all_source_dates_sha256": "f9e55d380e8865197e93c41edb533584f4f17d28094bd1cfc7fb4effed5d0faf",
+      "prompt_bytes": 376502,
+      "checkpoint_bytes": 732636,
+      "python_peak_bytes": 91546771,
+      "python_current_bytes": 4196322,
+      "peak_process_bytes": 324091904,
+      "seconds": 0.783160749997478,
+      "metadata_and_ancestry_preserved": true
+    },
+    "explicit_read": {
+      "complete_passage_characters": 972,
+      "source_type": "research",
+      "all_reference_records": 689,
+      "default_read_bytes": 1618,
+      "explicit_provenance_bytes": 820991,
+      "passage_and_date_equal": true,
+      "explicit_resource_resolves": true
+    },
+    "materialized_source_resource_preserved": true,
+    "frozen_context": "/tmp/sn-trading-reliability-release-v3-20261015",
+    "linux_memory_accepted": true,
+    "engine_revision": "be03bbe361a775b358ec",
+    "builds": {
+      "api": "cj14t",
+      "research": "cj14u",
+      "worker": "cj14s",
+      "memory_review": "cj14v"
+    },
+    "images": {
+      "api": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+      "research": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+      "worker": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070"
+    },
+    "deployed": true,
+    "memory_review_image": "snpipelineacr03130136.azurecr.io/native-trading-provenance-memory-review@sha256:043ada52e2543742d8287786e3322a012ae9393e19ecf46b3cfb55c51c82f423",
+    "linux_review": {
+      "execution": "trading-agent-build-dev-uikbgp5",
+      "status": "Succeeded",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-provenance-memory-review@sha256:848e8851c178e4541fa550a537b42554dc59f65431514f166403a18a8dd3f0c3",
+      "build": "cj14w",
+      "cpu": 1,
+      "memory_limit_bytes": 2147483648,
+      "peak_bytes": 823480320,
+      "limit_events": 0,
+      "oom_kills": 0,
+      "original_environment_verified": true,
+      "ranked_rows": 5994,
+      "concurrent_worst_recorded_searches": 4,
+      "sources_per_search": 160,
+      "outcomes": {
+        "rows": 113,
+        "price_bars": 35349,
+        "symbols": 30,
+        "all_fields_match": true
+      },
+      "model_calls": 0,
+      "publications": 0,
+      "measurements": [
+        {
+          "current": 245497856,
+          "events": {
+            "oom_kill": 0,
+            "oom_kill_disable": 0,
+            "under_oom": 0
+          },
+          "limit_events": 0,
+          "max": 2147483648,
+          "peak": 245497856,
+          "stage": "imports",
+          "stat": {
+            "cache": 102518784,
+            "rss": 135147520,
+            "shmem": 0,
+            "swap": 0,
+            "total_cache": 102518784,
+            "total_rss": 135147520
+          }
+        },
+        {
+          "current": 449032192,
+          "events": {
+            "oom_kill": 0,
+            "oom_kill_disable": 0,
+            "under_oom": 0
+          },
+          "limit_events": 0,
+          "max": 2147483648,
+          "peak": 477605888,
+          "stage": "ranking_and_paid_outputs",
+          "stat": {
+            "cache": 116785152,
+            "rss": 308076544,
+            "shmem": 0,
+            "swap": 0,
+            "total_cache": 116785152,
+            "total_rss": 308076544
+          }
+        },
+        {
+          "current": 488075264,
+          "events": {
+            "oom_kill": 0,
+            "oom_kill_disable": 0,
+            "under_oom": 0
+          },
+          "limit_events": 0,
+          "max": 2147483648,
+          "peak": 575909888,
+          "stage": "actual_projected_source_read",
+          "stat": {
+            "cache": 150577152,
+            "rss": 313475072,
+            "shmem": 0,
+            "swap": 0,
+            "total_cache": 150577152,
+            "total_rss": 313475072
+          }
+        },
+        {
+          "current": 658440192,
+          "events": {
+            "oom_kill": 0,
+            "oom_kill_disable": 0,
+            "under_oom": 0
+          },
+          "limit_events": 0,
+          "max": 2147483648,
+          "peak": 823480320,
+          "stage": "four_worst_recorded_searches_held",
+          "stat": {
+            "cache": 150577152,
+            "rss": 483229696,
+            "shmem": 0,
+            "swap": 0,
+            "total_cache": 150577152,
+            "total_rss": 483229696
+          }
+        },
+        {
+          "current": 508706816,
+          "events": {
+            "oom_kill": 0,
+            "oom_kill_disable": 0,
+            "under_oom": 0
+          },
+          "limit_events": 0,
+          "max": 2147483648,
+          "peak": 823480320,
+          "stage": "research_frames_released",
+          "stat": {
+            "cache": 150577152,
+            "rss": 333561856,
+            "shmem": 0,
+            "swap": 0,
+            "total_cache": 150577152,
+            "total_rss": 333561856
+          }
+        },
+        {
+          "current": 594214912,
+          "events": {
+            "oom_kill": 0,
+            "oom_kill_disable": 0,
+            "under_oom": 0
+          },
+          "limit_events": 0,
+          "max": 2147483648,
+          "peak": 823480320,
+          "stage": "complete",
+          "stat": {
+            "cache": 176517120,
+            "rss": 390606848,
+            "shmem": 0,
+            "swap": 0,
+            "total_cache": 176517120,
+            "total_rss": 390606848
+          }
+        }
+      ],
+      "scope": "Recorded-work allocation review and exact outcome recomputation; not a fresh full inference generation."
+    },
+    "dev_api_revision": "sn-api-next-dev--0000033",
+    "protected_configuration_checks": {
+      "api": true,
+      "research": true,
+      "worker": true
+    },
+    "gateway_home": {
+      "http_status": 200,
+      "highlights": 5,
+      "groups": 8,
+      "selection_time_utc": "2026-10-14T05:55:36.031874+00:00"
+    },
+    "anonymous_requests_http_status": 401,
+    "native_acceptance": {
+      "run_id": "agrun_9f4a5c2c5bc14bbcb0863da7",
+      "conversation_id": "zthread_5eb4cf7f9088422caa6c3a7e",
+      "status": "completed",
+      "engine_revision": "be03bbe361a775b358ec",
+      "events": 36,
+      "public_updates": 4,
+      "completion_delivered_once": true,
+      "active_runs_cleared": true,
+      "read_complete_answer": true,
+      "original_source_read_and_missing_date_handling": "verified",
+      "format_limitation": "The two-sentence answer was verbose; no claim of broader reasoning-quality acceptance.",
+      "sign_in_preserved": true,
+      "trading_mixed_calls_visible": true,
+      "cards_expand_and_collapse": true
+    }
+  },
+  "recovered_mrna": {
+    "status": "completed",
+    "seconds": 122.26,
+    "peak_process_bytes": 314032128,
+    "completed_acquisitions_reused": 3,
+    "new_searches": 1,
+    "published": false,
+    "narrative_accepted": false,
+    "review": "Seasonal sequential declines are overinterpreted and opening/horizon conclusions conflict; retained for separate reasoning review.",
+    "engine_revision": "be03bbe361a775b358ec"
+  },
+  "latest_release": {
+    "receipt": "release.json",
+    "engine_revision": "be03bbe361a775b358ec",
+    "note": "The original source_manifest/builds/images fields retain the initial memory-repair candidate history. provenance_repair records the accepted v3 correction; release.json owns current production deployment and phone state.",
+    "production_trading_review": "production-trading-review.json"
+  }
+}

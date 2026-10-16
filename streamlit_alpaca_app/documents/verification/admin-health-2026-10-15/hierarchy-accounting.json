@@ -1,0 +1,1573 @@
+{
+  "total_experiment": {
+    "attempts": 315,
+    "states": {
+      "success": 314,
+      "started": 1
+    },
+    "input_tokens": 1835375,
+    "output_tokens": 310524,
+    "cached_tokens": 588672,
+    "estimated_usd_max": 0.375085866,
+    "unpriced_attempts": 1,
+    "models": {
+      "deepseek-flash": 315
+    }
+  },
+  "catalog_version": 2,
+  "source_snapshot": "3018e160f1e017c92690e2dd653173441d842753f32f637612760bbf85b385d9",
+  "controlled": {
+    "flat": {
+      "answers": 14,
+      "answer_work": {
+        "attempts": 62,
+        "states": {
+          "success": 62
+        },
+        "input_tokens": 386325,
+        "output_tokens": 46557,
+        "cached_tokens": 155136,
+        "estimated_usd_max": 0.063077958,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 62
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "original_reads": 5,
+      "answers_with_original_reads": 5,
+      "median_answer_seconds": 32.22018793752068
+    },
+    "hierarchy": {
+      "answers": 14,
+      "answer_work": {
+        "attempts": 34,
+        "states": {
+          "success": 34
+        },
+        "input_tokens": 147626,
+        "output_tokens": 40061,
+        "cached_tokens": 66688,
+        "estimated_usd_max": 0.036377364,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 34
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "original_reads": 1,
+      "answers_with_original_reads": 1,
+      "median_answer_seconds": 25.44708047946915
+    },
+    "guided_hierarchy": {
+      "answers": 4,
+      "answer_work": {
+        "attempts": 14,
+        "states": {
+          "success": 14
+        },
+        "input_tokens": 90826,
+        "output_tokens": 13058,
+        "cached_tokens": 34304,
+        "estimated_usd_max": 0.016416012,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 14
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "original_reads": 2,
+      "answers_with_original_reads": 2,
+      "median_answer_seconds": 29.57350495850551
+    },
+    "adaptive": {
+      "answers": 6,
+      "answer_work": {
+        "attempts": 17,
+        "states": {
+          "success": 17
+        },
+        "input_tokens": 82981,
+        "output_tokens": 16189,
+        "cached_tokens": 25472,
+        "estimated_usd_max": 0.018416166,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 17
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "original_reads": 2,
+      "answers_with_original_reads": 1,
+      "median_answer_seconds": 19.917303062044084
+    }
+  },
+  "cases": [
+    {
+      "file": "database-0-adaptive-catalog.private.json",
+      "domain": "database",
+      "question_index": 0,
+      "variant": "adaptive",
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [
+        "postgres",
+        "azure"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_2"
+        },
+        {
+          "tool_call_id": "agtc_3",
+          "max_characters": 6000
+        }
+      ],
+      "answer_work": {
+        "attempts": 7,
+        "states": {
+          "success": 7
+        },
+        "input_tokens": 42136,
+        "output_tokens": 4500,
+        "cached_tokens": 14592,
+        "estimated_usd_max": 0.006875376,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 7
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 18296
+    },
+    {
+      "file": "database-0-flat-catalog.private.json",
+      "domain": "database",
+      "question_index": 0,
+      "variant": "flat",
+      "original_characters": 60413,
+      "initial_characters": 63442,
+      "original_reads": [
+        "azure"
+      ],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 38355,
+        "output_tokens": 3068,
+        "cached_tokens": 14592,
+        "estimated_usd_max": 0.005449026,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 19801
+    },
+    {
+      "file": "database-0-guided_hierarchy-catalog.private.json",
+      "domain": "database",
+      "question_index": 0,
+      "variant": "guided_hierarchy",
+      "original_characters": 60413,
+      "initial_characters": 16945,
+      "original_reads": [
+        "azure"
+      ],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 27668,
+        "output_tokens": 3900,
+        "cached_tokens": 12800,
+        "estimated_usd_max": 0.0046086,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 10919
+    },
+    {
+      "file": "database-0-hierarchy-catalog.private.json",
+      "domain": "database",
+      "question_index": 0,
+      "variant": "hierarchy",
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 3000,
+          "max_characters": 6000
+        }
+      ],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 23582,
+        "output_tokens": 3949,
+        "cached_tokens": 12928,
+        "estimated_usd_max": 0.004006284,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 6808
+    },
+    {
+      "file": "database-1-flat-catalog.private.json",
+      "domain": "database",
+      "question_index": 1,
+      "variant": "flat",
+      "original_characters": 60413,
+      "initial_characters": 63442,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 23700,
+        "output_tokens": 1998,
+        "cached_tokens": 3968,
+        "estimated_usd_max": 0.004170504,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 19329
+    },
+    {
+      "file": "database-1-hierarchy-catalog.private.json",
+      "domain": "database",
+      "question_index": 1,
+      "variant": "hierarchy",
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 11493,
+        "output_tokens": 3082,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.0030651180000000004,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 7635
+    },
+    {
+      "file": "database-2-adaptive-catalog.private.json",
+      "domain": "database",
+      "question_index": 2,
+      "variant": "adaptive",
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 11302,
+        "output_tokens": 2538,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.002898228,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 7415
+    },
+    {
+      "file": "database-2-flat-catalog.private.json",
+      "domain": "database",
+      "question_index": 2,
+      "variant": "flat",
+      "original_characters": 60413,
+      "initial_characters": 63442,
+      "original_reads": [
+        "pooling"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 3000,
+          "max_characters": 6000
+        },
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 4000,
+          "max_characters": 6000
+        }
+      ],
+      "answer_work": {
+        "attempts": 12,
+        "states": {
+          "success": 12
+        },
+        "input_tokens": 70074,
+        "output_tokens": 5710,
+        "cached_tokens": 36864,
+        "estimated_usd_max": 0.008518092,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 12
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 20529
+    },
+    {
+      "file": "database-2-guided_hierarchy-catalog.private.json",
+      "domain": "database",
+      "question_index": 2,
+      "variant": "guided_hierarchy",
+      "original_characters": 60413,
+      "initial_characters": 16945,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 11358,
+        "output_tokens": 2258,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.002550468,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 7507
+    },
+    {
+      "file": "database-2-hierarchy-catalog.private.json",
+      "domain": "database",
+      "question_index": 2,
+      "variant": "hierarchy",
+      "original_characters": 60413,
+      "initial_characters": 16343,
+      "original_reads": [
+        "pooling"
+      ],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 29329,
+        "output_tokens": 2982,
+        "cached_tokens": 12800,
+        "estimated_usd_max": 0.00430695,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 12912
+    },
+    {
+      "file": "fed-0-flat-catalog.private.json",
+      "domain": "fed",
+      "question_index": 0,
+      "variant": "flat",
+      "original_characters": 3822,
+      "initial_characters": 4129,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 8129,
+        "output_tokens": 1919,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.0018627179999999998,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 4289
+    },
+    {
+      "file": "fed-0-hierarchy-catalog.private.json",
+      "domain": "fed",
+      "question_index": 0,
+      "variant": "hierarchy",
+      "original_characters": 3822,
+      "initial_characters": 2276,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6617,
+        "output_tokens": 2093,
+        "cached_tokens": 3200,
+        "estimated_usd_max": 0.00177795,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3037
+    },
+    {
+      "file": "fed-1-flat-catalog.private.json",
+      "domain": "fed",
+      "question_index": 1,
+      "variant": "flat",
+      "original_characters": 3822,
+      "initial_characters": 4129,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 8173,
+        "output_tokens": 1985,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.001908918,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 4334
+    },
+    {
+      "file": "fed-1-hierarchy-catalog.private.json",
+      "domain": "fed",
+      "question_index": 1,
+      "variant": "hierarchy",
+      "original_characters": 3822,
+      "initial_characters": 2276,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6661,
+        "output_tokens": 2230,
+        "cached_tokens": 3200,
+        "estimated_usd_max": 0.00186675,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3082
+    },
+    {
+      "file": "financial-0-adaptive-catalog.private.json",
+      "domain": "financial",
+      "question_index": 0,
+      "variant": "adaptive",
+      "original_characters": 661,
+      "initial_characters": 2486,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6561,
+        "output_tokens": 1771,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.0017268780000000003,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 2950
+    },
+    {
+      "file": "financial-0-flat-catalog.private.json",
+      "domain": "financial",
+      "question_index": 0,
+      "variant": "flat",
+      "original_characters": 661,
+      "initial_characters": 824,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 5720,
+        "output_tokens": 1868,
+        "cached_tokens": 2816,
+        "estimated_usd_max": 0.001564848,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 2523
+    },
+    {
+      "file": "financial-0-guided_hierarchy-catalog.private.json",
+      "domain": "financial",
+      "question_index": 0,
+      "variant": "guided_hierarchy",
+      "original_characters": 661,
+      "initial_characters": 3088,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7022,
+        "output_tokens": 1543,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.001471068,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3178
+    },
+    {
+      "file": "financial-0-hierarchy-catalog.private.json",
+      "domain": "financial",
+      "question_index": 0,
+      "variant": "hierarchy",
+      "original_characters": 661,
+      "initial_characters": 2486,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6674,
+        "output_tokens": 1883,
+        "cached_tokens": 3200,
+        "estimated_usd_max": 0.0016605,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3053
+    },
+    {
+      "file": "financial-1-adaptive-catalog.private.json",
+      "domain": "financial",
+      "question_index": 1,
+      "variant": "adaptive",
+      "original_characters": 661,
+      "initial_characters": 2486,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6856,
+        "output_tokens": 2406,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.002152128,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3242
+    },
+    {
+      "file": "financial-1-flat-catalog.private.json",
+      "domain": "financial",
+      "question_index": 1,
+      "variant": "flat",
+      "original_characters": 661,
+      "initial_characters": 824,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6018,
+        "output_tokens": 2882,
+        "cached_tokens": 2816,
+        "estimated_usd_max": 0.002217948,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 2818
+    },
+    {
+      "file": "financial-1-hierarchy-catalog.private.json",
+      "domain": "financial",
+      "question_index": 1,
+      "variant": "hierarchy",
+      "original_characters": 661,
+      "initial_characters": 2486,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 6958,
+        "output_tokens": 2487,
+        "cached_tokens": 3200,
+        "estimated_usd_max": 0.0020655,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3334
+    },
+    {
+      "file": "microsoft-0-flat-catalog.private.json",
+      "domain": "microsoft",
+      "question_index": 0,
+      "variant": "flat",
+      "original_characters": 20250,
+      "initial_characters": 22142,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 14679,
+        "output_tokens": 3223,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.0036088020000000004,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 10612
+    },
+    {
+      "file": "microsoft-0-hierarchy-catalog.private.json",
+      "domain": "microsoft",
+      "question_index": 0,
+      "variant": "hierarchy",
+      "original_characters": 20250,
+      "initial_characters": 4606,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 8847,
+        "output_tokens": 2640,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.0023842019999999998,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 4883
+    },
+    {
+      "file": "microsoft-1-adaptive-catalog.private.json",
+      "domain": "microsoft",
+      "question_index": 1,
+      "variant": "adaptive",
+      "original_characters": 20250,
+      "initial_characters": 4606,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 8466,
+        "output_tokens": 2297,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.002328228,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 4475
+    },
+    {
+      "file": "microsoft-1-flat-catalog.private.json",
+      "domain": "microsoft",
+      "question_index": 1,
+      "variant": "flat",
+      "original_characters": 20250,
+      "initial_characters": 22142,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 14550,
+        "output_tokens": 2999,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.0034550519999999997,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 10479
+    },
+    {
+      "file": "microsoft-1-hierarchy-catalog.private.json",
+      "domain": "microsoft",
+      "question_index": 1,
+      "variant": "hierarchy",
+      "original_characters": 20250,
+      "initial_characters": 4606,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 9210,
+        "output_tokens": 3217,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.002784852,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 5242
+    },
+    {
+      "file": "summarization-0-flat-catalog.private.json",
+      "domain": "summarization",
+      "question_index": 0,
+      "variant": "flat",
+      "original_characters": 79021,
+      "initial_characters": 83578,
+      "original_reads": [
+        "raptor"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 4000,
+          "max_characters": 6000
+        },
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 6000,
+          "max_characters": 12000
+        }
+      ],
+      "answer_work": {
+        "attempts": 10,
+        "states": {
+          "success": 10
+        },
+        "input_tokens": 63479,
+        "output_tokens": 6236,
+        "cached_tokens": 26496,
+        "estimated_usd_max": 0.009368538000000001,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 10
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 26685
+    },
+    {
+      "file": "summarization-0-hierarchy-catalog.private.json",
+      "domain": "summarization",
+      "question_index": 0,
+      "variant": "hierarchy",
+      "original_characters": 79021,
+      "initial_characters": 3118,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7901,
+        "output_tokens": 3876,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.003002718,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 4006
+    },
+    {
+      "file": "summarization-1-flat-catalog.private.json",
+      "domain": "summarization",
+      "question_index": 1,
+      "variant": "flat",
+      "original_characters": 79021,
+      "initial_characters": 83578,
+      "original_reads": [
+        "raptor"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 6000,
+          "max_characters": 12000
+        }
+      ],
+      "answer_work": {
+        "attempts": 7,
+        "states": {
+          "success": 7
+        },
+        "input_tokens": 50795,
+        "output_tokens": 3824,
+        "cached_tokens": 19200,
+        "estimated_usd_max": 0.00709125,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 7
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 25544
+    },
+    {
+      "file": "summarization-1-hierarchy-catalog.private.json",
+      "domain": "summarization",
+      "question_index": 1,
+      "variant": "hierarchy",
+      "original_characters": 79021,
+      "initial_characters": 3118,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7311,
+        "output_tokens": 2208,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.001913418,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3416
+    },
+    {
+      "file": "summarization-2-adaptive-catalog.private.json",
+      "domain": "summarization",
+      "question_index": 2,
+      "variant": "adaptive",
+      "original_characters": 79021,
+      "initial_characters": 3118,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7660,
+        "output_tokens": 2677,
+        "cached_tokens": 2176,
+        "estimated_usd_max": 0.0024353279999999996,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3705
+    },
+    {
+      "file": "summarization-2-flat-catalog.private.json",
+      "domain": "summarization",
+      "question_index": 2,
+      "variant": "flat",
+      "original_characters": 79021,
+      "initial_characters": 83578,
+      "original_reads": [
+        "raptor"
+      ],
+      "context_reads": [
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 6000,
+          "max_characters": 12000
+        },
+        {
+          "tool_call_id": "agtc_supplied_1",
+          "offset": 12000,
+          "max_characters": 12000
+        }
+      ],
+      "answer_work": {
+        "attempts": 10,
+        "states": {
+          "success": 10
+        },
+        "input_tokens": 63448,
+        "output_tokens": 6207,
+        "cached_tokens": 27136,
+        "estimated_usd_max": 0.009252408,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 10
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 26160
+    },
+    {
+      "file": "summarization-2-guided_hierarchy-catalog.private.json",
+      "domain": "summarization",
+      "question_index": 2,
+      "variant": "guided_hierarchy",
+      "original_characters": 79021,
+      "initial_characters": 3720,
+      "original_reads": [
+        "raptor"
+      ],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 5,
+        "states": {
+          "success": 5
+        },
+        "input_tokens": 44778,
+        "output_tokens": 5357,
+        "cached_tokens": 14592,
+        "estimated_usd_max": 0.007785876,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 5
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 26434
+    },
+    {
+      "file": "summarization-2-hierarchy-catalog.private.json",
+      "domain": "summarization",
+      "question_index": 2,
+      "variant": "hierarchy",
+      "original_characters": 79021,
+      "initial_characters": 3118,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7782,
+        "output_tokens": 3270,
+        "cached_tokens": 3456,
+        "estimated_usd_max": 0.0026212680000000004,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3839
+    },
+    {
+      "file": "technical-0-flat-catalog.private.json",
+      "domain": "technical",
+      "question_index": 0,
+      "variant": "flat",
+      "original_characters": 6339,
+      "initial_characters": 7010,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 9495,
+        "output_tokens": 2207,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.0022216019999999996,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 5437
+    },
+    {
+      "file": "technical-0-hierarchy-catalog.private.json",
+      "domain": "technical",
+      "question_index": 0,
+      "variant": "hierarchy",
+      "original_characters": 6339,
+      "initial_characters": 3481,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7391,
+        "output_tokens": 2291,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.001956402,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3400
+    },
+    {
+      "file": "technical-1-flat-catalog.private.json",
+      "domain": "technical",
+      "question_index": 1,
+      "variant": "flat",
+      "original_characters": 6339,
+      "initial_characters": 7010,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 9710,
+        "output_tokens": 2431,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.002388252,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 5663
+    },
+    {
+      "file": "technical-1-hierarchy-catalog.private.json",
+      "domain": "technical",
+      "question_index": 1,
+      "variant": "hierarchy",
+      "original_characters": 6339,
+      "initial_characters": 3481,
+      "original_reads": [],
+      "context_reads": [],
+      "answer_work": {
+        "attempts": 2,
+        "states": {
+          "success": 2
+        },
+        "input_tokens": 7870,
+        "output_tokens": 3853,
+        "cached_tokens": 3584,
+        "estimated_usd_max": 0.002965452,
+        "unpriced_attempts": 0,
+        "models": {
+          "deepseek-flash": 2
+        }
+      },
+      "construction_work": {
+        "attempts": 0,
+        "states": {},
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cached_tokens": 0,
+        "estimated_usd_max": 0,
+        "unpriced_attempts": 0,
+        "models": {}
+      },
+      "final_input_tokens": 3890
+    }
+  ],
+  "retained_summary_build": {
+    "attempts": 11,
+    "states": {
+      "success": 11
+    },
+    "input_tokens": 57607,
+    "output_tokens": 12362,
+    "cached_tokens": 49792,
+    "estimated_usd_max": 0.008738826,
+    "unpriced_attempts": 0,
+    "models": {
+      "deepseek-flash": 11
+    }
+  },
+  "controlled_total": {
+    "attempts": 127,
+    "states": {
+      "success": 127
+    },
+    "input_tokens": 707758,
+    "output_tokens": 115865,
+    "cached_tokens": 281600,
+    "estimated_usd_max": 0.1342875,
+    "unpriced_attempts": 0,
+    "models": {
+      "deepseek-flash": 127
+    }
+  }
+}

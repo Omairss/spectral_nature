@@ -151,9 +151,10 @@ def load_fred_api_key() -> str:
 
 
 class FREDClient:
-    def __init__(self, api_key: str, base_url: str = "https://api.stlouisfed.org/fred"):
+    def __init__(self, api_key: str, base_url: str = "https://api.stlouisfed.org/fred", *, before_request=None):
         self.api_key = str(api_key or "").strip()
         self.base_url = base_url.rstrip("/")
+        self.before_request = before_request
         if not self.api_key:
             raise FredAPIError("FRED_API_KEY is required to load macro data.")
 
@@ -168,6 +169,8 @@ class FREDClient:
         url = f"{self.base_url}/{path.lstrip('/')}"
         max_attempts = _fred_http_max_attempts()
         for attempt in range(1, max_attempts + 1):
+            if self.before_request is not None:
+                self.before_request()
             try:
                 resp = requests.get(url, params=params, headers=headers, timeout=timeout)
             except (requests.ConnectionError, requests.Timeout) as exc:
@@ -216,17 +219,62 @@ class FREDClient:
             raise FredAPIError(f"No FRED metadata found for series '{series_id}'.")
         return series_rows[0]
 
+    def iter_observation_pages(
+        self, series_id: str, observation_start: str, *, observation_end: str | None = None,
+        realtime_start: str | None = None, realtime_end: str | None = None,
+    ):
+        """Retain API pages, including historical revision intervals when requested."""
+        # JSON observation queries have a separate 2,000-vintage limit. Row
+        # pagination alone cannot exhaust a heavily revised/daily series.
+        if realtime_start is not None and realtime_end is not None:
+            offset, dates = 0, []
+            while True:
+                catalog = self._request_v1("series/vintagedates", {
+                    "series_id": series_id, "realtime_start": realtime_start,
+                    "realtime_end": realtime_end, "limit": 10000, "offset": offset})
+                page_dates = catalog.get("vintage_dates", [])
+                dates.extend(page_dates)
+                offset += len(page_dates)
+                if offset >= int(catalog.get("count", len(dates))):
+                    break
+                if not page_dates:
+                    raise FredAPIError("FRED vintage catalog ended before declared count")
+            if len(dates) > 1800:
+                lower = realtime_start
+                for index in range(0, len(dates), 1800):
+                    upper = dates[min(index + 1799, len(dates) - 1)] if index + 1800 < len(dates) else realtime_end
+                    yield from self._iter_observation_interval(series_id, observation_start,
+                        observation_end=observation_end, realtime_start=lower, realtime_end=upper)
+                    lower = (pd.Timestamp(upper) + pd.Timedelta(days=1)).date().isoformat()
+                return
+        yield from self._iter_observation_interval(series_id, observation_start,
+            observation_end=observation_end, realtime_start=realtime_start, realtime_end=realtime_end)
+
+    def _iter_observation_interval(
+        self, series_id: str, observation_start: str, *, observation_end: str | None,
+        realtime_start: str | None, realtime_end: str | None,
+    ):
+        params: dict[str, Any] = {
+            "series_id": series_id, "observation_start": observation_start,
+            "sort_order": "asc", "limit": 100000, "offset": 0,
+        }
+        for name, value in (("observation_end", observation_end),
+                            ("realtime_start", realtime_start), ("realtime_end", realtime_end)):
+            if value is not None:
+                params[name] = value
+        while True:
+            payload = self._request_v1("series/observations", params)
+            yield payload
+            rows = payload.get("observations", []) or []
+            params["offset"] += len(rows)
+            if params["offset"] >= int(payload.get("count", len(rows))):
+                return
+            if not rows:
+                raise FredAPIError("FRED observation pagination ended before declared count")
+
     def get_series_observations(self, series_id: str, observation_start: str) -> pd.DataFrame:
-        payload = self._request_v1(
-            "series/observations",
-            {
-                "series_id": series_id,
-                "observation_start": observation_start,
-                "sort_order": "asc",
-                "limit": 100000,
-            },
-        )
-        rows = payload.get("observations", []) or []
+        rows = [row for page in self.iter_observation_pages(series_id, observation_start)
+                for row in (page.get("observations", []) or [])]
         frame = pd.DataFrame(rows)
         if frame.empty:
             return frame

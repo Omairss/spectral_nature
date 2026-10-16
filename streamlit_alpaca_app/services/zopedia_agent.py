@@ -1,27 +1,46 @@
 from __future__ import annotations
 
+from contextvars import copy_context
+from .llm_execution import research_run_context
+
+from dataclasses import replace
+
 import json
 import re
 import threading
+from services.work_scope import WorkScope
 import time
 import uuid
+from jsonschema import Draft202012Validator
 from typing import Any, Callable
 from urllib.parse import urlparse
 
 from data_access.query_service import QueryService
-from .aql.evidence_pack import build_aql_evidence_pack
+from .aql.evidence_pack import build_aql_evidence_pack, resolve_evidence_selection
 from .agent_tools import ToolRegistry, build_tool_catalog, build_tool_registry, invoke_tool
 from .aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from .llm import (
     JSONLLMClient,
-    NARRATIVE_STYLE_RULE,
     LLMAPIError,
+    llm_request_deadline,
     get_config_param,
     get_prompt,
     register_config_param,
     register_narrative_prompt,
 )
-from .aql_zopedia_engine import load_aql_zopedia_llm_client
+from .aql_zopedia_engine import (
+    load_aql_zopedia_llm_client,
+    _P_LLM_STEP_TIMEOUT_SECONDS,
+    _P_TOOL_CALL_TIMEOUT_SECONDS,
+)
+from .agents.research_session import (
+    ResearchBudget,
+    ResearchStepTimeout,
+    research_request_context,
+)
+from .llm_context import serialize_llm_context
+from .llm_flow import (REVIEW_CYCLES, MONITOR_CADENCE, MONITOR_FREEDOM,
+                       flow_configuration, reviewer_route, capture_research_configuration)
 
 
 LLMClient = JSONLLMClient
@@ -46,42 +65,28 @@ _P_TOOL_RESULT_CONTEXT_LIMIT = register_config_param(
     group="Zopedia",
     default=4000,
     description="Max chars for the LLM context text extracted from a single tool result",
+    stage="researcher", section="Tool previews",
 )
 _P_TOOL_RESULT_SUMMARY_LIMIT = register_config_param(
     "Agent tool result summary limit",
     group="Zopedia",
     default=3500,
     description="Max chars for the summary-based LLM context when no explicit context text is available",
+    stage="researcher", section="Tool previews",
 )
 _P_TOOL_RESULT_SUMMARY_ITEMS = register_config_param(
     "Agent tool result summary items",
     group="Zopedia",
     default=8,
     description="Max summary items to include per tool result",
+    stage="researcher", section="Tool previews",
 )
 _P_TOOL_HISTORY_PER_TOOL_LIMIT = register_config_param(
     "Agent tool history per-tool limit",
     group="Zopedia",
     default=3000,
     description="Max chars per tool result in the tool call history shown to the planner",
-)
-_P_PREFETCH_EVIDENCE_LIMIT = register_config_param(
-    "Agent prefetch evidence limit",
-    group="Zopedia",
-    default=8,
-    description="Max retained evidence chunks to pre-fetch and inject into the planner prompt",
-)
-_P_PREFETCH_CHUNK_TEXT_LIMIT = register_config_param(
-    "Agent prefetch chunk text limit",
-    group="Zopedia",
-    default=300,
-    description="Max chars per chunk text in the pre-fetched evidence block",
-)
-_P_MAX_TOOL_CALLS = register_config_param(
-    "Agent max tool calls",
-    group="Zopedia",
-    default=6,
-    description="Maximum number of tool calls the agent can make per query",
+    retired=True,
 )
 _P_BOOTSTRAP_TOOL_CALLS = register_config_param(
     "Agent bootstrap tool calls",
@@ -90,140 +95,174 @@ _P_BOOTSTRAP_TOOL_CALLS = register_config_param(
     description=(
         "Legacy deterministic evidence-call budget. Defaults to 0 so the LLM planner owns tool choice."
     ),
-)
-_P_LLM_STEP_TIMEOUT_SECONDS = register_config_param(
-    "Agent LLM step timeout seconds",
-    group="Zopedia",
-    default=45,
-    description="Maximum seconds to wait for one planner or synthesis LLM call before degrading gracefully",
-)
-_P_TOOL_CALL_TIMEOUT_SECONDS = register_config_param(
-    "Agent tool call timeout seconds",
-    group="Zopedia",
-    default=25,
-    description="Maximum seconds to wait for one agent tool call before degrading to the next step",
-)
-_P_CONVERSATION_HISTORY_LIMIT = register_config_param(
-    "Agent conversation history limit",
-    group="Zopedia",
-    default=3000,
-    description="Max chars for the compacted conversation history shown to the planner",
+    retired=True,
 )
 _P_USER_PREVIEW_LIMIT = register_config_param(
     "Agent user preview limit",
     group="Zopedia",
     default=200,
     description="Max chars for the user-facing preview of a tool result",
+    stage="answer", label="Activity preview characters", section="Activity previews",
 )
 _P_ANSWER_JUDGE_ENABLED = register_config_param(
     "Agent answer judge enabled",
     group="Zopedia",
     default=1,
-    description="Run a bounded evidence-sufficiency review before returning final Zopedia answers",
+    description="Run bounded editorial refinement of research relevance, explanation and factual accuracy",
+    retired=True,
+)
+_P_TRAJECTORY_MONITOR_EFFORT = register_config_param(
+    "Trajectory monitor reasoning effort", group="Zopedia Agent", default="low",
+    description="Reasoning effort for execution trajectory checks; substantive research keeps its own effort.",
+    choices=("none", "low", "high", "max"),
+    retired=True,
 )
 _P_TRAJECTORY_MONITOR_ENABLED = register_config_param(
     "Agent trajectory monitor enabled",
     group="Zopedia",
+    stage="monitor",
     default=1,
     description="Run a bounded LLM monitor that catches off-contract tool wandering and can restart or kill the thread.",
+    label="Monitor enabled", control="toggle", maximum=1,
 )
 _P_TRAJECTORY_MONITOR_MAX_RESTARTS = register_config_param(
     "Agent trajectory monitor max restarts",
     group="Zopedia",
+    stage="monitor",
     default=2,
     description="Maximum corrective restarts one agent run can receive from the trajectory monitor.",
+    label="Corrective restarts", section="Limits",
 )
 _P_TRAJECTORY_MONITOR_TIMEOUT_SECONDS = register_config_param(
     "Agent trajectory monitor timeout seconds",
     group="Zopedia",
     default=45,
     description="Maximum seconds a trajectory monitor check may spend before letting the planner continue.",
+    stage="monitor",
+    label="Check timeout (seconds)", section="Limits",
 )
 _P_POST_ANSWER_MEMORY_ENABLED = register_config_param(
     "Agent post-answer memory enabled",
     group="Zopedia",
     default=1,
     description="After a grounded answer, let the agent apply safe Zopedia memory updates or create review proposals",
+    stage="knowledge",
+    label="Knowledge updates enabled", control="toggle", maximum=1,
 )
 _P_DEFERRED_TOOL_DISCOVERY_ENABLED = register_config_param(
     "Agent deferred tool discovery enabled",
     group="Zopedia",
-    default=0,
-    description=(
-        "Start with tools.search and load matching tool definitions on demand. "
-        "Keep disabled until DeepSeek replay evaluation passes."
-    ),
+    default=1,
+    description=("Expose shared research primitives and discover other tool definitions on demand."),
+    stage="researcher",
+    label="Discover tools as needed", section="Tool discovery", control="toggle", maximum=1,
 )
 _P_TOOL_DISCOVERY_MAX_STEPS = register_config_param(
     "Agent tool discovery max steps",
     group="Zopedia",
     default=2,
     description="Extra planner iterations reserved for free tool-registry searches when deferred discovery is enabled.",
+    stage="researcher",
+    label="Discovery searches", section="Tool discovery",
 )
 
-_AFFIRMATIVE_FOLLOWUP_REPLIES = {
-    "yes",
-    "y",
-    "yeah",
-    "yep",
-    "sure",
-    "ok",
-    "okay",
-    "please",
-    "do it",
-    "go ahead",
-    "continue",
-}
-_ARGUMENT_ENTRY_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "name": {"type": "string"},
-        "value_kind": {
-            "type": "string",
-            "enum": ["string", "number", "boolean", "string_list", "json", "object", "object_list", "null"],
+_ANALYSIS_BASIS_SCHEMA: dict[str, Any] = {
+    "type": "array",
+    "description": "Brief supporting premises and verification results for consequential inferences; omit routine facts.",
+    "items": {
+        "type": "object", "additionalProperties": False,
+        "properties": {
+            "claim": {"type": "string"},
+            "basis": {"type": "string", "description": "Original premises and the supporting calculation or other verification result."},
         },
-        "string_value": {"type": ["string", "null"]},
-        "number_value": {"type": ["number", "null"]},
-        "boolean_value": {"type": ["boolean", "null"]},
-        "string_list_value": {"type": ["array", "null"], "items": {"type": "string"}},
-        "json_value": {},
-        "object_value": {"type": ["object", "null"]},
-        "object_list_value": {"type": ["array", "null"], "items": {"type": "object"}},
+        "required": ["claim", "basis"],
     },
-    "required": [
-        "name",
-        "value_kind",
-        "string_value",
-        "number_value",
-        "boolean_value",
-        "string_list_value",
-        "json_value",
-        "object_value",
-        "object_list_value",
-    ],
 }
 
 _STEP_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "action": {"type": "string", "enum": ["tool_call", "final"]},
+        "action": {"type": "string", "enum": ["tool_call", "analyze", "final"]},
         "reasoning": {"type": "string"},
         "tool_name": {"type": "string"},
-        "tool_arguments": {"type": "array", "items": _ARGUMENT_ENTRY_SCHEMA},
-        "answer_markdown": {"type": "string"},
+        "tool_arguments": {
+            "type": "string",
+            "description": "A JSON-encoded object matching the chosen tool input schema. Use {} for no arguments.",
+        },
+        "answer_markdown": {"type": "string", "description": "Optional useful partial answer; final hands the evidence to the analytical model."},
         "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
         "needs_more_tools": {"type": "boolean"},
+        "public_update": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "summary": {"type": "string"},
+                "finding": {"type": "string"},
+                "next_step": {"type": "string"},
+            },
+            "required": ["summary", "finding", "next_step"],
+        },
+        "research_state": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "goal": {"type": "string"},
+                "findings": {"type": "array", "items": {"type": "string"}},
+                "answer_points": {"type": "array", "items": {"type": "string"}},
+                "selected_source_ids": {"type": "array", "items": {"type": "string"}},
+                "alternatives": {"type": "array", "items": {"type": "string"}},
+                "open_questions": {"type": "array", "items": {"type": "string"}},
+                "next_actions": {"type": "array", "items": {"type": "string"}},
+                "review_requests_addressed": {"type": "array", "items": {"type": "string"}},
+                "context_view": {"type": "string", "enum": ["originals", "index"]},
+                "analysis_basis": _ANALYSIS_BASIS_SCHEMA,
+            },
+            "required": [
+                "goal",
+                "findings",
+                "answer_points",
+                "selected_source_ids",
+                "alternatives",
+                "open_questions",
+                "next_actions",
+                "review_requests_addressed",
+            ],
+        },
+        "source_policy": {"type": "string", "enum": ["available", "retained_only"]},
+        "knowledge_policy": {"type": "string", "enum": ["inherit", "none", "propose"]},
+        "request_review": {"type": "boolean"},
     },
     "required": [
         "action",
         "reasoning",
         "tool_name",
         "tool_arguments",
-        "answer_markdown",
         "confidence",
         "needs_more_tools",
+        "public_update",
+        "research_state",
+        "source_policy",
+        "knowledge_policy",
+        "request_review",
+    ],
+}
+
+_ANALYSIS_STEP_SCHEMA: dict[str, Any] = {
+    "type": "object", "additionalProperties": False,
+    "properties": {
+        "action": {"type": "string", "enum": ["tool_call", "final"]},
+        "tool_name": {"type": "string"},
+        "tool_arguments": {"type": "string", "description": "JSON-encoded arguments for the chosen tool."},
+        "analysis_basis": _ANALYSIS_BASIS_SCHEMA,
+        "review_requests_addressed": {"type": "array", "items": {"type": "string"}},
+        "answer_markdown": {"type": "string"},
+        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+    },
+    "required": ["action"],
+    "oneOf": [
+        {"properties": {"action": {"const": "tool_call"}}, "required": ["tool_name", "tool_arguments"]},
+        {"properties": {"action": {"const": "final"}}, "required": ["answer_markdown", "analysis_basis"]},
     ],
 }
 
@@ -231,22 +270,21 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Final Answer (markdown response to user)",
     file="services/zopedia_agent.py",
     group="Zopedia",
+    stage="synthesis",
     prompt=(
-        f"You are the Spectral Nature Zopedia agent. {NARRATIVE_STYLE_RULE} "
-        "Write a grounded markdown answer from the collected tool evidence only. "
-        "Structure your answer: "
-        "(1) Start with a **bold one-sentence verdict or key finding**. "
-        "(2) Use ### headings to separate sections when the answer covers multiple themes or tickers. "
-        "Every ### heading must be on its own line, followed by a blank line; never put body text on the same line as a heading. "
-        "(3) Use **bold** for tickers and key metrics (e.g. **NVDA** +3.2%). "
-        "(4) Use bullet points for lists of data points. "
-        "(5) Keep paragraphs short, with blank lines between paragraphs; never return one large unbroken paragraph. "
-        "(6) If you use a Markdown table, it must have a header row, separator row, and one row per line; if that is awkward, use bullets instead. "
-        "(7) End with a brief takeaway or what to watch next. "
-        "When Zopedia memory is used, name the supporting Zopedia page title or page_id. "
-        "When live external evidence was used, lightly reference one or two supporting sources or URLs. "
-        "If the answer discusses market, equity, ETF, sector, or rate-move impact, it must be grounded in observed market data from tools such as daily movers, price history, or analysis artifacts; otherwise state the missing observed-data gap. "
-        "For current-driver questions, separate durable business background from current evidence. Older or retained evidence can explain why a company is sensitive to a force, but it cannot be presented as today's driver unless current tool evidence directly connects that force to today's move."
+        "Answer the actual question from original evidence and explicit task assumptions. Treat earlier model interpretations "
+        "and reviewer suggestions as claims to assess. Verify consequential inferences against the exact original premises. "
+        "For a numerical explanation, use the actual values and feasible bounds, rather than only a general warning about uncertainty. "
+        "Preserve the direction and qualifications of source statements. Distinguish what was observed, what could explain it "
+        "and what you recommend. A recommendation must serve the user's objective; name any extra assumption behind an operating value. "
+        "Keep useful hypotheses and indirect connections without demanding proof of every research lead. "
+        "When supported by the schema, retain only the important verification results in analysis_basis; these are brief work products, "
+        "not private reasoning traces or a second answer. Assess review edits yourself against the originals. "
+        "Write the finished answer in the requested format and length, using plain connected prose and useful source-title links. "
+        "Include the facts, calculations and qualifications that matter to the question. Preserve dates and source scope. "
+        "Use a Markdown link only for a complete supplied URL; otherwise use the source title. "
+        "Follow the active writing style. Omit research process commentary, generic caveats and unrelated examples. "
+        "Describe tool activity or execution failures only when recorded for this attempt."
     ),
 )
 
@@ -254,16 +292,12 @@ _FINAL_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
+        "analysis_basis": _ANALYSIS_BASIS_SCHEMA,
         "answer_markdown": {"type": "string"},
-        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-        "limitations": {"type": "array", "items": {"type": "string"}},
-        "used_tool_call_ids": {"type": "array", "items": {"type": "string"}},
     },
     "required": [
         "answer_markdown",
-        "confidence",
-        "limitations",
-        "used_tool_call_ids",
+        "analysis_basis",
     ],
 }
 
@@ -271,42 +305,44 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Answer Judge (evidence sufficiency review)",
     file="services/zopedia_agent.py",
     group="Zopedia",
+    stage="review",
     prompt=(
-        f"You are the Spectral Nature Zopedia answer judge. {NARRATIVE_STYLE_RULE} "
-        "Review the draft answer against the collected evidence only. "
-        "Look for unsupported claims, stale or missing evidence, false user premises, and overconfident wording. "
-        "If the draft is good, accept it. If it needs correction, return a revised markdown answer that fixes the issue. "
-        "If the evidence is too thin, return the best cautious answer and name the evidence gap. "
-        "If the draft discusses market, equity, ETF, sector, or rate-move impact without observed price/mover/analysis evidence, mark it insufficient or revise it to say that observed market-impact evidence is missing. "
-        "For current-driver questions, reject or revise answers that turn older retained evidence into today's cause. "
-        "If the evidence only proves a broad peer, sector, or market move, revise the answer to say that rather than naming a precise macro, geopolitical, policy, or company-specific driver. "
-        "A current-driver claim needs current evidence tying that driver to the ticker, its close peers, its sector, or the relevant market instrument; durable background alone is not enough. "
-        "Do not introduce facts that are not present in the tool evidence or pre-fetched internal evidence. "
-        "Fix malformed Markdown tables before accepting or revising the answer; every table needs a header row, separator row, and one row per line."
+        "Check the draft's material inferences and calculations against the original evidence and task assumptions. "
+        "Assess each claim exactly as written, with its actual certainty and qualifications. "
+        "Do not silently replace a strong claim with a weaker, more defensible one. "
+        "For each useful check, quote the claim, state its original basis and give a concrete numerical check "
+        "or a counterexample satisfying every task premise. A counterexample must make that exact claim false, "
+        "not merely describe a compatible observation. Put the necessary replacement or edit in correction; "
+        "use an empty correction when the claim is sound. If the claim holds only with weaker wording, "
+        "record that change explicitly. These are concise verification results, not private reasoning traces. "
+        "Focus on material reasoning rather than confirming routine quoted facts. Preserve correct task assumptions, "
+        "useful hypotheses and indirect connections; a tentative research lead does not require proof. "
+        "Do not request extra coverage, unneeded calculations or cosmetic rewriting. Return research_requests only "
+        "for missing evidence needed to resolve a material problem, not suggestions for later exploration. "
+        "There is no separate overall verdict: the concrete corrections are the review handoff."
     ),
 )
 
 _JUDGE_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
+    "type": "object", "additionalProperties": False,
     "properties": {
-        "verdict": {"type": "string", "enum": ["accept", "revise", "insufficient"]},
-        "critique_summary": {"type": "string"},
-        "answer_markdown": {"type": "string"},
+        "checks": {
+            "type": "array", "items": {
+                "type": "object", "additionalProperties": False,
+                "properties": {
+                    "claim": {"type": "string", "description": "Exact material claim from the draft."},
+                    "basis": {"type": "string", "description": "Relevant original source words or stated task input, with origin preserved."},
+                    "verification": {"type": "string", "description": "Concrete calculation or feasible counterexample; test the actual quoted claim."},
+                    "correction": {"type": "string", "description": "Necessary edit or replacement; empty if no material change is needed. Do not silently weaken a claim while leaving this empty."},
+                },
+                "required": ["claim", "basis", "verification", "correction"],
+            },
+        },
+        "critique_summary": {"type": "string", "description": "Brief description of any material issues."},
         "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-        "limitations": {"type": "array", "items": {"type": "string"}},
-        "unsupported_claims": {"type": "array", "items": {"type": "string"}},
-        "evidence_gaps": {"type": "array", "items": {"type": "string"}},
+        "research_requests": {"type": "array", "items": {"type": "string"}, "description": "Only information needed to resolve a material correction; no optional future work."},
     },
-    "required": [
-        "verdict",
-        "critique_summary",
-        "answer_markdown",
-        "confidence",
-        "limitations",
-        "unsupported_claims",
-        "evidence_gaps",
-    ],
+    "required": ["checks", "critique_summary", "confidence", "research_requests"],
 }
 
 _TRAJECTORY_MONITOR_SCHEMA: dict[str, Any] = {
@@ -332,8 +368,9 @@ _TRAJECTORY_MONITOR_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Trajectory Monitor (wandering control)",
     file="services/zopedia_agent.py",
     group="Zopedia",
+    stage="monitor",
     prompt=(
-        f"You are the Spectral Nature Zopedia trajectory monitor. {NARRATIVE_STYLE_RULE} "
+        f"You are the Spectral Nature Zopedia trajectory monitor. "
         "You do not answer the user. You inspect the active task, surface, user request, and tool trace, then decide whether the research thread is on contract. "
         "Return double_down when the thread is anchored to the requested subject and the next step should continue. "
         "Return restart when the thread has wandered or compressed evidence too early but can recover with one clear corrective instruction. "
@@ -343,13 +380,15 @@ _TRAJECTORY_MONITOR_SYSTEM_PROMPT = register_narrative_prompt(
         "If the proposed tool is recoverably off-task, return restart so the planner can choose a better next step; reserve kill for unrecoverable drift or exhausted restart budget. "
         "For named company/ticker tasks, judge organization before narrowness. Spillover recall is useful when the thread keeps the requested company as the center of gravity. "
         "Adjacent research is allowed: first-degree and second-degree neighbor tickers, parent/platform, peers, suppliers, customers, sector demand, policy, credit cycle, rates, regulation, and broad market context can all help explain the business. "
-        "Return restart only when the thread stops organizing that recall around the requested company, swaps the primary subject, loops without adding evidence, or moves toward unsupported synthesis. "
+        "Return restart when the thread loses the requested subject or loops without adding value. Reasonable "
+        "hypotheses and indirect connections do not require proof before synthesis. "
         "A planned tool call does not need to be ticker-only; it should either deepen the primary company or collect adjacent context that can be clearly labeled later and kept inside the job budget. "
         "Corrective instructions must name only tools that appear in Available tool names. "
         "Do not kill a company-research thread solely because internal memory is empty while source-reading, live evidence, or web/page tools remain available within budget. "
         "For Zopedia/wiki tasks, treat search without page read, page read without source trace for dependent claims, and generated memory without source refs as incomplete. "
-        "For current/live questions, retained/internal evidence alone is incomplete unless the task explicitly asks for durable memory. "
-        "If a current thread has only prefetched, retained, or wiki search evidence and research.live_event_evidence remains available within budget, return restart with a corrective instruction to gather live/current evidence before final synthesis. "
+        "For current/live questions, consider the actual dates and content of supplied and retained evidence, "
+        "rather than whether a live tool ran. Suggest further acquisition when it adds value and the user permits it; "
+        "do not restart solely because current context arrived through retention or a supplied report. "
         "Do not let the thread claim live search failed, returned nothing, or was unavailable unless the tool trace actually shows that live/current tool attempt. "
         "Do not use keyword blacklists; judge semantic fit to the task and evidence coverage."
     ),
@@ -359,8 +398,9 @@ _AGENT_MEMORY_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Memory Reflection (automatic wiki maintenance)",
     file="services/zopedia_agent.py",
     group="Zopedia",
+    stage="knowledge",
     prompt=(
-        f"You are the Spectral Nature Zopedia memory maintainer. {NARRATIVE_STYLE_RULE} "
+        f"You are the Spectral Nature Zopedia memory maintainer. "
         "Review the answered question, the final answer, the judge review, and collected evidence. "
         "Decide whether the underlying Zopedia wiki should be updated. "
         "The active write policy in the user prompt is binding. "
@@ -444,7 +484,7 @@ def _normalize_zopedia_write_policy(value: object, *, persist_findings: bool = T
         return "safe_auto"
     if policy in _ZOPEDIA_WRITE_POLICIES:
         return policy
-    return "safe_auto" if persist_findings else "none"
+    raise ValueError(f"Invalid knowledge policy: {value}")
 
 
 def _clean(value: object) -> str:
@@ -452,27 +492,8 @@ def _clean(value: object) -> str:
 
 
 def _clean_model_output(value: object) -> str:
-    text = str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()
-    if not text:
-        return ""
-    for token in (
-        "<|im_end|>",
-        "<|endoftext|>",
-        "<|end|>",
-        "<|assistant|>",
-        "<|user|>",
-        "<|system|>",
-    ):
-        text = text.replace(token, " ")
-    lines = [line.rstrip() for line in text.split("\n")]
-    compacted: list[str] = []
-    for line in lines:
-        if not line.strip():
-            if compacted and compacted[-1] != "":
-                compacted.append("")
-            continue
-        compacted.append(line)
-    return "\n".join(compacted).strip()
+    """Preserve generated prose and Markdown; normalize only transport line endings."""
+    return str(value or "").replace("\r\n", "\n").replace("\r", "\n").strip()
 
 
 def _truncate(text: object, *, limit: int = 1600) -> str:
@@ -814,7 +835,22 @@ def _build_render_payload(result: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
+    from .saa.storage import canonical_source_references
+
     payload = result.get("payload")
+    source_documents = []
+    if isinstance(payload, dict):
+        source_documents = list(payload.get("candidate_sources") or [])
+        if payload.get("page_text"):
+            page = (payload.get("summary") or [{}])[0]
+            source_documents.append(
+                {
+                    "url": payload.get("url"),
+                    "title": page.get("title"),
+                    "chunk_text": payload.get("unretained_capture_text") or payload["page_text"],
+                    "source_kind": "original_reporting",
+                }
+            )
     preview = _preview_payload(payload)
     render_payload = _build_render_payload(result)
     result_type = _clean(result.get("result_type")) or "unknown"
@@ -848,23 +884,38 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
         preview_text = f"{result_type}: {_json_dumps(preview.get('value'))}"
 
     llm_context_text = ""
+    evidence_context_text = ""
     result_messages = [_clean(item) for item in list(result.get("messages") or []) if _clean(item)]
+    if isinstance(payload, list):
+        evidence_context_text = serialize_llm_context(
+            {"rows": payload, "provenance": provenance}
+        )
     if isinstance(payload, dict):
-        explicit_context = _clean(payload.get("llm_context_text"))
+        explicit_context = str(
+            payload.get("evidence_context_text") or payload.get("llm_context_text") or ""
+        ).strip()
         if explicit_context:
-            llm_context_text = _truncate(explicit_context, limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)))
+            evidence_context_text = explicit_context
+            llm_context_text = _truncate(
+                explicit_context, limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT))
+            )
         elif isinstance(payload.get("top_events"), list):
             llm_context_text = _truncate(
                 _attention_home_llm_context(payload),
                 limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)),
             )
         elif isinstance(payload.get("summary"), list):
+            evidence_context_text = json.dumps(payload["summary"], ensure_ascii=False, default=str)
             lines: list[str] = []
-            for item in list(payload.get("summary") or [])[:int(get_config_param(_P_TOOL_RESULT_SUMMARY_ITEMS))]:
+            for item in list(payload.get("summary") or [])[
+                : int(get_config_param(_P_TOOL_RESULT_SUMMARY_ITEMS))
+            ]:
                 if not isinstance(item, dict):
                     continue
                 parts = [
-                    _clean(item.get("symbol") or item.get("label") or item.get("title") or item.get("headline")),
+                    _clean(
+                        item.get("symbol") or item.get("label") or item.get("title") or item.get("headline")
+                    ),
                     _clean(item.get("summary_text") or item.get("summary") or item.get("excerpt")),
                     _clean(item.get("source")),
                     _clean(item.get("url")),
@@ -873,9 +924,23 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
                 if text:
                     lines.append(text)
             if lines:
-                llm_context_text = _truncate("\n".join(lines), limit=int(get_config_param(_P_TOOL_RESULT_SUMMARY_LIMIT)))
+                llm_context_text = _truncate(
+                    "\n".join(lines), limit=int(get_config_param(_P_TOOL_RESULT_SUMMARY_LIMIT))
+                )
+        if result_type == "analysis_result":
+            # The index can summarize logs; analysis and review need the actual
+            # computed values, including outputs printed by existing programs.
+            evidence_context_text = serialize_llm_context({
+                key: payload[key] for key in (
+                    "analysis_run_id", "status", "objective", "input_refs", "result", "metrics",
+                    "tables", "charts", "stdout", "stderr", "error", "traceback",
+                ) if key in payload
+            })
     if result_messages:
         message_text = "Tool messages:\n" + "\n".join(f"- {item}" for item in result_messages[:4])
+        evidence_context_text = "\n".join(
+            part for part in [evidence_context_text, "Tool messages:\n" + "\n".join(result_messages)] if part
+        )
         llm_context_text = _truncate(
             "\n".join(part for part in [llm_context_text, message_text] if part),
             limit=int(get_config_param(_P_TOOL_RESULT_CONTEXT_LIMIT)),
@@ -910,7 +975,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
     evidence_refs: list[dict[str, str]] = []
     if isinstance(payload, dict):
         # From summary rows (live_event_evidence, retained_context)
-        for item in list(payload.get("summary") or [])[:8]:
+        for item in list(payload.get("candidate_sources") or payload.get("summary") or []):
             if not isinstance(item, dict):
                 continue
             evidence_ref = {
@@ -927,9 +992,23 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
                 "source": _clean(item.get("source")),
                 "published_date": _clean(item.get("published_date") or item.get("published_at")),
                 "url": _clean(item.get("url")),
+                "evidence_type": _clean(item.get("evidence_type")),
+                "source_kind": _clean(item.get("source_kind")),
+                "source_refs": (item.get("source_refs") if isinstance(item.get("source_refs"), list) else []),
+                **{key: item[key] for key in ("source_references_loaded", "source_reference_resource") if key in item},
             }
             if any(evidence_ref.values()):
                 evidence_refs.append(evidence_ref)
+            for dependency in item.get("source_refs") or []:
+                if isinstance(dependency, dict):
+                    evidence_refs.append(dependency)
+                    if _is_public_web_source_url(dependency.get("url", "")):
+                        source_links.append(
+                            {
+                                "url": dependency["url"],
+                                "label": dependency.get("title") or dependency["url"],
+                            }
+                        )
             url = _clean(item.get("url"))
             if _is_public_web_source_url(url):
                 title = _clean(item.get("headline") or item.get("title") or item.get("label") or url)
@@ -937,7 +1016,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
                 label = f"{title} ({source})" if source else title
                 source_links.append({"url": url, "label": label})
         # From articles (investigator.recent_news)
-        for item in list(payload.get("articles") or [])[:8]:
+        for item in list(payload.get("articles") or []):
             if not isinstance(item, dict):
                 continue
             url = _clean(item.get("url"))
@@ -950,7 +1029,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
             page_title = _clean(payload.get("title") or page_url)
             source_links.append({"url": page_url, "label": page_title})
         # From rows in the payload directly
-        for row in list(payload.get("rows") or [])[:8]:
+        for row in list(payload.get("rows") or []):
             if not isinstance(row, dict):
                 continue
             url = _clean(row.get("url"))
@@ -959,6 +1038,19 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
                 source_links.append({"url": url, "label": title})
 
     return {
+        "retrieval_context": {
+            "source_reference_format": (
+                "source_reference_id identifies complete source metadata in the same source_refs collection. "
+                "An entry with only that ID links to the record; repeated links are not independent evidence."
+            ),
+            **{key: payload.get(key)
+            for key in ("queries", "reporting_window", "warnings", "retrieval_modes", "text_coverage", "capture", "relevance", "first_pass_summary", "workload")
+            if isinstance(payload, dict) and key in payload},
+        },
+        "candidate_sources": (
+            payload.get("candidate_sources") or [] if isinstance(payload, dict) else []
+        ),
+        "source_documents": source_documents,
         "result_type": result_type,
         "provenance": provenance,
         "preview": preview,
@@ -966,8 +1058,14 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
         "user_preview": user_preview,
         "render_payload": render_payload,
         "llm_context_text": llm_context_text,
+        "evidence_context_text": evidence_context_text
+        or (
+            serialize_llm_context({"result": payload, "provenance": provenance})
+            if isinstance(payload, (dict, list))
+            else llm_context_text or preview_text
+        ),
         "source_links": source_links if source_links else None,
-        "evidence_refs": evidence_refs if evidence_refs else None,
+        "evidence_refs": canonical_source_references(evidence_refs) if evidence_refs else None,
     }
 
 
@@ -1023,32 +1121,53 @@ def _tool_catalog_prompt(catalog: list[dict[str, Any]]) -> str:
     lines: list[str] = []
     for tool in catalog:
         input_schema = dict(tool.get("inputSchema") or {})
-        properties = dict(input_schema.get("properties") or {})
-        params = ", ".join(properties.keys()) or "none"
         resolution = _clean(tool.get("resolution"))
         resolution_text = f" [{resolution}]" if resolution else ""
         lines.append(
-            f"- {tool.get('name')}: {tool.get('description')}{resolution_text}; params: {params}"
+            f"- {tool.get('name')}: {tool.get('description')}{resolution_text}; "
+            f"input_schema: {json.dumps(input_schema, ensure_ascii=False)}"
         )
     return "\n".join(lines)
 
 
-def _tool_history_prompt(tool_calls: list[dict[str, Any]]) -> str:
-    if not tool_calls:
-        return "No tools have been called yet."
-    lines: list[str] = []
-    for tool_call in tool_calls:
-        result_summary = dict(tool_call.get("result_summary") or {})
-        result_text = _truncate(
-            result_summary.get("llm_context_text") or result_summary.get("preview_text") or "",
-            limit=int(get_config_param(_P_TOOL_HISTORY_PER_TOOL_LIMIT)),
-        )
-        lines.append(
-            f"- {tool_call['tool_call_id']} | {tool_call['status']} | {tool_call['tool_name']} | "
-            f"args={_json_dumps(tool_call.get('arguments') or {}, limit=500)} | "
-            f"result={result_text}"
-        )
-    return "\n".join(lines)
+def _prompt_request_context(context: dict[str, Any]) -> dict[str, Any]:
+    """The prompt already carries its query; metadata must not repeat its payload."""
+    result = {
+        key: value
+        for key, value in context.items()
+        if key not in {"original_query", "conversation_runs"}
+    }
+    result["prior_research_attempts"] = [
+        {key: value for key, value in run.items() if key != "events"}
+        for run in context.get("conversation_runs") or []
+    ]
+    return result
+
+
+def _tool_history_prompt(
+    tool_calls: list[dict[str, Any]], *, full_evidence: bool = False,
+    selected_source_ids: list[str] | None = None,
+    include_alternatives: bool = False,
+) -> str:
+    """Planning navigates existing views; analysis and review see originals."""
+    packet = resolve_evidence_selection(tool_calls, selected_source_ids)
+    if not full_evidence and not include_alternatives:
+        records = []
+        for call in tool_calls:
+            summary = call.get("result_summary") or {}
+            records.append({
+                "tool_call_id": call.get("tool_call_id"), "tool_name": call.get("tool_name"),
+                "origin_run_id": call.get("origin_run_id"), "status": call.get("status"), "error": call.get("error"),
+                "observations": summary.get("llm_context_text") or summary.get("preview_text") or "",
+                "originals": {"read_tool": "research.read_context", "tool_call_id": call.get("tool_call_id")},
+            })
+        packet["records"] = records
+    if include_alternatives:
+        packet["writer_selection"] = {key: packet[key] for key in ("selection", "unresolved_source_ids")}
+        packet["writer_selection"]["source_ids"] = selected_source_ids
+        packet["records"] = resolve_evidence_selection(tool_calls)["records"]
+        packet["selection"] = "all_for_review"
+    return serialize_llm_context([*packet.pop("records"), packet], append_only=True)
 
 
 def _tool_entry_by_name(catalog: list[dict[str, Any]], tool_name: str) -> dict[str, Any]:
@@ -1156,83 +1275,12 @@ def _coerce_argument_to_schema(value: Any, schema: dict[str, Any]) -> Any:
     return value
 
 
-def _normalize_scope_symbol(value: object) -> str:
-    symbol = _clean(value).upper()
-    if not symbol or any(ch.isspace() for ch in symbol):
-        return ""
-    allowed = "".join(ch for ch in symbol if ch.isalnum() or ch in {".", "-"})
-    if allowed != symbol or not any(ch.isalpha() for ch in symbol):
-        return ""
-    return symbol[:12]
 
 
-def _query_context_json(query: str) -> dict[str, Any]:
-    marker = "Context JSON:"
-    tail = str(query or "")
-    index = tail.find(marker)
-    if index >= 0:
-        tail = tail[index + len(marker) :]
-    start = tail.find("{")
-    if start < 0:
-        return {}
-    try:
-        payload, _ = json.JSONDecoder().raw_decode(tail[start:])
-    except Exception:
-        return {}
-    return payload if isinstance(payload, dict) else {}
 
 
-def _typed_context_focus_symbols(query: str) -> list[str]:
-    context = _query_context_json(query)
-    if not context:
-        return []
-    symbols: list[str] = []
-
-    def _add(value: object) -> None:
-        if isinstance(value, list):
-            for item in value:
-                _add(item)
-            return
-        symbol = _normalize_scope_symbol(value)
-        if symbol and symbol not in symbols:
-            symbols.append(symbol)
-
-    for key in ("symbol", "ticker", "target_symbol", "requested_symbol"):
-        _add(context.get(key))
-    for container_key in (
-        "company_baseline",
-        "baseline",
-        "asset",
-        "company",
-        "query_spec",
-    ):
-        nested = context.get(container_key)
-        if not isinstance(nested, dict):
-            continue
-        for key in ("symbol", "ticker", "target_symbol", "requested_symbol"):
-            _add(nested.get(key))
-    return symbols[:4]
 
 
-def _arguments_with_task_scope(
-    *,
-    tool_name: str,
-    arguments: dict[str, Any],
-    query: str,
-    task: str,
-) -> dict[str, Any]:
-    normalized_task = _clean(task)
-    if not normalized_task.startswith("ticker_business_model"):
-        return arguments
-    symbols = _typed_context_focus_symbols(query)
-    if not symbols:
-        return arguments
-    scoped = dict(arguments or {})
-    if tool_name in {"research.retained_context", "research.live_event_evidence"}:
-        existing = scoped.get("focus_symbols")
-        if not isinstance(existing, list) or not [_normalize_scope_symbol(item) for item in existing if _normalize_scope_symbol(item)]:
-            scoped["focus_symbols"] = symbols
-    return scoped
 
 
 def _coerce_tool_arguments(raw_arguments: Any) -> tuple[dict[str, Any], str]:
@@ -1377,6 +1425,8 @@ def _looks_like_recoverable_model_step_error(error: BaseException) -> bool:
 
 def _safe_agent_error_text(error: object) -> str:
     raw = f"{type(error).__name__}: {error}" if isinstance(error, BaseException) else str(error or "")
+    if isinstance(error, TimeoutError):
+        return _clean(raw)
     if _looks_like_transient_transport_error(raw):
         return (
             "A research or model connection dropped before it returned a response. "
@@ -1389,59 +1439,77 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
     name="Zopedia Agent Planner (tool-calling reasoning)",
     file="services/zopedia_agent.py",
     group="Zopedia",
+    stage="researcher",
     prompt=(
-        f"You are the Spectral Nature Zopedia agent. {NARRATIVE_STYLE_RULE} "
-        "Answer the user's question by calling the available tools when needed. Do not invent data. "
-        "Do not repeat a tool with materially identical arguments. "
-        "When the available catalog does not contain the capability you need, call tools.search with a concise description of the missing evidence or computation, then use one of the returned tools on the next step. "
-        "\n\nEvidence contract: "
-        "Do not final-answer from language-model memory alone. "
-        "For public company or ticker questions, collect company context, fundamentals, recent/current evidence when relevant, "
-        "and retained internal history before synthesis. "
-        "For macroeconomic questions, use Spectral Nature's local macro datasets first; use live external evidence only for missing or current gaps. "
-        "For market-impact questions, especially when macro, bond, or rates moves are connected to equities, ETFs, sectors, or other assets, collect both driver evidence and observed market data. "
-        "Prefetched articles are background, not enough to claim current asset impact. Use dataset.daily_movers and/or dataset.price_history for representative instruments before saying equity or ETF data is unavailable. "
-        "If a summary or precomputed artifact is empty, use the primitive time-series tools before final-answering. "
-        "If analysis.run_python fails with a code, input, or runtime failure category and tool budget remains, repair the code/input once before final-answering. "
-        "For questions that ask Zopedia to adapt or correct memory, read the relevant Zopedia page/source first. "
-        "Use zopedia.apply_mutation for safe source-backed updates such as metadata patches, page upserts, or page links. "
-        "Use zopedia.propose_change for destructive, ambiguous, low-evidence, merge, delete, or rewrite changes. "
-        "Treat user-supplied claims as hypotheses until evidence supports them. "
-        "If the user's premise conflicts with tool evidence, state the conflict plainly and do not repeat the premise as fact. "
-        "\n\nTask discipline: "
-        "The task/surface metadata and any Context JSON in the user prompt are part of the contract. "
-        "Use supplied typed context as evidence; tools are for reading the wiki/source trail, opening source URLs, filling missing slots, and checking freshness. "
-        "For a named company, ticker, person, source, page, or macro subject, keep every search anchored to that subject unless the task explicitly asks for discovery. "
-        "Do not use broad candidate-discovery, market-screening, or unrelated-symbol tools for a named-entity question. "
-        "If a query includes planned evidence questions, answer those questions directly; do not replace them with a generic market scan. "
-        "For ticker_business_model_* tasks, prefer the supplied Context JSON, zopedia.search_pages/read_page/source tracing, research.open_page on URLs already in context, and investigator company/fundamental/news tools. "
-        "Use wide recall when it helps: first-degree and second-degree neighbor tickers, peers, parent/platform, customers, suppliers, industry demand, regulation, credit cycle, rates, policy, and market spillovers can all be relevant. "
-        "Keep the output organized around the requested ticker/company instead of suppressing adjacent evidence. "
-        "When zopedia.search_pages returns a relevant page_id, read the page before treating the wiki as evidence. "
-        "When a Zopedia page has source refs and a claim depends on them, use sources_for_page, trace_to_evidence, read_source, or open_page as needed. "
-        "Treat live search rows as leads unless they include opened source text. When snippets or SERP previews are too shallow, open the page through research.open_page before making the verdict. "
-        "If tool budget or page access prevents source-body verification, answer only to the strength of the headline/snippet evidence and do not mark confidence high. "
-        "Evidence labels are not analysis: never answer that evidence exists; say what the evidence means or name the exact missing slot. "
-        "\n\nEvidence priority: "
-        "1. Check the pre-fetched internal evidence already in this prompt first. "
-        "2. Search Zopedia memory with zopedia.search_pages; read relevant pages with zopedia.read_page. "
-        "3. Use research.search_evidence and research.retained_context for already-retained Spectral Nature evidence; these are not live web search. "
-        "4. For current or stale-memory questions, use research.live_event_evidence before failing closed or final-answering. "
-        "5. For specific tickers, use investigator.* tools (technical_signals, forecast, company_context, fundamentals, recent_news). "
-        "6. For broad spillover or second-order effects, use research.market_impact_map. "
-        "7. For deeper reads on a URL, use research.open_page. "
-        "8. For event significance analysis, use dataset.event_significance with an inferred event_date. "
-        "9. For EDA, regressions, clustering, classification, feature checks, or other quantitative questions, use analysis.run_python over approved local datasets or user-supplied inline tables. "
-        "10. For thesis verification, use hypothesis.verify after gathering evidence. "
-        "11. When checking wiki health, use zopedia.list_maintenance_reports. "
-        "12. When evidence shows Zopedia memory is wrong, stale, or missing a durable page, use zopedia.apply_mutation only for safe reversible changes; otherwise create a zopedia.propose_change entry. "
-        "\n\nOnce you have enough evidence, return action='final' with a structured markdown answer. "
-        "Start with a bold verdict sentence, use ### headings for multi-part answers, keep each heading on its own line with a blank line after it, keep paragraphs short with blank lines, **bold** tickers and metrics, and end with a takeaway. "
-        "If you use a Markdown table, it must have a header row, separator row, and one row per line; use bullets if a table would be cramped. "
-        "When prior conversation is provided, resolve references like 'this', 'that', 'it' from prior turns."
-        "\n\nTool argument encoding: use object_list for arrays of objects such as analysis.run_python dataset_refs "
-        "or inline_datasets, object for single objects, json for arbitrary JSON values, string_list only for arrays "
-        "of plain strings."
+        "You are the shared Spectral Nature research agent. Understand the user's actual request and use the available tools "
+        "when they add useful information. "
+        "Routine acquisition uses the economical model. The configured synthesis model owns the analysis and finished answer. "
+        "Choose final when the gathered evidence is ready for that analysis; do not write a second analytical answer first. "
+        "Choose action='analyze' when a concrete unresolved issue needs the separately configured deep-reasoning model. "
+        "State that question in research_state.next_actions. "
+        "Do not request deep reasoning for routine lookup, extraction or rewriting, or just because confidence is low. "
+        "Preserve explicit user observations and task assumptions; distinguish them from quoted external claims and generated interpretations. "
+        "Hand sufficient supplied context and established knowledge to analysis without unnecessary retrieval. "
+        "Do not search a corpus merely because a search tool is available. A retrieved match "
+        "must help answer this request; ignore unrelated domain material instead of adding an analogy to use it. "
+        "Explore useful indirect relationships, private entities, related concepts and competing explanations. "
+        "Use calculation or analysis tools when arithmetic and unit conversions materially affect the answer. "
+        "Organize the work around the question; don't narrow research "
+        "to exact tickers, exact wording or a preset task class. Never invent reports, numbers or completed work. "
+        "Update research_state each step: a concise goal, useful findings with source references, alternatives, open questions and "
+        "next actions. Keep selected_source_ids for the sources that matter to the answer, including worthwhile alternatives. "
+        "Tool history can show original evidence or an index of existing observations. An index is not the complete original text. Read research.read_context "
+        "by tool_call_id when the original would help the next decision; follow offsets to continue. Do not reacquire the same evidence to read it. "
+        "Set research_state.context_view='index' for subsequent routine decisions when the findings and source index are sufficient. "
+        "Choose 'originals' when interpreting passages or checking the basis of a conclusion. Original evidence is the initial view. "
+        "When review requests have been investigated, copy the addressed request strings into review_requests_addressed. Do not mark unperformed work addressed. "
+        "Keep answer_points as a short outline of the ideas the reader needs, separate from the larger findings list. "
+        "Make those points self-contained, including facts, quotations, calculations or code needed by this request, "
+        "with source references. Choose them for the actual request; do not include every observation collected during research. "
+        "This is a factual research summary, not private chain-of-thought. Revise earlier interpretations when new "
+        "sources change the picture. A prior generated answer is context, not independent corroboration. Distinguish original "
+        "reporting, dated observations, retained knowledge and hypotheses. Read source dependencies when it adds understanding; "
+        "Write public_update for the person following the research: summary describes the specific work you are doing, "
+        "finding describes what the completed work has established (empty before any findings), and next_step names the "
+        "next useful question or action. Use concise ordinary language, without tool names, internal IDs or private reasoning. "
+        "These updates are displayed live. Never claim to have read a source before it is returned. "
+        "Use one short sentence per public_update field; leave finding empty until there is a useful finding. "
+        "Leave next_step empty when the answer is ready. Do not copy the answer outline into progress. "
+        "Conversation context includes prior execution outcomes. Use those records when asked about a failed turn; "
+        "conversation.research_runs reads its actual events. Do not infer a chat failure from unrelated market jobs. "
+        "A carried tool result belongs to its origin_run_id, not the current or immediately preceding turn. "
+        "Attribute failures only to the execution records for that specific attempt. "
+        "A null failure_stage is unknown: do not infer planning or writing from the absence of an answer. "
+        "submitted_at is queue submission, not the start of execution; do not calculate execution duration without a start record. "
+        "do not demand exact citations for reasonable inference or a causal experiment before making a useful judgment. "
+        "Reuse dated shared investigations with research.completed_investigations before repeating their acquisition. Update them against changed evidence, confirmation, contradictions and useful exploration. Familiarity is not a reason to exclude a meaningful development. Choose the next action by expected information value and remaining time. research.search_evidence accepts independent "
+        "queries together: vary concepts, entities and alternative explanations instead of repeating the whole question or "
+        "requiring every search word. When you have chosen the complete queries and reporting dates, pass resolved_plan so lookup executes them directly; "
+        "use query hints when further search interpretation is useful. Interpret its broad candidate catalog yourself, giving original reports priority over old generated answers. "
+        "For dated requests, inspect the broad reporting catalog too; important developments can use unexpected vocabulary. "
+        "Use research.read_evidence or zopedia.read_page for "
+        "full retained text; open a web page if permitted and richer content helps. Headlines and snippets are useful leads. "
+        "Cite chunk_record_id, source_id, document_id or tool_call_id from the evidence. A context_id or context_ref "
+        "only represents serialized content; it is not a source identifier. "
+        "Current reports can already be retained; old context can still explain a new development. Check actual source dates. "
+        "Use local datasets and analysis tools for numerical requests. If a computation fails, use its error to repair inputs or "
+        "code. Do not repeat identical calls. If a capability is missing, tools.search discovers available tools. "
+        "Integrate reflection into this decision. Set request_review only when a separate perspective could resolve substantive "
+        "drift, a persistent loop or an important competing explanation. It is optional, not an approval before every action. "
+        "When corrected, choose an executable next action. Preserve worthwhile pending research if time runs out. "
+        "Respect request_context and explicit user constraints. Set source_policy=retained_only when the user forbids browsing "
+        "or restricts you to retained knowledge. You cannot broaden application permissions. Knowledge writes follow the "
+        "application write policy. Set knowledge_policy=none when the user forbids knowledge changes, propose when they "
+        "want suggestions only, and inherit otherwise. These choices can narrow permissions, never broaden them. "
+        "Conversation and visible artifacts provide context but do not replace the latest request. "
+        "When further research has low value, return final with the best useful answer, including your reasoned assessment. "
+        "Be clear about an inference without drowning it in caveats. Match the user's requested format and the active global "
+        "writing style. Use short paragraphs and useful source links. Explain practical meaning and cause and effect in familiar "
+        "words. Keep tool IDs, research bookkeeping, confidence labels and execution failures out of the answer. "
+        "Tools are optional. Answer directly for explanations, transformations and reasoning over supplied input when external "
+        "information would not improve the requested answer. Encode tool_arguments as one JSON object inside a string; "
+        "its values must match the chosen tool's input schema. answer_markdown is a concise working draft for the final writer; "
+        "do not write a full report during planning. Use exactly an available tool name. Return the required JSON schema."
     ),
 )
 
@@ -1499,111 +1567,26 @@ def _search_conversation_history(
     }
 
 
-def _attempted_tool_names(tool_calls: list[dict[str, Any]]) -> set[str]:
-    return {_clean(call.get("tool_name")) for call in tool_calls if isinstance(call, dict) and _clean(call.get("tool_name"))}
-
-
 def _compact_conversation_history(
     conversation_history: list[dict[str, Any]] | None,
-    max_chars: int = 3000,
+    max_chars: int | None = None,
 ) -> str:
-    """Compact prior conversation turns into a context block for the planner.
-
-    Strategy:
-    - The most recent assistant answer is kept in full (up to 1500 chars) so
-      the agent can resolve references to specifics in the last answer.
-    - Older assistant answers are compacted to ~300 chars each.
-    - User messages are always kept in full (they're short).
-    - Walks newest-first, then reverses for chronological order.
-    """
+    """Preserve ordered messages, including corrections beyond an answer preview."""
     if not conversation_history:
         return ""
-    turns: list[str] = []
-    total = 0
-    assistant_count = 0
-    reversed_history = list(reversed(conversation_history))
-    for msg in reversed_history:
-        role = str(msg.get("role") or "").strip()
-        if role == "user":
-            content = str(msg.get("content") or "").strip()
-        elif role == "assistant":
-            content = str(msg.get("answer") or msg.get("content") or "").strip()
-            # Most recent assistant answer gets generous room;
-            # older ones get compacted.
-            limit = 1500 if assistant_count == 0 else 300
-            assistant_count += 1
-            if len(content) > limit:
-                content = content[:limit].rsplit(" ", 1)[0] + "..."
-        else:
-            continue
-        if not content:
-            continue
-        line = f"[{role}]: {content}"
-        if total + len(line) > max_chars:
-            break
-        turns.append(line)
-        total += len(line)
-    if not turns:
-        return ""
-    turns.reverse()
-    return "Prior conversation:\n" + "\n".join(turns) + "\n\n"
-
-
-def _message_text(msg: dict[str, Any]) -> str:
-    return str(msg.get("answer") or msg.get("content") or msg.get("answer_markdown") or "").strip()
-
-
-def _latest_user_and_assistant_turn(
-    conversation_history: list[dict[str, Any]] | None,
-) -> tuple[str, str]:
-    if not conversation_history:
-        return "", ""
-    latest_user = ""
-    latest_assistant = ""
-    for msg in reversed(conversation_history):
-        role = str(msg.get("role") or "").strip().lower()
-        content = _message_text(msg)
-        if not content:
-            continue
-        if role == "assistant" and not latest_assistant:
-            latest_assistant = content
-        elif role == "user" and not latest_user:
-            latest_user = content
-        if latest_user and latest_assistant:
-            break
-    return latest_user, latest_assistant
-
-
-def _is_affirmative_followup(query: str) -> bool:
-    normalized = _clean(query).lower().strip(" \t\r\n.!?")
-    return normalized in _AFFIRMATIVE_FOLLOWUP_REPLIES
-
-
-def _is_contextual_followup_query(query: str) -> bool:
-    normalized = _clean(query).lower().strip()
-    stripped = normalized.strip(" \t\r\n.!?")
-    if not stripped or len(stripped) > 180:
-        return False
-    starters = (
-        "what about ",
-        "how about ",
-        "what of ",
-        "and ",
-        "also ",
-        "but ",
-        "then ",
-        "so ",
-        "does that ",
-        "is that ",
-        "can you expand",
-        "go deeper",
-        "dig deeper",
+    return (
+        "Prior conversation:\n"
+        + serialize_llm_context(
+            [
+                {
+                    "role": message.get("role"),
+                    "content": message.get("content") or message.get("answer") or "",
+                }
+                for message in conversation_history
+            ]
+        )
+        + "\n\n"
     )
-    if stripped.startswith(starters):
-        return True
-    reference_terms = {"this", "that", "it", "they", "them", "those", "there"}
-    tokens = {token for token in stripped.replace("?", " ").split() if token}
-    return bool(tokens & reference_terms) and len(tokens) <= 14
 
 
 def resolve_conversation_followup_query(
@@ -1612,342 +1595,25 @@ def resolve_conversation_followup_query(
     *,
     max_answer_chars: int = 1800,
 ) -> tuple[str, bool]:
-    """Resolve bare replies like "yes" against the prior chat turn.
-
-    The chat UI stores the literal user text, but the agent needs an actionable
-    query.  Without this handoff, the router can treat "yes" as a standalone
-    search and skip the agent path that has conversation context.
-    """
-    normalized_query = _clean(query)
-    is_affirmative = _is_affirmative_followup(normalized_query)
-    is_contextual = _is_contextual_followup_query(normalized_query)
-    if not is_affirmative and not is_contextual:
-        return normalized_query, False
-
-    previous_user, previous_assistant = _latest_user_and_assistant_turn(conversation_history)
-    if not previous_assistant:
-        return normalized_query, False
-
-    answer_excerpt = previous_assistant
-    if len(answer_excerpt) > max_answer_chars:
-        answer_excerpt = answer_excerpt[:max_answer_chars].rsplit(" ", 1)[0].strip()
-        answer_excerpt = f"{answer_excerpt}..."
-    if not previous_user:
-        previous_user = "the previous market question"
-
-    if is_affirmative:
-        instruction = (
-            "The user replied affirmatively, so carry out the natural next step implied by the prior assistant answer."
-        )
-    else:
-        instruction = (
-            "The user asked a contextual follow-up. Resolve the follow-up against the prior question and answer, "
-            "then answer that combined question with fresh evidence where needed."
-        )
-
-    resolved_query = (
-        "Continue the previous Zopedia thread. "
-        f"{instruction} "
-        "Use the prior answer and prior question as context; verify or expand with evidence instead of "
-        "treating the reply as a standalone query.\n\n"
-        f"Previous user question:\n{previous_user}\n\n"
-        f"Previous assistant answer:\n{answer_excerpt}\n\n"
-        f"Current user reply:\n{normalized_query}"
-    )
-    return resolved_query, True
+    """Keep the user's words intact; the shared agent interprets separate history."""
+    return str(query or "").strip(), bool(conversation_history)
 
 
-def _tool_available(tool_catalog: list[dict[str, Any]], tool_name: str) -> bool:
-    return any(_clean(tool.get("name")) == tool_name for tool in tool_catalog)
-
-
-def _tool_catalog_for_write_policy(tool_catalog: list[dict[str, Any]], write_policy: str) -> list[dict[str, Any]]:
+def _tool_catalog_for_write_policy(
+    tool_catalog: list[dict[str, Any]], write_policy: str
+) -> list[dict[str, Any]]:
     normalized = _normalize_zopedia_write_policy(write_policy)
-    blocked = {"zopedia.rollback_mutation"}
-    if normalized == "none":
-        blocked.update({"zopedia.apply_mutation", "zopedia.propose_change"})
-    elif normalized == "propose":
-        blocked.add("zopedia.apply_mutation")
-    return [tool for tool in tool_catalog if _clean(tool.get("name")) not in blocked]
-
-
-def _cap_confidence(value: str, maximum: str) -> str:
-    order = {"low": 0, "medium": 1, "high": 2}
-    normalized_value = _clean(value).lower() or "low"
-    normalized_max = _clean(maximum).lower() or "low"
-    if normalized_value not in order:
-        normalized_value = "low"
-    if normalized_max not in order:
-        normalized_max = "low"
-    if order[normalized_value] <= order[normalized_max]:
-        return normalized_value
-    for label, rank in order.items():
-        if rank == order[normalized_max]:
-            return label
-    return normalized_max
-
-
-_NON_EVIDENCE_TOOL_NAMES = {
-    "analysis.read_raw_output",
-    "scratchpad.read",
-    "scratchpad.write",
-    "system.capabilities",
-    "tools.search",
-    "trajectory.monitor",
-    "zopedia.apply_mutation",
-    "zopedia.list_maintenance_reports",
-    "zopedia.list_mutations",
-    "zopedia.list_proposals",
-    "zopedia.propose_change",
-    "zopedia.rollback_mutation",
-}
-
-
-def _successful_evidence_tool_count(tool_calls: list[dict[str, Any]]) -> int:
-    count = 0
-    for call in tool_calls:
-        if not isinstance(call, dict):
-            continue
-        tool_name = _clean(call.get("tool_name"))
-        status = _clean(call.get("status")).lower()
-        if status not in {"completed", "success", "ok"}:
-            continue
-        if tool_name in _NON_EVIDENCE_TOOL_NAMES:
-            continue
-        count += 1
-    return count
-
-
-_SOURCE_BODY_TOOLS = {
-    "research.open_page",
-    "zopedia.read_source",
-}
-
-
-def _live_search_without_source_body(tool_calls: list[dict[str, Any]]) -> bool:
-    completed = _completed_tool_names(tool_calls)
-    if "research.live_event_evidence" not in completed:
-        return False
-    return not any(tool_name in completed for tool_name in _SOURCE_BODY_TOOLS)
-
-
-_OBSERVED_MARKET_DATA_TOOLS = {
-    "dataset.daily_movers",
-    "dataset.price_history",
-    "dataset.technical_signal_history",
-    "analysis.run_python",
-}
-
-
-def _completed_tool_names(tool_calls: list[dict[str, Any]]) -> set[str]:
-    return {
-        _clean(call.get("tool_name"))
-        for call in tool_calls
-        if isinstance(call, dict) and _clean(call.get("status")).lower() in {"completed", "success", "ok"}
-    }
-
-
-def _has_observed_market_data(tool_calls: list[dict[str, Any]]) -> bool:
-    for call in tool_calls:
-        if not isinstance(call, dict):
-            continue
-        if _clean(call.get("status")).lower() not in {"completed", "success", "ok"}:
-            continue
-        if _clean(call.get("tool_name")) not in _OBSERVED_MARKET_DATA_TOOLS:
-            continue
-        if not _tool_call_is_low_signal(call):
-            return True
-    return False
-
-
-def _mentions_market_impact_claim(query: str, answer: str) -> bool:
-    text = f"{query}\n{answer}".lower()
-    market_terms = (
-        "market",
-        "equity",
-        "equities",
-        "stock",
-        "stocks",
-        "etf",
-        "sector",
-        "growth",
-        "duration",
-        "bond",
-        "yield",
-        "rate",
-        "rates",
+    allowed_effects = (
+        {"read"}
+        if normalized == "none"
+        else {"read", "propose"} if normalized == "propose" else {"read", "propose", "write"}
     )
-    impact_terms = (
-        "impact",
-        "affect",
-        "pressure",
-        "weigh",
-        "benefit",
-        "move",
-        "moved",
-        "fall",
-        "rise",
-        "drop",
-        "headwind",
-        "tailwind",
-    )
-    return any(term in text for term in market_terms) and any(term in text for term in impact_terms)
-
-
-def _market_impact_focus_symbols(tool_calls: list[dict[str, Any]]) -> list[str]:
-    symbols: list[str] = []
-    for call in reversed(tool_calls):
-        if _clean(call.get("tool_name")) != "research.market_impact_map":
-            continue
-        summary = dict(call.get("result_summary") or {})
-        preview = dict(summary.get("preview") or {})
-        for row in list(preview.get("sample") or []):
-            if not isinstance(row, dict):
-                continue
-            symbol = _clean(row.get("symbol")).upper()
-            if symbol and symbol not in symbols:
-                symbols.append(symbol)
-        if symbols:
-            continue
-        text = _clean(summary.get("llm_context_text") or summary.get("preview_text"))
-        for token in text.replace(",", " ").replace(".", " ").replace(":", " ").split():
-            symbol = "".join(ch for ch in token.strip().upper() if ch.isalnum())
-            if 1 <= len(symbol) <= 7 and symbol.isalnum() and symbol not in symbols:
-                if symbol not in {"THEME", "EXPECTED", "LIKELY", "IMPACTED", "SYMBOLS", "CHECK", "NEXT"}:
-                    symbols.append(symbol)
-    return symbols[:8]
-
-
-def _market_impact_recovery_tool(
-    *,
-    query: str,
-    answer: str,
-    tool_calls: list[dict[str, Any]],
-    tool_catalog: list[dict[str, Any]],
-) -> tuple[str, dict[str, Any], str] | None:
-    if _has_observed_market_data(tool_calls):
-        return None
-    if not _mentions_market_impact_claim(query, answer):
-        return None
-    attempted = _attempted_tool_names(tool_calls)
-    if "research.market_impact_map" not in attempted and _tool_available(tool_catalog, "research.market_impact_map"):
-        return (
-            "research.market_impact_map",
-            {"query": query, "max_symbols": 8},
-            "Market-impact answer needs a representative instrument basket before final synthesis.",
-        )
-    symbols = _market_impact_focus_symbols(tool_calls)
-    if "dataset.daily_movers" not in attempted and _tool_available(tool_catalog, "dataset.daily_movers"):
-        args: dict[str, Any] = {"force_refresh": False}
-        if symbols:
-            args["symbols"] = symbols
-        return (
-            "dataset.daily_movers",
-            args,
-            "Market-impact answer needs observed daily market moves before final synthesis.",
-        )
-    return None
-
-
-def _bootstrap_tool_plan(
-    *,
-    query: str,
-    tool_catalog: list[dict[str, Any]],
-    force_refresh: bool,
-    max_calls: int,
-) -> list[tuple[str, dict[str, Any]]]:
-    """Legacy hook kept for config compatibility; LLM planner owns tool choice."""
-    del query, tool_catalog, force_refresh, max_calls
-    return []
-
-
-def _execute_seeded_tool_call(
-    *,
-    service: QueryService,
-    run_id: str,
-    tool_calls: list[dict[str, Any]],
-    progress_callback: ProgressCallback | None,
-    tool_name: str,
-    arguments: dict[str, Any],
-    progress: float,
-    tool_call_timeout_seconds: int | None = None,
-    tool_registry: ToolRegistry | None = None,
-) -> bool:
-    call_id = f"agtc_{len(tool_calls) + 1}"
-    _emit_progress(
-        progress_callback,
-        stage="tool_start",
-        message=f"Collecting initial evidence from {tool_name}.",
-        progress=progress,
-        tool_name=tool_name,
-        tool_call_id=call_id,
-        tool_call_count=len(tool_calls),
-        tool_arguments=arguments,
-    )
-    try:
-        result = _invoke_tool_with_heartbeat(
-            service=service,
-            tool_name=tool_name,
-            arguments=arguments,
-            run_id=run_id,
-            progress_callback=progress_callback,
-            progress=progress,
-            tool_call_id=call_id,
-            tool_call_count=len(tool_calls),
-            timeout_seconds=tool_call_timeout_seconds,
-            tool_registry=tool_registry,
-        )
-        result_summary = _summarize_tool_result(result)
-        tool_calls.append(
-            {
-                "tool_call_id": call_id,
-                "tool_name": tool_name,
-                "arguments": arguments,
-                "status": "completed",
-                "error": None,
-                "result_summary": result_summary,
-            }
-        )
-        _emit_progress(
-            progress_callback,
-            stage="tool_complete",
-            message=f"Collected initial evidence from {tool_name}.",
-            progress=min(progress + 0.03, 0.9),
-            tool_name=tool_name,
-            tool_call_id=call_id,
-            tool_call_count=len(tool_calls),
-            tool_arguments=arguments,
-            result_preview=_truncate(result_summary.get("user_preview") or result_summary.get("preview_text") or "", limit=300),
-            render_payload=result_summary.get("render_payload"),
-            source_links=result_summary.get("source_links"),
-        )
-        return True
-    except Exception as exc:
-        tool_calls.append(
-            {
-                "tool_call_id": call_id,
-                "tool_name": tool_name,
-                "arguments": arguments,
-                "status": "failed",
-                "error": f"{type(exc).__name__}: {exc}",
-                "result_summary": {
-                    "preview_text": f"{type(exc).__name__}: {exc}",
-                    "result_type": "error",
-                    "provenance": None,
-                    "preview": {"kind": "error"},
-                },
-            }
-        )
-        _emit_progress(
-            progress_callback,
-            stage="tool_failed",
-            message=f"{tool_name} failed during initial evidence collection.",
-            progress=min(progress + 0.03, 0.9),
-            tool_name=tool_name,
-            tool_call_id=call_id,
-            tool_call_count=len(tool_calls),
-        )
-        return False
+    return [
+        tool
+        for tool in tool_catalog
+        if tool.get("knowledge_effect", "read") in allowed_effects
+        and tool.get("name") != "zopedia.rollback_mutation"
+    ]
 
 
 def _invoke_tool_with_heartbeat(
@@ -1962,42 +1628,53 @@ def _invoke_tool_with_heartbeat(
     tool_call_count: int,
     timeout_seconds: int | None = None,
     tool_registry: ToolRegistry | None = None,
+    request_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if timeout_seconds is None:
         timeout_seconds = int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS))
-    timeout_seconds = max(int(timeout_seconds), 1)
+    timeout_seconds = max(float(timeout_seconds), 0)
+    if timeout_seconds <= 0:
+        raise ResearchStepTimeout(
+            "source acquisition", "Research phase budget expired before tool dispatch."
+        )
     result_box: list[dict[str, Any] | None] = [None]
     error_box: list[BaseException | None] = [None]
+    deadline = time.monotonic() + timeout_seconds
+    work = WorkScope(deadline)
 
     def _run_tool() -> None:
         try:
-            if tool_name == "tools.search" and tool_registry is not None:
-                result_box[0] = tool_registry.search_result(
-                    arguments.get("query"),
-                    namespace=arguments.get("namespace"),
-                    limit=int(arguments.get("limit") or 8),
-                )
-            else:
-                result_box[0] = invoke_tool(
-                    service=service,
-                    tool_name=tool_name,
-                    arguments=arguments,
-                    run_id=run_id,
-                )
+            with work.activate(), llm_request_deadline(deadline):
+                if tool_name == "tools.search" and tool_registry is not None:
+                    result_box[0] = tool_registry.search_result(
+                        arguments.get("query"),
+                        namespace=arguments.get("namespace"),
+                        limit=int(arguments.get("limit") or 8),
+                    )
+                else:
+                    result_box[0] = invoke_tool(
+                        service=service,
+                        tool_name=tool_name,
+                        arguments=arguments,
+                        run_id=run_id,
+                        registry=tool_registry,
+                        request_context=request_context,
+                    )
         except BaseException as exc:
             error_box[0] = exc
 
-    tool_thread = threading.Thread(target=_run_tool, name=f"zopedia-tool-{tool_name[:32]}", daemon=True)
+    tool_thread = threading.Thread(target=copy_context().run, args=(_run_tool,), name=f"zopedia-tool-{tool_name[:32]}", daemon=True)
     tool_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
     while tool_thread.is_alive():
-        wait_seconds = min(heartbeat_interval, max(float(timeout_seconds) - elapsed, 0.1))
+        wait_seconds = max(min(heartbeat_interval, deadline - time.monotonic()), 0)
         tool_thread.join(timeout=wait_seconds)
         if not tool_thread.is_alive():
             break
-        elapsed += wait_seconds
-        if elapsed >= timeout_seconds:
+        elapsed = timeout_seconds - max(deadline - time.monotonic(), 0)
+        if time.monotonic() >= deadline:
+            work.cancel()
             _emit_progress(
                 progress_callback,
                 stage="tool_timeout",
@@ -2009,7 +1686,9 @@ def _invoke_tool_with_heartbeat(
                 tool_arguments=arguments,
                 elapsed_seconds=int(elapsed),
             )
-            raise TimeoutError(f"{tool_name} timed out after {timeout_seconds}s.")
+            raise ResearchStepTimeout(
+                "source acquisition", f"{tool_name} timed out after {timeout_seconds}s."
+            )
         _emit_progress(
             progress_callback,
             stage="tool_heartbeat",
@@ -2032,31 +1711,39 @@ def _invoke_tool_with_heartbeat(
 def _run_hidden_step_with_timeout(
     *,
     label: str,
-    timeout_seconds: int,
+    timeout_seconds: float,
     progress_callback: ProgressCallback | None,
     progress: float,
     func: Callable[[], Any],
 ) -> Any:
+    if timeout_seconds <= 0:
+        raise ResearchStepTimeout(
+            label, f"Research phase budget expired before {label}."
+        )
     result_box: list[Any] = [None]
     error_box: list[BaseException | None] = [None]
+    deadline = time.monotonic() + timeout_seconds
+    work = WorkScope(deadline)
 
     def _runner() -> None:
         try:
-            result_box[0] = func()
+            with work.activate(), llm_request_deadline(deadline):
+                result_box[0] = func()
         except BaseException as exc:
             error_box[0] = exc
 
-    step_thread = threading.Thread(target=_runner, name=f"zopedia-hidden-{label[:32]}", daemon=True)
+    step_thread = threading.Thread(target=copy_context().run, args=(_runner,), name=f"zopedia-hidden-{label[:32]}", daemon=True)
     step_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
     while step_thread.is_alive():
-        wait_seconds = min(heartbeat_interval, max(float(timeout_seconds) - elapsed, 0.1))
+        wait_seconds = max(min(heartbeat_interval, deadline - time.monotonic()), 0)
         step_thread.join(timeout=wait_seconds)
         if not step_thread.is_alive():
             break
-        elapsed += wait_seconds
-        if elapsed >= timeout_seconds:
+        elapsed = timeout_seconds - max(deadline - time.monotonic(), 0)
+        if time.monotonic() >= deadline:
+            work.cancel()
             _emit_progress(
                 progress_callback,
                 stage="hidden_step_timeout",
@@ -2064,7 +1751,9 @@ def _run_hidden_step_with_timeout(
                 progress=min(progress + 0.02, 0.9),
                 elapsed_seconds=int(elapsed),
             )
-            raise TimeoutError(f"{label} timed out after {timeout_seconds}s.")
+            raise ResearchStepTimeout(
+                label, f"{label} timed out after {timeout_seconds}s."
+            )
         _emit_progress(
             progress_callback,
             stage="hidden_step_heartbeat",
@@ -2077,115 +1766,19 @@ def _run_hidden_step_with_timeout(
     return result_box[0]
 
 
-def _completed_seeded_evidence_count(tool_calls: list[dict[str, Any]], seeded_names: set[str]) -> int:
-    return sum(
-        1
-        for call in tool_calls
-        if str(call.get("status") or "") == "completed"
-        and _clean(call.get("tool_name")) in seeded_names
-        and not _tool_call_is_low_signal(call)
-    )
-
-
-def _tool_call_is_low_signal(tool_call: dict[str, Any]) -> bool:
-    text = _json_dumps(tool_call.get("result_summary") or {}, limit=1800).lower()
-    low_signal_markers = (
-        "0 results",
-        "no results",
-        "no matching",
-        "no retained",
-        "no company context",
-        "no recent news",
-        "returned empty",
-        "no results returned",
-    )
-    return any(marker in text for marker in low_signal_markers)
-
-
-def _analysis_failure_needs_repair(tool_calls: list[dict[str, Any]]) -> bool:
-    analysis_calls = [
-        call
-        for call in tool_calls
-        if isinstance(call, dict) and _clean(call.get("tool_name")) == "analysis.run_python"
-    ]
-    if len(analysis_calls) != 1:
-        return False
-    summary = dict(analysis_calls[0].get("result_summary") or {})
-    text = _json_dumps(summary, limit=2400).lower()
-    failure_markers = (
-        "failure category: analysis_code_error",
-        "failure category: analysis_input_missing",
-        "failure category: analysis_runtime_error",
-        "failure_category",
-        "analysis_code_error",
-        "analysis_input_missing",
-        "analysis_runtime_error",
-    )
-    return any(marker in text for marker in failure_markers)
-
-
-def _should_skip_planner_after_bootstrap(query: str, tool_calls: list[dict[str, Any]], seeded_names: set[str]) -> bool:
-    del query, tool_calls, seeded_names
-    return False
-
-
-def _first_zopedia_page_id_from_search(tool_calls: list[dict[str, Any]]) -> str:
-    for call in reversed(tool_calls):
-        if _clean(call.get("tool_name")) != "zopedia.search_pages":
-            continue
-        if _clean(call.get("status")) != "completed" or _tool_call_is_low_signal(call):
-            continue
-        summary = dict(call.get("result_summary") or {})
-        for ref in list(summary.get("evidence_refs") or []):
-            if not isinstance(ref, dict):
-                continue
-            page_id = _clean(ref.get("page_id") or ref.get("ref"))
-            if page_id:
-                return page_id
-    return ""
-
-
-def _zopedia_page_already_read(tool_calls: list[dict[str, Any]], page_id: str) -> bool:
-    normalized = _clean(page_id)
-    if not normalized:
-        return False
-    for call in tool_calls:
-        if _clean(call.get("tool_name")) != "zopedia.read_page":
-            continue
-        if _clean(call.get("status")) != "completed":
-            continue
-        args = dict(call.get("arguments") or {})
-        if _clean(args.get("page_id")) == normalized:
-            return True
-    return False
-
-
-def _direct_structured_payload_answer(query: str, decision: dict[str, Any]) -> str:
-    if "Return only a valid JSON object matching schema" not in str(query or ""):
-        return ""
-    step_keys = set(_STEP_SCHEMA.get("properties") or {})
-    payload = {
-        key: value
-        for key, value in decision.items()
-        if key not in step_keys and not str(key).startswith("__")
-    }
-    if not payload:
-        return ""
-    if any(key in payload for key in ("queries", "slot_facts", "verdict_markdown", "business_story_markdown")):
-        return json.dumps(payload, ensure_ascii=True, sort_keys=True, default=str)
-    return ""
-
-
 def _budgeted_tool_calls(tool_calls: list[dict[str, Any]]) -> list[dict[str, Any]]:
     free_tools = {
         "trajectory.monitor",
         "research.prefetched_context",
+        "research.supplied_context",
         "tools.search",
     }
     return [
         call
         for call in list(tool_calls or [])
         if _clean(call.get("tool_name")) not in free_tools
+        and not call.get("carried_forward")
+        and call.get("status") in {"completed", "failed"}
     ]
 
 
@@ -2203,14 +1796,15 @@ def _planner_user_prompt(
     surface: str = "",
     conversation_history: list[dict[str, Any]] | None = None,
     prefetched_context: str = "",
+    full_evidence: bool = True,
+    analytical: bool = False,
 ) -> str:
-    history_block = _compact_conversation_history(conversation_history, max_chars=int(get_config_param(_P_CONVERSATION_HISTORY_LIMIT)))
+    history_block = _compact_conversation_history(conversation_history)
     evidence_block = ""
     if prefetched_context:
         evidence_block = (
             f"{prefetched_context}\n\n"
-            "Use this evidence when answering. Call research tools "
-            "only if you need additional details or different angles.\n\n"
+            "These are initial candidates, not a complete account. Compare interpretations and pursue useful missing angles.\n\n"
         )
     return (
         f"{history_block}"
@@ -2218,19 +1812,18 @@ def _planner_user_prompt(
         f"Task: {_clean(task) or 'agent_answer'}\n"
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
+        "Tool call history:\n"
+        f"{_tool_history_prompt(tool_calls, full_evidence=full_evidence)}\n\n"
         f"Tool budget: {max_tool_calls - _budgeted_tool_count(tool_calls)} remaining out of {max_tool_calls}.\n\n"
         "Available tools:\n"
         f"{_tool_catalog_prompt(tool_catalog)}\n\n"
-        "Tool call history:\n"
-        f"{_tool_history_prompt(tool_calls)}\n\n"
         "Return exactly one next action. "
         "If you still need data, set action='tool_call' and choose one tool. "
         "If you can answer now, set action='final'. "
-        "When action='tool_call', populate tool_arguments as a list of typed entries. "
-        "Examples: "
-        '[{"name":"years","value_kind":"number","string_value":null,"number_value":1,"boolean_value":null,"string_list_value":null}] '
-        'or [{"name":"ticker","value_kind":"string","string_value":"AAPL","number_value":null,"boolean_value":null,"string_list_value":null}]. '
-        "Use an empty list when the tool takes no arguments."
+        + ("" if analytical else "Choose action='analyze' for a consequential unresolved reasoning question. ")
+        +
+        "When action='tool_call', tool_arguments is a JSON-encoded object with the required fields and typed values "
+        "from that tool's input_schema. Use the string '{}' when the tool takes no arguments or action='final'."
     )
 
 
@@ -2242,12 +1835,24 @@ def _final_user_prompt(
     surface: str = "",
     conversation_history: list[dict[str, Any]] | None = None,
     prefetched_context: str = "",
+    response_schema_name: str = "",
+    selected_source_ids: list[str] | None = None,
+    answer_points: list[str] | None = None,
+    draft_answer: str = "",
 ) -> str:
-    history_block = _compact_conversation_history(conversation_history, max_chars=int(get_config_param(_P_CONVERSATION_HISTORY_LIMIT)))
+    history_block = _compact_conversation_history(conversation_history)
     evidence_block = ""
     if prefetched_context:
-        evidence_block = (
-            f"{prefetched_context}\n\n"
+        evidence_block = f"{prefetched_context}\n\n"
+    if not response_schema_name:
+        return (
+            f"User request:\n{query}\n\n{history_block}{evidence_block}"
+            f"Original evidence and source catalog:\n{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids)}\n\n"
+            f"Analysis outline:\n{json.dumps(answer_points or [], ensure_ascii=False)}\n\n"
+            f"Available draft:\n{draft_answer}\n\n"
+            "Resolve the analysis against the original observations and passages, preserving numbers, dates, qualifications and useful alternative explanations. "
+            "Keep source facts, prior generated research and hypotheses distinct. Write the finished answer in the user's requested format. "
+            "Use useful source-title links and ordinary words."
         )
     return (
         f"{history_block}"
@@ -2256,18 +1861,29 @@ def _final_user_prompt(
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
         "Tool evidence:\n"
-        f"{_tool_history_prompt(tool_calls)}\n\n"
-        "Write the best grounded markdown answer you can from this evidence only. "
-        "When the user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as evidence too, especially when the tool budget is zero. "
-        "Make it readable: start with a bold verdict, use ### headings for distinct themes, keep each heading on its own line with a blank line after it, keep paragraphs short, and put blank lines between paragraphs. "
-        "If you use a Markdown table, it must have a header row, separator row, and one row per line; use bullets if a table would be cramped. "
-        "Treat the user's premise as unverified unless the evidence supports it; if evidence contradicts the premise, say so plainly. "
-        "If you use Zopedia memory, cite the relevant Zopedia page title or page_id in the answer. "
-        "If the evidence includes fresh web research, lightly mention one or two supporting sources or links. "
+        f"{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids)}\n\n"
+        f"Available draft:\n{draft_answer}\n\n"
+        f"Analysis outline:\n{json.dumps(answer_points or [], ensure_ascii=False)}\n\n"
+        + (
+            f"Return the artifact JSON for {response_schema_name}, using its requested fields and format. "
+            if response_schema_name
+            else "Write the most useful answer from this evidence and established context, including reasonable inferences. "
+        )
+        + "When the user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as evidence too, especially when the tool budget is zero. "
+        + (
+            "Use concise plain prose in public text fields, without headings or process commentary. "
+            if response_schema_name
+            else "Match the requested format. Use clear connected prose and short paragraphs with blank lines between them. "
+        )
+        + "If you use a Markdown table, it must have a header row, separator row, and one row per line; use bullets if a table would be cramped. "
+        "Preserve explicit user observations and hypothetical task assumptions. Distinguish these premises from quoted external assertions "
+        "that can be checked; assess contradictions without inventing different task premises. "
+        "If you use Zopedia memory, cite the relevant page title. Keep internal IDs out of public prose. "
+        "Use source-title links for supporting reports, including retained sources; keep source dependencies distinct from generated interpretation. "
         "Do not claim that live search, recent search, or a source-reading tool failed or returned no results unless the tool history shows that exact attempt. "
-        "For current questions, if the tool history contains only retained/internal evidence and no completed live/current source tool, say the run has not collected enough current evidence instead of presenting a market update. "
+        "For current questions, respect the dates of supplied and retained evidence; supplied current reports count even without a live tool call. "
         "Do not turn the answer into a citation list. "
-        "If the evidence is incomplete, say what is missing."
+        "Incomplete evidence should guide interpretation and follow-up, not erase a useful connection. Respect the user's evidence scope."
     )
 
 
@@ -2282,12 +1898,14 @@ def _judge_user_prompt(
     surface: str = "",
     conversation_history: list[dict[str, Any]] | None = None,
     prefetched_context: str = "",
+    structured_response: bool = False,
+    selected_source_ids: list[str] | None = None,
+    analysis_basis: list[dict[str, str]] | None = None,
 ) -> str:
-    history_block = _compact_conversation_history(conversation_history, max_chars=int(get_config_param(_P_CONVERSATION_HISTORY_LIMIT)))
+    history_block = _compact_conversation_history(conversation_history)
     evidence_block = ""
     if prefetched_context:
         evidence_block = f"{prefetched_context}\n\n"
-    limitation_block = "\n".join(f"- {item}" for item in limitations if _clean(item)) or "- None"
     return (
         f"{history_block}"
         f"{evidence_block}"
@@ -2295,32 +1913,72 @@ def _judge_user_prompt(
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
         "Tool evidence:\n"
-        f"{_tool_history_prompt(tool_calls)}\n\n"
+        f"{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids, include_alternatives=True)}\n\n"
         "Draft answer:\n"
         f"{draft_answer}\n\n"
-        f"Draft confidence: {draft_confidence or 'low'}\n\n"
-        "Known limitations:\n"
-        f"{limitation_block}\n\n"
-        "Review the draft answer for evidence sufficiency. "
+        "Check the draft's important inferences against the original evidence. "
         "When the original user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as part of the evidence even if no tool calls were made. "
-        "Use verdict='accept' only when the draft is supported by the evidence and the confidence is appropriate. "
-        "Use verdict='revise' when the answer should be corrected or made more precise. "
-        "Use verdict='insufficient' when the evidence does not support a substantive answer. "
-        "Mark the draft insufficient if it claims live search, recent search, or source-reading failed or found nothing but the tool history does not show that attempt. "
-        "For current questions, retained/internal evidence alone should not become a confident market update unless the answer clearly says current evidence was not collected. "
-        "Return the answer_markdown that should be shown to the user. "
-        "Repair malformed Markdown tables before returning the final answer."
+        "Record a concrete edit beside each claim that needs a material correction; leave correction empty for a sound claim. "
+        "A claim that is defensible only with weaker wording needs that qualification recorded as an edit. "
+        "Correct false descriptions of tool activity without discarding the investigation. "
+        "Use established business context and reasonable inference to explain indirect relationships. Missing exact source "
+        "matches or price data do not exclude useful leads. Keep observations dated and do not invent current facts. "
+        "Return concrete corrections for synthesis to assess against the originals. "
+        "Respect the user's stated observations and task assumptions; assess quoted assertions separately. Keep review commentary separate."
     )
 
 
-def _synthesis_llm_client(primary_llm: LLMClient) -> LLMClient:
-    """Use the shared LLM provider for synthesis.
+def _review_feedback(history: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One semantic correction representation; execution/audit history stays out."""
+    return [
+        {"reviewer": review.get("reviewer", {}).get("name", "Reviewer"),
+         "verdict": review.get("verdict"),
+         "corrections": review.get("corrections", review.get("answer_points", [])),
+         "research_requests": review.get("research_requests", [])}
+        for cycle in history if not cycle.get("corrections_applied") for review in cycle.get("reviews", [cycle])
+        if review.get("status") == "completed"
+    ]
 
-    Provider/model selection belongs in the global LLM layer. Keeping a
-    Zopedia-only synthesis override made the runtime harder to reason about and
-    let one surface drift from AQL/API/job behavior.
-    """
-    return primary_llm
+
+def _synthesis_llm_client(primary_llm: LLMClient) -> LLMClient:
+    """Resolve the shared synthesis route for this run."""
+    from .llm_flow import stage_client
+    return stage_client(primary_llm, "synthesis")[0]
+
+
+def _review_allows_memory(review: dict[str, Any]) -> bool:
+    return review.get("status") == "completed" and (
+        review.get("corrections_applied") is True or review.get("verdict") in {"accept", "revise"}
+    )
+
+
+def _run_review_cycle(**kwargs) -> dict[str, Any]:
+    """Independent perspectives on the same immutable draft and evidence."""
+    from concurrent.futures import ThreadPoolExecutor
+    from .llm_execution import model_call_context
+    import hashlib
+
+    instructions = kwargs.pop("review_instructions", "")
+    reviewers = flow_configuration()["reviewers"]
+    if not reviewers or int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
+        return {"status": "skipped", "reason": "disabled", "reviews": []}
+
+    def review(reviewer):
+        with reviewer_route(reviewer), model_call_context(reviewer_id=reviewer["id"]):
+            result = _run_answer_judge(**kwargs, reviewer_focus=reviewer["focus"] + ("\n" + instructions if instructions else ""))
+            return {"reviewer": reviewer, **result}
+
+    with ThreadPoolExecutor(max_workers=len(reviewers)) as pool:
+        futures = [pool.submit(copy_context().run, review, reviewer) for reviewer in reviewers]
+        reviews = [future.result() for future in futures]
+    return {
+        "status": "completed" if any(r.get("status") == "completed" for r in reviews) else "failed",
+        "reviews": reviews,
+        "draft_sha256": hashlib.sha256(kwargs["draft_answer"].encode()).hexdigest(),
+        "evidence_sha256": hashlib.sha256(_tool_history_prompt(kwargs["tool_calls"], selected_source_ids=kwargs.get("selected_source_ids"), include_alternatives=True).encode()).hexdigest(),
+        "research_requests": list(dict.fromkeys(item for review in reviews if review.get("verdict") != "accept" for item in review.get("research_requests", []))),
+        "corrections_applied": False,
+    }
 
 
 def _run_answer_judge(
@@ -2338,6 +1996,10 @@ def _run_answer_judge(
     progress_callback: ProgressCallback | None,
     task: str = "",
     surface: str = "",
+    response_schema: dict[str, Any] | None = None,
+    reviewer_focus: str = "",
+    selected_source_ids: list[str] | None = None,
+    analysis_basis: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     """Review a draft answer against evidence without blocking the whole run."""
     if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
@@ -2354,6 +2016,7 @@ def _run_answer_judge(
     )
     result_box: list[dict[str, Any] | None] = [None]
     error_box: list[BaseException | None] = [None]
+    review_schema = _JUDGE_SCHEMA
 
     def _runner() -> None:
         try:
@@ -2361,8 +2024,18 @@ def _run_answer_judge(
                 llm_client=llm,
                 surface=_clean(surface) or "zopedia.chat",
                 purpose="agent.answer_judge",
+                stage="review",
                 call_type="research_grade",
-                system_prompt=get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT),
+                system_prompt=(
+                    get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT)
+                    + ("\nReview focus: " + reviewer_focus if reviewer_focus else "")
+                    + (
+                        " The draft is a structured artifact. Identify concrete corrections for synthesis to apply. "
+                        "Review the facts, sources and business reasoning. Keep process limitations out of public text fields."
+                        if response_schema
+                        else ""
+                    )
+                ),
                 user_prompt=_judge_user_prompt(
                     query=query,
                     task=task,
@@ -2373,9 +2046,13 @@ def _run_answer_judge(
                     limitations=limitations,
                     conversation_history=conversation_history,
                     prefetched_context=prefetched_context,
+                    structured_response=bool(response_schema),
+                    selected_source_ids=selected_source_ids,
+                    analysis_basis=analysis_basis,
                 ),
                 schema_name="zopedia_agent_judge",
-                schema=_JUDGE_SCHEMA,
+                schema=review_schema,
+                deadline_monotonic=deadline,
                 metadata={
                     "run_id": run_id,
                     "task": _clean(task) or "agent_answer",
@@ -2385,16 +2062,17 @@ def _run_answer_judge(
         except BaseException as exc:
             error_box[0] = exc
 
-    judge_thread = threading.Thread(target=_runner, name="zopedia-answer-judge", daemon=True)
+    deadline = time.monotonic() + timeout_seconds
+    judge_thread = threading.Thread(target=copy_context().run, args=(_runner,), name="zopedia-answer-judge", daemon=True)
     judge_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
     while judge_thread.is_alive():
-        judge_thread.join(timeout=heartbeat_interval)
+        judge_thread.join(timeout=max(min(heartbeat_interval, deadline - time.monotonic()), 0))
         if not judge_thread.is_alive():
             break
-        elapsed += heartbeat_interval
-        if elapsed >= timeout_seconds:
+        elapsed = timeout_seconds - max(deadline - time.monotonic(), 0)
+        if time.monotonic() >= deadline:
             _emit_progress(
                 progress_callback,
                 stage="answer_judge_timeout",
@@ -2407,7 +2085,7 @@ def _run_answer_judge(
         _emit_progress(
             progress_callback,
             stage="answer_judge_heartbeat",
-            message=f"Still reviewing evidence sufficiency... ({int(elapsed)}s)",
+            message=f"Still refining the research answer... ({int(elapsed)}s)",
             progress=0.98,
             elapsed_seconds=int(elapsed),
             tool_call_count=len(tool_calls),
@@ -2425,6 +2103,20 @@ def _run_answer_judge(
         return {"status": "failed", "reason": _safe_agent_error_text(error_box[0])}
 
     payload = result_box[0] or {}
+    errors = list(
+        Draft202012Validator(review_schema).iter_errors(
+            {key: value for key, value in payload.items() if not key.startswith("__")}
+        )
+    )
+    if errors:
+        _emit_progress(
+            progress_callback,
+            stage="answer_judge_failed",
+            message="The answer review returned an invalid result.",
+            progress=0.985,
+            tool_call_count=len(tool_calls),
+        )
+        return {"status": "failed", "reason": "invalid_review", "schema_error_count": len(errors)}
     reasoning_trace = _clean(payload.get("__reasoning_content"))
     if reasoning_trace:
         _emit_progress(
@@ -2435,15 +2127,27 @@ def _run_answer_judge(
             reasoning_trace=reasoning_trace,
             source="answer_judge",
         )
+    checks = payload.get("checks") or []
+    corrections = [
+        {"claim": check["claim"], "correction": check["correction"],
+         "basis": check["basis"], "counterexample": check["verification"]}
+        for check in checks if check["correction"].strip()
+    ]
     review = {
         "status": "completed",
-        "verdict": _clean(payload.get("verdict")).lower() or "accept",
+        "verdict": "revise" if corrections else "insufficient" if payload.get("research_requests") else "accept",
         "critique_summary": _clean(payload.get("critique_summary")),
-        "answer_markdown": _clean_model_output(payload.get("answer_markdown")),
+        "checks": checks,
+        "corrections": corrections,
         "confidence": _clean(payload.get("confidence")).lower() or draft_confidence or "low",
         "limitations": [_clean(item) for item in list(payload.get("limitations") or []) if _clean(item)],
-        "unsupported_claims": [_clean(item) for item in list(payload.get("unsupported_claims") or []) if _clean(item)],
+        "unsupported_claims": [
+            _clean(item) for item in list(payload.get("unsupported_claims") or []) if _clean(item)
+        ],
         "evidence_gaps": [_clean(item) for item in list(payload.get("evidence_gaps") or []) if _clean(item)],
+        "research_requests": [
+            str(item).strip() for item in payload.get("research_requests") or [] if str(item).strip()
+        ],
     }
     _emit_progress(
         progress_callback,
@@ -2468,13 +2172,13 @@ def _trajectory_monitor_user_prompt(
     return (
         f"Task: {_clean(task) or 'agent_answer'}\n"
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n"
-        f"Restart count: {int(restart_count)}\n"
-        f"Tool budget remaining: {max(int(max_tool_calls) - _budgeted_tool_count(tool_calls), 0)} of {int(max_tool_calls)}\n\n"
         f"User question:\n{query}\n\n"
         "Available tool names:\n"
         f"{', '.join(tool_names)}\n\n"
         "Tool call history:\n"
         f"{_tool_history_prompt(tool_calls)}\n\n"
+        f"Restart count: {int(restart_count)}\n"
+        f"Tool budget remaining: {max(int(max_tool_calls) - _budgeted_tool_count(tool_calls), 0)} of {int(max_tool_calls)}\n\n"
         "Decide whether this thread should double down, restart with one corrective instruction, or kill/fail closed."
     )
 
@@ -2492,6 +2196,7 @@ def _run_trajectory_monitor(
     restart_count: int,
     timeout_seconds: int,
     progress_callback: ProgressCallback | None,
+    inference_effort: str | None = None,
 ) -> dict[str, Any]:
     if int(get_config_param(_P_TRAJECTORY_MONITOR_ENABLED)) == 0:
         return {"status": "skipped", "decision": "double_down", "reason": "disabled"}
@@ -2518,8 +2223,14 @@ def _run_trajectory_monitor(
                 llm_client=llm,
                 surface=_clean(surface) or "zopedia.chat",
                 purpose="agent.trajectory_monitor",
+                stage="monitor",
+                inference_effort=inference_effort or str(get_config_param(_P_TRAJECTORY_MONITOR_EFFORT)),
                 call_type="utility",
-                system_prompt=get_prompt(_TRAJECTORY_MONITOR_SYSTEM_PROMPT),
+                system_prompt=get_prompt(_TRAJECTORY_MONITOR_SYSTEM_PROMPT) + "\nResearch freedom: " + str(get_config_param(MONITOR_FREEDOM)) + ". " + {
+                    "focused": "Prioritize direct progress on the user's question; redirect tangents promptly.",
+                    "balanced": "Allow adjacent leads when they may explain or challenge the working analysis.",
+                    "exploratory": "Allow broad adjacent leads and competing explanations. Redirect only when the thread loses a useful connection to the research goal or repeats exhausted work.",
+                }[str(get_config_param(MONITOR_FREEDOM))],
                 user_prompt=_trajectory_monitor_user_prompt(
                     query=query,
                     task=task,
@@ -2531,6 +2242,7 @@ def _run_trajectory_monitor(
                 ),
                 schema_name="zopedia_agent_trajectory_monitor",
                 schema=_TRAJECTORY_MONITOR_SCHEMA,
+                deadline_monotonic=deadline,
                 metadata={
                     "run_id": run_id,
                     "task": _clean(task) or "agent_answer",
@@ -2541,16 +2253,17 @@ def _run_trajectory_monitor(
         except BaseException as exc:
             error_box[0] = exc
 
-    monitor_thread = threading.Thread(target=_runner, name="zopedia-trajectory-monitor", daemon=True)
+    deadline = time.monotonic() + timeout_seconds
+    monitor_thread = threading.Thread(target=copy_context().run, args=(_runner,), name="zopedia-trajectory-monitor", daemon=True)
     monitor_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
     while monitor_thread.is_alive():
-        monitor_thread.join(timeout=heartbeat_interval)
+        monitor_thread.join(timeout=max(min(heartbeat_interval, deadline - time.monotonic()), 0))
         if not monitor_thread.is_alive():
             break
-        elapsed += heartbeat_interval
-        if elapsed >= timeout_seconds:
+        elapsed = timeout_seconds - max(deadline - time.monotonic(), 0)
+        if time.monotonic() >= deadline:
             _emit_progress(
                 progress_callback,
                 stage="trajectory_monitor_timeout",
@@ -2689,10 +2402,10 @@ def _memory_reflection_user_prompt(
     conversation_history: list[dict[str, Any]] | None,
     prefetched_context: str,
     write_policy: str,
+    selected_source_ids: list[str] | None = None,
 ) -> str:
     history_block = _compact_conversation_history(
         conversation_history,
-        max_chars=int(get_config_param(_P_CONVERSATION_HISTORY_LIMIT)),
     )
     evidence_refs: list[dict[str, Any]] = []
     for call in tool_calls:
@@ -2715,11 +2428,11 @@ def _memory_reflection_user_prompt(
         "Known limitations:\n"
         f"{limitation_block}\n\n"
         "Prefetched internal evidence:\n"
-        f"{_truncate(prefetched_context, limit=2400) if prefetched_context else 'None'}\n\n"
+        f"{prefetched_context if prefetched_context else 'None'}\n\n"
         "Tool evidence:\n"
-        f"{_tool_history_prompt(tool_calls)}\n\n"
+        f"{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids)}\n\n"
         "Evidence references available for memory writes:\n"
-        f"{_json_dumps(evidence_refs[:12], limit=3000)}\n\n"
+        f"{_json_dumps(evidence_refs)}\n\n"
         "Return the single best memory action. "
         "For write_policy=safe_auto, use apply_mutation for durable source-backed safe page upserts, metadata patches, or page links. "
         "Supported safe mutation_type values are exactly: upsert_pages, link_pages, metadata_patch. "
@@ -2880,11 +2593,14 @@ def _run_post_answer_memory_agent(
     timeout_seconds: int,
     progress_callback: ProgressCallback | None,
     write_policy: str = "safe_auto",
+    selected_source_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     """Let Zopedia update or propose memory changes after a grounded answer."""
     normalized_write_policy = _normalize_zopedia_write_policy(write_policy)
     if normalized_write_policy == "none":
         return {"status": "skipped", "reason": "write_policy_none", "write_policy": normalized_write_policy}
+    if not _review_allows_memory(quality_review):
+        return {"status": "skipped", "reason": "answer_not_approved", "write_policy": normalized_write_policy}
     if int(get_config_param(_P_POST_ANSWER_MEMORY_ENABLED)) == 0:
         return {"status": "skipped", "reason": "disabled", "write_policy": normalized_write_policy}
     if not _clean(answer_markdown):
@@ -2909,22 +2625,26 @@ def _run_post_answer_memory_agent(
         conversation_history=conversation_history,
         prefetched_context=prefetched_context,
         write_policy=normalized_write_policy,
+        selected_source_ids=selected_source_ids,
     )
+    deadline = time.monotonic() + timeout_seconds
     try:
         payload = _run_hidden_step_with_timeout(
             label="post-answer memory reflection",
-            timeout_seconds=max(int(timeout_seconds), 1),
+            timeout_seconds=max(float(timeout_seconds), 0),
             progress_callback=progress_callback,
             progress=0.992,
             func=lambda: generate_json_via_aql_zopedia_gateway(
                 llm_client=llm,
                 surface="zopedia.memory",
                 purpose="agent.memory_reflection",
+                stage="knowledge",
                 call_type="research_grade",
                 system_prompt=get_prompt(_AGENT_MEMORY_SYSTEM_PROMPT),
                 user_prompt=memory_prompt,
                 schema_name="zopedia_memory_reflection",
                 schema=_MEMORY_SCHEMA,
+                deadline_monotonic=deadline,
                 metadata={
                     "run_id": run_id,
                     "write_policy": normalized_write_policy,
@@ -2977,7 +2697,7 @@ def _run_post_answer_memory_agent(
         try:
             repaired_payload = _run_hidden_step_with_timeout(
                 label="post-answer memory reflection repair",
-                timeout_seconds=max(int(timeout_seconds), 1),
+                timeout_seconds=max(deadline - time.monotonic(), 0),
                 progress_callback=progress_callback,
                 progress=0.995,
                 func=lambda: generate_json_via_aql_zopedia_gateway(
@@ -2993,6 +2713,7 @@ def _run_post_answer_memory_agent(
                     ),
                     schema_name="zopedia_memory_reflection_repair",
                     schema=_MEMORY_SCHEMA,
+                    deadline_monotonic=deadline,
                     metadata={
                         "run_id": run_id,
                         "write_policy": normalized_write_policy,
@@ -3084,7 +2805,7 @@ def _run_post_answer_memory_agent(
     try:
         tool_result = _run_hidden_step_with_timeout(
             label=f"{tool_name} memory action",
-            timeout_seconds=max(min(int(timeout_seconds), int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS))), 1),
+            timeout_seconds=max(min(deadline - time.monotonic(), float(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS))), 0),
             progress_callback=progress_callback,
             progress=0.997,
             func=lambda: invoke_tool(
@@ -3158,15 +2879,54 @@ def _run_zopedia_agent_loop(
     tool_call_timeout_seconds: int | None = None,
     llm_step_timeout_seconds: int | None = None,
     prefetch_timeout_seconds: int | None = None,
+    run_timeout_seconds: float | None = None,
+    initial_evidence: list[dict[str, Any]] | None = None,
+    response_schema: dict[str, Any] | None = None,
+    response_schema_name: str | None = None,
+    request_context: dict[str, Any] | None = None,
+    resume_state: dict[str, Any] | None = None,
+    answer_review_owner: str = "agent",
+    checkpoint_callback: ProgressCallback | None = None,
+    output_stage: str = "synthesis",
+    initial_answer: str = "",
+    review_instructions: str = "",
 ) -> dict[str, Any]:
     from .agents.research_session import NullResearchSessionStore, create_research_session
 
+    tool_call_timeout_seconds = int(
+        tool_call_timeout_seconds
+        if tool_call_timeout_seconds is not None
+        else get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS)
+    )
+    llm_step_timeout_seconds = int(
+        llm_step_timeout_seconds
+        if llm_step_timeout_seconds is not None
+        else get_config_param(_P_LLM_STEP_TIMEOUT_SECONDS)
+    )
+    prefetch_timeout_seconds = int(
+        prefetch_timeout_seconds
+        if prefetch_timeout_seconds is not None
+        else min(tool_call_timeout_seconds, 15)
+    )
+    effective_context = research_request_context(
+        query,
+        request_context,
+        write_policy=_normalize_zopedia_write_policy(write_policy, persist_findings=persist_findings),
+    )
+    run_budget = ResearchBudget.start(
+        run_timeout_seconds,
+        llm_step_timeout_seconds or 60,
+        research_required=int(max_tool_calls) > 0,
+    )
     resolved_run_id = _clean(run_id) or f"agrun_{uuid.uuid4().hex[:10]}"
     if not re.fullmatch(r"agrun_[a-zA-Z0-9_-]{8,64}", resolved_run_id):
         raise ValueError("Invalid research run id.")
     resolved_llm = llm_client or load_aql_zopedia_llm_client(
         surface="zopedia.agent",
     )
+    if resolved_llm is not None:
+        from .llm_flow import stage_client
+        resolved_llm = stage_client(resolved_llm, "researcher")[0]
     client_config = getattr(resolved_llm, "config", None)
     provider = _clean(getattr(client_config, "provider", ""))
     model = _clean(getattr(client_config, "model", ""))
@@ -3182,28 +2942,51 @@ def _run_zopedia_agent_loop(
             "max_tool_calls": int(max_tool_calls),
             "persist_findings": bool(persist_findings),
             "write_policy": _clean(write_policy),
+            "run_timeout_seconds": run_timeout_seconds,
+            "request_context": effective_context,
+            "configuration_snapshot": capture_research_configuration(),
+            "effective_budget": {
+                "max_tool_calls": int(max_tool_calls),
+                "run_timeout_seconds": run_timeout_seconds,
+                "tool_call_timeout_seconds": tool_call_timeout_seconds,
+                "llm_step_timeout_seconds": llm_step_timeout_seconds,
+                "prefetch_timeout_seconds": prefetch_timeout_seconds,
+            },
         },
         store=NullResearchSessionStore() if not persist_findings else None,
     )
-    session_progress_callback = session.progress_callback(progress_callback)
+    session_progress_callback = session.progress_callback(
+        progress_callback, checkpoint_callback=checkpoint_callback,
+    )
     try:
-        result = _execute_zopedia_agent_loop(
-            run_id=resolved_run_id,
-            query=query,
-            task=task,
-            surface=surface,
-            force_refresh=force_refresh,
-            max_tool_calls=max_tool_calls,
-            service=service,
-            llm_client=resolved_llm,
-            progress_callback=session_progress_callback,
-            conversation_history=conversation_history,
-            persist_findings=persist_findings,
-            write_policy=write_policy,
-            tool_call_timeout_seconds=tool_call_timeout_seconds,
-            llm_step_timeout_seconds=llm_step_timeout_seconds,
-            prefetch_timeout_seconds=prefetch_timeout_seconds,
-        )
+        with research_run_context(resolved_run_id):
+            result = _execute_zopedia_agent_loop(
+                run_id=resolved_run_id,
+                query=query,
+                task=task,
+                surface=surface,
+                force_refresh=force_refresh,
+                max_tool_calls=max_tool_calls,
+                service=service,
+                llm_client=resolved_llm,
+                progress_callback=session_progress_callback,
+                conversation_history=conversation_history,
+                persist_findings=persist_findings,
+                write_policy=write_policy,
+                tool_call_timeout_seconds=tool_call_timeout_seconds,
+                llm_step_timeout_seconds=llm_step_timeout_seconds,
+                prefetch_timeout_seconds=prefetch_timeout_seconds,
+                run_budget=run_budget,
+                initial_evidence=initial_evidence,
+                response_schema=response_schema,
+                response_schema_name=response_schema_name,
+                request_context=effective_context,
+                resume_state=resume_state,
+                answer_review_owner=answer_review_owner,
+                output_stage=output_stage,
+                initial_answer=initial_answer,
+                review_instructions=review_instructions,
+            )
     except BaseException as exc:
         session.finish(error=exc)
         session.close()
@@ -3211,6 +2994,7 @@ def _run_zopedia_agent_loop(
     session.finish(result=result)
     result.setdefault("runtime", {})
     result["runtime"].update(session.runtime_metadata())
+    result["runtime"]["budget"] = run_budget.metadata()
     session.close()
     return result
 
@@ -3232,15 +3016,21 @@ def _execute_zopedia_agent_loop(
     tool_call_timeout_seconds: int | None = None,
     llm_step_timeout_seconds: int | None = None,
     prefetch_timeout_seconds: int | None = None,
+    run_budget: ResearchBudget | None = None,
+    initial_evidence: list[dict[str, Any]] | None = None,
+    response_schema: dict[str, Any] | None = None,
+    response_schema_name: str | None = None,
+    request_context: dict[str, Any] | None = None,
+    resume_state: dict[str, Any] | None = None,
+    answer_review_owner: str = "agent",
+    output_stage: str = "synthesis",
+    initial_answer: str = "",
+    review_instructions: str = "",
 ) -> dict[str, Any]:
-    normalized_query = _clean(query)
-    agent_query, followup_resolved = resolve_conversation_followup_query(
-        normalized_query,
-        conversation_history,
-    )
-    # Use config-param override when caller passed the module-level default
-    if max_tool_calls == DEFAULT_MAX_TOOL_CALLS:
-        max_tool_calls = int(get_config_param(_P_MAX_TOOL_CALLS))
+    budget = run_budget or ResearchBudget.start(None, llm_step_timeout_seconds or 60)
+    normalized_query = str(query or "").strip()
+    agent_query = normalized_query
+    followup_resolved = bool(conversation_history)
     if tool_call_timeout_seconds is None:
         tool_call_timeout_seconds = int(get_config_param(_P_TOOL_CALL_TIMEOUT_SECONDS))
     tool_call_timeout_seconds = max(int(tool_call_timeout_seconds), 1)
@@ -3251,41 +3041,78 @@ def _execute_zopedia_agent_loop(
         prefetch_timeout_seconds = min(tool_call_timeout_seconds, 15)
     prefetch_timeout_seconds = max(int(prefetch_timeout_seconds), 1)
     resolved_write_policy = _normalize_zopedia_write_policy(write_policy, persist_findings=persist_findings)
-    if not agent_query:
-        return _with_aql_evidence_pack({
-            "run_id": run_id,
-            "status": "failed",
-            "mode": "sync",
-            "model": "",
-            "tool_calls": [],
-            "answer_markdown": "",
-            "confidence": "low",
-            "limitations": [],
-            "error": "Empty query.",
-            "query": agent_query,
-            "original_query": normalized_query,
-            "followup_resolved": followup_resolved,
-        })
+    if answer_review_owner not in {"agent", "downstream"}:
+        raise ValueError("Unknown research answer review owner")
+    if answer_review_owner == "downstream" and (persist_findings or resolved_write_policy != "none"):
+        raise ValueError("Deferred research review cannot authorize retained answers or knowledge writes")
 
+    request_context = research_request_context(
+        normalized_query, request_context, write_policy=resolved_write_policy
+    )
+    resolved_write_policy = request_context["write_policy"]
+    resumed = dict(resume_state or {})
+    if not resumed.get("continued_request") and resumed.get("write_policy") in {"none", "propose"}:
+        if resumed["write_policy"] == "none" or resolved_write_policy == "safe_auto":
+            resolved_write_policy = resumed["write_policy"]
+            request_context["write_policy"] = resolved_write_policy
+    research_state = dict(resumed.get("research_state") or {})
+    source_policy = (
+        "retained_only"
+        if not request_context["allow_web"]
+        or (not resumed.get("continued_request") and resumed.get("source_policy") == "retained_only")
+        else "available"
+    )
+    pending_action = resumed.get("pending_action")
+
+    if not agent_query:
+        return _with_aql_evidence_pack(
+            {
+                "run_id": run_id,
+                "status": "failed",
+                "mode": "sync",
+                "model": "",
+                "tool_calls": [],
+                "answer_markdown": "",
+                "confidence": "low",
+                "limitations": [],
+                "error": "Empty query.",
+                "query": agent_query,
+                "original_query": normalized_query,
+                "followup_resolved": followup_resolved,
+            }
+        )
+
+    _emit_progress(
+        progress_callback,
+        stage="preparing",
+        message="Preparing research",
+        progress=0.02,
+    )
     resolved_service = service or QueryService.from_environment()
+    if source_policy == "retained_only" and isinstance(resolved_service, QueryService):
+        resolved_service = replace(
+            resolved_service, data_access=replace(resolved_service.data_access, materialized_only=True)
+        )
     resolved_llm = llm_client or load_aql_zopedia_llm_client(
         surface="zopedia.agent",
     )
     if resolved_llm is None:
-        return _with_aql_evidence_pack({
-            "run_id": run_id,
-            "status": "unavailable",
-            "mode": "sync",
-            "model": "",
-            "tool_calls": [],
-            "answer_markdown": "",
-            "confidence": "low",
-            "limitations": [],
-            "error": "LLM runtime is unavailable.",
-            "query": agent_query,
-            "original_query": normalized_query,
-            "followup_resolved": followup_resolved,
-        })
+        return _with_aql_evidence_pack(
+            {
+                "run_id": run_id,
+                "status": "unavailable",
+                "mode": "sync",
+                "model": "",
+                "tool_calls": [],
+                "answer_markdown": "",
+                "confidence": "low",
+                "limitations": [],
+                "error": "LLM runtime is unavailable.",
+                "query": agent_query,
+                "original_query": normalized_query,
+                "followup_resolved": followup_resolved,
+            }
+        )
     _emit_progress(
         progress_callback,
         stage="start",
@@ -3304,35 +3131,78 @@ def _execute_zopedia_agent_loop(
         )
     full_tool_registry = build_tool_registry(resolved_service)
     allowed_tool_catalog = _tool_catalog_for_write_policy(full_tool_registry.catalog(), resolved_write_policy)
+    allowed_source_access = request_context.get("allowed_source_access")
+    if allowed_source_access is not None:
+        if not isinstance(allowed_source_access, list) or not set(allowed_source_access) <= {"supplied", "retained_or_data", "web"}:
+            raise ValueError("Invalid research source access scope")
+        allowed_tool_catalog = [tool for tool in allowed_tool_catalog
+                                if tool.get("source_access") in allowed_source_access]
+    if source_policy == "retained_only":
+        allowed_tool_catalog = [tool for tool in allowed_tool_catalog if tool.get("source_access") != "web"]
     tool_registry = ToolRegistry(allowed_tool_catalog)
     deferred_tool_discovery = int(get_config_param(_P_DEFERRED_TOOL_DISCOVERY_ENABLED)) != 0
     if deferred_tool_discovery:
         tool_search_entry = tool_registry.get("tools.search")
-        tool_catalog = [tool_search_entry] if tool_search_entry is not None else []
+        core_names = {
+            "tools.search",
+            "research.list_supplied_evidence",
+            "research.read_supplied_evidence",
+            "research.completed_investigations",
+            "research.search_evidence",
+            "research.read_evidence",
+            "research.read_context",
+            "zopedia.search_pages",
+            "zopedia.read_page",
+            "research.live_event_evidence",
+            "research.open_page",
+            "analysis.run_python",
+            "analysis.read_raw_output",
+        }
+        tool_catalog = [tool for tool in tool_registry.catalog() if tool["name"] in core_names]
     else:
         tool_catalog = tool_registry.catalog()
+    if request_context.get("conversation_runs"):
+        tool_catalog.append(
+            {
+                "name": "conversation.research_runs",
+                "description": "Read actual execution outcomes and recorded events from this conversation. Use for prior failures, timing, completed work or research progress. Only this authenticated conversation is available.",
+                "inputSchema": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "run_id": {
+                            "type": "string",
+                            "description": "A prior run ID from the supplied context; empty reads all prior outcomes.",
+                        }
+                    },
+                    "required": ["run_id"],
+                },
+            }
+        )
     # Inject conversation.prior_answers tool when chat history is available
     if conversation_history:
-        tool_catalog.append({
-            "name": "conversation.prior_answers",
-            "description": (
-                "Search prior conversation turns for specific details. "
-                "Use when the user references something from an earlier answer "
-                "and the compact conversation summary is not detailed enough. "
-                "Returns matching user questions and assistant answers from this session."
-            ),
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "search_text": {
-                        "type": "string",
-                        "description": "Keyword or phrase to search for in prior answers.",
+        tool_catalog.append(
+            {
+                "name": "conversation.prior_answers",
+                "description": (
+                    "Search prior conversation turns for specific details. "
+                    "Use when the user references something from an earlier answer "
+                    "and the compact conversation summary is not detailed enough. "
+                    "Returns matching user questions and assistant answers from this session."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "search_text": {
+                            "type": "string",
+                            "description": "Keyword or phrase to search for in prior answers.",
+                        },
                     },
+                    "required": ["search_text"],
+                    "additionalProperties": False,
                 },
-                "required": ["search_text"],
-                "additionalProperties": False,
-            },
-        })
+            }
+        )
     _emit_progress(
         progress_callback,
         stage="tool_catalog_ready",
@@ -3342,299 +3212,318 @@ def _execute_zopedia_agent_loop(
         registry_tool_count=len(tool_registry),
         deferred_discovery=deferred_tool_discovery,
     )
-    # Pre-fetch SAA retained evidence so the planner has it in context
-    # even if it doesn't call search_evidence explicitly.
     prefetched_context = ""
-    _prefetch_limit = int(get_config_param(_P_PREFETCH_EVIDENCE_LIMIT))
-    _prefetch_chunk_limit = int(get_config_param(_P_PREFETCH_CHUNK_TEXT_LIMIT))
-    if int(max_tool_calls) > 0:
-        try:
-            from .saa import search_retained_evidence_chunks
-            saa_frame = _run_hidden_step_with_timeout(
-                label="retained-evidence prefetch",
-                timeout_seconds=prefetch_timeout_seconds,
-                progress_callback=progress_callback,
-                progress=0.085,
-                func=lambda: search_retained_evidence_chunks(
-                    query=agent_query, limit=_prefetch_limit, use_semantic=False,
-                ),
-            )
-            # If the full natural-language query returns nothing, use the LLM intent
-            # classifier to extract domain-specific search keywords (e.g. "short squeeze")
-            # and retry with those.  This replaces brittle hardcoded stop-word lists.
-            if saa_frame.empty:
-                try:
-                    from .zopedia_research import market_impact_map
-                    impact = _run_hidden_step_with_timeout(
-                        label="prefetch keyword extraction",
-                        timeout_seconds=prefetch_timeout_seconds,
-                        progress_callback=progress_callback,
-                        progress=0.09,
-                        func=lambda: market_impact_map(query=agent_query),
-                    )
-                    search_kws = impact.get("search_keywords") or []
-                    reduced = " ".join(str(k).strip() for k in search_kws if str(k).strip())
-                except Exception:
-                    reduced = ""
-                if reduced:
-                    saa_frame = _run_hidden_step_with_timeout(
-                        label="retained-evidence keyword prefetch",
-                        timeout_seconds=prefetch_timeout_seconds,
-                        progress_callback=progress_callback,
-                        progress=0.1,
-                        func=lambda: search_retained_evidence_chunks(
-                            query=reduced, limit=_prefetch_limit, use_semantic=False,
-                        ),
-                    )
-            if not saa_frame.empty:
-                lines = [f"### Internal evidence ({len(saa_frame)} matches):"]
-                for _, row in saa_frame.head(_prefetch_limit).iterrows():
-                    title = str(row.get("title") or "").strip()
-                    date = str(row.get("published_date") or "").strip()
-                    tickers = str(row.get("mentioned_tickers_key") or "").strip()
-                    text = str(row.get("chunk_text") or "").strip()[:_prefetch_chunk_limit]
-                    line = f"- [{date}] {title}"
-                    if tickers:
-                        line += f" [{tickers}]"
-                    if text:
-                        line += f": {text}"
-                    lines.append(line)
-                prefetched_context = "\n".join(lines)
-        except Exception:
-            prefetched_context = ""
-
-    tool_calls: list[dict[str, Any]] = []
-    seen_calls: set[str] = set()
-    _run_start_time = time.monotonic()
-    if prefetched_context:
-        prefetch_call_id = "agtc_prefetch_1"
-        _emit_progress(
-            progress_callback,
-            stage="tool_start",
-            message="Checking retained internal evidence.",
-            progress=0.09,
-            tool_name="research.prefetched_context",
-            tool_call_id=prefetch_call_id,
-            tool_call_count=0,
-            tool_arguments={"query": agent_query, "limit": _prefetch_limit},
-        )
+    prefetched_evidence = ""
+    # The first model decision determines whether research is needed. Hidden
+    # prefetch anchored unrelated requests to old answers before intent was read.
+    tool_calls: list[dict[str, Any]] = [
+        dict(call) for call in resumed.get("tool_calls") or [] if isinstance(call, dict)
+    ]
+    if resumed.get("continued_request"):
+        tool_calls = [{**call, "carried_forward": True} for call in tool_calls]
+    if initial_evidence:
+        evidence = [dict(item) for item in initial_evidence]
+        evidence_text = json.dumps(evidence, ensure_ascii=False, default=str)
         tool_calls.append(
             {
-                "tool_call_id": prefetch_call_id,
-                "tool_name": "research.prefetched_context",
-                "arguments": {"query": agent_query, "limit": _prefetch_limit},
+                "tool_call_id": "agtc_supplied_1",
+                "tool_name": "research.supplied_context",
+                "arguments": {},
                 "status": "completed",
                 "error": None,
                 "result_summary": {
-                    "preview_text": _truncate(prefetched_context, limit=800),
-                    "user_preview": _truncate(prefetched_context, limit=int(get_config_param(_P_USER_PREVIEW_LIMIT))),
-                    "llm_context_text": prefetched_context,
-                    "result_type": "prefetched_context",
-                    "provenance": {"source": "saa_prefetch"},
-                    "preview": {"kind": "text", "chars": len(prefetched_context)},
+                    "preview_text": _truncate(evidence_text, limit=800),
+                    "llm_context_text": _truncate(evidence_text, limit=4000),
+                    "evidence_context_text": evidence_text,
+                    "result_type": "supplied_context",
+                    "evidence_refs": [
+                        ref
+                        for item in evidence
+                        for ref in (
+                            [
+                                {
+                                    key: item[key]
+                                    for key in ("source_id", "document_id", "url", "published_at")
+                                    if item.get(key)
+                                }
+                            ]
+                            + [dict(ref) for ref in item.get("source_refs") or [] if isinstance(ref, dict)]
+                        )
+                        if ref
+                    ],
+                    "source_links": [
+                        {"url": item["url"], "title": item.get("title", "")}
+                        for item in evidence
+                        if item.get("url")
+                    ],
                 },
             }
         )
+    seen_calls: set[str] = set()
+    _run_start_time = time.monotonic()
+    seen_calls = {
+        f"{call.get('tool_name')}::{_json_dumps(call.get('arguments') or {},limit=1200)}"
+        for call in tool_calls
+    }
+    final_answer = initial_answer
+    partial_answer = str(resumed.get("partial_answer") or "")
+    best_draft = str(resumed.get("draft_answer") or initial_answer or "")
+    final_confidence = str(resumed.get("confidence") or "low")
+    direct_structured_payload_used = False
+    limitations = []
+    quality_review = {"status": "not_run"} if answer_review_owner == "agent" else {"status": "deferred", "owner": "downstream"}
+    memory_update = {"status": "not_run"}
+    trajectory_reviews = []
+    trajectory_killed = False
+    trajectory_restart_count = 0
+    review_cycles = max(0, int(get_config_param(REVIEW_CYCLES))) if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) else 0
+    review_history = list(resumed.get("review_history") or []) if resumed.get("run_id") == run_id else []
+    review_cycles_used = sum(review.get("status") == "completed" for review in review_history)
+    if review_history:
+        quality_review = review_history[-1]
+    review_attempt_failed = False
+    last_monitor_tool_count = 0
+    planning_repairs = 0
+    discovery_calls = 0
+    iteration = 0
+    active_analysis_stage = resumed.get("active_analysis_stage") or ("reasoning" if resumed.get("reasoning_requested") else "")
+    deep_analysis_used = bool(resumed.get("deep_analysis_used"))
+    synthesis_attempted_evidence_count = -1
+
+    def checkpoint(stage="research_checkpoint"):
+        state = {
+            "schema_version": 1,
+            "run_id": run_id,
+            "turn_id": request_context.get("turn_id"),
+            "original_query": normalized_query,
+            "request_context": request_context,
+            "research_state": research_state,
+            "source_policy": source_policy,
+            "write_policy": resolved_write_policy,
+            "tool_calls": tool_calls,
+            "pending_action": pending_action,
+            "draft_answer": final_answer or best_draft,
+            "partial_answer": partial_answer,
+            "confidence": final_confidence,
+            "configuration_snapshot": capture_research_configuration(),
+            "review_cycle_limit": review_cycles,
+            "completed_review_cycles": sum(review.get("corrections_applied") is True for review in review_history),
+            "review_cycles_used": review_cycles_used,
+            "review_history": review_history,
+            "synthesis_evidence_count": synthesis_evidence_count,
+            "active_analysis_stage": active_analysis_stage,
+            "deep_analysis_used": deep_analysis_used,
+        }
         _emit_progress(
             progress_callback,
-            stage="tool_complete",
-            message="Loaded retained internal evidence.",
-            progress=0.1,
-            tool_name="research.prefetched_context",
-            tool_call_id=prefetch_call_id,
-            tool_call_count=len(tool_calls),
-            tool_arguments={"query": agent_query, "limit": _prefetch_limit},
-            result_preview=_truncate(prefetched_context, limit=300),
+            stage=stage,
+            message="Research progress saved.",
+            progress=0.4,
+            _checkpoint=state,
         )
-    seeded_tool_names: set[str] = set()
-    bootstrap_budget = min(
-        max(int(get_config_param(_P_BOOTSTRAP_TOOL_CALLS)), 0),
-        max(int(max_tool_calls) - _budgeted_tool_count(tool_calls), 0),
-    )
-    if bootstrap_budget > 0:
-        bootstrap_plan = _bootstrap_tool_plan(
-            query=agent_query,
-            tool_catalog=tool_catalog,
-            force_refresh=force_refresh,
-            max_calls=bootstrap_budget,
-        )
-        if bootstrap_plan:
-            _emit_progress(
-                progress_callback,
-                stage="bootstrap_start",
-                message="Collecting obvious first evidence before planning.",
-                progress=0.12,
-                tool_call_count=len(tool_calls),
-            )
-        for idx, (seed_tool_name, seed_arguments) in enumerate(bootstrap_plan):
-            seeded_tool_names.add(seed_tool_name)
-            _execute_seeded_tool_call(
-                service=resolved_service,
-                run_id=run_id,
-                tool_calls=tool_calls,
-                progress_callback=progress_callback,
-                tool_name=seed_tool_name,
-                arguments=seed_arguments,
-                progress=min(0.13 + (idx * 0.04), 0.28),
-                tool_call_timeout_seconds=tool_call_timeout_seconds,
-                tool_registry=tool_registry,
-            )
-        zopedia_page_id = _first_zopedia_page_id_from_search(tool_calls)
-        if (
-            zopedia_page_id
-            and _budgeted_tool_count(tool_calls) < int(max_tool_calls)
-            and _tool_available(tool_catalog, "zopedia.read_page")
-        ):
-            seeded_tool_names.add("zopedia.read_page")
-            _execute_seeded_tool_call(
-                service=resolved_service,
-                run_id=run_id,
-                tool_calls=tool_calls,
-                progress_callback=progress_callback,
-                tool_name="zopedia.read_page",
-                arguments={"page_id": zopedia_page_id},
-                progress=min(0.13 + (len(tool_calls) * 0.04), 0.34),
-                tool_call_timeout_seconds=tool_call_timeout_seconds,
-                tool_registry=tool_registry,
-            )
-    for call in tool_calls:
-        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
-    skip_planner_after_bootstrap = _should_skip_planner_after_bootstrap(
-        agent_query,
-        tool_calls,
-        seeded_tool_names,
-    )
-    final_answer = ""
-    final_confidence = "low"
-    direct_structured_payload_used = False
-    limitations: list[str] = []
-    quality_review: dict[str, Any] = {"status": "not_run"}
-    memory_update: dict[str, Any] = {"status": "not_run"}
-    consecutive_failed_tools = 0
-    trajectory_reviews: list[dict[str, Any]] = []
-    trajectory_restart_count = 0
-    trajectory_killed = False
-    trajectory_max_restarts = max(int(get_config_param(_P_TRAJECTORY_MONITOR_MAX_RESTARTS)), 0)
+        return state
 
-    def _check_trajectory(pending_call: dict[str, Any] | None = None) -> str:
-        nonlocal trajectory_restart_count, trajectory_killed
-        monitor_tool_calls = list(tool_calls)
-        if pending_call is not None:
-            monitor_tool_calls.append(pending_call)
-        monitor_result = _run_trajectory_monitor(
-            llm=_synthesis_llm_client(resolved_llm),
-            run_id=run_id,
-            query=agent_query,
-            task=task,
-            surface=surface,
-            tool_catalog=tool_catalog,
-            tool_calls=monitor_tool_calls,
-            max_tool_calls=int(max_tool_calls),
-            restart_count=trajectory_restart_count,
-            timeout_seconds=min(
-                llm_step_timeout_seconds,
-                max(int(get_config_param(_P_TRAJECTORY_MONITOR_TIMEOUT_SECONDS)), 1),
-            ),
-            progress_callback=progress_callback,
-        )
-        requested_decision = _clean(monitor_result.get("decision")).lower() or "double_down"
-        monitor_result, decision = _normalized_trajectory_monitor_result(
-            monitor_result,
-            restart_count=trajectory_restart_count,
-            max_restarts=trajectory_max_restarts,
-        )
-        if monitor_result.get("status") == "completed":
-            trajectory_reviews.append(dict(monitor_result))
-        if requested_decision != decision:
-            _emit_progress(
-                progress_callback,
-                stage="trajectory_monitor_continue",
-                message=_clean(monitor_result.get("reason")) or "Continuing on-contract research.",
-                progress=0.94,
-                tool_call_count=len(tool_calls),
-            )
-        if decision == "restart":
-            trajectory_restart_count += 1
-            _append_trajectory_monitor_call(
-                tool_calls,
-                monitor_result=monitor_result,
-                restart_count=trajectory_restart_count,
-            )
-            _emit_progress(
-                progress_callback,
-                stage="trajectory_monitor_restart",
-                message=_clean(monitor_result.get("reason")) or "Restarting the planner with corrected task focus.",
-                progress=0.94,
-                restart_count=trajectory_restart_count,
-            )
-            return "restart"
-        if decision == "kill":
-            trajectory_killed = True
-            _append_trajectory_monitor_call(
-                tool_calls,
-                monitor_result=monitor_result,
-                restart_count=trajectory_restart_count,
-            )
-            reason = _clean(monitor_result.get("reason")) or "Trajectory monitor killed an off-contract research thread."
-            if reason not in limitations:
-                limitations.append(reason)
-            _emit_progress(
-                progress_callback,
-                stage="trajectory_monitor_kill",
-                message=reason,
-                progress=0.96,
-                tool_call_count=len(tool_calls),
-            )
-            return "kill"
-        return "double_down"
+    synthesis_evidence_count = len(tool_calls) if initial_answer else int(resumed.get("synthesis_evidence_count", -1)) if resumed.get("run_id") == run_id else -1
 
+    def synthesize(phase: str) -> bool:
+        nonlocal final_answer, final_confidence, synthesis_evidence_count, partial_answer, synthesis_attempted_evidence_count, active_analysis_stage
+        pending_feedback = [review for review in review_history if review.get("status") == "completed" and not review.get("corrections_applied")]
+        stage = "reasoning" if pending_feedback or deep_analysis_used else output_stage
+        timeout = budget.remaining(phase, llm_step_timeout_seconds)
+        if timeout <= 0:
+            return False
+        synthesis_attempted_evidence_count = len(tool_calls)
+        _emit_progress(progress_callback, stage="final_synthesis_start", message="Synthesizing the answer from the original evidence.", progress=.94, tool_call_count=len(tool_calls))
+        try:
+            payload = _run_hidden_step_with_timeout(
+                label="review corrections" if pending_feedback else "synthesis",
+                timeout_seconds=timeout, progress_callback=progress_callback, progress=.95,
+                func=lambda: generate_json_via_aql_zopedia_gateway(
+                    llm_client=resolved_llm, surface=surface,
+                    purpose="agent.review_corrections" if pending_feedback else "agent.final_synthesis",
+                    stage=stage, call_type="research_grade",
+                    system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT) + (
+                        "\nReturn exactly the requested artifact JSON. Preserve its field schema; do not add answer_markdown, confidence or limitations unless the schema defines them."
+                        if response_schema else ""
+                    ),
+                    user_prompt=_final_user_prompt(
+                        query=agent_query, task=task, surface=surface, tool_calls=tool_calls,
+                        conversation_history=conversation_history,
+                        prefetched_context=serialize_llm_context({"request_context": _prompt_request_context(request_context), "trajectory_reviews": trajectory_reviews})
+                            + "\n" + prefetched_context + "\nIndependent reviews to resolve:\n" + serialize_llm_context(_review_feedback(review_history)),
+                        response_schema_name=response_schema_name if response_schema else "",
+                        selected_source_ids=research_state.get("selected_source_ids"),
+                        answer_points=(research_state.get("answer_points") or []) if final_answer or initial_answer else [],
+                        draft_answer=final_answer or initial_answer,
+                    ),
+                    schema_name=response_schema_name or "zopedia_agent_final", schema=response_schema or _FINAL_SCHEMA,
+                    deadline_monotonic=budget.step_deadline(phase, llm_step_timeout_seconds),
+                    metadata={"run_id": run_id, "task": task, "tool_call_count": len(tool_calls)},
+                ),
+            )
+        except Exception as exc:
+            from .agents.research_session import ResearchCancellationRequested
+            if isinstance(exc, ResearchCancellationRequested):
+                raise
+            if not isinstance(exc, (LLMAPIError, TimeoutError)) and not _looks_like_transient_transport_error(exc):
+                raise
+            if not (final_answer or best_draft):
+                raise
+            final_answer = final_answer or best_draft
+            limitations.append(f"Synthesis unavailable: {type(exc).__name__}")
+            return False
+        artifact = {key: value for key, value in payload.items() if not key.startswith("__")}
+        answer = json.dumps(artifact, ensure_ascii=False, default=str) if response_schema else _clean_model_output(artifact.get("answer_markdown"))
+        if response_schema:
+            errors = list(Draft202012Validator(response_schema).iter_errors(artifact))
+            if errors:
+                partial_answer = answer
+                if not final_answer:
+                    # The structured owner can recover this first paid draft.
+                    final_answer = answer
+                    raise ValueError("Structured synthesis violated its response schema: " + errors[0].message)
+                from .aql_zopedia_engine import _repair_structured_payload_from_agent_answer
+                repaired = _repair_structured_payload_from_agent_answer(
+                    answer_markdown=answer, schema_name=response_schema_name or "structured_answer",
+                    schema=response_schema, llm_client=resolved_llm, surface=surface, task=task,
+                    deadline_monotonic=budget.step_deadline(phase, llm_step_timeout_seconds),
+                )
+                if repaired is None:
+                    checkpoint("research_correction_contract_incomplete")
+                    return False
+                artifact = repaired
+                answer = json.dumps(artifact, ensure_ascii=False, default=str)
+        if not answer:
+            return False
+        final_answer = answer
+        active_analysis_stage = ""
+        research_state["analysis_basis"] = artifact.get("analysis_basis") or []
+        partial_answer = ""
+        final_confidence = _clean(artifact.get("confidence")).lower() or final_confidence
+        for item in artifact.get("limitations") or []:
+            if _clean(item) and item not in limitations:
+                limitations.append(item)
+        synthesis_evidence_count = len(tool_calls)
+        for review in pending_feedback:
+            review["corrections_applied"] = True
+            review["resolution"] = "synthesis"
+            review["correction_status"] = "completed"
+        checkpoint("research_analysis_saved")
+        return True
+
+    def review_analysis(phase: str) -> bool:
+        """Return True only when review sends this cycle back to acquisition."""
+        nonlocal quality_review, review_cycles_used, review_attempt_failed, pending_action
+        if answer_review_owner != "agent" or not final_answer or quality_review.get("resolution") == "accepted_existing_analysis":
+            return False
+        while not review_attempt_failed and review_cycles_used < review_cycles and budget.remaining(phase) > 0:
+            quality_review = _run_review_cycle(
+                llm=resolved_llm, run_id=run_id, query=agent_query, task=task, surface=surface,
+                review_instructions=review_instructions,
+                tool_calls=tool_calls, draft_answer=final_answer,
+                selected_source_ids=research_state.get("selected_source_ids"), draft_confidence=final_confidence,
+                limitations=limitations, conversation_history=conversation_history,
+                prefetched_context=serialize_llm_context(_prompt_request_context(request_context)) + "\n" + prefetched_context,
+                timeout_seconds=budget.remaining(phase, llm_step_timeout_seconds),
+                progress_callback=progress_callback, response_schema=response_schema,
+                analysis_basis=research_state.get("analysis_basis") or [],
+            )
+            review_history.append(quality_review)
+            quality_review["pending_research_requests"] = list(quality_review.get("research_requests") or [])
+            if quality_review.get("status") != "completed":
+                review_attempt_failed = True
+                checkpoint("research_review_incomplete")
+                return False
+            review_cycles_used += 1
+            requests = quality_review["pending_research_requests"]
+            if requests:
+                research_state["next_actions"] = requests
+                pending_action = {"information_requests": requests}
+                checkpoint("research_review_followup")
+                if phase == "research" and not trajectory_killed and budget.remaining() > 0 and _budgeted_tool_count(tool_calls) < int(max_tool_calls):
+                    return True
+            completed = [review for review in quality_review["reviews"] if review.get("status") == "completed"]
+            if completed and all(review.get("verdict") == "accept" for review in completed):
+                quality_review["corrections_applied"] = True
+                quality_review["resolution"] = "accepted_existing_analysis"
+                checkpoint("research_review_complete")
+                return False
+            quality_review["correction_status"] = "pending"
+            checkpoint("research_review_correction_pending")
+            if not synthesize(phase):
+                return False
+        return False
+
+    resume_correction = any(
+        review.get("correction_status") == "pending" and not review.get("corrections_applied")
+        for review in review_history
+    )
     try:
-        discovery_steps = (
-            max(int(get_config_param(_P_TOOL_DISCOVERY_MAX_STEPS)), 0)
-            if deferred_tool_discovery
-            else 0
-        )
-        total_steps = max(int(max_tool_calls) + discovery_steps, 1)
-        planner_steps = 0 if skip_planner_after_bootstrap or int(max_tool_calls) <= 0 else total_steps
-        if skip_planner_after_bootstrap:
-            _emit_progress(
-                progress_callback,
-                stage="planner_skipped",
-                message="Initial evidence is sufficient; moving straight to synthesis.",
-                progress=0.9,
-                tool_call_count=len(tool_calls),
+        if resume_correction:
+            final_answer = final_answer or best_draft
+            synthesize("completion")
+        while not resume_correction and int(max_tool_calls) > 0 and budget.remaining("synthesis" if active_analysis_stage else "research") > 0:
+            if not active_analysis_stage and _budgeted_tool_count(tool_calls) >= int(max_tool_calls):
+                break
+            iteration += 1
+            step_progress = min(
+                0.15 + 0.65 * _budgeted_tool_count(tool_calls) / max(int(max_tool_calls), 1), 0.88
             )
-        elif int(max_tool_calls) <= 0:
-            _emit_progress(
-                progress_callback,
-                stage="planner_skipped",
-                message="Tool budget is zero; synthesizing from supplied context only.",
-                progress=0.9,
-                tool_call_count=len(tool_calls),
-            )
-        for step_index in range(planner_steps):
-            step_progress = 0.1 + ((step_index / total_steps) * 0.62)
+            checkpoint()
             _emit_progress(
                 progress_callback,
                 stage="planner_start",
-                message=f"Planning step {step_index + 1} of {total_steps}.",
+                message="Choosing the next useful research step.",
                 progress=step_progress,
-                iteration=step_index + 1,
-                tool_call_count=len(tool_calls),
+                iteration=iteration,
+                tool_call_count=_budgeted_tool_count(tool_calls),
             )
-            # Run the LLM call in a background thread so we can emit
-            # heartbeat events every few seconds while it thinks.
-            _llm_result: list[dict[str, Any] | None] = [None]
-            _llm_error: list[BaseException | None] = [None]
-
-            def _run_planner() -> None:
-                try:
-                    _llm_result[0] = generate_json_via_aql_zopedia_gateway(
+            planning_context = json.dumps(
+                {
+                    "request_context": _prompt_request_context(request_context),
+                    "research_state": {
+                        key: value for key, value in research_state.items()
+                        if key in {"alternatives", "open_questions", "next_actions", "analysis_basis"}
+                    } if active_analysis_stage else research_state,
+                    "source_policy": source_policy,
+                    "seconds_remaining": round(budget.remaining("synthesis" if active_analysis_stage else "research"), 1),
+                    "pending_action": pending_action,
+                    "review_feedback": _review_feedback(review_history),
+                },
+                ensure_ascii=False,
+            )
+            try:
+                planning_stage = active_analysis_stage or "researcher"
+                planning_phase = "synthesis" if active_analysis_stage else "research"
+                decision_schema = _STEP_SCHEMA
+                if active_analysis_stage:
+                    synthesis_attempted_evidence_count = len(tool_calls)
+                    calculation_tool = tool_registry.get("analysis.run_python")
+                    if calculation_tool and not any(tool["name"] == calculation_tool["name"] for tool in tool_catalog):
+                        tool_catalog.append(calculation_tool)
+                    decision_schema = {**_ANALYSIS_STEP_SCHEMA, "properties": {**_ANALYSIS_STEP_SCHEMA["properties"], "action": {
+                        "type": "string", "enum": ["tool_call", "final"] if _budgeted_tool_count(tool_calls) < int(max_tool_calls) else ["final"],
+                    }}}
+                decision = _run_hidden_step_with_timeout(
+                    label="analysis" if active_analysis_stage else "research planning",
+                    timeout_seconds=budget.remaining(planning_phase, llm_step_timeout_seconds),
+                    progress_callback=progress_callback,
+                    progress=step_progress,
+                    func=lambda: generate_json_via_aql_zopedia_gateway(
                         llm_client=resolved_llm,
-                        surface=_clean(surface) or "zopedia.chat",
-                        purpose="agent.research_step",
+                        surface=surface,
+                        purpose="agent.deep_reasoning" if planning_stage == "reasoning" else "agent.analysis_step" if active_analysis_stage else "agent.research_step",
+                        stage=planning_stage,
                         call_type="research_grade",
-                        system_prompt=_planner_system_prompt(),
+                        system_prompt=(
+                            "Choose the next useful action in this analysis. When a computation can check an important quantitative claim, "
+                            "call analysis.run_python before attempting to solve it mentally. Return numerical results through result or add_metric. "
+                            "For a tool_call, return only that action and its executable arguments; do not solve or draft the answer first. "
+                            "Continue from the returned result. You do not need to rewrite the researcher's state. "
+                            "Respect the remaining tool and time budgets; do not request analyze again. "
+                            "When the analysis is ready, choose final and put the completed answer in answer_markdown. "
+                            "For that final answer:\n" + get_prompt(_AGENT_FINAL_SYSTEM_PROMPT)
+                            if active_analysis_stage else _planner_system_prompt()),
                         user_prompt=_planner_user_prompt(
                             query=agent_query,
                             task=task,
@@ -3644,552 +3533,336 @@ def _execute_zopedia_agent_loop(
                             max_tool_calls=max_tool_calls,
                             conversation_history=conversation_history,
                             prefetched_context=prefetched_context,
-                        ),
+                            full_evidence=bool(active_analysis_stage) or research_state.get("context_view", "originals") == "originals",
+                            analytical=bool(active_analysis_stage),
+                        ) + "\n\nCurrent planning state:\n" + planning_context,
                         schema_name="zopedia_agent_step",
-                        schema=_STEP_SCHEMA,
+                        schema=decision_schema,
                         metadata={
                             "run_id": run_id,
-                            "task": task,
-                            "iteration": step_index + 1,
-                            "tool_call_count": len(tool_calls),
-                            "max_tool_calls": int(max_tool_calls),
+                            "iteration": iteration,
+                            "max_tool_calls": max_tool_calls,
+                            "tool_call_count": _budgeted_tool_count(tool_calls),
                         },
-                    )
-                except BaseException as exc:
-                    _llm_error[0] = exc
+                    ),
+                )
+            except Exception as exc:
+                from .agents.research_session import ResearchCancellationRequested
 
-            _planner_thread = threading.Thread(target=_run_planner, daemon=True)
-            _planner_thread.start()
-            _heartbeat_interval = 5.0
-            _heartbeat_elapsed = 0.0
-            while _planner_thread.is_alive():
-                _planner_thread.join(timeout=_heartbeat_interval)
-                if _planner_thread.is_alive():
-                    _heartbeat_elapsed += _heartbeat_interval
-                    if _heartbeat_elapsed >= llm_step_timeout_seconds:
-                        timeout_error = TimeoutError(
-                            f"Planner LLM step timed out after {llm_step_timeout_seconds}s."
-                        )
-                        _llm_error[0] = timeout_error
-                        _emit_progress(
-                            progress_callback,
-                            stage="planner_timeout",
-                            message=(
-                                "The planning model step timed out; using the evidence already collected."
-                            ),
-                            progress=step_progress + 0.02,
-                            iteration=step_index + 1,
-                            elapsed_seconds=int(_heartbeat_elapsed),
-                            tool_call_count=len(tool_calls),
-                        )
-                        break
-                    _emit_progress(
-                        progress_callback,
-                        stage="planner_heartbeat",
-                        message=f"Still thinking... ({int(_heartbeat_elapsed)}s)",
-                        progress=step_progress + 0.01,
-                        iteration=step_index + 1,
-                        elapsed_seconds=int(_heartbeat_elapsed),
-                        tool_call_count=len(tool_calls),
-                    )
-            if _llm_error[0] is not None:
-                if (
-                    _looks_like_recoverable_model_step_error(_llm_error[0])
-                    and _successful_evidence_tool_count(tool_calls) > 0
-                ):
-                    _emit_progress(
-                        progress_callback,
-                        stage="planner_recovered_from_model_error",
-                        message="Planning stopped; synthesizing from the evidence already collected.",
-                        progress=min(step_progress + 0.04, 0.9),
-                        iteration=step_index + 1,
-                        tool_call_count=len(tool_calls),
-                        error_type=type(_llm_error[0]).__name__,
-                    )
+                if isinstance(exc, ResearchCancellationRequested):
+                    raise
+                if _looks_like_recoverable_model_step_error(exc) and (tool_calls or best_draft):
+                    limitations.append(f"Planning stopped: {type(exc).__name__}")
                     break
-                raise _llm_error[0]
-            decision = _llm_result[0]
-            assert decision is not None
-            planner_reasoning_trace = _clean(decision.get("__reasoning_content"))
-            if planner_reasoning_trace:
+                raise
+            if active_analysis_stage and isinstance(decision.get("analysis_basis"), list):
+                research_state["analysis_basis"] = decision["analysis_basis"]
+            if isinstance(decision.get("research_state"), dict):
+                research_state = decision["research_state"]
+            addressed = set(decision.get("review_requests_addressed") or research_state.get("review_requests_addressed") or [])
+            if addressed:
+                for review in review_history:
+                    review["pending_research_requests"] = [item for item in review.get("pending_research_requests", review.get("research_requests", [])) if item not in addressed]
+            update = decision.get("public_update") or {}
+            if update.get("summary") or update.get("finding"):
                 _emit_progress(
                     progress_callback,
-                    stage="model_reasoning_trace",
-                    message="Model reasoning trace captured.",
-                    progress=step_progress + 0.015,
-                    iteration=step_index + 1,
-                    reasoning_trace=planner_reasoning_trace,
+                    stage="research_update",
+                    message=str(
+                        update.get("summary") or update.get("finding") or ""
+                    ).strip(),
+                    progress=step_progress,
+                    public_update=update,
                 )
-
-            action = _clean(decision.get("action")).lower()
-            reasoning = _clean(decision.get("reasoning"))
-            if reasoning:
-                _emit_progress(
-                    progress_callback,
-                    stage="planner_reasoning",
-                    message="Planner selected the next research step.",
-                    progress=step_progress + 0.02,
-                    iteration=step_index + 1,
+            narrower_write_policy = decision.get("knowledge_policy")
+            if narrower_write_policy == "none" or (
+                narrower_write_policy == "propose" and resolved_write_policy == "safe_auto"
+            ):
+                resolved_write_policy = narrower_write_policy
+                request_context["write_policy"] = resolved_write_policy
+                tool_registry = ToolRegistry(
+                    _tool_catalog_for_write_policy(tool_registry.catalog(), resolved_write_policy)
                 )
-            if action not in {"tool_call", "final"}:
-                direct_answer = _direct_structured_payload_answer(agent_query, decision)
-                if direct_answer:
-                    final_answer = direct_answer
-                    final_confidence = "medium"
-                    direct_structured_payload_used = True
-                    limitations.append("Planner returned the requested structured payload directly.")
-                    _emit_progress(
-                        progress_callback,
-                        stage="planner_direct_structured_payload",
-                        message="Planner returned the requested structured payload directly.",
-                        progress=min(step_progress + 0.08, 0.9),
-                        iteration=step_index + 1,
+                allowed_names = {tool["name"] for tool in tool_registry.catalog()}
+                tool_catalog = [
+                    tool
+                    for tool in tool_catalog
+                    if tool["name"] in allowed_names
+                    or tool["name"].startswith("conversation.")
+                ]
+            if decision.get("source_policy") == "retained_only":
+                source_policy = "retained_only"
+                if isinstance(resolved_service, QueryService):
+                    resolved_service = replace(
+                        resolved_service,
+                        data_access=replace(resolved_service.data_access, materialized_only=True),
                     )
-                    break
+                tool_catalog = [tool for tool in tool_catalog if tool.get("source_access") != "web"]
+                tool_registry = ToolRegistry(
+                    [tool for tool in tool_registry.catalog() if tool.get("source_access") != "web"]
+                )
+            action = decision.get("action")
+            if planning_stage == "reasoning":
+                deep_analysis_used = True
+            candidate = _clean_model_output(decision.get("answer_markdown"))
+            candidate_valid = False
+            if candidate:
+                if not response_schema:
+                    best_draft = candidate
+                    candidate_valid = True
+                else:
+                    try:
+                        if not list(Draft202012Validator(response_schema).iter_errors(json.loads(candidate))):
+                            best_draft = candidate
+                            candidate_valid = True
+                    except (TypeError, ValueError):
+                        pass
             if action == "final":
-                candidate_answer = _clean_model_output(decision.get("answer_markdown"))
-                zopedia_page_id = _first_zopedia_page_id_from_search(tool_calls)
-                if (
-                    zopedia_page_id
-            and _budgeted_tool_count(tool_calls) < int(max_tool_calls)
-                    and _tool_available(tool_catalog, "zopedia.read_page")
-                    and not _zopedia_page_already_read(tool_calls, zopedia_page_id)
-                ):
-                    _emit_progress(
-                        progress_callback,
-                        stage="zopedia_page_read_required",
-                        message="Reading the relevant Zopedia page before final synthesis.",
-                        progress=min(step_progress + 0.03, 0.9),
-                        tool_name="zopedia.read_page",
-                        tool_arguments={"page_id": zopedia_page_id},
-                    )
-                    _execute_seeded_tool_call(
-                        service=resolved_service,
-                        run_id=run_id,
-                        tool_calls=tool_calls,
-                        progress_callback=progress_callback,
-                        tool_name="zopedia.read_page",
-                        arguments={"page_id": zopedia_page_id},
-                        progress=min(step_progress + 0.05, 0.9),
-                        tool_call_timeout_seconds=tool_call_timeout_seconds,
-                        tool_registry=tool_registry,
-                    )
-                    for call in tool_calls:
-                        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
-                    continue
-                if _analysis_failure_needs_repair(tool_calls) and _budgeted_tool_count(tool_calls) < int(max_tool_calls):
-                    _emit_progress(
-                        progress_callback,
-                        stage="analysis_repair_required",
-                        message="Analysis failed with a repairable code/input/runtime category; giving the planner one repair pass.",
-                        progress=min(step_progress + 0.03, 0.9),
-                        tool_call_count=len(tool_calls),
-                    )
-                    continue
-                recovery = _market_impact_recovery_tool(
-                    query=agent_query,
-                    answer=candidate_answer,
-                    tool_calls=tool_calls,
-                    tool_catalog=tool_catalog,
-                )
-                if recovery and _budgeted_tool_count(tool_calls) < int(max_tool_calls):
-                    recovery_tool_name, recovery_arguments, recovery_reason = recovery
-                    _emit_progress(
-                        progress_callback,
-                        stage="evidence_gap_recovery",
-                        message=recovery_reason,
-                        progress=min(step_progress + 0.04, 0.9),
-                        tool_name=recovery_tool_name,
-                        tool_arguments=recovery_arguments,
-                    )
-                    _execute_seeded_tool_call(
-                        service=resolved_service,
-                        run_id=run_id,
-                        tool_calls=tool_calls,
-                        progress_callback=progress_callback,
-                        tool_name=recovery_tool_name,
-                        arguments=recovery_arguments,
-                        progress=min(step_progress + 0.06, 0.9),
-                        tool_call_timeout_seconds=tool_call_timeout_seconds,
-                        tool_registry=tool_registry,
-                    )
-                    for call in tool_calls:
-                        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
-                    continue
-                _emit_progress(
-                    progress_callback,
-                    stage="planner_final",
-                    message="Final answer is ready to render.",
-                    progress=min(step_progress + 0.08, 0.9),
-                    iteration=step_index + 1,
-                )
-                final_answer = candidate_answer
-                final_confidence = _clean(decision.get("confidence")).lower() or "low"
-                if final_answer:
+                final_confidence = decision.get("confidence") or final_confidence
+                if active_analysis_stage:
+                    if not candidate_valid:
+                        partial_answer = candidate
+                        limitations.append("Analysis returned no valid finished answer.")
+                        break
+                    final_answer = best_draft
+                    synthesis_evidence_count = len(tool_calls)
+                    active_analysis_stage = ""
+                    for review in review_history:
+                        if review.get("status") == "completed" and not review.get("corrections_applied"):
+                            review.update(corrections_applied=True, resolution="synthesis", correction_status="completed")
+                    checkpoint("research_analysis_saved")
+                    if review_analysis("research"):
+                        continue
                     break
-
+                active_analysis_stage = output_stage
+                pending_action = {"analysis_questions": research_state.get("open_questions") or [agent_query]}
+                checkpoint("research_analysis_requested")
+                continue
+            if action == "analyze" and not active_analysis_stage:
+                active_analysis_stage = "reasoning"
+                pending_action = {"analysis_questions": research_state.get("next_actions") or research_state.get("open_questions")}
+                checkpoint("research_deep_reasoning_requested")
+                continue
             if action != "tool_call":
-                limitations.append(f"Unexpected planner action: {action or 'missing'}.")
-                break
-
+                planning_repairs += 1
+                pending_action = {"error": "Return action tool_call or final using the advertised schema."}
+                if planning_repairs >= 3:
+                    break
+                continue
             tool_name = _clean(decision.get("tool_name"))
-            if tool_name != "tools.search" and _budgeted_tool_count(tool_calls) >= int(max_tool_calls):
-                limitations.append("Research tool budget reached; synthesizing from collected evidence.")
+            entry = _tool_entry_by_name(tool_catalog, tool_name)
+            arguments, error = _coerce_tool_arguments(decision.get("tool_arguments"))
+            if entry and not error:
+                arguments = _normalized_arguments(
+                    entry,
+                    arguments,
+                    force_refresh=force_refresh if source_policy != "retained_only" else False,
+                )
+                errors = list(Draft202012Validator(entry["inputSchema"]).iter_errors(arguments))
+                error = errors[0].message if errors else ""
+            signature = f"{tool_name}::{_json_dumps(arguments or {},limit=1200)}"
+            if not entry or error or signature in seen_calls:
+                planning_repairs += 1
+                pending_action = {
+                    "tool_name": tool_name,
+                    "error": error
+                    or (
+                        "Tool not available"
+                        if not entry
+                        else "This call already ran; use its result or choose another information request."
+                    ),
+                }
                 _emit_progress(
                     progress_callback,
-                    stage="tool_budget_reached",
-                    message="Research budget reached; moving to synthesis.",
-                    progress=min(step_progress + 0.04, 0.9),
-                    tool_call_count=len(tool_calls),
+                    stage="planner_repair",
+                    message="Correcting the next research action.",
+                    progress=step_progress,
+                    error=pending_action["error"],
+                    tool_name=tool_name,
                 )
-                break
-            tool_entry = _tool_entry_by_name(tool_catalog, tool_name)
-            call_id = f"agtc_{len(tool_calls) + 1}"
-            raw_arguments = decision.get("tool_arguments")
-            parsed_arguments, argument_error = _coerce_tool_arguments(raw_arguments)
-            if argument_error:
-                tool_calls.append(
-                    {
-                        "tool_call_id": call_id,
-                        "tool_name": tool_name,
-                        "arguments": {},
-                        "status": "failed",
-                        "error": argument_error,
-                        "result_summary": {
-                            "preview_text": argument_error,
-                            "result_type": "error",
-                            "provenance": None,
-                            "preview": {"kind": "error"},
-                        },
-                    }
-                )
-                limitations.append(argument_error)
-                consecutive_failed_tools += 1
-                if consecutive_failed_tools >= 2 and any(
-                    str(call.get("status") or "") == "completed" for call in tool_calls
-                ):
-                    limitations.append("Stopping planning after repeated failed tool attempts.")
+                checkpoint()
+                if planning_repairs >= 3:
                     break
                 continue
-            arguments = _normalized_arguments(
-                tool_entry,
-                parsed_arguments,
-                force_refresh=force_refresh,
-            )
-            arguments = _arguments_with_task_scope(
-                tool_name=tool_name,
-                arguments=arguments,
-                query=agent_query,
-                task=task,
-            )
-            dedupe_signature = f"{tool_name}::{_json_dumps(arguments, limit=1200)}"
-            if dedupe_signature in seen_calls:
-                tool_calls.append(
-                    {
-                        "tool_call_id": call_id,
-                        "tool_name": tool_name,
-                        "arguments": arguments,
-                        "status": "failed",
-                        "error": "Duplicate tool call requested by planner.",
-                        "result_summary": {
-                            "preview_text": "Duplicate tool call blocked.",
-                            "result_type": "error",
-                            "provenance": None,
-                            "preview": {"kind": "error"},
-                        },
-                    }
+            pending_action = {"tool_name": tool_name, "arguments": arguments}
+            cadence = int(get_config_param(MONITOR_CADENCE))
+            monitor_due = cadence > 0 and _budgeted_tool_count(tool_calls) - last_monitor_tool_count >= cadence
+            if decision.get("request_review") or monitor_due:
+                last_monitor_tool_count = _budgeted_tool_count(tool_calls)
+                monitor = _run_trajectory_monitor(
+                    llm=_synthesis_llm_client(resolved_llm),
+                    run_id=run_id,
+                    query=agent_query,
+                    task=task,
+                    surface=surface,
+                    tool_catalog=tool_catalog,
+                    tool_calls=tool_calls,
+                    max_tool_calls=max_tool_calls,
+                    restart_count=trajectory_restart_count,
+                    timeout_seconds=budget.remaining(planning_phase, min(llm_step_timeout_seconds, int(get_config_param(_P_TRAJECTORY_MONITOR_TIMEOUT_SECONDS)))),
+                    progress_callback=progress_callback,
                 )
-                limitations.append(f"Planner repeated the same tool call: {tool_name}.")
-                consecutive_failed_tools += 1
-                if consecutive_failed_tools >= 2 and any(
-                    str(call.get("status") or "") == "completed" for call in tool_calls
-                ):
-                    limitations.append("Stopping planning after repeated failed tool attempts.")
+                trajectory_reviews.append(monitor)
+                if monitor.get("decision") == "kill" or (monitor.get("decision") == "restart" and trajectory_restart_count >= int(get_config_param(_P_TRAJECTORY_MONITOR_MAX_RESTARTS))):
+                    trajectory_killed = True
+                    pending_action = {"monitor": monitor, "stopped_action": pending_action}
+                    checkpoint("research_stopped_by_monitor")
                     break
-                continue
-            if not tool_entry:
-                if trajectory_restart_count < trajectory_max_restarts:
+                if monitor.get("decision") == "restart":
                     trajectory_restart_count += 1
-                    available_names = [
-                        _clean(tool.get("name"))
-                        for tool in tool_catalog
-                        if _clean(tool.get("name"))
-                    ]
-                    _append_trajectory_monitor_call(
-                        tool_calls,
-                        monitor_result={
-                            "decision": "restart",
-                            "reason": (
-                                "Planner selected a missing or unsupported tool name; retrying without spending "
-                                "research budget."
-                            ),
-                            "corrective_instruction": (
-                                "Choose exactly one tool from Available tool names. Do not leave tool_name blank. "
-                                f"Available examples: {', '.join(available_names[:12])}."
-                            ),
-                            "off_contract_signals": [f"unsupported tool: {tool_name or '(blank)'}"],
-                            "evidence_gaps": [],
-                        },
-                        restart_count=trajectory_restart_count,
-                    )
-                    _emit_progress(
-                        progress_callback,
-                        stage="planner_tool_repair",
-                        message="Planner selected an unavailable tool; restarting with the available tool list.",
-                        progress=min(step_progress + 0.05, 0.9),
-                        iteration=step_index + 1,
-                        restart_count=trajectory_restart_count,
-                    )
-                    continue
-                tool_calls.append(
-                    {
-                        "tool_call_id": call_id,
-                        "tool_name": tool_name,
-                        "arguments": arguments,
-                        "status": "failed",
-                        "error": f"Unsupported tool '{tool_name}'.",
-                        "result_summary": {
-                            "preview_text": f"Unsupported tool '{tool_name}'.",
-                            "result_type": "error",
-                            "provenance": None,
-                            "preview": {"kind": "error"},
-                        },
+                    pending_action = {
+                        "correction": monitor.get("corrective_instruction"),
+                        "proposed_action": pending_action,
                     }
-                )
-                limitations.append(f"Planner selected unsupported tool '{tool_name}'.")
-                consecutive_failed_tools += 1
-                if consecutive_failed_tools >= 2 and any(
-                    str(call.get("status") or "") == "completed" for call in tool_calls
-                ):
-                    limitations.append("Stopping planning after repeated failed tool attempts.")
-                    break
-                continue
-
-            pending_call = {
-                "tool_call_id": call_id,
-                "tool_name": tool_name,
-                "arguments": arguments,
-                "status": "planned",
-                "error": None,
-                "result_summary": {
-                    "preview_text": "",
-                    "result_type": "planned_tool_call",
-                    "provenance": None,
-                    "preview": {"kind": "planned_tool_call"},
-                },
-            }
-            trajectory_decision = _check_trajectory(pending_call)
-            if trajectory_decision == "kill":
+                    checkpoint()
+                    continue
+            checkpoint()
+            if budget.remaining(planning_phase) <= 0:
                 break
-            if trajectory_decision == "restart":
-                for call in tool_calls:
-                    seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
-                continue
-
-            seen_calls.add(dedupe_signature)
+            if tool_name == "tools.search":
+                discovery_calls += 1
+                if discovery_calls > max(int(get_config_param(_P_TOOL_DISCOVERY_MAX_STEPS)), 1):
+                    break
+            call_id = f"agtc_{len(tool_calls)+1}"
             _emit_progress(
                 progress_callback,
                 stage="tool_start",
-                message=f"Collecting data from {tool_name}.",
-                progress=min(step_progress + 0.06, 0.9),
+                message="Reading the selected source or dataset.",
+                progress=step_progress,
                 tool_name=tool_name,
                 tool_call_id=call_id,
-                tool_call_count=len(tool_calls),
                 tool_arguments=arguments,
             )
             try:
-                if tool_name == "conversation.prior_answers":
+                if tool_name == "conversation.research_runs":
+                    records = [
+                        row
+                        for row in request_context.get("conversation_runs") or []
+                        if not arguments.get("run_id")
+                        or row.get("run_id") == arguments["run_id"]
+                    ]
+                    result = {
+                        "summary": records,
+                        "llm_context_text": serialize_llm_context(records),
+                    }
+                elif tool_name == "conversation.prior_answers":
                     result = _search_conversation_history(
-                        conversation_history or [],
-                        str((arguments or {}).get("search_text") or ""),
+                        conversation_history or [], arguments.get("search_text", "")
                     )
+                elif tool_name == "research.read_context":
+                    original_call = next((call for call in tool_calls if call.get("tool_call_id") == arguments["tool_call_id"]), None)
+                    if original_call is None:
+                        raise ValueError("Unknown evidence tool_call_id.")
+                    from .zopedia_research import _P_READ_WINDOW
+                    text = serialize_llm_context(resolve_evidence_selection([original_call]))
+                    offset = int(arguments.get("offset", 0))
+                    end = min(offset + int(arguments.get("max_characters") or get_config_param(_P_READ_WINDOW)), len(text))
+                    result = {"llm_context_text": text[offset:end], "summary": {
+                        "text": text[offset:end], "original_tool_call_id": arguments["tool_call_id"],
+                        "coverage": {"start": offset, "end": end, "total_characters": len(text), "has_more": end < len(text)},
+                    }}
                 else:
                     result = _invoke_tool_with_heartbeat(
                         service=resolved_service,
+                        run_id=run_id,
                         tool_name=tool_name,
                         arguments=arguments,
-                        run_id=run_id,
                         progress_callback=progress_callback,
-                        progress=min(step_progress + 0.06, 0.9),
+                        progress=step_progress,
                         tool_call_id=call_id,
-                        tool_call_count=len(tool_calls),
-                        timeout_seconds=tool_call_timeout_seconds,
+                        tool_call_count=_budgeted_tool_count(tool_calls),
+                        timeout_seconds=budget.remaining(planning_phase, tool_call_timeout_seconds),
                         tool_registry=tool_registry,
+                        request_context=request_context,
                     )
-                activated_tools: list[str] = []
+                summary = _summarize_tool_result(result)
+                call = {
+                    "tool_call_id": call_id,
+                    "tool_name": tool_name,
+                    "arguments": arguments,
+                    "status": "completed",
+                    "error": None,
+                    "result_summary": summary,
+                }
                 if tool_name == "tools.search":
-                    activated_tools = _activate_discovered_tools(
-                        tool_catalog=tool_catalog,
-                        tool_registry=tool_registry,
-                        search_result=result,
+                    _activate_discovered_tools(
+                        tool_catalog=tool_catalog, tool_registry=tool_registry, search_result=result
                     )
-                result_summary = _summarize_tool_result(result)
-                tool_calls.append(
-                    {
-                        "tool_call_id": call_id,
-                        "tool_name": tool_name,
-                        "arguments": arguments,
-                        "status": "completed",
-                        "error": None,
-                        "result_summary": result_summary,
-                    }
-                )
-                consecutive_failed_tools = 0
-                _emit_progress(
-                    progress_callback,
-                    stage="tool_complete",
-                    message=f"Collected evidence from {tool_name}.",
-                    progress=min(step_progress + 0.14, 0.92),
-                    tool_name=tool_name,
-                    tool_call_id=call_id,
-                    tool_call_count=len(tool_calls),
-                    tool_arguments=arguments,
-                    result_preview=_truncate(result_summary.get("user_preview") or result_summary.get("preview_text") or "", limit=300),
-                    render_payload=result_summary.get("render_payload"),
-                    source_links=result_summary.get("source_links"),
-                )
-                if activated_tools:
-                    _emit_progress(
-                        progress_callback,
-                        stage="tool_catalog_expanded",
-                        message=f"Loaded {len(activated_tools)} matching modules.",
-                        progress=min(step_progress + 0.15, 0.92),
-                        activated_tool_names=activated_tools,
-                        tool_count=len(tool_catalog),
-                        registry_tool_count=len(tool_registry),
-                    )
+                planning_repairs = 0
             except Exception as exc:
-                tool_calls.append(
-                    {
-                        "tool_call_id": call_id,
-                        "tool_name": tool_name,
-                        "arguments": arguments,
-                        "status": "failed",
-                        "error": f"{type(exc).__name__}: {exc}",
-                        "result_summary": {
-                            "preview_text": f"{type(exc).__name__}: {exc}",
-                            "result_type": "error",
-                            "provenance": None,
-                            "preview": {"kind": "error"},
-                        },
-                    }
-                )
-                limitations.append(f"{tool_name} failed: {type(exc).__name__}.")
-                consecutive_failed_tools += 1
-                _emit_progress(
-                    progress_callback,
-                    stage="tool_failed",
-                    message=f"{tool_name} failed. Trying the next best step.",
-                    progress=min(step_progress + 0.1, 0.9),
-                    tool_name=tool_name,
-                    tool_call_id=call_id,
-                )
-                if consecutive_failed_tools >= 2 and any(
-                    str(call.get("status") or "") == "completed" for call in tool_calls
-                ):
-                    limitations.append("Stopping planning after repeated failed tool attempts.")
-                    break
-                trajectory_decision = _check_trajectory()
-                if trajectory_decision == "kill":
-                    break
-                if trajectory_decision == "restart":
-                    for call in tool_calls:
-                        seen_calls.add(f"{_clean(call.get('tool_name'))}::{_json_dumps(call.get('arguments') or {}, limit=1200)}")
-                    continue
+                from .agents.research_session import ResearchCancellationRequested
 
-        if not final_answer and not trajectory_killed:
+                if isinstance(exc, ResearchCancellationRequested):
+                    raise
+                call = {
+                    "tool_call_id": call_id,
+                    "tool_name": tool_name,
+                    "arguments": arguments,
+                    "status": "failed",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "result_summary": {"result_type": "error", "preview_text": str(exc)},
+                }
+            call["origin_run_id"] = run_id
+            call["origin_turn_id"] = request_context.get("turn_id", "")
+            tool_calls.append(call)
+            seen_calls.add(signature)
+            pending_action = None
+            checkpoint()
+            summary = call["result_summary"]
             _emit_progress(
                 progress_callback,
-                stage="final_synthesis_start",
-                message="Synthesizing the final answer from collected evidence.",
-                progress=0.94,
-                tool_call_count=len(tool_calls),
+                stage="tool_complete" if call["status"] == "completed" else "tool_failed",
+                message=(
+                    "Source reading complete."
+                    if call["status"] == "completed"
+                    else "Source reading failed; choosing another step."
+                ),
+                progress=step_progress,
+                tool_name=tool_name,
+                tool_call_id=call_id,
+                source_links=summary.get("source_links"),
+                result_preview=summary.get("user_preview"),
             )
-            _final_result: list[dict[str, Any] | None] = [None]
-            _final_error: list[BaseException | None] = [None]
-            synthesis_llm = _synthesis_llm_client(resolved_llm)
 
-            def _run_final_synthesis() -> None:
-                try:
-                    _final_result[0] = generate_json_via_aql_zopedia_gateway(
-                        llm_client=synthesis_llm,
-                        surface=_clean(surface) or "zopedia.chat",
-                        purpose="agent.final_synthesis",
-                        call_type="research_grade",
-                        system_prompt=get_prompt(_AGENT_FINAL_SYSTEM_PROMPT),
-                        user_prompt=_final_user_prompt(
-                            query=agent_query,
-                            task=task,
-                            surface=surface,
-                            tool_calls=tool_calls,
-                            conversation_history=conversation_history,
-                            prefetched_context=prefetched_context,
-                        ),
-                        schema_name="zopedia_agent_final",
-                        schema=_FINAL_SCHEMA,
-                        metadata={
-                            "run_id": run_id,
-                            "task": task,
-                            "tool_call_count": len(tool_calls),
-                        },
-                    )
-                except BaseException as exc:
-                    _final_error[0] = exc
+            # Acquisition is already checkpointed. Optional model views cannot
+            # discard originals or turn a successful source read into a failure.
+            if call["status"] == "completed" and tool_name in {"research.search_evidence", "research.open_page"}:
+                from .zopedia_research import rank_evidence_candidates, summarize_source_capture
 
-            _final_thread = threading.Thread(target=_run_final_synthesis, daemon=True)
-            _final_thread.start()
-            _heartbeat_interval = 5.0
-            _heartbeat_elapsed = 0.0
-            while _final_thread.is_alive():
-                _final_thread.join(timeout=_heartbeat_interval)
-                if _final_thread.is_alive():
-                    _heartbeat_elapsed += _heartbeat_interval
-                    if _heartbeat_elapsed >= llm_step_timeout_seconds:
-                        _final_error[0] = TimeoutError(
-                            f"Final synthesis LLM step timed out after {llm_step_timeout_seconds}s."
+                relevance = tool_name == "research.search_evidence"
+                stage = "relevance" if relevance else "summary"
+                payload = result["payload"]
+                if budget.remaining() > 0 and (payload.get("candidate_sources") if relevance else payload.get("page_text")):
+                    _emit_progress(progress_callback, stage=f"{stage}_start",
+                                   message="Ranking the acquired sources." if relevance else "Summarizing the source.",
+                                   progress=step_progress, tool_call_id=call_id)
+                    try:
+                        enriched = _run_hidden_step_with_timeout(
+                            label=stage, timeout_seconds=budget.remaining(planning_phase, llm_step_timeout_seconds),
+                            progress_callback=progress_callback, progress=step_progress,
+                            func=lambda payload=payload, relevance=relevance: rank_evidence_candidates(payload, question=agent_query, llm_client=resolved_llm)
+                            if relevance else summarize_source_capture(payload, llm_client=resolved_llm),
                         )
-                        _emit_progress(
-                            progress_callback,
-                            stage="final_synthesis_timeout",
-                            message="The final synthesis model step timed out; returning the collected evidence state.",
-                            progress=0.97,
-                            elapsed_seconds=int(_heartbeat_elapsed),
-                            tool_call_count=len(tool_calls),
-                        )
-                        break
-                    _emit_progress(
-                        progress_callback,
-                        stage="final_synthesis_heartbeat",
-                        message=f"Still synthesizing... ({int(_heartbeat_elapsed)}s)",
-                        progress=0.95,
-                        elapsed_seconds=int(_heartbeat_elapsed),
-                        tool_call_count=len(tool_calls),
-                    )
-            if _final_error[0] is not None:
-                raise _final_error[0]
-            final_payload = _final_result[0]
-            assert final_payload is not None
-            final_reasoning_trace = _clean(final_payload.get("__reasoning_content"))
-            if final_reasoning_trace:
-                _emit_progress(
-                    progress_callback,
-                    stage="model_reasoning_trace",
-                    message="Final model reasoning trace captured.",
-                    progress=0.965,
-                    reasoning_trace=final_reasoning_trace,
-                )
-            final_answer = _clean_model_output(final_payload.get("answer_markdown"))
-            final_confidence = _clean(final_payload.get("confidence")).lower() or "low"
-            final_limitations = [
-                _clean(item)
-                for item in list(final_payload.get("limitations") or [])
-                if _clean(item)
-            ]
-            for item in final_limitations:
-                if item not in limitations:
-                    limitations.append(item)
+                    except Exception as exc:
+                        from .agents.research_session import ResearchCancellationRequested
+
+                        if isinstance(exc, ResearchCancellationRequested):
+                            raise
+                        field = "relevance" if relevance else "first_pass_summary"
+                        enriched = {**payload, field: {"status": "unavailable", "reason": f"{type(exc).__name__}: {exc}"}}
+                    call["result_summary"] = _summarize_tool_result({**result, "payload": enriched})
+                    checkpoint()
+
+        if (synthesis_evidence_count != len(tool_calls)
+                and synthesis_attempted_evidence_count != len(tool_calls)
+                and budget.remaining("synthesis") > 0):
+            synthesize("synthesis")
+        if not final_answer and best_draft:
+            final_answer = best_draft
     except Exception as exc:
-        if not isinstance(exc, LLMAPIError) and not _looks_like_transient_transport_error(exc):
+        if not (response_schema and final_answer and isinstance(exc, ValueError)) and not isinstance(exc, (LLMAPIError, TimeoutError)) and not _looks_like_transient_transport_error(
+            exc
+        ):
             raise
         duration = time.monotonic() - _run_start_time
         safe_error = _safe_agent_error_text(exc)
@@ -4209,14 +3882,22 @@ def _execute_zopedia_agent_loop(
             "provider": _clean(getattr(resolved_llm.config, "provider", "")),
             "model": str(resolved_llm.config.model),
             "tool_calls": tool_calls,
-            "answer_markdown": "",
+            "answer_markdown": final_answer or best_draft,
             "confidence": "low",
             "limitations": limitations + [limitation],
             "trajectory_reviews": trajectory_reviews,
             "error": error_text,
+            "failure": {
+                "stage": getattr(exc, "stage", None),
+                "type": type(exc).__name__,
+                "message": safe_error,
+            },
             "query": agent_query,
             "original_query": normalized_query,
             "followup_resolved": followup_resolved,
+            "request_context": request_context,
+            "research_state": research_state,
+            "continuation_state": checkpoint("research_interrupted"),
         }
         if persist_findings:
             _persist_agent_findings(
@@ -4231,88 +3912,54 @@ def _execute_zopedia_agent_loop(
                 error=error_text,
                 duration_seconds=duration,
                 service=resolved_service,
+                retain_knowledge=False,
             )
         return _with_aql_evidence_pack(error_result)
 
-    if final_answer and not direct_structured_payload_used:
-        quality_review = _run_answer_judge(
-            llm=_synthesis_llm_client(resolved_llm),
-            run_id=run_id,
-            query=agent_query,
-            task=task,
-            surface=surface,
-            tool_calls=tool_calls,
-            draft_answer=final_answer,
-            draft_confidence=final_confidence,
-            limitations=limitations,
-            conversation_history=conversation_history,
-            prefetched_context=prefetched_context,
-            timeout_seconds=llm_step_timeout_seconds,
-            progress_callback=progress_callback,
-        )
-        if quality_review.get("status") == "completed":
-            verdict = _clean(quality_review.get("verdict")).lower()
-            judge_answer = _clean_model_output(quality_review.get("answer_markdown"))
-            revised_answer_applied = False
-            if judge_answer:
-                revised_answer_applied = judge_answer != final_answer
-                final_answer = judge_answer
-            final_confidence = _clean(quality_review.get("confidence")).lower() or final_confidence
-            reviewed_limitations = [
-                _clean(item)
-                for item in list(quality_review.get("limitations") or [])
-                if _clean(item)
-            ]
-            if reviewed_limitations:
-                limitations = reviewed_limitations
-            quality_review = {
-                "status": "completed",
-                "verdict": verdict,
-                "critique_summary": _clean(quality_review.get("critique_summary")),
-                "confidence": final_confidence,
-                "limitations": [_clean(item) for item in list(quality_review.get("limitations") or []) if _clean(item)],
-                "unsupported_claims": [_clean(item) for item in list(quality_review.get("unsupported_claims") or []) if _clean(item)],
-                "evidence_gaps": [_clean(item) for item in list(quality_review.get("evidence_gaps") or []) if _clean(item)],
-                "revised_answer_applied": revised_answer_applied,
-            }
+    checkpoint("research_collection_complete")
+    structured_draft = final_answer if response_schema else ""
+    # Collection may end on its budget rather than a researcher final action.
+    # Review the synthesis in the reserved completion window in that case.
+    review_analysis("completion")
 
+    pending_requests = list(dict.fromkeys(item for review in review_history for item in review.get("pending_research_requests", review.get("research_requests", []))))
+    if pending_requests:
+        research_state["next_actions"] = pending_requests
+        pending_action = {"information_requests": pending_requests}
+    quality_review["pending_research_requests"] = pending_requests
+
+    if response_schema and structured_draft:
+        try:
+            reviewed_payload = json.loads(final_answer)
+            valid = not list(Draft202012Validator(response_schema).iter_errors(reviewed_payload))
+        except (ValueError, TypeError):
+            valid = False
+        if not valid:
+            final_answer = structured_draft
+            quality_review = {
+                "status": "failed_contract",
+                "reason": "Review did not preserve the structured response schema.",
+            }
     answer_markdown = _clean_model_output(final_answer)
-    evidence_tool_count = _successful_evidence_tool_count(tool_calls)
-    if evidence_tool_count == 0:
-        final_confidence = "low"
-        gap = "Confidence capped because no evidence tool returned usable data."
-        if gap not in limitations:
-            limitations.append(gap)
-    elif evidence_tool_count == 1:
-        capped_confidence = _cap_confidence(final_confidence, "medium")
-        if capped_confidence != final_confidence:
-            final_confidence = capped_confidence
-            gap = "Confidence capped because only one evidence source returned usable data."
-            if gap not in limitations:
-                limitations.append(gap)
-    if _live_search_without_source_body(tool_calls):
-        capped_confidence = _cap_confidence(final_confidence, "medium")
-        if capped_confidence != final_confidence:
-            final_confidence = capped_confidence
-            gap = "Confidence capped because live web evidence was not opened into source text."
-            if gap not in limitations:
-                limitations.append(gap)
-    if resolved_write_policy != "none" and answer_markdown:
+    # Confidence is a semantic judgment over the actual context. Tool counts
+    # and whether a page was opened are not reliable confidence estimators.
+    if resolved_write_policy != "none" and answer_markdown and budget.remaining("completion") > 0:
         memory_update = _run_post_answer_memory_agent(
             llm=_synthesis_llm_client(resolved_llm),
             service=resolved_service,
             run_id=run_id,
             query=agent_query,
-            answer_markdown=answer_markdown,
+            answer_markdown=final_answer,
             confidence=final_confidence,
             limitations=limitations,
             quality_review=quality_review,
             tool_calls=tool_calls,
             conversation_history=conversation_history,
             prefetched_context=prefetched_context,
-            timeout_seconds=llm_step_timeout_seconds,
+            timeout_seconds=budget.remaining("completion", llm_step_timeout_seconds),
             progress_callback=progress_callback,
             write_policy=resolved_write_policy,
+            selected_source_ids=research_state.get("selected_source_ids"),
         )
         memory_tool_call = memory_update.get("tool_call") if isinstance(memory_update, dict) else None
         if isinstance(memory_tool_call, dict):
@@ -4324,19 +3971,25 @@ def _execute_zopedia_agent_loop(
         message=(
             "Agent response ready."
             if status == "completed"
-            else "Trajectory monitor killed an off-contract thread."
-            if trajectory_killed
-            else "Agent run ended without an answer."
+            else (
+                "Trajectory monitor killed an off-contract thread."
+                if trajectory_killed
+                else "Agent run ended without an answer."
+            )
         ),
         progress=1.0,
         tool_call_count=len(tool_calls),
         status=status,
     )
     duration = time.monotonic() - _run_start_time
-    error_text = None if status == "completed" else (
-        "Trajectory monitor killed an off-contract thread."
-        if trajectory_killed
-        else "Agent did not produce an answer."
+    error_text = (
+        None
+        if status == "completed"
+        else (
+            "Trajectory monitor killed an off-contract thread."
+            if trajectory_killed
+            else "Agent did not produce an answer."
+        )
     )
     result = {
         "run_id": run_id,
@@ -4344,12 +3997,27 @@ def _execute_zopedia_agent_loop(
         "mode": "sync",
         "provider": _clean(getattr(resolved_llm.config, "provider", "")),
         "model": str(resolved_llm.config.model),
-        "synthesis_model": str(getattr(getattr(_synthesis_llm_client(resolved_llm), "config", object()), "model", resolved_llm.config.model)),
+        "synthesis_model": str(
+            getattr(
+                getattr(_synthesis_llm_client(resolved_llm), "config", object()),
+                "model",
+                resolved_llm.config.model,
+            )
+        ),
         "tool_calls": tool_calls,
         "answer_markdown": answer_markdown,
         "confidence": final_confidence,
         "limitations": limitations,
         "quality_review": quality_review,
+        "review_cycle_limit": review_cycles,
+        "completed_review_cycles": sum(review.get("corrections_applied") is True for review in review_history),
+        "review_cycles_used": review_cycles_used,
+        "review_history": review_history,
+        "answer_status": (
+            "structured"
+            if direct_structured_payload_used
+            else "reviewed" if quality_review.get("status") == "completed" and quality_review.get("corrections_applied") else "draft"
+        ),
         "memory_update": memory_update,
         "trajectory_reviews": trajectory_reviews,
         "error": error_text,
@@ -4357,6 +4025,9 @@ def _execute_zopedia_agent_loop(
         "original_query": normalized_query,
         "followup_resolved": followup_resolved,
         "write_policy": resolved_write_policy,
+        "request_context": request_context,
+        "research_state": research_state,
+        "continuation_state": checkpoint("research_answer_saved"),
     }
     if persist_findings:
         _persist_agent_findings(
@@ -4371,8 +4042,26 @@ def _execute_zopedia_agent_loop(
             error=error_text,
             duration_seconds=duration,
             service=resolved_service,
+            quality_review=quality_review,
+            retain_knowledge=resolved_write_policy != "none",
         )
     return _with_aql_evidence_pack(result)
+
+
+_NON_EVIDENCE_TOOL_NAMES = {
+    "analysis.read_raw_output",
+    "scratchpad.read",
+    "scratchpad.write",
+    "system.capabilities",
+    "tools.search",
+    "trajectory.monitor",
+    "zopedia.apply_mutation",
+    "zopedia.list_maintenance_reports",
+    "zopedia.list_mutations",
+    "zopedia.list_proposals",
+    "zopedia.propose_change",
+    "zopedia.rollback_mutation",
+}
 
 
 def _persist_agent_findings(
@@ -4388,6 +4077,8 @@ def _persist_agent_findings(
     error: str | None = None,
     duration_seconds: float | None = None,
     service: QueryService,
+    quality_review: dict[str, Any] | None = None,
+    retain_knowledge: bool = True,
 ) -> None:
     """Persist agent session to the durable AQL chat log and the ephemeral scratchpad."""
     # --- Durable chat log (Postgres + blob) ---
@@ -4405,9 +4096,13 @@ def _persist_agent_findings(
             limitations=limitations,
             error=error,
             duration_seconds=duration_seconds,
+            quality_review=quality_review,
         )
     except Exception:
         pass
+
+    if not retain_knowledge:
+        return
 
     # --- Ephemeral scratchpad (for within-session retained_context) ---
     claims: list[str] = []
@@ -4421,7 +4116,7 @@ def _persist_agent_findings(
             if _clean(call.get("tool_name")) in _NON_EVIDENCE_TOOL_NAMES:
                 continue
             result_summary = dict(call.get("result_summary") or {})
-            context_text = _clean(result_summary.get("llm_context_text"))
+            context_text = _tool_history_prompt([call], full_evidence=True)
             if context_text:
                 claims.append(context_text)
             args = dict(call.get("arguments") or {})
@@ -4437,7 +4132,8 @@ def _persist_agent_findings(
             kind="agent_result",
             content={
                 "query": query,
-                "answer": answer,
+                "answer": answer if _review_allows_memory(quality_review or {}) else "",
+                "quality_review": {key: (quality_review or {}).get(key, "") for key in ("status", "verdict")},
                 "confidence": confidence,
                 "symbols": sorted(symbols),
                 "claim_count": len(claims),
@@ -4448,7 +4144,7 @@ def _persist_agent_findings(
         pass
 
     # --- Write-back to retained evidence store (for future retained_context lookups) ---
-    if status == "completed" and (claims or answer):
+    if status == "completed" and _review_allows_memory(quality_review or {}) and (claims or answer):
         try:
             _write_back_agent_evidence(
                 run_id=run_id,
@@ -4456,6 +4152,12 @@ def _persist_agent_findings(
                 answer=answer,
                 claims=claims,
                 symbols=sorted(symbols),
+                source_refs=[
+                    ref
+                    for call in tool_calls
+                    for ref in (call.get("result_summary") or {}).get("evidence_refs") or []
+                    if isinstance(ref, dict)
+                ],
             )
         except Exception:
             pass
@@ -4468,11 +4170,19 @@ def _write_back_agent_evidence(
     answer: str,
     claims: list[str],
     symbols: list[str],
+    source_refs: list[dict[str, Any]] | None = None,
 ) -> None:
     """Write agent findings as evidence chunks to the SAA store for future retained_context lookups."""
     from services.saa import persist_agent_research_evidence
 
-    persist_agent_research_evidence(run_id=run_id, query=query, answer=answer, claims=claims, symbols=symbols)
+    persist_agent_research_evidence(
+        run_id=run_id,
+        query=query,
+        answer=answer,
+        claims=claims,
+        symbols=symbols,
+        source_refs=source_refs,
+    )
 
 
 __all__ = [

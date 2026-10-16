@@ -1,5 +1,275 @@
 # Mistakes — Active Guidelines
 
+## Generated files in unpublished history — 2026-10-16
+
+- Earlier local commits included Next.js build caches and `node_modules`, including a 260 MB cache blob. Current ignore rules do not remove artifacts from earlier commits, so pushing the unpublished range would still include them. Retain a local archive, clean only unpublished generated-file history, verify the final source tree, and push without rewriting the existing remote history.
+
+## SOTA gap presentation — 2026-10-16
+
+- When asked to add an eval column, the reply showed only areas and evals, omitting the original current-position and improvement columns. Preserve the complete comparison in both the saved document and the response. The table now explicitly retains **Where we stand**, **How to close the gap**, and the added **Eval / objective** column.
+
+- Follow-up framing overemphasized external backbone differences. The owner clarified that cheap open-source models are non-negotiable and the objective is the complete surrounding prediction system. Removed proprietary escalation from the proposed direction, marked eligible model candidates separately and expanded the scope through forecasting, strategy, bet sizing and optionality.
+
+- The survey mixed the current capability assessment with future research and emphasized the missing application benchmark without surfacing the available same-harness backbone comparisons. The owner had to ask where the actual gap was. Added a direct [current-gap assessment](plans/OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md), separating measured model differences, missing mechanisms, local quality failures and genuinely unknown comparisons.
+
+## Publication source review — 2026-10-16
+
+- Venue advice stayed anchored on the small failure study. Reframed the research around a substantive new method and supervision that one expert plus the live application can supply, with explicit strong baselines and decisive failure conditions.
+- The initial publication framing was too optimistic about readiness and omitted the close Sufficient Context and Lost in the Middle precedents. Added them, narrowed the potential contribution and checked venue criteria. The retained pilot supports further investigation, not a prediction of acceptance.
+- Initial broad reads clipped relevant evidence; narrowed them and inspected retained complete answers. Read-only probes also assumed a matching shell glob and a non-null answer field; corrected both before drawing conclusions. No inference, application change or deployment was needed.
+
+## LLM cost implementation review — 2026-10-15
+
+- The first compact-view implementation made the agent repeatedly read retained source windows and exhausted its research budget. Replaced it with originals by default and an optional model-chosen index.
+- Pro and Flash review still accepted a reversed source implication and an impossible mix-only explanation of an 88%→94% outcome. Extra analytical notes and prompt instructions did not establish reliable reasoning; release remains held.
+- An isolated Admin save initially returned 503; later save/reset succeeded. Do not call the intermittent persistence issue fixed. A separate reset projection initially reused an earlier run's effective value instead of the worker default; fixed the shared Admin projection.
+- One QA case used the misleading historical filename source-revised for a routine supply-agreement question. Evidence exports identify the actual input. A later cache-key addition referenced an unimported module only on news/deep routes; corrected it and extended execution coverage to those routes before release.
+
+## Native requests and chart review — 2026-10-15
+
+- The native network discarded direction markers and expanded every hidden source label. Preserve both presentation contracts in the adapter instead of inventing movement from text.
+- Real database checks initially failed while opening connections with the existing five-second limit. QA-only retries at fifteen seconds passed all three checks; no production timeout was changed and the underlying intermittent connection delay is not proven fixed.
+- A dependency clone was started inside an untracked release directory in the watched repository. Moved this task's web context to /tmp. The Mac also developed extreme load and the simulator lost responsive input/device discovery; the interrupted UI run is not accepted as a successful submission.
+- ACR resolves `--file` from the command working directory. The initial attempts failed before upload; reran from each isolated context and both image builds succeeded.
+
+## Native market charts — 2026-10-14
+
+- The existing Markets scatter used sign-only colors for a score that was always
+  positive and selected by x alone. Replaced the opaque score view with explicit
+  return comparisons and fixed numeric legends/selection in the shared renderers.
+- The first real-data preview still looked washed out because one daily outlier
+  set the whole color extent, and a narrow plot truncated its last tick. Corrected
+  the scale with labeled saturation and fixed tick sizing before the device build.
+- Build 6 was transferred before settling every negative-bar label. Replaced
+  fragile chart annotations with same-scale SwiftUI bars and separate symbol/value
+  columns, and prepared the final build 7 only after reviewing that layout. Freeze
+  release sources and settle all chart layouts before the phone transfer.
+- An oversized remote QA capture lost its connection before completing the base64
+  payload. Recovered with a compact column selection and indexed small chunks;
+  no application or retained data changes were needed.
+
+## Native parity installation — 2026-10-14
+
+- A prior simulator build and current native source were treated as if the signed
+  physical candidate were current. Build 4 predated the conversation update and
+  compact feed design. The corrected release compiles the complete current native
+  source, records its hashes and verifies the actual installed build 5.
+- The first installation probe was blocked by the locked phone. After installation,
+  launch returned iOS's broad signing/trust rejection despite local signature and
+  profile validation. Report those separate states accurately; the owner checked
+  trust and launch then succeeded without deleting the app or changing credentials.
+
+## Whole-stack promotion verification — 2026-10-14
+
+- The first post-update check ran while the production alias still served its prior ready revision, despite the template already reporting successful provisioning. The readiness assertion caught it; verification was repeated only after the latest revision became healthy with full traffic. Do not equate a successful image update with a completed rollout.
+
+## Admin LLM mockup review — 2026-10-14
+
+- The owner could not see the inline mockup after it was presented. Reopened the interactive preview in Chrome, verified the rendered page and kept the tab open. A preview is not delivered merely because its source exists or its inline reference was emitted.
+- The first canvas drew sources directly into synthesis without clearly returning tool results to the researcher. Corrected the evidence loop and added the review-to-research feedback before presenting it. A readable graph must also represent the actual handoffs.
+- An absolute change-review overlay could clip a long batch of edits. Replaced it with a normal flowing review page rather than adding scroll/focus workarounds. The mockup remains local; live settings bindings and shared-engine changes are still pending.
+
+## Zopedia call-count correction — 2026-10-14
+
+- The research-depth plan described five live-event searches in the retained 219-second run. Its persisted tool list has four live-event searches, one retained search and one supplied-context row. Corrected the plan; count executed tools and explicit model stages separately before stating totals.
+- I treated concern about a convoluted explanation as agreement that split responsibilities were wrong, then recommended collapsing the roles without evaluating their distinct purposes. The owner clarified that the intended design includes those roles. Corrected the architecture record against the supplied diagram; the concrete differences are review/write ordering, conditional monitoring/memory and the lexical retrieval implementation.
+- My retrieval description omitted existing reciprocal rank fusion and made a legitimate hybrid search method sound like ad hoc string matching. My knowledge-write explanation also omitted the separate background news/business writer, which defaults to `safe_auto`. Corrected both after tracing the full boundaries; queued chat remains explicitly read-only, and review cycles currently have only an on/off setting.
+- I initially treated writing after review as inherently requiring a second review. The owner accepts one cycle. The plan now preserves that choice and focuses on carrying reviewed analysis and original evidence into the writer, making the cycle count configurable and identifying what the review actually covered.
+
+## Attention feed card correction — 2026-10-14
+
+- The analytics update put a native HTML period selector in every Attention card, repeated financial values in the metrics grid and chart captions, and stacked five statement charts beneath the price chart. I failed to review the full card for density and duplication. The owner rejected it. Consolidate each financial value and its chart in one compact component, preserving the history.
+- I then overcorrected by removing all inline fundamentals charts and documented that deletion as a product rule. The owner wanted duplication removed, not the charts. Restore the five financial histories on the card, remove only the repeated financial-value grid, and correct philosophy, learnings and the design record together. Count retained features as well as duplicates during visual review.
+- The initial production plan assumed the whole accepted dev frontend could be promoted. Compatibility review caught a separate dev-only conversation UI requiring a newer API before any production mutation. The card promotion instead preserves the actual production source and changes only its five accepted card files/styles.
+- I first interpreted “default to 1d” as a selector-state repair. The owner clarified that the selector itself was unwanted. The final design combines week and day in one chart; no default-period control remains.
+- Local release preparation assumed an October 7 replay had numeric history; that older DTO contained none. Keep missing-history replay as an actual boundary case and use retained current daily observations for the daily-only preview. An external node_modules symlink also falls outside Turbopack's project root; use the documented Webpack development option for this isolated preview.
+
+## Native analytics parity — 2026-10-14
+
+- When the owner reported missing fundamentals charts, I checked production while
+  they meant development. A separate development card change had in fact removed
+  them and was later corrected. Verify the user's actual environment and current
+  release before explaining missing UI as a data gap. A previously signed phone
+  binary also does not incorporate later native source or web design changes.
+
+- An intraday change initially used the most recent cached daily close. The full native app revealed that this cache ended October 9 while the intraday session was October 13, turning a multi-day move into a 1D label. Corrected the prefetch owner to compare closes from consecutive sessions in the same provider feed and exposed the daily-history date.
+
+- The first list capture selected no ready keys from raw snapshot metadata. The empty store filter loaded retired groups, producing 76 entries and duplicate names instead of 38 current groups. Corrected the catalog boundary globally and replaced name-based correlation identity with group IDs; discarded the earlier capture as acceptance evidence.
+- Smaller native Sankey nodes initially let labels overlap and included label padding in colored node heights. Separated text slots from proportional bar/ribbon geometry, scaled label space with typography, and personally reviewed the return/risk views after correction.
+
+- A whole-card navigation link captured chart interactions and opened private Investigator. Kept navigation on the instrument heading. Native multi-year axes and the default chart legend also hid date/label meaning; reviewed real charts and fixed these shared renderers.
+- Release preparation assumed an API module existed in worker images, used a resource/container name without checking its template, and once omitted the working directory required by ACR's Dockerfile argument. Guards stopped these failures before release. Match overlays and probes to each actual baseline and inspect persisted GET configuration rather than a redacted update response.
+- The first production read-only portfolio probe reached legacy brokerage bootstrap DDL and was rejected before any write. For isolated read-only acceptance, verify existing relations while preserving membership/environment checks; do not confuse a bootstrap failure with failed analytics. The runtime DDL issue is already recorded below and was not changed in this scoped release.
+- Previewing a redirected source-capture file printed a large compressed payload. Inspect structured decoded artifacts and selected counts; do not head/tail raw capture streams. This repeated an avoidable observation mistake and added no useful evidence.
+
+See [the implementation and release record](plans/NATIVE_ANALYTICS_PARITY_2026-10-13.md).
+
+- 2026-10-11: Initially classified eight missing-source memory rejections as write-policy outcomes without checking the acquisition-to-memory handoff. Every page had many retained research URLs. Treat a missing-reference report as a possible transport loss before accepting the rejection as intentional.
+
+- 2026-10-11: The local observer bypassed the repaired startup owner and hit a transient database connection timeout. Reused the shared connection path. Read its structured artifact rather than parsing stdout, which can also contain legitimate retry diagnostics; distinguish observer failures from worker failures.
+
+- 2026-10-11: Started a development saved-data preview on the legacy production image, whose reader returned production metadata. The exact run/version guard stopped it before any write. The guard-rejected preview failed before any write. Repeated it on the actual development image; all nine reference repairs preserved their saved bodies.
+
+- 2026-10-11: An operational build-status poll writes the same manifest as build submission; running them together risked lost progress metadata. Reconciled every exact build ID and final immutable digest afterward. Keep these mutations sequential. Inspect only selected diagnostic fields rather than dumping complete retained research rows.
+
+- 2026-10-11: The event writer inherited a 300-second whole-agent clock while its model step setting was much larger; its reserved synthesis window was only about 70 seconds. One final read timeout became an empty interpretation and the job reported success. Inspect actual phase deadlines and persisted output presence, not configured provider timeout alone.
+
+- 2026-10-10: Company output inspection counted completed profiles before checking required narrative bodies. One ready profile was empty: direct synthesis rejected a schema-invalid response and fact-based readiness hid the failure. Verify persisted bodies as well as run/row counts; preserve research checkpoints and propagate unrecovered model contract failures.
+
+## Production operational gaps — 2026-10-09
+
+- A local acceptance reader used the system interpreter without the Azure Blob SDK and lacked the deployed storage-account URL. Cached production frames still loaded, while an uncached development frame appeared empty. Use the project virtualenv and deployed non-secret storage URL for actual blob acceptance; inspect probe capability before diagnosing the live producer and never count a preceding cached version as the new run.
+
+- The runner's twenty-second startup allowance contained one five-second database attempt. A brief connection interruption killed evidence indexing before work began, despite a successful replica retry. Fix bounded connection establishment at the shared owner; do not restart or replay already-started research to handle transport startup failures.
+
+- Observing only Azure execution status and fatal console messages missed a killed Home replica: Azure automatically retried under the same execution name. Include system termination logs, replica identities and whole-worker memory in acceptance. Increase Home headroom at the deployment contract rather than trim evidence or research coverage.
+
+- Optional research retention was repaired for page summaries but the chart service still discarded valid selections when review failed. The full public read exposed zero charts after a successful core publication. Audit each independently owned LLM artifact service, preserve valid drafts through incomplete review and give the complete operation an explicit clock.
+
+- Complete chat context exposed an unhandled embedding limit in development news: a long retrieval query received HTTP 400 and fell back to lexical search. The initial scan of only worker fatal errors missed this traceback. Audit capability-level errors too; fix complete-input batching at the shared embedding adapter rather than cutting the query or suppressing the log.
+
+- Consumer compatibility builds assumed a resource name identified its runtime and compared AST hashes across Python versions. Production's Streamlit-named app runs Node; development uses another Python version. Inspect actual images first, use byte hashes for deployed-source identity, compare AST changes within one interpreter, and set the probe import path explicitly. These build failures happened before deployment.
+
+- The shared attention cleaner silently removed sentences by phrase and retained only two. It was reused on full research answers and page narratives, converting a reviewed business investigation into a price-only display. Remove lossy semantic cleanup at the shared owner and verify the final serialized text, not just the reviewer verdict.
+
+- Optional page review discarded complete revised research on an unresolved verdict, and formatting truncated its evidence. A separate shared JSON-repair prompt truncated raw model output at 12,000 characters without recording repair usage. Both mechanisms can silently erase useful research even when the worker exits successfully. Fix the shared input and draft-retention contracts; never patch a ticker or a reviewer phrase.
+
+- An acceptance-status sync overlapped a new execution start and rewrote its current receipt with the preceding execution. Cloud runs were unaffected. Keep run starts and receipt synchronization sequential; check execution identity again before saving an observation.
+
+- The optional page-summary deadline matched the research agent's complete allowance, leaving no time for formatting and review. Own the whole operation in the shared summary service, reserve downstream time, and retain internal failure reasons before public sanitization. A successful core publication does not establish optional-phase recovery.
+
+- A diagnostic Home dump included inline audio and nested traces, overwhelming
+  inspection output. Print an explicit set of narrative fields; keep complete
+  artifacts in private files and never dump embedded media.
+
+- The context repair covered full-evidence synthesis but missed the planner's
+  raw retained-source catalog. A full Home run exposed another 1.22-million-token
+  request. Extend the same representation at the shared tool-history owner and
+  verify all retained sources; do not patch the event or prune its inputs.
+
+- Retained retrieval swallowed an expired caller deadline as semantic-provider
+  failure and scheduled more searches, creating repeated failures in optional
+  Home summaries. Propagate caller cancellation at the shared search boundary,
+  preserve fallback for an active caller, and keep owned reads outside implicit
+  transactions during external embedding work.
+
+- The first full follow-up missed the development Home resource timeout: 30
+  minutes versus production's two hours. Its editor and core snapshot completed,
+  but optional follow-on work was killed. News also retained a serial twelve-event
+  phase after the company batch was parallelized. Audit the full workload graph
+  and platform limits, not only the repaired stage.
+- A browser count limit does not bound a crashed driver's lifetime. Patchright
+  asserted and stalled the development batch. Browser work now needs owned
+  process groups, a worker deadline, descendant cleanup and real failure recovery
+  acceptance alongside memory profiling.
+
+- The full development Home candidate run reached publication with a 1.38-million-
+  token request. Inline evidence, repeated research captures and a second full
+  query inside request metadata amplified the context. Imports and schema checks
+  cannot establish publication readiness. Retain exact failed inputs for replay
+  and validate the complete shared model-context contract before promotion.
+
+- The first remaining-news development execution reused a Trading Agent donor's
+  default workload: 80 context symbols rather than production's configured 20.
+  Stopped it and restarted with production workload settings, development dataset
+  scope and knowledge writes disabled. Copy scope and workload deliberately;
+  do not interpret an accidentally larger run as production timing acceptance.
+
+- The initial repair conclusion overstated global recovery. Trading/equity
+  acceptance and a zero-incident health scan did not validate maintenance, learning
+  or news. Historical platform failures remained hidden behind old `Running` rows
+  without execution IDs. The October 7 idle-transaction protection also shipped
+  without completing transaction boundaries in maintenance/learning. Audit every
+  scheduled producer's actual platform history and read/compute/write lifecycle;
+  verify the next cycle before calling the pipeline healthy. See the
+  [follow-up diagnosis](architecture/overall/audits/PIPELINE_FAILURE_FOLLOWUP_2026-10-09.md).
+- Last night's Home release introduced Trading Agent's production regression.
+  Comparing the registry images confirms its compatibility overlay added
+  `ResearchBudget` to `services/agents/research_session.py` without `import time`.
+  Calling the deployed class reproduces the NameError at line 41. Yesterday's
+  image lacked this class; its final scheduled run succeeded at 20:48 UTC. The
+  released dev Trading Agent image had no end-to-end execution before promotion.
+  Local checks and Home acceptance missed this runtime dependency in the older
+  worker variant. The subsequent repair is tracked in the operational repair plan.
+- The equity refresh's two attempts were killed with exit 137 during the
+  ten-year, 1,001-symbol history fetch. Azure marked the execution failed, while
+  the database retained `Running`; the original health monitor did not reconcile
+  this failure. The Home stale alert separately recovered at 15:30 UTC. Preserve
+  these distinct states rather than treating availability as producer health.
+  The new equity image succeeded in today's earlier morning run, and its history
+  builder is unchanged; do not label that termination a proven release regression.
+  See [the health capture](architecture/overall/audits/evidence/SERVICE_HEALTH_2026-10-09.json).
+- The first repair projection treated an unchanged namespace expression as a
+  legacy match and removed namespacing from modern workers' job records. Two
+  development executions exposed the error. Their actual datasets stayed in
+  development; corrected only their proven run labels, rejected those images,
+  and rebuilt with an in-image namespace and platform-ID execution check.
+  Legacy detection must require an actual source transformation before comparing
+  its AST. No rejected image was promoted to a production template.
+- The legacy health image lacks the namespaced store API required by the new
+  monitor. Its image check rejected that combination. Move the health worker to
+  the current producer base while preserving its configuration; do not copy a
+  current storage module into an incompatible older dependency graph.
+- Two independent promotion loops overwrote a shared receipt, dropping the
+  Trading Agent entry while its actual deployment remained correct. Reconstructed
+  the complete receipt from original snapshots and fresh reads of all 24 targets.
+  Serialize receipt writes and verify final resources independently of deployment
+  command responses; Azure's typed update response can omit persisted fields.
+
+## Shared chat failure after Home repair — 2026-10-08
+
+- The first dev worker image included an undeclared `pipeline/jobs/main.py` left
+  after an earlier merge conflict. The import check omitted this actual entrypoint,
+  so the build passed and the runtime failed before claiming research. Restored the
+  prior worker image, cleared undeclared payload files, checked every Python payload
+  file and added the base entrypoint to source guards and post-copy imports. Other
+  release contexts had no undeclared files. Production applications were unaffected.
+- Formatting a changed class also reformatted unchanged methods and caused
+  unnecessary release merge conflicts. Restored baseline formatting for unchanged
+  definitions, with AST equality checked, before building.
+- The citation handoff initially treated pandas' missing page ID `nan` as a shared
+  identity, expanding selected citations back into the broad catalog. Fixed typed
+  metadata at the shared read boundary and excluded legacy missing-ID sentinels
+  from identity expansion. Live retained reads now return no missing page-ID values.
+- Early repair evaluations recovered the original report inconsistently and
+  remained too dense. Optional dates omitted the broad reporting path; an editor
+  after final writing reintroduced research-style prose. Moving writing last then
+  exposed a stale-outline handoff: the writer lost a review correction and added
+  a wrong energy-supply conclusion. Changed the shared retrieval and review-to-
+  writer contracts. These earlier completed runs are rejected evaluations, not
+  release evidence. The later development release and remaining quality findings
+  are recorded in the [release receipt](architecture/AQL/audits/DEV_ZOPEDIA_GENERAL_REPAIR_2026-10-08.json).
+- Missing dates were not harmless NULLs in retained SQL. The adapter stored year
+  48,113. Repaired 3,779 chunk dates and 2,244 document dates with correction metadata
+  and fixed both persistence boundaries. Old production writers remain unchanged
+  until an explicitly authorized promotion.
+- The old no-write catalog blocked mutations but left source ingestion discoverable.
+  Added knowledge effects to the canonical registry and kept private audit separate
+  from searchable generated-answer retention.
+- The Home intake repair did not repair the shared chat retrieval boundary. The latest AI-stock question missed an already retained report and reused the prior oil/yield answer. Both audited runs performed six planner/monitor pairs for four acquisition/data calls, then synthesized without executing the last requested correction. The newer answer also lost all Markdown newlines in the shared judge's whitespace cleaner. Audit retrieval, evidence types, effective budgets, correction execution and final serialization across surfaces before calling a repair global. See [the production audit and proposed redesign](architecture/AQL/audits/ZOPEDIA_CHAT_RETRIEVAL_FAILURE_2026-10-08.md).
+
+## Home repair corrections — 2026-10-08
+
+- Fresh production research completed four source investigations, twelve candidates and twelve company enrichments, but publication failed on `requests.exceptions.ChunkedEncodingError`. Existing provider retries covered read timeouts and connection errors, excluding an interrupted response body. Extended the shared adapters' existing bounded retries, stopped duplicate full-run retries, and resumed from retained production material. The recovered publication is verified in the API and browser, with advisory review timeouts recorded as degraded research. The failure also exposed a missing complete pre-publication checkpoint: raw research persisted, but draft Home/bundle snapshots were discarded. Record this continuation gap rather than claim the full producer succeeded.
+- Production acceptance exposed a timestamp-loader regression: `PipelineDataset` metadata was treated as a dictionary, and the existing broad catch silently converted valid mover frames into empty inputs. The earlier custom publication replay bypassed this standard job entry path. Correct the shared loader using its documented metadata type, log read exceptions, verify actual retained frames, and rerun the standard production job. Do not claim upstream datasets are missing from a swallowed loader error.
+- Drifted from high-recall discovery toward proof-based publication gates. The user explicitly rejected this. Removed the blanket review-verdict gate, Home-wide acceptance boolean, case-specific accounting instructions, tool-count confidence caps and writer phrase-based erasure. Do not replace relevance maximization with certification.
+- Stronger-model and critic-only prototypes did not solve the problem and became more source-proof obsessed. They remain undeployed experiments; no model migration or additional verifier stack was adopted.
+- A validation probe inherited `safe_auto` and updated HUT despite `persist_findings=False`. Restored only that mutation through audited rollback, with a locked row and no intervening update. All subsequent evaluations explicitly disable memory writes.
+- A local staging attempt registered seven development dataset versions despite missing blob configuration. Marked those exact metadata rows failed before validation and staged through the dev job identity. Check blob existence, not a persistence log, before declaring an input ready.
+- The publication replay launcher confused database dataset names (`development::name`) with version IDs (`development__name__...`). It stopped before any model call or write. Read the storage namespace contract and correct the launcher; preserve that distinction in operational replays.
+- Initial structured runs lost valid JSON at a Markdown-only synthesis/review boundary; fix the shared schema contract. A failed probe also retained only its exception: preserve full returned failure artifacts.
+- The Home DTO and renderer omitted causes and follow-up and preferred old business prose. Inspect the full product read path.
+- Repeated semantic aliases and separate overview revision loops exhausted time budgets. Generate canonical prose once, consolidate publication and preserve useful collected research.
+- The first development Home run exposed an implicit recall gate: a sixty-second news nomination request timed out, and final synthesis could only edit nominated candidates. Removed the unnecessary full-market input from nomination, made its budget configurable, and gave final synthesis the full source intake plus freedom to discover additional stories. Evaluate this source-only path with no successful nomination, rather than assuming the earlier four-event replay proves runtime recall.
+- Service-level validation missed old data-access phrase/count suppression. The real API returned unavailable for the new valid artifact. Removed the checks for both Home and retained bundles; validate the actual public read before declaring the repair complete.
+- The follow-up audit found older phrase-based confidence downgrading and failed-answer detection still active in ticker enrichment. Removing shared review gates and read suppression did not eliminate every semantic heuristic. Scope claims to the actual diff and disclose the remainder.
+- A progress note incorrectly said the first producer's database row had been reconciled to failure. The conditional update affected zero rows: the database had already recorded `Warning`, while Azure reported `Failed`. Corrected the record; exact Azure termination cause remains unknown.
+
+## Home acceptance gap — 2026-10-08
+
+- Yesterday's harness release checked controlled model output, shared contracts and service/UI health but did not inspect scheduled Home research completion. Twelve of twelve enrichments were already failing before release, and the available Home response concealed that failure. Future acceptance must read the actual published explanations and their retained source/run trail.
+- Historical comparison matters before blaming a recent release. Today's failed summary and sparse cards coexist with functioning provider calls; the twelve-ticker timeout failure is also present in two pre-release snapshots. Keep those findings distinct from the earlier provider-balance outage.
+
 Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the rules to follow, not the stories behind them.
 
 ---
@@ -50,7 +320,7 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 ## Agent Architecture
 
 26. **Fix retention and retrieval before adding agent choreography.** Fancy orchestration does not rescue weak evidence.
-27. **Ship the smallest reliable improvement first.** A bounded helper with graceful fallback beats waiting for full Playwright provisioning.
+27. **Fix the shared source contract.** Prefer a clear architectural correction over helper layers that conceal a broken acquisition or reasoning path.
 28. **Agent tools must match the product promise.** If the feature promises search-backed analysis, the tools must include live search. The model cannot use tools it cannot see.
 29. **Agent must search retained evidence before going external.** The SAA evidence store often already contains the answer. Zopedia was unable to find an obvious Avis short squeeze because it only did live web search and anomaly checks, missing 15+ articles already in the retained store. Always wire internal evidence search as a first-class tool.
 30. **Live search must preserve the user's original query phrasing.** Intent classification strips domain-specific terms ("short squeeze" → "risk"). Pass the user's raw query to the search query builder so it reaches the web search API intact.
@@ -78,7 +348,7 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 38. **Do not fan out per-symbol metadata during table render.** Use materialized universe snapshots or a batch lookup for company names. A table with 80 symbols should not make 80 metadata calls just to fill labels.
 39. **Fixed market opportunity feeds are job outputs.** If the page is showing a fixed set of ranked opportunities with no user-authored query, build it in the attention job and expose it through data access. Streamlit render should not call mover/momentum scanners to assemble that feed.
 40. **Multi-surface feature slices need one architecture pass.** If a TODO spans feed, summaries, and an agent, verify the existing job, data-access, and AQL patterns for all of them before editing. Do not fix one surface while leaving the same anti-pattern in the others.
-41. **Materialized AQL steps need time bounds.** Moving AQL work into a scheduled job is not enough if one search, bundle-writing, verification, or critique step can run for an hour and block persistence. Bound expensive steps and fall back to deterministic summaries with data gaps so mandatory feed outputs can still materialize.
+41. **Materialized AQL steps need time bounds.** Bound acquisition, synthesis and advisory review in the shared engine. Preserve useful valid partial output and numerical artifacts when optional work fails; do not replace missing analysis with deterministic narrative templates.
 42. **Materialized frame columns need stable types.** Empty strings in numeric columns can pass pandas tests but fail pyarrow during job persistence. Normalize optional numeric fields to numeric/null before returning job frames.
 43. **Job images must include every module used by shared paths.** Reusing AQL from a pipeline job means the pipeline image must package AQL's dependencies, including data-access helpers. Local tests can pass while the container falls back if the Dockerfile omits a package directory.
 44. **Timeout wrappers must return the same failure contract as the wrapped code.** A service can correctly convert AQL failures into a closed unavailable state, but an outer job timeout can still write raw error rows if it has its own payload. Scheduled summary timeouts should write the same explicit `unavailable` contract with `data_gaps`, not hardcoded fallback narrative.
@@ -166,10 +436,10 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 124. **Do not let generated memory recursively cite generated memory.** Once a weak generated draft exists, later cold-start runs can treat it as truth unless the resolver preserves original source markers and rejects self-referential summaries.
 125. **Do not make business-model memory an event-side helper.** If business context is built only inside a news-resolution path, summaries and attention feeds cannot reuse it cleanly and every new surface is tempted to add side helpers. The ticker business model stack should be a first-class AQL/Zopedia artifact that event resolvers read.
 126. **Do not call a business-first feature done when it only emits gaps.** The first ticker-stack pass created a clean row and synthetic example but did not force connector evidence collection or prove a real company story. Build the research plan/request/result artifacts first, then judge whether the story is good enough.
-127. **Do not treat retrieval volume as retrieval quality.** The CRWV proof found that generic Similarweb and stock-quote results could satisfy a query lexically while saying nothing specific about CoreWeave's business. Slot coverage must distinguish searched evidence from promoted facts, and the narrative should only consume promoted, company-specific facts.
+127. **Do not treat retrieval volume as retrieval quality.** The CRWV proof found that generic Similarweb and stock-quote results could satisfy a query lexically while saying nothing specific about CoreWeave's business. Historical qualification (October 14): the old restriction to promoted, company-specific facts was too narrow. Distinguish unrelated lexical matches from useful indirect evidence; the LLM may develop sector, customer, supplier and financing hypotheses without exact-company proof or a publication gate.
 128. **Do not hide weak thinking in hedged walls of prose.** Long, cautious text can look responsible while avoiding the real job: make the business call, show the decisive evidence, and name only the concrete gaps. If the answer is mostly caveat or source-stitching, it is not ready.
 129. **Do not confuse complexity with ambition.** Ambition means solving the real contract cleanly, not adding wrappers, side helpers, hardcoded escape hatches, or cosmetic UI/prose patches. If a fix does not reduce future failure modes, it is probably a band aid.
-130. **Do not ship evidence labels as user-facing analysis.** Phrases like "quarterly-results evidence exists" or "Glassdoor sentiment evidence" are project pollution. They prove retrieval happened, not that the business was understood. User-facing output must contain a verdict or an exact missing slot.
+130. **Do not ship evidence labels as user-facing analysis.** Phrases like "quarterly-results evidence exists" or "Glassdoor sentiment evidence" are project pollution. They prove retrieval happened, not that the business was understood. Historical qualification (October 14): requiring a verdict or exact missing slot was too rigid. Explain practical meaning, plausible connections, alternatives and useful uncertainty in the form the question needs; do not impose a fixed verdict or prose template.
 131. **Do not use phrase blacklists as product-quality guardrails.** A blacklist can make tests pass while preserving the broken behavior. If code can still synthesize pseudo-analysis with different words, the unsafe path remains. Remove the path or require the proper verdict-producing agent.
 132. **Do not bypass Zopedia for business-memory synthesis.** If the task is to resolve a company story against the wiki, call the AQL/Zopedia agent. Direct feature-local LLM calls create parallel truth paths and can pollute project memory with ungrounded pseudo-analysis.
 133. **Do not split LLM provider config from secret lookup.** Local LLM config defaulted to OpenAI while secret resolution read `LLM_API_KEY_SECRET_NAME=deepseek-api-key` from generated deploy env. That makes a good deployed job look broken locally. Load provider/model/base-url from the same runtime env source as the secret name.
@@ -183,7 +453,7 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 141. **Do not let filing boilerplate become a company story.** A live AEHR probe showed a 10-K certification sentence promoted as a business-model fact because `annual report` and `10-K` were treated as business relevance. Source type is not analysis; the promoted fact must say what the company does, sells, earns, risks, or changes.
 142. **Do not promote weak matches as company facts.** `MAIN` can start from ticker-only, but an unrelated "main street businesses need capital" article should not become a Main Street Capital fact. Exact company phrases and distinctive tokens are promotion evidence, not a separate pre-research gate.
 143. **Do not treat LLM qualitative work like fixed-output software.** Passing tests for deterministic plumbing can still leave the generated business story thin or wrong. The required check is personal live-output review against the user intent.
-144. **Do not let non-LLM evidence become durable business memory.** Search results, baselines, fundamentals, and filings are evidence inputs. They are not the business verdict until AQL/Zopedia resolves them. If the verdict is missing or low-confidence, keep the evidence internal and do not write a business-memory page.
+144. **Do not let non-LLM evidence become durable business memory.** Search results, baselines, fundamentals, and filings are evidence inputs. They are not the business verdict until AQL/Zopedia resolves them. Historical qualification (October 14): a blanket low-confidence admission rule is superseded by the current discovery philosophy. Authorized memory may retain dated hypotheses, alternatives and later corrections with clear provenance; source capture, model interpretation and write authorization remain distinct.
 145. **Do not run background business research with interactive timeouts.** A 25s tool cap, 45s model-step cap, or 90s candidate-research cap forces the agent into shallow summaries and false gaps. Scheduled business research should have explicit long budgets wired through AQL/Zopedia, not local urgent timeouts.
 146. **Do not let deterministic fallback prose masquerade as agentic summarization.** The attention stack still had fallback claim extraction, fallback event writing, heuristic hypothesis grading, canned "no clear catalyst" copy, and fixed search-query prose after the product philosophy said LLM-first. Those branches make weak output look intentional. Remove the branch or leave the narrative empty until the proper LLM/Zopedia verdict runs.
 147. **Do not turn catalyst research into catalyst wallpaper.** It is correct to resolve the trigger behind a move; it is wrong to force every homepage answer into a "Catalyst" heading or repeat "no catalyst" filler. If the trigger is known, say what changed. If it is unknown, name the missing source.
@@ -446,9 +716,24 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
 
 ## Native parity — 2026-10-07
 
+- The native delivery explanation blurred installed quote rendering and
+  development-only history availability. After switching the client to live for
+  portfolio access, verify and report those contracts separately. On October 8,
+  the phone already had build 3 and native `Last close` prices rendered; the live
+  gateway still omitted numeric price histories, so reinstalling would not fix charts.
+
+- Builds 1 and 2 kept both native configurations on development after the active
+  broker connection moved to production. Earlier portfolio acceptance did not
+  establish that the installed phone still used the intended environment.
+  Compared both authenticated web gateways and the read-only connection scope;
+  build 3 now defaults globally to the live gateway with explicit Debug overrides.
+
 - The first full-universe heatmap eagerly constructed roughly 6,000 cells and recalculated its extent for each cell, leaving the simulator unresponsive at 100% CPU. Profiling identified SwiftUI layout work. The shared renderer now computes its scale once and virtualizes rows inside a bounded viewport; it preserves the entire universe. The full 999-symbol screen and searchable 3D inspection then responded normally.
 - Initial portfolio overview reused raw benchmark prices alongside portfolio dollars, visually flattening the benchmarks. Personal review caught the unit mismatch. Value and indexed performance now use separate shared chart configurations.
 - Native knowledge folder requests originally sent folder ID instead of the server's folder-path parameter. Corrected the request boundary and verified navigation into an actual nested folder and between connected pages.
+- The installation guide placed team/profile configuration before physical-device destination selection. The owner encountered the no-devices provisioning error while a simulator remained selected. Corrected the guide to select the connected phone first; Xcode subsequently showed a managed profile and development certificate with the error cleared.
+- Native Attention rendered fundamental trends but omitted the web price-history chart. Checking only the scalar quote did not establish price-display parity. Publish the retained numeric price history through Home and review its native chart alongside the ticker quote.
+- Reusing the financial-total formatter rounded quotes above $1,000 to whole dollars. Stock-price fields, price-chart inspection and option quotes now use a separate cents-preserving formatter.
 
 ## Shared read-layer cleanup — 2026-10-07
 
@@ -459,3 +744,218 @@ Distilled from 41 past incidents (archived in `past_mistakes.md`). These are the
   Its command argument split did not preserve quoted Python code; an interactive
   Python session provided the successful live check. A cluster success message
   alone did not prove the first probe ran.
+
+## LLM configuration and language — 2026-10-07
+
+- The Next Admin migration retained prompt inspection but lost editing. Its “Overridden” label described a saved customization and looked like a lock. Restore the shared authenticated mutation path and use “Custom” for that state.
+- The old override save deleted the entire shared table, and a failed initial load was cached permanently. Fix persistence and refresh before exposing an editor; a UI control alone would have preserved both defects.
+- The first local editor treated a string tuning default (`safe_auto`) as numeric. Preserve type and allowed choices in the shared parameter registry, then render and validate those same types in both clients.
+- Initial live language samples repeated conclusions and sometimes ignored requested output length. Tighten the global generation rule and read a second comparison; do not repair individual outputs with regex or mistake schema checks for prose quality.
+
+## Sustained stock decline discovery — 2026-10-07
+
+- A mandatory narrative quality review still gates numerical Market Opportunity publication. The independent ticker snapshot producer did not remove this dependency. Separate publication at the existing numerical owner; retain evidence standards for stories and enforce source freshness downstream.
+- Anomaly status `resolved` currently means below a residual threshold, even for materially declining companies and whole industries. Do not interpret it as business recovery or completed research. Discovery and ongoing research state need distinct meanings.
+- General macro exposure tags currently grant macro-anchor eligibility and bonuses. Economic exposure is not instrument identity. The same weak identity boundary allowed a cocoa input, NIB, to become a public story about an Australian insurer.
+- An early audit scan matched apparent company names inside encoded audio. Parsing and checking the actual public prose removed those false matches; the final audit reports a real Lennar mention in a Millrose card separately from absent dedicated coverage.
+
+## Discovery design corrections — 2026-10-07
+
+- The first redesign PDF was a product pitch with broad architecture labels, rather than a technical restructuring. It did not define learners, training objectives, cold start or a defensible evaluation design. Revision 2 replaces it with those specifications and repository ownership changes. Removing the original companies and named financial patterns prevents diagnostic examples from becoming a disguised rule set.
+- I proposed requiring supporting sources to match an exact instrument identity. That would reject useful indirect articles and sparse inputs. Supply identity context, let the shared LLM infer and revise, and tolerate reasonable research errors. The platform prioritizes useful discovery over brokerage-grade attribution.
+- I used current residuals to discuss a historical omission without reconstructing the original onset, and framed a trajectory using a financial pattern name. Current filtering is established; the historical explanation is still open. Use dated observations and empirical models, and evaluate discovery separately from prediction.
+- The 80-to-about-900 estimate described result breadth, not compute or LLM cost. Broad Markets already exposes full-universe observations. Separate query/rendering limits, numerical computation, research subjects, and provider concurrency before proposing a budget increase.
+- Installing Poppler with default Homebrew behavior triggered unrelated automatic updates/cleanup and removed Go 1.26.0. Disable automatic updates and cleanup for task-specific dependency installation; prefer an isolated runtime when possible. Restored the checksum-verified original Homebrew bottle with cleanup disabled; both the linked executable and the restored Cellar executable report `go version go1.26.0 darwin/arm64`.
+
+## Shared harness reliability — 2026-10-07
+
+- The existing judge defaulted a missing verdict to accept. Failed review also left two automatic retention paths open: wiki reflection and SAA answer write-back. Validate the review contract and guard every promotion path at its source, while preserving drafts in conversation history.
+- The first review-state edit covered the repository DTO and frontend but omitted the typed API response model, which would strip the new fields. Boundary review caught it before release; added the shared response fields and checked them through the local UI fixture.
+
+- Initial worker bundles assumed every image had the current research-run module and agent baseline. The build guards rejected that assumption before deployment. Inspected the older source, applied the shared patch without fuzz and omitted the unused API module from the two older workers.
+- Initial health probes used the externally blocked internal hostname, then assumed port 8000. Read the deployed ingress contract first; the accepted probe ran inside the API container on its configured port 8080 and returned health 200 and unauthenticated Admin 401.
+
+## Production promotion boundary — 2026-10-07
+
+- Initial candidate bundles included the separate legacy public API and assumed its source matched the accepted application. Source guards rejected it before any update: it lacks the research-run API module and has substantial older behavior. Excluded that stack; both current production frontend routes use the verified private API. Inspect the active routing and actual base generation before assigning release scope.
+
+## Historical corpus planning — 2026-10-07
+
+- Bulk-reading accumulated notes truncated the useful context; a later combined documentation patch also used an unverified anchor and was rejected without applying changes. Read bounded relevant sections and actual file tails, verify patch anchors, and inspect the resulting files before reporting completion.
+
+
+## Historical corpus implementation — 2026-10-07
+
+- Initial FRED pagination handled row counts but missed the separate 2,000-vintage limit. Extended the shared client to partition vintage intervals, retried affected series and verified live revision counts. Several manually seeded IDs also required catalog corrections; valid current-only series remain separate from ALFRED vintages.
+- Initial market requests placed many rejected escrow/CUSIP identifiers before usable histories, and month-sized news tasks monopolized workers. Persist provider rejections, prioritize conventional symbols without excluding the remaining catalog, and checkpoint daily news tasks.
+- Initial document extraction kept navigation and current related-story cards, including later-year content on old articles. Replaced the generic source-cleaning boundary with verbatim model-selected blocks through the shared gateway, retained the raw/selection trace, and personally reviewed the output.
+- Initial next-UTC-day availability was too early for some US date-only sources. Corrected the shared timezone contract, canonicalized uploaded earlier tables and superseded target derivations. Do not claim strict historical availability from an observation date or an edited publication page.
+- Initial release publication omitted checkpointed pages of unfinished tasks and could spend too long deriving every newly completed partition before showing progress. Include partial-page receipts, bound derivation work per release and keep both acquisition and derivation counts explicit.
+- Initial Treasury bill processing assumed the curve date/schema, leaving dates absent and rates as strings; the release publisher correctly stopped at the invalid contract. Replaced the inline parser with shared XML type handling and reprocessing from retained source XML. Verified actual bill schemas for 2018, 2023 and 2026.
+- The first local launchd attempt registered successfully but failed when macOS denied access to the repository's virtual environment under Documents. The owner requested a retry; resetting the Python.app bundle did not clear the command-line executable's denial. Opened the exact python3 Files & Folders setting, the owner enabled Documents access, and the background publisher then ran. Migrated the collectors to launchd after that verification; workstation/cloud recovery limits remain visible.
+- I filtered an already truncated process inventory and incorrectly concluded the original collectors had stopped. The restart created duplicate collectors and shared-temporary receipt races. A source-filtered inventory exposed the originals; stopped them, added family/task ownership leases and unique atomic temporary files, and retried affected checkpointed tasks. Task failures now retain credential-free stack locations for diagnosis.
+
+## Discovery architecture correction — 2026-10-08
+
+- Revision 2 described independent source nomination but did not work through event-owned research, source retrieval and timely publication deeply enough. Today's already-ingested headline still fell out before research; secondary Zopedia work then timed out. Make source-event discovery and coordinated durable research a first implementation priority alongside numerical learning.
+- The direct research probes reproduced the product failure: unrelated snippets and old memory displaced the current development; timed-out article reads led to long premise-rejection answers. Completed calls and an accepting critic did not establish useful research. Preserve thin leads, inspect retrieval before synthesis, and judge the actual result against the user's question. The failed traces remain in the audit; no successful recovery or runtime repair is claimed.
+
+## LLM cost accounting — 2026-10-12
+
+- An initial accepted-job aggregation selected only the root run ID and omitted nested agent calls with their own IDs. Grouped job/environment/time records exposed the missing work. Preserve causal root and parent IDs in the accounting design; label time-window attribution and captured-token estimates explicitly rather than presenting them as full invoices.
+
+## Cost restructuring corrections — 2026-10-13
+
+- The first literal-conversion comparison included a private diagnostic field when checking equality; compare the declared public schema. The thinking-enabled output also rewrote prose. Fixed the global literal-output contract and read the complete converted fields.
+- A long page-editor probe inherited a 60-second default and timed out despite the larger operation budget. Pass the remaining deadline at the actual review owner; retaining a draft does not establish a completed review.
+- Initial task snapshots omitted a few shared files. Reconstructed only the exact task delta before merging onto deployed source; source guards and build imports rejected incompatible API dependencies before rollout. A mistaken persistence import during the atomic-checkpoint edit was corrected before deployment.
+- An early validation-cost script repriced embedding attempts as DeepSeek and omitted unknown-price counts. The provider ledger was correct; corrected the report to use actual provider/model and explicit unpriced attempts. Unknown usage is never evidence of zero spend.
+- Disabling thinking for mechanical conversion also reduced DeepSeek's implicit output allowance to 8K. A large real dev dossier repair truncated twice. Set an explicit conversion allowance at the provider boundary, preserved all fields in a live 107,569-character replay, and kept the provider deadline in force.
+- The new completed-investigation tool initially used an unrecognized payload key. Its stored findings were absent from the agent's evidence context despite successful storage and reads. Corrected the tool to the established result contract and verified complete persisted content through the actual context reader. Storage success and tool invocation alone do not establish usable research context.
+- Copying the immutable archive class into two older image modules omitted its `hashlib` import. Build imports passed, but a real worker could not checkpoint audio and retried synthesis. Corrected the release dependency closure, added the missing module import to those isolated overlays, and repeated actual storage/replay verification. The working-tree module already had the import; copying the whole dirty module would have included unrelated changes.
+
+
+- Large dossier failures persisted after increasing the conversion output allowance: the contract still paid the LLM to reproduce known source catalogs. Fixed the ownership boundary globally and retained incomplete paid drafts for schema repair. A progress update initially inferred “no repairs” from empty warnings; actual attempt accounting showed one JSON-format repair. Corrected the statement and retained that attempt in the evidence.
+
+- Initial attempt metering depended solely on SQL; intermittent connection failures lost three receipts in the validation news run. Added durable archive reconciliation under immutable attempt IDs and a prompt-free central-log fallback, then verified an actual injected SQL outage under the dev worker identity. The earlier gaps remain explicitly unknown rather than being counted as zero.
+
+- The agent validated a structured draft before the shared repair owner could see it, and feature wrappers discarded the detailed failure. Preserve paid drafts and continuation state at the source. A later Home review also showed that a working artifact-read tool did not establish actual planner/writer reuse; corrected the shared consumer handoff. An overlay-preparation failure was followed by a redundant cached build because shell newlines did not stop dependent commands. Source guards prevented promotion; subsequent preparation and build calls were separated and checked.
+- Final verification initially imported a remembered settings helper and assumed the stored context shape. Read the actual public settings function and artifact/tool contracts before repeating the probe; no application change was needed. Repaired publication also required checking its explicit parent and row lineage instead of asserting every row came from the old failed run. Preserve the historical failure and include recovery spend in cost comparisons.
+- Shared context was expanded without updating the source-event owner's inherited 180-second whole budget and 60-second model-step ceiling. Two full-run event investigations failed before synthesis, although their evidence was retained. Corrected the global background-event budget, resumed both retained states with complete semantic review, and read their complete public fields before building the dev correction.
+- A final ad hoc usage query checked SQL NULL but omitted JSON null, initially reporting zero missing-usage records. The shared rollup already handled both forms. Corrected the probe to its actual storage contract before saving the final receipt; eight final Home records have unavailable usage. A report collection also raced the asynchronous proof writer; reran collection after the proof files completed and verified their inclusion.
+
+## Zopedia conversation audit — 2026-10-14
+
+- The audit initially requested the nonexistent `finished_at` column. Read the declared persisted schema first; the correct field is `completed_at`. Oversized documentation batches also repeated the existing truncation failure. Use bounded relevant reads and inspect complete saved evidence separately.
+- The production failure explanation searched an attention trace with an empty ID and inferred causes from unrelated running jobs, although the application held the actual failed research run. Supply authenticated execution context and a research-attempt read contract; do not ask the user to reconstruct facts the application already owns.
+- The production reviewer called that failure explanation coherent and relevant while only correcting its prose overclaims. Successful review did not establish that the right record was read or that the user's question was answered. Personally compare the complete answer with the actual conversation and acquisition history.
+- The production preparation gap has no per-dependency timing and the removed job pod has no accessible console logs. Do not claim a specific provider, credential lookup or dropped connection caused it. The observed phase timeout, absent evidence and missing continuation state are established; instrument the preparation owner to settle the remaining cause.
+
+
+## One engine and conversation implementation — 2026-10-14
+
+- Previous consolidation claims were too broad: the gateway was common but Attention retained separate investigation loops, and permissive architecture exceptions hid them. Removed those loops and exceptions instead of adding another agent wrapper.
+- The first continuity evaluation misattributed an inherited tool failure to a later failed turn and added an unrelated analogy. Rejected it, preserved source origin and exact execution outcomes, and evaluated an unseen conversation after the shared correction.
+- An intermediate edit repeated a `resume_state` keyword. AST parsing and formatting did not catch it; actual compilation/import did, before release. Compile changed modules at the source boundary.
+- The first native build used the global command-line-tools selection despite the documented scoped Xcode path. Repeated successfully with command-scoped `DEVELOPER_DIR`; global settings were unchanged.
+- The initial source baseline omitted the data-access file; reconstructed its exact task delta before release. A frontend build then rejected an external node_modules symlink; copied the installed dependencies into the isolated review tree and completed the real build.
+- Frontend image building began before all phone focus/overflow observations were settled, requiring replacement candidates. The final selected image includes the fully reviewed scroll and progress behavior; only that image is promoted.
+- A temporary environment-isolation probe used a nonexistent environment variable. Corrected it to the actual `APP_TRACK` owner and verified the real boundary; this was a probe error, not an application authorization defect.
+
+- The dev observation script serialized a completed database row without datetime handling before saving its second submission. The actual second turn was already queued successfully. Recovered and inspected that existing conversation instead of resubmitting paid work; both worker turns completed with the expected revision.
+
+- The October 14 release corrected snippet provenance without establishing deeper reading: the retained investigation still opened no sources. Acquisition labeling, architectural consolidation and successful completion are separate from research quality. Subsequent source inspection also found inconsistent selection IDs and the prose writer's outline-only evidence handoff; both remain proposed repair work, not completed fixes.
+
+
+## Philosophical plan review — 2026-10-14
+
+- Earlier fixes repeatedly turned research into certification: exact-company promotion rules, fixed verdict/slot expectations, source-count confidence caps and proof-based publication gates. Some historical notes still encoded those rules after the later philosophy rejected them; qualified representative stale instructions above while retaining their original incident context.
+- The current research repair plan rejects article quotas and universal source-proof gates. Its wording about faithful presentation, identical resolved selections and unresolved questions still needs care: preserve source meaning while allowing changed conclusions, let reviewers inspect alternatives beyond the writer's selected subset, and permit exploratory questions and probabilistic hypotheses. Role/model defaults must not become fixed cognitive stages.
+- A configurable single-review default is the owner's operating choice, not evidence of philosophical rigidity. Identity, permission and deadline contracts can be deterministic while research selection, synthesis, hypothesis assessment and writing remain adaptive. No engine or deployment changes were made by this review.
+
+## Configurable research flow — 2026-10-14
+
+- The initial evidence-packet serializer was given a dictionary despite its append-only list contract. Corrected the shared packet shape before acceptance. Feature-local summary reviews also still authored corrections and duplicated the shared cycle; page summaries now use one typed engine lifecycle and datapoints use its artifact-review path.
+- Two local fixtures were wrong: the browser admin had a non-UUID user ID, so settings persisted but its audit event failed; a later transport script constructed a fake client without passing it, causing real placeholder requests. Corrected the isolated account/schema and explicit client injection. Those accidental requests are not quality evidence; their actual provider attempts remain recorded.
+- A successful source continuation overstated what keepalive bytes or a read timeout prove about inference versus transport failure. Rejected it despite both reviewers accepting it, strengthened the general causal-reasoning instructions, and retained the original failed acquisition/synthesis history. Do not present the continuation as a fresh successful run or omit recovery cost.
+- Local storage context initially omitted the configured account URL; after using the existing deployment context, Azure correctly denied writes under the local identity. PostgreSQL/archive-contract checks use a clearly identified injected archive transport. Managed-identity upload/readback subsequently passed in an unchanged worker execution; no permission was broadened.
+- The 180-second source trial completed but still promoted ambiguous timing into causal diagnoses; the review replay did too. Rejected both. The premium correction already contained those claims, so the cheap presentation step was not their source. A larger timeout did not establish quality, and these recovery attempts must remain in latency/spend accounting.
+- The reviewer schema had been changed to feedback while its inherited prompt still requested a rewritten answer. Aligned the global instructions with the role split instead of adding question-specific fixes. The source reasoning case remains open; deployment is held rather than claiming that this prompt cleanup proved success.
+- A checkpoint probe initially observed the public progress callback, which correctly omits private checkpoint state. Moved the observation to the internal checkpoint owner. A later result collector also used a nonexistent repository `get` method after the paid run had completed; recovered the same run with `get_for_user` instead of resubmitting it.
+
+## System health investigation — 2026-10-15
+
+- Do not turn component monitoring into a requirement that every research step succeed, or expose operational failures across main product pages. Keep recoverable failures in Admin/Health, preserve useful output and escalate persistent material impact. A summary hierarchy is a navigation capability, not a fixed execution ladder.
+- Successful Home/learning processes hid repeatable context-limit failures, and monitoring accepted four of five Trading Agent horizons. Preserve useful partial work, but persist failed components and report degradation. [Investigation](./architecture/overall/audits/SYSTEM_HEALTH_2026-10-15.md).
+- Connection exhaustion disabled monitoring and Home's database sink. Final Blob artifacts were newer than PostgreSQL records; a recovered database does not automatically reconcile missing records. Recovery needs durable artifact/execution identity.
+- Trading Agent survived some research runs but was killed during outcome generation twice. Profile the whole job, including accumulated candidate history, and retain completed work across attempts; another successful run does not prove memory ownership is fixed.
+
+## Reasoning and cost investigation — 2026-10-15
+
+- An initial barbell grouping summed receipt `usd_min` fields, which can be lower than the actual calendar-band estimate. Recomputed baseline and candidate from recorded tokens and UTC bands before using the result; the recalculated known daily baseline matches $35.6392. Compare like-for-like price bands and do not treat a charge-range minimum as the recorded daily total.
+- Repeated prompt/effort trials on the same technical question did not establish a general solution. The promising prepared review corrected the original errors while introducing a new premise error; rejected the complete answer and retained the failed variants. Next acceptance must use unfamiliar cases and sound drafts before more tuning on this example.
+- An independent-check harness referenced the wrong presentation prompt constant after three paid steps. Retained those outputs and corrected the script without re-buying the successful work; the premium answer was already qualitatively wrong, so the interrupted run cannot count as a cost win.
+- Local credential-setup failures initially prevented some experiments from making a request. Retried with the same existing identity and more CLI process time in the experimental harness only. No provider call means no model-quality observation; the credential root cause remains unproven. Application credentials, scopes and defaults were unchanged.
+- The blanket user-premise instruction found in `_final_user_prompt` applies to its structured branch, not the ordinary-answer experiment. Record it as a contract inconsistency to fix, not as a demonstrated cause of the prototype failure. The final plan also replaces the earlier speculative independent-check recommendation with its actual failed result.
+- The subsequent +6–13% arithmetic used a 50/50 mix of small query examples but was described as an overall planning estimate without full Home generation. The retained full Home job used 16.77 million generation tokens and a historical routing configuration. Corrected the estimate's scope and added that workload explicitly; reprice its actual stage/model usage and frequency before making an application-wide cost claim. No new model run was needed to find this coverage gap.
+- The local Pro/Flash baseline used for marginal handoff calculations also does not include the cost of upgrading previously Flash-only workloads. Historical Trading Agent purpose-level repricing exposed that separate increase. Report the complete rollout against recorded runtime usage as well as the controlled handoff comparison; a small percentage for the latter cannot stand in for the former.
+- The later $3–$4 illustrative mix still omitted the actual four daily news builds and four Home builds, despite knowing news was expensive per run. The owner reported $37; the provider UI confirmed $37.21 and live SQL plus archived receipts attributes $35.64. Replaced the hypothetical daily impression with real execution counts, time-zone-matched usage and an explicit $1.57 gap. Do not make an overall cost claim before reading schedules, actual runs and archived attempts.
+
+## Native workbench review — 2026-10-15
+
+- An accessibility-visible completion banner was hidden beneath native navigation chrome. The first safe-area placement still obscured the navigation header. Moved the notice into an explicit layout region and required a screenshot with the notice, title and Close control all visible before acceptance.
+- Initial live probes mixed a first-horizon brief with contexts selected from the last horizon. Rebuilt the actual shared company pool and reviewed the correctly scoped complete packages. Their earlier output is exploratory evidence, not production-equivalent acceptance.
+- A pinned-source review initially lacked the actual worker runtime configuration and returned unavailable before making a model call. Loaded the existing dev job settings into the isolated process, keeping the QA namespace/write policy, and reviewed that execution. No provider/runtime configuration was changed.
+- Release preparation initially assumed a flat web context and an API resource name. Reads failed before mutation. Inspected the accepted source layout and actual configured API destination before continuing; no guessed resource was updated.
+
+- A read-only observation probe assumed a psycopg connection helper although this workspace uses pg8000, then omitted the repository import path when moved to a temporary script. Used the actual cursor transaction contract and explicit import path; neither failed probe mutated application state or retried paid work.
+
+- The scoped worker passed a live single-horizon review but the full dev generation died during company research and automatically retried. Held Trading promotion, stopped that execution and recorded the measured state. A correct candidate and healthy-looking top-level execution do not establish complete-job reliability.
+
+- During memory profiling, Ctrl-C left the executor waiting for its submitted research tasks. Started a narrower profile before confirming that the first process had exited; the overlap reached two planning calls. Terminated only the second owned process, retained its actual attempts, and let the first preserve its paid results. Confirm process termination before replacing a threaded inference run. The public callback also could not capture private checkpoints: those are deliberately consumed by the session owner; completed full results remain recoverable locally.
+
+- The missing-horizon collector referenced the wrong horizon constant after saving the paid result. Recovered materialization from that saved result without another request. Keep collection independently restartable and check the actual callable contract before invoking paid work.
+
+- Azure CLI start flags replace the execution container rather than inheriting it: the first isolated probe got0.5CPU/1Gi and no environment, then failed before loading data. Read the installed CLI example, use the complete observed template, and verify the running resources/env before interpreting memory. The worker uses cgroup v1; the dedicated probe must read its paths as well as v2. No model calls or publications occurred.
+- The first memory repair passed a full dev job but still reached the2GiB kernel limit. A projected candidate list can still transfer huge inherited provenance for selected rows: one tool record was198MB. Held promotion, preserved paid work and traced the actual reference graph before changing source read/write ownership. Isolated phase savings and job completion do not prove headroom.
+- Wide JSONB decomposition and whole-checkpoint text conversion repeatedly exceeded bounded read timeouts. Read small scalar paths and one selected candidate projection instead; recovered the original state/tools without copying the giant aggregate on the database host. No checkpoint was deleted or rewritten to make the probe pass.
+
+## Admin health and hierarchy experiment review — 2026-10-15
+
+- Initial hierarchy batches ran while another thread edited the shared engine. Kept them as exploratory observations and repeated the comparison against a hash-verified source snapshot. The first snapshot script used a duplicated application path and copied no files; rejected its empty manifest, stopped that batch and verified the corrected imported module paths before continuing. Retained the extra paid attempts in total experimental cost.
+- Early Azure metric probes used a timestamp offset that the service decoded incorrectly and an unsupported time grain. Changed the reader to UTC `Z` timestamps and supported grains with service adjustment, then verified real database, app and job series.
+- Whole-page overflow checks missed long table values painting over neighboring cells. Personally inspecting the complete Admin table caught it; fixed wrapping in the shared DataTable styles and repeated desktop/phone rendering.
+
+- The first isolated catalog omitted the engine's `research.read_context` tool while its planner instructions referred to it. Added the exact shared tool contract and repeated the matched comparison with the same frozen engine and retained summaries. Excluded the restricted-catalog batch from the final comparison; its cost and qualitative observations remain recorded.
+
+- The initially prepared Admin overlay used a retained API source older than the deployed feature-request router addition. A direct immutable-image source/hash check caught the mismatch before build or deployment. Rebased onto the actual deployed API, preserved the router, and reran the isolated Admin checks. A baseline receipt is not enough unless it matches the exact inherited file.
+
+
+## Reliability handoff and acceptance corrections — 2026-10-16
+
+An LLM-only agent named its coordination pointer BACKEND_READY.json despite having no backend owner handoff. Repeated owner relays did not establish readiness. After the owner clarified the mistake, this integration thread took the unassigned scope and kept the rejected LLM candidate out.
+
+The first navigable chart run completed but was not good enough: it borrowed a year-ago value outside the plotted array and treated cash burn as disproving a price move. It was held for a stronger source/evidence contract and another personal review. The first source-assembly script also used min(single_integer) when a function had no decorators; fixed before any build or deployment.
+
+## Device observation correction — 2026-10-16
+
+A `devicectl` process filter assumed executable was a string; CoreDevice represents it as a file URL and rejected `CONTAINS`. This was an observation failure, not an app launch failure. A separate read-only progress query assumed `updated_at` rather than the schema’s `updated_at_utc`; corrected it after reading the owner DDL. Use structured receipts and inspect declared fields/types before optional observations.
+
+The initial production SQL observation inherited a direct development connection from local `.env`, which takes priority over the captured production secret name. No production state was mutated. Removed the local override and resolved the production binding before accepting SQL observations. A successful connection is not proof of the intended database.
+
+
+## Reasoning evaluation corrections — 2026-10-16
+
+- An earlier logistics probe supplied an evidence dictionary envelope to an API expecting a list; the loop silently discarded it. Its arithmetic failure was real, but it did not establish source transport. Corrected the harness, added shared boundary validation and retained the earlier paid attempts.
+- Initially treated the source question's observed 75-second client setting as a fixed service requirement. The question does not impose that constraint. A longer deadline can be valid when its objective and assumptions are explained; the unambiguous logical error was reversing the documented implication about inference start and server closure. Preserve evaluator corrections alongside model failures in the [ground-truth inventory](research/frontier-agentic-research/GROUND_TRUTH_2026-10-16.md).
+- Model prompts and review checks caught some original failures but did not reliably resolve them. Live review also requested an unnecessary qualification on a valid mix explanation, buying another correction that timed out. Preserved complete drafts and unknown timeout costs; did not call the reasoning repair complete or release it because the plumbing tests passed.
+
+## Combined release corrections — 2026-10-16
+
+The first worker build exceeded Docker layer depth after repeated image overlays. Rebuilt from a pinned dependency base with a complete, hash-checked accepted source tree. The first ARM PATCH used CLI-expanded response-only fields and was rejected before any runtime change; switched to matching raw ARM GET/PATCH versions. An immediate post-PATCH check then observed asynchronous provisioning too early; made the controller resumable and waited for matching ready revisions before accepting the rollout. No resource allocation or production change was needed.
+
+- Used "live checks" ambiguously for both fresh model inference and runtime integration. This obscured the proper evaluation path: controlled frozen replay, paired/held-out comparisons and personal output review first; a small live integration check afterward. Updated philosophy and the reasoning plan to distinguish them.
+
+## Production promotion verification corrections — 2026-10-16
+
+The accepted development Health checks covered immediate provider failures but missed slow collection exhausting the BFF timeout. Production exposed the gap. Corrected the shared telemetry owner to return independent snapshots within a total budget, protect one in-flight collection per identity and bound SQL collection; checked actual Azure/Blob output under real database load before another API release.
+
+Operator probes also exposed two inventory pitfalls: PostgreSQL activity text can end before the FROM clause, and job container names can differ from resource names. Use the declared template and an inspected query prefix plus backend identity, rather than assuming either. The first stale-read selector matched no rows and changed nothing; the corrected selector cancelled 12 stale client reads and one parallel worker. ACR resolves a relative Dockerfile from the command's working directory; corrected two submissions rejected before upload. No provider calls resulted from those operator corrections.
+
+The newly deployed scheduled health worker repaired 18 manifest indexes but exceeded its existing five-minute platform window while draining the provider-receipt backlog. This repair introduced bulk reconciliation ahead of core observation; the small recovery checks did not represent a real backlog on a saturated server. Core health observation and recovery need separate bounded execution phases. Do not describe the production release as fully healthy while the research smoke check and monitoring execution remain unsuccessful.
+
+The combined validation established component improvements but did not establish overall recovery under concurrent production load. Cancelling stale reads lowered sessions while CPU remained saturated; Home still had a synchronous SQL dependency after finding a valid Blob manifest, and the retained-data research check failed before synthesis transport. Image readiness and scoped connection/receipt checks were insufficient evidence for the reliability objective. Preserve the distinction between confirmed failures and untraced causal details in the [production analysis](./research/system-reliability/PRODUCTION_FAILURES_2026-10-16.md), and use the [research index](./research/README.md) to retain complete failure/control evidence across sessions.
+
+## Database repair verification corrections — 2026-10-16
+
+The first cancellation probe assumed driver cancellation would work through Azure. It timed out while SQL continued. Replaced that assumption with a real backend-identity guarded SQL cancellation path, then verified termination, rollback, later connection use and cross-process admission. Warm the probe's physical connection before measuring active-query cancellation; TLS setup time is a different measurement. A later repeat exposed a second transport assumption: opening the independent cancellation connection sometimes exceeded three seconds. Kept the path bounded but allowed six seconds for acquisition (five for connect), plus its short SQL deadline; statement deadlines remain an independent backstop. Poll briefly for server-side disconnect visibility after the worker finishes.
+
+A failed infrastructure test displayed a raw database binding through pytest's fixture representation. The fixture now uses an opaque representation and short tracebacks; credential values remain in process environment/private files, never command arguments or saved public evidence. Do not print fixture values or full connection errors. Some older unit fixtures also missed the new publication boundary and attempted real Azure IO; those requests were rejected before writes. Updated the boundary fixtures and ran the focused suite with network IO disabled.
+
+An initial cold-start checkpoint implementation committed each knowledge page separately, causing avoidable connection setup overhead. Batched persistence/checkpoints before release and verified changed, unchanged, archived and interrupted projection behavior against temporary PostgreSQL relations. The first release pass also retained a short interactive admission wait for background work; corrected the ownership budgets before deployment.
+
+The existing worker image was close to Docker's layer-depth limit; four separate COPY layers exceeded it before verification ran. Combined the immutable overlay and verification files into one COPY layer. Source and consumer import guards remain mandatory; a packaging failure does not justify copying the shared dirty workspace into an image.
+
+The complete timeout-owner audit came too late in the first build pass. Attention, AQL and live research had additional thread wrappers, and parallel task submissions could lose their owning context. Extended the shared cancellation contract to those execution boundaries and kept a complete guarded source release. Also moved recovery continuation reads/writes inside its total budget; bounding only the drain loops would leave unbounded setup/checkpoint IO. Added execution-ownership checks, then rebuilt the accepted source. Future releases should finish the caller/child ownership audit before remote builds.
+
+The projection review also found that the existing Blob frame loader represents some storage errors as empty frames. An incremental checkpoint must not interpret that as successful retention when the manifest declares rows. Failed versions now remain pending while available versions can complete, with a temporary-relation retry check.

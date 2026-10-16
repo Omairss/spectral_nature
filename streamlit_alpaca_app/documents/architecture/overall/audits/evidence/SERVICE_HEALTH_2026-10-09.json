@@ -1,0 +1,1016 @@
+{
+  "observed_at_utc": "2026-10-09T17:06:15.061921+00:00",
+  "scope": "Read-only production health diagnosis; no deployments, job starts, incident mutations, or notifications.",
+  "findings": [
+    {
+      "component": "Trading Agent",
+      "state": "failed",
+      "cause_observed": "All eight company research packages failed with AQL agent failed: NameError: name 'time' is not defined; all five horizons have zero candidates.",
+      "last_success": [
+        {
+          "run_id": "58103e69-be3d-432c-9455-b68f4b346444",
+          "status": "Succeeded",
+          "start_time_utc": "2026-10-08 20:35:32.816949+00:00",
+          "end_time_utc": "2026-10-08 20:48:40.099857+00:00",
+          "error_summary": null
+        }
+      ],
+      "latest_run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+      "azure_execution": "trading-agent-build-29859395",
+      "azure_status": "Failed",
+      "deployed_image_digest": "sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+      "confirmed_source_cause": {
+        "module": "services/agents/research_session.py",
+        "line": 41,
+        "code": "started = time.monotonic()",
+        "defect": "The compatibility overlay adds ResearchBudget without adding import time.",
+        "deployed_sha256": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f",
+        "prior_sha256": "93fd024f220ae14e1ae3fd15f9b6b37cec645615dcab0e5b666cb5a9d0418577",
+        "reproduction": "Executing the deployed ResearchBudget class without adding undeclared imports reproduces NameError at line 41. No model, database or production mutation is required."
+      },
+      "release": "prod-home-repair-20261008-d6e60e",
+      "validation_gap": "Azure trading-agent-build-dev execution history has no execution of the released image; latest listed execution is September 21. Recorded release acceptance inspected Home, public API/browser, and local contract/import checks, not the final Trading Agent worker research execution."
+    },
+    {
+      "component": "Home",
+      "state": "available; stale incident recovered",
+      "published_at_utc": "2026-10-09T15:16:57.921691+00:00",
+      "next_build_run_id": "9a42be35-2eb8-4c31-9359-16fc71e94220",
+      "next_build_observed_progress": "10/12 company candidates completed; heartbeat 2026-10-09T17:04:26.401623+00:00"
+    },
+    {
+      "component": "Equity refresh",
+      "state": "Azure Failed; database incorrectly Running",
+      "azure_execution": "equities-intraday-preload-29859395",
+      "database_run_id": "66c57707-0046-41fb-94f5-3dadc5fcfce6",
+      "resources": {
+        "cpu": 1,
+        "memory": "2Gi"
+      },
+      "exit_code": 137,
+      "last_stage": "full-history fetch for 1001 symbols, days=3650",
+      "impact": "Daily movers (999 rows) and macro anchors (571 rows) were published before termination; history refresh did not complete.",
+      "cause_inference": "SIGKILL is consistent with memory pressure; Azure logged ProcessExited, not an explicit OOMKilled reason.",
+      "monitoring_gap": "system_health reads Home/Trading job failures and recent failed provider jobs; it does not reconcile this Azure failure or stale Running row.",
+      "comparison": {
+        "history_builder_unchanged": true,
+        "same_new_image_succeeded_at_utc": "2026-10-09T13:41:43.199994Z",
+        "conclusion": "The equity termination is not established as a release regression. The current image completed the earlier morning run; the affected history-builder function is unchanged."
+      }
+    }
+  ],
+  "incident_records": [
+    {
+      "incident_key": "trading-agent-build-failed",
+      "severity": "critical",
+      "title": "The Trading Agent update failed",
+      "details": "RuntimeError: Trading Agent produced no successful horizon synthesis; inspect research packages and run errors.",
+      "status": "open",
+      "opened_at_utc": "2026-09-19 23:03:01.814617+00:00",
+      "last_detected_at_utc": "2026-10-09 17:00:28.645864+00:00",
+      "resolved_at_utc": null,
+      "opened_notified_at_utc": "2026-10-09 14:45:40.377365+00:00",
+      "recovery_notified_at_utc": null
+    },
+    {
+      "incident_key": "attention-home-stale",
+      "severity": "critical",
+      "title": "The market overview is stale",
+      "details": "The latest market overview was written at 2026-10-09T02:07:40.228211+00:00 and is older than 12 hours.",
+      "status": "resolved",
+      "opened_at_utc": "2026-10-09 15:00:38.364041+00:00",
+      "last_detected_at_utc": "2026-10-09 15:30:29.047968+00:00",
+      "resolved_at_utc": "2026-10-09 15:30:29.047968+00:00",
+      "opened_notified_at_utc": "2026-10-09 15:00:38.364041+00:00",
+      "recovery_notified_at_utc": "2026-10-09 15:30:29.047968+00:00"
+    }
+  ],
+  "production_job_snapshot": [
+    {
+      "job_name": "attention-home-build",
+      "run_id": "9a42be35-2eb8-4c31-9359-16fc71e94220",
+      "status": "Running",
+      "start_time_utc": "2026-10-09 16:50:31.622668+00:00",
+      "end_time_utc": null,
+      "error_summary": null,
+      "progress_stage": "research_candidates",
+      "progress_message": "Completed narrative candidate 5/12 symbol=TMUS",
+      "heartbeat_time_utc": "2026-10-09 17:00:32.839231+00:00"
+    },
+    {
+      "job_name": "commodities-regime",
+      "run_id": "26427a77-8005-46ca-b37b-94921ad43fe1",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 14:10:32.220547+00:00",
+      "end_time_utc": "2026-10-09 14:10:42.682841+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 14:10:42.682844+00:00"
+    },
+    {
+      "job_name": "development::attention-home-build",
+      "run_id": "a22da3f1-07ff-4a59-8865-12933b910098",
+      "status": "Warning",
+      "start_time_utc": "2026-10-08 23:07:37.071748+00:00",
+      "end_time_utc": "2026-10-08 23:37:33.043207+00:00",
+      "error_summary": "Research degraded; ticker enrichments 12/12 completed; source events 0/0 completed; market summary completed.",
+      "progress_stage": "research_degraded",
+      "progress_message": "Research degraded; ticker enrichments 12/12 completed; source events 0/0 completed; market summary completed.",
+      "heartbeat_time_utc": "2026-10-08 23:37:33.043212+00:00"
+    },
+    {
+      "job_name": "development::evidence-index",
+      "run_id": "2fd7570c-18e1-4d57-ad25-685f88b436c9",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 17:00:32.646988+00:00",
+      "end_time_utc": "2026-10-09 17:00:40.433172+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 17:00:40.433176+00:00"
+    },
+    {
+      "job_name": "development::home-repair-publication-replay",
+      "run_id": "0d073b0c-c494-4d92-a712-b411cf77e920",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-08 23:33:18.803560+00:00",
+      "end_time_utc": "2026-10-08 23:41:55.288848+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-08 23:41:55.288850+00:00"
+    },
+    {
+      "job_name": "development::home-repair-public-inputs",
+      "run_id": "dfdfea58-137b-4200-8b21-80e82b62ac79",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-08 23:06:16.428040+00:00",
+      "end_time_utc": "2026-10-08 23:06:17.695626+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-08 23:06:17.695628+00:00"
+    },
+    {
+      "job_name": "development::home-repair-public-price-input",
+      "run_id": "66980155-7a34-46c6-b356-1cff5cce89ed",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-08 23:48:38.541423+00:00",
+      "end_time_utc": "2026-10-08 23:48:49.414434+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-08 23:48:49.414437+00:00"
+    },
+    {
+      "job_name": "development::research-run-execute",
+      "run_id": "65c864bb-8b08-4a5f-b9cd-e3e51a3eb69a",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 05:54:57.150384+00:00",
+      "end_time_utc": "2026-10-09 05:55:42.361081+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 05:55:42.361085+00:00"
+    },
+    {
+      "job_name": "equities-intraday-preload",
+      "run_id": "66c57707-0046-41fb-94f5-3dadc5fcfce6",
+      "status": "Running",
+      "start_time_utc": "2026-10-09 16:39:41.063962+00:00",
+      "end_time_utc": null,
+      "error_summary": null,
+      "progress_stage": "price_history",
+      "progress_message": "Building equity price history snapshot days=3650 benchmark=SPY.",
+      "heartbeat_time_utc": "2026-10-09 16:39:48.438641+00:00"
+    },
+    {
+      "job_name": "fundamentals-quarterly-refresh",
+      "run_id": "32ed85d1-3333-46c5-8b8d-623c2b04fe50",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 12:01:40.888810+00:00",
+      "end_time_utc": "2026-10-09 12:09:48.051420+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 12:09:48.051424+00:00"
+    },
+    {
+      "job_name": "home-repair-publication-resume",
+      "run_id": "4893138a-fa36-4ecd-8d38-2557600ab07e",
+      "status": "Warning",
+      "start_time_utc": "2026-10-09 01:58:53.349766+00:00",
+      "end_time_utc": "2026-10-09 02:07:40.591814+00:00",
+      "error_summary": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
+      "progress_stage": "research_degraded",
+      "progress_message": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
+      "heartbeat_time_utc": "2026-10-09 02:07:40.591818+00:00"
+    },
+    {
+      "job_name": "macro-fred-daily",
+      "run_id": "a99ab670-ca1a-4e2d-a46d-4e2540fd6a67",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 11:01:02.225389+00:00",
+      "end_time_utc": "2026-10-09 11:03:22.755906+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 11:03:22.755909+00:00"
+    },
+    {
+      "job_name": "news-ingest-and-features",
+      "run_id": "b05c26d2-46f0-4acd-9e80-de7dbb7c3b9c",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 16:05:34.167399+00:00",
+      "end_time_utc": "2026-10-09 16:37:30.667858+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 16:37:30.667862+00:00"
+    },
+    {
+      "job_name": "options-liquid-universe",
+      "run_id": "433012c4-108b-4aa3-ac87-b4bf9085363f",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 14:45:34.436153+00:00",
+      "end_time_utc": "2026-10-09 14:48:36.078984+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 14:48:36.078990+00:00"
+    },
+    {
+      "job_name": "research-run-execute",
+      "run_id": "4decee6f-b147-46c3-9a4e-7716eebf5304",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 02:32:52.231663+00:00",
+      "end_time_utc": "2026-10-09 02:35:21.662450+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 02:35:21.662454+00:00"
+    },
+    {
+      "job_name": "system-health",
+      "run_id": "a1419f87-8232-45f3-b055-665a8f3588e2",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 17:00:29.677777+00:00",
+      "end_time_utc": "2026-10-09 17:00:30.125845+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 17:00:30.125848+00:00"
+    },
+    {
+      "job_name": "trading-agent-build",
+      "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+      "status": "Failed",
+      "start_time_utc": "2026-10-09 16:36:38.280937+00:00",
+      "end_time_utc": "2026-10-09 16:37:09.173089+00:00",
+      "error_summary": "RuntimeError: Trading Agent produced no successful horizon synthesis; inspect research packages and run errors.",
+      "progress_stage": "failed",
+      "progress_message": "RuntimeError: Trading Agent produced no successful horizon synthesis; inspect research packages and run errors.",
+      "heartbeat_time_utc": "2026-10-09 16:37:09.173093+00:00"
+    },
+    {
+      "job_name": "universe-builder",
+      "run_id": "1f186476-6af3-409a-8543-39b37338cbc3",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 13:20:36.216434+00:00",
+      "end_time_utc": "2026-10-09 13:20:56.335051+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 13:20:56.335057+00:00"
+    },
+    {
+      "job_name": "zopedia-learning",
+      "run_id": "f3ff4b58-e2ad-4668-995c-49084eb3b2b4",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-09 15:20:34.160942+00:00",
+      "end_time_utc": "2026-10-09 15:22:11.227884+00:00",
+      "error_summary": null,
+      "progress_stage": "completed",
+      "progress_message": "Completed successfully.",
+      "heartbeat_time_utc": "2026-10-09 15:22:11.227888+00:00"
+    },
+    {
+      "job_name": "zopedia-maintenance",
+      "run_id": "0bd7573e-fb64-4132-b858-1b251ee0293b",
+      "status": "Running",
+      "start_time_utc": "2026-10-09 16:58:12.774471+00:00",
+      "end_time_utc": null,
+      "error_summary": null,
+      "progress_stage": "starting",
+      "progress_message": "Starting Zopedia maintenance.",
+      "heartbeat_time_utc": "2026-10-09 16:58:12.778647+00:00"
+    }
+  ],
+  "public_http_probes": [
+    {
+      "url": "https://spectral-nature.com/",
+      "status": 200,
+      "seconds": 0.86
+    },
+    {
+      "url": "https://spectral-nature.com/health",
+      "status": 200,
+      "seconds": 0.6,
+      "body": "{\"status\":\"ok\"}"
+    },
+    {
+      "url": "https://spectral-nature.com/api/home",
+      "status": 200,
+      "seconds": 1.29,
+      "home_status": "available",
+      "as_of": "2026-10-09T14:50:29.506945+00:00",
+      "run_id": "9db3e953-a7a6-4790-bdb7-9863d53658d8",
+      "beats": 8,
+      "research_health": null
+    },
+    {
+      "url": "https://spectral-nature.com/zopedia",
+      "status": 200,
+      "seconds": 0.71
+    },
+    {
+      "url": "https://spectral-nature.com/api/admin/llm",
+      "status": 405,
+      "seconds": 0.26
+    }
+  ],
+  "trading_research_and_job_history": {
+    "trading_agent_runs": {
+      "asof": "2026-10-09T16:36:37.222969+00:00",
+      "ingested": "2026-10-09T16:37:04.739490+00:00",
+      "rows": [
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "horizon_key": "1w",
+          "status": "error",
+          "candidate_count": 0,
+          "error": "Trading Agent context did not include any focus tickers.",
+          "aql_agent_json": "{}",
+          "generated_at_utc": "2026-10-09T16:37:04.222866+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "horizon_key": "1m",
+          "status": "error",
+          "candidate_count": 0,
+          "error": "Trading Agent context did not include any focus tickers.",
+          "aql_agent_json": "{}",
+          "generated_at_utc": "2026-10-09T16:37:04.222866+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "horizon_key": "3m",
+          "status": "error",
+          "candidate_count": 0,
+          "error": "Trading Agent context did not include any focus tickers.",
+          "aql_agent_json": "{}",
+          "generated_at_utc": "2026-10-09T16:37:04.222866+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "horizon_key": "1y",
+          "status": "error",
+          "candidate_count": 0,
+          "error": "Trading Agent context did not include any focus tickers.",
+          "aql_agent_json": "{}",
+          "generated_at_utc": "2026-10-09T16:37:04.222866+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "horizon_key": "5y",
+          "status": "error",
+          "candidate_count": 0,
+          "error": "Trading Agent context did not include any focus tickers.",
+          "aql_agent_json": "{}",
+          "generated_at_utc": "2026-10-09T16:37:04.222866+00:00"
+        }
+      ]
+    },
+    "trading_agent_research_packages": {
+      "asof": "2026-10-09T16:36:37.222969+00:00",
+      "ingested": "2026-10-09T16:37:04.304211+00:00",
+      "rows": [
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "ticker": "PBR",
+          "company_name": "Petroleo Brasileiro S.A. Petrobras ADS",
+          "status": "failed",
+          "error": "AQL agent failed: NameError: name 'time' is not defined",
+          "limitations_json": "[\"AQL agent failed: NameError: name 'time' is not defined\"]",
+          "tool_calls_json": "[]",
+          "generated_at_utc": "2026-10-09T16:37:04.220166+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "ticker": "MRNA",
+          "company_name": "Moderna, Inc. - Common Stock",
+          "status": "failed",
+          "error": "AQL agent failed: NameError: name 'time' is not defined",
+          "limitations_json": "[\"AQL agent failed: NameError: name 'time' is not defined\"]",
+          "tool_calls_json": "[]",
+          "generated_at_utc": "2026-10-09T16:37:04.220166+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "ticker": "LITE",
+          "company_name": "Lumentum Holdings Inc. - Common Stock",
+          "status": "failed",
+          "error": "AQL agent failed: NameError: name 'time' is not defined",
+          "limitations_json": "[\"AQL agent failed: NameError: name 'time' is not defined\"]",
+          "tool_calls_json": "[]",
+          "generated_at_utc": "2026-10-09T16:37:04.220166+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "ticker": "ASST",
+          "company_name": "Strive, Inc. - Class A Common Stock",
+          "status": "failed",
+          "error": "AQL agent failed: NameError: name 'time' is not defined",
+          "limitations_json": "[\"AQL agent failed: NameError: name 'time' is not defined\"]",
+          "tool_calls_json": "[]",
+          "generated_at_utc": "2026-10-09T16:37:04.220166+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "ticker": "IOVA",
+          "company_name": "Iovance Biotherapeutics, Inc. - Common Stock",
+          "status": "failed",
+          "error": "AQL agent failed: NameError: name 'time' is not defined",
+          "limitations_json": "[\"AQL agent failed: NameError: name 'time' is not defined\"]",
+          "tool_calls_json": "[]",
+          "generated_at_utc": "2026-10-09T16:37:04.220166+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "ticker": "ABCL",
+          "company_name": "AbCellera Biologics Inc. - Common Shares",
+          "status": "failed",
+          "error": "AQL agent failed: NameError: name 'time' is not defined",
+          "limitations_json": "[\"AQL agent failed: NameError: name 'time' is not defined\"]",
+          "tool_calls_json": "[]",
+          "generated_at_utc": "2026-10-09T16:37:04.220166+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "ticker": "P",
+          "company_name": "Everpure, Inc. Class A common stock",
+          "status": "failed",
+          "error": "AQL agent failed: NameError: name 'time' is not defined",
+          "limitations_json": "[\"AQL agent failed: NameError: name 'time' is not defined\"]",
+          "tool_calls_json": "[]",
+          "generated_at_utc": "2026-10-09T16:37:04.220166+00:00"
+        },
+        {
+          "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+          "ticker": "FLG",
+          "company_name": "Flagstar Bank, N.A. Common Stock",
+          "status": "failed",
+          "error": "AQL agent failed: NameError: name 'time' is not defined",
+          "limitations_json": "[\"AQL agent failed: NameError: name 'time' is not defined\"]",
+          "tool_calls_json": "[]",
+          "generated_at_utc": "2026-10-09T16:37:04.220166+00:00"
+        }
+      ]
+    },
+    "trading_job_history": [
+      {
+        "run_id": "c6dd7dac-e04b-4b1a-b1b1-bf94cf435880",
+        "status": "Failed",
+        "start_time_utc": "2026-10-09 16:36:38.280937+00:00",
+        "end_time_utc": "2026-10-09 16:37:09.173089+00:00",
+        "error_summary": "RuntimeError: Trading Agent produced no successful horizon synthesis; inspect research packages and run errors."
+      },
+      {
+        "run_id": "e4c50440-22b6-4a4e-978a-18f8bd189b95",
+        "status": "Failed",
+        "start_time_utc": "2026-10-09 16:35:33.059674+00:00",
+        "end_time_utc": "2026-10-09 16:36:06.885010+00:00",
+        "error_summary": "RuntimeError: Trading Agent produced no successful horizon synthesis; inspect research packages and run errors."
+      },
+      {
+        "run_id": "c43ca61d-4d69-4592-834d-8f2fd28aefd7",
+        "status": "Failed",
+        "start_time_utc": "2026-10-09 14:36:35.344285+00:00",
+        "end_time_utc": "2026-10-09 14:37:05.197429+00:00",
+        "error_summary": "RuntimeError: Trading Agent produced no successful horizon synthesis; inspect research packages and run errors."
+      },
+      {
+        "run_id": "c2a4f384-6ab8-4516-a4de-8f39eb396ec7",
+        "status": "Failed",
+        "start_time_utc": "2026-10-09 14:35:30.954093+00:00",
+        "end_time_utc": "2026-10-09 14:36:00.287024+00:00",
+        "error_summary": "RuntimeError: Trading Agent produced no successful horizon synthesis; inspect research packages and run errors."
+      },
+      {
+        "run_id": "58103e69-be3d-432c-9455-b68f4b346444",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-08 20:35:32.816949+00:00",
+        "end_time_utc": "2026-10-08 20:48:40.099857+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "c59de961-a219-41d7-9ad1-9494dd426827",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-08 18:35:30.036173+00:00",
+        "end_time_utc": "2026-10-08 18:48:38.921262+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "657a08a6-8be5-4663-bdef-4cd5c737f3ab",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-08 16:35:33.896631+00:00",
+        "end_time_utc": "2026-10-08 16:48:10.606401+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "4ba49879-7eb9-41f2-9564-45cbf8abb8b7",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-08 14:35:32.280609+00:00",
+        "end_time_utc": "2026-10-08 14:49:06.127604+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "046d272e-4dcf-49f8-a8e6-4e66ca98b53f",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-07 20:35:31.187609+00:00",
+        "end_time_utc": "2026-10-07 20:45:38.232657+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "4154f230-daa6-4cc3-8170-c68493e7cd5a",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-07 18:35:33.364348+00:00",
+        "end_time_utc": "2026-10-07 18:46:19.389164+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "f1f5cfc7-2b04-4e46-9eba-611dcb5b6bf5",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-05 18:35:30.924482+00:00",
+        "end_time_utc": "2026-10-05 18:46:42.872669+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "8804af9c-3e0b-42bb-a914-2342be4dc061",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-02 20:35:30.248560+00:00",
+        "end_time_utc": "2026-10-02 20:45:44.815626+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "7ee38899-5f46-4d19-9497-6c7be8dd8fe8",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-02 04:39:24.151685+00:00",
+        "end_time_utc": "2026-10-02 04:54:23.369443+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "1e1de84d-8490-4062-b70d-46fce68f018d",
+        "status": "Succeeded",
+        "start_time_utc": "2026-09-20 01:21:59.274583+00:00",
+        "end_time_utc": "2026-09-20 01:32:00.602666+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "15f5367b-258b-4c7f-8f29-590a0aa206b8",
+        "status": "Succeeded",
+        "start_time_utc": "2026-09-20 01:15:39.435288+00:00",
+        "end_time_utc": "2026-09-20 01:25:52.098705+00:00",
+        "error_summary": null
+      },
+      {
+        "run_id": "c32eecd2-769c-4a21-95f3-c772ab40c96d",
+        "status": "Succeeded",
+        "start_time_utc": "2026-09-20 01:06:30.773342+00:00",
+        "end_time_utc": "2026-09-20 01:16:49.654561+00:00",
+        "error_summary": null
+      }
+    ],
+    "last_successful_trading_job": [
+      {
+        "run_id": "58103e69-be3d-432c-9455-b68f4b346444",
+        "status": "Succeeded",
+        "start_time_utc": "2026-10-08 20:35:32.816949+00:00",
+        "end_time_utc": "2026-10-08 20:48:40.099857+00:00",
+        "error_summary": null
+      }
+    ]
+  },
+  "equity_platform_termination_logs": [
+    {
+      "JobName_s": "equities-intraday-preload",
+      "Log_s": "Pod - equities-intraday-preload-29859395-xghns has a failed container with name: equities-intraday-preload, exit code: 137, and reason: ProcessExited",
+      "Reason_s": "ProcessExited",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T16:45:25.5889801Z"
+    },
+    {
+      "JobName_s": "equities-intraday-preload",
+      "Log_s": "JobCleanup: Pod - equities-intraday-preload-29859395-xghns has exited with status Failed",
+      "Reason_s": "PodDeletion",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T16:45:25.5889801Z"
+    },
+    {
+      "JobName_s": "equities-intraday-preload",
+      "Log_s": "Job has reached the specified backoff limit",
+      "Reason_s": "BackoffLimitExceeded",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T16:43:17.6828661Z"
+    },
+    {
+      "JobName_s": "equities-intraday-preload",
+      "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '137' and reason 'ProcessExited'",
+      "Reason_s": "ContainerTerminated",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T16:43:15.6770801Z"
+    },
+    {
+      "JobName_s": "equities-intraday-preload",
+      "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '137' and reason 'ProcessExited'",
+      "Reason_s": "ContainerTerminated",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T16:39:08.5158671Z"
+    }
+  ],
+  "root_cause_followup": {
+    "old_new_registry_source": {
+      "trading_today": {
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+        "found": {
+          "app/services/llm.py": {
+            "sha256": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f",
+            "layer": "sha256:097ece120ad8c6565182cd9db6698bafbe4f337fe081b0c0cf2e516103e2bc55",
+            "bytes": 52040
+          },
+          "app/services/agents/research_session.py": {
+            "sha256": "bb7c69aa9c4f1d7e086fad1947abe82f1611e8fe27c364a94b135bbe9c67606f",
+            "layer": "sha256:2a9f3cb860cd51b7f77c0a39b163a84f884a7e6a602256abe375dbab9a1230be",
+            "bytes": 18526
+          },
+          "app/services/aql_zopedia_engine.py": {
+            "sha256": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+            "layer": "sha256:2a9f3cb860cd51b7f77c0a39b163a84f884a7e6a602256abe375dbab9a1230be",
+            "bytes": 28110
+          },
+          "app/services/zopedia_agent.py": {
+            "sha256": "8a7dee2a7ad445bcfdee7793cf3a41522fda5a0d864276742c4be520b37fc665",
+            "layer": "sha256:2a9f3cb860cd51b7f77c0a39b163a84f884a7e6a602256abe375dbab9a1230be",
+            "bytes": 201682
+          },
+          "app/pipeline/jobs/main.py": {
+            "sha256": "16097dc784e09b5dd9f08da3f16c2abae458ec6c3e27976d9717e27866034903",
+            "layer": "sha256:bf24212a7ca0bf8c59f8674d8f656175979e2e268670bd3a32888d1c674eeab6",
+            "bytes": 133869
+          }
+        },
+        "skipped_large_layers": [
+          446985198,
+          361942013
+        ]
+      },
+      "trading_yesterday": {
+        "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04",
+        "found": {
+          "app/services/llm.py": {
+            "sha256": "b810a346ef3001f4b4c5ca07ea07206e5187aabb24f323b948d69f8a0d6de79d",
+            "layer": "sha256:2e58382535384217d5b5601e957cb69cc5bfc0b62d06f9402d5d52aac064d108",
+            "bytes": 51397
+          },
+          "app/services/zopedia_agent.py": {
+            "sha256": "b1b8e546a23962a039db84ad95c1c642ff873253223553b6939ebe8efd6ca275",
+            "layer": "sha256:2e58382535384217d5b5601e957cb69cc5bfc0b62d06f9402d5d52aac064d108",
+            "bytes": 194821
+          },
+          "app/pipeline/jobs/main.py": {
+            "sha256": "16097dc784e09b5dd9f08da3f16c2abae458ec6c3e27976d9717e27866034903",
+            "layer": "sha256:bf24212a7ca0bf8c59f8674d8f656175979e2e268670bd3a32888d1c674eeab6",
+            "bytes": 133869
+          },
+          "app/services/agents/research_session.py": {
+            "sha256": "93fd024f220ae14e1ae3fd15f9b6b37cec645615dcab0e5b666cb5a9d0418577",
+            "layer": "sha256:123ebedeac2ebd5f964185f5404f393f9a123ce4bf5f457a93e65d221973b088",
+            "bytes": 16746
+          },
+          "app/services/aql_zopedia_engine.py": {
+            "sha256": "cf939a5f1ca0e0b90ccef1d3d9c08a85ba4ffd225cefb2e501bc3f5cf66832ef",
+            "layer": "sha256:123ebedeac2ebd5f964185f5404f393f9a123ce4bf5f457a93e65d221973b088",
+            "bytes": 24989
+          }
+        },
+        "skipped_large_layers": [
+          446985198,
+          361942013
+        ]
+      },
+      "equities_today": {
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "found": {
+          "app/services/llm.py": {
+            "sha256": "1c8a432b40ea56c15e4fac05c1dbafcdae67bf0c3f292cc0874115f4f1f1929f",
+            "layer": "sha256:fefe02e9c471902261e873f482729d3d20916efd2207003c41af293da6cbd769",
+            "bytes": 52040
+          },
+          "app/pipeline/jobs/main.py": {
+            "sha256": "5ba368e45972a81073f554c6a81efc25e4effed08b217e7732e4039dc3d68822",
+            "layer": "sha256:d2f4ce834c52342a55283343fd5c6e487633961ac06c2b9a010a0a42ce383626",
+            "bytes": 139599
+          },
+          "app/services/agents/research_session.py": {
+            "sha256": "93824d4c01779586551fab3be8a22fff2066f1df5651b18015fecb900431b1cc",
+            "layer": "sha256:ebf2d04a1f45b3789fe243504e8d927f6ada9c190f6e2d6f40beeb33a744cbf5",
+            "bytes": 25254
+          },
+          "app/services/aql_zopedia_engine.py": {
+            "sha256": "69589fd5acbd5608de1f390600b5a68d3a5f966194d70d7456ed859f1a0f02d4",
+            "layer": "sha256:ebf2d04a1f45b3789fe243504e8d927f6ada9c190f6e2d6f40beeb33a744cbf5",
+            "bytes": 28110
+          },
+          "app/services/zopedia_agent.py": {
+            "sha256": "fd2bc186307f0f12745a7d0a2cbd43194d38fd3af0d0eeefa79d1438661c7916",
+            "layer": "sha256:ebf2d04a1f45b3789fe243504e8d927f6ada9c190f6e2d6f40beeb33a744cbf5",
+            "bytes": 201842
+          }
+        },
+        "skipped_large_layers": [
+          446986883,
+          364470779
+        ]
+      },
+      "equities_yesterday": {
+        "image": "snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3",
+        "found": {
+          "app/services/llm.py": {
+            "sha256": "b810a346ef3001f4b4c5ca07ea07206e5187aabb24f323b948d69f8a0d6de79d",
+            "layer": "sha256:86273fe3edeffaa649ebdfc70ae3963e21f47baa988b8c5e8ebe427b78b9b4da",
+            "bytes": 51397
+          },
+          "app/services/zopedia_agent.py": {
+            "sha256": "72acdef7c304619d29ac5c33366c1d6c4f83ccfb7db23c824ec91f78536fba5d",
+            "layer": "sha256:86273fe3edeffaa649ebdfc70ae3963e21f47baa988b8c5e8ebe427b78b9b4da",
+            "bytes": 194769
+          },
+          "app/pipeline/jobs/main.py": {
+            "sha256": "4e5c5ecf7e133903b38ecea885471e2544368fd7ed0ed96a191f6c3a82fb96b7",
+            "layer": "sha256:04c1acfa56ab8c0f31cfc5f87d687de03500e69f70442b2a6a5cf08ea8fb5e28",
+            "bytes": 138478
+          },
+          "app/services/agents/research_session.py": {
+            "sha256": "ced675a34280e0c69d92cdb38d4d4808354174770b2c65c1b4d9e8547c1d6258",
+            "layer": "sha256:8d1b7ec9bb5b0a73d922baa80b2d87cb34195f81c50cd80368abf7f143e5d4e0",
+            "bytes": 23484
+          },
+          "app/services/aql_zopedia_engine.py": {
+            "sha256": "07a6287d995e6857b55dd17dcb5721d0769f56a02200f45d3842c3e4a906d4a7",
+            "layer": "sha256:8d1b7ec9bb5b0a73d922baa80b2d87cb34195f81c50cd80368abf7f143e5d4e0",
+            "bytes": 25043
+          }
+        },
+        "skipped_large_layers": [
+          446986883,
+          364470779
+        ]
+      }
+    },
+    "platform_timeline": [
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3\" in 14.98s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T13:35:17.6731531Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T13:40:47.5933834Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04\" in 15.16s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T14:35:19.6181913Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Container 'trading-agent-build' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T14:49:07.4434518Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3\" in 13.09s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T16:35:16.5476381Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04\" in 15.58s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T16:35:20.5168307Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T16:42:50.5456439Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Container 'trading-agent-build' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T16:48:11.4398175Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04\" in 13.51s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T18:35:17.6446866Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3\" in 15.41s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T18:35:18.5812028Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T18:41:53.6444094Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Container 'trading-agent-build' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T18:48:39.5579977Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/harness-dev@sha256:c3d0f7e4e0005d701919d8424bab210a51da5d215f24d490388565f8052671f3\" in 13.33s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T20:35:17.7232255Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/harness-dev@sha256:5503f8d56391d5030fc0e039b8a9478dee37bf348f8f0e2fc43004146b2a3b04\" in 15.80s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T20:35:19.5635927Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T20:39:39.5427654Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Container 'trading-agent-build' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-08T20:48:41.518204Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7\" in 16.37s. Image size: 879755264 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T13:35:29.7181269Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '0' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T13:41:43.199994Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede\" in 15.00s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T14:35:18.6124868Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Container 'trading-agent-build' was terminated with exit code '1' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T14:36:01.6256344Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede\" in 14.41s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T14:36:22.5460725Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Container 'trading-agent-build' was terminated with exit code '1' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T14:37:06.5280541Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Job has reached the specified backoff limit",
+        "Reason_s": "BackoffLimitExceeded",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T14:37:08.6201693Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7\" in 14.40s. Image size: 879755264 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:35:18.4938793Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede\" in 16.03s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:35:19.7353242Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Container 'trading-agent-build' was terminated with exit code '1' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:36:07.4637889Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede\" in 13.25s. Image size: 878706688 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:36:25.5316134Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Container 'trading-agent-build' was terminated with exit code '1' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:37:10.5145391Z"
+      },
+      {
+        "JobName_s": "trading-agent-build",
+        "Log_s": "Job has reached the specified backoff limit",
+        "Reason_s": "BackoffLimitExceeded",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:37:14.573076Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '137' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:39:08.5158671Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Successfully pulled image \"snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7\" in 14.99s. Image size: 879755264 bytes.",
+        "Reason_s": "PulledImage",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:39:27.6230687Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Container 'equities-intraday-preload' was terminated with exit code '137' and reason 'ProcessExited'",
+        "Reason_s": "ContainerTerminated",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:43:15.6770801Z"
+      },
+      {
+        "JobName_s": "equities-intraday-preload",
+        "Log_s": "Job has reached the specified backoff limit",
+        "Reason_s": "BackoffLimitExceeded",
+        "TableName": "PrimaryResult",
+        "TimeGenerated": "2026-10-09T16:43:17.6828661Z"
+      }
+    ],
+    "deployed_session_diff": "--- yesterday/deployed/research_session.py\n\n+++ today/deployed/research_session.py\n\n@@ -25,6 +25,44 @@\n\n     \"token\",\n     \"user_prompt\",\n }\n+\n+\n+@dataclass(frozen=True)\n+class ResearchBudget:\n+    \"\"\"One run clock, with time reserved for returning and reviewing evidence.\"\"\"\n+\n+    started: float\n+    deadline: float | None\n+    research_deadline: float | None\n+    synthesis_deadline: float | None\n+\n+    @classmethod\n+    def start(cls, timeout_seconds: float | None, step_seconds: float, *, research_required: bool = True) -> \"ResearchBudget\":\n+        started = time.monotonic()\n+        if timeout_seconds is None:\n+            return cls(started, None, None, None)\n+        total = max(float(timeout_seconds), 0.0)\n+        if not research_required:\n+            return cls(started, started + total, started, started + total * 0.65)\n+        completion = min(2 * float(step_seconds), total / 2)\n+        end = started + total\n+        return cls(started, end, end - completion, end - completion / 2)\n+\n+    def remaining(self, phase: str = \"research\", maximum: float | None = None) -> float:\n+        end = self.research_deadline if phase == \"research\" else self.synthesis_deadline if phase == \"synthesis\" else self.deadline\n+        remaining = max(end - time.monotonic(), 0.0) if end is not None else float(\"inf\")\n+        return min(remaining, float(maximum)) if maximum is not None else remaining\n+\n+    def step_deadline(self, phase: str, maximum: float) -> float:\n+        return time.monotonic() + self.remaining(phase, maximum)\n+\n+    def metadata(self) -> dict[str, Any]:\n+        return {\n+            \"timeout_seconds\": None if self.deadline is None else self.deadline - self.started,\n+            \"elapsed_seconds\": round(time.monotonic() - self.started, 3),\n+            \"research_budget_exhausted\": self.remaining(\"research\") <= 0,\n+            \"run_budget_exhausted\": self.remaining(\"completion\") <= 0,\n+        }\n \n \n def _clean(value: object) -> str:\n@@ -499,6 +537,7 @@\n\n \n \n __all__ = [\n+    \"ResearchBudget\",\n     \"NullResearchSessionStore\",\n     \"PostgresResearchSessionStore\",\n     \"ResearchSession\","
+  }
+}

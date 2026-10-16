@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from services.database import open_database_session
+
 from datetime import datetime, timezone
 import json
 import re
@@ -463,7 +465,7 @@ def _db_connection() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
+        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 
@@ -939,17 +941,28 @@ def classify_listings_with_llm(
                 }
             )
         try:
-            response = llm_client.generate_json(
-                system_prompt=system_prompt,
-                user_prompt=(
-                    "Classify these listings into sector, industry, business_role_tags, macro_role_tags, and optional macro roles.\n"
-                    f"Allowed sectors: {json.dumps(allowed_sectors)}\n"
-                    "Return concise reusable tags, not company-specific prose.\n"
-                    f"{json.dumps(chunk, ensure_ascii=False, default=str, indent=2)}"
-                ),
+            from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+            engine_operation = run_aql_zopedia_structured_agent(
+                query=f"Classify these listings into sector, industry, business_role_tags, macro_role_tags, and optional macro roles.\nAllowed sectors: {json.dumps(allowed_sectors)}\nReturn concise reusable tags, not company-specific prose.\n{json.dumps(chunk, ensure_ascii=False, default=str, indent=2)}",
+                instructions=system_prompt,
                 schema_name="entity_taxonomy_batch",
                 schema=schema,
+                task="entity_taxonomy_batch", stage='relevance',
+                surface="services.entity_taxonomy",
+                llm_client=llm_client,
+                max_tool_calls=0,
+                persist_findings=False,
+                write_policy="none",
+                call_type="formatter_over_aql",
+                operation_metadata=None,
+                run_timeout_seconds=None,
             )
+            if engine_operation.get("status") != "completed":
+                raise RuntimeError(
+                    engine_operation.get("error") or "Shared AI operation failed"
+                )
+            response = engine_operation["payload"]
         except Exception as exc:
             print(
                 f"[error] taxonomy llm batch_failed index={index}/{total_chunks} "

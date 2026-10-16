@@ -6,6 +6,15 @@ from services import llm
 from services import secrets
 
 
+@pytest.fixture(autouse=True)
+def _isolate_provider_accounting(monkeypatch):
+    from services import llm_execution, pipeline_store
+    llm_execution._ACCOUNTS.clear()
+    monkeypatch.setattr(llm_execution, "_read_state", lambda *args: None)
+    monkeypatch.setattr(llm_execution, "_write_state", lambda *args: None)
+    monkeypatch.setattr(pipeline_store, "record_provider_attempt", lambda event: True)
+
+
 class _FakeResponse:
     status_code = 200
     text = ""
@@ -109,7 +118,7 @@ def test_deepseek_client_uses_json_object_and_captures_reasoning():
     assert session.url == "https://api.deepseek.com/chat/completions"
     assert session.payload["response_format"] == {"type": "json_object"}
     assert "temperature" not in session.payload
-    assert "reasoning_effort" not in session.payload
+    assert session.payload["reasoning_effort"] == "high"
     assert result["answer_markdown"] == "Done"
     assert result["__reasoning_content"] == "Checked the evidence before answering."
 
@@ -207,7 +216,7 @@ def test_load_llm_client_supports_global_deepseek(monkeypatch):
 
     assert isinstance(client, llm.DeepSeekChatJSONClient)
     assert client.config.model == "deepseek-reasoner"
-    assert client.config.reasoning_effort == ""
+    assert client.config.reasoning_effort == "high"
 
 
 def test_load_llm_client_supports_unauthenticated_local_runtime(monkeypatch):

@@ -1,0 +1,1356 @@
+{
+  "captured_at_utc": "2026-10-09T20:14:37.263091+00:00",
+  "status": "diagnosis_complete_remaining_faults_unrepaired",
+  "production_mutations_in_followup": false,
+  "source_regression_commit": "6856a1de02cb28a0af9f0ae5d347a6275ac6aa11",
+  "pipeline_idle_in_transaction_timeout_ms": 60000,
+  "regular_local_connection_timeouts": {
+    "idle_in_transaction_session_timeout": "0",
+    "statement_timeout": "0",
+    "idle_session_timeout": "0"
+  },
+  "latest_executions": {
+    "universe-builder": [
+      {
+        "end": "2026-10-09T13:21:02+00:00",
+        "name": "universe-builder-29859200",
+        "start": "2026-10-09T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T13:20:56+00:00",
+        "name": "universe-builder-29857760",
+        "start": "2026-10-08T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T13:20:53+00:00",
+        "name": "universe-builder-29856320",
+        "start": "2026-10-07T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T13:20:52+00:00",
+        "name": "universe-builder-29854880",
+        "start": "2026-10-06T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-05T13:20:58+00:00",
+        "name": "universe-builder-29853440",
+        "start": "2026-10-05T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-02T13:20:57+00:00",
+        "name": "universe-builder-29849120",
+        "start": "2026-10-02T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-01T13:20:59+00:00",
+        "name": "universe-builder-29847680",
+        "start": "2026-10-01T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-30T13:20:54+00:00",
+        "name": "universe-builder-29846240",
+        "start": "2026-09-30T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-29T13:20:51+00:00",
+        "name": "universe-builder-29844800",
+        "start": "2026-09-29T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-28T13:20:53+00:00",
+        "name": "universe-builder-29843360",
+        "start": "2026-09-28T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-25T13:20:50+00:00",
+        "name": "universe-builder-29839040",
+        "start": "2026-09-25T13:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-24T13:20:53+00:00",
+        "name": "universe-builder-29837600",
+        "start": "2026-09-24T13:20:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "equities-intraday-preload": [
+      {
+        "end": "2026-10-09T18:40:57+00:00",
+        "name": "equities-intraday-preload-29859515",
+        "start": "2026-10-09T18:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T18:03:16+00:00",
+        "name": "equities-intraday-preload-fz1ys8m",
+        "start": "2026-10-09T17:57:34+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": null,
+        "name": "equities-intraday-preload-29859395",
+        "start": "2026-10-09T16:35:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": "2026-10-09T13:41:45+00:00",
+        "name": "equities-intraday-preload-29859215",
+        "start": "2026-10-09T13:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T20:39:43+00:00",
+        "name": "equities-intraday-preload-29858195",
+        "start": "2026-10-08T20:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T18:41:54+00:00",
+        "name": "equities-intraday-preload-29858075",
+        "start": "2026-10-08T18:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T16:42:56+00:00",
+        "name": "equities-intraday-preload-29857955",
+        "start": "2026-10-08T16:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T13:40:49+00:00",
+        "name": "equities-intraday-preload-29857775",
+        "start": "2026-10-08T13:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T20:42:22+00:00",
+        "name": "equities-intraday-preload-29856755",
+        "start": "2026-10-07T20:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": null,
+        "name": "equities-intraday-preload-29856635",
+        "start": "2026-10-07T18:35:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": "2026-10-07T16:40:46+00:00",
+        "name": "equities-intraday-preload-29856515",
+        "start": "2026-10-07T16:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T13:40:44+00:00",
+        "name": "equities-intraday-preload-29856335",
+        "start": "2026-10-07T13:35:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "macro-fred-daily": [
+      {
+        "end": "2026-10-09T11:03:28+00:00",
+        "name": "macro-fred-daily-29859060",
+        "start": "2026-10-09T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T11:09:33+00:00",
+        "name": "macro-fred-daily-29857620",
+        "start": "2026-10-08T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T11:08:07+00:00",
+        "name": "macro-fred-daily-29856180",
+        "start": "2026-10-07T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T11:07:24+00:00",
+        "name": "macro-fred-daily-29854740",
+        "start": "2026-10-06T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-05T11:06:08+00:00",
+        "name": "macro-fred-daily-29853300",
+        "start": "2026-10-05T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-04T11:06:48+00:00",
+        "name": "macro-fred-daily-29851860",
+        "start": "2026-10-04T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-03T11:08:18+00:00",
+        "name": "macro-fred-daily-29850420",
+        "start": "2026-10-03T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-02T11:07:38+00:00",
+        "name": "macro-fred-daily-29848980",
+        "start": "2026-10-02T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-02T04:38:00+00:00",
+        "name": "macro-fred-daily-79t3j8i",
+        "start": "2026-10-02T04:32:19+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-01T11:07:38+00:00",
+        "name": "macro-fred-daily-29847540",
+        "start": "2026-10-01T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-30T11:12:38+00:00",
+        "name": "macro-fred-daily-29846100",
+        "start": "2026-09-30T11:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-29T11:12:05+00:00",
+        "name": "macro-fred-daily-29844660",
+        "start": "2026-09-29T11:00:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "commodities-regime": [
+      {
+        "end": "2026-10-09T18:10:45+00:00",
+        "name": "commodities-regime-29859490",
+        "start": "2026-10-09T18:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T14:10:48+00:00",
+        "name": "commodities-regime-29859250",
+        "start": "2026-10-09T14:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T22:10:51+00:00",
+        "name": "commodities-regime-29858290",
+        "start": "2026-10-08T22:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T18:10:53+00:00",
+        "name": "commodities-regime-29858050",
+        "start": "2026-10-08T18:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T14:10:46+00:00",
+        "name": "commodities-regime-29857810",
+        "start": "2026-10-08T14:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T22:10:41+00:00",
+        "name": "commodities-regime-29856850",
+        "start": "2026-10-07T22:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T18:10:42+00:00",
+        "name": "commodities-regime-29856610",
+        "start": "2026-10-07T18:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T14:11:11+00:00",
+        "name": "commodities-regime-29856370",
+        "start": "2026-10-07T14:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T22:10:41+00:00",
+        "name": "commodities-regime-29855410",
+        "start": "2026-10-06T22:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T18:11:16+00:00",
+        "name": "commodities-regime-29855170",
+        "start": "2026-10-06T18:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T14:11:19+00:00",
+        "name": "commodities-regime-29854930",
+        "start": "2026-10-06T14:10:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-05T22:10:45+00:00",
+        "name": "commodities-regime-29853970",
+        "start": "2026-10-05T22:10:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "options-liquid-universe": [
+      {
+        "end": "2026-10-09T14:48:41+00:00",
+        "name": "options-liquid-universe-29859285",
+        "start": "2026-10-09T14:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T20:48:24+00:00",
+        "name": "options-liquid-universe-29858205",
+        "start": "2026-10-08T20:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T14:48:25+00:00",
+        "name": "options-liquid-universe-29857845",
+        "start": "2026-10-08T14:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T20:48:20+00:00",
+        "name": "options-liquid-universe-29856765",
+        "start": "2026-10-07T20:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T14:48:58+00:00",
+        "name": "options-liquid-universe-29856405",
+        "start": "2026-10-07T14:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T20:48:10+00:00",
+        "name": "options-liquid-universe-29855325",
+        "start": "2026-10-06T20:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T14:48:13+00:00",
+        "name": "options-liquid-universe-29854965",
+        "start": "2026-10-06T14:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-05T20:48:17+00:00",
+        "name": "options-liquid-universe-29853885",
+        "start": "2026-10-05T20:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-05T14:48:20+00:00",
+        "name": "options-liquid-universe-29853525",
+        "start": "2026-10-05T14:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-02T20:48:16+00:00",
+        "name": "options-liquid-universe-29849565",
+        "start": "2026-10-02T20:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-02T14:48:20+00:00",
+        "name": "options-liquid-universe-29849205",
+        "start": "2026-10-02T14:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-01T20:48:40+00:00",
+        "name": "options-liquid-universe-29848125",
+        "start": "2026-10-01T20:45:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "news-ingest-and-features": [
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29859605",
+        "start": "2026-10-09T20:05:00+00:00",
+        "status": "Running"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29859485",
+        "start": "2026-10-09T18:05:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": "2026-10-09T16:37:35+00:00",
+        "name": "news-ingest-and-features-29859365",
+        "start": "2026-10-09T16:05:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T14:41:38+00:00",
+        "name": "news-ingest-and-features-29859245",
+        "start": "2026-10-09T14:05:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29858165",
+        "start": "2026-10-08T20:05:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29858045",
+        "start": "2026-10-08T18:05:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29857925",
+        "start": "2026-10-08T16:05:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29857805",
+        "start": "2026-10-08T14:05:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29856725",
+        "start": "2026-10-07T20:05:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29856605",
+        "start": "2026-10-07T18:05:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29856485",
+        "start": "2026-10-07T16:05:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "news-ingest-and-features-29856365",
+        "start": "2026-10-07T14:05:00+00:00",
+        "status": "Failed"
+      }
+    ],
+    "entity-taxonomy-refresh": [
+      {
+        "end": "2026-10-01T09:08:47+00:00",
+        "name": "entity-taxonomy-refresh-29847420",
+        "start": "2026-10-01T09:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": null,
+        "name": "entity-taxonomy-refresh-970awdq",
+        "start": "2026-03-29T04:37:12+00:00",
+        "status": "Stopped"
+      },
+      {
+        "end": null,
+        "name": "entity-taxonomy-refresh-ae3s3yp",
+        "start": "2026-03-28T22:52:06+00:00",
+        "status": "Stopped"
+      }
+    ],
+    "attention-home-build": [
+      {
+        "end": "2026-10-09T19:29:21+00:00",
+        "name": "attention-home-build-29859530",
+        "start": "2026-10-09T18:50:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T17:29:11+00:00",
+        "name": "attention-home-build-29859410",
+        "start": "2026-10-09T16:50:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T15:26:29+00:00",
+        "name": "attention-home-build-29859290",
+        "start": "2026-10-09T14:50:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T02:07:45+00:00",
+        "name": "attention-home-build-bcw7x2s",
+        "start": "2026-10-09T01:58:22+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": null,
+        "name": "attention-home-build-1rmaf4b",
+        "start": "2026-10-09T01:24:57+00:00",
+        "status": "Stopped"
+      },
+      {
+        "end": null,
+        "name": "attention-home-build-2rkjp18",
+        "start": "2026-10-09T01:19:04+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": "2026-10-08T21:00:37+00:00",
+        "name": "attention-home-build-29858180",
+        "start": "2026-10-08T20:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T18:54:04+00:00",
+        "name": "attention-home-build-29858060",
+        "start": "2026-10-08T18:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T16:51:13+00:00",
+        "name": "attention-home-build-29857940",
+        "start": "2026-10-08T16:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T14:52:47+00:00",
+        "name": "attention-home-build-29857820",
+        "start": "2026-10-08T14:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T21:40:50+00:00",
+        "name": "attention-home-build-29856740",
+        "start": "2026-10-07T20:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T19:10:37+00:00",
+        "name": "attention-home-build-29856620",
+        "start": "2026-10-07T18:20:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "fundamentals-quarterly-refresh": [
+      {
+        "end": "2026-10-09T12:09:52+00:00",
+        "name": "fundamentals-quarterly-refresh-29859120",
+        "start": "2026-10-09T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T12:08:17+00:00",
+        "name": "fundamentals-quarterly-refresh-29857680",
+        "start": "2026-10-08T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T12:08:26+00:00",
+        "name": "fundamentals-quarterly-refresh-29856240",
+        "start": "2026-10-07T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T12:07:51+00:00",
+        "name": "fundamentals-quarterly-refresh-29854800",
+        "start": "2026-10-06T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-05T12:08:38+00:00",
+        "name": "fundamentals-quarterly-refresh-29853360",
+        "start": "2026-10-05T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-02T12:08:41+00:00",
+        "name": "fundamentals-quarterly-refresh-29849040",
+        "start": "2026-10-02T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-01T12:08:10+00:00",
+        "name": "fundamentals-quarterly-refresh-29847600",
+        "start": "2026-10-01T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-30T12:07:59+00:00",
+        "name": "fundamentals-quarterly-refresh-29846160",
+        "start": "2026-09-30T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-29T12:08:21+00:00",
+        "name": "fundamentals-quarterly-refresh-29844720",
+        "start": "2026-09-29T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-28T12:08:24+00:00",
+        "name": "fundamentals-quarterly-refresh-29843280",
+        "start": "2026-09-28T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-25T12:08:22+00:00",
+        "name": "fundamentals-quarterly-refresh-29838960",
+        "start": "2026-09-25T12:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-09-24T12:08:54+00:00",
+        "name": "fundamentals-quarterly-refresh-29837520",
+        "start": "2026-09-24T12:00:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "company-baseline-prefetch": [
+      {
+        "end": "2026-10-01T10:16:52+00:00",
+        "name": "company-baseline-prefetch-29847495",
+        "start": "2026-10-01T10:15:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "trading-agent-build": [
+      {
+        "end": "2026-10-09T18:50:09+00:00",
+        "name": "trading-agent-build-29859515",
+        "start": "2026-10-09T18:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T18:11:29+00:00",
+        "name": "trading-agent-build-vxouj0s",
+        "start": "2026-10-09T17:56:24+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": null,
+        "name": "trading-agent-build-29859395",
+        "start": "2026-10-09T16:35:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "trading-agent-build-29859275",
+        "start": "2026-10-09T14:35:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": "2026-10-08T20:48:46+00:00",
+        "name": "trading-agent-build-29858195",
+        "start": "2026-10-08T20:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T18:48:46+00:00",
+        "name": "trading-agent-build-29858075",
+        "start": "2026-10-08T18:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T16:48:16+00:00",
+        "name": "trading-agent-build-29857955",
+        "start": "2026-10-08T16:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-08T14:49:08+00:00",
+        "name": "trading-agent-build-29857835",
+        "start": "2026-10-08T14:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T20:45:44+00:00",
+        "name": "trading-agent-build-29856755",
+        "start": "2026-10-07T20:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T18:46:22+00:00",
+        "name": "trading-agent-build-29856635",
+        "start": "2026-10-07T18:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T16:48:01+00:00",
+        "name": "trading-agent-build-29856515",
+        "start": "2026-10-07T16:35:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-07T14:50:08+00:00",
+        "name": "trading-agent-build-29856395",
+        "start": "2026-10-07T14:35:00+00:00",
+        "status": "Succeeded"
+      }
+    ],
+    "zopedia-maintenance": [
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29859530",
+        "start": "2026-10-09T18:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29859410",
+        "start": "2026-10-09T16:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29859290",
+        "start": "2026-10-09T14:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29858210",
+        "start": "2026-10-08T20:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29858090",
+        "start": "2026-10-08T18:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29857970",
+        "start": "2026-10-08T16:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29857850",
+        "start": "2026-10-08T14:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29856770",
+        "start": "2026-10-07T20:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29856650",
+        "start": "2026-10-07T18:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29856530",
+        "start": "2026-10-07T16:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29856410",
+        "start": "2026-10-07T14:50:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-maintenance-29855330",
+        "start": "2026-10-06T20:50:00+00:00",
+        "status": "Failed"
+      }
+    ],
+    "zopedia-learning": [
+      {
+        "end": null,
+        "name": "zopedia-learning-29859560",
+        "start": "2026-10-09T19:20:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": "2026-10-09T15:22:14+00:00",
+        "name": "zopedia-learning-29859320",
+        "start": "2026-10-09T15:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": null,
+        "name": "zopedia-learning-29858120",
+        "start": "2026-10-08T19:20:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-learning-29857880",
+        "start": "2026-10-08T15:20:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": null,
+        "name": "zopedia-learning-29856680",
+        "start": "2026-10-07T19:20:00+00:00",
+        "status": "Failed"
+      },
+      {
+        "end": "2026-10-07T15:27:56+00:00",
+        "name": "zopedia-learning-29856440",
+        "start": "2026-10-07T15:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T19:28:59+00:00",
+        "name": "zopedia-learning-29855240",
+        "start": "2026-10-06T19:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-06T15:27:02+00:00",
+        "name": "zopedia-learning-29855000",
+        "start": "2026-10-06T15:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-05T19:27:02+00:00",
+        "name": "zopedia-learning-29853800",
+        "start": "2026-10-05T19:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-05T15:27:11+00:00",
+        "name": "zopedia-learning-29853560",
+        "start": "2026-10-05T15:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-02T19:25:14+00:00",
+        "name": "zopedia-learning-29849480",
+        "start": "2026-10-02T19:20:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": null,
+        "name": "zopedia-learning-29849240",
+        "start": "2026-10-02T15:20:00+00:00",
+        "status": "Failed"
+      }
+    ],
+    "system-health": [
+      {
+        "end": "2026-10-09T20:00:45+00:00",
+        "name": "system-health-29859600",
+        "start": "2026-10-09T20:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T19:45:42+00:00",
+        "name": "system-health-29859585",
+        "start": "2026-10-09T19:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T19:30:36+00:00",
+        "name": "system-health-29859570",
+        "start": "2026-10-09T19:30:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T19:15:39+00:00",
+        "name": "system-health-29859555",
+        "start": "2026-10-09T19:15:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T19:00:48+00:00",
+        "name": "system-health-29859540",
+        "start": "2026-10-09T19:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T18:45:39+00:00",
+        "name": "system-health-29859525",
+        "start": "2026-10-09T18:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T18:30:51+00:00",
+        "name": "system-health-29859510",
+        "start": "2026-10-09T18:30:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T18:15:49+00:00",
+        "name": "system-health-29859495",
+        "start": "2026-10-09T18:15:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T18:00:50+00:00",
+        "name": "system-health-29859480",
+        "start": "2026-10-09T18:00:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T17:45:30+00:00",
+        "name": "system-health-29859465",
+        "start": "2026-10-09T17:45:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T17:30:36+00:00",
+        "name": "system-health-29859450",
+        "start": "2026-10-09T17:30:00+00:00",
+        "status": "Succeeded"
+      },
+      {
+        "end": "2026-10-09T17:15:35+00:00",
+        "name": "system-health-29859435",
+        "start": "2026-10-09T17:15:00+00:00",
+        "status": "Succeeded"
+      }
+    ]
+  },
+  "open_incidents": [
+    {
+      "incident_key": "pipeline-job-failed-news-ingest-and-features",
+      "severity": "critical",
+      "title": "Pipeline job news-ingest-and-features failed",
+      "details": "Azure execution news-ingest-and-features-29859485 ended with status Failed; the process did not finalize its database run.",
+      "status": "open",
+      "opened_at_utc": "2026-10-09 18:30:41.294062+00:00",
+      "last_detected_at_utc": "2026-10-09 20:00:37.463805+00:00",
+      "resolved_at_utc": null,
+      "opened_notified_at_utc": "2026-10-09 18:30:41.294062+00:00",
+      "recovery_notified_at_utc": null
+    },
+    {
+      "incident_key": "pipeline-job-failed-zopedia-learning",
+      "severity": "critical",
+      "title": "Pipeline job zopedia-learning failed",
+      "details": "Azure execution zopedia-learning-29859560 ended with status Failed; the process did not finalize its database run.",
+      "status": "open",
+      "opened_at_utc": "2026-10-09 19:45:29.401202+00:00",
+      "last_detected_at_utc": "2026-10-09 20:00:37.463805+00:00",
+      "resolved_at_utc": null,
+      "opened_notified_at_utc": "2026-10-09 19:45:29.401202+00:00",
+      "recovery_notified_at_utc": null
+    },
+    {
+      "incident_key": "pipeline-job-failed-zopedia-maintenance",
+      "severity": "critical",
+      "title": "Pipeline job zopedia-maintenance failed",
+      "details": "Azure execution zopedia-maintenance-29859530 ended with status Failed; the process did not finalize its database run.",
+      "status": "open",
+      "opened_at_utc": "2026-10-09 19:15:28.875580+00:00",
+      "last_detected_at_utc": "2026-10-09 20:00:37.463805+00:00",
+      "resolved_at_utc": null,
+      "opened_notified_at_utc": "2026-10-09 19:15:28.875580+00:00",
+      "recovery_notified_at_utc": null
+    }
+  ],
+  "resolved_monitor_incident": [
+    {
+      "incident_key": "job-execution-monitor-unavailable",
+      "severity": "critical",
+      "title": "Platform job monitoring failed",
+      "details": "RuntimeError: Azure execution lookup for system-health returned HTTP 500.",
+      "status": "resolved",
+      "opened_at_utc": "2026-10-09 19:00:36.324278+00:00",
+      "last_detected_at_utc": "2026-10-09 19:15:28.875580+00:00",
+      "resolved_at_utc": "2026-10-09 19:15:28.875580+00:00",
+      "opened_notified_at_utc": "2026-10-09 19:00:36.324278+00:00",
+      "recovery_notified_at_utc": "2026-10-09 19:15:28.875580+00:00"
+    }
+  ],
+  "last_database_success": [
+    {
+      "job_name": "zopedia-maintenance",
+      "max": "2026-10-06 18:51:09.684259+00:00"
+    },
+    {
+      "job_name": "zopedia-learning",
+      "max": "2026-10-09 15:20:34.160942+00:00"
+    },
+    {
+      "job_name": "news-ingest-and-features",
+      "max": "2026-10-09 16:05:34.167399+00:00"
+    }
+  ],
+  "exact_platform_terminations": [
+    {
+      "Log_s": "Container 'news-ingest-and-features' was terminated with exit code '137' and reason 'ProcessExited'",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "news-ingest-and-features-29859485-qffj8",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T18:13:42.5844563Z"
+    },
+    {
+      "Log_s": "Container 'news-ingest-and-features' was terminated with exit code '137' and reason 'ProcessExited'",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "news-ingest-and-features-29859485-kkg2l",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T18:30:24.509302Z"
+    },
+    {
+      "Log_s": "Container 'zopedia-maintenance' was terminated with exit code '1' and reason 'ProcessExited'",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "zopedia-maintenance-29859530-rfxj8",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T18:58:00.5033934Z"
+    },
+    {
+      "Log_s": "Container 'zopedia-maintenance' was terminated with exit code '1' and reason 'ProcessExited'",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "zopedia-maintenance-29859530-zxmf8",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:06:22.721159Z"
+    },
+    {
+      "Log_s": "Container 'zopedia-learning' was terminated with exit code '1' and reason 'ProcessExited'",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "zopedia-learning-29859560-vsfwf",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:27:21.4761142Z"
+    },
+    {
+      "Log_s": "Container 'zopedia-learning' was terminated with exit code '1' and reason 'ProcessExited'",
+      "Reason_s": "ContainerTerminated",
+      "ReplicaName_s": "zopedia-learning-29859560-46xrv",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:34:41.5104293Z"
+    }
+  ],
+  "database_errors": [
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29859530-rfxj8",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T18:58:00.9388749Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29859530-rfxj8",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T18:58:00.9388749Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29859530-zxmf8",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:06:21.7688073Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29859530-zxmf8",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:06:21.7688073Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29859560-vsfwf",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:27:21.1054291Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29859560-vsfwf",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:27:21.1054291Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29859560-46xrv",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:34:41.3903521Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29859560-46xrv",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-09T19:34:41.3903521Z"
+    }
+  ],
+  "yesterday_database_errors": [
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29857850-8sbfm",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T14:56:33.5370372Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29857850-8sbfm",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T14:56:33.5370372Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29857850-vw6lc",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T15:03:08.3006164Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29857850-vw6lc",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T15:03:08.3006164Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29857880-dflq4",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T15:25:46.1927316Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29857880-dflq4",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T15:25:46.1927316Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29857880-67t2f",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T15:31:12.0782917Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29857880-67t2f",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T15:31:12.0782917Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29857970-72t6x",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T16:57:13.7776642Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29857970-72t6x",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T16:57:13.7776642Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29857970-t8d8v",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T17:04:16.6570078Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29857970-t8d8v",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T17:04:16.6570078Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29858090-8x7xf",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T18:57:19.8792142Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29858090-8x7xf",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T18:57:19.8792142Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29858090-tqhzn",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T19:04:44.3144356Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29858090-tqhzn",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T19:04:44.3144356Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29858120-7xckg",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T19:27:04.473707Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29858120-7xckg",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T19:27:04.473707Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29858120-nd7lh",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T19:33:35.5027233Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-learning-29858120-nd7lh",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T19:33:35.5027233Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29858210-pzll8",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T20:57:37.5732733Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29858210-pzll8",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T20:57:37.5732733Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29858210-l9ckb",
+      "Log_s": "psycopg.errors.IdleInTransactionSessionTimeout: terminating connection due to idle-in-transaction timeout",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T21:05:29.7278409Z"
+    },
+    {
+      "ContainerGroupName_s": "zopedia-maintenance-29858210-l9ckb",
+      "Log_s": "[warn] failed to finalize postgres run status: the connection is closed",
+      "TableName": "PrimaryResult",
+      "TimeGenerated": "2026-10-08T21:05:29.7278409Z"
+    }
+  ],
+  "news_memory": {
+    "allocation_bytes": 2147483648,
+    "metric": "UsageBytes",
+    "aggregation": "Maximum",
+    "interval": "PT1M",
+    "peak": {
+      "maximum": 2261024768.0,
+      "timeStamp": "2026-10-09T18:30:00Z"
+    },
+    "points_near_kills": [
+      {
+        "maximum": 2257809408.0,
+        "timeStamp": "2026-10-09T18:14:00Z"
+      },
+      {
+        "maximum": 2260844544.0,
+        "timeStamp": "2026-10-09T18:21:00Z"
+      },
+      {
+        "maximum": 2259488768.0,
+        "timeStamp": "2026-10-09T18:22:00Z"
+      },
+      {
+        "maximum": 2208346112.0,
+        "timeStamp": "2026-10-09T18:29:00Z"
+      },
+      {
+        "maximum": 2261024768.0,
+        "timeStamp": "2026-10-09T18:30:00Z"
+      },
+      {
+        "maximum": 2260897792.0,
+        "timeStamp": "2026-10-09T18:31:00Z"
+      }
+    ],
+    "assessment": "strongly supports memory exhaustion; no explicit kernel OOM record; per-component allocation unprofiled"
+  },
+  "product_state": {
+    "attention_research_health": {
+      "dataset_version_id": "attention_research_health__20261009T185038Z__2500f952",
+      "asof_time_utc": "2026-10-09 18:50:38.372519+00:00",
+      "ingested_at_utc": "2026-10-09 19:20:19.980783+00:00",
+      "rows": [
+        {
+          "run_id": "2500f952-4f84-4a28-bfe5-eaccc3c91d06",
+          "asof_time_utc": "2026-10-09 18:50:38.372519+00:00",
+          "status": "degraded",
+          "summary": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
+          "stage_statuses_json": "{\"source_events\": \"completed\", \"ticker_enrichment\": \"completed\", \"ticker_answer_review\": \"completed\", \"market_summary\": \"completed\", \"group_synthesis\": \"consolidated_in_public_editor\", \"public_editor\": \"completed\", \"public_answer_review\": \"completed\", \"market_inputs\": \"partial\"}",
+          "failed_tickers_json": "[]",
+          "errors_json": "[]"
+        }
+      ]
+    },
+    "trading_agent_runs": {
+      "dataset_version_id": "trading_agent_runs__20261009T183528Z__1b376422",
+      "asof_time_utc": "2026-10-09 18:35:28.805776+00:00",
+      "ingested_at_utc": "2026-10-09 18:50:00.735847+00:00",
+      "rows": [
+        {
+          "run_id": "1b376422-a81e-4e1e-86c3-581e4d890283",
+          "horizon_key": "1w",
+          "status": "ok",
+          "candidate_count": 3,
+          "error": ""
+        },
+        {
+          "run_id": "1b376422-a81e-4e1e-86c3-581e4d890283",
+          "horizon_key": "1m",
+          "status": "ok",
+          "candidate_count": 4,
+          "error": ""
+        },
+        {
+          "run_id": "1b376422-a81e-4e1e-86c3-581e4d890283",
+          "horizon_key": "3m",
+          "status": "ok",
+          "candidate_count": 4,
+          "error": ""
+        },
+        {
+          "run_id": "1b376422-a81e-4e1e-86c3-581e4d890283",
+          "horizon_key": "1y",
+          "status": "ok",
+          "candidate_count": 3,
+          "error": ""
+        },
+        {
+          "run_id": "1b376422-a81e-4e1e-86c3-581e4d890283",
+          "horizon_key": "5y",
+          "status": "ok",
+          "candidate_count": 3,
+          "error": ""
+        }
+      ]
+    },
+    "public_home": {
+      "http": 200,
+      "status": "available",
+      "as_of": "2026-10-09T18:50:38.372519+00:00",
+      "run_id": "2500f952-4f84-4a28-bfe5-eaccc3c91d06",
+      "coverage": {
+        "candidate_count": 65,
+        "event_count": 16,
+        "must_read_count": 2,
+        "unresolved_count": 23,
+        "news_backed_count": 20
+      }
+    }
+  },
+  "scope_limit": "Actual runtime code was not changed. All repaired-worker configuration checks from the prior receipt remain separate from end-to-end acceptance of the other job handlers.",
+  "raw_evidence_hashes": {
+    "ContainerAppConsoleLogs_CL.json": "3793eb69b33e7446e6fa767f1d4076eba4d5a9ea15b5eb4ae4ec6b40c1f631fd",
+    "production-executions.json": "97d571f7aaf781c94d6c8b392323278056ed98de8ae14c9798b8d57f54fa5850",
+    "news-memory-metrics.json": "fef7e416fa37f574e106822732ea823537254c42650878b0b9379559d0e47ac6",
+    "yesterday-database-errors.json": "1209ef485df92243fbc08ad473781484e3e12860f62ed174aab50e171314ac45",
+    "database.json": "cca7567e02026a6abf9f6798973cb28c4b48f3ac4f751533c5ab62a9a523c6cd",
+    "ContainerAppSystemLogs_CL.json": "be3245c1f352932bc02a3ba90946deda817d9328e090fe0d70aaa535539e3ed5",
+    "product-state.json": "5a529231aaf7f3049b5b157a99aedc389b0de8952ecfbf47c242d7942618a51b"
+  }
+}

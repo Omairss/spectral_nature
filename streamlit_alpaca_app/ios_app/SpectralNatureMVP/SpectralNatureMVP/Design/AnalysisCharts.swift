@@ -165,65 +165,6 @@ struct TreemapChart: View {
   }
 }
 
-struct ScatterPlot: View {
-  let rows: [Record]
-  let x: String
-  let y: String
-  let label: String
-  let xTitle: String
-  let yTitle: String
-  var color: String? = nil
-  var size: String? = nil
-  var scale = 1.0
-  @State private var selectedX: Double?
-  private var sizeMaximum: Double {
-    max(rows.compactMap { row in size.flatMap { row.number($0) }.map(abs) }.max() ?? 1, 0.000001)
-  }
-  private var selected: Record? {
-    guard let selectedX else { return nil }
-    return rows.filter { $0.number(x) != nil && $0.number(y) != nil }.min {
-      abs(($0.number(x) ?? 0) * scale - selectedX) < abs(($1.number(x) ?? 0) * scale - selectedX)
-    }
-  }
-  var body: some View {
-    let sizeLimit = sizeMaximum
-    VStack(alignment: .leading, spacing: 8) {
-      if let row = selected {
-        Text(
-          "\(row.text(label)) · \(xTitle) \(Format.number(row.number(x).map { $0 * scale })) · \(yTitle) \(Format.number(row.number(y).map { $0 * scale }))"
-        )
-        .font(.caption).monospacedDigit()
-        if let color {
-          Text(
-            "\(color.replacingOccurrences(of: "_", with: " ").capitalized): \(Format.number(row.number(color)))"
-          ).font(.caption2)
-        }
-        if let size {
-          Text("\(size.capitalized): \(Format.number(row.number(size)))").font(.caption2)
-        }
-      }
-      Chart(Array(rows.enumerated()), id: \.offset) { _, row in
-        if let a = row.number(x), let b = row.number(y) {
-          PointMark(x: .value(xTitle, a * scale), y: .value(yTitle, b * scale))
-            .foregroundStyle(Theme.tone(row.number(color ?? y)))
-            .symbolSize(
-              size.flatMap { row.number($0) }.map { 20 + 160 * abs($0) / sizeLimit } ?? 32)
-        }
-      }.chartXSelection(value: $selectedX).chartXAxisLabel(xTitle).chartYAxisLabel(yTitle)
-        .chartXScale(domain: .automatic(includesZero: false)).chartYScale(
-          domain: .automatic(includesZero: false)
-        )
-        .frame(height: 240)
-      Text(
-        [
-          color.map { "Color: " + $0.replacingOccurrences(of: "_", with: " ").capitalized },
-          size.map { "Size: " + $0.capitalized },
-        ].compactMap { $0 }.joined(separator: " · ")
-      ).font(.caption2).foregroundStyle(.secondary)
-    }
-  }
-}
-
 struct SpatialPlot: View {
   struct Point: Equatable {
     let label: String
@@ -236,17 +177,22 @@ struct SpatialPlot: View {
   let axes: [String]
   var surface = false
   var colorLabel = ""
+  var colorCenteredAtZero = false
+  var colorClipOutliers = false
+  var colorAsPercent = false
   @State private var selection: Int?
   @State private var reset = UUID()
   @State private var inspecting = false
   @State private var search = ""
   var body: some View {
+    let colors = PlotColorScale(values: points.compactMap(\.color), centered: colorCenteredAtZero,
+      clipOutliers: colorClipOutliers)
     VStack(alignment: .leading, spacing: 10) {
       if points.isEmpty {
         Text("Values unavailable").font(.caption).foregroundStyle(.secondary)
       } else {
         SpatialScene(
-          points: points, axes: axes, surface: surface, selection: $selection, reset: reset
+          points: points, axes: axes, surface: surface, colors: colors, selection: $selection, reset: reset
         )
         .frame(height: 300).clipShape(RoundedRectangle(cornerRadius: 8))
         .accessibilityLabel(
@@ -263,9 +209,8 @@ struct SpatialPlot: View {
           Button("Reset view") { reset = UUID() }.font(.caption)
         }
         if !colorLabel.isEmpty {
-          Text(
-            "Color: \(colorLabel) · \(Format.number(points.compactMap(\.color).min())) to \(Format.number(points.compactMap(\.color).max()))"
-          ).font(.caption2).foregroundStyle(.secondary)
+          PlotColorLegend(title: colorLabel, scale: colors, percent: colorAsPercent,
+            hasMissing: points.contains { $0.color == nil })
         }
         Button(
           selection.flatMap { points.indices.contains($0) ? points[$0].label : nil }
@@ -277,7 +222,7 @@ struct SpatialPlot: View {
             items: [
               (axes[0], Format.number(point.x)), (axes[1], Format.number(point.y)),
               (axes[2], Format.number(point.z)),
-            ] + (colorLabel.isEmpty ? [] : [(colorLabel, Format.number(point.color))]))
+            ] + (colorLabel.isEmpty ? [] : [(colorLabel, colorAsPercent ? Format.percent(point.color) : Format.number(point.color))]))
         }
       }
     }.sheet(isPresented: $inspecting) {
@@ -315,6 +260,7 @@ private struct SpatialScene: UIViewRepresentable {
   let points: [SpatialPlot.Point]
   let axes: [String]
   let surface: Bool
+  let colors: PlotColorScale
   @Binding var selection: Int?
   let reset: UUID
   class Coordinator: NSObject {
@@ -372,12 +318,10 @@ private struct SpatialScene: UIViewRepresentable {
         Float((point.x - bx.0) / bx.1 * 2 - 1), Float((point.z - bz.0) / bz.1 * 2 - 1),
         Float((point.y - by.0) / by.1 * 2 - 1))
     }
-    let extent = max(points.compactMap(\.color).map(abs).max() ?? 1, 0.000001)
     for (index, point) in points.enumerated() {
       let sphere = SCNSphere(radius: 0.028)
       sphere.segmentCount = 8
-      sphere.firstMaterial?.diffuse.contents = UIColor(
-        Theme.tone(point.color).opacity(0.45 + 0.55 * abs(point.color ?? 0) / extent))
+      sphere.firstMaterial?.diffuse.contents = UIColor(colors.color(point.color))
       sphere.firstMaterial?.lightingModel = .constant
       let node = SCNNode(geometry: sphere)
       node.position = position(point)

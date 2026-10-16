@@ -1,0 +1,618 @@
+"""Provider execution accounting and account-wide terminal-failure recovery.
+
+Research semantics stay in AQL/Zopedia. This boundary records actual attempts,
+preserves causal ownership, and stops rejected requests against an empty account.
+"""
+from __future__ import annotations
+
+from contextlib import contextmanager
+from contextvars import ContextVar
+import asyncio
+from datetime import datetime, timezone
+import hashlib
+import inspect
+from functools import wraps
+from functools import lru_cache
+import json
+import logging
+import os
+import threading
+import time
+from typing import Any
+import uuid
+from pathlib import Path
+
+import requests
+import httpx
+
+log = logging.getLogger(__name__)
+_CALL: ContextVar[dict[str, Any]] = ContextVar("llm_execution_call", default={})
+_ACCOUNTS: dict[str, tuple[float, bool]] = {}
+_ACCOUNT_LOCK = threading.RLock()
+
+
+class ProviderHTTPSession:
+    """Synchronous provider boundary with a cancellable total HTTP deadline.
+
+    Inference runs in the engine's synchronous workers. The async transport lets
+    the deadline close a response even while a provider keeps sending whitespace.
+    """
+
+    def post(self, *, timeout: float, **kwargs: Any) -> requests.Response:
+        async def request():
+            async with asyncio.timeout(timeout):
+                async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
+                    return await client.post(**kwargs)
+
+        try:
+            received = asyncio.run(request())
+        except (TimeoutError, httpx.TimeoutException) as exc:
+            raise requests.ReadTimeout("Provider HTTP deadline expired.") from exc
+        except httpx.TransportError as exc:
+            raise requests.ConnectionError(str(exc)) from exc
+        # Provider adapters retain their existing response contract.
+        response = requests.Response()
+        response.status_code = received.status_code
+        response._content = received.content
+        response.headers.update(received.headers)
+        response.url = str(received.url)
+        response.reason = received.reason_phrase
+        response.encoding = received.encoding
+        response.elapsed = received.elapsed
+        return response
+
+
+@contextmanager
+def model_call_context(**metadata: Any):
+    token = _CALL.set({**_CALL.get(), **metadata})
+    try:
+        yield
+    finally:
+        _CALL.reset(token)
+
+
+def execution_effort(default: str = "") -> str:
+    return str(_CALL.get().get("inference_effort") or default)
+
+
+def preserves_literal_output() -> bool:
+    return bool(_CALL.get().get("literal_output"))
+
+
+def current_research_access_scope() -> str:
+    """A producer declares ownership; private API/research workers default off."""
+    return os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "").strip()
+
+
+@contextmanager
+def research_run_context(run_id: str):
+    parent = _CALL.get()
+    with model_call_context(root_run_id=parent.get("root_run_id") or os.getenv("PIPELINE_RUN_ID") or run_id,
+                            parent_run_id=parent.get("run_id"), run_id=run_id):
+        yield
+
+
+@lru_cache(maxsize=1)
+def _price_snapshot() -> dict[str, Any]:
+    path = Path(os.getenv("LLM_PRICE_SNAPSHOT_PATH") or Path(__file__).with_name("llm_prices.json"))
+    return json.loads(path.read_text())
+
+
+def estimated_charge(*, provider: str, model: str, usage: dict[str, Any] | None,
+                     started_at: datetime) -> dict[str, Any]:
+    """Versioned estimate, not an invoice; unknown usage/model is never zero."""
+    if not usage:
+        return {"status": "usage_unavailable"}
+    try:
+        snapshot = _price_snapshot()
+        price = snapshot["models"].get(provider + ":" + model)
+        if price is None:
+            return {"status": "price_unavailable"}
+        input_tokens = usage.get("prompt_tokens", usage.get("input_tokens"))
+        if input_tokens is None:
+            return {"status": "usage_unavailable"}
+        cached = usage.get("prompt_cache_hit_tokens", (usage.get("prompt_tokens_details") or {}).get("cached_tokens", 0))
+        output = usage.get("completion_tokens", usage.get("output_tokens", 0))
+        rates = price["offpeak"]
+        base = ((input_tokens-cached)*rates["input"] + cached*rates["cached_input"] + output*rates["output"]) / 1e6
+        utc = started_at.astimezone(timezone.utc)
+        peak = utc.weekday() < 5 and any(start <= utc.hour < end for start, end in price.get("peak_utc_hours", []))
+        return {"status": "estimated", "price_version": snapshot["version"], "source": price["source"],
+                "usd_min": base, "usd_max": base * price.get("peak_multiplier", 1) if peak else base,
+                "rate_band": "peak_or_holiday" if peak else "offpeak"}
+    except (OSError, ValueError, KeyError, TypeError):
+        return {"status": "price_unavailable"}
+
+
+def _account_key(config: Any) -> str:
+    # Only the digest is retained. It identifies the billing account across
+    # development/production workers without persisting credentials.
+    return hashlib.sha256(f"{config.provider}:{config.base_url}:{config.api_key}".encode()).hexdigest()
+
+
+def _read_state(namespace: str, key: str) -> dict[str, Any] | None:
+    from .pipeline_store import read_execution_state
+    try:
+        return read_execution_state(namespace, key)
+    except Exception:
+        log.warning("LLM execution checkpoint read unavailable", exc_info=False)
+        return None
+
+
+def _write_state(namespace: str, key: str, value: dict[str, Any]) -> None:
+    from .pipeline_store import write_execution_state
+    try:
+        if not write_execution_state(namespace, key, value):
+            log.warning("LLM execution checkpoint was not persisted")
+    except Exception:
+        log.warning("LLM execution checkpoint write unavailable", exc_info=False)
+
+
+def ensure_provider_available(config: Any, *, timeout: float) -> None:
+    if config.provider != "deepseek":
+        return
+    from .llm import LLMProviderUnavailable
+    key = _account_key(config)
+    with _ACCOUNT_LOCK:
+        now = time.monotonic()
+        local = _ACCOUNTS.get(key)
+        if local and now - local[0] < 30:
+            blocked = local[1]
+        else:
+            state = _read_state("provider_account", key)
+            blocked = bool((state or {}).get("blocked")) or bool(local and local[1])
+            if blocked:
+                try:
+                    response = requests.get(
+                        config.base_url.rstrip("/") + "/user/balance",
+                        headers={"Authorization": "Bearer " + config.api_key},
+                        timeout=min(timeout, 15),
+                    )
+                    if response.ok and response.json().get("is_available") is True:
+                        blocked = False
+                        _write_state("provider_account", key, {"blocked": False})
+                except (requests.RequestException, ValueError):
+                    pass
+            _ACCOUNTS[key] = (time.monotonic(), blocked)
+    if blocked:
+        raise LLMProviderUnavailable("DeepSeek account has insufficient funds; provider execution is paused until credit is restored.")
+
+
+def request_composition(payload: dict[str, Any]) -> dict[str, Any]:
+    """Measure the final transport payload without retaining any prompt text."""
+    encoder = json.JSONEncoder(ensure_ascii=True, default=str)
+    def size(value: Any) -> int:
+        return sum(len(part) for part in encoder.iterencode(value))
+    roles: dict[str, int] = {}
+    messages = payload.get("messages") or []
+    for message in messages:
+        role = str(message.get("role") or "unknown")
+        roles[role] = roles.get(role, 0) + size(message)
+    return {"serialized_characters": size(payload), "message_count": len(messages),
+            "message_characters_by_role": roles, "tool_count": len(payload.get("tools") or []),
+            "tool_schema_characters": size(payload.get("tools") or []),
+            "response_schema_characters": size(payload.get("response_format") or {}),
+            "measurement": "serialized JSON characters; provider usage supplies actual tokens"}
+
+
+def provider_post(client: Any = None, *, config: Any = None, session: Any = None,
+                  operation: str = "chat", **kwargs: Any) -> requests.Response:
+    """Meter each transport attempt, including failures and nested JSON repairs."""
+    from .llm import llm_settings_scope, _remaining_request_timeout
+    from .pipeline_store import record_provider_attempt
+    config = config or client.config
+    session = session or client.session
+    timeout = float(kwargs.get("timeout") or config.timeout_seconds)
+    deadline = time.monotonic() + timeout
+    ensure_provider_available(config, timeout=timeout)
+    kwargs["timeout"] = _remaining_request_timeout(deadline)
+    context = dict(_CALL.get())
+    if operation == "json_repair":
+        from .llm_flow import flow_configuration
+        repair = flow_configuration()["routes"]["repair"]
+        context.update(stage="repair", profile=repair["profile"], max_output_tokens=repair.get("max_output_tokens", 0))
+    payload = dict(kwargs.get("json") or {})
+    if context.get("max_output_tokens") and operation not in {"embedding", "audio"}:
+        payload["max_tokens"] = int(context["max_output_tokens"])
+        kwargs["json"] = payload
+    if config.provider == "deepseek" and (operation == "json_repair" or context.get("literal_output")):
+        # Non-thinking defaults to 8K while thinking defaults to 64K. A
+        # mechanical conversion must not silently shorten an existing artifact.
+        payload.setdefault("max_tokens", int(os.getenv("DEEPSEEK_LITERAL_MAX_OUTPUT_TOKENS") or "65536"))
+        kwargs["json"] = payload
+    composition = request_composition(payload)
+    started = datetime.now(timezone.utc)
+    t0 = time.monotonic()
+    attempt_id = "llmhttp_" + uuid.uuid4().hex
+    # A worker can exit while a timed-out request is being closed. Retain that
+    # attempt as unfinished rather than reporting no call or invented zero usage.
+    initial_event = {
+        "attempt_id": attempt_id, "model_call_id": context.get("model_call_id"),
+        "root_run_id": context.get("root_run_id") or os.getenv("PIPELINE_RUN_ID") or context.get("run_id"),
+        "parent_run_id": context.get("run_id") or context.get("parent_run_id"),
+        "settings_scope": llm_settings_scope(),
+        "surface": context.get("surface") or getattr(client, "_zopedia_surface", "") or "provider.direct",
+        "purpose": context.get("purpose") or "direct." + operation,
+        "provider": config.provider, "requested_model": payload.get("model") or config.model,
+        "operation": operation, "status": "started", "started_at_utc": started, "duration_ms": 0,
+        "metadata": {**{key: context.get(key) for key in ("stage", "workload", "profile", "configuration_revision", "reviewer_id")},
+                     "request_composition": composition},
+    }
+    try:
+        record_provider_attempt(initial_event)
+    except Exception:
+        log.warning("Provider attempt start could not be persisted: %s", attempt_id)
+    response = None
+    error_type = ""
+    transport_attempted = False
+    try:
+        kwargs["timeout"] = _remaining_request_timeout(deadline)
+        transport_attempted = True
+        response = session.post(**kwargs)
+        if config.provider == "deepseek" and response.status_code == 402:
+            key = _account_key(config)
+            with _ACCOUNT_LOCK:
+                _ACCOUNTS[key] = (time.monotonic(), True)
+            _write_state("provider_account", key, {"blocked": True, "http_status": 402})
+        return response
+    except BaseException as exc:
+        error_type = type(exc).__name__
+        raise
+    finally:
+        data: dict[str, Any] = {}
+        if response is not None:
+            try:
+                parsed = response.json()
+                if isinstance(parsed, dict):
+                    data = parsed
+            except ValueError:
+                pass
+        event = {
+            "attempt_id": attempt_id,
+            "model_call_id": context.get("model_call_id"),
+            "root_run_id": context.get("root_run_id") or os.getenv("PIPELINE_RUN_ID") or context.get("run_id"),
+            "parent_run_id": context.get("run_id") or context.get("parent_run_id"),
+            "settings_scope": llm_settings_scope(),
+            "surface": context.get("surface") or getattr(client, "_zopedia_surface", "") or "provider.direct",
+            "purpose": context.get("purpose") or "direct." + operation,
+            "provider": config.provider, "requested_model": payload.get("model") or config.model,
+            "reported_model": data.get("model"), "operation": operation,
+            "status": "success" if response is not None and 200 <= response.status_code < 300 else "failure" if transport_attempted else "not_sent",
+            "http_status": response.status_code if response is not None else None,
+            "started_at_utc": started, "duration_ms": (time.monotonic() - t0) * 1000,
+            "usage": data.get("usage"),
+            "metadata": {
+                "transport_attempted": transport_attempted,
+                "request_composition": composition,
+                "error_type": error_type, "provider_request_id": data.get("id"),
+                "inference_effort": payload.get("reasoning_effort"), "thinking": payload.get("thinking"),
+                "input_hash": hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest(),
+                "job_name": os.getenv("PIPELINE_JOB_NAME"),
+                "research_subject": context.get("research_subject"),
+                "artifact_input_id": context.get("artifact_input_id"),
+                "literal_output": bool(context.get("literal_output")),
+                "stage": "repair" if operation == "json_repair" else context.get("stage"),
+                "profile": context.get("profile"),
+                "configuration_revision": context.get("configuration_revision"),
+                "workload": context.get("workload"),
+                "reviewer_id": context.get("reviewer_id"),
+                "max_output_tokens": payload.get("max_tokens"),
+                "input_characters": len(str(payload.get("text") or "")) if operation == "audio" else None,
+                "estimated_charge": estimated_charge(provider=config.provider,
+                    model=data.get("model") or (payload.get("model") if operation == "embedding" else ""),
+                    usage=data.get("usage"), started_at=started),
+            },
+        }
+        try:
+            if not record_provider_attempt(event):
+                log.warning("Provider attempt usage was not persisted: %s", event["attempt_id"])
+        except Exception:
+            # Central execution logs retain a recoverable metering receipt even
+            # if both independent stores are unavailable. No request text or
+            # credentials are included in this event.
+            log.warning("Provider attempt accounting unavailable; receipt=%s",
+                        json.dumps(event, sort_keys=True, default=str), exc_info=False)
+
+
+def research_artifact_key(*, access_scope: str, subject: str, query: str,
+                          schema: dict[str, Any], config: Any, producer: dict[str, Any] | None = None) -> tuple[str, str]:
+    from .llm import get_active_narrative_style_rule, llm_settings_scope
+    from .llm_flow import capture_research_configuration
+    namespace = f"research_artifact:{llm_settings_scope()}:{access_scope}"
+    from .aql_zopedia_engine import research_engine_revision
+    contract = {"producer": producer if producer is not None else {
+                    "engine_revision": research_engine_revision(),
+                    "configuration_revision": capture_research_configuration()["revision"],
+                }, "query": query, "schema": schema, "provider": config.provider,
+                "endpoint": config.base_url, "model": config.model,
+                "thinking": config.thinking_mode, "effort": execution_effort(config.reasoning_effort),
+                "temperature": config.temperature, "style": get_active_narrative_style_rule(),
+                "literal_output": preserves_literal_output(),
+                "subject": subject, "representation_version": 3}
+    key = hashlib.sha256(json.dumps(contract, sort_keys=True, ensure_ascii=False, default=str).encode()).hexdigest()
+    return namespace, key
+
+
+def read_research_artifact(namespace: str, key: str, *, strict: bool = False) -> dict[str, Any] | None:
+    from .pipeline_store import read_execution_state
+    read = (lambda ns, state_key: read_execution_state(ns, state_key, strict=True)) if strict else _read_state
+    pointer = read(namespace + ":inputs", key)
+    return read(namespace, pointer["artifact_id"]) if pointer else None
+
+
+def retain_research_artifact(namespace: str, key: str, *, subject: str, task: str,
+                             result: dict[str, Any]) -> dict[str, Any] | None:
+    from .pipeline_store import retain_research_checkpoint
+    artifact_id = hashlib.sha256((key + json.dumps(result, sort_keys=True, default=str)).encode()).hexdigest()
+    value = {"artifact_id": artifact_id, "input_id": key, "subject": subject, "task": task,
+             "created_at_utc": datetime.now(timezone.utc).isoformat(),
+             "root_run_id": os.getenv("PIPELINE_RUN_ID"), "result": result}
+    try:
+        stored = retain_research_checkpoint(namespace=namespace, input_key=key, artifact=value,
+                                            subject=subject, task=task)
+        if stored:
+            return {"artifact_id": artifact_id, "input_id": key, "namespace": namespace,
+                    "created_at_utc": stored["created_at_utc"]}
+    except Exception:
+        log.warning("Completed research artifact was not checkpointed", exc_info=False)
+
+
+def latest_research_artifact(*, access_scope: str, subject: str, task: str) -> dict[str, Any] | None:
+    from .llm import llm_settings_scope
+    namespace = f"research_artifact:{llm_settings_scope()}:{access_scope}"
+    pointer = _read_state(namespace + ":latest", subject + ":" + task)
+    artifact = _read_state(namespace, pointer["artifact_id"]) if pointer else None
+    if not artifact:
+        return None
+    # Prior findings are evidence, not recursive copies of old agent prompts.
+    return {key: artifact.get(key) for key in ("artifact_id", "input_id", "subject", "task", "created_at_utc")} | {
+        "payload": (artifact.get("result") or {}).get("payload") or {},
+        "artifact_context": (artifact.get("result") or {}).get("artifact_context") or {},
+    }
+
+
+def checkpoint_structured_research(function):
+    """Opt-in, environment-owned replay of completed supplied-evidence stages.
+
+    Live acquisition is never treated as timeless. Tool-using stages remain
+    fresh research; their dated findings can be supplied to later planning.
+    """
+    @wraps(function)
+    def run(**kwargs):
+        from jsonschema import Draft202012Validator
+        from .aql_zopedia_engine import load_aql_zopedia_llm_client
+        from .llm import get_prompt
+
+        access = kwargs.get("reuse_scope") or ""
+        effort = kwargs.get("inference_effort") or ""
+        subject = kwargs.get("research_subject") or ""
+        def execute():
+            result = function(**kwargs)
+            if kwargs.get("artifact_context") is not None:
+                result = {**result, "artifact_context": kwargs["artifact_context"]}
+            return result
+        with model_call_context(**{"research_subject": subject,
+                                  **({"inference_effort": effort} if effort else {})}):
+            if (not access or kwargs.get("persist_findings") or kwargs.get("conversation_history")
+                    or kwargs.get("review_answer") or kwargs.get("max_tool_calls") is None):
+                return execute()
+            live_acquisition = kwargs["max_tool_calls"] > 0
+            run_instance = os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or os.getenv("PIPELINE_RUN_ID")
+            if live_acquisition and not run_instance:
+                return execute()
+            client = kwargs.get("llm_client") or load_aql_zopedia_llm_client(
+                surface=kwargs["surface"]
+            )
+            if client is None:
+                return execute()
+            from .llm_flow import stage_client, research_workload, DEEP_REASONING_PROMPT
+            client, route = stage_client(client, kwargs.get("stage") or "synthesis")
+            _, reasoning_route = stage_client(client, "reasoning")
+            kwargs["llm_client"] = client
+            query = (kwargs.get("reuse_identity") or kwargs["query"]) + json.dumps(kwargs.get("initial_evidence"), sort_keys=True, default=str)
+            query += json.dumps({key: kwargs.get(key) for key in (
+                "instructions", "schema_name", "task", "surface", "write_policy", "request_context",
+                "answer_review_owner", "run_timeout_seconds", "llm_step_timeout_seconds",
+            )}, sort_keys=True, default=str)
+            if kwargs.get("artifact_context") is not None:
+                query += json.dumps(kwargs["artifact_context"], sort_keys=True, default=str)
+            query += json.dumps({"initial_answer": kwargs.get("initial_answer"), "review_instructions": kwargs.get("review_instructions")}, sort_keys=True, default=str)
+            if live_acquisition:
+                # Acquisition resumes only within this execution. A future
+                # scheduled investigation must reassess fresh external inputs.
+                query += json.dumps({"run_instance": run_instance, "max_tool_calls": kwargs["max_tool_calls"]})
+            namespace, key = research_artifact_key(access_scope=access, subject=subject,
+                                                  query=query, schema=kwargs["schema"], config=client.config,
+                                                  producer=None if live_acquisition else {
+                                                      "implementation": hashlib.sha256(inspect.getsource(function).encode()).hexdigest(),
+                                                      "stage": route["stage"], "max_output_tokens": route.get("max_output_tokens", 0),
+                                                      "reasoning": {field: reasoning_route[field] for field in ("model", "thinking", "max_output_tokens")}
+                                                          if route["stage"] == "synthesis" and research_workload() in {"news", "knowledge"} else None,
+                                                      "reasoning_policy": get_prompt(DEEP_REASONING_PROMPT)
+                                                          if route["stage"] == "reasoning" or route["stage"] == "synthesis" and research_workload() in {"news", "knowledge"} else None,
+                                                  })
+            from . import pipeline_store
+            from .llm import remaining_request_timeout
+            owner = uuid.uuid4().hex
+            lease_namespace = namespace + ":leases"
+            wait_seconds = remaining_request_timeout(float(kwargs.get("run_timeout_seconds") or client.config.timeout_seconds))
+            wait_deadline = time.monotonic() + wait_seconds
+            claimed = False
+            while not claimed:
+                artifact = None if kwargs.get("force_refresh") else read_research_artifact(namespace, key, strict=True)
+                if artifact:
+                    return {**artifact["result"], "artifact_reuse": {"artifact_id": artifact["artifact_id"], "input_id": key, "namespace": namespace}}
+                claimed = pipeline_store.claim_execution_state(lease_namespace, key, owner=owner, seconds=wait_seconds + 120)
+                if not claimed:
+                    if time.monotonic() >= wait_deadline:
+                        raise TimeoutError("Compatible research is still running in another worker.")
+                    time.sleep(min(1, max(wait_deadline - time.monotonic(), 0)))
+            try:
+                artifact = None if kwargs.get("force_refresh") else read_research_artifact(namespace, key, strict=True)
+                saved = (artifact or {}).get("result") or {}
+                payload = saved.get("payload")
+                if isinstance(payload, dict) and not list(Draft202012Validator(kwargs["schema"]).iter_errors(payload)):
+                    result = {**saved, "artifact_reuse": {"artifact_id": artifact["artifact_id"],
+                                                         "created_at_utc": artifact["created_at_utc"],
+                                                         "namespace": namespace, "input_id": key}}
+                    callback = kwargs.get("progress_callback")
+                    if callback:
+                        callback({"stage": "research_artifact_reused", "message": "Reusing completed research for unchanged evidence.",
+                                  "artifact_id": artifact["artifact_id"], "progress": .9})
+                    return result
+                incomplete = None if kwargs.get("force_refresh") else _read_state(namespace + ":incomplete", key)
+                retained_agent = ((incomplete or {}).get("result") or {}).get("agent_result")
+                if live_acquisition and isinstance(retained_agent, dict):
+                    kwargs["retained_agent_result"] = retained_agent
+                partial_payload = ((incomplete or {}).get("result") or {}).get("partial_payload")
+                if isinstance(partial_payload, dict):
+                    kwargs["retained_partial_payload"] = partial_payload
+                partial_text = ((incomplete or {}).get("result") or {}).get("partial_text")
+                if partial_text:
+                    kwargs["retained_partial_text"] = partial_text
+                with model_call_context(artifact_input_id=key):
+                    result = execute()
+                payload = result.get("payload")
+                if (result.get("status") == "completed" and isinstance(payload, dict)
+                        and not list(Draft202012Validator(kwargs["schema"]).iter_errors(payload))):
+                    reference = retain_research_artifact(namespace, key, subject=subject, task=kwargs["task"], result=result)
+                    if reference:
+                        result = {**result, "research_artifact": reference}
+                elif result.get("status") == "failed":
+                    # Keep paid work for bounded schema repair; never publish it as
+                    # a completed checkpoint or let it authorize knowledge writes.
+                    _write_state(namespace + ":incomplete", key, {
+                        "input_id": key, "subject": subject, "task": kwargs["task"],
+                        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+                        "query": kwargs["query"], "schema": kwargs["schema"], "result": result,
+                    })
+                return result
+            finally:
+                try:
+                    pipeline_store.release_execution_state(lease_namespace, key, owner=owner)
+                except Exception:
+                    log.warning("Research execution lease release unavailable: %s", key)
+    return run
+
+
+def checkpoint_agent_research(function):
+    """Resume owned acquisition within one platform execution, never a new day.
+
+    Knowledge write permission is separate from saving paid operational work.
+    Private conversations remain with their existing user-owned run repository.
+    """
+    @wraps(function)
+    def run(**kwargs):
+        access = current_research_access_scope()
+        execution = os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or os.getenv("PIPELINE_RUN_ID")
+        request_context = kwargs.get("request_context") or {}
+        if (not access or not execution or kwargs.get("persist_findings", True)
+                or kwargs.get("conversation_history") or kwargs.get("force_refresh")
+                or kwargs.get("service") is not None
+                or kwargs.get("write_policy") not in {None, "none"}
+                or request_context.get("owner_id") or request_context.get("conversation_id")):
+            return function(**kwargs)
+        from . import llm, pipeline_store
+        from .aql_zopedia_engine import (
+            load_aql_zopedia_llm_client, research_engine_revision, resolve_research_budget,
+        )
+        # Import the shared acquisition owner before capturing its prompt defaults.
+        from . import zopedia_agent, zopedia_research  # noqa: F401
+
+        client = kwargs.get("llm_client") or load_aql_zopedia_llm_client(surface=kwargs.get("surface", "zopedia.chat"))
+        if client is None:
+            return function(**kwargs)
+        kwargs["llm_client"] = client
+        budget = resolve_research_budget(**{
+            key: kwargs.get(key) for key in (
+                "max_tool_calls", "run_timeout_seconds", "tool_call_timeout_seconds",
+                "llm_step_timeout_seconds", "prefetch_timeout_seconds",
+            )
+        })
+        llm.load_prompt_overrides()
+        contract = {
+            "execution": execution, "engine": research_engine_revision(),
+            "request": {key: value for key, value in kwargs.items() if key not in {
+                "llm_client", "service", "progress_callback", "checkpoint_callback", "resume_state",
+            }},
+            "budget": budget,
+            "prompts": {item["key"]: item["prompt"] for item in llm.list_narrative_prompts()},
+            "parameters": {item["key"]: item["value"] for item in llm.list_config_params()},
+        }
+        namespace, key = research_artifact_key(
+            access_scope=access, subject=kwargs.get("task", "agent_answer"),
+            query=json.dumps(contract, sort_keys=True, ensure_ascii=False, default=str),
+            schema={}, config=client.config,
+        )
+        # A replica retry retains the research identity as well as its evidence.
+        kwargs.setdefault("run_id", "agrun_" + key[:40])
+        if kwargs["run_id"] is None:
+            kwargs["run_id"] = "agrun_" + key[:40]
+        owner = uuid.uuid4().hex
+        lease_namespace = namespace + ":leases"
+        deadline = time.monotonic() + float(budget["run_timeout_seconds"])
+        claimed = False
+        try:
+            while True:
+                artifact = read_research_artifact(namespace, key, strict=True)
+                if artifact:
+                    return {**artifact["result"], "artifact_reuse": {
+                        "artifact_id": artifact["artifact_id"], "namespace": namespace,
+                        "input_id": key, "created_at_utc": artifact["created_at_utc"],
+                    }}
+                claimed = pipeline_store.claim_execution_state(
+                    lease_namespace, key, owner=owner,
+                    seconds=float(budget["run_timeout_seconds"]) + 120,
+                )
+                if claimed:
+                    break
+                if time.monotonic() >= deadline:
+                    raise TimeoutError("Compatible research is still owned by another worker.")
+                time.sleep(5)
+            # Close the race between the preceding read and acquiring ownership.
+            artifact = read_research_artifact(namespace, key, strict=True)
+            if artifact:
+                return {**artifact["result"], "artifact_reuse": {"artifact_id": artifact["artifact_id"], "input_id": key}}
+            incomplete = pipeline_store.read_execution_state(namespace + ":incomplete", key, strict=True) or {}
+            if incomplete.get("checkpoint") and not kwargs.get("resume_state"):
+                state = incomplete["checkpoint"]
+                kwargs["resume_state"] = state
+                if not state.get("continued_request"):
+                    # Restore defaults resolved on the first attempt, including
+                    # its clock. Explicit inputs in this same contract still win.
+                    kwargs["request_context"] = {
+                        **(state.get("request_context") or {}),
+                        **(kwargs.get("request_context") or {}),
+                    }
+            original_checkpoint = kwargs.get("checkpoint_callback")
+            checkpoint_saved = bool(incomplete.get("checkpoint"))
+
+            def checkpoint(state):
+                nonlocal checkpoint_saved
+                checkpoint_saved = pipeline_store.write_execution_state(namespace + ":incomplete", key, {
+                    "checkpoint": state, "execution": execution, "input_id": key,
+                })
+                if not checkpoint_saved:
+                    log.warning("Research acquisition checkpoint unavailable: %s", key)
+                if original_checkpoint:
+                    original_checkpoint(state)
+
+            kwargs["checkpoint_callback"] = checkpoint
+            with model_call_context(artifact_input_id=key):
+                result = function(**kwargs)
+            result.setdefault("runtime", {})["operational_checkpoint"] = checkpoint_saved
+            result["runtime"]["resumable"] = checkpoint_saved or result["runtime"].get("resumable", False)
+            if result.get("status") == "completed" and result.get("answer_markdown"):
+                reference = retain_research_artifact(
+                    namespace, key, subject="", task=kwargs.get("task", "agent_answer"), result=result,
+                )
+                if reference:
+                    result = {**result, "research_artifact": reference}
+            return result
+        finally:
+            if claimed:
+                try:
+                    pipeline_store.release_execution_state(lease_namespace, key, owner=owner)
+                except Exception:
+                    log.warning("Research execution lease release unavailable: %s", key)
+    return run

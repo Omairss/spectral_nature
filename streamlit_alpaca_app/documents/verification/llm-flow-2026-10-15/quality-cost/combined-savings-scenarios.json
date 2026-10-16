@@ -1,0 +1,84 @@
+{
+  "status": "Offline sensitivity scenarios; no measured savings or new inference.",
+  "reference_date": "2026-10-15",
+  "reference_provider_total_usd": 37.21,
+  "source_snapshot": "tmp/daily-spend-20261015/merged-attribution.private.json",
+  "source_sha256": "49034c51ca168f6cbcfcc1770ebff5b41d6d723b6a99d90896845f2f1a760931",
+  "price_version": "published-prices-verified-2026-10-12",
+  "disjoint_pools": {
+    "news_except_retrieval_usd": 24.14452845600001,
+    "retrieval_planning_usd": 4.134342809999997,
+    "remaining_input_cache_discount_capacity_usd": 3.761727354,
+    "remaining_uncached_input_tokens": 22502632
+  },
+  "method": "First pool is production news except direct retrieval planning; second is all production direct retrieval planning; third is the additional input-cache discount on other production calls, excluding all news, direct retrieval planning and the core Pro synthesis allocation. Each known attempt belongs to at most one savings pool. Actual existing cache hits and UTC price bands are retained.",
+  "premium_allowance_usd": 5.641432085100001,
+  "premium_allowance_assumptions": "Full original core plus 5% news synthesis usage, zero Pro cache hits and 25% larger Pro outputs including reasoning. Reserve the original increment after optimization rather than claiming savings on that premium increment.",
+  "scenarios": [
+    {
+      "name": "Lower",
+      "assumptions": {
+        "news_nonretrieval_spend_reused_fraction": 0.1,
+        "retrieval_planning_spend_bypassed_fraction": 0.25,
+        "remaining_uncached_input_new_hit_fraction": 0.1
+      },
+      "savings_components": {
+        "news_reuse_usd": 2.4144528456000014,
+        "resolved_search_bypass_usd": 1.0335857024999993,
+        "additional_cache_hits_usd": 0.3761727354
+      },
+      "gross_savings_usd": 3.824211283500001,
+      "gross_savings_pct": 10.277375123622685,
+      "optimized_reference_day_usd": 33.3857887165,
+      "optimized_plus_premium_allowance_usd": 39.0272208016,
+      "net_change_with_premium_pct": 4.883689335124966
+    },
+    {
+      "name": "Middle",
+      "assumptions": {
+        "news_nonretrieval_spend_reused_fraction": 0.15,
+        "retrieval_planning_spend_bypassed_fraction": 0.4,
+        "remaining_uncached_input_new_hit_fraction": 0.2
+      },
+      "savings_components": {
+        "news_reuse_usd": 3.621679268400001,
+        "resolved_search_bypass_usd": 1.653737123999999,
+        "additional_cache_hits_usd": 0.7523454708
+      },
+      "gross_savings_usd": 6.0277618632,
+      "gross_savings_pct": 16.19930627035743,
+      "optimized_reference_day_usd": 31.182238136800002,
+      "optimized_plus_premium_allowance_usd": 36.8236702219,
+      "net_change_with_premium_pct": -1.038241811609781
+    },
+    {
+      "name": "Upper",
+      "assumptions": {
+        "news_nonretrieval_spend_reused_fraction": 0.2,
+        "retrieval_planning_spend_bypassed_fraction": 0.5,
+        "remaining_uncached_input_new_hit_fraction": 0.3
+      },
+      "savings_components": {
+        "news_reuse_usd": 4.828905691200003,
+        "resolved_search_bypass_usd": 2.0671714049999985,
+        "additional_cache_hits_usd": 1.1285182061999999
+      },
+      "gross_savings_usd": 8.024595302400002,
+      "gross_savings_pct": 21.565695518409033,
+      "optimized_reference_day_usd": 29.1854046976,
+      "optimized_plus_premium_allowance_usd": 34.8268367827,
+      "net_change_with_premium_pct": -6.404631059661384
+    }
+  ],
+  "limits": [
+    "Reuse, search-bypass eligibility and achievable new cache hits are assumptions, not measured rates.",
+    "News-reuse fractions are fractions of spend, not percentages of articles or calls.",
+    "Retry recovery is included in the news pool and is not added separately.",
+    "No additional savings credited for presentation removal, future cache-invalidation changes or reviewer effort reductions.",
+    "Provider gap, unknown-usage attempts and experiment spend are held unchanged.",
+    "The observed day is not an established recurring daily or monthly forecast.",
+    "No quality-equivalent result is claimed."
+  ],
+  "new_provider_calls": 0,
+  "settings_changed": false
+}

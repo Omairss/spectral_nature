@@ -1465,13 +1465,19 @@ def _render_llm_config_admin() -> None:
                     st.caption(param["description"])
                 with col_input:
                     is_int = isinstance(param["default"], int)
-                    edited_val = st.number_input(
-                        param["name"],
-                        value=param["value"] if is_int else float(param["value"]),
-                        step=1 if is_int else 0.1,
-                        key=f"llm_admin_param_{param['key']}",
-                        label_visibility="collapsed",
-                    )
+                    choices = param.get("choices") or []
+                    if choices:
+                        edited_val = st.selectbox(param["name"], choices, index=choices.index(param["value"]), key=f"llm_admin_param_{param['key']}", label_visibility="collapsed")
+                    elif isinstance(param["default"], str):
+                        edited_val = st.text_input(param["name"], value=param["value"], key=f"llm_admin_param_{param['key']}", label_visibility="collapsed")
+                    else:
+                        edited_val = st.number_input(
+                            param["name"],
+                            value=param["value"] if is_int else float(param["value"]),
+                            step=1 if is_int else 0.1,
+                            key=f"llm_admin_param_{param['key']}",
+                            label_visibility="collapsed",
+                        )
                     param_edits[param["key"]] = edited_val
                     if edited_val != param["value"]:
                         any_param_changed = True

@@ -13,6 +13,8 @@ Storage layout:
 """
 from __future__ import annotations
 
+from services.database import open_database_session
+
 import hashlib
 import json
 import os
@@ -47,7 +49,7 @@ def _db_connection() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
+        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 
@@ -151,6 +153,16 @@ def bootstrap_chat_log(conn: Any | None = None) -> bool:
         return False
     try:
         with conn.cursor() as cur:
+            cur.execute("""
+                SELECT to_regclass('aql_chat_sessions') IS NOT NULL,
+                       to_regclass('saa_zopedia_chat_messages') IS NOT NULL,
+                       EXISTS (SELECT 1 FROM pg_attribute
+                               WHERE attrelid=to_regclass('saa_zopedia_chat_threads')
+                               AND attname='environment' AND NOT attisdropped)
+            """)
+            if all(cur.fetchone()):
+                return True
+        with conn.cursor() as cur:
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS aql_chat_sessions (
@@ -205,11 +217,12 @@ def bootstrap_chat_log(conn: Any | None = None) -> bool:
                 )
                 """
             )
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE INDEX IF NOT EXISTS idx_saa_zopedia_chat_threads_user_updated
                 ON saa_zopedia_chat_threads (user_key, updated_at DESC)
-                """
+                """)
+            cur.execute(
+                "ALTER TABLE saa_zopedia_chat_threads ADD COLUMN IF NOT EXISTS environment TEXT"
             )
             cur.execute(
                 """
@@ -295,6 +308,7 @@ def log_chat_session(
     limitations: list[str] | None = None,
     error: str | None = None,
     duration_seconds: float | None = None,
+    quality_review: dict[str, Any] | None = None,
 ) -> bool:
     """
     Persist a complete agent session to blob + Postgres.
@@ -315,6 +329,7 @@ def log_chat_session(
         "model": model,
         "confidence": confidence,
         "answer_markdown": answer_markdown,
+        "quality_review": quality_review or {"status": "not_run"},
         "tool_calls": tool_calls,
         "symbols": symbols,
         "tool_names": tool_names,
@@ -528,7 +543,7 @@ def append_chat_message(
                 },
             )
             cur.execute(
-                "SELECT user_key FROM saa_zopedia_chat_threads WHERE thread_id = %s",
+                "SELECT user_key FROM saa_zopedia_chat_threads WHERE thread_id = %s FOR UPDATE",
                 (safe_thread_id,),
             )
             owner_row = cur.fetchone()

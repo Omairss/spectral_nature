@@ -28,24 +28,8 @@ RUN_ZOPEDIA_AGENT_LOOP_ALLOWED = {
     "services/zopedia_agent.py",
 }
 
-GENERATE_JSON_ALLOWED_EXACT = {
-    "services/aql_zopedia_gateway.py",
-    "services/attention_context_llm.py",
-    "services/attention_live_research.py",
-    "services/common/hypothesis.py",
-    "services/company.py",
-    "services/entity_extraction.py",
-    "services/entity_taxonomy.py",
-    "services/knowledge_graph.py",
-    "services/zopedia_research.py",
-    "services/page_agentic_summary.py",
-    "services/saa/zopedia.py",
-    "services/zopedia_learning.py",
-}
-
-GENERATE_JSON_ALLOWED_PREFIXES = (
-    "services/aql/",
-)
+GENERATE_JSON_ALLOWED_EXACT = {"services/aql_zopedia_gateway.py"}
+GENERATE_JSON_ALLOWED_PREFIXES: tuple[str, ...] = ()
 
 
 def _source_files() -> list[Path]:
@@ -98,6 +82,21 @@ def test_legacy_agent_loop_is_only_called_by_shared_engine():
         if rel not in RUN_ZOPEDIA_AGENT_LOOP_ALLOWED:
             offenders.append(rel)
 
+    assert offenders == []
+
+
+def test_feature_modules_cannot_bypass_the_engine_with_direct_gateway_calls():
+    allowed = {
+        "services/aql_zopedia_engine.py",
+        "services/zopedia_agent.py",
+        "services/aql_zopedia_gateway.py",
+    }
+    offenders = [
+        _rel(path)
+        for path in _source_files()
+        if "generate_json_via_aql_zopedia_gateway(" in path.read_text(encoding="utf-8")
+        and _rel(path) not in allowed
+    ]
     assert offenders == []
 
 
@@ -229,7 +228,7 @@ def test_trading_agent_does_not_call_llm_native_json_directly():
     text = path.read_text(encoding="utf-8")
 
     assert ".generate_json(" not in text
-    assert "generate_json_via_aql_zopedia_gateway" in text
+    assert "run_aql_zopedia_structured_agent" in text
 
 
 def test_aql_zopedia_engine_structured_calls_use_gateway():

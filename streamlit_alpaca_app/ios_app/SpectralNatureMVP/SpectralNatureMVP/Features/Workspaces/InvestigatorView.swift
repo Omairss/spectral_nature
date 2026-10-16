@@ -30,10 +30,24 @@ struct InvestigatorView: View {
   @EnvironmentObject private var session: AppSession
   @StateObject private var snapshot = Resource<JSONValue>()
   @StateObject private var artifact = Resource<JSONValue>()
+  @StateObject private var prices = Resource<JSONValue>()
   @State private var days = 365
   @State private var tab = "Overview"
   @State private var metric = ""
   private let tabs = ["Overview", "Price", "Pullback", "Income", "Balance", "Cash flow", "Sources"]
+  private var priceRows: [Record] {
+    prices.value?["datasets"].dictionaryValue?.sorted { $0.key < $1.key }.first?.value["records"]
+      .records ?? []
+  }
+  private var latestPrice: Record? {
+    priceRows.filter { $0.number("close") != nil }.max {
+      $0.text("timestamp") < $1.text("timestamp")
+    }
+  }
+  private var quote: Double? {
+    latestPrice?.number("close") ?? snapshot.value?["technical"]["close"].number
+      ?? snapshot.value?["forecast"]["current_price"].number
+  }
   private var definition: (String, Record)? {
     switch tab {
     case "Price":
@@ -56,6 +70,11 @@ struct InvestigatorView: View {
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 20) {
+        InstrumentHeading(
+          symbol: ticker, name: snapshot.value?["company"]["name"].string ?? "", price: quote)
+        if let date = latestPrice.flatMap({ Format.date($0.text("timestamp")) }) {
+          Text(Format.observationDay(date)).font(.caption2).foregroundStyle(.secondary)
+        }
         HStack {
           Picker("Analysis", selection: $tab) { ForEach(tabs, id: \.self) { Text($0) } }
           Spacer()
@@ -85,6 +104,9 @@ struct InvestigatorView: View {
               overview(view)
             }
           }
+        } else if tab == "Price" {
+          ResourceStatus(resource: prices) { Task { await loadPrices() } }
+          if let visualization = prices.value { chart(visualization) }
         } else {
           ResourceStatus(resource: artifact) { Task { await loadArtifact() } }
           if let visualization = artifact.value { chart(visualization) }
@@ -93,24 +115,24 @@ struct InvestigatorView: View {
     }.navigationTitle(ticker).navigationBarTitleDisplayMode(.inline).workbench()
       .researchContext("Stock Investigator; ticker=\(ticker); history=\(days) days; view=\(tab)")
       .task(id: days) { await loadSnapshot() }
+      .task(id: days) { await loadPrices() }
       .task(id: "\(tab)|\(days)") { await loadArtifact() }
-      .refreshable { if definition == nil { await loadSnapshot() } else { await loadArtifact() } }
+      .refreshable {
+        await loadPrices()
+        if definition == nil { await loadSnapshot() } else { await loadArtifact() }
+      }
   }
   @ViewBuilder private func overview(_ view: JSONValue) -> some View {
     let company = view["company"]
-    if !company["name"].string.isEmpty {
-      Text(company["name"].string).font(.title2.weight(.medium))
-    }
     if !company["business_lens"].string.isEmpty {
       Text(company["business_lens"].string).font(.caption).foregroundStyle(Theme.violet)
     }
     let technical = view["technical"]
     Panel {
       Metrics(items: [
-        ("Price", Format.money(technical["close"].number)),
-        ("Support", Format.money(technical["channel_support"].number)),
-        ("Resistance", Format.money(technical["channel_resistance"].number)),
-        ("All-time high", Format.money(technical["ath"].number)),
+        ("Support", Format.price(technical["channel_support"].number)),
+        ("Resistance", Format.price(technical["channel_resistance"].number)),
+        ("All-time high", Format.price(technical["ath"].number)),
       ])
     }
     if !company["headline"].string.isEmpty { Text(company["headline"].string).font(.headline) }
@@ -128,10 +150,10 @@ struct InvestigatorView: View {
           ("1W up", Format.percent(forecast["up_probability"].number, fraction: true)),
           ("Breakout", Format.percent(forecast["breakout_probability"].number, fraction: true)),
           ("Analogs", Format.number(forecast["analog_count"].number)),
-          ("Median price", Format.money(forecast["terminal_band"]["p50"].number)),
+          ("Median price", Format.price(forecast["terminal_band"]["p50"].number)),
           ("Expected return", Format.percent(forecast["expected_return_pct"].number)),
-          ("Lower band", Format.money(forecast["terminal_band"]["p10"].number)),
-          ("Upper band", Format.money(forecast["terminal_band"]["p90"].number)),
+          ("Lower band", Format.price(forecast["terminal_band"]["p10"].number)),
+          ("Upper band", Format.price(forecast["terminal_band"]["p90"].number)),
         ])
       }
     }
@@ -147,7 +169,7 @@ struct InvestigatorView: View {
           series: [
             ("close", "Close"), ("channel_support", "Support"),
             ("channel_resistance", "Resistance"), ("ath", "ATH"),
-          ], height: 260)
+          ], height: 260, price: true)
       } else if tab == "Pullback" {
         TimeSeriesChart(rows: rows, series: [("pullback_from_ath_pct", "Pullback %")], height: 240)
       } else {
@@ -177,10 +199,19 @@ struct InvestigatorView: View {
     }
   }
   private func loadArtifact() async {
+    guard tab != "Price" else { return }
     guard let (name, params) = definition else { return }
     await artifact.load(key: "\(ticker)|\(tab)|\(days)") {
       let response: JSONValue = try await session.api.post(
         "/api/visualizations/\(name)", body: ["params": .object(params)])
+      return response["payload"]
+    }
+  }
+  private func loadPrices() async {
+    await prices.load(key: "\(ticker)|\(days)", clearOnFailure: true) {
+      let response: JSONValue = try await session.api.post(
+        "/api/visualizations/technical_price_channel",
+        body: ["params": .object(["ticker": .string(ticker), "days": .number(Double(days))])])
       return response["payload"]
     }
   }

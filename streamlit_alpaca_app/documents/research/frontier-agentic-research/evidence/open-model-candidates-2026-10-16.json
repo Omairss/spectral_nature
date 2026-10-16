@@ -1,0 +1,124 @@
+{
+  "checked_at_utc": "2026-10-16T19:25:57.814453+00:00",
+  "purpose": "Read-only shortlist under cheap open-source constraint; no inference, route change or serving acceptance.",
+  "models": [
+    {
+      "model": "zai-org/GLM-5.2",
+      "revision": "cf457fa734ab149ffef225f80893eb38c6ff5cdc",
+      "license": "mit",
+      "files": 295,
+      "weight_files": 282,
+      "weight_examples": [
+        "model-00001-of-00282.safetensors",
+        "model-00002-of-00282.safetensors"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "repository_url": "https://huggingface.co/zai-org/GLM-5.2",
+      "metadata_url": "https://huggingface.co/api/models/zai-org/GLM-5.2",
+      "eligible_shortlist_status": "candidate",
+      "readme.md_sha256": "7ba22185651d8f69fbf6227ee718eb680fd834ec8e79ba78df6fa54896614b3d",
+      "license_sha256": "f4a18c6ae40b0a8e7d2b7667f52f6e1994e54a46430d2e172b73cb8c9b5eb0d7"
+    },
+    {
+      "model": "zai-org/GLM-5.3",
+      "revision": "ba32f8c19c8738e2c57c71798c601d477a7bf844",
+      "license": "other",
+      "files": 156,
+      "weight_files": 141,
+      "weight_examples": [
+        "model-00001-of-00141.safetensors",
+        "model-00002-of-00141.safetensors"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "repository_url": "https://huggingface.co/zai-org/GLM-5.3",
+      "metadata_url": "https://huggingface.co/api/models/zai-org/GLM-5.3",
+      "eligible_shortlist_status": "custom-license open-weight watchlist; not classified as MIT",
+      "readme.md_sha256": "ed1c0a4563c437a32f8953d637a1db9bd831de1b24bd3062a5ace9e04340b1cf",
+      "license_sha256": "96e1622099fc9d6b70c9760f007d99e66d7497eec636b63c60fe208401e9170c"
+    },
+    {
+      "model": "inclusionAI/Ling-3.0-flash-Fin",
+      "revision": "a5b4afb48f526175991724472c179e5a065604de",
+      "license": "mit",
+      "files": 77,
+      "weight_files": 65,
+      "weight_examples": [
+        "model-00000-of-00064.safetensors",
+        "model-00001-of-00064.safetensors"
+      ],
+      "license_files": [],
+      "repository_url": "https://huggingface.co/inclusionAI/Ling-3.0-flash-Fin",
+      "metadata_url": "https://huggingface.co/api/models/inclusionAI/Ling-3.0-flash-Fin",
+      "eligible_shortlist_status": "candidate",
+      "readme.md_sha256": "770e5e547d2f1e539a0f41a01231f0a9641c019550abc81891aba36ee86d02a8"
+    },
+    {
+      "model": "moonshotai/Kimi-K3",
+      "revision": "f831ab66814297da540d832a5235f8e904f29d06",
+      "license": "other",
+      "files": 119,
+      "weight_files": 96,
+      "weight_examples": [
+        "model-00001-of-000096.safetensors",
+        "model-00002-of-000096.safetensors"
+      ],
+      "license_files": [
+        "LICENSE"
+      ],
+      "repository_url": "https://huggingface.co/moonshotai/Kimi-K3",
+      "metadata_url": "https://huggingface.co/api/models/moonshotai/Kimi-K3",
+      "eligible_shortlist_status": "custom-license open-weight watchlist; not classified as MIT",
+      "readme.md_sha256": "57de265b5842dfa465c6e73b368b0e15a89b8793b5450528dad577da202cc6fe",
+      "license_sha256": "20c797ce19af0c17de52c6afb144644768a591c521655f5ebf5712c9850f2887"
+    }
+  ],
+  "finance_benchmark": {
+    "url": "https://samaya.ai/benchmarks/frontier-finance",
+    "board_date": "2026-09-28",
+    "harness": "Finance Agent v2",
+    "model_only_costs": true,
+    "rows": [
+      {
+        "model": "DeepSeek V4 Pro",
+        "rubric_pct": 40.5,
+        "cost_usd_per_query": 0.68
+      },
+      {
+        "model": "Ling 3.0 Flash Fin",
+        "rubric_pct": 46.6,
+        "cost_usd_per_query": 0.05
+      },
+      {
+        "model": "GLM-5.2",
+        "rubric_pct": 42.8,
+        "cost_usd_per_query": 0.63
+      }
+    ]
+  },
+  "current_provider_listing": {
+    "url": "https://novita.ai/pricing",
+    "usd_per_million_tokens": {
+      "Ling 3.0 Flash Fin": {
+        "input": 0.075,
+        "output": 0.22,
+        "cached_input": 0.015
+      },
+      "GLM-5.2": {
+        "input": 1.4,
+        "output": 4.4,
+        "cached_input": 0.26
+      }
+    },
+    "availability": "Listed prices, not an authenticated inference or invoice."
+  },
+  "openrouter_endpoint_inventory": {
+    "url": "https://openrouter.ai/api/v1/models/inclusionai/ling-3.0-flash-fin/endpoints",
+    "http_status": 200,
+    "endpoints_returned": 0,
+    "response_sha256": "55ffd0d39d2332a3360300336cff1c12da0c9b68e57523ed51b93e800f132b5f"
+  }
+}

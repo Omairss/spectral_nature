@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 from typing import Any
 
 import pandas as pd
 
-from compute.fundamentals import share_counts_asof
+from compute.fundamentals import share_counts_asof, fundamental_snapshots_by_symbol as _fundamental_snapshots_by_symbol
 from services.company import summarize_recent_news
 from services.entity_taxonomy import dashboard_business_lens_from_taxonomy_row, normalize_entity_taxonomy_frame, taxonomy_lookup_by_symbol
 from services.market import commodity_proxy_profile
@@ -226,103 +227,6 @@ def _price_windows_by_symbol(
 
     grouped = {symbol: rows.reset_index(drop=True) for symbol, rows in frame.groupby("symbol", sort=False)}
     return {symbol: grouped.get(symbol, pd.DataFrame()) for symbol in normalized}
-
-
-def _quarterly_yoy_pct(rows: pd.DataFrame) -> float | None:
-    if rows.empty:
-        return None
-    ordered = rows.dropna(subset=["report_date", "value"]).sort_values("report_date")
-    if len(ordered) < 2:
-        return None
-    latest = ordered.iloc[-1]
-    previous = pd.DataFrame()
-    period = _coerce_text(latest.get("year_quarter"))
-    if len(period) >= 6 and period[:4].isdigit() and period[-2:-1].upper() == "Q" and period[-1:].isdigit():
-        prior_period = f"{int(period[:4]) - 1}Q{period[-1]}"
-        previous = ordered[ordered["year_quarter"].astype(str).str.upper() == prior_period]
-    if previous.empty:
-        latest_date = pd.Timestamp(latest["report_date"])
-        candidates = ordered[
-            (ordered["report_date"] >= latest_date - pd.Timedelta(days=460))
-            & (ordered["report_date"] <= latest_date - pd.Timedelta(days=270))
-        ]
-        previous = candidates.tail(1)
-    if previous.empty:
-        return None
-    current_value = float(latest["value"])
-    prior_value = float(previous.iloc[-1]["value"])
-    if prior_value == 0:
-        return None
-    return float((current_value / prior_value - 1.0) * 100.0)
-
-
-def _fundamental_snapshots_by_symbol(
-    fundamentals_frame: pd.DataFrame | None,
-    symbols: list[str],
-    *,
-    asof_time_utc: object | None,
-) -> dict[str, dict[str, Any]]:
-    normalized = [symbol for symbol in dict.fromkeys(_normalize_symbol(item) for item in symbols) if symbol]
-    empty = {symbol: {} for symbol in normalized}
-    required = {"ticker", "metric", "report_date", "value"}
-    if not isinstance(fundamentals_frame, pd.DataFrame) or fundamentals_frame.empty or not required.issubset(fundamentals_frame.columns):
-        return empty
-
-    frame = fundamentals_frame.copy()
-    frame["ticker"] = frame["ticker"].astype(str).str.upper().str.strip()
-    frame = frame[frame["ticker"].isin(normalized)].copy()
-    if frame.empty:
-        return empty
-    frame["report_date"] = pd.to_datetime(frame["report_date"], errors="coerce")
-    frame["value"] = pd.to_numeric(frame["value"], errors="coerce")
-    frame = frame.dropna(subset=["report_date", "value"])
-    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
-    if pd.notna(asof_ts):
-        frame = frame[frame["report_date"] <= asof_ts.tz_localize(None)]
-
-    metric_fields = {
-        "Total Revenue": "revenue",
-        "Operating Income": "operating_income",
-        "Net Income": "net_income",
-        "Operating Cash Flow": "operating_cash_flow",
-        "Free Cash Flow": "free_cash_flow",
-        "Total Assets": "total_assets",
-        "Total Liabilities": "total_liabilities",
-    }
-    frame = frame[frame["metric"].astype(str).isin(metric_fields)].copy()
-    out: dict[str, dict[str, Any]] = {symbol: {} for symbol in normalized}
-    for symbol, symbol_rows in frame.groupby("ticker", sort=False):
-        snapshot: dict[str, Any] = {}
-        trends: dict[str, list[dict[str, Any]]] = {}
-        latest_dates: list[pd.Timestamp] = []
-        latest_period = ""
-        for metric_name, field_name in metric_fields.items():
-            rows = symbol_rows[symbol_rows["metric"].astype(str) == metric_name].sort_values("report_date")
-            if rows.empty:
-                continue
-            rows = rows.drop_duplicates(subset=["report_date"], keep="last")
-            trends[field_name] = [
-                {
-                    "date": pd.Timestamp(point["report_date"]).date().isoformat(),
-                    "period": _coerce_text(point.get("year_quarter")),
-                    "value": float(point["value"]),
-                }
-                for point in rows.tail(20).to_dict("records")
-            ]
-            latest = rows.iloc[-1]
-            snapshot[field_name] = float(latest["value"])
-            latest_dates.append(pd.Timestamp(latest["report_date"]))
-            period = _coerce_text(latest.get("year_quarter"))
-            if period:
-                latest_period = period
-            if metric_name in {"Total Revenue", "Net Income"}:
-                snapshot[f"{field_name}_yoy_pct"] = _quarterly_yoy_pct(rows)
-        if latest_dates:
-            snapshot["fundamentals_report_date"] = max(latest_dates).date().isoformat()
-        snapshot["fundamentals_period"] = latest_period
-        snapshot["financial_trends_json"] = _json_dumps(trends)
-        out[str(symbol)] = snapshot
-    return out
 
 
 def _fundamentals_asof(
@@ -658,6 +562,59 @@ def _zopedia_enrichment_payloads_by_symbol(
     return out
 
 
+def prefetch_attention_intraday_prices(
+    symbols: list[str], *, asof_time_utc: object,
+) -> dict[str, dict[str, Any]]:
+    """Collect one regular-session chart per symbol at feed generation, never on a UI read."""
+    from services.alpaca_api import AlpacaAPI
+    from services.config import load_config
+
+    asof = pd.Timestamp(asof_time_utc)
+    asof = asof.tz_localize("UTC") if asof.tzinfo is None else asof.tz_convert("UTC")
+    config = load_config()
+    if config is None:
+        raise RuntimeError("Attention intraday prefetch requires market-data configuration.")
+    feed = os.getenv("ALPACA_STOCK_DATA_FEED", "iex").strip().lower()
+    bars = AlpacaAPI(config).get_stock_bars(
+        symbols, start=(asof - pd.Timedelta(days=7)).to_pydatetime(),
+        end=asof.to_pydatetime(), timeframe="5Min", feed=feed, adjustment="all",
+    )
+    result = {}
+    for symbol in symbols:
+        frame = bars.get(symbol, pd.DataFrame()).copy()
+        points = []
+        session = ""
+        previous_close = None
+        previous_close_at = ""
+        if not frame.empty:
+            frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True, errors="coerce")
+            frame["close"] = pd.to_numeric(frame["close"], errors="coerce")
+            frame = frame.dropna(subset=["timestamp", "close"])
+            frame = frame[frame["timestamp"] <= asof].sort_values("timestamp")
+            frame = frame.set_index("timestamp").tz_convert("America/New_York")
+            frame = frame.between_time("09:30", "16:00", inclusive="left")
+            if not frame.empty:
+                session = frame.index[-1].date().isoformat()
+                previous = frame[frame.index.date < frame.index[-1].date()]
+                if not previous.empty:
+                    previous_close = float(previous.iloc[-1]["close"])
+                    previous_close_at = previous.index[-1].tz_convert("UTC").isoformat()
+                frame = frame[frame.index.date == frame.index[-1].date()]
+                points = [
+                    {"date": timestamp.tz_convert("UTC").isoformat(), "value": float(row["close"])}
+                    for timestamp, row in frame.iterrows()
+                ]
+        result[symbol] = {
+            "status": "available" if points else "unavailable", "points": points,
+            "interval": "5Min", "feed": feed, "session": session,
+            "as_of": points[-1]["date"] if points else "", "prefetched_at": asof.isoformat(),
+            "previous_close": previous_close, "previous_close_at": previous_close_at,
+            "change_pct": (points[-1]["value"] / previous_close - 1) * 100
+                if points and previous_close else None,
+        }
+    return result
+
+
 def build_attention_ticker_snapshot_frame(
     symbols: list[str],
     *,
@@ -666,12 +623,13 @@ def build_attention_ticker_snapshot_frame(
     asof_time_utc: object | None,
     run_id: str,
     quarterly_fundamentals_frame: pd.DataFrame | None = None,
+    intraday_prices: dict[str, dict[str, Any]] | None = None,
 ) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     asof_label = _coerce_text(pd.to_datetime(asof_time_utc, utc=True, errors="coerce").isoformat() if pd.notna(pd.to_datetime(asof_time_utc, utc=True, errors="coerce")) else asof_time_utc)
     ordered_symbols = [symbol for symbol in dict.fromkeys(_normalize_symbol(item) for item in symbols if _normalize_symbol(item))]
     universe_names = _name_map(universe_snapshot_frame)
-    price_windows = _price_windows_by_symbol(price_history_frame, ordered_symbols, asof_time_utc=asof_time_utc, lookback_days=60)
+    price_windows = _price_windows_by_symbol(price_history_frame, ordered_symbols, asof_time_utc=asof_time_utc, lookback_days=365 * 5)
     share_counts = share_counts_asof(ordered_symbols, asof_time_utc=asof_time_utc)
     fundamental_snapshots = _fundamental_snapshots_by_symbol(
         quarterly_fundamentals_frame,
@@ -681,6 +639,7 @@ def build_attention_ticker_snapshot_frame(
     for symbol in ordered_symbols:
         price_history = price_windows.get(symbol, pd.DataFrame())
         latest_close = _latest_close_from_price_history(price_history)
+        intraday = dict((intraday_prices or {}).get(symbol, {}))
         share_count, share_report_date, share_metric = share_counts.get(symbol, (None, None, None))
         market_cap = (latest_close * share_count) if latest_close is not None and share_count else None
         fundamentals = fundamental_snapshots.get(symbol, {})
@@ -696,10 +655,11 @@ def build_attention_ticker_snapshot_frame(
                 "share_count": share_count,
                 "share_count_metric": _coerce_text(share_metric),
                 "share_count_report_date": _coerce_text(pd.to_datetime(share_report_date, errors="coerce").date().isoformat() if pd.notna(pd.to_datetime(share_report_date, errors="coerce")) else ""),
-                "sparkline_data_uri": _sparkline_data_uri(price_history),
+                "sparkline_data_uri": _sparkline_data_uri(price_history.tail(60)),
+                "intraday_price_history_json": _json_dumps(intraday),
                 "price_trend_json": _json_dumps([
                     {"date": pd.Timestamp(point["timestamp"]).date().isoformat(), "value": float(point["close"])}
-                    for point in price_history.tail(60).to_dict("records")
+                    for point in price_history.tail(1300).to_dict("records")
                 ]),
                 **fundamentals,
                 "run_id": _coerce_text(run_id),
@@ -711,6 +671,7 @@ def build_attention_ticker_snapshot_frame(
                         "datasets": ["price_history", "universe_snapshot", "quarterly_fundamentals"],
                         "share_count_source": "local_quarterly_fundamentals",
                         "price_points": int(len(price_history)),
+                        "intraday": {key: intraday.get(key) for key in ("status", "feed", "interval", "as_of", "prefetched_at", "previous_close", "previous_close_at")},
                     }
                 ),
             }
@@ -903,6 +864,7 @@ def deserialize_attention_ticker_background_frame(frame: pd.DataFrame, symbol: s
 
 
 __all__ = [
+    "prefetch_attention_intraday_prices",
     "build_attention_ticker_background_snapshot_frame",
     "build_attention_ticker_snapshot_frame",
     "collect_attention_ticker_symbols",

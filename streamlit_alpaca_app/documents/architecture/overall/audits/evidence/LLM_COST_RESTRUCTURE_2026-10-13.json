@@ -1,0 +1,2442 @@
+{
+  "recorded_at_utc": "2026-10-14T07:04:11.638511+00:00",
+  "scope": "development only",
+  "production_changed": false,
+  "full_workload_validation": {
+    "execution": "trading-agent-build-dev-8gs9fg0",
+    "run_id": "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad",
+    "platform_status": "Failed",
+    "reason": "The original full cold workload published partial results and correctly failed for one missing news narrative. Recovery publication has separate lineage; the historical job is not reclassified.",
+    "database_snapshot": [
+      "Failed",
+      "2026-10-14 02:19:15.494034+00:00",
+      "2026-10-14 04:06:29.330513+00:00",
+      "failed",
+      "RuntimeError: News research completed with missing required narratives: {'news interpretations': 1}"
+    ],
+    "accepted": false
+  },
+  "local_execution_checks": {
+    "passed": 38,
+    "quality_established_by_tests": false
+  },
+  "local_qualitative_review": {
+    "selection": "Smallest, median and largest retained October 11 production dossiers by serialized size",
+    "subjects": [
+      "company:GRAL",
+      "company:HUM",
+      "company:IOVA"
+    ],
+    "personally_read": [
+      "dossiers",
+      "complete final narratives",
+      "coordinated continuation",
+      "paired trajectory monitors",
+      "literal conversion fields",
+      "three complete page editor outputs"
+    ],
+    "writer_replays": {
+      "completed_stages": 3,
+      "identical_results": 3,
+      "additional_provider_calls": 0
+    },
+    "limitations": "Limited live samples; no claim of financial prediction accuracy, complete discovery recall or whole-workload savings"
+  },
+  "provider_attempt_aggregates": {
+    "cost-followup-b52f4abe70e147b09148246d9a1303aa": {
+      "http_attempts": 25,
+      "priced_attempts": 7,
+      "unpriced_attempts": 18,
+      "missing_usage_attempts": 0,
+      "input_tokens": 1572654,
+      "cached_input_tokens": 417920,
+      "chat_input_tokens": 1517206,
+      "chat_cached_input_tokens": 417920,
+      "output_tokens": 15696,
+      "reasoning_tokens": 7051,
+      "estimated_usd_min": 0.17556425999999997,
+      "estimated_usd_max": 0.17556425999999997,
+      "uncached_same_usage_usd_min": 0.2369985,
+      "purposes": {
+        "agent.research_step": 3,
+        "retrieval.plan": 2,
+        "direct.embedding": 18,
+        "agent.final_synthesis": 1,
+        "agent.answer_judge": 1
+      },
+      "operations": {
+        "chat": 7,
+        "embedding": 18
+      },
+      "statuses": {
+        "success": 25
+      },
+      "cached_input_fraction": 0.2657418605745447,
+      "chat_cached_input_fraction": 0.27545369580663404,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.2592178431509061
+    },
+    "cost-writer-4d7931cf4eb4493eabda6529826510e3": {
+      "http_attempts": 3,
+      "priced_attempts": 3,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 137396,
+      "cached_input_tokens": 105472,
+      "chat_input_tokens": 137396,
+      "chat_cached_input_tokens": 105472,
+      "output_tokens": 17000,
+      "reasoning_tokens": 12028,
+      "estimated_usd_min": 0.015305016,
+      "estimated_usd_max": 0.030610032,
+      "uncached_same_usage_usd_min": 0.0308094,
+      "purposes": {
+        "ticker_business_model_stack.direct": 3
+      },
+      "operations": {
+        "chat": 3
+      },
+      "statuses": {
+        "success": 3
+      },
+      "cached_input_fraction": 0.7676497132376489,
+      "chat_cached_input_fraction": 0.7676497132376489,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.5032355060468559
+    },
+    "cost-editor-ff612a9d28e243f280fce300eb7c0222": {
+      "http_attempts": 4,
+      "priced_attempts": 4,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 60760,
+      "cached_input_tokens": 1024,
+      "chat_input_tokens": 60760,
+      "chat_cached_input_tokens": 1024,
+      "output_tokens": 11014,
+      "reasoning_tokens": 5190,
+      "estimated_usd_min": 0.015571872,
+      "estimated_usd_max": 0.031143744,
+      "uncached_same_usage_usd_min": 0.015722399999999997,
+      "purposes": {
+        "page_agentic_summary_review.direct": 3,
+        "schema_conversion.repair": 1
+      },
+      "operations": {
+        "chat": 4
+      },
+      "statuses": {
+        "success": 4
+      },
+      "cached_input_fraction": 0.016853192890059248,
+      "chat_cached_input_fraction": 0.016853192890059248,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.009574110822774928
+    },
+    "33403e79-5965-483e-9d26-a4fb0bf082b7": {
+      "http_attempts": 90,
+      "priced_attempts": 41,
+      "unpriced_attempts": 49,
+      "missing_usage_attempts": 0,
+      "input_tokens": 1699576,
+      "cached_input_tokens": 144384,
+      "chat_input_tokens": 1582843,
+      "chat_cached_input_tokens": 144384,
+      "output_tokens": 233619,
+      "reasoning_tokens": 80082,
+      "estimated_usd_min": 0.3563734020000002,
+      "estimated_usd_max": 0.7127468040000003,
+      "uncached_same_usage_usd_min": 0.37759785000000007,
+      "purposes": {
+        "direct.chat": 5,
+        "agent.research_step": 16,
+        "retrieval.plan": 5,
+        "direct.embedding": 49,
+        "ticker_business_model_research_dossier.direct": 4,
+        "agent.final_synthesis": 4,
+        "ticker_business_model_research_dossier.repair": 2,
+        "ticker_business_model_stack.direct": 3,
+        "agent.answer_judge": 2
+      },
+      "operations": {
+        "chat": 38,
+        "embedding": 49,
+        "json_repair": 3
+      },
+      "statuses": {
+        "success": 90
+      },
+      "cached_input_fraction": 0.08495295297180003,
+      "chat_cached_input_fraction": 0.0912181435556148,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.056209133606030526
+    },
+    "cost-large-conversion-a0f417217d474d8b859b58ac437847a3": {
+      "http_attempts": 1,
+      "priced_attempts": 1,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 30691,
+      "cached_input_tokens": 0,
+      "chat_input_tokens": 30691,
+      "chat_cached_input_tokens": 0,
+      "output_tokens": 30004,
+      "reasoning_tokens": 0,
+      "estimated_usd_min": 0.022606049999999996,
+      "estimated_usd_max": 0.04521209999999999,
+      "uncached_same_usage_usd_min": 0.022606049999999996,
+      "purposes": {
+        "schema_conversion_large.repair": 1
+      },
+      "operations": {
+        "chat": 1
+      },
+      "statuses": {
+        "success": 1
+      },
+      "cached_input_fraction": 0.0,
+      "chat_cached_input_fraction": 0.0,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.0
+    },
+    "cost-dev-runtime-e901686c841246cf9db3e57be68b04b2": {
+      "http_attempts": 4,
+      "priced_attempts": 1,
+      "unpriced_attempts": 3,
+      "missing_usage_attempts": 2,
+      "input_tokens": 33320,
+      "cached_input_tokens": 0,
+      "chat_input_tokens": 32914,
+      "chat_cached_input_tokens": 0,
+      "output_tokens": 499,
+      "reasoning_tokens": 0,
+      "estimated_usd_min": 0.005236499999999999,
+      "estimated_usd_max": 0.010472999999999998,
+      "uncached_same_usage_usd_min": 0.005236499999999999,
+      "purposes": {
+        "release_validation_literal.direct": 1,
+        "direct.embedding": 1,
+        "direct.audio": 2
+      },
+      "operations": {
+        "chat": 1,
+        "embedding": 1,
+        "audio": 2
+      },
+      "statuses": {
+        "success": 4
+      },
+      "cached_input_fraction": 0.0,
+      "chat_cached_input_fraction": 0.0,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.0
+    },
+    "cost-dev-runtime-0c762eedfb7d4c7babf2dc271cedeee7": {
+      "http_attempts": 2,
+      "priced_attempts": 0,
+      "unpriced_attempts": 2,
+      "missing_usage_attempts": 2,
+      "input_tokens": 0,
+      "cached_input_tokens": 0,
+      "chat_input_tokens": 0,
+      "chat_cached_input_tokens": 0,
+      "output_tokens": 0,
+      "reasoning_tokens": 0,
+      "estimated_usd_min": 0.0,
+      "estimated_usd_max": 0.0,
+      "uncached_same_usage_usd_min": 0.0,
+      "purposes": {
+        "direct.audio": 2
+      },
+      "operations": {
+        "audio": 2
+      },
+      "statuses": {
+        "success": 2
+      },
+      "cached_input_fraction": null,
+      "chat_cached_input_fraction": null,
+      "cache_cost_reduction_vs_same_usage_uncached": null
+    },
+    "cost-dev-runtime-d2c348ce035746e7b0d9ea0e04322000": {
+      "http_attempts": 1,
+      "priced_attempts": 0,
+      "unpriced_attempts": 1,
+      "missing_usage_attempts": 1,
+      "input_tokens": 0,
+      "cached_input_tokens": 0,
+      "chat_input_tokens": 0,
+      "chat_cached_input_tokens": 0,
+      "output_tokens": 0,
+      "reasoning_tokens": 0,
+      "estimated_usd_min": 0.0,
+      "estimated_usd_max": 0.0,
+      "uncached_same_usage_usd_min": 0.0,
+      "purposes": {
+        "direct.audio": 1
+      },
+      "operations": {
+        "audio": 1
+      },
+      "statuses": {
+        "success": 1
+      },
+      "cached_input_fraction": null,
+      "chat_cached_input_fraction": null,
+      "cache_cost_reduction_vs_same_usage_uncached": null
+    },
+    "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad": {
+      "http_attempts": 747,
+      "priced_attempts": 284,
+      "unpriced_attempts": 463,
+      "missing_usage_attempts": 4,
+      "input_tokens": 29105707,
+      "cached_input_tokens": 4754432,
+      "chat_input_tokens": 27034030,
+      "chat_cached_input_tokens": 4754432,
+      "output_tokens": 2102307,
+      "reasoning_tokens": 839054,
+      "estimated_usd_min": 4.617587195999998,
+      "estimated_usd_max": 8.834208707999997,
+      "uncached_same_usage_usd_min": 5.316488699999997,
+      "purposes": {
+        "direct.chat": 2,
+        "agent.research_step": 108,
+        "agent.final_synthesis": 42,
+        "ticker_business_model_research_dossier.direct": 25,
+        "retrieval.plan": 45,
+        "direct.embedding": 459,
+        "agent.answer_judge": 31,
+        "ticker_business_model_stack.direct": 25,
+        "ticker_business_model_research_dossier.repair": 10
+      },
+      "operations": {
+        "chat": 280,
+        "json_repair": 8,
+        "embedding": 459
+      },
+      "statuses": {
+        "success": 743,
+        "failure": 4
+      },
+      "cached_input_fraction": 0.1633505071702948,
+      "chat_cached_input_fraction": 0.175868414735058,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.1314592287198879
+    },
+    "cost-contract-dossier-bcd5fec443b7418291d935927240a816": {
+      "http_attempts": 5,
+      "priced_attempts": 5,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 262584,
+      "cached_input_tokens": 17664,
+      "chat_input_tokens": 262584,
+      "chat_cached_input_tokens": 17664,
+      "output_tokens": 161327,
+      "reasoning_tokens": 37713,
+      "estimated_usd_min": 0.133587192,
+      "estimated_usd_max": 0.267174384,
+      "uncached_same_usage_usd_min": 0.1361838,
+      "purposes": {
+        "ticker_business_model_research_dossier.direct": 4,
+        "ticker_business_model_research_dossier.repair": 1
+      },
+      "operations": {
+        "chat": 4,
+        "json_repair": 1
+      },
+      "statuses": {
+        "success": 5
+      },
+      "cached_input_fraction": 0.0672699022027237,
+      "chat_cached_input_fraction": 0.0672699022027237,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.01906693747714483
+    },
+    "cost-contract-dossier-7ffe7f037f1148eca859e8d66e4186cb": {
+      "http_attempts": 2,
+      "priced_attempts": 2,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 94095,
+      "cached_input_tokens": 70016,
+      "chat_input_tokens": 94095,
+      "chat_cached_input_tokens": 70016,
+      "output_tokens": 89403,
+      "reasoning_tokens": 41803,
+      "estimated_usd_min": 0.057463697999999994,
+      "estimated_usd_max": 0.11492739599999999,
+      "uncached_same_usage_usd_min": 0.06775605,
+      "purposes": {
+        "ticker_business_model_research_dossier.direct": 2
+      },
+      "operations": {
+        "chat": 1,
+        "json_repair": 1
+      },
+      "statuses": {
+        "success": 2
+      },
+      "cached_input_fraction": 0.7440990488336255,
+      "chat_cached_input_fraction": 0.7440990488336255,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.1519030699103623
+    },
+    "cost-contract-dossier-28259e58c16b4fbe8e017747ca5026fd": {
+      "http_attempts": 4,
+      "priced_attempts": 4,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 293257,
+      "cached_input_tokens": 4864,
+      "chat_input_tokens": 293257,
+      "chat_cached_input_tokens": 4864,
+      "output_tokens": 72065,
+      "reasoning_tokens": 22618,
+      "estimated_usd_min": 0.086512542,
+      "estimated_usd_max": 0.173025084,
+      "uncached_same_usage_usd_min": 0.08722754999999999,
+      "purposes": {
+        "ticker_business_model_research_dossier.direct": 4
+      },
+      "operations": {
+        "chat": 3,
+        "json_repair": 1
+      },
+      "statuses": {
+        "success": 4
+      },
+      "cached_input_fraction": 0.016586134346324215,
+      "chat_cached_input_fraction": 0.016586134346324215,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.008197043250670055
+    },
+    "cost-dev-contract-c465523f0d234a82b0ffa99669c3884d": {
+      "http_attempts": 10,
+      "priced_attempts": 10,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 501219,
+      "cached_input_tokens": 9728,
+      "chat_input_tokens": 501219,
+      "chat_cached_input_tokens": 9728,
+      "output_tokens": 206354,
+      "reasoning_tokens": 85220,
+      "estimated_usd_min": 0.19756523400000003,
+      "estimated_usd_max": 0.39513046800000007,
+      "uncached_same_usage_usd_min": 0.19899524999999998,
+      "purposes": {
+        "ticker_business_model_research_dossier.direct": 8,
+        "ticker_business_model_research_dossier.repair": 2
+      },
+      "operations": {
+        "chat": 10
+      },
+      "statuses": {
+        "success": 10
+      },
+      "cached_input_fraction": 0.01940868163417588,
+      "chat_cached_input_fraction": 0.01940868163417588,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.007186181579710849
+    },
+    "0063171f-6933-4f57-bad2-7d46a7bdc9a2": {
+      "http_attempts": 888,
+      "priced_attempts": 567,
+      "unpriced_attempts": 321,
+      "missing_usage_attempts": 7,
+      "input_tokens": 6009747,
+      "cached_input_tokens": 2116770,
+      "chat_input_tokens": 5993098,
+      "chat_cached_input_tokens": 2116770,
+      "output_tokens": 739687,
+      "reasoning_tokens": 500335,
+      "estimated_usd_min": 1.0316117099999997,
+      "estimated_usd_max": 1.408398231,
+      "uncached_same_usage_usd_min": 1.3427769000000003,
+      "purposes": {
+        "source_event_nomination.direct": 1,
+        "agent.research_step": 71,
+        "retrieval.plan": 18,
+        "direct.embedding": 314,
+        "agent.final_synthesis": 21,
+        "agent.answer_judge": 17,
+        "attention_candidate_research_plan": 12,
+        "direct.chat": 382,
+        "attention_search_relevance": 33,
+        "direct.audio": 1,
+        "daily_market_datapoints.direct": 2,
+        "daily_market_datapoints_review.direct": 2,
+        "page_summary_format.direct": 5,
+        "page_agentic_summary_review.direct": 5,
+        "agent.memory_reflection": 4
+      },
+      "operations": {
+        "chat": 569,
+        "embedding": 314,
+        "audio": 1,
+        "json_repair": 4
+      },
+      "statuses": {
+        "success": 882,
+        "failure": 6
+      },
+      "cached_input_fraction": 0.3522228140385943,
+      "chat_cached_input_fraction": 0.35320129922787846,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.2317326057664535
+    },
+    "cost-receipt-outage-517744c923204d8ea02375b5b26c79c2": {
+      "http_attempts": 1,
+      "priced_attempts": 1,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 422,
+      "cached_input_tokens": 256,
+      "chat_input_tokens": 422,
+      "chat_cached_input_tokens": 256,
+      "output_tokens": 8,
+      "reasoning_tokens": 0,
+      "estimated_usd_min": 3.0468e-05,
+      "estimated_usd_max": 3.0468e-05,
+      "uncached_same_usage_usd_min": 6.809999999999999e-05,
+      "purposes": {
+        "receipt_probe.direct": 1
+      },
+      "operations": {
+        "chat": 1
+      },
+      "statuses": {
+        "success": 1
+      },
+      "cached_input_fraction": 0.6066350710900474,
+      "chat_cached_input_fraction": 0.6066350710900474,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.5525991189427312
+    },
+    "5075d054-1d75-4fac-a5b7-ffd567acd387": {
+      "http_attempts": 5,
+      "priced_attempts": 5,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 237189,
+      "cached_input_tokens": 92416,
+      "chat_input_tokens": 237189,
+      "chat_cached_input_tokens": 92416,
+      "output_tokens": 27480,
+      "reasoning_tokens": 9241,
+      "estimated_usd_min": 0.038481197999999994,
+      "estimated_usd_max": 0.038481197999999994,
+      "uncached_same_usage_usd_min": 0.05206635,
+      "purposes": {
+        "agent.research_step": 5
+      },
+      "operations": {
+        "chat": 5
+      },
+      "statuses": {
+        "success": 5
+      },
+      "cached_input_fraction": 0.3896302105072326,
+      "chat_cached_input_fraction": 0.3896302105072326,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.2609199991933371
+    },
+    "cost-news-recovery-82ce766fa6584ff2b0f46c73bea510ac": {
+      "http_attempts": 18,
+      "priced_attempts": 7,
+      "unpriced_attempts": 11,
+      "missing_usage_attempts": 0,
+      "input_tokens": 2984983,
+      "cached_input_tokens": 1193984,
+      "chat_input_tokens": 2879792,
+      "chat_cached_input_tokens": 1193984,
+      "output_tokens": 31614,
+      "reasoning_tokens": 14077,
+      "estimated_usd_min": 0.27542155199999996,
+      "estimated_usd_max": 0.27542155199999996,
+      "uncached_same_usage_usd_min": 0.4509372,
+      "purposes": {
+        "agent.research_step": 4,
+        "retrieval.plan": 1,
+        "direct.embedding": 11,
+        "agent.final_synthesis": 1,
+        "agent.answer_judge": 1
+      },
+      "operations": {
+        "chat": 7,
+        "embedding": 11
+      },
+      "statuses": {
+        "success": 18
+      },
+      "cached_input_fraction": 0.3999969179053951,
+      "chat_cached_input_fraction": 0.4146077216687872,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.3892241491719912
+    },
+    "cost-aql-handoff-8f2499d87e7145c38c64cf7717d806f0": {
+      "http_attempts": 4,
+      "priced_attempts": 4,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 107878,
+      "cached_input_tokens": 1024,
+      "chat_input_tokens": 107878,
+      "chat_cached_input_tokens": 1024,
+      "output_tokens": 25712,
+      "reasoning_tokens": 20582,
+      "estimated_usd_min": 0.031458372,
+      "estimated_usd_max": 0.031458372,
+      "uncached_same_usage_usd_min": 0.031608899999999995,
+      "purposes": {
+        "attention_candidate_research_plan": 2,
+        "attention_symbol_writer": 2
+      },
+      "operations": {
+        "chat": 4
+      },
+      "statuses": {
+        "success": 4
+      },
+      "cached_input_fraction": 0.009492204156547212,
+      "chat_cached_input_fraction": 0.009492204156547212,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.004762203050406644
+    },
+    "cost-event-handoff-efb9aac3a85e458a8ebff405a035a137": {
+      "http_attempts": 3,
+      "priced_attempts": 3,
+      "unpriced_attempts": 0,
+      "missing_usage_attempts": 0,
+      "input_tokens": 112718,
+      "cached_input_tokens": 1920,
+      "chat_input_tokens": 112718,
+      "chat_cached_input_tokens": 1920,
+      "output_tokens": 25914,
+      "reasoning_tokens": 12232,
+      "estimated_usd_min": 0.03217386,
+      "estimated_usd_max": 0.03217386,
+      "uncached_same_usage_usd_min": 0.032456099999999995,
+      "purposes": {
+        "agent.research_step": 1,
+        "agent.final_synthesis": 1,
+        "agent.answer_judge": 1
+      },
+      "operations": {
+        "chat": 3
+      },
+      "statuses": {
+        "success": 3
+      },
+      "cached_input_fraction": 0.017033659220355223,
+      "chat_cached_input_fraction": 0.017033659220355223,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.008696054054553537
+    },
+    "3ad5164a-f4a1-4a62-88a2-a56b130a0684": {
+      "http_attempts": 854,
+      "priced_attempts": 533,
+      "unpriced_attempts": 321,
+      "missing_usage_attempts": 8,
+      "input_tokens": 5561403,
+      "cached_input_tokens": 1865124,
+      "chat_input_tokens": 5542486,
+      "chat_cached_input_tokens": 1865124,
+      "output_tokens": 686417,
+      "reasoning_tokens": 455624,
+      "estimated_usd_min": 0.969049872,
+      "estimated_usd_max": 1.2131975640000008,
+      "uncached_same_usage_usd_min": 1.2432231,
+      "purposes": {
+        "source_event_nomination.direct": 1,
+        "agent.research_step": 65,
+        "retrieval.plan": 19,
+        "direct.embedding": 313,
+        "agent.final_synthesis": 22,
+        "agent.answer_judge": 11,
+        "attention_candidate_research_plan": 12,
+        "attention_search_relevance": 38,
+        "direct.chat": 341,
+        "attention_symbol_writer": 12,
+        "direct.audio": 1,
+        "daily_market_datapoints.direct": 2,
+        "daily_market_datapoints_review.direct": 2,
+        "agent.memory_reflection": 5,
+        "page_summary_format.direct": 5,
+        "page_agentic_summary_review.direct": 5
+      },
+      "operations": {
+        "chat": 537,
+        "embedding": 313,
+        "json_repair": 3,
+        "audio": 1
+      },
+      "statuses": {
+        "success": 847,
+        "failure": 7
+      },
+      "cached_input_fraction": 0.3353693303650176,
+      "chat_cached_input_fraction": 0.3365139758584866,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.22053421304671705
+    },
+    "cost-event-budget-f47ee5b7bd4647718eafc29debe271b8": {
+      "http_attempts": 26,
+      "priced_attempts": 16,
+      "unpriced_attempts": 10,
+      "missing_usage_attempts": 0,
+      "input_tokens": 1800543,
+      "cached_input_tokens": 1260416,
+      "chat_input_tokens": 1800421,
+      "chat_cached_input_tokens": 1260416,
+      "output_tokens": 68065,
+      "reasoning_tokens": 24160,
+      "estimated_usd_min": 0.12562099799999998,
+      "estimated_usd_max": 0.12562099799999998,
+      "uncached_same_usage_usd_min": 0.31090215,
+      "purposes": {
+        "agent.research_step": 11,
+        "agent.final_synthesis": 2,
+        "retrieval.plan": 1,
+        "direct.embedding": 10,
+        "agent.answer_judge": 2
+      },
+      "operations": {
+        "chat": 15,
+        "json_repair": 1,
+        "embedding": 10
+      },
+      "statuses": {
+        "success": 26
+      },
+      "cached_input_fraction": 0.7000199384296848,
+      "chat_cached_input_fraction": 0.7000673731310622,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.5959468340762519
+    },
+    "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18": {
+      "http_attempts": 821,
+      "priced_attempts": 519,
+      "unpriced_attempts": 302,
+      "missing_usage_attempts": 8,
+      "input_tokens": 16036187,
+      "cached_input_tokens": 6747026,
+      "chat_input_tokens": 15996387,
+      "chat_cached_input_tokens": 6747026,
+      "output_tokens": 772106,
+      "reasoning_tokens": 481866,
+      "estimated_usd_min": 1.8709088279999995,
+      "estimated_usd_max": 3.448423746000001,
+      "uncached_same_usage_usd_min": 2.862721650000001,
+      "purposes": {
+        "source_event_nomination.direct": 1,
+        "agent.research_step": 91,
+        "retrieval.plan": 17,
+        "direct.embedding": 294,
+        "agent.final_synthesis": 23,
+        "agent.answer_judge": 22,
+        "attention_candidate_research_plan": 12,
+        "attention_search_relevance": 30,
+        "direct.chat": 301,
+        "attention_symbol_writer": 12,
+        "direct.audio": 1,
+        "daily_market_datapoints.direct": 2,
+        "daily_market_datapoints_review.direct": 2,
+        "page_summary_format.direct": 5,
+        "page_agentic_summary_review.direct": 5,
+        "agent.memory_reflection": 3
+      },
+      "operations": {
+        "chat": 522,
+        "embedding": 294,
+        "json_repair": 4,
+        "audio": 1
+      },
+      "statuses": {
+        "success": 814,
+        "failure": 7
+      },
+      "cached_input_fraction": 0.42073754814657627,
+      "chat_cached_input_fraction": 0.4217843691828661,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.34645800160137863
+    }
+  },
+  "dev_promotion": [
+    {
+      "target": "trading-agent-build-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:f4cfc997e3b468a374ac5de3fecf429739adf982ab768d1f35573d7c7292118f",
+      "build_run": "cj138",
+      "public_artifact_producer": true,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": true
+    },
+    {
+      "target": "macro-fred-daily-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:75c9aa58dbc20423272e7551e588cea6a6ca95a649ad748cf19ed1163c9be4f1",
+      "build_run": "cj136",
+      "public_artifact_producer": true,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": true
+    },
+    {
+      "target": "sn-research-run-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:d4165e75e9f3da972b428401b1077d3d6ca67a868b3e748f7ec38f3842e4d496",
+      "build_run": "cj137",
+      "public_artifact_producer": false,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": false
+    },
+    {
+      "target": "daily-datapoints-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+      "build_run": "cj139",
+      "public_artifact_producer": true,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": true
+    },
+    {
+      "target": "attention-home-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+      "build_run": "cj139",
+      "public_artifact_producer": true,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": false
+    },
+    {
+      "target": "equities-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+      "build_run": "cj139",
+      "public_artifact_producer": true,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": false
+    },
+    {
+      "target": "technical-history-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:98ed511cf06181cc056e13197dcfd62b7a1b4338b2ed870f7a97834ef64b235f",
+      "build_run": "cj13a",
+      "public_artifact_producer": true,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": true
+    },
+    {
+      "target": "attention-ticker-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:98ed511cf06181cc056e13197dcfd62b7a1b4338b2ed870f7a97834ef64b235f",
+      "build_run": "cj13a",
+      "public_artifact_producer": true,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": true
+    },
+    {
+      "target": "evidence-index-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+      "build_run": "cj139",
+      "public_artifact_producer": true,
+      "protected_configuration_verified": true,
+      "settings_scope": "development",
+      "explicit_track_added": false
+    },
+    {
+      "target": "sn-api-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:713d41d1418415b5ccbc1a86b052c267529a10b4b5bbf7d94dc121ae4df41fb6",
+      "build_run": "cj13b",
+      "public_artifact_producer": false,
+      "protected_configuration_verified": true,
+      "latestRevisionName": "sn-api-next-dev--0000028",
+      "latestReadyRevisionName": "sn-api-next-dev--0000027",
+      "provisioningState": "Succeeded",
+      "runningStatus": "Running"
+    }
+  ],
+  "api_live_check": {
+    "revision": "sn-api-next-dev--0000028",
+    "health_status": 200,
+    "llm_settings_scope": "development",
+    "public_artifact_rows": 2,
+    "private_producer_scope": "",
+    "receipt_reconciliation": {
+      "reconciled": 8,
+      "scan_complete": true
+    },
+    "artifact_context_passed": true,
+    "complete_findings_passed": true,
+    "public_tool_context_chars": 84175,
+    "source_event_budget_seconds": 600,
+    "unauthenticated_admin_status": 401
+  },
+  "planning_savings_fraction": 0.49,
+  "whole_workload_savings_observed": false,
+  "pricing_note": "Versioned published token estimates, not invoices. Peak/holiday uncertainty is a range. Unknown Azure embedding/audio prices and absent usage remain explicitly unpriced.",
+  "large_literal_conversion": {
+    "root_run_id": "cost-large-conversion-a0f417217d474d8b859b58ac437847a3",
+    "seconds": 105.26519395801006,
+    "input_chars": 107569,
+    "schema_valid": true,
+    "exact_fields_preserved": true,
+    "changed_fields": []
+  },
+  "public_tool_context": {
+    "subjects": [
+      "company:GRAL",
+      "company:MRNA"
+    ],
+    "complete_artifacts": 3,
+    "full_context_exact": true,
+    "context_chars": 119642,
+    "user_preview": "3 items (artifact_id, subject, task, created_at_utc)"
+  },
+  "shared_schema_change": "Additive shared provider-attempt and execution-state tables; production images were not deployed.",
+  "prior_stopped_validation": {
+    "job": "trading-agent-build-dev",
+    "execution": "trading-agent-build-dev-m9f6a0z",
+    "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:d146858a1b40a25eed4b0fdee2bf9edbc604e2a5848d2490a9a0471e2cf9a559",
+    "namespace": "development",
+    "workload": "full existing news workload",
+    "public_artifact_scope": "public_company_research",
+    "template_configuration_unchanged": true,
+    "run_id": "33403e79-5965-483e-9d26-a4fb0bf082b7",
+    "status": "Stopped",
+    "reason": "Serper credit exhausted; not an accepted workload."
+  },
+  "deployed_runtime_reuse": {
+    "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:cbf028d6d4b3bdadca87fef0c87c4635e47db52f6077df7b205e2ec763f8cf7d",
+    "seconds": 25.716124429999994,
+    "subject": "company:IOVA",
+    "audio_bytes": 1949405,
+    "root_run_id": "cost-dev-runtime-d2c348ce035746e7b0d9ea0e04322000",
+    "actual_attempts": {
+      "audio": 1
+    },
+    "complete_tool_rows": 2,
+    "audio_first_attempts": {
+      "audio": 1
+    },
+    "graph_first_attempts": {},
+    "audio_replay_attempts": {
+      "audio": 1
+    },
+    "graph_replay_attempts": {},
+    "literal_questions_exact": true,
+    "research_first_attempts": {},
+    "tool_full_context_exact": true,
+    "research_replay_attempts": {},
+    "research_replay_additional_attempts": 0,
+    "audio_durable_replay_additional_attempts": 0,
+    "graph_durable_replay_additional_attempts": 0
+  },
+  "final_dev_configuration": {
+    "checked_at_utc": "2026-10-14T05:55:06.799933+00:00",
+    "all_verified": true,
+    "targets": [
+      {
+        "target": "trading-agent-build-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:f4cfc997e3b468a374ac5de3fecf429739adf982ab768d1f35573d7c7292118f",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": true
+      },
+      {
+        "target": "macro-fred-daily-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:75c9aa58dbc20423272e7551e588cea6a6ca95a649ad748cf19ed1163c9be4f1",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": true
+      },
+      {
+        "target": "sn-research-run-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:d4165e75e9f3da972b428401b1077d3d6ca67a868b3e748f7ec38f3842e4d496",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": false
+      },
+      {
+        "target": "attention-home-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": true
+      },
+      {
+        "target": "daily-datapoints-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": true
+      },
+      {
+        "target": "equities-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": true
+      },
+      {
+        "target": "evidence-index-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": true
+      },
+      {
+        "target": "attention-ticker-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:98ed511cf06181cc056e13197dcfd62b7a1b4338b2ed870f7a97834ef64b235f",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": true
+      },
+      {
+        "target": "technical-history-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:98ed511cf06181cc056e13197dcfd62b7a1b4338b2ed870f7a97834ef64b235f",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": true
+      },
+      {
+        "target": "sn-api-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:713d41d1418415b5ccbc1a86b052c267529a10b4b5bbf7d94dc121ae4df41fb6",
+        "settings_scope": "development",
+        "dataset_namespace": "development",
+        "public_artifact_producer": false,
+        "ready_revision": "sn-api-next-dev--0000028"
+      }
+    ],
+    "production_changed": false
+  },
+  "baseline_captured_usage": {
+    "logical_calls": 963,
+    "captured_adapter_repairs": 41,
+    "priced_responses": 982,
+    "unpriced_responses": 22,
+    "input_tokens": 22811266,
+    "cached_input_tokens": 3614336,
+    "output_tokens": 3582878,
+    "reasoning_tokens": 2114375,
+    "common_offpeak_usd": 5.040109307999999,
+    "purposes": {
+      "agent.research_step": 169,
+      "agent.trajectory_monitor": 99,
+      "agent.final_synthesis": 33,
+      "agent.answer_judge": 37,
+      "ticker_business_model_research_dossier.direct": 25,
+      "ticker_business_model_slot.direct": 573,
+      "ticker_business_model_stack.direct": 25,
+      "ticker_business_model_research_dossier.repair": 1,
+      "attention_search_relevance": 1
+    },
+    "baseline_run": [
+      "eca74e45-d8a9-4606-aba4-316a1923a560",
+      "news-ingest-and-features",
+      "Succeeded",
+      "2026-10-11 19:22:27.041491+00:00",
+      "2026-10-11 21:09:13.745354+00:00",
+      null
+    ],
+    "attribution": "Captured gateway calls by production scope, job name and exact accepted job time window; nested calls included. Transport retries, some direct calls, embeddings/audio and missing usage remain incomplete.",
+    "missing_primary_usage_calls": 22
+  },
+  "captured_cold_run_comparison": {
+    "baseline": {
+      "logical_calls": 963,
+      "captured_adapter_repairs": 41,
+      "priced_responses": 982,
+      "unpriced_responses": 22,
+      "input_tokens": 22811266,
+      "cached_input_tokens": 3614336,
+      "output_tokens": 3582878,
+      "reasoning_tokens": 2114375,
+      "common_offpeak_usd": 5.040109307999999,
+      "purposes": {
+        "agent.research_step": 169,
+        "agent.trajectory_monitor": 99,
+        "agent.final_synthesis": 33,
+        "agent.answer_judge": 37,
+        "ticker_business_model_research_dossier.direct": 25,
+        "ticker_business_model_slot.direct": 573,
+        "ticker_business_model_stack.direct": 25,
+        "ticker_business_model_research_dossier.repair": 1,
+        "attention_search_relevance": 1
+      },
+      "baseline_run": [
+        "eca74e45-d8a9-4606-aba4-316a1923a560",
+        "news-ingest-and-features",
+        "Succeeded",
+        "2026-10-11 19:22:27.041491+00:00",
+        "2026-10-11 21:09:13.745354+00:00",
+        null
+      ],
+      "attribution": "Captured gateway calls by production scope, job name and exact accepted job time window; nested calls included. Transport retries, some direct calls, embeddings/audio and missing usage remain incomplete.",
+      "missing_primary_usage_calls": 22
+    },
+    "new_workload_roots": {
+      "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad": {
+        "attempts": 747,
+        "priced_chat_responses": 284,
+        "unpriced_or_missing_chat_responses": 4,
+        "input_tokens": 27034030,
+        "cached_input_tokens": 4754432,
+        "output_tokens": 2102307,
+        "reasoning_tokens": 839054,
+        "common_offpeak_usd": 4.617587195999998,
+        "purposes": {
+          "direct.chat": 2,
+          "agent.research_step": 108,
+          "agent.final_synthesis": 42,
+          "ticker_business_model_research_dossier.direct": 25,
+          "retrieval.plan": 45,
+          "agent.answer_judge": 31,
+          "ticker_business_model_stack.direct": 25,
+          "ticker_business_model_research_dossier.repair": 10
+        }
+      },
+      "cost-dev-contract-c465523f0d234a82b0ffa99669c3884d": {
+        "attempts": 10,
+        "priced_chat_responses": 10,
+        "unpriced_or_missing_chat_responses": 0,
+        "input_tokens": 501219,
+        "cached_input_tokens": 9728,
+        "output_tokens": 206354,
+        "reasoning_tokens": 85220,
+        "common_offpeak_usd": 0.197565234,
+        "purposes": {
+          "ticker_business_model_research_dossier.direct": 8,
+          "ticker_business_model_research_dossier.repair": 2
+        }
+      },
+      "5075d054-1d75-4fac-a5b7-ffd567acd387": {
+        "attempts": 5,
+        "priced_chat_responses": 5,
+        "unpriced_or_missing_chat_responses": 0,
+        "input_tokens": 237189,
+        "cached_input_tokens": 92416,
+        "output_tokens": 27480,
+        "reasoning_tokens": 9241,
+        "common_offpeak_usd": 0.038481197999999994,
+        "purposes": {
+          "agent.research_step": 5
+        }
+      },
+      "cost-news-recovery-82ce766fa6584ff2b0f46c73bea510ac": {
+        "attempts": 18,
+        "priced_chat_responses": 7,
+        "unpriced_or_missing_chat_responses": 0,
+        "input_tokens": 2879792,
+        "cached_input_tokens": 1193984,
+        "output_tokens": 31614,
+        "reasoning_tokens": 14077,
+        "common_offpeak_usd": 0.275421552,
+        "purposes": {
+          "agent.research_step": 4,
+          "retrieval.plan": 1,
+          "agent.final_synthesis": 1,
+          "agent.answer_judge": 1
+        }
+      }
+    },
+    "first_cold_run_captured_change_fraction": 0.08383193422597912,
+    "cold_run_plus_recovery_captured_change_fraction": -0.01764760773319307,
+    "limitations": [
+      "The October 11 production baseline uses logical gateway responses; the new attempt ledger includes additional direct paths and retries.",
+      "Different dates and source inputs, development knowledge writes disabled, initial cache population and later contract revisions.",
+      "Three known original news receipts were not persisted before the durable fallback. Missing usage and unknown Azure embedding/audio prices remain excluded.",
+      "This is a captured common-price observation, not a controlled percentage saving or an invoice. The final dossier/consumer improvements are validated separately, not represented by the original cold run."
+    ]
+  },
+  "production_image_comparison": {
+    "production_job_images_compared": 16,
+    "all_unchanged": true,
+    "application_or_job_production_deployments": 0
+  },
+  "full_run_company_output_review": {
+    "c661937f028666611af9663ca093c758f9591cf5110b91102a050ef9c9b56bb6": {
+      "subject": "company:AXTI",
+      "complete_narrative_read": true,
+      "assessment": "Useful business economics, dated operating inflection, customer commitments and policy/competitive connections. Future capacity and market-size tension is framed as a research question. Gaps are separate. Not a certification of every financial claim."
+    },
+    "66c0d3a732b9a571f4f79132326bf3a04f8b0d28be7aed6acfb16615824e54e1": {
+      "subject": "company:GRAL",
+      "complete_narrative_read": true,
+      "assessment": "Useful link between clinical evidence, FDA advisory vote, pricing mix and coverage, with specific source contradiction retained. Does not establish final regulatory or legal status."
+    },
+    "f6e944bb8861833abb9174b9b3eed6897ecb91f26b18432245b89a1d2a5edbd5": {
+      "subject": "company:MRNA",
+      "complete_narrative_read": true,
+      "assessment": "Connects product portfolio, seasonal revenue, policy, trial outcomes and financing with specific dated follow-up. A static burn comparison is a scenario, not a validated prediction."
+    },
+    "3444647395d687180be2c2c93b1413eb7c10ac2c411aec1dc7ee7d7bdbe6feef": {
+      "subject": "company:IOVA",
+      "complete_narrative_read": true,
+      "assessment": "Useful current guidance, center capacity, reimbursement and European regulatory context. Known reasoning limitation: infers impossibility of backlog from a patient-specific product; product mechanics do not establish that. Not accepted as ground truth or repaired with ticker-specific rules."
+    },
+    "bb212382f3f3627293983da34b98c66a60ca7e59f8589198eef710d7debaecae": {
+      "subject": "company:KOD",
+      "complete_narrative_read": true,
+      "assessment": "Useful clinical readouts, manufacturing partnership, financing context and specific regulatory follow-up. Dossier contract failed in this run; story retained direct evidence. Structural failure is under repair at the shared owner."
+    },
+    "94a3e2de884f8b58d9704a13a6719dffb5920d9648337ff0989d45752281e523": {
+      "subject": "company:LITE",
+      "complete_narrative_read": true,
+      "assessment": "Useful optical product/customer/capacity links, separates demand statements, purchase obligations and customer orders. Financial reconciliation and timing remain explicit open questions."
+    },
+    "38751cf5c862d47a5289aa7dc7078a101c671d321106cc72b19ea0cd190e05f8": {
+      "subject": "company:TEAM",
+      "complete_narrative_read": true,
+      "assessment": "Useful cloud growth, product retirement, AI adoption/seat concerns and cash links. Keeps unverified seat-decline claim as a hypothesis, not a publication gate or a confirmed result."
+    },
+    "15105a84186378ac6fba62c931f540d90c1e620a020787bfe4a37b146c27f82b": {
+      "subject": "company:WFF",
+      "complete_output_read": true,
+      "assessment": "Coherent business explanation, dated developments, indirect relationships and open questions retained. Claims are research hypotheses; numerical predictions not validated."
+    },
+    "45e85b364e501a66d4f2d212bb0035d1ca336a1b599a8e8fefefbf04093d9682": {
+      "subject": "company:TXG",
+      "complete_output_read": true,
+      "assessment": "Coherent business explanation, dated developments, indirect relationships and open questions retained. Claims are research hypotheses; numerical predictions not validated."
+    },
+    "2c23ec369a9dc8d46b2dfe4482be2f798071d8dc09f23526cee0cc1aa3cfa71f": {
+      "subject": "company:CTVA",
+      "complete_output_read": true,
+      "assessment": "Coherent business explanation, dated developments, indirect relationships and open questions retained. Claims are research hypotheses; numerical predictions not validated."
+    },
+    "aee8479f511e4b57f44178435c96327130de1fbf21557df25f43eed41626508a": {
+      "subject": "company:XP",
+      "complete_output_read": true,
+      "assessment": "Coherent explanations and related demand, financing and competition hypotheses. Preserves open questions and dates. Cost changes have not removed research breadth."
+    },
+    "236165d5fb92ce8c788dc54f9735eef52055419f278f2b9a73ca2b2762ae66b6": {
+      "subject": "company:ASST",
+      "complete_output_read": true,
+      "assessment": "Coherent explanations and related demand, financing and competition hypotheses. Preserves open questions and dates. Cost changes have not removed research breadth."
+    },
+    "920bd9a7088118d8721c66c505a5d76af6c2c5158541ebf23a7d300db6c1c330": {
+      "subject": "company:MXL",
+      "complete_output_read": true,
+      "assessment": "Coherent explanations and related demand, financing and competition hypotheses. Preserves open questions and dates. Cost changes have not removed research breadth."
+    },
+    "75d50692b32ffd48286d2746857ef2578dd2e8a7b209e6860ff5ed74ef7459a2": {
+      "subject": "company:MU",
+      "complete_output_read": true,
+      "assessment": "Preserves current developments, indirect supply and financing relationships, contradictory source metrics and material follow-up questions. Research narratives useful; predictions and numerical claims are not independently certified."
+    },
+    "e9b63cc01552f3be050e40b5ca6443971db48733ba3b8109277bab29c2dbcd38": {
+      "subject": "company:VICR",
+      "complete_output_read": true,
+      "assessment": "Preserves current developments, indirect supply and financing relationships, contradictory source metrics and material follow-up questions. Research narratives useful; predictions and numerical claims are not independently certified."
+    },
+    "b02cd61dc5bed419bcce440ba32f989079f65061add8b394c93e6e3637b4fe65": {
+      "subject": "company:LQDA",
+      "complete_output_read": true,
+      "assessment": "Preserves current developments, indirect supply and financing relationships, contradictory source metrics and material follow-up questions. Research narratives useful; predictions and numerical claims are not independently certified."
+    },
+    "a17090a4265fb97308668113c9ea4bcf98f8b6333052a44e936a10692abfa608": {
+      "subject": "company:PCRX",
+      "complete_output_read": true,
+      "assessment": "Useful dated company developments, product economics and adjacent relationships. Merger and financing uncertainties remain visible. Ordinary LLM estimation and reasoning uncertainty remains."
+    },
+    "26a43af20fcc8474577d8cf136bf1824e814465bd6f588ac9e295bce723ad4b3": {
+      "subject": "company:PTC",
+      "complete_output_read": true,
+      "assessment": "Useful dated company developments, product economics and adjacent relationships. Merger and financing uncertainties remain visible. Ordinary LLM estimation and reasoning uncertainty remains."
+    },
+    "91ca3c448f1b603ff2d9daabe14614ca6e75ce029b94d7d20e46c16f60e1f3ca": {
+      "subject": "company:BMNR",
+      "complete_output_read": true,
+      "assessment": "Useful dated company developments, product economics and adjacent relationships. Merger and financing uncertainties remain visible. Ordinary LLM estimation and reasoning uncertainty remains."
+    },
+    "ffe3c8410312e0ee39cfb75bc4c79d34be5bbc51a4e92db01d3547e0c389f7be": {
+      "subject": "company:PRAX",
+      "complete_output_read": true,
+      "assessment": "Substantive explanations retain related clinical, regulatory, demand and credit developments. Forecasts and causal claims distinguished from reported observations. No recall cuts observed from consolidation."
+    },
+    "25c13abd431d2d110bb38845d7609b22081ee29c1ec71a6680770043380e0ca0": {
+      "subject": "company:SYRE",
+      "complete_output_read": true,
+      "assessment": "Substantive explanations retain related clinical, regulatory, demand and credit developments. Forecasts and causal claims distinguished from reported observations. No recall cuts observed from consolidation."
+    },
+    "691c8ebcc1673f4dbd987d477efa84834e2d3ead9a8700f0f78407c0fa949c50": {
+      "subject": "company:INTR",
+      "complete_output_read": true,
+      "assessment": "Substantive explanations retain related clinical, regulatory, demand and credit developments. Forecasts and causal claims distinguished from reported observations. No recall cuts observed from consolidation."
+    },
+    "f2d778884f2c55f4b28f74f45db76ec152f687772fba219d4b8609bf542dae3b": {
+      "subject": "company:ERAS",
+      "complete_output_read": true,
+      "assessment": "Useful patent/clinical and contracted-demand explanations; indirect connections and open questions retained. Source-contract failure in earlier dossier is under replay, rather than hidden by successful final narrative."
+    },
+    "d3e3e796d08f88be1dd93f75e6481f2cc658becbb37572c28678d9e120c13678": {
+      "subject": "company:SNDK",
+      "complete_output_read": true,
+      "assessment": "Useful patent/clinical and contracted-demand explanations; indirect connections and open questions retained. Source-contract failure in earlier dossier is under replay, rather than hidden by successful final narrative."
+    },
+    "bdffa7b69b7c3f139bec073484279e35440031f8aeaa549f16565a8124b940a7": {
+      "subject": "company:TWST",
+      "complete_output_read": true,
+      "assessment": "Coherent business and AI-demand connections, financing and customer-concentration questions. Ordinary LLM terminology errors remain: unsatisfied performance obligations are RPO rather than a separate substitute. No semantic gate or issuer-specific rule added."
+    }
+  },
+  "full_news_output_acceptance": {
+    "recorded_at_utc": "2026-10-14T05:26:05.987164+00:00",
+    "run_id": "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad",
+    "execution": "trading-agent-build-dev-8gs9fg0",
+    "datasets": {
+      "zopedia_ticker_business_model_stacks": {
+        "version": "development__zopedia_ticker_business_model_stacks__20261014T021914Z__e3d7606f",
+        "rows": 25,
+        "statuses": {
+          "ready": 23,
+          "partial": 2
+        },
+        "outputs": [
+          {
+            "symbol": "IOVA",
+            "company_name": "Iovance Biotherapeutics, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 6136
+          },
+          {
+            "symbol": "MRNA",
+            "company_name": "Moderna, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 6564
+          },
+          {
+            "symbol": "AXTI",
+            "company_name": "AXT Inc - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5516
+          },
+          {
+            "symbol": "GRAL",
+            "company_name": "GRAIL, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5062
+          },
+          {
+            "symbol": "KOD",
+            "company_name": "Kodiak Sciences Inc - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5481
+          },
+          {
+            "symbol": "TEAM",
+            "company_name": "Atlassian Corporation  - Class A Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5316
+          },
+          {
+            "symbol": "LITE",
+            "company_name": "Lumentum Holdings Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 6364
+          },
+          {
+            "symbol": "TXG",
+            "company_name": "10x Genomics, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5216
+          },
+          {
+            "symbol": "WFF",
+            "company_name": "WF Holding Limited - Ordinary Shares",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5705
+          },
+          {
+            "symbol": "CTVA",
+            "company_name": "Corteva, Inc. Common Stock",
+            "status": "partial",
+            "confidence": "medium",
+            "story_chars": 4775
+          },
+          {
+            "symbol": "ASST",
+            "company_name": "Strive, Inc. - Class A Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 4965
+          },
+          {
+            "symbol": "XP",
+            "company_name": "XP Inc. - Class A Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5358
+          },
+          {
+            "symbol": "MXL",
+            "company_name": "MaxLinear, Inc - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5671
+          },
+          {
+            "symbol": "MU",
+            "company_name": "Micron Technology, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "high",
+            "story_chars": 5936
+          },
+          {
+            "symbol": "VICR",
+            "company_name": "Vicor Corporation - Common Stock",
+            "status": "partial",
+            "confidence": "medium",
+            "story_chars": 6023
+          },
+          {
+            "symbol": "LQDA",
+            "company_name": "Liquidia Corporation - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5348
+          },
+          {
+            "symbol": "PCRX",
+            "company_name": "Pacira BioSciences, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5775
+          },
+          {
+            "symbol": "PTC",
+            "company_name": "PTC Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 6089
+          },
+          {
+            "symbol": "INTR",
+            "company_name": "Inter & Co. Inc. - Class A Common Shares",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5005
+          },
+          {
+            "symbol": "PRAX",
+            "company_name": "Praxis Precision Medicines, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5604
+          },
+          {
+            "symbol": "SYRE",
+            "company_name": "Spyre Therapeutics, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 7418
+          },
+          {
+            "symbol": "BMNR",
+            "company_name": "BitMine Immersion Technologies, Inc. Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 5558
+          },
+          {
+            "symbol": "SNDK",
+            "company_name": "Sandisk Corporation - Common Stock When-Issued",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 7312
+          },
+          {
+            "symbol": "ERAS",
+            "company_name": "Erasca, Inc. - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 6234
+          },
+          {
+            "symbol": "TWST",
+            "company_name": "Twist Bioscience Corporation - Common Stock",
+            "status": "ready",
+            "confidence": "medium",
+            "story_chars": 6909
+          }
+        ]
+      },
+      "zopedia_news_business_resolutions": {
+        "version": "development__zopedia_news_business_resolutions__20261014T044306Z__9abcd0b8",
+        "rows": 12,
+        "statuses": {
+          "resolved": 11,
+          "cold_start_prepared": 1
+        },
+        "outputs": [
+          {
+            "symbol": "MU",
+            "company_name": "Micron Technology, Inc. - Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 4487
+          },
+          {
+            "symbol": "SNDK",
+            "company_name": "Sandisk Corporation - Common Stock When-Issued",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 3337
+          },
+          {
+            "symbol": "LQDA",
+            "company_name": "Liquidia Corporation - Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 4318
+          },
+          {
+            "symbol": "LQDA",
+            "company_name": "Liquidia Corporation - Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 4781
+          },
+          {
+            "symbol": "WFF",
+            "company_name": "WF Holding Limited - Ordinary Shares",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 3920
+          },
+          {
+            "symbol": "MU",
+            "company_name": "Micron Technology, Inc. - Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 4660
+          },
+          {
+            "symbol": "ASST",
+            "company_name": "Strive, Inc. - Class A Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 5971
+          },
+          {
+            "symbol": "ASST",
+            "company_name": "Strive, Inc. - Class A Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 4934
+          },
+          {
+            "symbol": "MSTR",
+            "company_name": "Strategy Inc - Class A Common Stock",
+            "status": "cold_start_prepared",
+            "confidence": "medium",
+            "story_chars": 4537
+          },
+          {
+            "symbol": "LITE",
+            "company_name": "Lumentum Holdings Inc. - Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 3665
+          },
+          {
+            "symbol": "MU",
+            "company_name": "Micron Technology, Inc. - Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 4616
+          },
+          {
+            "symbol": "MRNA",
+            "company_name": "Moderna, Inc. - Common Stock",
+            "status": "resolved",
+            "confidence": "medium",
+            "story_chars": 4173
+          }
+        ]
+      },
+      "zopedia_company_business_memory_pages": {
+        "version": "development__zopedia_company_business_memory_pages__20261014T021914Z__e3d7606f",
+        "rows": 24,
+        "statuses": {
+          "active": 24
+        }
+      },
+      "zopedia_memory_commit_report": {
+        "version": "development__zopedia_memory_commit_report__20261014T021914Z__e3d7606f",
+        "rows": 1,
+        "statuses": {
+          "skipped": 1
+        },
+        "reports": [
+          {
+            "run_id": "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad",
+            "asof_time_utc": "2026-10-14T02:19:14.572244+00:00",
+            "source": "pipeline.news_business_resolution",
+            "write_policy": "none",
+            "status": "skipped",
+            "reason": "write_policy_none",
+            "mutation_type": "",
+            "requested_page_count": 24,
+            "eligible_page_count": 0,
+            "rejected_page_count": 0,
+            "committed_page_count": 0,
+            "mutation_id": "",
+            "proposal_id": "",
+            "rejected_pages_json": "[]",
+            "created_at_utc": "2026-10-14T04:06:28.740804+00:00"
+          }
+        ]
+      }
+    },
+    "publication_lineage": {
+      "rows": 12,
+      "repair_root": "cost-news-recovery-82ce766fa6584ff2b0f46c73bea510ac",
+      "row_run_ids": [
+        "cost-news-recovery-82ce766fa6584ff2b0f46c73bea510ac",
+        "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad"
+      ],
+      "parent_run_id": "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad",
+      "recovered_rows": 1,
+      "source_version": "development__zopedia_news_business_resolutions__20261014T021914Z__e3d7606f",
+      "unchanged_rows": 11,
+      "publication_run_id": "9abcd0b8-d8d5-40bd-a4de-718ccf06dda4",
+      "complete_narratives": 12,
+      "knowledge_mutations": false,
+      "historical_failed_job_status_preserved": true
+    },
+    "all_25_company_narratives_present": true,
+    "all_12_news_narratives_present": true,
+    "original_execution_status": "Failed",
+    "repaired_output_publication": true,
+    "complete_news_narratives_personally_read": 12,
+    "qualitative_review_notes": [
+      "Incoming source events remain distinct from existing business context; adjacent-sector and macro relationships are retained without ticker rules.",
+      "Opinions and unconfirmed new-company leads remain available with their evidence state.",
+      "The Micron supplier-event output still misses a newer contract-book fact visible in parallel event outputs; dated prior context remains fallible and is not certified as current fact."
+    ],
+    "historical_failed_execution_reclassified": false
+  },
+  "news_recovery_publication": {
+    "rows": 12,
+    "repair_root": "cost-news-recovery-82ce766fa6584ff2b0f46c73bea510ac",
+    "row_run_ids": [
+      "cost-news-recovery-82ce766fa6584ff2b0f46c73bea510ac",
+      "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad"
+    ],
+    "parent_run_id": "e3d7606f-6f3d-4a02-a8e6-e4b3d4a220ad",
+    "recovered_rows": 1,
+    "source_version": "development__zopedia_news_business_resolutions__20261014T021914Z__e3d7606f",
+    "unchanged_rows": 11,
+    "publication_run_id": "9abcd0b8-d8d5-40bd-a4de-718ccf06dda4",
+    "complete_narratives": 12,
+    "knowledge_mutations": false,
+    "historical_failed_job_status_preserved": true
+  },
+  "full_home_output_acceptance": {
+    "recorded_at_utc": "2026-10-14T06:45:00.971401+00:00",
+    "run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+    "execution": "attention-home-next-dev-jvwbbok",
+    "database_status": "Succeeded",
+    "platform_status": "Succeeded",
+    "primary_ticker_investigations_completed": 12,
+    "source_event_investigations_completed": 4,
+    "public_stories_personally_read": 8,
+    "optional_page_summaries_completed_and_personally_read": 5,
+    "summary_completed_and_personally_read": true,
+    "all_five_chart_contexts_personally_read": true,
+    "audio_http_verified_against_current_saved_bytes": true,
+    "accepted": true,
+    "production_images_changed": false,
+    "runtime_seconds": 2658.0
+  },
+  "optional_page_output_acceptance": {
+    "recorded_at_utc": "2026-10-14T06:41:41.160382+00:00",
+    "run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+    "execution": "attention-home-next-dev-jvwbbok",
+    "version": "development__page_agentic_summaries__20261014T055536Z__fe3ca0f5",
+    "rows": [
+      {
+        "surface": "Stock Investigator",
+        "ticker": "ALHC",
+        "status": "ok",
+        "headline": "ALHC deep pullback: 2027 Star Rating cut hits largest Medicare Advantage contract",
+        "body_chars": 2393,
+        "paragraphs": 4
+      },
+      {
+        "surface": "Market Explorer",
+        "ticker": "",
+        "status": "ok",
+        "headline": "Biotech and diagnostics momentum wave leads Market Explorer; Iovance guidance raise is the clearest company-specific change",
+        "body_chars": 2102,
+        "paragraphs": 5
+      },
+      {
+        "surface": "Stock Investigator",
+        "ticker": "NVAX",
+        "status": "ok",
+        "headline": "NVAX rebounds 43% over 63 days to near $13.385 channel resistance; 2026-10-09 gain tracked a sector-wide biotech rally",
+        "body_chars": 2493,
+        "paragraphs": 3
+      },
+      {
+        "surface": "Stock Investigator",
+        "ticker": "IOVA",
+        "status": "ok",
+        "headline": "IOVA raises 2026 revenue guidance on Amtagvi demand; treatment-centre count and cash runway are the next tests",
+        "body_chars": 2392,
+        "paragraphs": 4
+      },
+      {
+        "surface": "Stock Investigator",
+        "ticker": "MRNA",
+        "status": "ok",
+        "headline": "MRNA rally sits near channel resistance on cancer-vaccine expectation; Madrid data and Q3 results are the next hard checks",
+        "body_chars": 2268,
+        "paragraphs": 3
+      }
+    ],
+    "complete_page_narratives_personally_read": 5,
+    "qualitative_review_notes": [
+      "Specific operating changes and dated observations remain available; ordinary uncalibrated financial/technical interpretations remain model hypotheses.",
+      "Complete narratives and follow-up questions were read; no ticker/phrase tests were used to certify their meaning."
+    ]
+  },
+  "public_home_acceptance": {
+    "checked_at_utc": "2026-10-14T06:31:52.404979+00:00",
+    "http_status": 200,
+    "home_status": "available",
+    "run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+    "as_of": "2026-10-14T05:55:36.031874+00:00",
+    "apps": [
+      {
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+        "latest": "sn-streamlit-ui--0000089",
+        "name": "sn-streamlit-ui",
+        "ready": "sn-streamlit-ui--0000089",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:759c4e3cd7e5e4e860812954e3bc39159f2a1f6837a5506673a7ea43e850e027",
+        "latest": "sn-streamlit-ui-dev--0000457",
+        "name": "sn-streamlit-ui-dev",
+        "ready": "sn-streamlit-ui-dev--0000457",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/api@sha256:6e2cd73a734cb51e08963f8bffbfcb568f62872efbf16e95ae0a7646c41aae45",
+        "latest": "sn-api-dev--0000049",
+        "name": "sn-api-dev",
+        "ready": "sn-api-dev--0000049",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/api@sha256:6e2cd73a734cb51e08963f8bffbfcb568f62872efbf16e95ae0a7646c41aae45",
+        "latest": "sn-api--0000003",
+        "name": "sn-api",
+        "ready": "sn-api--0000003",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:713d41d1418415b5ccbc1a86b052c267529a10b4b5bbf7d94dc121ae4df41fb6",
+        "latest": "sn-api-next-dev--0000028",
+        "name": "sn-api-next-dev",
+        "ready": "sn-api-next-dev--0000028",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:076438b8b933a79da2c7d7dd3f56c2557a82827b77e5f713ac3e627cd73e7db4",
+        "latest": "sn-next-ui-dev--0000014",
+        "name": "sn-next-ui-dev",
+        "ready": "sn-next-ui-dev--0000014",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+        "latest": "sn-next-ui--0000005",
+        "name": "sn-next-ui",
+        "ready": "sn-next-ui--0000005",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b0acf1bc4ed1dd8e8f7c7ddd783b6da1de924140038cb35e66c1b1049f628f8f",
+        "latest": "sn-api-next--0000005",
+        "name": "sn-api-next",
+        "ready": "sn-api-next--0000005",
+        "state": "Running"
+      }
+    ],
+    "summary_status": "completed",
+    "audio_available": true,
+    "displayed_stories": [
+      "CXMT shows a denser DRAM design and YMTC takes third place in NAND, repricing the memory group",
+      "Liquidia settles all six United Therapeutics lawsuits and drops the PH-ILD use from its YUTREPIA label",
+      "Humana leads the new Medicare star ratings while a reported NIH cancer vaccine plan lifts Moderna",
+      "Strive buys 3,311 bitcoin and plans a $500M sale of 15% preferred shares (SATS)",
+      "Telecom carriers slump on T-Mobile guidance, a reported Verizon job cut plan and SpaceX's spectrum move",
+      "WF Holding's 311% jump has no confirmed operating catalyst",
+      "Avient's new chief executive arrives and the shares swing without a confirmed cause",
+      "Corteva trades as a pure-play crop protection company after spinning off its seeds business"
+    ],
+    "coverage": {
+      "candidate_count": 68,
+      "event_count": 15,
+      "must_read_count": 2,
+      "unresolved_count": 26,
+      "news_backed_count": 17
+    },
+    "daily_datapoints": 5,
+    "charts": [
+      {
+        "id": "stock:MU:revenue",
+        "title": "Micron's revenue surge is what new supply threatens",
+        "points": 20,
+        "date": "2026-05-31"
+      },
+      {
+        "id": "stock:TMUS:free_cash_flow",
+        "title": "T-Mobile's cash flow is the incumbent prize at risk",
+        "points": 20,
+        "date": "2026-03-31"
+      },
+      {
+        "id": "stock:LQDA:free_cash_flow",
+        "title": "Liquidia's cash generation must fund the settlement",
+        "points": 20,
+        "date": "2026-06-30"
+      },
+      {
+        "id": "stock:MRNA:free_cash_flow",
+        "title": "Moderna's cash burn does not support its October rally",
+        "points": 20,
+        "date": "2026-06-30"
+      },
+      {
+        "id": "fred:DGS10",
+        "title": "Long-term yields rose toward 5.3% as funding needs mount",
+        "points": 20,
+        "date": "2026-10-02"
+      }
+    ],
+    "production_frontend_api_changed_by_this_repair": false,
+    "complete_public_summary_personally_read": true,
+    "complete_story_cards_personally_read": 8,
+    "all_five_chart_contexts_personally_read": true,
+    "qualitative_review_notes": [
+      "Existing cash, financing, product and supply findings now appear in the event explanations; the prior missing-business-context defect is corrected.",
+      "The summary distinguishes the older market snapshot from the October 12\u201314 article intake; existing observation dates remain visible.",
+      "Two mover headlines still lead with unresolved causes rather than the substantive operating context provided in their bodies. Some causal generalizations remain model hypotheses, not calibrated predictions. No phrase/ticker-specific patch was applied."
+    ]
+  },
+  "public_home_audio": {
+    "checked_at_utc": "2026-10-14T06:35:00.136839+00:00",
+    "run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+    "execution": "attention-home-next-dev-jvwbbok",
+    "snapshot_version": "development__attention_home_snapshots_1d__20261014T055536Z__fe3ca0f5",
+    "audio_http_status": 200,
+    "mime_type": "audio/mpeg",
+    "audio_bytes": 1312435,
+    "audio_sha256": "ffe134114d2e1069b018998a8a39cfe2472d4e13178c3f40d80e7ca565d37f5a",
+    "served_bytes_match_current_materialized_audio": true,
+    "audio_text_hash_matches_current_summary": true
+  },
+  "prior_public_home_acceptance": {
+    "checked_at_utc": "2026-10-14T04:27:47.302615+00:00",
+    "http_status": 200,
+    "home_status": "available",
+    "run_id": "0063171f-6933-4f57-bad2-7d46a7bdc9a2",
+    "as_of": "2026-10-14T03:51:26.172894+00:00",
+    "apps": [
+      {
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+        "latest": "sn-streamlit-ui--0000089",
+        "name": "sn-streamlit-ui",
+        "ready": "sn-streamlit-ui--0000089",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/pipeline-reliability@sha256:759c4e3cd7e5e4e860812954e3bc39159f2a1f6837a5506673a7ea43e850e027",
+        "latest": "sn-streamlit-ui-dev--0000457",
+        "name": "sn-streamlit-ui-dev",
+        "ready": "sn-streamlit-ui-dev--0000457",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/api@sha256:6e2cd73a734cb51e08963f8bffbfcb568f62872efbf16e95ae0a7646c41aae45",
+        "latest": "sn-api-dev--0000049",
+        "name": "sn-api-dev",
+        "ready": "sn-api-dev--0000049",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/api@sha256:6e2cd73a734cb51e08963f8bffbfcb568f62872efbf16e95ae0a7646c41aae45",
+        "latest": "sn-api--0000003",
+        "name": "sn-api",
+        "ready": "sn-api--0000003",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:3edab0dd46fb5d11817591654bdbccfd458da02c156ded8df37c9ee3681e3d62",
+        "latest": "sn-api-next-dev--0000025",
+        "name": "sn-api-next-dev",
+        "ready": "sn-api-next-dev--0000025",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:076438b8b933a79da2c7d7dd3f56c2557a82827b77e5f713ac3e627cd73e7db4",
+        "latest": "sn-next-ui-dev--0000014",
+        "name": "sn-next-ui-dev",
+        "ready": "sn-next-ui-dev--0000014",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+        "latest": "sn-next-ui--0000005",
+        "name": "sn-next-ui",
+        "ready": "sn-next-ui--0000005",
+        "state": "Running"
+      },
+      {
+        "image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b0acf1bc4ed1dd8e8f7c7ddd783b6da1de924140038cb35e66c1b1049f628f8f",
+        "latest": "sn-api-next--0000005",
+        "name": "sn-api-next",
+        "ready": "sn-api-next--0000005",
+        "state": "Running"
+      }
+    ],
+    "summary_status": "completed",
+    "audio_available": true,
+    "displayed_stories": [
+      "CXMT claims progress on a denser DRAM cell and Korean memory shares fall",
+      "YMTC ranks third in NAND shipments and files for a Shanghai IPO, pressing memory shares",
+      "Musk calls Micron's memory pricing reasonable and warns suppliers that customers will not forget",
+      "Liquidia pays United Therapeutics a net $380.70M and drops the PH-ILD use from YUTREPIA to settle six lawsuits",
+      "SpaceX's spectrum purchase and Starlink's paired-spectrum plan revive wireless competition fears",
+      "WF Holding's violent swings: a partnership report, a regulatory report and a circuit-breaker halt",
+      "Corteva trades as a crop-protection company after spinning off its seed business into Vylor"
+    ],
+    "coverage": {
+      "candidate_count": 68,
+      "event_count": 16,
+      "must_read_count": 1,
+      "unresolved_count": 26,
+      "news_backed_count": 14
+    },
+    "daily_datapoints": 5,
+    "charts": [
+      {
+        "id": "stock:MU:free_cash_flow",
+        "title": "Micron's cash generation ran with the memory upcycle",
+        "points": 20,
+        "date": "2026-05-31"
+      },
+      {
+        "id": "stock:TMUS:revenue",
+        "title": "T-Mobile's revenue base grew before the entrant scare",
+        "points": 20,
+        "date": "2026-03-31"
+      },
+      {
+        "id": "stock:LQDA:free_cash_flow",
+        "title": "Liquidia's cash generation meets a $380.7m settlement",
+        "points": 20,
+        "date": "2026-06-30"
+      },
+      {
+        "id": "fred:DGS10",
+        "title": "Long Treasury yields rose while short bill rates held still",
+        "points": 20,
+        "date": "2026-10-02"
+      },
+      {
+        "id": "stock:MRNA:revenue",
+        "title": "Moderna's sales base is far smaller than its 2022 peak",
+        "points": 20,
+        "date": "2026-06-30"
+      }
+    ],
+    "production_frontend_api_changed_by_this_repair": false
+  },
+  "source_catalog_ownership": {
+    "samples": [
+      {
+        "subject": "company:GRAL",
+        "seconds": 92.95771270801197,
+        "warnings": [],
+        "source_documents_retained": 75,
+        "finding_groups": 20,
+        "complete_analysis_personally_reviewed": true,
+        "source_catalog_metadata_exact": true,
+        "artifact_reference": {
+          "artifact_id": "af52d6e79063fc1aa1b6ab622ab6ec41d259764ac31b5f542c29877e99c032cc",
+          "input_id": "6f4baa457d982e8e6f26c9fd0163ac234d85ecb1583af7255a4b8ad27e119793",
+          "namespace": "research_artifact:development:cost_validation_public_company_research",
+          "created_at_utc": "2026-10-14T03:31:16.107077+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:HUM",
+        "seconds": 99.58018487499794,
+        "warnings": [],
+        "source_documents_retained": 75,
+        "finding_groups": 16,
+        "complete_analysis_personally_reviewed": true,
+        "source_catalog_metadata_exact": true,
+        "artifact_reference": {
+          "artifact_id": "f741b0156b4871b0d0db01e73f49efee851accf98a35554193699463c7642838",
+          "input_id": "401d575d52774090f88be4a86e830b5e257fa0b60e8f7aa8302d7c1997068e93",
+          "namespace": "research_artifact:development:cost_validation_public_company_research",
+          "created_at_utc": "2026-10-14T03:31:22.811516+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:IOVA",
+        "seconds": 139.20985225000186,
+        "warnings": [],
+        "source_documents_retained": 79,
+        "finding_groups": 16,
+        "complete_analysis_personally_reviewed": true,
+        "source_catalog_metadata_exact": true,
+        "artifact_reference": {
+          "artifact_id": "4dc1166874b8785aa84af2551e9224e86fc9ac81fd77193a4974f240c78108d2",
+          "input_id": "1fd90337d6c4902d84b273d56d298e8b540113e0b564fe46260dd2356502b186",
+          "namespace": "research_artifact:development:cost_validation_public_company_research",
+          "created_at_utc": "2026-10-14T03:32:02.307746+00:00",
+          "continuation_completed": false
+        }
+      }
+    ],
+    "usage_rows": [
+      [
+        "cost-contract-dossier-28259e58c16b4fbe8e017747ca5026fd",
+        "ticker_business_model_research_dossier.direct",
+        "json_repair",
+        1,
+        "12632",
+        "12117",
+        "128"
+      ],
+      [
+        "cost-contract-dossier-28259e58c16b4fbe8e017747ca5026fd",
+        "ticker_business_model_research_dossier.direct",
+        "chat",
+        3,
+        "280625",
+        "59948",
+        "4736"
+      ],
+      [
+        "cost-contract-dossier-7ffe7f037f1148eca859e8d66e4186cb",
+        "ticker_business_model_research_dossier.direct",
+        "json_repair",
+        1,
+        "24255",
+        "23867",
+        "384"
+      ],
+      [
+        "cost-contract-dossier-7ffe7f037f1148eca859e8d66e4186cb",
+        "ticker_business_model_research_dossier.direct",
+        "chat",
+        1,
+        "69840",
+        "65536",
+        "69632"
+      ],
+      [
+        "cost-contract-dossier-bcd5fec443b7418291d935927240a816",
+        "ticker_business_model_research_dossier.direct",
+        "json_repair",
+        1,
+        "22788",
+        "22265",
+        "0"
+      ],
+      [
+        "cost-contract-dossier-bcd5fec443b7418291d935927240a816",
+        "ticker_business_model_research_dossier.direct",
+        "chat",
+        3,
+        "211347",
+        "111742",
+        "17664"
+      ],
+      [
+        "cost-contract-dossier-bcd5fec443b7418291d935927240a816",
+        "ticker_business_model_research_dossier.repair",
+        "chat",
+        1,
+        "28449",
+        "27320",
+        "0"
+      ]
+    ],
+    "comparison": "Same retained acquisition inputs; prior research context differs as artifacts accumulate. Stage observation, not controlled end-to-end savings."
+  },
+  "deployed_contract_recovery": {
+    "seconds": 344.93355571699976,
+    "root_run_id": "cost-dev-contract-c465523f0d234a82b0ffa99669c3884d",
+    "checked_at_utc": "2026-10-14T03:46:24.541229+00:00",
+    "input_versions": {
+      "news_articles": "development__news_articles__20261014T021914Z__e3d7606f",
+      "edgar_evidence": "development__edgar_evidence__20261014T021914Z__e3d7606f",
+      "company_baselines": "development__company_baselines__20260901T101530Z__e267780e",
+      "us_equity_listings": "development__us_equity_listings__20260901T090110Z__822d04c4",
+      "quarterly_fundamentals": "development__quarterly_fundamentals__20261006T120033Z__7e567467",
+      "zopedia_ticker_business_model_stacks": "development__zopedia_ticker_business_model_stacks__20261014T021914Z__e3d7606f",
+      "zopedia_business_model_search_results": "development__zopedia_business_model_search_results__20261014T021914Z__e3d7606f"
+    },
+    "knowledge_writes": false,
+    "recovered_stages": [
+      {
+        "subject": "company:KOD",
+        "exact_replay": true,
+        "finding_groups": 16,
+        "source_documents": 60,
+        "artifact_reference": {
+          "input_id": "3a5f651c7187f202f8a25c6ee694485007df0b8206e750c1537448822de626ba",
+          "namespace": "research_artifact:development:public_company_research",
+          "artifact_id": "60dab4722651f696beaded64be63d7f3531d22b846ea515f292fe8c4f9e4a891",
+          "created_at_utc": "2026-10-14T03:43:16.374303+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:WFF",
+        "exact_replay": true,
+        "finding_groups": 16,
+        "source_documents": 54,
+        "artifact_reference": {
+          "input_id": "1bce56b6eb64cc8e6ddcda1e2c606bfea26bd1b16b2598c144af593660673abc",
+          "namespace": "research_artifact:development:public_company_research",
+          "artifact_id": "d04d4a06b044f622dcce56acc5124f281fbe97e48048230e5167d012de67f449",
+          "created_at_utc": "2026-10-14T03:43:17.397110+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:CTVA",
+        "exact_replay": true,
+        "finding_groups": 16,
+        "source_documents": 78,
+        "artifact_reference": {
+          "input_id": "81ca98bcfe775868ddf22238a30ff30db16f3b964a9a9a09b833fb493ff9bd4d",
+          "namespace": "research_artifact:development:public_company_research",
+          "artifact_id": "c53184f38f7c9b08a8a21a2510968867f4a1869497f1cf4ee3c756c87b46e3c9",
+          "created_at_utc": "2026-10-14T03:43:31.567865+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:PCRX",
+        "exact_replay": true,
+        "finding_groups": 16,
+        "source_documents": 66,
+        "artifact_reference": {
+          "input_id": "2c541271680b28ca510ec275cb33a9382a7a2182bbb0bb812013fb0d081703d4",
+          "namespace": "research_artifact:development:public_company_research",
+          "artifact_id": "bcffb6137923dd634c8c87324f0368f0b9f55d74f67281824cc1d5fba6b1dbed",
+          "created_at_utc": "2026-10-14T03:44:29.704034+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:PRAX",
+        "exact_replay": true,
+        "finding_groups": 16,
+        "source_documents": 74,
+        "artifact_reference": {
+          "input_id": "e72a2ab489cb770c17c23e54f18cc28b129fba129543db2e8b4eaa4834d8e53d",
+          "namespace": "research_artifact:development:public_company_research",
+          "artifact_id": "53ed14d7378fe054d36d911a1a52717dccc32b0e8d7755760c2ca7cb954b77cc",
+          "created_at_utc": "2026-10-14T03:44:58.138625+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:SYRE",
+        "exact_replay": true,
+        "finding_groups": 16,
+        "source_documents": 73,
+        "artifact_reference": {
+          "input_id": "9bdff545b90a83a936034eed517d2a2e26bc38526dd95d4a7861c3becdfc87a9",
+          "namespace": "research_artifact:development:public_company_research",
+          "artifact_id": "f1058981f9c0a1efec07134de72a18d790d5cb090b5e5d694da625bdee586363",
+          "created_at_utc": "2026-10-14T03:45:08.057232+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:BMNR",
+        "exact_replay": true,
+        "finding_groups": 16,
+        "source_documents": 84,
+        "artifact_reference": {
+          "input_id": "2dd35fb16e749821e8f16e88a2113243ef3e84accd55eed1133906b61155b90e",
+          "namespace": "research_artifact:development:public_company_research",
+          "artifact_id": "374318a4d053d12213c5c9d4dffa7d9d883be8a39b3d223e1e9c981bc485d425",
+          "created_at_utc": "2026-10-14T03:46:12.604114+00:00",
+          "continuation_completed": false
+        }
+      },
+      {
+        "subject": "company:ERAS",
+        "exact_replay": true,
+        "finding_groups": 16,
+        "source_documents": 55,
+        "artifact_reference": {
+          "input_id": "77c0648c23f1d14bb6cccf6a902107c0855bf55165c1a9ee3a45dd9542eb9e2a",
+          "namespace": "research_artifact:development:public_company_research",
+          "artifact_id": "46e97cafe54d2805c808e8e417163ad177562885c9845965cf1cb45f4facb277",
+          "created_at_utc": "2026-10-14T03:46:13.300351+00:00",
+          "continuation_completed": false
+        }
+      }
+    ],
+    "production_changed": false,
+    "first_http_attempts": 10,
+    "additional_replay_http_attempts": 0
+  },
+  "recovered_findings_review": {
+    "60dab4722651f696beaded64be63d7f3531d22b846ea515f292fe8c4f9e4a891": {
+      "subject": "company:KOD",
+      "complete_findings_gaps_actions_and_followups_read": true,
+      "assessment": "Useful organized business and indirect relationships recovered from the full retained sources; no web acquisition repeated. Ordinary LLM errors remain, including occasional inference from capital spending or confusion between debt and liabilities. These do not establish financial predictive accuracy."
+    },
+    "d04d4a06b044f622dcce56acc5124f281fbe97e48048230e5167d012de67f449": {
+      "subject": "company:WFF",
+      "complete_findings_gaps_actions_and_followups_read": true,
+      "assessment": "Useful organized business and indirect relationships recovered from the full retained sources; no web acquisition repeated. Ordinary LLM errors remain, including occasional inference from capital spending or confusion between debt and liabilities. These do not establish financial predictive accuracy."
+    },
+    "c53184f38f7c9b08a8a21a2510968867f4a1869497f1cf4ee3c756c87b46e3c9": {
+      "subject": "company:CTVA",
+      "complete_findings_gaps_actions_and_followups_read": true,
+      "assessment": "Useful organized business and indirect relationships recovered from the full retained sources; no web acquisition repeated. Ordinary LLM errors remain, including occasional inference from capital spending or confusion between debt and liabilities. These do not establish financial predictive accuracy."
+    },
+    "bcffb6137923dd634c8c87324f0368f0b9f55d74f67281824cc1d5fba6b1dbed": {
+      "subject": "company:PCRX",
+      "complete_findings_gaps_actions_and_followups_read": true,
+      "assessment": "Useful organized business and indirect relationships recovered from the full retained sources; no web acquisition repeated. Ordinary LLM errors remain, including occasional inference from capital spending or confusion between debt and liabilities. These do not establish financial predictive accuracy."
+    },
+    "53ed14d7378fe054d36d911a1a52717dccc32b0e8d7755760c2ca7cb954b77cc": {
+      "subject": "company:PRAX",
+      "complete_findings_gaps_actions_and_followups_read": true,
+      "assessment": "Useful organized business and indirect relationships recovered from the full retained sources; no web acquisition repeated. Ordinary LLM errors remain, including occasional inference from capital spending or confusion between debt and liabilities. These do not establish financial predictive accuracy."
+    },
+    "f1058981f9c0a1efec07134de72a18d790d5cb090b5e5d694da625bdee586363": {
+      "subject": "company:SYRE",
+      "complete_findings_gaps_actions_and_followups_read": true,
+      "assessment": "Useful organized business and indirect relationships recovered from the full retained sources; no web acquisition repeated. Ordinary LLM errors remain, including occasional inference from capital spending or confusion between debt and liabilities. These do not establish financial predictive accuracy."
+    },
+    "374318a4d053d12213c5c9d4dffa7d9d883be8a39b3d223e1e9c981bc485d425": {
+      "subject": "company:BMNR",
+      "complete_findings_gaps_actions_and_followups_read": true,
+      "assessment": "Useful organized business and indirect relationships recovered from the full retained sources; no web acquisition repeated. Ordinary LLM errors remain, including occasional inference from capital spending or confusion between debt and liabilities. These do not establish financial predictive accuracy."
+    },
+    "46e97cafe54d2805c808e8e417163ad177562885c9845965cf1cb45f4facb277": {
+      "subject": "company:ERAS",
+      "complete_findings_gaps_actions_and_followups_read": true,
+      "assessment": "Useful organized business and indirect relationships recovered from the full retained sources; no web acquisition repeated. Ordinary LLM errors remain, including occasional inference from capital spending or confusion between debt and liabilities. These do not establish financial predictive accuracy."
+    }
+  },
+  "durable_metering_receipt_recovery": {
+    "usage": {
+      "total_tokens": 430,
+      "prompt_tokens": 422,
+      "completion_tokens": 8,
+      "prompt_tokens_details": {
+        "cached_tokens": 256
+      },
+      "prompt_cache_hit_tokens": 256,
+      "prompt_cache_miss_tokens": 166
+    },
+    "metadata": {
+      "job_name": "llm-cost-receipt-validation",
+      "thinking": {
+        "type": "disabled"
+      },
+      "error_type": "",
+      "input_hash": "63a596e490a1b07da0a909f804b61a6839011e5f2ee839f814219b133f571769",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 3.0468e-05,
+        "usd_min": 3.0468e-05,
+        "rate_band": "offpeak",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "2a7a59e9-b770-4a85-8a07-8b7a3704409c"
+    },
+    "attempt_id": "llmhttp_71290dd96b974c5db0dbb4d18d043de7",
+    "root_run_id": "cost-receipt-outage-517744c923204d8ea02375b5b26c79c2",
+    "http_attempts": 1,
+    "payload_exact": true,
+    "durable_receipt_reconciled": true,
+    "second_reconciliation_added": 0
+  },
+  "accounting_coverage_gaps": [
+    {
+      "execution": "trading-agent-build-dev-8gs9fg0",
+      "attempt_ids": [
+        "llmhttp_8443dee8288c415fbde601e76051d1c5",
+        "llmhttp_6814722ee7a9401ba62d34c9744a22aa",
+        "llmhttp_02ed662d0aaa4b7d96d342d7abf2271d"
+      ],
+      "cause": "Intermittent SQL connection failures before durable receipt fallback; these attempts are not counted as free."
+    },
+    {
+      "execution": "attention-home-next-dev-adnw7jo",
+      "attempt_ids": [
+        "llmhttp_6ef8d1df5a614d4fa692e852889cd753",
+        "llmhttp_2ba7ee70e74b4d25be3cb5c22d2094c8",
+        "llmhttp_2b096c597d0d44d28561ccdb9519a208"
+      ],
+      "cause": "Intermittent SQL connection failures before durable receipt fallback; these attempts are not counted as free."
+    }
+  ],
+  "consumer_handoff_qualitative_review": {
+    "aql_probe_root": "cost-aql-handoff-8f2499d87e7145c38c64cf7717d806f0",
+    "event_probe_root": "cost-event-handoff-efb9aac3a85e458a8ebff405a035a137",
+    "complete_plans_and_narratives_personally_read": true,
+    "query_count_reduction_observed": false,
+    "outcome": "Existing operating, financing and supply findings reached the downstream explanation rather than being called unknown. Prior interpretations are dated and fallible."
+  },
+  "background_event_budget_recovery": {
+    "root_run_id": "cost-event-budget-f47ee5b7bd4647718eafc29debe271b8",
+    "configured_event_timeout_seconds": 600,
+    "retained_failures": 2,
+    "results": [
+      {
+        "subject": "event:source-2024e9c4808c07995983",
+        "original_input_id": "306abe3732f548449291f875cf428fc11c231ebaa613163192d6b5a9e5319433",
+        "status": "completed",
+        "seconds": 288.230493207986,
+        "review_status": "completed"
+      },
+      {
+        "subject": "event:source-3b057e57a0d09b1df79e",
+        "original_input_id": "ce68c720f8f88c66f75737d41ae516904620ebaa460d3d21973fffa8a7e1df2b",
+        "status": "completed",
+        "seconds": 211.96317724999972,
+        "review_status": "completed"
+      }
+    ],
+    "complete_public_fields_personally_read": true,
+    "review_statuses": {
+      "event:source-2024e9c4808c07995983": "completed",
+      "event:source-3b057e57a0d09b1df79e": "completed"
+    },
+    "quality_note": "Both coherent event explanations retain operating context and competing explanations. Model revisions improved source attribution and business mapping. Ordinary wording/forecast errors remain possible; no financial prediction accuracy is claimed."
+  },
+  "guarded_consumer_source_receipt": {
+    "all_six_payload_chains_match_reviewed_local_consumer_source": true,
+    "scope": "Accepted R8 handoff plus R9 event budget; no unrelated dirty checkout files deployed.",
+    "groups": [
+      {
+        "index": 0,
+        "targets": [
+          "trading-agent-build-dev"
+        ],
+        "build_run": "cj138",
+        "guarded_base": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:47011d4d4c6865bfb9d17dcca0d4712856dbd5f117e87592b3360307290eab74",
+        "shared_consumer_source_sha256": {
+          "services/aql/collector.py": "63b015d2921f7dec29a97c21a720ea48a0eca4c8b3ef5086044c0f50aebfa4c4",
+          "services/aql/writer.py": "567bd4445216ee0870465e323d4cf0976347d4651905ab769c90a87155e6057d",
+          "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a"
+        }
+      },
+      {
+        "index": 1,
+        "targets": [
+          "macro-fred-daily-dev"
+        ],
+        "build_run": "cj136",
+        "guarded_base": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:3d35e282275a0262cd498213e2d035c4e76c8f74c2ed3c324ae73a01008d6ab9",
+        "shared_consumer_source_sha256": {
+          "services/aql/collector.py": "63b015d2921f7dec29a97c21a720ea48a0eca4c8b3ef5086044c0f50aebfa4c4",
+          "services/aql/writer.py": "567bd4445216ee0870465e323d4cf0976347d4651905ab769c90a87155e6057d",
+          "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a"
+        }
+      },
+      {
+        "index": 2,
+        "targets": [
+          "sn-research-run-dev"
+        ],
+        "build_run": "cj137",
+        "guarded_base": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:4066d36bee7b629c55ccd9ca94d466aa54f661e21405639ff0502a57297eebc6",
+        "shared_consumer_source_sha256": {
+          "services/aql/collector.py": "63b015d2921f7dec29a97c21a720ea48a0eca4c8b3ef5086044c0f50aebfa4c4",
+          "services/aql/writer.py": "567bd4445216ee0870465e323d4cf0976347d4651905ab769c90a87155e6057d",
+          "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a"
+        }
+      },
+      {
+        "index": 3,
+        "targets": [
+          "attention-home-next-dev",
+          "daily-datapoints-next-dev",
+          "equities-next-dev",
+          "evidence-index-dev"
+        ],
+        "build_run": "cj139",
+        "guarded_base": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:37f3af749984bda034f9008a8e2602737cd51f4aebaf58db96d1e602366e8444",
+        "shared_consumer_source_sha256": {
+          "services/aql/collector.py": "63b015d2921f7dec29a97c21a720ea48a0eca4c8b3ef5086044c0f50aebfa4c4",
+          "services/aql/writer.py": "567bd4445216ee0870465e323d4cf0976347d4651905ab769c90a87155e6057d",
+          "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a"
+        }
+      },
+      {
+        "index": 4,
+        "targets": [
+          "attention-ticker-next-dev",
+          "technical-history-next-dev"
+        ],
+        "build_run": "cj13a",
+        "guarded_base": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:4f968027f5c98daf1254dfa70ee56414c6bffef79df86ec9a0c3234eac240116",
+        "shared_consumer_source_sha256": {
+          "services/aql/collector.py": "63b015d2921f7dec29a97c21a720ea48a0eca4c8b3ef5086044c0f50aebfa4c4",
+          "services/aql/writer.py": "567bd4445216ee0870465e323d4cf0976347d4651905ab769c90a87155e6057d",
+          "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a"
+        }
+      },
+      {
+        "index": 6,
+        "targets": [
+          "sn-api-next-dev"
+        ],
+        "build_run": "cj13b",
+        "guarded_base": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:b2d8d13caada1dbbb37462c33e13e2ebfa005ace5e9e855347792ea9da394dc9",
+        "shared_consumer_source_sha256": {
+          "services/aql/collector.py": "63b015d2921f7dec29a97c21a720ea48a0eca4c8b3ef5086044c0f50aebfa4c4",
+          "services/aql/writer.py": "567bd4445216ee0870465e323d4cf0976347d4651905ab769c90a87155e6057d",
+          "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a"
+        }
+      }
+    ]
+  },
+  "final_metering_receipt_reconciliation": {
+    "root_run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+    "checked_at_utc": "2026-10-14T06:41:36.016800+00:00",
+    "missing_usage_records": 8,
+    "actual_attempt_records": 821,
+    "receipt_reconciliation": {
+      "reconciled": 8,
+      "scan_complete": true
+    },
+    "unpriced_attempt_records": 302
+  },
+  "home_captured_usage_comparison": {
+    "before_common_price_usd": 1.0316117099999997,
+    "after_common_price_usd": 1.8709088279999995,
+    "observed_spend_increase_fraction": 0.8135785100772073,
+    "before_attempts": 888,
+    "after_attempts": 821,
+    "before_chat_cache_fraction": 0.35320129922787846,
+    "after_chat_cache_fraction": 0.4217843691828661,
+    "controlled_comparison": false,
+    "limitations": "Different event selection, richer shared context, earlier missing receipts/usage and unknown Azure embedding/audio prices. This is captured common-price spend, not an invoice or measured steady-state savings."
+  }
+}

@@ -1,3 +1,3 @@
-// The native client uses the existing isolated development gateway.
-// A local gateway may be selected with SN_SERVER_URL in the Debug scheme environment.
+// Device and simulator runs use the live workbench by default.
+// Set SN_SERVER_URL in the Debug scheme for an isolated development or local gateway.
 SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG

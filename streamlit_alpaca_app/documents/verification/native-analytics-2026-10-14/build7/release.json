@@ -1,0 +1,110 @@
+{
+  "gateway": "https://spectral-nature.com",
+  "data_review": {
+    "as_of": "2026-10-14 20:35:30.819516+00:00",
+    "version": "momentum_profiles__20261014T203530Z__76e42a86",
+    "instruments": 999,
+    "five_year_history": 917,
+    "one_day_color_absolute_95_percentile": 8.756841282251749,
+    "metadata_matching_names": 999,
+    "metadata_volume": 998
+  },
+  "limitations": [
+    "Commodity lens symbols have no rows in the existing retained momentum_profiles snapshot; no provider backfill or backend change in this native visualization task.",
+    "Web Markets retains its existing design."
+  ],
+  "server_changes": false,
+  "web_changes": false,
+  "version": "1.0.0",
+  "build": "7",
+  "bundle": "com.torrescapital.spectralnature",
+  "recorded_utc": "2026-10-15T16:46:15.975734+00:00",
+  "source_sha256": {
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/AppEnvironment.swift": "0e3fc7f42e217d793373a76021d8cfd19f63dcb150bd93071f3356ea83c7d674",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/AppSession.swift": "fc21cd8a0fe31a689799ba86474345d85d8c1e35eded0f7da7d43259e958bea9",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/App/RootView.swift": "f647b554e74d517da9f5c961662c5bb35bcc8284dca4eec88e0a53ed353e1eec",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Core/Security/KeychainTokenStore.swift": "a3690e1b7c5843fb43ee179e470ed5014b75d50a4e25ed303a8a58b45db29660",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AnalysisCharts.swift": "1250c7ebcbf30aa0f90ef59c23b31cfdd7ea10d1b661ac515b739f3ed2e09e57",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AttentionCharts.swift": "4202bb40a7250c4e2242e21149b49f6f23735dbb6e7cb1a2384ff1d01b8a7e8a",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/MarkdownView.swift": "f1725608eca9b7529ccb0d13ec5113c01e935bff2e04b2bb546cef95cf2a2ad7",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/SankeyChart.swift": "bcdc01232b5014c63fd405423d7853c58b255040fb9b78a7fa514c5ffbe1d287",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ScatterPlot.swift": "38f7d2d06ff470a042e2ed7a2aa81903c57de7c5eb79c8115bbb322b93eb8d8e",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/WorkbenchDesign.swift": "1b111d4b952b8532389950cad90ba789aca7be139d5be2021db7bc48db525628",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Auth/AccountLink.swift": "5a6350f12044d755c7343a293d1d0ec32a651eadc7d62a8fad2b4e824bc3d4b1",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Auth/LoginView.swift": "7a3f53141e5adeeb94847ba3c4c16043f0f90337cb03e81d3d5783fbfa0b011d",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Home/HomeView.swift": "f846de1b657b068e8be92022de0f37dae965c51abfbf43db363ceae8cc5d0bee",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketReturnAnalysis.swift": "7240f4729e96a5b92c96f0e7c7e8819e0262175152629c841af340417a62b7c0",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketsView.swift": "d5c472a9952151564601bb3b657125688bc196c1989fbf7f80b97c9daad56de9",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioListsView.swift": "875694e6c2c0cb0d42f57c07ff5485efc23981c4b10b954aafb00bfcd3662ce5",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioView.swift": "a03012c9a1a3888eeb1cb1c0596d43f9491356d0ad4e22775d544eccabe4e8ad",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift": "a9b3b7b952ea14d76ebf5582978ff16d2183eb9603642e4a8fac3c90710f09ba",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/AdminView.swift": "dea88efb78860b53f09a81ee10a38acb293275bb72f5bfe611ddee4952269ca7",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/AttentionGraphView.swift": "e52dcfda838866d51c8fc30120686440b4176688cff94004a3081bd219b9d305",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/InvestigatorView.swift": "c596a7d034d46e8210b8b180d0ba8f02aa4349f6bcee36e5262555686f20f7a5",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/MacroView.swift": "90a4e56584a68154739e8134392f240fab96dc887798816de498e6f54c44093a",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/OptionsView.swift": "d2a3f3aa558e1d7d318e6accff3f9c5253202c7da5c477f023f3d2b93995c882",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/TradingView.swift": "0d078187f113f0135067673e20fb3099e93fad028345ce24f99deda16be8e9c7",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIClient.swift": "52019336cb201971c5fa3141d70587860110c5973dd62d53a552597af41f0988",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift": "7c89abbb5db2c982923fa75fb65942a3d944bebc8c37187b4dcdce3800afd3eb",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/JSONValue.swift": "76c28c762629fceefe327a7c2d6b65e46e1b3352c7145424043bb42df4b26eb3",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/SpectralNatureMVPApp.swift": "8f27bf244f9c2bf7d30e92c63217311520a946c71b58f5992bb6428d002e4de2",
+    "ios_app/SpectralNatureMVP/project.yml": "ebb3bcaa5a3d79a8978b700a91ec34e404fcb346c2130477c48338c962ffb0a9",
+    "ios_app/SpectralNatureMVP/SpectralNature.xcodeproj/project.pbxproj": "eb6ef222effd1d5c40eeafc1bd73a8eebb1377591a90298e4e64914495c9ecbc"
+  },
+  "device_binary_sha256": "dccb182325e2b98f0cc5462df01763852ad5c891ddd68ee55f0316e166ac0b75",
+  "signed_device_build": "passed",
+  "signed_simulator_build": "passed",
+  "signature_verification": "passed",
+  "phone_in_signing_profile": true,
+  "profile_expiry_utc": "2026-10-22 06:23:30",
+  "device_installation": {
+    "result": "success",
+    "confirmed_installed_build": "7",
+    "previous_installed_build": "6",
+    "accepted_attention_baseline": "5",
+    "transport": "wired",
+    "launch": "success",
+    "passcode_required": false,
+    "previous_build6_launch": "iOS explicitly rejected launch because the phone was locked",
+    "uninstalled_or_cleared_credentials": false,
+    "pid": 30309,
+    "running_process_after_launch": true,
+    "launch_verified_utc": "2026-10-15T16:46:15.973839+00:00"
+  },
+  "ui_review": {
+    "inherited_shared_renderer_review": {
+      "retained_data_preview": [
+        "iPhone 16",
+        "iPhone SE (3rd generation)",
+        "999 instrument cloud",
+        "8 instrument Advertising lens",
+        "searched HUBS selection",
+        "MRNA tap selection",
+        "917/999 five-year coverage"
+      ],
+      "complete_app_production": [
+        "authenticated session restored normally",
+        "999 instruments rendered",
+        "Moderna name/price/returns joined correctly",
+        "leaders/laggards bars reviewed"
+      ],
+      "portfolio_preview": [
+        "0\u2013100% breadth legend",
+        "group-key selection",
+        "percentage axes",
+        "selected group and membership details preserved"
+      ],
+      "physical_phone_workflows_reviewed": false
+    },
+    "final_signed_app": {
+      "build": "7",
+      "real_production_session": true,
+      "market_instruments": 999,
+      "return_bar_symbol_and_value_columns": "reviewed without overlap",
+      "return_bar_navigation": "CTVA opens Corteva analysis and retained quote",
+      "native_scatter_and_color_legend": "reviewed with retained production data",
+      "physical_phone_ui": "Launch and running process verified; private-screen visual review not performed."
+    },
+    "bar_design": "SwiftUI rows, separate identity/value columns and one shared signed-return scale; all rows link to Investigator"
+  }
+}

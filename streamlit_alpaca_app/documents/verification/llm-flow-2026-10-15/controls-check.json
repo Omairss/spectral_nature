@@ -1,0 +1,22 @@
+{
+  "lookups": 12,
+  "results_per_query": 40,
+  "calls": [
+    {
+      "stage": "search",
+      "model": "deepseek-flash",
+      "thinking": "low",
+      "timeout": 2.9999113329686224
+    },
+    {
+      "stage": "relevance",
+      "model": "deepseek-v4-pro",
+      "thinking": "max",
+      "timeout": 119.99996366599225
+    }
+  ],
+  "frozen_environment_budget": 210,
+  "numeric_observations_retained": true,
+  "source_id_resolution": true,
+  "partial_ranking_retains_all_sources": true
+}

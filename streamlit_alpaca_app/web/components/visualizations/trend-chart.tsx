@@ -6,7 +6,7 @@ function displayValue(value: number, unit: string, price = false) {
   return `${new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(value)}${unit === "%" ? "%" : ""}`;
 }
 
-export function TrendChart({ points, label, unit = "USD", compact = false, tone = "teal", price = false }: { points: TrendPoint[]; label: string; unit?: string; compact?: boolean; tone?: string; price?: boolean }) {
+export function TrendChart({ points, label, unit = "USD", compact = false, tone = "teal", price = false, value }: { points: TrendPoint[]; label: string; unit?: string; compact?: boolean; tone?: string; price?: boolean; value?: number | null }) {
   const series = points.filter((point) => Number.isFinite(point.value) && Number.isFinite(Date.parse(point.date)));
   if (!series.length) return null;
   const first = series[0]; const latest = series.at(-1)!;
@@ -20,7 +20,7 @@ export function TrendChart({ points, label, unit = "USD", compact = false, tone 
   const path = series.map((point, index) => `${index === 0 ? "M" : "L"}${x(index).toFixed(2)},${y(point.value).toFixed(2)}`).join(" ");
   const dateLabel = (point: TrendPoint) => point.period || new Date(`${point.date}T00:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "2-digit", timeZone: "UTC" });
   return <figure className={`trend-chart trend-${tone}${compact ? " compact" : ""}`} aria-label={`${label}, ${dateLabel(first)} to ${dateLabel(latest)}`}>
-    <figcaption><span>{label}</span><strong>{displayValue(latest.value, unit, price)}</strong></figcaption>
+    <figcaption><span>{label}</span><strong>{displayValue(value ?? latest.value, unit, price)}</strong></figcaption>
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${label} trend`} preserveAspectRatio="none">
       <title>{`${label}: ${dateLabel(first)} ${displayValue(first.value, unit, price)} → ${dateLabel(latest)} ${displayValue(latest.value, unit, price)}`}</title>
       {low < 0 && high > 0 ? <line className="trend-zero" x1={padding} x2={width - padding} y1={y(0)} y2={y(0)} /> : null}

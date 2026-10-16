@@ -11,7 +11,6 @@ import xml.etree.ElementTree as ET
 
 import pandas as pd
 
-from ..aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from .storage import (
     _coerce_text,
     _db_connection,
@@ -2059,11 +2058,35 @@ def _source_page_ref(
     }
 
 
+def _build_source_page_index(pages: pd.DataFrame | None) -> dict[str, Any]:
+    frame = _ensure_page_frame(pages) if isinstance(pages, pd.DataFrame) else pd.DataFrame()
+    by_id: dict[str, dict[str, Any]] = {}
+    by_title: dict[str, list[str]] = {}
+    by_url: dict[str, list[str]] = {}
+    positions: dict[str, int] = {}
+    for candidate in frame.to_dict("records"):
+        if _coerce_text(candidate.get("page_type")) != "source":
+            continue
+        page_id = _coerce_text(candidate.get("page_id"))
+        metadata = _json_dict(candidate.get("metadata") or candidate.get("metadata_json"))
+        urls = list(candidate.get("source_urls") or _json_list(candidate.get("source_urls_json")))
+        url = _coerce_text(metadata.get("source_url")) or (urls[0] if urls else "")
+        title = _coerce_text(metadata.get("source_title")) or _coerce_text(candidate.get("title"))
+        positions.setdefault(page_id, len(positions))
+        by_id[page_id] = candidate
+        if title:
+            by_title.setdefault(title.lower(), []).append(page_id)
+        if url:
+            by_url.setdefault(url, []).append(page_id)
+    return {"by_id": by_id, "by_title": by_title, "by_url": by_url, "positions": positions}
+
+
 def _source_refs_for_page(
     page: dict[str, Any],
     *,
     pages: pd.DataFrame | None = None,
     source_text_limit: int = 1800,
+    source_index: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     if not isinstance(page, dict) or not _coerce_text(page.get("page_id")):
         return []
@@ -2079,16 +2102,8 @@ def _source_refs_for_page(
     if source_url and source_url not in page_source_urls:
         page_source_urls.append(source_url)
 
-    all_pages = _ensure_page_frame(pages) if isinstance(pages, pd.DataFrame) else pd.DataFrame()
-    source_pages_by_id: dict[str, dict[str, Any]] = {}
-    source_pages: list[dict[str, Any]] = []
-    if not all_pages.empty:
-        for _, row in all_pages.iterrows():
-            candidate = dict(row)
-            if _coerce_text(candidate.get("page_type")) != "source":
-                continue
-            source_pages_by_id[_coerce_text(candidate.get("page_id"))] = candidate
-            source_pages.append(candidate)
+    index = source_index if source_index is not None else _build_source_page_index(pages)
+    source_pages_by_id = index["by_id"]
 
     refs: list[dict[str, Any]] = []
     if _coerce_text(page.get("page_type")) == "source":
@@ -2113,18 +2128,12 @@ def _source_refs_for_page(
                 }
             )
 
-    if not source_page_ids and source_pages:
-        matched: dict[str, dict[str, Any]] = {}
-        for source_page in source_pages:
-            candidate_metadata = _json_dict(source_page.get("metadata") or source_page.get("metadata_json"))
-            candidate_urls = list(source_page.get("source_urls") or _json_list(source_page.get("source_urls_json")))
-            candidate_url = _coerce_text(candidate_metadata.get("source_url")) or (candidate_urls[0] if candidate_urls else "")
-            candidate_title = _coerce_text(candidate_metadata.get("source_title")) or _coerce_text(source_page.get("title"))
-            if source_title and candidate_title and source_title.lower() == candidate_title.lower():
-                matched[_coerce_text(source_page.get("page_id"))] = source_page
-            if page_source_urls and candidate_url and candidate_url in page_source_urls:
-                matched[_coerce_text(source_page.get("page_id"))] = source_page
-        for source_page in matched.values():
+    if not source_page_ids and source_pages_by_id:
+        matched = set(index["by_title"].get(source_title.lower(), []))
+        for url in page_source_urls:
+            matched.update(index["by_url"].get(url, []))
+        for page_id in sorted(matched, key=index["positions"].__getitem__):
+            source_page = source_pages_by_id[page_id]
             refs.append(_source_page_ref(source_page, inferred=True, source_text_limit=source_text_limit))
 
     for chunk_record_id in chunk_record_ids:
@@ -2208,12 +2217,13 @@ def zopedia_trace_to_evidence(
         }
 
     pages = list_zopedia_pages(limit=500, conn=conn)
+    source_index = _build_source_page_index(pages)
     source_nodes_by_ref: dict[str, dict[str, Any]] = {}
     sources_by_page: dict[str, list[dict[str, Any]]] = {}
     evidence_edges: list[dict[str, str]] = []
     for node in nodes:
         node_id = _coerce_text(node.get("page_id"))
-        refs = _source_refs_for_page(node, pages=pages, source_text_limit=source_text_limit)
+        refs = _source_refs_for_page(node, source_index=source_index, source_text_limit=source_text_limit)
         sources_by_page[node_id] = refs
         for ref in refs:
             source_ref = _source_node_ref(ref)
@@ -2310,11 +2320,12 @@ def _page_source_counts(pages: pd.DataFrame) -> dict[str, int]:
     if frame.empty:
         return counts
     records = frame.to_dict("records")
+    source_index = _build_source_page_index(frame)
     for page in records:
         page_id = _coerce_text(page.get("page_id"))
         if not page_id:
             continue
-        refs = _source_refs_for_page(page, pages=frame, source_text_limit=240)
+        refs = _source_refs_for_page(page, source_index=source_index, source_text_limit=240)
         counts[page_id] = len(refs)
     return counts
 
@@ -2930,8 +2941,13 @@ def run_zopedia_maintenance(
     if db_conn is None:
         return {"status": "no_database", "run_id": _coerce_text(run_id), "summary": {}, "issues": []}
     try:
-        bootstrap_zopedia_storage(db_conn, commit=False)
+        if db_conn.info.transaction_status != 0:
+            raise ValueError("Zopedia maintenance requires a connection outside a transaction.")
+        bootstrap_zopedia_storage(db_conn)
         pages = list_zopedia_pages(limit=max(int(page_limit or _DEFAULT_MAINTENANCE_PAGE_LIMIT), 1), conn=db_conn)
+        # The materialized page snapshot is independent of the write phase.
+        # Do not retain database locks while constructing the graph.
+        db_conn.commit()
         snapshot = build_zopedia_maintenance_snapshot(
             pages,
             run_id=run_id,
@@ -2939,6 +2955,9 @@ def run_zopedia_maintenance(
             bloat_char_limit=bloat_char_limit,
         )
         return persist_zopedia_maintenance_snapshot(snapshot, conn=db_conn)
+    except Exception:
+        db_conn.rollback()
+        raise
     finally:
         if own_conn and db_conn is not None:
             try:
@@ -3995,14 +4014,10 @@ def extract_zopedia_pages_from_source(
     if not clean_text or llm_client is None or not hasattr(llm_client, "generate_json"):
         return []
     try:
-        data = llm_client.generate_json(
-            system_prompt=(
-                "You convert source material into concise Zopedia wiki pages for a financial research product. "
-                "Extract durable concepts, entities, tickers, macro themes, market events, and source notes. "
-                "Use only facts in the supplied source. Do not invent market conclusions. "
-                "Each page must be useful on its own and include links by page title when another extracted page is relevant."
-            ),
-            user_prompt=json.dumps(
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=json.dumps(
                 {
                     "title": _coerce_text(title),
                     "url": _coerce_text(url),
@@ -4011,9 +4026,23 @@ def extract_zopedia_pages_from_source(
                 },
                 ensure_ascii=False,
             ),
+            instructions="You convert source material into concise Zopedia wiki pages for a financial research product. Extract durable concepts, entities, tickers, macro themes, market events, and source notes. Use only facts in the supplied source. Do not invent market conclusions. Each page must be useful on its own and include links by page title when another extracted page is relevant.",
             schema_name="zopedia_source_pages",
             schema=_ZOPEDIA_SOURCE_SCHEMA,
+            task="zopedia_source_pages", stage='knowledge',
+            surface="services.saa.zopedia",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
     except Exception:
         return []
     pages = list(data.get("pages") or []) if isinstance(data, dict) else []

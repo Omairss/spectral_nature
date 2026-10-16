@@ -1,0 +1,2469 @@
+{
+  "query": "Today is October 8, 2026, America/Los_Angeles. Investigate the most important shared development behind today's selloff in AI infrastructure, cloud and semiconductor stocks. Retrieve current reporting and existing Zopedia knowledge. Determine what changed, when reporting appeared, why it could affect several businesses, and whether competing explanations matter. Do not infer a cause from price co-movement alone. Give a concise source-linked research answer, not a market recap.",
+  "elapsed_seconds": 162.58248395938426,
+  "result": {
+    "run_id": "agrun_aab6a3895b",
+    "status": "completed",
+    "mode": "sync",
+    "provider": "deepseek",
+    "model": "deepseek-reasoner",
+    "synthesis_model": "deepseek-reasoner",
+    "tool_calls": [
+      {
+        "tool_call_id": "agtc_1",
+        "tool_name": "research.live_event_evidence",
+        "arguments": {
+          "query": "AI infrastructure cloud semiconductor stocks selloff October 8 2026",
+          "focus_symbols": [
+            "NVDA",
+            "AMD",
+            "AVGO",
+            "TSM",
+            "MSFT",
+            "AMZN",
+            "GOOGL",
+            "ORCL",
+            "SMCI",
+            "MU",
+            "ARM",
+            "ASML",
+            "VRT",
+            "CRWV"
+          ],
+          "max_results": 12,
+          "force_refresh": true
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "web_research",
+              "attention_search_results"
+            ],
+            "details": {
+              "tool_name": "research.live_event_evidence"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 2,
+            "columns": [
+              "scope",
+              "symbol",
+              "headline",
+              "summary_text",
+              "source",
+              "published_at",
+              "url"
+            ],
+            "sample": [
+              {
+                "scope": "symbol",
+                "symbol": "NVDA",
+                "headline": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)",
+                "summary_text": "Nvidia's valuation has undergone a significant reset, with its forward multiple near decade lows even as revenue and earnings expectations...",
+                "source": "Seeking Alpha",
+                "published_at": "2026-10-08T14:16:52.109597+00:00",
+                "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale"
+              },
+              {
+                "scope": "market_event",
+                "symbol": "",
+                "headline": "The Largest Technology Companies by Market Cap in October 2026",
+                "summary_text": "Nvidia (NVDA -0.74%) is the world's largest technology company, followed by Apple (AAPL +0.91%) and Microsoft (MSFT +0.09%). AI is the most...",
+                "source": "The Motley Fool",
+                "published_at": "2026-10-05T20:16:49.953656+00:00",
+                "url": "https://www.fool.com/research/largest-tech-companies/"
+              }
+            ]
+          },
+          "preview_text": "research summary with 2 rows; columns=scope, symbol, headline, summary_text, source, published_at, url; sample=[{\"headline\": \"Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)\", \"published_at\": \"2026-10-08T14:16:52.109597+00:00\", \"scope\": \"symbol\", \"source\": \"Seeking Alpha\", \"summary_text\": \"Nvidia's valuation has undergone a significant reset, with its forward multiple near decade lows even as revenue and earnings expectations...\", \"symbol\": \"NVDA\", \"url\": \"https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale\"}, {\"headline\": \"The Largest Technology Companies by Market Cap in October 2026\", \"published_at\": \"2026-10-05T20:16:49.953656+00:00\", \"scope\": \"market_event\", \"source\": \"The Motley Fool\", \"summary_text\": \"Nvidia (NVDA -0.74%) is the world's largest technology company, followed by Apple (AAPL +0.91%) and Microsoft (MSFT +0.09%). AI is the most...\", \"symbol\": \"\", \"url\": \"https://www.fool.com/research/largest-tech-companies/\"}]",
+          "user_preview": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: NVDA, AMD, AVGO, TSM. Live evidence warnings: live_...",
+          "render_payload": null,
+          "llm_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: NVDA, AMD, AVGO, TSM. Live evidence warnings: live_event_impact_map timed out after 4s; Skipped remaining symbol news searches because the live-event budget was exhausted.. NVDA: Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA) | snippet=Nvidia's valuation has undergone a significant reset, with its forward multiple near decade lows even as revenue and earnings expectations... | source=Seeking Alpha | published_at=2026-10-08T14:16:52.109597+00:00 | url=https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale market_event: The Largest Technology Companies by Market Cap in October 2026 | snippet=Nvidia (NVDA -0.74%) is the world's largest technology company, followed by Apple (AAPL +0.91%) and Microsoft (MSFT +0.09%). AI is the most... | source=The Motley Fool | published_at=2026-10-05T20:16:49.953656+00:00 | url=https://www.fool.com/research/largest-tech-companies/ Tool messages: - live_event_impact_map timed out after 4s - Skipped remaining symbol news searches because the live-event budget was exhausted.",
+          "evidence_context_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: NVDA, AMD, AVGO, TSM. Live evidence warnings: live_event_impact_map timed out after 4s; Skipped remaining symbol news searches because the live-event budget was exhausted.. NVDA: Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA) | snippet=Nvidia's valuation has undergone a significant reset, with its forward multiple near decade lows even as revenue and earnings expectations... | source=Seeking Alpha | published_at=2026-10-08T14:16:52.109597+00:00 | url=https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale market_event: The Largest Technology Companies by Market Cap in October 2026 | snippet=Nvidia (NVDA -0.74%) is the world's largest technology company, followed by Apple (AAPL +0.91%) and Microsoft (MSFT +0.09%). AI is the most... | source=The Motley Fool | published_at=2026-10-05T20:16:49.953656+00:00 | url=https://www.fool.com/research/largest-tech-companies/\nTool messages:\nlive_event_impact_map timed out after 4s\nSkipped remaining symbol news searches because the live-event budget was exhausted.",
+          "source_links": [
+            {
+              "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale",
+              "label": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA) (Seeking Alpha)"
+            },
+            {
+              "url": "https://www.fool.com/research/largest-tech-companies/",
+              "label": "The Largest Technology Companies by Market Cap in October 2026 (The Motley Fool)"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)",
+              "source": "Seeking Alpha",
+              "published_date": "2026-10-08T14:16:52.109597+00:00",
+              "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale"
+            },
+            {
+              "kind": "",
+              "ref": "",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "The Largest Technology Companies by Market Cap in October 2026",
+              "source": "The Motley Fool",
+              "published_date": "2026-10-05T20:16:49.953656+00:00",
+              "url": "https://www.fool.com/research/largest-tech-companies/"
+            }
+          ]
+        }
+      },
+      {
+        "tool_call_id": "agtc_monitor_1",
+        "tool_name": "trajectory.monitor",
+        "arguments": {
+          "decision": "restart",
+          "restart_count": 1
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "preview_text": "Trajectory monitor decision: restart.\nReason: The thread has only one live-evidence call. It returned provider headlines and snippets, but no clear shared selloff development, no reporting timeline, and no affected-business links. The planned next tool, dataset.attention_home_1d, is a home-surface snapshot. It does not retrieve current reporting or Zopedia page evidence. The thread can recover with source reading and Zopedia tracing before synthesis..\nCorrective instruction: Do not run dataset.attention_home_1d next. Use research.search_evidence to find current reports on the October 8, 2026 AI infrastructure, cloud, and semiconductor selloff. Open the strongest source bodies with research.open_page. Use zopedia.search_pages to find related Zopedia pages, then zopedia.read_page and zopedia.read_source or zopedia.trace_to_evidence for dependent claims. Record publication times, the shared development, why it can affect several businesses, and competing explanations. Do not infer cause from price co-movement alone..\nOff-contract signals: The planned dataset.attention_home_1d call is not a source-reading step for the requested shared development.; The trace has no Zopedia page read or source trace despite the request to retrieve existing Zopedia knowledge..\nEvidence gaps: No shared development behind the October 8, 2026 selloff is identified.; No article bodies were opened; only provider headlines and snippets are present.; No Zopedia page was read, and no Zopedia source trace exists.; No reporting timeline or publication sequence is established.; No competing explanations are tested..",
+          "user_preview": "Trajectory monitor decision: restart. Reason: The thread has only one live-evidence call. It returned provider headlines and snippets, but no clear shared selloff development, no reporting timeline...",
+          "llm_context_text": "Trajectory monitor decision: restart.\nReason: The thread has only one live-evidence call. It returned provider headlines and snippets, but no clear shared selloff development, no reporting timeline, and no affected-business links. The planned next tool, dataset.attention_home_1d, is a home-surface snapshot. It does not retrieve current reporting or Zopedia page evidence. The thread can recover with source reading and Zopedia tracing before synthesis..\nCorrective instruction: Do not run dataset.attention_home_1d next. Use research.search_evidence to find current reports on the October 8, 2026 AI infrastructure, cloud, and semiconductor selloff. Open the strongest source bodies with research.open_page. Use zopedia.search_pages to find related Zopedia pages, then zopedia.read_page and zopedia.read_source or zopedia.trace_to_evidence for dependent claims. Record publication times, the shared development, why it can affect several businesses, and competing explanations. Do not infer cause from price co-movement alone..\nOff-contract signals: The planned dataset.attention_home_1d call is not a source-reading step for the requested shared development.; The trace has no Zopedia page read or source trace despite the request to retrieve existing Zopedia knowledge..\nEvidence gaps: No shared development behind the October 8, 2026 selloff is identified.; No article bodies were opened; only provider headlines and snippets are present.; No Zopedia page was read, and no Zopedia source trace exists.; No reporting timeline or publication sequence is established.; No competing explanations are tested..",
+          "result_type": "trajectory_monitor",
+          "provenance": {
+            "source": "aql_zopedia_trajectory_monitor"
+          },
+          "preview": {
+            "kind": "text",
+            "chars": 1609
+          }
+        }
+      },
+      {
+        "tool_call_id": "agtc_3",
+        "tool_name": "research.search_evidence",
+        "arguments": {
+          "query": "AI infrastructure cloud semiconductor stocks selloff shared development October 2026",
+          "max_results": 12
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "saa_evidence_chunks",
+              "saa_documents"
+            ],
+            "details": {
+              "tool_name": "research.search_evidence"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 0,
+            "columns": [],
+            "sample": []
+          },
+          "preview_text": "research summary with 0 rows; columns=n/a; sample=[]",
+          "user_preview": "SAA evidence search for 'AI infrastructure cloud semiconductor stocks selloff shared development October 2026': 0 result(s).",
+          "render_payload": null,
+          "llm_context_text": "SAA evidence search for 'AI infrastructure cloud semiconductor stocks selloff shared development October 2026': 0 result(s).",
+          "evidence_context_text": "SAA evidence search for 'AI infrastructure cloud semiconductor stocks selloff shared development October 2026': 0 result(s).",
+          "source_links": null,
+          "evidence_refs": null
+        }
+      },
+      {
+        "tool_call_id": "agtc_4",
+        "tool_name": "zopedia.search_pages",
+        "arguments": {
+          "query": "AI infrastructure cloud semiconductor selloff October 2026",
+          "max_results": 12
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "saa_zopedia_pages",
+              "saa_zopedia_change_proposals",
+              "saa_zopedia_mutation_audit",
+              "saa_zopedia_backlinks",
+              "saa_zopedia_community_index",
+              "saa_zopedia_maintenance_reports"
+            ],
+            "details": {
+              "tool_name": "zopedia.search_pages"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 12,
+            "columns": [
+              "kind",
+              "ref",
+              "page_id",
+              "page_type",
+              "title",
+              "summary_text",
+              "source_urls",
+              "url",
+              "entity_refs",
+              "outgoing_links"
+            ],
+            "sample": [
+              {
+                "kind": "zopedia_page",
+                "ref": "theme:ai-data-center-semiconductor-demand",
+                "page_id": "theme:ai-data-center-semiconductor-demand",
+                "page_type": "theme",
+                "title": "AI and Data-Center Semiconductor Demand",
+                "summary_text": "In early October 2026, MaxLinear drew attention for infrastructure and data-center products. Seeking Alpha reported on 2026-10-02 that MXL rose just over 15% to close 105.93. This theme is business context. It does no...",
+                "source_urls": [
+                  "https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus",
+                  "https://stockstotrade.com/news/maxlinear-inc-mxl-news-2026_10_02-3/",
+                  "https://stockstotrade.com/news/maxlinear-inc-mxl-news-2026_10_02-2/"
+                ],
+                "url": "https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus",
+                "entity_refs": [
+                  "MXL",
+                  "MaxLinear",
+                  "Puma 9",
+                  "data center",
+                  "infrastructure"
+                ],
+                "outgoing_links": [
+                  "ticker:MXL",
+                  "market_event:2026-10-08-semiconductor-pullback"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+                "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+                "page_type": "market_event",
+                "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+                "summary_text": "Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%.",
+                "source_urls": [
+                  "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+                  "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/"
+                ],
+                "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+                "entity_refs": [
+                  "HUT",
+                  "Hut 8 Corp",
+                  "RIOT",
+                  "CLSK",
+                  "CIFR",
+                  "CORZ",
+                  "WULF",
+                  "IREN"
+                ],
+                "outgoing_links": []
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "theme:ai-neocloud-reliability-risk",
+                "page_id": "theme:ai-neocloud-reliability-risk",
+                "page_type": "theme",
+                "title": "AI neocloud reliability and execution risk",
+                "summary_text": "Ex-crypto miners that convert legacy Bitcoin sites to AI neoclouds face execution risk. On 2026-10-07, SemiAnalysis placed IREN in its \"Not Recommended / Underperforming\" ClusterMAX tier, citing power, cooling, and ne...",
+                "source_urls": [
+                  "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html"
+                ],
+                "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+                "entity_refs": [
+                  "IREN",
+                  "CoreWeave",
+                  "Nebius",
+                  "SemiAnalysis",
+                  "AI neocloud",
+                  "data center reliability",
+                  "Nvidia",
+                  "ClusterMAX"
+                ],
+                "outgoing_links": [
+                  "ticker:IREN",
+                  "source:yahoo-finance-iren-semianalysis-highlights-2026-10-07",
+                  "market_event:iren-2026-10-07-semianalysis-drop",
+                  "peer:CRWV",
+                  "peer:NBIS",
+                  "supplier:NVDA"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:STRL-2026-capex-plan-2026-09-23",
+                "page_id": "market_event:STRL-2026-capex-plan-2026-09-23",
+                "page_type": "market_event",
+                "title": "Sterling Infrastructure raises 2026 capex plan to $130-$140M (Sept 23, 2026)",
+                "summary_text": "On Sept 23, 2026, a Zacks article on TradingView reported STRL's 2026 capital spending guide of $130-$140M, up from $77.3M in 2025, aimed at electrical prefabrication and an upsized equipment fleet on data-center and...",
+                "source_urls": [
+                  "https://www.tradingview.com/news/zacks:5fcd78fef094b:0-is-sterling-s-130m-140m-capex-plan-fuel-for-its-next-growth-leg/",
+                  "https://simplywall.st/stocks/us/capital-goods/nasdaq-strl/sterling-infrastructure/news/3-ai-infrastructure-stocks-built-for-higher-rates-and-data-c"
+                ],
+                "url": "https://www.tradingview.com/news/zacks:5fcd78fef094b:0-is-sterling-s-130m-140m-capex-plan-fuel-for-its-next-growth-leg/",
+                "entity_refs": [
+                  "STRL",
+                  "MTZ",
+                  "PWR"
+                ],
+                "outgoing_links": []
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event_nbis_2026_10_07_decline",
+                "page_id": "market_event_nbis_2026_10_07_decline",
+                "page_type": "market_event",
+                "title": "NBIS 5.1% Decline on October 7, 2026",
+                "summary_text": "NBIS fell 5.1% to $237.13 on Oct 7, 2026, attributed to a COO insider stake sale and a broad neocloud/AI infrastructure pullback. Peers CRWV, CORZ, and IREN fell 3.5% to 6.2%, while SMH and NVDA declined less. No macr...",
+                "source_urls": [
+                  "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+                  "https://www.marketbeat.com/instant-alerts/price-nebius-group-nasdaq-nbis-stock-price-down-51-heres-why-2026-10-07/",
+                  "https://www.tradingview.com/news/stocktwits:2d3f7a456094b:0-nebius-stock-rallies-with-ai-infrastructure-peers-even-as-coo-cuts-stake-retail-mood-improves/",
+                  "https://www.benzinga.com/trading-ideas/movers/26/10/62211946/nebius-group-stock-is-falling-wednesday-whats-going-on-2"
+                ],
+                "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+                "entity_refs": [
+                  "NBIS",
+                  "CRWV",
+                  "CORZ",
+                  "IREN",
+                  "SMH",
+                  "NVDA",
+                  "PLTR",
+                  "Nebius Group"
+                ],
+                "outgoing_links": [
+                  "NBIS",
+                  "CRWV",
+                  "IREN",
+                  "CORZ"
+                ]
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move",
+                "page_id": "market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move",
+                "page_type": "market_event",
+                "title": "2026-10-02 Electronics Distributor AI/Data-Center Demand Move",
+                "summary_text": "ARW hit a 52-week high on 2026-10-02 while peer AVT jumped 5.2% on rising demand for electronic components used in AI infrastructure and global data-center buildouts, plus normalizing industrial and automotive supply...",
+                "source_urls": [
+                  "https://www.marketbeat.com/instant-alerts/price-arrow-electronics-nyse-arw-hits-new-52-week-high-should-you-buy-2026-10-02/",
+                  "https://www.tradingview.com/news/stockstory:c394cd400094b:0-why-avnet-avt-stock-is-trading-up-today/",
+                  "https://uk.investing.com/news/stock-market-news/arrow-electronics-stock-hits-alltime-high-at-23802-usd-93CH-4893767"
+                ],
+                "url": "https://www.marketbeat.com/instant-alerts/price-arrow-electronics-nyse-arw-hits-new-52-week-high-should-you-buy-2026-10-02/",
+                "entity_refs": [
+                  "ARW",
+                  "AVT",
+                  "Arrow Electronics",
+                  "Avnet",
+                  "AI infrastructure",
+                  "data-center buildouts",
+                  "electronics distribution"
+                ],
+                "outgoing_links": [
+                  "ticker:ARW",
+                  "ticker:AVT"
+                ]
+              }
+            ]
+          },
+          "preview_text": "research summary with 12 rows; columns=kind, ref, page_id, page_type, title, summary_text, source_urls, url, entity_refs, outgoing_links; sample=[{\"entity_refs\": [\"MXL\", \"MaxLinear\", \"Puma 9\", \"data center\", \"infrastructure\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [\"ticker:MXL\", \"market_event:2026-10-08-semiconductor-pullback\"], \"page_id\": \"theme:ai-data-center-semiconductor-demand\", \"page_type\": \"theme\", \"ref\": \"theme:ai-data-center-semiconductor-demand\", \"source_urls\": [\"https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus\", \"https://stockstotrade.com/news/maxlinear-inc-mxl-news-2026_10_02-3/\", \"https://stockstotrade.com/news/maxlinear-inc-mxl-news-2026_10_02-2/\"], \"summary_text\": \"In early October 2026, MaxLinear drew attention for infrastructure and data-center products. Seeking Alpha reported on 2026-10-02 that MXL rose just over 15% to close 105.93. This theme is business context. It does no...\", \"title\": \"AI and Data-Center Semiconductor Demand\", \"url\": \"https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus\"}, {\"entity_refs\": [\"HUT\", \"Hut 8 Corp\", \"RIOT\", \"CLSK\", \"CIFR\", \"CORZ\", \"WULF\", \"IREN\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [], \"page_id\": \"market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff\", \"page_type\": \"market_event\", \"ref\": \"market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff\", \"source_urls\": [\"https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/\", \"https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/\"], \"summary_text\": \"Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%.\", \"title\": \"October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff\", \"url\": \"https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/\"}, {\"entity_refs\": [\"IREN\", \"CoreWeave\", \"Nebius\", \"SemiAnalysis\", \"AI neocloud\", \"data center reliability\", \"Nvidia\", \"ClusterMAX\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [\"ticker:IREN\", \"source:yahoo-finance-iren-semianalysis-highlights-2026-10-07\", \"market_event:iren-2026-10-07-semianalysis-drop\", \"peer:CRWV\", \"peer:NBIS\", \"supplier:NVDA\"], \"page_id\": \"theme:ai-neocloud-reliability-risk\", \"page_type\": \"theme\", \"ref\": \"theme:ai-neocloud-reliability-risk\", \"source_urls\": [\"https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html\"], \"summary_text\": \"Ex-crypto miners that convert legacy Bitcoin sites to AI neoclouds face execution risk. On 2026-10-07, SemiAnalysis placed IREN in its \\\"Not Recommended / Underperforming\\\" ClusterMAX tier, citing power, cooling, and ne...\", \"title\": \"AI neocloud reliability and execution risk\", \"url\": \"https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html\"}, {\"entity_refs\": [\"STRL\", \"MTZ\", \"PWR\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [], \"page_id\": \"market_event:STRL-2026-capex-plan-20...",
+          "user_preview": "Zopedia page search for 'AI infrastructure cloud semiconductor selloff October 2026': 12 result(s). AI and Data-Center Semiconductor Demand (page_id=theme:ai-data-center-semiconductor-demand) [them...",
+          "render_payload": null,
+          "llm_context_text": "Zopedia page search for 'AI infrastructure cloud semiconductor selloff October 2026': 12 result(s). AI and Data-Center Semiconductor Demand (page_id=theme:ai-data-center-semiconductor-demand) [theme]: In early October 2026, MaxLinear drew attention for infrastructure and data-center products. Seeking Alpha reported on 2026-10-02 that MXL rose just over 15% to close 105.93. This theme is business context. It does no... October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff (page_id=market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff) [market_event]: Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%. AI neocloud reliability and execution risk (page_id=theme:ai-neocloud-reliability-risk) [theme]: Ex-crypto miners that convert legacy Bitcoin sites to AI neoclouds face execution risk. On 2026-10-07, SemiAnalysis placed IREN in its \"Not Recommended / Underperforming\" ClusterMAX tier, citing power, cooling, and ne... Sterling Infrastructure raises 2026 capex plan to $130-$140M (Sept 23, 2026) (page_id=market_event:STRL-2026-capex-plan-2026-09-23) [market_event]: On Sept 23, 2026, a Zacks article on TradingView reported STRL's 2026 capital spending guide of $130-$140M, up from $77.3M in 2025, aimed at electrical prefabrication and an upsized equipment fleet on data-center and... NBIS 5.1% Decline on October 7, 2026 (page_id=market_event_nbis_2026_10_07_decline) [market_event]: NBIS fell 5.1% to $237.13 on Oct 7, 2026, attributed to a COO insider stake sale and a broad neocloud/AI infrastructure pullback. Peers CRWV, CORZ, and IREN fell 3.5% to 6.2%, while SMH and NVDA declined less. No macr... 2026-10-02 Electronics Distributor AI/Data-Center Demand Move (page_id=market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move) [market_event]: ARW hit a 52-week high on 2026-10-02 while peer AVT jumped 5.2% on rising demand for electronic components used in AI infrastructure and global data-center buildouts, plus normalizing industrial and automotive supply... BTDR +10.3% on Oct 2 2026: H.C. Wainwright reiterates Buy on AI Cloud offtake (page_id=market_event:BTDR-2026-10-02-ai-cloud-offtake-wainwright) [market_event]: BTDR closed $11.73 on Oct 2 2026, up 10.3% from $10.635, after H.C. Wainwright repeated Buy and a $25 target citing the Malaysia A201 offtake commitments. 2026-09-24 Semiconductor Pullback: 10-Year Treasury Yield Above 5.1% (page_id=market_event_2026_09_24_semiconductor_rate_pullback) [market_event]: On 2026-09-24 a group of semiconductor and hardware names fell after the 10-year US Treasury yield rose above 5.1%, the highest since July 2007, following a September composite PMI of 58.4 and a 73% implied probabilit... AXT, Inc. (AXTI) (page_id=ticker:AXTI) [ticker]: AXTI sells compound-semiconductor substrate material. It moved with a broad photonics and AI-optics peer selloff on 2026-10-08, down 9.0% to $72.63. No opened source tied a company-specific cause to that move. AD HOC NEWS: MaxLinear stock launches Puma 9 for AI ready broadband networks (2026-10-01) (page_id=source-ad-hoc-news-mxl-puma-9-2026-10-01) [source]: Opened AD HOC NEWS page. It reports Q2 2026 revenue of USD 168.85M, up 55.20% year over year, adjusted EPS of USD 0.35 above a USD 0.33 consensus, and infrastructure revenue of USD 85.00M, up 145.00%. It also carries... Lumentum (LITE) \u2014 2026-10-08 breakout on AI networking demand (page_id=LITE) [ticker]: LITE closed at 1072.63 on 2026-10-08, up 12.4% from 954.62 on 2026-09-21. Benzinga reported on 2026-10-07 that LITE broke above a five-month range on AI networking demand, naming $1,000 as key support. Peer Fabrinet (... AI-infrastructure rally \u2014 Oct 6 2026 (page_id=market_event:ai-infra-rally-2026-10-06) [market_event]: AI-compute names rose on Oct 6 2026 led by NBIS +7.5% to $249.86, with CRWV +4.9%, IREN +1.9%, NVDA +0.08%, suggesting a sector bid plus...",
+          "evidence_context_text": "Zopedia page search for 'AI infrastructure cloud semiconductor selloff October 2026': 12 result(s). AI and Data-Center Semiconductor Demand (page_id=theme:ai-data-center-semiconductor-demand) [theme]: In early October 2026, MaxLinear drew attention for infrastructure and data-center products. Seeking Alpha reported on 2026-10-02 that MXL rose just over 15% to close 105.93. This theme is business context. It does no... October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff (page_id=market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff) [market_event]: Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%. AI neocloud reliability and execution risk (page_id=theme:ai-neocloud-reliability-risk) [theme]: Ex-crypto miners that convert legacy Bitcoin sites to AI neoclouds face execution risk. On 2026-10-07, SemiAnalysis placed IREN in its \"Not Recommended / Underperforming\" ClusterMAX tier, citing power, cooling, and ne... Sterling Infrastructure raises 2026 capex plan to $130-$140M (Sept 23, 2026) (page_id=market_event:STRL-2026-capex-plan-2026-09-23) [market_event]: On Sept 23, 2026, a Zacks article on TradingView reported STRL's 2026 capital spending guide of $130-$140M, up from $77.3M in 2025, aimed at electrical prefabrication and an upsized equipment fleet on data-center and... NBIS 5.1% Decline on October 7, 2026 (page_id=market_event_nbis_2026_10_07_decline) [market_event]: NBIS fell 5.1% to $237.13 on Oct 7, 2026, attributed to a COO insider stake sale and a broad neocloud/AI infrastructure pullback. Peers CRWV, CORZ, and IREN fell 3.5% to 6.2%, while SMH and NVDA declined less. No macr... 2026-10-02 Electronics Distributor AI/Data-Center Demand Move (page_id=market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move) [market_event]: ARW hit a 52-week high on 2026-10-02 while peer AVT jumped 5.2% on rising demand for electronic components used in AI infrastructure and global data-center buildouts, plus normalizing industrial and automotive supply... BTDR +10.3% on Oct 2 2026: H.C. Wainwright reiterates Buy on AI Cloud offtake (page_id=market_event:BTDR-2026-10-02-ai-cloud-offtake-wainwright) [market_event]: BTDR closed $11.73 on Oct 2 2026, up 10.3% from $10.635, after H.C. Wainwright repeated Buy and a $25 target citing the Malaysia A201 offtake commitments. 2026-09-24 Semiconductor Pullback: 10-Year Treasury Yield Above 5.1% (page_id=market_event_2026_09_24_semiconductor_rate_pullback) [market_event]: On 2026-09-24 a group of semiconductor and hardware names fell after the 10-year US Treasury yield rose above 5.1%, the highest since July 2007, following a September composite PMI of 58.4 and a 73% implied probabilit... AXT, Inc. (AXTI) (page_id=ticker:AXTI) [ticker]: AXTI sells compound-semiconductor substrate material. It moved with a broad photonics and AI-optics peer selloff on 2026-10-08, down 9.0% to $72.63. No opened source tied a company-specific cause to that move. AD HOC NEWS: MaxLinear stock launches Puma 9 for AI ready broadband networks (2026-10-01) (page_id=source-ad-hoc-news-mxl-puma-9-2026-10-01) [source]: Opened AD HOC NEWS page. It reports Q2 2026 revenue of USD 168.85M, up 55.20% year over year, adjusted EPS of USD 0.35 above a USD 0.33 consensus, and infrastructure revenue of USD 85.00M, up 145.00%. It also carries... Lumentum (LITE) \u2014 2026-10-08 breakout on AI networking demand (page_id=LITE) [ticker]: LITE closed at 1072.63 on 2026-10-08, up 12.4% from 954.62 on 2026-09-21. Benzinga reported on 2026-10-07 that LITE broke above a five-month range on AI networking demand, naming $1,000 as key support. Peer Fabrinet (... AI-infrastructure rally \u2014 Oct 6 2026 (page_id=market_event:ai-infra-rally-2026-10-06) [market_event]: AI-compute names rose on Oct 6 2026 led by NBIS +7.5% to $249.86, with CRWV +4.9%, IREN +1.9%, NVDA +0.08%, suggesting a sector bid plus NBIS-specific catalysts. No macro, rate, or commodity data was collected.",
+          "source_links": [
+            {
+              "url": "https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus",
+              "label": "AI and Data-Center Semiconductor Demand"
+            },
+            {
+              "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+              "label": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff"
+            },
+            {
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+              "label": "AI neocloud reliability and execution risk"
+            },
+            {
+              "url": "https://www.tradingview.com/news/zacks:5fcd78fef094b:0-is-sterling-s-130m-140m-capex-plan-fuel-for-its-next-growth-leg/",
+              "label": "Sterling Infrastructure raises 2026 capex plan to $130-$140M (Sept 23, 2026)"
+            },
+            {
+              "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+              "label": "NBIS 5.1% Decline on October 7, 2026"
+            },
+            {
+              "url": "https://www.marketbeat.com/instant-alerts/price-arrow-electronics-nyse-arw-hits-new-52-week-high-should-you-buy-2026-10-02/",
+              "label": "2026-10-02 Electronics Distributor AI/Data-Center Demand Move"
+            },
+            {
+              "url": "https://www.benzinga.com/trading-ideas/movers/26/10/62132844/bitdeer-stock-jumps-as-h-c-wainwright-highlights-1-7-billion-ai-cloud-revenue-commitments",
+              "label": "BTDR +10.3% on Oct 2 2026: H.C. Wainwright reiterates Buy on AI Cloud offtake"
+            },
+            {
+              "url": "https://www.theglobeandmail.com/investing/markets/stocks/HIMX/pressreleases/4782980/western-digital-formfactor-penguin-solutions-himax-and-power-integrations-shares-are-falling-what-you-need-to-know/",
+              "label": "2026-09-24 Semiconductor Pullback: 10-Year Treasury Yield Above 5.1%"
+            },
+            {
+              "url": "https://stockstotrade.com/news/axt-inc-axti-news-2026_09_16/",
+              "label": "AXT, Inc. (AXTI)"
+            },
+            {
+              "url": "https://www.ad-hoc-news.de/boerse/news/nebenwerte/maxlinear-stock-launches-puma-9-for-ai-ready-broadband-networks/70201489",
+              "label": "AD HOC NEWS: MaxLinear stock launches Puma 9 for AI ready broadband networks (2026-10-01)"
+            },
+            {
+              "url": "https://financefeeds.com/lumentum-coherent-ciena-corning-ai-optics-2026/",
+              "label": "Lumentum (LITE) \u2014 2026-10-08 breakout on AI networking demand"
+            },
+            {
+              "url": "https://www.benzinga.com/markets/tech/26/10/62197008/why-is-nebius-group-stock-soaring-tuesday",
+              "label": "AI-infrastructure rally \u2014 Oct 6 2026"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "zopedia_page",
+              "ref": "theme:ai-data-center-semiconductor-demand",
+              "page_id": "theme:ai-data-center-semiconductor-demand",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AI and Data-Center Semiconductor Demand",
+              "source": "",
+              "published_date": "",
+              "url": "https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+              "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "theme:ai-neocloud-reliability-risk",
+              "page_id": "theme:ai-neocloud-reliability-risk",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AI neocloud reliability and execution risk",
+              "source": "",
+              "published_date": "",
+              "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:STRL-2026-capex-plan-2026-09-23",
+              "page_id": "market_event:STRL-2026-capex-plan-2026-09-23",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Sterling Infrastructure raises 2026 capex plan to $130-$140M (Sept 23, 2026)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.tradingview.com/news/zacks:5fcd78fef094b:0-is-sterling-s-130m-140m-capex-plan-fuel-for-its-next-growth-leg/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event_nbis_2026_10_07_decline",
+              "page_id": "market_event_nbis_2026_10_07_decline",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "NBIS 5.1% Decline on October 7, 2026",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move",
+              "page_id": "market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "2026-10-02 Electronics Distributor AI/Data-Center Demand Move",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.marketbeat.com/instant-alerts/price-arrow-electronics-nyse-arw-hits-new-52-week-high-should-you-buy-2026-10-02/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:BTDR-2026-10-02-ai-cloud-offtake-wainwright",
+              "page_id": "market_event:BTDR-2026-10-02-ai-cloud-offtake-wainwright",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "BTDR +10.3% on Oct 2 2026: H.C. Wainwright reiterates Buy on AI Cloud offtake",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.benzinga.com/trading-ideas/movers/26/10/62132844/bitdeer-stock-jumps-as-h-c-wainwright-highlights-1-7-billion-ai-cloud-revenue-commitments"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event_2026_09_24_semiconductor_rate_pullback",
+              "page_id": "market_event_2026_09_24_semiconductor_rate_pullback",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "2026-09-24 Semiconductor Pullback: 10-Year Treasury Yield Above 5.1%",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.theglobeandmail.com/investing/markets/stocks/HIMX/pressreleases/4782980/western-digital-formfactor-penguin-solutions-himax-and-power-integrations-shares-are-falling-what-you-need-to-know/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "ticker:AXTI",
+              "page_id": "ticker:AXTI",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AXT, Inc. (AXTI)",
+              "source": "",
+              "published_date": "",
+              "url": "https://stockstotrade.com/news/axt-inc-axti-news-2026_09_16/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "source-ad-hoc-news-mxl-puma-9-2026-10-01",
+              "page_id": "source-ad-hoc-news-mxl-puma-9-2026-10-01",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AD HOC NEWS: MaxLinear stock launches Puma 9 for AI ready broadband networks (2026-10-01)",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.ad-hoc-news.de/boerse/news/nebenwerte/maxlinear-stock-launches-puma-9-for-ai-ready-broadband-networks/70201489"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "LITE",
+              "page_id": "LITE",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Lumentum (LITE) \u2014 2026-10-08 breakout on AI networking demand",
+              "source": "",
+              "published_date": "",
+              "url": "https://financefeeds.com/lumentum-coherent-ciena-corning-ai-optics-2026/"
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:ai-infra-rally-2026-10-06",
+              "page_id": "market_event:ai-infra-rally-2026-10-06",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "AI-infrastructure rally \u2014 Oct 6 2026",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.benzinga.com/markets/tech/26/10/62197008/why-is-nebius-group-stock-soaring-tuesday"
+            }
+          ]
+        }
+      },
+      {
+        "tool_call_id": "agtc_5",
+        "tool_name": "zopedia.read_page",
+        "arguments": {
+          "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff"
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "saa_zopedia_pages",
+              "saa_zopedia_change_proposals",
+              "saa_zopedia_mutation_audit",
+              "saa_zopedia_backlinks",
+              "saa_zopedia_community_index",
+              "saa_zopedia_maintenance_reports"
+            ],
+            "details": {
+              "tool_name": "zopedia.read_page"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 1,
+            "columns": [
+              "kind",
+              "ref",
+              "page_id",
+              "page_type",
+              "title",
+              "summary_text",
+              "source_urls",
+              "url",
+              "entity_refs",
+              "outgoing_links"
+            ],
+            "sample": [
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+                "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+                "page_type": "market_event",
+                "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+                "summary_text": "Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%.",
+                "source_urls": [
+                  "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+                  "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/"
+                ],
+                "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+                "entity_refs": [
+                  "HUT",
+                  "Hut 8 Corp",
+                  "RIOT",
+                  "CLSK",
+                  "CIFR",
+                  "CORZ",
+                  "WULF",
+                  "IREN",
+                  "IBIT",
+                  "BTC-USD",
+                  "ETH-USD",
+                  "SOL-USD"
+                ],
+                "outgoing_links": []
+              }
+            ]
+          },
+          "preview_text": "research summary with 1 rows; columns=kind, ref, page_id, page_type, title, summary_text, source_urls, url, entity_refs, outgoing_links; sample=[{\"entity_refs\": [\"HUT\", \"Hut 8 Corp\", \"RIOT\", \"CLSK\", \"CIFR\", \"CORZ\", \"WULF\", \"IREN\", \"IBIT\", \"BTC-USD\", \"ETH-USD\", \"SOL-USD\"], \"kind\": \"zopedia_page\", \"outgoing_links\": [], \"page_id\": \"market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff\", \"page_type\": \"market_event\", \"ref\": \"market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff\", \"source_urls\": [\"https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/\", \"https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/\"], \"summary_text\": \"Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%.\", \"title\": \"October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff\", \"url\": \"https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/\"}]",
+          "user_preview": "Zopedia page: October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff [market_event]. Summary: Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations....",
+          "render_payload": null,
+          "llm_context_text": "Zopedia page: October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff [market_event]. Summary: Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%.. Entities: HUT, Hut 8 Corp, RIOT, CLSK, CIFR, CORZ, WULF, IREN, IBIT, BTC-USD, ETH-USD, SOL-USD. Body: ## What happened On 2026-10-08, bitcoin (BTC) fell below $81,000. It touched an intraday low of $80,900, then recovered to about $81,100. Bitcoin was down 2.8% over 24 hours. CoinGlass data showed $974 million of crypto liquidations in 24 hours. Long positions were $896 million. Short positions were $78 million. Ethereum led at $311 million, then bitcoin at $238 million. ## Equity cohort Crypto-linked equities fell in midday trade. MSTR, COIN, and XYZ each lost more than 2%. CRCL lost up to 1.5%. BMNR lost more than 5%. Miners that are expanding into AI data centers fell harder. RIOT -9%+, CIFR -7.9%, CLSK -7.1%, HUT -8%, IREN -6.3%, CORZ -2%. RIOT, CIFR, CLSK, and CORZ touched lows last seen in April. Daily closes for the same session (dataset.daily_movers): HUT 79.78 (-10.66%), CIFR 13.215 (-9.24%), CLSK 10.555 (-8.46%), RIOT 16.97 (-8.42%), WULF 13.49 (-6.32%), MARA 9.845 (-4.97%), CORZ 15.24 (-4.36%), IBIT 46.00 (-2.53%). IBIT is a spot-bitcoin ETF proxy, not a bitcoin price. ## Macro channels (report framing) The TradingView report ties the drop to rising oil prices, geopolitical tension, and higher Treasury yields. WTI November futures rose as much as 5.5% to about $93 a barrel, then pared to about $91. Brent December futures touched $105.65. The report says miners need external financing to build data center capacity. Higher yields can reduce the present value of future lease income. These macro links are the report's attribution. This evidence set holds no directly observed Treasury yield, crude futures, or index data. ## Related crypto moves SOL -7.2% to $108; DOGE -6.6% to about $0.08; XRP and ETH about -5.5%, with XRP near $1.35 and ETH about $2,400. Same-day headlines quote different bitcoin levels ($82,500 and below $83,000) because bitcoin fell during the session. The opened TradingView report is the source for the sub-$81,000 level.",
+          "evidence_context_text": "Zopedia page: October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff [market_event]. Summary: Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%.. Entities: HUT, Hut 8 Corp, RIOT, CLSK, CIFR, CORZ, WULF, IREN, IBIT, BTC-USD, ETH-USD, SOL-USD. Body: ## What happened On 2026-10-08, bitcoin (BTC) fell below $81,000. It touched an intraday low of $80,900, then recovered to about $81,100. Bitcoin was down 2.8% over 24 hours. CoinGlass data showed $974 million of crypto liquidations in 24 hours. Long positions were $896 million. Short positions were $78 million. Ethereum led at $311 million, then bitcoin at $238 million. ## Equity cohort Crypto-linked equities fell in midday trade. MSTR, COIN, and XYZ each lost more than 2%. CRCL lost up to 1.5%. BMNR lost more than 5%. Miners that are expanding into AI data centers fell harder. RIOT -9%+, CIFR -7.9%, CLSK -7.1%, HUT -8%, IREN -6.3%, CORZ -2%. RIOT, CIFR, CLSK, and CORZ touched lows last seen in April. Daily closes for the same session (dataset.daily_movers): HUT 79.78 (-10.66%), CIFR 13.215 (-9.24%), CLSK 10.555 (-8.46%), RIOT 16.97 (-8.42%), WULF 13.49 (-6.32%), MARA 9.845 (-4.97%), CORZ 15.24 (-4.36%), IBIT 46.00 (-2.53%). IBIT is a spot-bitcoin ETF proxy, not a bitcoin price. ## Macro channels (report framing) The TradingView report ties the drop to rising oil prices, geopolitical tension, and higher Treasury yields. WTI November futures rose as much as 5.5% to about $93 a barrel, then pared to about $91. Brent December futures touched $105.65. The report says miners need external financing to build data center capacity. Higher yields can reduce the present value of future lease income. These macro links are the report's attribution. This evidence set holds no directly observed Treasury yield, crude futures, or index data. ## Related crypto moves SOL -7.2% to $108; DOGE -6.6% to about $0.08; XRP and ETH about -5.5%, with XRP near $1.35 and ETH about $2,400. Same-day headlines quote different bitcoin levels ($82,500 and below $83,000) because bitcoin fell during the session. The opened TradingView report is the source for the sub-$81,000 level.",
+          "source_links": [
+            {
+              "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+              "label": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+              "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/"
+            }
+          ]
+        }
+      },
+      {
+        "tool_call_id": "agtc_6",
+        "tool_name": "zopedia.trace_to_evidence",
+        "arguments": {
+          "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "depth": 2
+        },
+        "status": "completed",
+        "error": null,
+        "result_summary": {
+          "result_type": "research",
+          "provenance": {
+            "mode": "computed",
+            "datasets": [
+              "saa_zopedia_pages",
+              "saa_zopedia_change_proposals",
+              "saa_zopedia_mutation_audit",
+              "saa_zopedia_backlinks",
+              "saa_zopedia_community_index",
+              "saa_zopedia_maintenance_reports"
+            ],
+            "details": {
+              "tool_name": "zopedia.trace_to_evidence"
+            }
+          },
+          "preview": {
+            "kind": "summary_rows",
+            "row_count": 14,
+            "columns": [
+              "kind",
+              "ref",
+              "page_id",
+              "page_type",
+              "title",
+              "summary_text",
+              "chunk_record_id",
+              "canonical_document_id",
+              "source",
+              "support_type",
+              "url",
+              "inferred",
+              "missing",
+              "body_excerpt"
+            ],
+            "sample": [
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+                "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+                "page_type": "market_event",
+                "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+                "summary_text": "Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%."
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "market_event:2026-10-08-bitcoin-below-81k-miner-selloff",
+                "page_id": "market_event:2026-10-08-bitcoin-below-81k-miner-selloff",
+                "page_type": "market_event",
+                "title": "2026-10-08 Bitcoin below $81K and crypto miner selloff",
+                "summary_text": "On 2026-10-08, a TradingView headline reported Bitcoin fell below $81,000 and triggered nearly $1B in crypto liquidations. Crypto stocks and AI-infrastructure plays fell. A 2026-10-07 Seeking Alpha headline reported B..."
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "source:tradingview-bitcoin-below-81k-2026-10-08",
+                "page_id": "source:tradingview-bitcoin-below-81k-2026-10-08",
+                "page_type": "source",
+                "title": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave",
+                "summary_text": "Opened TradingView article from 2026-10-08 that reports bitcoin below $81,000, $974 million of liquidations, and a crypto and AI-miner equity drawdown. It attributes the pressure to rising oil, geopolitical tension, a..."
+              },
+              {
+                "kind": "zopedia_page",
+                "ref": "ticker:HUT",
+                "page_id": "ticker:HUT",
+                "page_type": "ticker",
+                "title": "Hut 8 Corp (HUT)",
+                "summary_text": "Hut 8 is a bitcoin miner that is shifting to contracted AI data center capacity. On 2026-10-08 it closed at $79.78, down 10.7%, in a cohort-wide crypto and AI-infrastructure selloff."
+              },
+              {
+                "kind": "zopedia_source_page",
+                "ref": "zopedia_source_page::e33f3120182cc287",
+                "page_id": "source:tradingview-bitcoin-below-81k-2026-10-08",
+                "chunk_record_id": "",
+                "canonical_document_id": "",
+                "title": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave",
+                "summary_text": "Opened TradingView article from 2026-10-08 that reports bitcoin below $81,000, $974 million of liquidations, and a crypto and AI-miner equity drawdown. It attributes the pressure to rising oil, geopolitical tension, a...",
+                "source": "news_article",
+                "support_type": "source_page",
+                "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+                "inferred": true,
+                "missing": false,
+                "body_excerpt": "## Source facts Title: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave: Crypto Stocks Fall With AI Infrastructure Plays. Publisher: TradingView. Published: 2026-10-08T17:35:14Z. The page body was opened and read. ## Key claims Bitcoin fell below $81,000 on Thursday. It touched an intraday low of $80,900, then recovered to about $81,100, down 2.8% over 24 hours. CoinGlass data: $974 million of liquidations in 24 hours, of which $896 million were longs and $78 million were shorts. Ethereum led at $311 million, then bitcoin at $238 million. Crypto-linked equities fell. MSTR, COIN, and XYZ each lost more than 2%. CRCL lost up to 1.5%. BMNR lost more than 5%. Among miners shifting into AI data centers: RIOT -9%+, CIFR -7.9%, CLSK -7.1%, HUT -8%, IREN -6.3%, CORZ -2%. Four of these touched lows last seen in April. The article attributes the pressure to rising oil prices, geopolitical tensions, and rising yields. It says miners rely on external financing, so borrowing costs and the discount rate on future lease income drive valuations. WTI November futures rose as much as 5.5% to about $93 a barrel, then pared to about $91. Brent December futures touched..."
+              },
+              {
+                "kind": "source_url",
+                "ref": "source_url::d3e3d12a8fe918f3",
+                "page_id": "",
+                "chunk_record_id": "",
+                "canonical_document_id": "",
+                "title": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+                "summary_text": "",
+                "source": "",
+                "support_type": "url",
+                "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+                "inferred": false,
+                "missing": false,
+                "body_excerpt": ""
+              }
+            ]
+          },
+          "preview_text": "research summary with 14 rows; columns=kind, ref, page_id, page_type, title, summary_text, chunk_record_id, canonical_document_id, source, support_type, url, inferred, missing, body_excerpt; sample=[{\"kind\": \"zopedia_page\", \"page_id\": \"market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff\", \"page_type\": \"market_event\", \"ref\": \"market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff\", \"summary_text\": \"Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%.\", \"title\": \"October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff\"}, {\"kind\": \"zopedia_page\", \"page_id\": \"market_event:2026-10-08-bitcoin-below-81k-miner-selloff\", \"page_type\": \"market_event\", \"ref\": \"market_event:2026-10-08-bitcoin-below-81k-miner-selloff\", \"summary_text\": \"On 2026-10-08, a TradingView headline reported Bitcoin fell below $81,000 and triggered nearly $1B in crypto liquidations. Crypto stocks and AI-infrastructure plays fell. A 2026-10-07 Seeking Alpha headline reported B...\", \"title\": \"2026-10-08 Bitcoin below $81K and crypto miner selloff\"}, {\"kind\": \"zopedia_page\", \"page_id\": \"source:tradingview-bitcoin-below-81k-2026-10-08\", \"page_type\": \"source\", \"ref\": \"source:tradingview-bitcoin-below-81k-2026-10-08\", \"summary_text\": \"Opened TradingView article from 2026-10-08 that reports bitcoin below $81,000, $974 million of liquidations, and a crypto and AI-miner equity drawdown. It attributes the pressure to rising oil, geopolitical tension, a...\", \"title\": \"TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave\"}, {\"kind\": \"zopedia_page\", \"page_id\": \"ticker:HUT\", \"page_type\": \"ticker\", \"ref\": \"ticker:HUT\", \"summary_text\": \"Hut 8 is a bitcoin miner that is shifting to contracted AI data center capacity. On 2026-10-08 it closed at $79.78, down 10.7%, in a cohort-wide crypto and AI-infrastructure selloff.\", \"title\": \"Hut 8 Corp (HUT)\"}, {\"body_excerpt\": \"## Source facts Title: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave: Crypto Stocks Fall With AI Infrastructure Plays. Publisher: TradingView. Published: 2026-10-08T17:35:14Z. The page body was opened and read. ## Key claims Bitcoin fell below $81,000 on Thursday. It touched an intraday low of $80,900, then recovered to about $81,100, down 2.8% over 24 hours. CoinGlass data: $974 million of liquidations in 24 hours, of which $896 million were longs and $78 million were shorts. Ethereum led at $311 million, then bitcoin at $238 million. Crypto-linked equities fell. MSTR, COIN, and XYZ each lost more than 2%. CRCL lost up to 1.5%. BMNR lost more than 5%. Among miners shifting into AI data centers: RIOT -9%+, CIFR -7.9%, CLSK -7.1%, HUT -8%, IREN -6.3%, CORZ -2%. Four of these touched lows last seen in April. The article attributes the pressure to rising oil prices, geopolitical tensions, and rising yields. It says miners rely on external financing, so borrowing costs and the discount rate on future lease income drive valuations. WTI November futures rose as much as 5.5% to about $93 a barrel, then pared to about $91. Brent December futures touched...\", \"canonical_document_id\": \"\", \"chunk_record_id\": \"\", \"inferred\": true, \"kind\": \"zopedia_source_page\", \"missing\": false, \"page_id\": \"source:tradingview-bitcoin-below-81k-2026-10-08\", \"ref...",
+          "user_preview": "Zopedia evidence trace for market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff: 4 page(s), 10 source node(s), 22 edge(s). Page: October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastruc...",
+          "render_payload": null,
+          "llm_context_text": "Zopedia evidence trace for market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff: 4 page(s), 10 source node(s), 22 edge(s). Page: October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff [market_event]. Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%. Page: 2026-10-08 Bitcoin below $81K and crypto miner selloff [market_event]. On 2026-10-08, a TradingView headline reported Bitcoin fell below $81,000 and triggered nearly $1B in crypto liquidations. Crypto stocks and AI-infrastructure plays fell. A 2026-10-07 Seeking Alpha headline reported B... Page: TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave [source]. Opened TradingView article from 2026-10-08 that reports bitcoin below $81,000, $974 million of liquidations, and a crypto and AI-miner equity drawdown. It attributes the pressure to rising oil, geopolitical tension, a... Page: Hut 8 Corp (HUT) [ticker]. Hut 8 is a bitcoin miner that is shifting to contracted AI data center capacity. On 2026-10-08 it closed at $79.78, down 10.7%, in a cohort-wide crypto and AI-infrastructure selloff. Source: TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave | url=https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/: ## Source facts Title: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave: Crypto Stocks Fall With AI Infrastructure Plays. Publisher: TradingView. Published: 2026-10-08T17:35:14Z. The page body was opened and read. ## Key claims Bitcoin fell below $81,000 on Thursday. It touched an intraday low of $80,900, then recovered to about $81,100, down 2.8% over 24 hours. CoinGlass data: $974 million of liquidations in 24 hours, of which $896 million were longs and $78 million were shorts. Ethereum led at $311 million, then bitcoin at $238 million. Crypto-linked equities fell. MSTR, COIN, and XYZ each lost more than 2%. CRCL lost up to 1.5%. BMNR lost more than 5%. Among miners shifting into AI data centers: RIOT -9%+, CIFR -7.9%, CLSK -7.1%, HUT -8%, IREN -6.3%, CORZ -2%. Four of these touched lows last seen in April. The article attributes the pressure to rising oil prices, geopolitical tensions, and rising yields. It says miners rely on external financing, so borrowing costs and the discount rate on future lease income drive valuations. WTI November futures rose as much as 5.5% to about $93 a barrel, then pared to about $91. Brent December futures touched... Source: https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/ | url=https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/ Source: https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/ | url=https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/ Source: https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why | url=https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why Source: https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/ | url=https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/ Source: https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors | url=https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors Source: https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the | url=https://www....",
+          "evidence_context_text": "Zopedia evidence trace for market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff: 4 page(s), 10 source node(s), 22 edge(s). Page: October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff [market_event]. Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations. Crypto miners that build AI data centers fell hardest. Hut 8 closed down 10.7%. Page: 2026-10-08 Bitcoin below $81K and crypto miner selloff [market_event]. On 2026-10-08, a TradingView headline reported Bitcoin fell below $81,000 and triggered nearly $1B in crypto liquidations. Crypto stocks and AI-infrastructure plays fell. A 2026-10-07 Seeking Alpha headline reported B... Page: TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave [source]. Opened TradingView article from 2026-10-08 that reports bitcoin below $81,000, $974 million of liquidations, and a crypto and AI-miner equity drawdown. It attributes the pressure to rising oil, geopolitical tension, a... Page: Hut 8 Corp (HUT) [ticker]. Hut 8 is a bitcoin miner that is shifting to contracted AI data center capacity. On 2026-10-08 it closed at $79.78, down 10.7%, in a cohort-wide crypto and AI-infrastructure selloff. Source: TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave | url=https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/: ## Source facts Title: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave: Crypto Stocks Fall With AI Infrastructure Plays. Publisher: TradingView. Published: 2026-10-08T17:35:14Z. The page body was opened and read. ## Key claims Bitcoin fell below $81,000 on Thursday. It touched an intraday low of $80,900, then recovered to about $81,100, down 2.8% over 24 hours. CoinGlass data: $974 million of liquidations in 24 hours, of which $896 million were longs and $78 million were shorts. Ethereum led at $311 million, then bitcoin at $238 million. Crypto-linked equities fell. MSTR, COIN, and XYZ each lost more than 2%. CRCL lost up to 1.5%. BMNR lost more than 5%. Among miners shifting into AI data centers: RIOT -9%+, CIFR -7.9%, CLSK -7.1%, HUT -8%, IREN -6.3%, CORZ -2%. Four of these touched lows last seen in April. The article attributes the pressure to rising oil prices, geopolitical tensions, and rising yields. It says miners rely on external financing, so borrowing costs and the discount rate on future lease income drive valuations. WTI November futures rose as much as 5.5% to about $93 a barrel, then pared to about $91. Brent December futures touched... Source: https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/ | url=https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/ Source: https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/ | url=https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/ Source: https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why | url=https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why Source: https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/ | url=https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/ Source: https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors | url=https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors Source: https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the | url=https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the Source: https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth | url=https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+          "source_links": [
+            {
+              "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+              "label": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave (news_article)"
+            },
+            {
+              "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+              "label": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/"
+            },
+            {
+              "url": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/",
+              "label": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/"
+            },
+            {
+              "url": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why",
+              "label": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why"
+            },
+            {
+              "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+              "label": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/"
+            },
+            {
+              "url": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors",
+              "label": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors"
+            },
+            {
+              "url": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the",
+              "label": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the"
+            },
+            {
+              "url": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+              "label": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth"
+            },
+            {
+              "url": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q",
+              "label": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q"
+            },
+            {
+              "url": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet",
+              "label": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet"
+            }
+          ],
+          "evidence_refs": [
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+              "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+              "source": "",
+              "published_date": "",
+              "url": ""
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "market_event:2026-10-08-bitcoin-below-81k-miner-selloff",
+              "page_id": "market_event:2026-10-08-bitcoin-below-81k-miner-selloff",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "2026-10-08 Bitcoin below $81K and crypto miner selloff",
+              "source": "",
+              "published_date": "",
+              "url": ""
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "source:tradingview-bitcoin-below-81k-2026-10-08",
+              "page_id": "source:tradingview-bitcoin-below-81k-2026-10-08",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave",
+              "source": "",
+              "published_date": "",
+              "url": ""
+            },
+            {
+              "kind": "zopedia_page",
+              "ref": "ticker:HUT",
+              "page_id": "ticker:HUT",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "Hut 8 Corp (HUT)",
+              "source": "",
+              "published_date": "",
+              "url": ""
+            },
+            {
+              "kind": "zopedia_source_page",
+              "ref": "zopedia_source_page::e33f3120182cc287",
+              "page_id": "source:tradingview-bitcoin-below-81k-2026-10-08",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave",
+              "source": "news_article",
+              "published_date": "",
+              "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::d3e3d12a8fe918f3",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::a295a88c1f2a4d9a",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::da83d521666b642e",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why",
+              "source": "",
+              "published_date": "",
+              "url": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::b6f7ce3c2605fd4e",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+              "source": "",
+              "published_date": "",
+              "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::901a31a397326f1c",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::dc34bfec2f1cc6ab",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the",
+              "source": "",
+              "published_date": "",
+              "url": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::2044f7d85353b5a7",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+              "source": "",
+              "published_date": "",
+              "url": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::52221d8b82c61d10",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q",
+              "source": "",
+              "published_date": "",
+              "url": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q"
+            },
+            {
+              "kind": "source_url",
+              "ref": "source_url::146811a23f1f6cae",
+              "page_id": "",
+              "proposal_id": "",
+              "mutation_id": "",
+              "chunk_record_id": "",
+              "canonical_document_id": "",
+              "document_id": "",
+              "chunk_id": "",
+              "title": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet",
+              "source": "",
+              "published_date": "",
+              "url": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet"
+            }
+          ]
+        }
+      }
+    ],
+    "answer_markdown": "**No single shared development behind a broad AI-infrastructure, cloud, and semiconductor selloff is confirmed in this evidence. The one current event with a read source body is a crypto liquidation wave that hit bitcoin miners building AI data centers.**\n\n### The strongest current evidence\n\nThe opened TradingView report \"Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave: Crypto Stocks Fall With AI Infrastructure Plays\" is the only article body read in this run. It carries a publication time of **2026-10-08T17:35:14Z**. Zopedia holds it as page **`market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff`** and source page **`source:tradingview-bitcoin-below-81k-2026-10-08`**.\n\n- Bitcoin fell below **$81,000**, touched an intraday low of **$80,900**, then recovered to about **$81,100**, down **2.8%** over 24 hours.\n- CoinGlass showed **$974 million** of liquidations in 24 hours: **$896 million** long and **$78 million** short. Ethereum led at **$311 million**; bitcoin was **$238 million**.\n- Miners that are expanding into AI data centers fell hardest: **RIOT -9%+**, **CIFR -7.9%**, **CLSK -7.1%**, **HUT -8%**, **IREN -6.3%**, **CORZ -2%**.\n- Session closes in Zopedia: **HUT 79.78 (-10.66%)**, **CIFR 13.215 (-9.24%)**, **CLSK 10.555 (-8.46%)**, **RIOT 16.97 (-8.42%)**, **WULF 13.49 (-6.32%)**, **CORZ 15.24 (-4.36%)**. Zopedia page **`ticker:HUT`** says Hut 8 closed at **$79.78, down 10.7%**, in a cohort-wide move.\n\n### Why one event can touch several businesses\n\nThe shared channel named in that report is financing, not chips. The report says these miners need external capital to build data center capacity, and that higher yields lower the present value of future lease income. That discount-rate channel applies to any capital-hungry data center operator, so one shock can move several unrelated businesses at once.\n\nThis is durable background, not today's driver. Zopedia page **`theme:ai-neocloud-reliability-risk`** records that ex-crypto miners face power, cooling, and neocloud execution risk. Page **`market_event_2026_09_24_semiconductor_rate_pullback`** shows the same rate sensitivity on **2026-09-24**, when the 10-year Treasury yield rose above **5.1%**. Those pages explain sensitivity. They do not prove today's cause.\n\n### What the evidence does not support\n\nThe premise of a broad cloud and semiconductor selloff is not verified here.\n\n- No source in this set names a shared cloud or semiconductor development on **2026-10-08**.\n- The live headline set is thin. A Seeking Alpha item published **2026-10-08T14:16:52Z** states Nvidia's forward multiple is near decade lows. That is a valuation note, not a shared driver. A Motley Fool item published **2026-10-05** lists **NVDA -0.74%** and **MSFT +0.09%**; those figures are dated October 5, not October 8.\n- Zopedia page **`LITE`** shows **Lumentum closed at 1072.63 on 2026-10-08, up 12.4% from 954.62 on 2026-09-21**. That is a multi-week move, not a same-day gain, so it does not by itself contradict an October 8 selloff.\n- Zopedia page **`ticker:AXTI`** shows **AXTI -9.0% to $72.63 on 2026-10-08**, but no opened source tied a company-specific cause to that move.\n- The Zopedia-backed evidence search for the selloff development returned **0 results**. The live-event impact map timed out after **4s**, and the remaining symbol news searches were skipped.\n\n### Competing explanations\n\n- **Macro channel:** the TradingView report attributes pressure to rising oil, geopolitical tension, and rising yields. WTI November futures rose as much as **5.5%** to about **$93** a barrel before paring to about **$91**; Brent December futures touched **$105.65**. This is the report's attribution. This evidence set holds no directly observed yield, crude futures, or index data.\n- **Crypto-specific deleveraging:** **$974 million** of liquidations is a crypto-market event that can hit miners without any semiconductor trigger.\n- **Idiosyncratic:** Zopedia page **`market_event_nbis_2026_10_07_decline`** shows **NBIS -5.1% to $237.13 on 2026-10-07**, tied to a COO insider stake sale plus a neocloud pullback. Peers **CRWV**, **CORZ**, and **IREN** fell **3.5%** to **6.2%**, while **SMH** and **NVDA** declined less.\n- **Quality tiering:** Zopedia page **`theme:ai-neocloud-reliability-risk`** records that SemiAnalysis placed **IREN** in its \"Not Recommended / Underperforming\" ClusterMAX tier on **2026-10-07**.\n\n### Takeaway and what to watch next\n\nTreat the crypto liquidation wave as the one shared, source-backed development dated **2026-10-08**. Do not treat it as the cause of a cloud and semiconductor selloff, because price co-movement alone is not evidence of cause.\n\nMissing evidence to collect next: opened source bodies from cloud and semiconductor names dated **2026-10-08**, a publication-time sequence across those sources, and any observed rate, crude, or index data for the same session. Supporting sources: [TradingView](https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/) and [The Motley Fool](https://www.fool.com/research/largest-tech-companies/).",
+    "confidence": "medium",
+    "limitations": [
+      "No shared cloud or semiconductor development dated 2026-10-08 appears in the evidence set.",
+      "Only one article body was opened and read (TradingView, 2026-10-08T17:35:14Z). All other live evidence is provider headlines and snippets.",
+      "The live-event impact map timed out after 4s, and remaining symbol news searches were skipped. Coverage of NVDA, AMD, AVGO, TSM, MSFT, AMZN, GOOGL, ORCL, SMCI, MU, ARM, ASML, and VRT is incomplete.",
+      "The Zopedia-backed evidence search for the selloff development returned 0 results.",
+      "No directly observed Treasury yield, crude futures, or index data exists in this evidence set. The macro channel is the TradingView report's attribution only.",
+      "No publication timeline across sources is established, so the reporting sequence cannot be tested.",
+      "The user premise of a broad AI-infrastructure, cloud, and semiconductor selloff is unverified. The only same-day price points in evidence are the crypto-linked names and the AXTI/LITE pages."
+    ],
+    "quality_review": {
+      "status": "completed",
+      "verdict": "revise",
+      "critique_summary": "The draft is cautious and mostly evidence-tied, and it correctly refuses to convert the crypto-driven miner move into a broad cloud/semiconductor driver. Three precision defects need fixing: (1) the Lumentum gain is a move from 2026-09-21 to the 2026-10-08 close (954.62 to 1072.63), not a same-day +12.4% move, so it does not by itself prove the opposite of an Oct 8 selloff; (2) the NVDA -0.74% figure comes from The Motley Fool item published 2026-10-05, not from 2026-10-08, and the draft's limitation sentence wrongly dates it to Oct 8; (3) the Zopedia page id for the September rate pullback is written with colons instead of the actual `market_event_2026_09_24_semiconductor_rate_pullback`. The failed-search statements are supported by the tool history (research.search_evidence returned 0 results; live-event impact map timed out after 4s).",
+      "confidence": "medium",
+      "limitations": [
+        "No shared cloud or semiconductor development dated 2026-10-08 appears in the evidence set.",
+        "Only one article body was opened and read (TradingView, 2026-10-08T17:35:14Z). All other live evidence is provider headlines and snippets.",
+        "The live-event impact map timed out after 4s, and remaining symbol news searches were skipped. Coverage of NVDA, AMD, AVGO, TSM, MSFT, AMZN, GOOGL, ORCL, SMCI, MU, ARM, ASML, and VRT is incomplete.",
+        "The Zopedia-backed evidence search for the selloff development returned 0 results.",
+        "No directly observed Treasury yield, crude futures, or index data exists in this evidence set. The macro channel is the TradingView report's attribution only.",
+        "No publication timeline across sources is established, so the reporting sequence cannot be tested.",
+        "The user premise of a broad AI-infrastructure, cloud, and semiconductor selloff is unverified. The only same-day price points in evidence are the crypto-linked names and the AXTI/LITE pages."
+      ],
+      "unsupported_claims": [
+        "That Lumentum's +12.4% was a same-day October 8 move (it is a move from 2026-09-21 to the 2026-10-08 close).",
+        "That the NVDA -0.74% figure is an October 8 observation (it comes from a Motley Fool item published 2026-10-05)."
+      ],
+      "evidence_gaps": [
+        "No opened article body from a cloud or semiconductor name dated 2026-10-08.",
+        "No publication-time sequence across October 8 sources.",
+        "No observed Treasury yield, crude futures, or index data for the 2026-10-08 session.",
+        "No source that names a shared cloud or semiconductor driver for 2026-10-08.",
+        "No test of whether the crypto liquidation wave and any semiconductor weakness share a common cause."
+      ],
+      "revised_answer_applied": true
+    },
+    "answer_status": "reviewed",
+    "memory_update": {
+      "status": "not_run"
+    },
+    "trajectory_reviews": [
+      {
+        "decision": "double_down",
+        "reason": "The planned research.live_event_evidence call is on contract. The task asks for current reporting first, and the query plus focus symbols stay centered on AI infrastructure, cloud and semiconductor names (NVDA, AMD, AVGO, TSM, MSFT, AMZN, GOOGL, ORCL, SMCI, MU, ARM, ASML, VRT, CRWV). No cause is inferred from price co-movement, and the thread has not swapped its primary subject. Missing Zopedia evidence is an evidence gap, not a kill condition.",
+        "corrective_instruction": "Run research.live_event_evidence as planned to timestamp the reporting. Then use zopedia.search_pages and zopedia.read_page on the named companies or the shared development, and zopedia.read_source or zopedia.trace_to_evidence to link each dependent claim to its source.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No live or current reporting has been returned yet; the only live call is still planned.",
+          "No Zopedia page or source has been retrieved, so existing knowledge for the shared development is unverified.",
+          "The publication time of the triggering report is not yet established, so the link between the report and the October 8, 2026 selloff is unconfirmed.",
+          "Competing explanations (rates, credit, single-company news, policy) have not been collected or ruled in or out.",
+          "No source-linked chain shows how one development could affect several businesses."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "restart",
+        "reason": "The thread has only one live-evidence call. It returned provider headlines and snippets, but no clear shared selloff development, no reporting timeline, and no affected-business links. The planned next tool, dataset.attention_home_1d, is a home-surface snapshot. It does not retrieve current reporting or Zopedia page evidence. The thread can recover with source reading and Zopedia tracing before synthesis.",
+        "corrective_instruction": "Do not run dataset.attention_home_1d next. Use research.search_evidence to find current reports on the October 8, 2026 AI infrastructure, cloud, and semiconductor selloff. Open the strongest source bodies with research.open_page. Use zopedia.search_pages to find related Zopedia pages, then zopedia.read_page and zopedia.read_source or zopedia.trace_to_evidence for dependent claims. Record publication times, the shared development, why it can affect several businesses, and competing explanations. Do not infer cause from price co-movement alone.",
+        "off_contract_signals": [
+          "The planned dataset.attention_home_1d call is not a source-reading step for the requested shared development.",
+          "The trace has no Zopedia page read or source trace despite the request to retrieve existing Zopedia knowledge."
+        ],
+        "evidence_gaps": [
+          "No shared development behind the October 8, 2026 selloff is identified.",
+          "No article bodies were opened; only provider headlines and snippets are present.",
+          "No Zopedia page was read, and no Zopedia source trace exists.",
+          "No reporting timeline or publication sequence is established.",
+          "No competing explanations are tested.",
+          "Live evidence warnings show a timed-out impact map and skipped symbol searches."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The newest trace item is a planned research.search_evidence call. That call matches the standing corrective instruction and directly targets current reporting on the October 8, 2026 AI infrastructure, cloud, and semiconductor selloff. The requested company set stays the center of gravity, and the step is source retrieval, not a home-surface snapshot. The thread is recoverable and on contract, so it should continue rather than restart again.",
+        "corrective_instruction": "Run the planned research.search_evidence query, then open the two or three strongest source bodies with research.open_page. Use zopedia.search_pages and zopedia.read_page to retrieve existing Zopedia knowledge, and use zopedia.read_source or zopedia.trace_to_evidence for any dependent claim. Record publication dates and times, name the single shared development, explain how it reaches several businesses, and list at least one competing explanation with its evidence. Do not treat price co-movement as proof of cause. Keep all remaining work inside the 4-call budget.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No shared development behind the October 8, 2026 selloff is identified yet.",
+          "No article body has been opened; only provider headlines and snippets exist.",
+          "No Zopedia page has been read and no Zopedia source trace exists.",
+          "No reporting timeline or publication sequence is established.",
+          "No competing explanations are tested.",
+          "The earlier research.live_event_evidence call returned a live_event_impact_map timeout and exhausted its symbol-news budget, so live coverage is still thin."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The thread remains anchored to the requested selloff investigation. The planned zopedia.search_pages call directly supports the request for existing Zopedia knowledge and is not off-task. The thread should continue, then move quickly to page reading and source tracing. Current reporting is still thin, so the next steps must avoid synthesis from headlines alone.",
+        "corrective_instruction": "Run zopedia.search_pages now. Then read the strongest page with zopedia.read_page and trace dependent claims with zopedia.read_source or zopedia.trace_to_evidence. Use the remaining budget to open at least one current article body with research.open_page from the live evidence URLs, or run a broader research.search_evidence query. Do not infer a shared cause from price co-movement or from headlines alone.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No shared development behind the October 8, 2026 selloff is identified.",
+          "No current article body has been opened; only provider headlines and snippets are present.",
+          "research.search_evidence returned 0 results for the selloff query.",
+          "No Zopedia page has been read, and no Zopedia source trace exists yet.",
+          "No reporting timeline or publication sequence is established.",
+          "No competing explanations are tested.",
+          "The live_event_impact_map timed out after 4 seconds.",
+          "The live-event budget was exhausted before remaining symbol news searches ran."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The planned zopedia.read_page targets the October 8, 2026 market_event page that directly names a crypto and AI-infrastructure selloff. This is the required Zopedia knowledge step. The thread stays centered on the requested selloff, and the page read can identify the shared development and its timing. Current reporting and source tracing are still incomplete, but they are recoverable within the remaining budget.",
+        "corrective_instruction": "Continue with zopedia.read_page on market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff. Then use one remaining tool call to open a current report with research.open_page, or to trace dependent claims with zopedia.read_source or zopedia.trace_to_evidence. Keep AI infrastructure, cloud, and semiconductor names as the center. Do not finalize until current reporting and Zopedia sources are linked.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No current article body has been opened; live evidence is provider headlines and snippets only.",
+          "No shared development behind the October 8, 2026 selloff is confirmed.",
+          "No publication timeline or reporting sequence is established.",
+          "No source trace links the claimed development to multiple affected businesses.",
+          "Competing explanations are not tested.",
+          "The planned Zopedia page is relevant but has not been read yet."
+        ],
+        "status": "completed"
+      },
+      {
+        "decision": "double_down",
+        "reason": "The thread is anchored to a real October 8, 2026 event page (market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff) that ties crypto liquidation to AI-infrastructure names. The planned zopedia.trace_to_evidence call is an on-contract source-linking step for that page's dependent claims. This is not off-task drift, and source tracing is needed before synthesis. The thread keeps AI infrastructure as the center of gravity, so continue rather than restart.",
+        "corrective_instruction": "Run zopedia.trace_to_evidence on market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff to link the macro channel (oil, yields, geopolitics) and liquidation figures to their underlying sources. Label every claim that has no source trace. Keep the crypto-miner and AI-data-center cohort inside the AI-infrastructure frame. Do not treat price co-movement as proof of cause.",
+        "off_contract_signals": [],
+        "evidence_gaps": [
+          "No competing explanations are tested; the macro channel is only the opened report's attribution.",
+          "No shared development specific to cloud and semiconductor stocks is confirmed, only the crypto/AI-datacenter cohort.",
+          "research.search_evidence returned 0 results, so current-reporting coverage is thin.",
+          "No reporting timeline or publication sequence is established for the October 8 event.",
+          "It is not yet confirmed that this crypto event is the most important shared driver for cloud and semiconductor names.",
+          "Only one live tool attempt is in the trace; no page bodies beyond the single Zopedia event page are opened."
+        ],
+        "status": "completed"
+      }
+    ],
+    "error": null,
+    "query": "Today is October 8, 2026, America/Los_Angeles. Investigate the most important shared development behind today's selloff in AI infrastructure, cloud and semiconductor stocks. Retrieve current reporting and existing Zopedia knowledge. Determine what changed, when reporting appeared, why it could affect several businesses, and whether competing explanations matter. Do not infer a cause from price co-movement alone. Give a concise source-linked research answer, not a market recap.",
+    "original_query": "Today is October 8, 2026, America/Los_Angeles. Investigate the most important shared development behind today's selloff in AI infrastructure, cloud and semiconductor stocks. Retrieve current reporting and existing Zopedia knowledge. Determine what changed, when reporting appeared, why it could affect several businesses, and whether competing explanations matter. Do not infer a cause from price co-movement alone. Give a concise source-linked research answer, not a market recap.",
+    "followup_resolved": false,
+    "write_policy": "none",
+    "aql_evidence_pack": {
+      "schema_version": "aql_evidence_pack_v1",
+      "evidence_pack_id": "aqlpack::4cf1ae219b1cb246ea230092",
+      "run_id": "agrun_aab6a3895b",
+      "surface": "zopedia_agent",
+      "query": "Today is October 8, 2026, America/Los_Angeles. Investigate the most important shared development behind today's selloff in AI infrastructure, cloud and semiconductor stocks. Retrieve current reporting and existing Zopedia knowledge. Determine what changed, when reporting appeared, why it could affect several businesses, and whether competing explanations matter. Do not infer a cause from price co-movement alone. Give a concise source-linked research answer, not a market recap.",
+      "original_query": "Today is October 8, 2026, America/Los_Angeles. Investigate the most important shared development behind today's selloff in AI infrastructure, cloud and semiconductor stocks. Retrieve current reporting and existing Zopedia knowledge. Determine what changed, when reporting appeared, why it could affect several businesses, and whether competing explanations matter. Do not infer a cause from price co-movement alone. Give a concise source-linked research answer, not a market recap.",
+      "status": "completed",
+      "model": "deepseek-reasoner",
+      "entities": [],
+      "retained_chunks": [],
+      "source_documents": [
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)",
+          "source": "Seeking Alpha",
+          "published_date": "2026-10-08T14:16:52.109597+00:00",
+          "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "The Largest Technology Companies by Market Cap in October 2026",
+          "source": "The Motley Fool",
+          "published_date": "2026-10-05T20:16:49.953656+00:00",
+          "url": "https://www.fool.com/research/largest-tech-companies/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "theme:ai-data-center-semiconductor-demand",
+          "page_id": "theme:ai-data-center-semiconductor-demand",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AI and Data-Center Semiconductor Demand",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "theme:ai-neocloud-reliability-risk",
+          "page_id": "theme:ai-neocloud-reliability-risk",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AI neocloud reliability and execution risk",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:STRL-2026-capex-plan-2026-09-23",
+          "page_id": "market_event:STRL-2026-capex-plan-2026-09-23",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Sterling Infrastructure raises 2026 capex plan to $130-$140M (Sept 23, 2026)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingview.com/news/zacks:5fcd78fef094b:0-is-sterling-s-130m-140m-capex-plan-fuel-for-its-next-growth-leg/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event_nbis_2026_10_07_decline",
+          "page_id": "market_event_nbis_2026_10_07_decline",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "NBIS 5.1% Decline on October 7, 2026",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move",
+          "page_id": "market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "2026-10-02 Electronics Distributor AI/Data-Center Demand Move",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.marketbeat.com/instant-alerts/price-arrow-electronics-nyse-arw-hits-new-52-week-high-should-you-buy-2026-10-02/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:BTDR-2026-10-02-ai-cloud-offtake-wainwright",
+          "page_id": "market_event:BTDR-2026-10-02-ai-cloud-offtake-wainwright",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "BTDR +10.3% on Oct 2 2026: H.C. Wainwright reiterates Buy on AI Cloud offtake",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/trading-ideas/movers/26/10/62132844/bitdeer-stock-jumps-as-h-c-wainwright-highlights-1-7-billion-ai-cloud-revenue-commitments",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event_2026_09_24_semiconductor_rate_pullback",
+          "page_id": "market_event_2026_09_24_semiconductor_rate_pullback",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "2026-09-24 Semiconductor Pullback: 10-Year Treasury Yield Above 5.1%",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.theglobeandmail.com/investing/markets/stocks/HIMX/pressreleases/4782980/western-digital-formfactor-penguin-solutions-himax-and-power-integrations-shares-are-falling-what-you-need-to-know/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:AXTI",
+          "page_id": "ticker:AXTI",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AXT, Inc. (AXTI)",
+          "source": "",
+          "published_date": "",
+          "url": "https://stockstotrade.com/news/axt-inc-axti-news-2026_09_16/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source-ad-hoc-news-mxl-puma-9-2026-10-01",
+          "page_id": "source-ad-hoc-news-mxl-puma-9-2026-10-01",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AD HOC NEWS: MaxLinear stock launches Puma 9 for AI ready broadband networks (2026-10-01)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.ad-hoc-news.de/boerse/news/nebenwerte/maxlinear-stock-launches-puma-9-for-ai-ready-broadband-networks/70201489",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "LITE",
+          "page_id": "LITE",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Lumentum (LITE) \u2014 2026-10-08 breakout on AI networking demand",
+          "source": "",
+          "published_date": "",
+          "url": "https://financefeeds.com/lumentum-coherent-ciena-corning-ai-optics-2026/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:ai-infra-rally-2026-10-06",
+          "page_id": "market_event:ai-infra-rally-2026-10-06",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AI-infrastructure rally \u2014 Oct 6 2026",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/markets/tech/26/10/62197008/why-is-nebius-group-stock-soaring-tuesday",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+          "source": "",
+          "published_date": "",
+          "url": "",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:2026-10-08-bitcoin-below-81k-miner-selloff",
+          "page_id": "market_event:2026-10-08-bitcoin-below-81k-miner-selloff",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "2026-10-08 Bitcoin below $81K and crypto miner selloff",
+          "source": "",
+          "published_date": "",
+          "url": "",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:tradingview-bitcoin-below-81k-2026-10-08",
+          "page_id": "source:tradingview-bitcoin-below-81k-2026-10-08",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave",
+          "source": "",
+          "published_date": "",
+          "url": "",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:HUT",
+          "page_id": "ticker:HUT",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Hut 8 Corp (HUT)",
+          "source": "",
+          "published_date": "",
+          "url": "",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "zopedia_source_page",
+          "ref": "zopedia_source_page::e33f3120182cc287",
+          "page_id": "source:tradingview-bitcoin-below-81k-2026-10-08",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave",
+          "source": "news_article",
+          "published_date": "",
+          "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::d3e3d12a8fe918f3",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::a295a88c1f2a4d9a",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::da83d521666b642e",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::b6f7ce3c2605fd4e",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "source": "",
+          "published_date": "",
+          "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::901a31a397326f1c",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::dc34bfec2f1cc6ab",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::2044f7d85353b5a7",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::52221d8b82c61d10",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q",
+          "source": "",
+          "published_date": "",
+          "url": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::146811a23f1f6cae",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        }
+      ],
+      "zopedia_pages": [
+        {
+          "kind": "zopedia_page",
+          "ref": "theme:ai-data-center-semiconductor-demand",
+          "page_id": "theme:ai-data-center-semiconductor-demand",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AI and Data-Center Semiconductor Demand",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "theme:ai-neocloud-reliability-risk",
+          "page_id": "theme:ai-neocloud-reliability-risk",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AI neocloud reliability and execution risk",
+          "source": "",
+          "published_date": "",
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:STRL-2026-capex-plan-2026-09-23",
+          "page_id": "market_event:STRL-2026-capex-plan-2026-09-23",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Sterling Infrastructure raises 2026 capex plan to $130-$140M (Sept 23, 2026)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingview.com/news/zacks:5fcd78fef094b:0-is-sterling-s-130m-140m-capex-plan-fuel-for-its-next-growth-leg/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event_nbis_2026_10_07_decline",
+          "page_id": "market_event_nbis_2026_10_07_decline",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "NBIS 5.1% Decline on October 7, 2026",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move",
+          "page_id": "market_event:2026-10-02-electronics-distributor-ai-data-center-demand-move",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "2026-10-02 Electronics Distributor AI/Data-Center Demand Move",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.marketbeat.com/instant-alerts/price-arrow-electronics-nyse-arw-hits-new-52-week-high-should-you-buy-2026-10-02/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:BTDR-2026-10-02-ai-cloud-offtake-wainwright",
+          "page_id": "market_event:BTDR-2026-10-02-ai-cloud-offtake-wainwright",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "BTDR +10.3% on Oct 2 2026: H.C. Wainwright reiterates Buy on AI Cloud offtake",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/trading-ideas/movers/26/10/62132844/bitdeer-stock-jumps-as-h-c-wainwright-highlights-1-7-billion-ai-cloud-revenue-commitments",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event_2026_09_24_semiconductor_rate_pullback",
+          "page_id": "market_event_2026_09_24_semiconductor_rate_pullback",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "2026-09-24 Semiconductor Pullback: 10-Year Treasury Yield Above 5.1%",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.theglobeandmail.com/investing/markets/stocks/HIMX/pressreleases/4782980/western-digital-formfactor-penguin-solutions-himax-and-power-integrations-shares-are-falling-what-you-need-to-know/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:AXTI",
+          "page_id": "ticker:AXTI",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AXT, Inc. (AXTI)",
+          "source": "",
+          "published_date": "",
+          "url": "https://stockstotrade.com/news/axt-inc-axti-news-2026_09_16/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source-ad-hoc-news-mxl-puma-9-2026-10-01",
+          "page_id": "source-ad-hoc-news-mxl-puma-9-2026-10-01",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AD HOC NEWS: MaxLinear stock launches Puma 9 for AI ready broadband networks (2026-10-01)",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.ad-hoc-news.de/boerse/news/nebenwerte/maxlinear-stock-launches-puma-9-for-ai-ready-broadband-networks/70201489",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "LITE",
+          "page_id": "LITE",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Lumentum (LITE) \u2014 2026-10-08 breakout on AI networking demand",
+          "source": "",
+          "published_date": "",
+          "url": "https://financefeeds.com/lumentum-coherent-ciena-corning-ai-optics-2026/",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:ai-infra-rally-2026-10-06",
+          "page_id": "market_event:ai-infra-rally-2026-10-06",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "AI-infrastructure rally \u2014 Oct 6 2026",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.benzinga.com/markets/tech/26/10/62197008/why-is-nebius-group-stock-soaring-tuesday",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+          "source": "",
+          "published_date": "",
+          "url": "",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "market_event:2026-10-08-bitcoin-below-81k-miner-selloff",
+          "page_id": "market_event:2026-10-08-bitcoin-below-81k-miner-selloff",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "2026-10-08 Bitcoin below $81K and crypto miner selloff",
+          "source": "",
+          "published_date": "",
+          "url": "",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "source:tradingview-bitcoin-below-81k-2026-10-08",
+          "page_id": "source:tradingview-bitcoin-below-81k-2026-10-08",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave",
+          "source": "",
+          "published_date": "",
+          "url": "",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "zopedia_page",
+          "ref": "ticker:HUT",
+          "page_id": "ticker:HUT",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Hut 8 Corp (HUT)",
+          "source": "",
+          "published_date": "",
+          "url": "",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "zopedia_source_page",
+          "ref": "zopedia_source_page::e33f3120182cc287",
+          "page_id": "source:tradingview-bitcoin-below-81k-2026-10-08",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave",
+          "source": "news_article",
+          "published_date": "",
+          "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::d3e3d12a8fe918f3",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::a295a88c1f2a4d9a",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::da83d521666b642e",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::b6f7ce3c2605fd4e",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "source": "",
+          "published_date": "",
+          "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::901a31a397326f1c",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::dc34bfec2f1cc6ab",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the",
+          "source": "",
+          "published_date": "",
+          "url": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::2044f7d85353b5a7",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::52221d8b82c61d10",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q",
+          "source": "",
+          "published_date": "",
+          "url": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "kind": "source_url",
+          "ref": "source_url::146811a23f1f6cae",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet",
+          "source": "",
+          "published_date": "",
+          "url": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        }
+      ],
+      "kg_paths": [],
+      "live_evidence": [
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA)",
+          "source": "Seeking Alpha",
+          "published_date": "2026-10-08T14:16:52.109597+00:00",
+          "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "kind": "",
+          "ref": "",
+          "page_id": "",
+          "proposal_id": "",
+          "mutation_id": "",
+          "chunk_record_id": "",
+          "canonical_document_id": "",
+          "document_id": "",
+          "chunk_id": "",
+          "title": "The Largest Technology Companies by Market Cap in October 2026",
+          "source": "The Motley Fool",
+          "published_date": "2026-10-05T20:16:49.953656+00:00",
+          "url": "https://www.fool.com/research/largest-tech-companies/",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        }
+      ],
+      "citations": [
+        {
+          "url": "https://seekingalpha.com/article/4952602-nvidia-the-top-ai-stock-is-on-sale",
+          "label": "Nvidia: The Top AI Stock Is On Sale (NASDAQ:NVDA) (Seeking Alpha)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "url": "https://www.fool.com/research/largest-tech-companies/",
+          "label": "The Largest Technology Companies by Market Cap in October 2026 (The Motley Fool)",
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence"
+        },
+        {
+          "url": "https://seekingalpha.com/news/4649973-maxlinear-climbs-15-amid-infrastructure-and-data-center-focus",
+          "label": "AI and Data-Center Semiconductor Demand",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.tradingview.com/news/stocktwits:75803f324094b:0-bitcoin-drops-below-81k-triggering-nearly-1b-crypto-liquidation-wave-crypto-stocks-fall-with-ai-infrastructure-plays/",
+          "label": "October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://finance.yahoo.com/markets/stocks/articles/iren-shares-fall-semianalysis-highlights-163350495.html",
+          "label": "AI neocloud reliability and execution risk",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.tradingview.com/news/zacks:5fcd78fef094b:0-is-sterling-s-130m-140m-capex-plan-fuel-for-its-next-growth-leg/",
+          "label": "Sterling Infrastructure raises 2026 capex plan to $130-$140M (Sept 23, 2026)",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.tradingkey.com/news/market-movers/262204408-market-movers-nbis-20261007",
+          "label": "NBIS 5.1% Decline on October 7, 2026",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.marketbeat.com/instant-alerts/price-arrow-electronics-nyse-arw-hits-new-52-week-high-should-you-buy-2026-10-02/",
+          "label": "2026-10-02 Electronics Distributor AI/Data-Center Demand Move",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.benzinga.com/trading-ideas/movers/26/10/62132844/bitdeer-stock-jumps-as-h-c-wainwright-highlights-1-7-billion-ai-cloud-revenue-commitments",
+          "label": "BTDR +10.3% on Oct 2 2026: H.C. Wainwright reiterates Buy on AI Cloud offtake",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.theglobeandmail.com/investing/markets/stocks/HIMX/pressreleases/4782980/western-digital-formfactor-penguin-solutions-himax-and-power-integrations-shares-are-falling-what-you-need-to-know/",
+          "label": "2026-09-24 Semiconductor Pullback: 10-Year Treasury Yield Above 5.1%",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://stockstotrade.com/news/axt-inc-axti-news-2026_09_16/",
+          "label": "AXT, Inc. (AXTI)",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.ad-hoc-news.de/boerse/news/nebenwerte/maxlinear-stock-launches-puma-9-for-ai-ready-broadband-networks/70201489",
+          "label": "AD HOC NEWS: MaxLinear stock launches Puma 9 for AI ready broadband networks (2026-10-01)",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://financefeeds.com/lumentum-coherent-ciena-corning-ai-optics-2026/",
+          "label": "Lumentum (LITE) \u2014 2026-10-08 breakout on AI networking demand",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.benzinga.com/markets/tech/26/10/62197008/why-is-nebius-group-stock-soaring-tuesday",
+          "label": "AI-infrastructure rally \u2014 Oct 6 2026",
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages"
+        },
+        {
+          "url": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/",
+          "label": "https://www.marketbeat.com/instant-alerts/price-hut-8-tse-hut-stock-price-down-92-should-you-sell-2026-10-08/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "url": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why",
+          "label": "https://seekingalpha.com/news/4651112-bitcoin-crash-sends-crypto-market-stocks-into-bloodbath-why",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "url": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "label": "https://stockstotrade.com/news/hut-8-corp-hut-news-2026_09_18/",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "url": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors",
+          "label": "https://www.gurufocus.com/news/9088714/hut-8-corp-hut-shares-surge-85-what-gf-score-of-18-tells-investors",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "url": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the",
+          "label": "https://www.moomoo.com/news/post/76476459/canadian-stock-movers-for-friday-hut-8-corp-was-the",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "url": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+          "label": "https://seekingalpha.com/news/4651311-hut-8-initiated-with-buy-rating-at-roth",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "url": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q",
+          "label": "https://stocktwits.com/news-articles/markets/equity/hut-stock-rises-overnight-why-this-analyst-sees-a-68-upside-despite-q2-miss/cZo4amjRJ4q",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        },
+        {
+          "url": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet",
+          "label": "https://seekingalpha.com/article/4952152-hut-8-the-cheapest-contracted-megawatt-but-nothing-is-operational-yet",
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence"
+        }
+      ],
+      "data_gaps": [
+        "No shared cloud or semiconductor development dated 2026-10-08 appears in the evidence set.",
+        "Only one article body was opened and read (TradingView, 2026-10-08T17:35:14Z). All other live evidence is provider headlines and snippets.",
+        "The live-event impact map timed out after 4s, and remaining symbol news searches were skipped. Coverage of NVDA, AMD, AVGO, TSM, MSFT, AMZN, GOOGL, ORCL, SMCI, MU, ARM, ASML, and VRT is incomplete.",
+        "The Zopedia-backed evidence search for the selloff development returned 0 results.",
+        "No directly observed Treasury yield, crude futures, or index data exists in this evidence set. The macro channel is the TradingView report's attribution only.",
+        "No publication timeline across sources is established, so the reporting sequence cannot be tested.",
+        "The user premise of a broad AI-infrastructure, cloud, and semiconductor selloff is unverified. The only same-day price points in evidence are the crypto-linked names and the AXTI/LITE pages."
+      ],
+      "critique_findings": [],
+      "proposals": [],
+      "mutations": [],
+      "trace": [
+        {
+          "tool_call_id": "agtc_1",
+          "tool_name": "research.live_event_evidence",
+          "status": "completed",
+          "arguments": {
+            "query": "AI infrastructure cloud semiconductor stocks selloff October 8 2026",
+            "focus_symbols": [
+              "NVDA",
+              "AMD",
+              "AVGO",
+              "TSM",
+              "MSFT",
+              "AMZN",
+              "GOOGL",
+              "ORCL",
+              "SMCI",
+              "MU",
+              "ARM",
+              "ASML",
+              "VRT",
+              "CRWV"
+            ],
+            "max_results": 12,
+            "force_refresh": true
+          },
+          "preview_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. Live evidence theme= direction=. Focused symbols: NVDA, AMD, AVGO, TSM. Live evidence warnings: live_...",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_monitor_1",
+          "tool_name": "trajectory.monitor",
+          "status": "completed",
+          "arguments": {
+            "decision": "restart",
+            "restart_count": 1
+          },
+          "preview_text": "Trajectory monitor decision: restart. Reason: The thread has only one live-evidence call. It returned provider headlines and snippets, but no clear shared selloff development, no reporting timeline...",
+          "result_type": "trajectory_monitor",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_3",
+          "tool_name": "research.search_evidence",
+          "status": "completed",
+          "arguments": {
+            "query": "AI infrastructure cloud semiconductor stocks selloff shared development October 2026",
+            "max_results": 12
+          },
+          "preview_text": "SAA evidence search for 'AI infrastructure cloud semiconductor stocks selloff shared development October 2026': 0 result(s).",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_4",
+          "tool_name": "zopedia.search_pages",
+          "status": "completed",
+          "arguments": {
+            "query": "AI infrastructure cloud semiconductor selloff October 2026",
+            "max_results": 12
+          },
+          "preview_text": "Zopedia page search for 'AI infrastructure cloud semiconductor selloff October 2026': 12 result(s). AI and Data-Center Semiconductor Demand (page_id=theme:ai-data-center-semiconductor-demand) [them...",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_5",
+          "tool_name": "zopedia.read_page",
+          "status": "completed",
+          "arguments": {
+            "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff"
+          },
+          "preview_text": "Zopedia page: October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastructure Selloff [market_event]. Summary: Bitcoin fell below $81,000 on 2026-10-08, with $974 million of crypto liquidations....",
+          "result_type": "research",
+          "error": ""
+        },
+        {
+          "tool_call_id": "agtc_6",
+          "tool_name": "zopedia.trace_to_evidence",
+          "status": "completed",
+          "arguments": {
+            "page_id": "market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff",
+            "depth": 2
+          },
+          "preview_text": "Zopedia evidence trace for market_event:2026-10-08-bitcoin-below-81k-crypto-ai-selloff: 4 page(s), 10 source node(s), 22 edge(s). Page: October 8, 2026: Bitcoin Below $81K, Crypto and AI-Infrastruc...",
+          "result_type": "research",
+          "error": ""
+        }
+      ],
+      "error": ""
+    },
+    "aql_evidence_pack_id": "aqlpack::4cf1ae219b1cb246ea230092",
+    "runtime": {
+      "run_id": "agrun_aab6a3895b",
+      "event_count": 56,
+      "durable_event_log": false,
+      "resumable": false
+    },
+    "engine": {
+      "name": "aql_zopedia",
+      "task": "home_discovery_audit",
+      "surface": "attention_home.discovery_audit",
+      "write_policy": "none",
+      "max_tool_calls": 6,
+      "tool_call_timeout_seconds": 40,
+      "llm_step_timeout_seconds": 90,
+      "prefetch_timeout_seconds": 40
+    }
+  }
+}

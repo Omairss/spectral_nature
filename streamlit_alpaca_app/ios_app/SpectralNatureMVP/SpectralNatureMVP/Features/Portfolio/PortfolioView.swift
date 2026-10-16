@@ -4,7 +4,7 @@ import SwiftUI
 struct PortfolioView: View {
   @EnvironmentObject private var session: AppSession
   @StateObject private var resource = Resource<PortfolioSnapshot>()
-  @State private var period = "1Y"
+  @State private var period = "5Y"
   @State private var section = "Overview"
   @State private var assetClass = "equity"
   private let periods = ["1D", "1W", "1M", "3M", "YTD", "1Y", "5Y", "ALL"]
@@ -34,15 +34,7 @@ struct PortfolioView: View {
             case "Risk": risk(portfolio)
             case "Performance": performance(portfolio)
             case "Lists":
-              Panel("Lists and screeners") {
-                WorkbookTable(
-                  rows: portfolio.opportunitySets,
-                  columns: [
-                    .init(key: "name", title: "Group"), .init(key: "kind", title: "Type"),
-                    .init(key: "member_count", title: "Members", style: .number),
-                    .init(key: "analytics_status", title: "Analytics"),
-                  ])
-              }
+              PortfolioListsView(period: period)
             default: overview(portfolio)
             }
             if let date = Format.date(portfolio.asOf) {
@@ -63,7 +55,7 @@ struct PortfolioView: View {
     .task(id: period) { await load() }.refreshable { await load() }
   }
   private func load() async {
-    await resource.load(key: period) {
+    await resource.load(key: period, clearOnFailure: true) {
       try await session.api.get("/api/portfolio", query: ["period": period])
     }
   }
@@ -166,11 +158,10 @@ struct PortfolioView: View {
         NavigationLink {
           InvestigatorView(ticker: row.text("symbol"))
         } label: {
-          HStack {
-            Text(row.text("symbol")).font(.headline)
-            Spacer()
-            Image(systemName: "chevron.right").font(.caption)
-          }
+          InstrumentHeading(
+            symbol: row.text("symbol"), price: row.number("current_price"),
+            change: row.number("change_today").map { $0 * 100 }, priceLabel: "Price",
+            disclosure: true)
         }.buttonStyle(.plain)
         if !row.text("description").isEmpty {
           Text(row.text("description")).font(.caption).foregroundStyle(.secondary)
@@ -180,7 +171,6 @@ struct PortfolioView: View {
         }
         Metrics(items: [
           ("Quantity", Format.number(row.number("qty") ?? row.number("quantity"))),
-          ("Price", Format.money(row.number("current_price"))),
           ("Market value", Format.money(row.number("market_value"))),
           ("Unrealized P/L", Format.money(row.number("unrealized_pl"))),
           ("Side", row.text("direction")),
@@ -248,6 +238,8 @@ struct PortfolioView: View {
     }
     if !analytics.components.isEmpty {
       Panel("Factor components") {
+        ScatterPlot(rows: analytics.components, x: "pc1", y: "pc2", label: "symbol",
+                    xTitle: "PC1 loading", yTitle: "PC2 loading")
         WorkbookTable(
           rows: analytics.components,
           columns: [

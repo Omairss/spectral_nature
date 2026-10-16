@@ -1,0 +1,229 @@
+{
+  "shared_engine_revision": "7242a828ab189e15faa4",
+  "dev_targets": [
+    {
+      "target": "trading-agent-build-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:474ea722c40f90f1d5f24a144e845ffca2d443d0c04dfb173a3e2d63a9a41fdf",
+      "previous_image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:f4cfc997e3b468a374ac5de3fecf429739adf982ab768d1f35573d7c7292118f",
+      "build_run": "cj13x",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "macro-fred-daily-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+      "previous_image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:75c9aa58dbc20423272e7551e588cea6a6ca95a649ad748cf19ed1163c9be4f1",
+      "build_run": "cj13w",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "sn-research-run-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:124218fe2a1ecbd515068f0c9098805b4e6544a9519a631f326d4def3d7450ed",
+      "previous_image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:d4165e75e9f3da972b428401b1077d3d6ca67a868b3e748f7ec38f3842e4d496",
+      "build_run": "cj13v",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "attention-home-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+      "previous_image": "snpipelineacr03130136.azurecr.io/ios-analytics-home-dev@sha256:03cc53b2ea8426400d1c58d99917361d8049aa9111475176ece21d6bfae6dd44",
+      "build_run": "cj141",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "daily-datapoints-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+      "previous_image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+      "build_run": "cj140",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "attention-ticker-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:591f18b8cff24ef010eb22dd2522928af2e97fe3594ce200aeda064964508c7c",
+      "previous_image": "snpipelineacr03130136.azurecr.io/ios-analytics-ticker-dev@sha256:548f3330eece8455460bf3214fa9c2f6aa942ab7b55dbad4452b2e35979ee44e",
+      "build_run": "cj13y",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "equities-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+      "previous_image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+      "build_run": "cj140",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "technical-history-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:4a181efd6a1ec1b993f8014d0c1f47cb38095560f056e212504d54d134ea286d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:98ed511cf06181cc056e13197dcfd62b7a1b4338b2ed870f7a97834ef64b235f",
+      "build_run": "cj142",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "evidence-index-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+      "previous_image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+      "build_run": "cj140",
+      "protected_configuration_verified": true,
+      "revision": null,
+      "ready_revision": null
+    },
+    {
+      "target": "sn-api-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:2e9085fdfb623d13594712d9a879b4e90ab10382e952e5536e700908385f27db",
+      "previous_image": "snpipelineacr03130136.azurecr.io/ios-analytics-dev@sha256:e025eb5b6cd93b61dcc0aa91c9b3dcfecfe87b6ade1f7c4ff2c513ed951a73ef",
+      "build_run": "cj144",
+      "protected_configuration_verified": true,
+      "revision": "sn-api-next-dev--0000030",
+      "ready_revision": "sn-api-next-dev--0000030"
+    },
+    {
+      "target": "sn-next-ui-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-web-dev@sha256:de37b42da9995b58f207b7b9570476f844f77851051818964eeabb0bd79a663e",
+      "previous_image": "snpipelineacr03130136.azurecr.io/attention-card-dev@sha256:3a0084afe56d38871343f308e6450652673ecf99a9eaa05a36a42580c0d0fc58",
+      "build_run": "cj147",
+      "protected_configuration_verified": true,
+      "revision": "sn-next-ui-dev--0000019",
+      "ready_revision": "sn-next-ui-dev--0000019"
+    }
+  ],
+  "running_apps": [
+    {
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:2e9085fdfb623d13594712d9a879b4e90ab10382e952e5536e700908385f27db",
+      "latest": "sn-api-next-dev--0000030",
+      "name": "sn-api-next-dev",
+      "ready": "sn-api-next-dev--0000030"
+    },
+    {
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-web-dev@sha256:de37b42da9995b58f207b7b9570476f844f77851051818964eeabb0bd79a663e",
+      "latest": "sn-next-ui-dev--0000019",
+      "name": "sn-next-ui-dev",
+      "ready": "sn-next-ui-dev--0000019"
+    }
+  ],
+  "production_and_other_targets_unchanged": {
+    "sn-streamlit-ui": true,
+    "sn-streamlit-ui-dev": true,
+    "sn-api-dev": true,
+    "sn-api": true,
+    "sn-next-ui": true,
+    "sn-api-next": true,
+    "universe-builder": true,
+    "equities-intraday-preload": true,
+    "macro-fred-daily": true,
+    "commodities-regime": true,
+    "options-liquid-universe": true,
+    "news-ingest-and-features": true,
+    "entity-taxonomy-refresh": true,
+    "attention-home-build": true,
+    "fundamentals-quarterly-refresh": true,
+    "company-baseline-prefetch": true,
+    "trading-agent-build": true,
+    "zopedia-maintenance": true,
+    "zopedia-learning": true,
+    "system-health": true,
+    "robinhood-main-sync-dev": true,
+    "robinhood-main-sync-prod": true,
+    "dataset-refresh-dev": true,
+    "sn-research-run": true
+  },
+  "http": {
+    "/zopedia": {
+      "status": 200,
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate"
+    },
+    "/api/research-conversations": {
+      "status": 401,
+      "cache_control": "no-store"
+    },
+    "/zopedia/conversations/release-route-check": {
+      "status": 200,
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate"
+    }
+  },
+  "dev_worker_executions": [
+    {
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:124218fe2a1ecbd515068f0c9098805b4e6544a9519a631f326d4def3d7450ed",
+      "name": "sn-research-run-dev-4gf02yi",
+      "start": "2026-10-14T18:59:14+00:00",
+      "status": "Succeeded"
+    },
+    {
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:124218fe2a1ecbd515068f0c9098805b4e6544a9519a631f326d4def3d7450ed",
+      "name": "sn-research-run-dev-qf2isog",
+      "start": "2026-10-14T18:58:16+00:00",
+      "status": "Succeeded"
+    },
+    {
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:125d369ade1684c2e39c5c0a977ddc07c096edfe129be46f058c41b2107ada7c",
+      "name": "sn-research-run-dev-othsrze",
+      "start": "2026-10-09T05:54:28+00:00",
+      "status": "Succeeded"
+    }
+  ],
+  "live_conversation": {
+    "conversation_id": "zthread_cad7e99b4f7142e6a2fa54ef",
+    "turns": [
+      {
+        "run_id": "agrun_9ed54256aea048f68110e8f4",
+        "status": "completed",
+        "engine_revision": "7242a828ab189e15faa4",
+        "events": 16
+      },
+      {
+        "run_id": "agrun_b3cc5757311e47a8b6786815",
+        "status": "completed",
+        "engine_revision": "7242a828ab189e15faa4",
+        "events": 17
+      }
+    ]
+  },
+  "local_acceptance": {
+    "failure_recovery": true,
+    "full_evidence_and_markdown": true,
+    "desktop_and_phone_browser": true,
+    "web_types_lint_build": true,
+    "native_simulator_build": true,
+    "native_physical_install": false,
+    "engine_boundary_checks": 14
+  },
+  "research_quality": "Consolidated candidate investigation completed; source acquisition remains snippet-heavy and broader quality is still open.",
+  "deployed_browser_acceptance": {
+    "conversation_id": "zthread_b103141c39e1458b9416a4d0",
+    "same_url_after_followup": true,
+    "legacy_run_chains_grouped": true,
+    "public_progress_observed": true,
+    "markdown_table_readable": true,
+    "turns": [
+      {
+        "run_id": "agrun_2d3ce0fa952b4cddac7e3ddf",
+        "status": "completed",
+        "engine_revision": "7242a828ab189e15faa4"
+      },
+      {
+        "run_id": "agrun_fb9d2e80e72246de9983b673",
+        "status": "completed",
+        "engine_revision": "7242a828ab189e15faa4"
+      }
+    ],
+    "screenshots": [
+      "deployed-progress.jpg",
+      "deployed-conversation.jpg",
+      "mobile-conversation.jpg"
+    ]
+  }
+}

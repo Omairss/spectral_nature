@@ -1,0 +1,1280 @@
+[
+  {
+    "artifact": "claim-review-unavailable.private.json",
+    "case": "source",
+    "variant": "claim_review",
+    "segment": "one existing reviewer role, no premium correction",
+    "elapsed_seconds": 114.619,
+    "status": "unavailable",
+    "attempts": [],
+    "cold_offpeak_usd": 0,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "claim-review.private.json",
+    "case": "source",
+    "variant": "claim_review",
+    "segment": "one existing reviewer role, no premium correction",
+    "elapsed_seconds": 62.642,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_c285f89af468451a9ae5ae5fe664969e",
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2957,
+          "completion_tokens": 10901,
+          "total_tokens": 13858,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 8444
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2957
+        },
+        "cold_offpeak_usd": 0.00698415,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00698415,
+          "usd_max": 0.00698415,
+          "rate_band": "offpeak"
+        },
+        "seconds": 50.732223582977895
+      }
+    ],
+    "cold_offpeak_usd": 0.00698415,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "compact-low.private.json",
+    "case": "source",
+    "variant": "compact_low",
+    "segment": "one existing cheap reviewer; material corrections only",
+    "elapsed_seconds": 23.775,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_f58df1992e2348c994071e0aeb07815e",
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2957,
+          "completion_tokens": 3989,
+          "total_tokens": 6946,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 3975
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2957
+        },
+        "cold_offpeak_usd": 0.0028369500000000004,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0028369500000000004,
+          "usd_max": 0.0028369500000000004,
+          "rate_band": "offpeak"
+        },
+        "seconds": 22.039782999956515
+      }
+    ],
+    "cold_offpeak_usd": 0.0028369500000000004,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "compact-none.private.json",
+    "case": "source",
+    "variant": "compact_none",
+    "segment": "one existing cheap reviewer; material corrections only",
+    "elapsed_seconds": 13.728,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_ec9f558174dc47e08d92f7a57e042783",
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2932,
+          "completion_tokens": 554,
+          "total_tokens": 3486,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2932
+        },
+        "cold_offpeak_usd": 0.0007722,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0007722,
+          "usd_max": 0.0007722,
+          "rate_band": "offpeak"
+        },
+        "seconds": 10.127979000040796
+      }
+    ],
+    "cold_offpeak_usd": 0.0007722,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "counterview.private.json",
+    "case": "source",
+    "variant": "counterview",
+    "segment": "final premium synthesis only, reusing the actual baseline researcher state and paid independent Flash analysis",
+    "elapsed_seconds": 54.854,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_95453afae36c4110bc4be373afc6cb54",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 3823,
+          "completion_tokens": 4436,
+          "total_tokens": 8259,
+          "prompt_tokens_details": {
+            "cached_tokens": 384
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 3920
+          },
+          "prompt_cache_hit_tokens": 384,
+          "prompt_cache_miss_tokens": 3439
+        },
+        "cold_offpeak_usd": 0.01130646,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.011061468000000001,
+          "usd_max": 0.011061468000000001,
+          "rate_band": "offpeak"
+        },
+        "seconds": 40.680371541006025
+      }
+    ],
+    "cold_offpeak_usd": 0.01130646,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "flow-baseline.private.json",
+    "case": "normal_source_flow",
+    "variant": "baseline",
+    "segment": "full supplied-source analytical flow; baseline permits one acquisition but originals already supplied",
+    "elapsed_seconds": 152.202,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_c17f7f3abab94d9a9fb3416108df853a",
+        "stage": "researcher",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 7054,
+          "completion_tokens": 4672,
+          "total_tokens": 11726,
+          "prompt_tokens_details": {
+            "cached_tokens": 1536
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 3594
+          },
+          "prompt_cache_hit_tokens": 1536,
+          "prompt_cache_miss_tokens": 5518
+        },
+        "cold_offpeak_usd": 0.0139062,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.012926232,
+          "usd_max": 0.012926232,
+          "rate_band": "offpeak"
+        },
+        "seconds": 45.39567629201338
+      },
+      {
+        "attempt_id": "llmhttp_e21f702d35264af2b3fd2a11945818f1",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 5406,
+          "completion_tokens": 2278,
+          "total_tokens": 7684,
+          "prompt_tokens_details": {
+            "cached_tokens": 768
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 1837
+          },
+          "prompt_cache_hit_tokens": 768,
+          "prompt_cache_miss_tokens": 4638
+        },
+        "cold_offpeak_usd": 0.0080784,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.007588415999999999,
+          "usd_max": 0.007588415999999999,
+          "rate_band": "offpeak"
+        },
+        "seconds": 25.731766499986406
+      },
+      {
+        "attempt_id": "llmhttp_8613a09c78634aa7a6f32e045ba3c2be",
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 5467,
+          "completion_tokens": 1710,
+          "total_tokens": 7177,
+          "prompt_tokens_details": {
+            "cached_tokens": 512
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 1121
+          },
+          "prompt_cache_hit_tokens": 512,
+          "prompt_cache_miss_tokens": 4955
+        },
+        "cold_offpeak_usd": 0.00184605,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.001770786,
+          "usd_max": 0.001770786,
+          "rate_band": "offpeak"
+        },
+        "seconds": 13.986553082999308
+      },
+      {
+        "attempt_id": "llmhttp_b739f63195f64690a24abf8167ca9130",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 6534,
+          "completion_tokens": 2719,
+          "total_tokens": 9253,
+          "prompt_tokens_details": {
+            "cached_tokens": 768
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 2248
+          },
+          "prompt_cache_hit_tokens": 768,
+          "prompt_cache_miss_tokens": 5766
+        },
+        "cold_offpeak_usd": 0.009696060000000001,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.009206076,
+          "usd_max": 0.009206076,
+          "rate_band": "offpeak"
+        },
+        "seconds": 24.575012708024587
+      },
+      {
+        "attempt_id": "llmhttp_99ca22c6654747ac9d1be14b9bbc8c7b",
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 987,
+          "completion_tokens": 467,
+          "total_tokens": 1454,
+          "prompt_tokens_details": {
+            "cached_tokens": 256
+          },
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 731
+        },
+        "cold_offpeak_usd": 0.00042825,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000390618,
+          "usd_max": 0.000390618,
+          "rate_band": "offpeak"
+        },
+        "seconds": 3.641631208010949
+      }
+    ],
+    "cold_offpeak_usd": 0.03395496,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "flow-blind.private.json",
+    "case": "normal_source_flow",
+    "variant": "blind",
+    "segment": "full supplied-source analytical flow; baseline permits one acquisition but originals already supplied",
+    "elapsed_seconds": 147.293,
+    "status": "failed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_2cf081d9e5624e39af5c0643ca90c111",
+        "stage": "researcher",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2350,
+          "completion_tokens": 5360,
+          "total_tokens": 7710,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 4762
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2350
+        },
+        "cold_offpeak_usd": 0.012163799999999999,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.012163799999999999,
+          "usd_max": 0.012163799999999999,
+          "rate_band": "offpeak"
+        },
+        "seconds": 52.81707204104168
+      },
+      {
+        "attempt_id": "llmhttp_c11f1bdd3c644f849d51c25ff4f85b80",
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2508,
+          "completion_tokens": 5169,
+          "total_tokens": 7677,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 4027
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2508
+        },
+        "cold_offpeak_usd": 0.0034776,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0034776,
+          "usd_max": 0.0034776,
+          "rate_band": "offpeak"
+        },
+        "seconds": 33.65526854194468
+      },
+      {
+        "attempt_id": "llmhttp_00db1803ec1d4d96b2c1c70fe230cf95",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 4250,
+          "completion_tokens": 3602,
+          "total_tokens": 7852,
+          "prompt_tokens_details": {
+            "cached_tokens": 384
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 3001
+          },
+          "prompt_cache_hit_tokens": 384,
+          "prompt_cache_miss_tokens": 3866
+        },
+        "cold_offpeak_usd": 0.00993696,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.009691968,
+          "usd_max": 0.009691968,
+          "rate_band": "offpeak"
+        },
+        "seconds": 34.28456083399942
+      }
+    ],
+    "cold_offpeak_usd": 0.025578359999999998,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "initial-baseline.private.json",
+    "case": "initial_source",
+    "variant": "baseline",
+    "segment": "initial analysis and presentation only; review disabled identically for isolation",
+    "elapsed_seconds": 70.776,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_ef899d4c2660468e97858d84d62fb071",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 4847,
+          "completion_tokens": 5160,
+          "total_tokens": 10007,
+          "prompt_tokens_details": {
+            "cached_tokens": 768
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 4615
+          },
+          "prompt_cache_hit_tokens": 768,
+          "prompt_cache_miss_tokens": 4079
+        },
+        "cold_offpeak_usd": 0.01341582,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.012925836,
+          "usd_max": 0.012925836,
+          "rate_band": "offpeak"
+        },
+        "seconds": 52.294759915967006
+      },
+      {
+        "attempt_id": "llmhttp_68936cbee10644dabb4e0e391bbe10d3",
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 1073,
+          "completion_tokens": 533,
+          "total_tokens": 1606,
+          "prompt_tokens_details": {
+            "cached_tokens": 256
+          },
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 817
+        },
+        "cold_offpeak_usd": 0.00048075,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000443118,
+          "usd_max": 0.000443118,
+          "rate_band": "offpeak"
+        },
+        "seconds": 5.596656542038545
+      }
+    ],
+    "cold_offpeak_usd": 0.01389657,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "initial-flash_high.private.json",
+    "case": "initial_source",
+    "variant": "flash_high",
+    "segment": "initial analysis and presentation only; review disabled identically for isolation",
+    "elapsed_seconds": 41.265,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_6588cf6b15e54c92a943d37ead44ea03",
+        "stage": "synthesis",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 4783,
+          "completion_tokens": 2596,
+          "total_tokens": 7379,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 1807
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 4783
+        },
+        "cold_offpeak_usd": 0.00227505,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00227505,
+          "usd_max": 0.00227505,
+          "rate_band": "offpeak"
+        },
+        "seconds": 18.06141858396586
+      },
+      {
+        "attempt_id": "llmhttp_af55141d884148d29f5b5de2e184eefc",
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 1316,
+          "completion_tokens": 797,
+          "total_tokens": 2113,
+          "prompt_tokens_details": {
+            "cached_tokens": 256
+          },
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 1060
+        },
+        "cold_offpeak_usd": 0.0006756,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0006379679999999999,
+          "usd_max": 0.0006379679999999999,
+          "rate_band": "offpeak"
+        },
+        "seconds": 5.131018625048455
+      }
+    ],
+    "cold_offpeak_usd": 0.00295065,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "initial-selfcheck.private.json",
+    "case": "initial_source",
+    "variant": "selfcheck",
+    "segment": "initial analysis and presentation only; review disabled identically for isolation",
+    "elapsed_seconds": 63.086,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_4af2c2dfa2834068936e3f3a7782eac0",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 4935,
+          "completion_tokens": 4601,
+          "total_tokens": 9536,
+          "prompt_tokens_details": {
+            "cached_tokens": 384
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 4201
+          },
+          "prompt_cache_hit_tokens": 384,
+          "prompt_cache_miss_tokens": 4551
+        },
+        "cold_offpeak_usd": 0.01236708,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.012122088,
+          "usd_max": 0.012122088,
+          "rate_band": "offpeak"
+        },
+        "seconds": 43.35103750001872
+      },
+      {
+        "attempt_id": "llmhttp_3f201fcb53ab41deab3640caf4c5c72d",
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 927,
+          "completion_tokens": 401,
+          "total_tokens": 1328,
+          "prompt_tokens_details": {
+            "cached_tokens": 256
+          },
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 671
+        },
+        "cold_offpeak_usd": 0.00037965,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.000342018,
+          "usd_max": 0.000342018,
+          "rate_band": "offpeak"
+        },
+        "seconds": 4.4124468339723535
+      }
+    ],
+    "cold_offpeak_usd": 0.012746730000000001,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "prepared-review.private.json",
+    "case": "source",
+    "variant": "prepared_review",
+    "segment": "real retained-draft replay: two cheap non-thinking review calls, Pro/low correction and presentation; upstream acquisition/analysis excluded",
+    "elapsed_seconds": 52.598,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_da5575153bdd467da9e562791d592db3",
+        "stage": "summary",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2818,
+          "completion_tokens": 1106,
+          "total_tokens": 3924,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2818
+        },
+        "cold_offpeak_usd": 0.0010863,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0010863,
+          "usd_max": 0.0010863,
+          "rate_band": "offpeak"
+        },
+        "seconds": 6.488178791012615
+      },
+      {
+        "attempt_id": "llmhttp_bccd588509ab401da31ec719c52c4fed",
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 3543,
+          "completion_tokens": 1713,
+          "total_tokens": 5256,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 3543
+        },
+        "cold_offpeak_usd": 0.00155925,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00155925,
+          "usd_max": 0.00155925,
+          "rate_band": "offpeak"
+        },
+        "seconds": 10.466269291995559
+      },
+      {
+        "attempt_id": "llmhttp_82997985770e4842ac4b66c9b5eec40d",
+        "stage": "repair",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2114,
+          "completion_tokens": 1714,
+          "total_tokens": 3828,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2114
+        },
+        "cold_offpeak_usd": 0.0013454999999999997,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0013454999999999997,
+          "usd_max": 0.0013454999999999997,
+          "rate_band": "offpeak"
+        },
+        "seconds": 7.170267957961187
+      },
+      {
+        "attempt_id": "llmhttp_21191c47b8144447bd51ddb59b922295",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 4786,
+          "completion_tokens": 1604,
+          "total_tokens": 6390,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 1048
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 4786
+        },
+        "cold_offpeak_usd": 0.0063346800000000005,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.0063346800000000005,
+          "usd_max": 0.0063346800000000005,
+          "rate_band": "offpeak"
+        },
+        "seconds": 13.279522083001211
+      },
+      {
+        "attempt_id": "llmhttp_0742bfca566c45fdbcf2a8e2339e95fb",
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 1082,
+          "completion_tokens": 574,
+          "total_tokens": 1656,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          },
+          "prompt_cache_hit_tokens": 128,
+          "prompt_cache_miss_tokens": 954
+        },
+        "cold_offpeak_usd": 0.0005066999999999999,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00048788399999999995,
+          "usd_max": 0.00048788399999999995,
+          "rate_band": "offpeak"
+        },
+        "seconds": 4.458505541027989
+      }
+    ],
+    "cold_offpeak_usd": 0.01083243,
+    "unpriced_attempts": 0
+  },
+  {
+    "artifact": "reader.private.json",
+    "case": "initial_source",
+    "variant": "reader",
+    "segment": "source reader plus initial analysis and presentation; review disabled identically",
+    "elapsed_seconds": 73.232,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_8cbae44632ef4e5f90c59d7286e7921a",
+        "stage": "summary",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2359,
+          "completion_tokens": 1142,
+          "total_tokens": 3501,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 2359
+        },
+        "cold_offpeak_usd": 0.00103905,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00103905,
+          "usd_max": 0.00103905,
+          "rate_band": "offpeak"
+        },
+        "seconds": 8.39196587499464
+      },
+      {
+        "attempt_id": "llmhttp_13fdd6776ddb48578503d83fd4613167",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 6485,
+          "completion_tokens": 4431,
+          "total_tokens": 10916,
+          "prompt_tokens_details": {
+            "cached_tokens": 768
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 3942
+          },
+          "prompt_cache_hit_tokens": 768,
+          "prompt_cache_miss_tokens": 5717
+        },
+        "cold_offpeak_usd": 0.01305348,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.012563495999999999,
+          "usd_max": 0.012563495999999999,
+          "rate_band": "offpeak"
+        },
+        "seconds": 43.13610291603254
+      },
+      {
+        "attempt_id": "llmhttp_5d9d7d6c51484e9aad86c232f019935b",
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 1013,
+          "completion_tokens": 487,
+          "total_tokens": 1500,
+          "prompt_tokens_details": {
+            "cached_tokens": 256
+          },
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 757
+        },
+        "cold_offpeak_usd": 0.00044415,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.00040651799999999997,
+          "usd_max": 0.00040651799999999997,
+          "rate_band": "offpeak"
+        },
+        "seconds": 6.2273150000255555
+      }
+    ],
+    "cold_offpeak_usd": 0.01453668,
+    "unpriced_attempts": 0
+  },
+  {
+    "case": "source",
+    "variant": "baseline",
+    "segment": "review and correction of identical supplied draft; acquisition and initial synthesis excluded",
+    "run_id": "agrun_b6ad68f4e8",
+    "elapsed_seconds": 26.999,
+    "status": "completed",
+    "review_verdicts": [
+      "accept"
+    ],
+    "resolution": "accepted_existing_analysis",
+    "attempts": [
+      {
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "total_tokens": 6811,
+          "prompt_tokens": 5510,
+          "completion_tokens": 1301,
+          "prompt_tokens_details": {
+            "cached_tokens": 512
+          },
+          "prompt_cache_hit_tokens": 512,
+          "prompt_cache_miss_tokens": 4998,
+          "completion_tokens_details": {
+            "reasoning_tokens": 870
+          }
+        },
+        "cold_offpeak_usd": 0.0016071,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.0015318359999999997,
+          "usd_min": 0.0015318359999999997,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 10.152
+      },
+      {
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "total_tokens": 1509,
+          "prompt_tokens": 1020,
+          "completion_tokens": 489,
+          "prompt_tokens_details": {
+            "cached_tokens": 768
+          },
+          "prompt_cache_hit_tokens": 768,
+          "prompt_cache_miss_tokens": 252
+        },
+        "cold_offpeak_usd": 0.00044639999999999995,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.000333504,
+          "usd_min": 0.000333504,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 3.736
+      }
+    ],
+    "cold_offpeak_usd": 0.0020534999999999998,
+    "unpriced_attempts": 0,
+    "artifact": "source-baseline.private.json"
+  },
+  {
+    "case": "source",
+    "variant": "focused",
+    "segment": "review and correction of identical supplied draft; acquisition and initial synthesis excluded",
+    "run_id": "agrun_306e0b9c0a",
+    "elapsed_seconds": 91.466,
+    "status": "completed",
+    "review_verdicts": [
+      "revise"
+    ],
+    "resolution": "synthesis",
+    "attempts": [
+      {
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "total_tokens": 8524,
+          "prompt_tokens": 5638,
+          "completion_tokens": 2886,
+          "prompt_tokens_details": {
+            "cached_tokens": 128
+          },
+          "prompt_cache_hit_tokens": 128,
+          "prompt_cache_miss_tokens": 5510,
+          "completion_tokens_details": {
+            "reasoning_tokens": 2362
+          }
+        },
+        "cold_offpeak_usd": 0.0025773,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.0025584839999999998,
+          "usd_min": 0.0025584839999999998,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 18.871
+      },
+      {
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "total_tokens": 12510,
+          "prompt_tokens": 6091,
+          "completion_tokens": 6419,
+          "prompt_tokens_details": {
+            "cached_tokens": 384
+          },
+          "prompt_cache_hit_tokens": 384,
+          "prompt_cache_miss_tokens": 5707,
+          "completion_tokens_details": {
+            "reasoning_tokens": 5860
+          }
+        },
+        "cold_offpeak_usd": 0.01672968,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.016484687999999997,
+          "usd_min": 0.016484687999999997,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 55.028
+      },
+      {
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "total_tokens": 1639,
+          "prompt_tokens": 1083,
+          "completion_tokens": 556,
+          "prompt_tokens_details": {
+            "cached_tokens": 256
+          },
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 827
+        },
+        "cold_offpeak_usd": 0.0004960499999999999,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.00045841799999999993,
+          "usd_min": 0.00045841799999999993,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 3.942
+      }
+    ],
+    "cold_offpeak_usd": 0.01980303,
+    "unpriced_attempts": 0,
+    "artifact": "source-focused.private.json"
+  },
+  {
+    "case": "source",
+    "variant": "focused_high",
+    "segment": "review and correction of identical supplied draft; acquisition and initial synthesis excluded",
+    "run_id": "agrun_5c347a2325",
+    "elapsed_seconds": 128.708,
+    "status": "completed",
+    "review_verdicts": [
+      "revise"
+    ],
+    "resolution": "synthesis",
+    "attempts": [
+      {
+        "stage": "review",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "total_tokens": 10167,
+          "prompt_tokens": 5638,
+          "completion_tokens": 4529,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 5638,
+          "completion_tokens_details": {
+            "reasoning_tokens": 3673
+          }
+        },
+        "cold_offpeak_usd": 0.0035631,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.0035631,
+          "usd_min": 0.0035631,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 29.44
+      },
+      {
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "total_tokens": 15557,
+          "prompt_tokens": 6531,
+          "completion_tokens": 9026,
+          "prompt_tokens_details": {
+            "cached_tokens": 384
+          },
+          "prompt_cache_hit_tokens": 384,
+          "prompt_cache_miss_tokens": 6147,
+          "completion_tokens_details": {
+            "reasoning_tokens": 8317
+          }
+        },
+        "cold_offpeak_usd": 0.022181939999999997,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.021936948,
+          "usd_min": 0.021936948,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 72.191
+      },
+      {
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "total_tokens": 1946,
+          "prompt_tokens": 1233,
+          "completion_tokens": 713,
+          "prompt_tokens_details": {
+            "cached_tokens": 256
+          },
+          "prompt_cache_hit_tokens": 256,
+          "prompt_cache_miss_tokens": 977
+        },
+        "cold_offpeak_usd": 0.00061275,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.0005751179999999999,
+          "usd_min": 0.0005751179999999999,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 4.717
+      }
+    ],
+    "cold_offpeak_usd": 0.02635779,
+    "unpriced_attempts": 0,
+    "artifact": "source-focused_high.private.json"
+  },
+  {
+    "case": "source",
+    "variant": "focused_pro",
+    "segment": "review and correction of identical supplied draft; acquisition and initial synthesis excluded",
+    "run_id": "agrun_dd09419ca2",
+    "elapsed_seconds": 33.51,
+    "status": "completed",
+    "review_verdicts": [
+      "accept"
+    ],
+    "resolution": "accepted_existing_analysis",
+    "attempts": [
+      {
+        "stage": "review",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "total_tokens": 7460,
+          "prompt_tokens": 5610,
+          "completion_tokens": 1850,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "prompt_cache_hit_tokens": 0,
+          "prompt_cache_miss_tokens": 5610,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1753
+          }
+        },
+        "cold_offpeak_usd": 0.007365600000000001,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.007365600000000001,
+          "usd_min": 0.007365600000000001,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 18.449
+      },
+      {
+        "stage": "answer",
+        "requested_model": "deepseek-flash",
+        "reported_model": "deepseek-flash",
+        "status": "success",
+        "usage": {
+          "total_tokens": 1515,
+          "prompt_tokens": 1020,
+          "completion_tokens": 495,
+          "prompt_tokens_details": {
+            "cached_tokens": 768
+          },
+          "prompt_cache_hit_tokens": 768,
+          "prompt_cache_miss_tokens": 252
+        },
+        "cold_offpeak_usd": 0.00045,
+        "actual_estimate": {
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "status": "estimated",
+          "usd_max": 0.00033710399999999996,
+          "usd_min": 0.00033710399999999996,
+          "rate_band": "offpeak",
+          "price_version": "published-prices-verified-2026-10-12"
+        },
+        "seconds": 4.532
+      }
+    ],
+    "cold_offpeak_usd": 0.0078156,
+    "unpriced_attempts": 0,
+    "artifact": "source-focused_pro.private.json"
+  },
+  {
+    "artifact": "structured.private.json",
+    "case": "source",
+    "variant": "structured",
+    "segment": "one premium analytical call; no reviewer or presentation added",
+    "elapsed_seconds": 99.816,
+    "status": "completed",
+    "attempts": [
+      {
+        "attempt_id": "llmhttp_2f19b02b657a47efaecb13c12f578d6c",
+        "stage": "synthesis",
+        "requested_model": "deepseek-v4-pro",
+        "reported_model": "deepseek-v4-pro",
+        "status": "success",
+        "usage": {
+          "prompt_tokens": 2819,
+          "completion_tokens": 7863,
+          "total_tokens": 10682,
+          "prompt_tokens_details": {
+            "cached_tokens": 384
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 6761
+          },
+          "prompt_cache_hit_tokens": 384,
+          "prompt_cache_miss_tokens": 2435
+        },
+        "cold_offpeak_usd": 0.01742928,
+        "actual_estimate": {
+          "status": "estimated",
+          "price_version": "published-prices-verified-2026-10-12",
+          "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+          "usd_min": 0.017184288,
+          "usd_max": 0.017184288,
+          "rate_band": "offpeak"
+        },
+        "seconds": 72.72669604205294
+      }
+    ],
+    "cold_offpeak_usd": 0.01742928,
+    "unpriced_attempts": 0
+  }
+]

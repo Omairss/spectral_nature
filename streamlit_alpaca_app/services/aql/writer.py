@@ -8,7 +8,9 @@ from typing import Any
 
 import pandas as pd
 
-from ..llm import NARRATIVE_STYLE_RULE, get_prompt, register_narrative_prompt
+from ..llm import get_prompt, register_narrative_prompt
+from ..llm_context import render_research_prompt
+from ..llm_execution import latest_research_artifact
 from .constants import (
     EVENT_WRITER_SCHEMA,
     EVENT_WRITER_SYSTEM_PROMPT,
@@ -17,20 +19,13 @@ from .constants import (
     YIELD_RELEVANT_TAGS,
 )
 from ._shared import (
-    _best_why_claim_sentence,
     _coerce_float,
     _coerce_text,
-    _compose_surface_summary,
-    _has_causal_language,
-    _is_yield_only_explanation,
     _json_dumps,
-    _looks_like_generic_market_activity_title,
-    _looks_like_stat_dump,
     _move_direction,
     _normalize_symbol,
     _safe_list,
     _tag_tokens,
-    _text_overlap,
     _top_sources,
 )
 from .extractor import _claim_entities
@@ -39,20 +34,19 @@ from .collector import _candidate_subject
 SYMBOL_BUNDLE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Symbol Bundle (what_changed / why_happened / spillover)",
     file="services/aql/writer.py",
-    group="AQL / Research",
+    group="AQL / Research", stage='synthesis',
     prompt=(
-        f"{NARRATIVE_STYLE_RULE} "
         "You write plain-language market research summaries. "
-        "Use only the supplied claims and facts. Keep the surface summary to at most two sentences. "
-        "Do not invent causes. "
+        "Use the supplied observations, claims and established business context to develop useful explanations. "
+        "Favor high recall, indirect relationships and reasonable hypotheses. Keep the surface summary to at most two sentences. "
+        "Distinguish reported facts, established context and your interpretation. Do not invent reported developments. "
         "Do not write generic market-activity titles like 'moves sharply today' or 'rises today'. "
         "Use the most specific company, event, or business-development title supported by the supplied evidence. "
         "Avoid ticker/percent market recaps across all text fields. "
-        "Explain mechanism: state why the move happened and how that transmits to prices, margins, demand, or risk appetite. "
+        "Explain likely mechanisms, competing explanations and potential effects on prices, margins or demand. "
         "Do not use ticker/percent lists as the main why-today explanation. "
-        "Only same-day or very recent claims may support why-today text; older/background claims belong in background context. "
-        "Do not narrate missing evidence. If no mechanism is supported, leave the why field empty "
-        "instead of narrating missing evidence. "
+        "Use actual dates and keep older business context distinct from new reports. Incomplete evidence can still "
+        "support useful hypotheses; describe the connection's strength without filling fields with generic caveats. "
         "What-else-moved text should describe spillover and avoid repeating what-changed text verbatim. "
         "When Treasury yield context is relevant, summarize direction and transmission in plain language without quoting bp numbers."
     ),
@@ -87,7 +81,7 @@ def _write_symbol_bundle(
     yield_facts: dict[str, Any] | None = None,
 ) -> dict[str, str]:
     empty = _empty_symbol_writer(candidate, claims, peer_moves, cause_status, yield_facts=yield_facts)
-    if llm_client is None or (not claims and not yield_facts):
+    if llm_client is None:
         return empty
     system_prompt = get_prompt(SYMBOL_BUNDLE_SYSTEM_PROMPT)
     user_prompt = json.dumps(
@@ -95,6 +89,7 @@ def _write_symbol_bundle(
             "subject": _candidate_subject(candidate),
             "symbol": _normalize_symbol(candidate.get("symbol")),
             "cause_status": cause_status,
+            "instrument_context": candidate.get("instrument_context_json"),
             "observed_candidate": {
                 "headline": _coerce_text(candidate.get("headline")),
                 "what_changed_text": _coerce_text(candidate.get("what_changed_text")),
@@ -117,39 +112,47 @@ def _write_symbol_bundle(
             "narrative_requirements": {
                 "why_today_text": "causal chain first, numbers second; avoid pure move recaps",
                 "what_else_moved_text": "spillover pattern, not a duplicated ticker list",
-                "absence_language": "do not write no-clear/no-catalyst/no-company-news filler; leave unsupported why fields empty",
+                "research_value": "retain useful indirect connections and hypotheses; explain their strength and avoid missing-evidence filler",
             },
         },
         ensure_ascii=False,
         default=str,
     )
+    prior = latest_research_artifact(access_scope="public_company_research",
+        subject="company:" + _normalize_symbol(candidate.get("symbol")), task="ticker_business_model_research_dossier")
+    user_prompt = render_research_prompt(evidence={"completed_research": prior}, request=json.loads(user_prompt), instructions=(
+        "Use the completed investigation to explain the underlying business and relevant relationships. "
+        "It is dated, fallible model analysis, not independent corroboration. Compare new claims against it, preserve useful "
+        "connections and distinguish earlier observations from new developments. Do not call a fact unavailable merely "
+        "because it is absent from the newly acquired snippets when the completed investigation contains it."))
     try:
-        data = llm_client.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=user_prompt,
+            instructions=system_prompt,
             schema_name="attention_symbol_writer",
             schema=SYMBOL_WRITER_SCHEMA,
+            task="attention_symbol_writer", stage='synthesis',
+            surface="aql.symbol_writer",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="research_grade",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
         title = _coerce_text(data.get("title")) or empty["title"]
-        if _looks_like_generic_market_activity_title(title):
-            title = empty["title"]
         what_changed = _coerce_text(data.get("what_changed_text"))
         why_today = _coerce_text(data.get("why_today_text"))
         what_else = _coerce_text(data.get("what_else_moved_text"))
         background_text = _coerce_text(data.get("background_context_text"))
-        if _looks_like_stat_dump(what_changed):
-            what_changed = ""
-        if _looks_like_stat_dump(why_today) and not _has_causal_language(why_today):
-            why_today = ""
-        if _looks_like_stat_dump(what_else):
-            what_else = ""
-        if _text_overlap(what_changed, what_else) >= 0.62:
-            what_else = ""
         surface_summary = _coerce_text(data.get("surface_summary"))
-        if not surface_summary or _looks_like_stat_dump(surface_summary):
-            surface_summary = _compose_surface_summary(what_changed, why_today)
-        elif _text_overlap(surface_summary, what_changed) >= 0.9 and _text_overlap(surface_summary, why_today) < 0.35:
-            surface_summary = _compose_surface_summary(what_changed, why_today)
         return {
             "title": title,
             "surface_summary": surface_summary,
@@ -373,9 +376,9 @@ def _build_event_writer_payload(
         "narrative_requirements": {
             "title": "specific supported event theme, not a generic market-activity or cluster recap",
             "what_happened_text": "one or two sentences on the directional relationship across the cluster; summarize the split, do not enumerate market activity",
-            "why_happened_text": "lead with the supported trigger or business development -> transmission channel -> market pricing reaction; if evidence is mixed, state the uncertainty explicitly",
+            "why_happened_text": "explain likely mechanisms and useful hypotheses using reports, observations and established business context",
             "affected_assets_summary_text": "one sentence on second-order spillover and breadth without repeating what_happened_text",
-            "absence_language": "do not write no-clear/no-catalyst/no-company-news filler; leave unsupported why fields empty",
+            "research_value": "retain useful indirect connections and hypotheses; express their strength without missing-evidence filler",
         },
     }
 
@@ -419,7 +422,7 @@ def _write_event_bundle(
         yield_facts=yield_facts,
         event_type=event_type,
     )
-    if llm_client is None or (not retained_claims and not yield_facts):
+    if llm_client is None:
         return empty
     user_prompt = json.dumps(
         _build_event_writer_payload(
@@ -437,48 +440,33 @@ def _write_event_bundle(
         default=str,
     )
     try:
-        data = llm_client.generate_json(
-            system_prompt=get_prompt(EVENT_WRITER_SYSTEM_PROMPT),
-            user_prompt=user_prompt,
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=user_prompt,
+            instructions=get_prompt(EVENT_WRITER_SYSTEM_PROMPT),
             schema_name="attention_event_writer",
             schema=EVENT_WRITER_SCHEMA,
+            task="attention_event_writer", stage='synthesis',
+            surface="services.aql.writer",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
         title = _coerce_text(data.get("title")) or empty["title"]
-        if _looks_like_generic_market_activity_title(title):
-            title = empty["title"]
         what_happened = _coerce_text(data.get("what_happened_text"))
         why_happened = _coerce_text(data.get("why_happened_text"))
         affected = _coerce_text(data.get("affected_assets_summary_text"))
         background_text = _coerce_text(data.get("background_context_text"))
-        if _looks_like_stat_dump(what_happened):
-            what_happened = ""
-        if _looks_like_stat_dump(why_happened) and not _has_causal_language(why_happened):
-            why_happened = ""
-        if event_type != "rates" and not _has_causal_language(why_happened):
-            why_happened = ""
-        if event_type != "rates" and _is_yield_only_explanation(why_happened):
-            why_happened = ""
-        if event_type != "rates" and (_looks_like_stat_dump(why_happened) or _is_yield_only_explanation(why_happened)):
-            claim_seed = _best_why_claim_sentence(retained_claims)
-            if (
-                claim_seed
-                and (_has_causal_language(claim_seed) or event_type == "rates")
-                and not (_looks_like_stat_dump(claim_seed) and not _has_causal_language(claim_seed))
-            ):
-                why_happened = claim_seed
-            else:
-                why_happened = ""
-        if event_type != "rates" and why_happened and not _has_causal_language(why_happened):
-            why_happened = ""
-        if _looks_like_stat_dump(affected):
-            affected = ""
-        if _text_overlap(what_happened, affected) >= 0.62:
-            affected = ""
         surface_summary = _coerce_text(data.get("surface_summary"))
-        if not surface_summary or _looks_like_stat_dump(surface_summary):
-            surface_summary = _compose_surface_summary(what_happened, why_happened)
-        elif _text_overlap(surface_summary, what_happened) >= 0.9 and _text_overlap(surface_summary, why_happened) < 0.35:
-            surface_summary = _compose_surface_summary(what_happened, why_happened)
         return {
             "title": title,
             "surface_summary": surface_summary,

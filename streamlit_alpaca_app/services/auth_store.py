@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from services.database import open_database_session
+
 from datetime import datetime, timedelta, timezone
 import json
 import os
@@ -55,7 +57,7 @@ def _db_connect() -> Any | None:
     if not conn_str or psycopg is None:
         return None
     try:
-        return psycopg.connect(conn_str, connect_timeout=postgres_connect_timeout_seconds())
+        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
     except Exception:
         return None
 

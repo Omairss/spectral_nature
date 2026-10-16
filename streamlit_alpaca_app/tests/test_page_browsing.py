@@ -7,7 +7,21 @@ from services import page_browsing
 from services import seeking_alpha_access
 
 
-def test_browse_page_prefers_authenticated_seeking_alpha_helper(monkeypatch):
+@pytest.fixture
+def browser_method_stubs(monkeypatch):
+    """Exercise fallback selection with the provider stubs at the process boundary."""
+    def run(method, url, *, timeout_seconds, max_text_chars, warning=""):
+        kwargs = {"timeout_seconds": timeout_seconds, "max_text_chars": max_text_chars}
+        if method == "seeking_alpha":
+            return asyncio.run(page_browsing.browse_seeking_alpha_page(url, **kwargs))
+        if method == "playwright":
+            return asyncio.run(page_browsing._browse_with_playwright(url, **kwargs))
+        return page_browsing._browse_with_scrapling(url, **kwargs, warning=warning)
+
+    monkeypatch.setattr(page_browsing, "_run_browser_process", run)
+
+
+def test_browse_page_prefers_authenticated_seeking_alpha_helper(monkeypatch, browser_method_stubs):
     async def _fake_browse(url: str, *, timeout_seconds: int, max_text_chars: int):
         assert url == "https://seekingalpha.com/news/123456"
         assert timeout_seconds == 12
@@ -64,7 +78,7 @@ def test_page_quality_issue_detects_blocked_and_shallow_pages():
     assert page_browsing.page_quality_issue({"title": "Readable", "text": "useful business evidence " * 24}) == ""
 
 
-def test_browse_page_escalates_from_shallow_browser_result_to_scrapling(monkeypatch):
+def test_browse_page_escalates_from_shallow_browser_result_to_scrapling(monkeypatch, browser_method_stubs):
     calls: list[str] = []
 
     async def _fake_playwright(url: str, *, timeout_seconds: int, max_text_chars: int):
@@ -130,7 +144,7 @@ def test_browse_page_escalates_from_shallow_browser_result_to_scrapling(monkeypa
     assert "enterprise customers" in payload["text"]
 
 
-def test_browse_page_escalates_to_firecrawl_when_scrapling_is_unusable(monkeypatch):
+def test_browse_page_escalates_to_firecrawl_when_scrapling_is_unusable(monkeypatch, browser_method_stubs):
     async def _fake_playwright(url: str, *, timeout_seconds: int, max_text_chars: int):
         del timeout_seconds, max_text_chars
         return {

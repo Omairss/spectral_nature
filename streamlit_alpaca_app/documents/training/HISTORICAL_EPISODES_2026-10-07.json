@@ -1,0 +1,510 @@
+{
+  "baseline": {
+    "start": "2018-01-01",
+    "end": "2026-10-08T00:00:00"
+  },
+  "objectives": [
+    "forward_returns_and_risk",
+    "return_directed_research_and_discovery"
+  ],
+  "episodes": [
+    {
+      "id": "covid_decline",
+      "title": "Covid decline",
+      "onset": "2020-01-23",
+      "market_acceleration": "2020-02-20",
+      "through": "2020-03-23",
+      "signals": [
+        "first outbreak risk and January market reaction",
+        "February equity decline"
+      ],
+      "source_urls": [
+        "https://www.who.int/emergencies/disease-outbreak-news/item/2020-DON229",
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20200303a.htm"
+      ]
+    },
+    {
+      "id": "covid_recovery",
+      "title": "Covid recovery",
+      "onset": "2020-03-23",
+      "through": "2021-03-31",
+      "signals": [
+        "equity recovery begins around emergency policy response"
+      ],
+      "source_urls": [
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20200323a.htm"
+      ]
+    },
+    {
+      "id": "speculative_expansion",
+      "title": "Low rates, inflation, tech and crypto expansion",
+      "onset": "2020-03-23",
+      "through": "2021-11-30",
+      "signals": [
+        "policy accommodation",
+        "asset expansion followed by rising inflation"
+      ],
+      "source_urls": [
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20200315a.htm",
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20211215a.htm"
+      ]
+    },
+    {
+      "id": "rate_correction",
+      "title": "Rate correction and 2022 decline",
+      "onset": "2021-11-30",
+      "policy_anchor": "2021-12-15",
+      "through": "2022-12-31",
+      "signals": [
+        "policy repricing ahead of March 2022 hike"
+      ],
+      "source_urls": [
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20211215a.htm",
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20220316a.htm",
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20220615a.htm"
+      ]
+    },
+    {
+      "id": "banking_stress",
+      "title": "2023 banking stress",
+      "onset": "2023-03-08",
+      "through": "2023-05-31",
+      "signals": [
+        "funding concerns and emergency financing before bank closure"
+      ],
+      "source_urls": [
+        "https://www.federalreserve.gov/newsevents/pressreleases/monetary20230312a.htm",
+        "https://www.fdic.gov/news/press-releases/2023/pr23016.html"
+      ]
+    },
+    {
+      "id": "ai_phase_1",
+      "title": "ChatGPT and first AI investment phase",
+      "onset": "2022-11-30",
+      "through": "2024-12-31",
+      "signals": [
+        "public ChatGPT launch",
+        "subsequent adoption and investment"
+      ],
+      "source_urls": [
+        "https://openai.com/index/chatgpt/"
+      ]
+    },
+    {
+      "id": "iran_2025",
+      "title": "June 2025 Iran conflict and oil repricing",
+      "onset": "2025-06-11",
+      "military_anchor": "2025-06-13",
+      "through": "2025-07-31",
+      "signals": [
+        "oil repricing before June 13 attacks"
+      ],
+      "source_urls": [
+        "https://www.eia.gov/outlooks/steo/archives/jun25.pdf"
+      ]
+    },
+    {
+      "id": "iran_2026",
+      "title": "2026 Iran risk buildup, war and oil disruption",
+      "onset": "2026-01-08",
+      "military_anchor": "2026-02-28",
+      "through": "2026-10-07",
+      "signals": [
+        "Brent rose from 61.08 on Jan 7 to 63.34 Jan 8 and 68.87 Jan 14",
+        "January-February risk buildup precedes war"
+      ],
+      "source_urls": [
+        "https://www.eia.gov/todayinenergy/detail.php?id=67424",
+        "https://www.eia.gov/todayinenergy/detail.php?id=67865",
+        "https://www.eia.gov/outlooks/steo/archives/feb26.pdf",
+        "https://www.eia.gov/outlooks/steo/archives/jan26.pdf"
+      ]
+    },
+    {
+      "id": "ai_phase_2",
+      "title": "Claude Code adoption and 2026 software repricing",
+      "onset": "2025-05-19",
+      "adoption_publication": "2025-12-03",
+      "expansion_anchor": "2026-01-12",
+      "security_anchor": "2026-02-20",
+      "through": "2026-10-07",
+      "signals": [
+        "Download acceleration already visible in May-June 2025; April monthly daily mean 28752, May 49090, June 144605, July 549848",
+        "May 19 seven-day download mean 53660, June 2 mean 65835 and June 8 mean 102367",
+        "January 2026 expansion and February security launch are later subevents",
+        "npm downloads measure package fetches, including automation; they are not unique users"
+      ],
+      "source_urls": [
+        "https://www.anthropic.com/news/claude-opus-4-5",
+        "https://www.anthropic.com/news/anthropic-acquires-bun-as-claude-code-reaches-usd1b-milestone",
+        "https://www.anthropic.com/news/introducing-anthropic-labs",
+        "https://www.anthropic.com/news/claude-code-security",
+        "https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation",
+        "https://www.anthropic.com/research/economic-index-march-2026-report",
+        "https://www.anthropic.com/news/claude-3-7-sonnet",
+        "https://www.anthropic.com/news/claude-4",
+        "https://api.npmjs.org/downloads/range/2025-04-01:2025-07-31/@anthropic-ai%2Fclaude-code"
+      ],
+      "preview_anchor": "2025-02-24",
+      "general_availability_anchor": "2025-05-22",
+      "adoption_acceleration_anchor": "2025-06-02",
+      "capability_anchor": "2025-11-24",
+      "boundary_status": "working_research_anchor_from_download_acceleration; full baseline retained"
+    },
+    {
+      "id": "missed_declines",
+      "title": "Previously audited company and industry declines",
+      "onset": "2026-01-01",
+      "through": "2026-10-07",
+      "diagnostic_entities": [
+        "NKE",
+        "MCD",
+        "LEN",
+        "DHI",
+        "PHM",
+        "TOL",
+        "INTU"
+      ],
+      "signals": [
+        "diagnostic examples; entire market is acquired without ticker-specific eligibility"
+      ],
+      "source_urls": []
+    }
+  ],
+  "fred_series": [
+    "A229RX0",
+    "ANFCI",
+    "AWHAETP",
+    "AWHMAN",
+    "BAMLC0A0CM",
+    "BAMLC0A0CMEY",
+    "BAMLC0A1CAAA",
+    "BAMLC0A2CAA",
+    "BAMLC0A3CA",
+    "BAMLC0A4CBBB",
+    "BAMLCC0A0CMTRIV",
+    "BAMLH0A0HYM2",
+    "BAMLH0A0HYM2EY",
+    "BAMLHYH0A0HYM2TRIV",
+    "BOGMBASE",
+    "BUSLOANS",
+    "CCSA",
+    "CE16OV",
+    "CES0500000003",
+    "CIVPART",
+    "CLVMNACSCAB1GQEA19",
+    "CONSUMER",
+    "CP0000EZ19M086NEST",
+    "CPIAUCSL",
+    "CPILFESL",
+    "CSUSHPINSA",
+    "CSUSHPISA",
+    "CUSR0000SEHA",
+    "CUSR0000SEHC",
+    "DCOILBRENTEU",
+    "DCOILWTICO",
+    "DEXCAUS",
+    "DEXCHUS",
+    "DEXINUS",
+    "DEXJPUS",
+    "DEXKOUS",
+    "DEXMXUS",
+    "DEXSZUS",
+    "DEXUSEU",
+    "DEXUSUK",
+    "DFII10",
+    "DFII20",
+    "DFII30",
+    "DFII5",
+    "DFII7",
+    "DGORDER",
+    "DGS1",
+    "DGS10",
+    "DGS1MO",
+    "DGS2",
+    "DGS20",
+    "DGS3",
+    "DGS30",
+    "DGS3MO",
+    "DGS5",
+    "DGS6MO",
+    "DGS7",
+    "DHHNGSP",
+    "DJIA",
+    "DPSACBW027SBOG",
+    "DRCCLACBS",
+    "DRCLACBS",
+    "DRTSCILM",
+    "DRTSCLCC",
+    "DSPIC96",
+    "DTB1YR",
+    "DTB3",
+    "DTB6",
+    "DTWEXAFEGS",
+    "DTWEXBGS",
+    "DTWEXEMEGS",
+    "EFFR",
+    "EMRATIO",
+    "EXHOSL",
+    "FEDFUNDS",
+    "FEDTARL",
+    "FEDTARU",
+    "GDI",
+    "GDP",
+    "GDPC1",
+    "GS10",
+    "H8B1023NCBCMG",
+    "HOUST",
+    "HSN1F",
+    "ICSA",
+    "INDPRO",
+    "IRLTLT01DEM156N",
+    "IRLTLT01GBM156N",
+    "IRLTLT01ITM156N",
+    "IRLTLT01JPM156N",
+    "JTSHIR",
+    "JTSJOL",
+    "JTSLDL",
+    "JTSQUR",
+    "LNS11300060",
+    "LNS14000024",
+    "M1SL",
+    "M2SL",
+    "MORTGAGE15US",
+    "MORTGAGE30US",
+    "MORTGAGE5US",
+    "MSACSR",
+    "MSPUS",
+    "NASDAQCOM",
+    "NEWORDER",
+    "NFCI",
+    "OBFR",
+    "OECDCLI",
+    "PALLFNFINDEXQ",
+    "PAYEMS",
+    "PCE",
+    "PCEC96",
+    "PCEPI",
+    "PCEPILFE",
+    "PCOPPUSDM",
+    "PERMIT",
+    "PFOODINDEXM",
+    "PINDUINDEXM",
+    "POILBREUSDM",
+    "POILWTIUSDM",
+    "PPIACO",
+    "PPIIDC",
+    "PSAVERT",
+    "RHORUSQ",
+    "RRPONTSYD",
+    "RRSFS",
+    "RSAFS",
+    "SOFR",
+    "SP500",
+    "SPCS20RSA",
+    "STLFSI4",
+    "T10Y2Y",
+    "T10Y3M",
+    "T10YIE",
+    "T5YIE",
+    "T5YIFR",
+    "TB3MS",
+    "TEDRATE",
+    "TOTALSA",
+    "TOTLL",
+    "TOTRESNS",
+    "U6RATE",
+    "UMCSENT",
+    "UNEMPLOY",
+    "UNRATE",
+    "VIXCLS",
+    "WALCL",
+    "WLCFLPCL",
+    "WM2NS",
+    "WPU101",
+    "WRESBAL",
+    "WSHOSHO",
+    "WTISPLC",
+    "WTREGEN"
+  ],
+  "discussion_queries": [
+    "Covid",
+    "coronavirus",
+    "inflation",
+    "interest rates",
+    "banking crisis",
+    "ChatGPT",
+    "Claude Code",
+    "Claude Cowork",
+    "Iran",
+    "oil prices",
+    "recession",
+    "housing market",
+    "AI coding"
+  ],
+  "primary_documents": [
+    {
+      "url": "https://www.eia.gov/todayinenergy/detail.php?id=67424",
+      "title": "2026 oil buildup and first-quarter disruption"
+    },
+    {
+      "url": "https://www.eia.gov/todayinenergy/detail.php?id=67865",
+      "title": "2026 second-quarter oil and shipping disruption"
+    },
+    {
+      "url": "https://www.eia.gov/outlooks/steo/archives/feb26.pdf",
+      "title": "EIA February 2026 outlook",
+      "published_at": "2026-02-10"
+    },
+    {
+      "url": "https://www.eia.gov/outlooks/steo/archives/jan26.pdf",
+      "title": "EIA January 2026 outlook",
+      "published_at": "2026-01-13"
+    },
+    {
+      "url": "https://www.eia.gov/outlooks/steo/archives/jun25.pdf",
+      "title": "EIA June 2025 outlook",
+      "published_at": "2025-06-10"
+    },
+    {
+      "url": "https://www.anthropic.com/news/claude-opus-4-5",
+      "title": "Claude Opus 4.5 launch",
+      "published_at": "2025-11-24"
+    },
+    {
+      "url": "https://www.anthropic.com/news/anthropic-acquires-bun-as-claude-code-reaches-usd1b-milestone",
+      "title": "Claude Code adoption milestone",
+      "published_at": "2025-12-03"
+    },
+    {
+      "url": "https://www.anthropic.com/news/introducing-anthropic-labs",
+      "title": "Cowork launch and Labs",
+      "published_at": "2026-01-13"
+    },
+    {
+      "url": "https://www.anthropic.com/news/claude-code-security",
+      "title": "Claude Code Security launch",
+      "published_at": "2026-02-20"
+    },
+    {
+      "url": "https://www.anthropic.com/news/anthropic-raises-30-billion-series-g-funding-380-billion-post-money-valuation",
+      "title": "Claude Code adoption update",
+      "published_at": "2026-02-12"
+    },
+    {
+      "url": "https://www.anthropic.com/research/economic-index-march-2026-report",
+      "title": "Anthropic Economic Index March 2026"
+    },
+    {
+      "url": "https://resources.anthropic.com/hubfs/2026%20Agentic%20Coding%20Trends%20Report.pdf",
+      "title": "Agentic coding trends 2026"
+    },
+    {
+      "url": "https://openai.com/index/chatgpt/",
+      "title": "ChatGPT launch",
+      "published_at": "2022-11-30"
+    },
+    {
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20200303a.htm",
+      "title": "Fed emergency rate cut",
+      "published_at": "2020-03-03"
+    },
+    {
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20200315a.htm",
+      "title": "Fed near-zero rates and purchases",
+      "published_at": "2020-03-15"
+    },
+    {
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20200323a.htm",
+      "title": "Fed pandemic measures",
+      "published_at": "2020-03-23"
+    },
+    {
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20211215a.htm",
+      "title": "Fed December 2021 tightening direction",
+      "published_at": "2021-12-15"
+    },
+    {
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20220316a.htm",
+      "title": "Fed March 2022 increase",
+      "published_at": "2022-03-16"
+    },
+    {
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20220615a.htm",
+      "title": "Fed June 2022 increase",
+      "published_at": "2022-06-15"
+    },
+    {
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20230312a.htm",
+      "title": "Bank term funding program",
+      "published_at": "2023-03-12"
+    },
+    {
+      "url": "https://www.who.int/emergencies/disease-outbreak-news/item/2020-DON229",
+      "title": "WHO initial outbreak report",
+      "published_at": "2020-01-05"
+    },
+    {
+      "url": "https://www.who.int/director-general/speeches/detail/who-director-general-s-opening-remarks-at-the-media-briefing-on-covid-19---11-march-2020",
+      "title": "WHO pandemic announcement",
+      "published_at": "2020-03-11"
+    },
+    {
+      "url": "https://www.fdic.gov/news/press-releases/2023/pr23016.html",
+      "title": "Silicon Valley Bank closure",
+      "published_at": "2023-03-10"
+    },
+    {
+      "url": "https://docs.x.com/x-api/getting-started/pricing",
+      "title": "X archive pricing evidence"
+    },
+    {
+      "url": "https://massive.com/pricing?product=stocks",
+      "title": "Market archive pricing evidence"
+    }
+  ],
+  "acquisition_spec_path": "cache/historical_corpus/collection_spec.json",
+  "catalog_revision": 2,
+  "source_resolutions": [
+    {
+      "source": "FRED",
+      "requested_id": "FEDTARL",
+      "replacement_id": "DFEDTARL",
+      "resolution": "explicit_catalog_correction"
+    },
+    {
+      "source": "FRED",
+      "requested_id": "FEDTARU",
+      "replacement_id": "DFEDTARU",
+      "resolution": "explicit_catalog_correction"
+    },
+    {
+      "source": "FRED",
+      "requested_id": "RHORUSQ",
+      "replacement_id": "RHORUSQ156N",
+      "resolution": "explicit_catalog_correction"
+    },
+    {
+      "source": "FRED",
+      "requested_id": "EXHOSL",
+      "replacement_id": "EXHOSLUSM495S",
+      "resolution": "existing-home-sales current history collected separately; ALFRED unavailable"
+    },
+    {
+      "source": "FRED",
+      "requested_id": "OECDCLI",
+      "replacement_id": "USALOLITONOSTSAM",
+      "resolution": "explicit_catalog_correction"
+    },
+    {
+      "source": "FRED",
+      "requested_id": "SP500",
+      "resolution": "current_history_only; ALFRED vintages unavailable"
+    },
+    {
+      "source": "FRED",
+      "requested_id": "DJIA",
+      "resolution": "current_history_only; ALFRED vintages unavailable"
+    }
+  ]
+}

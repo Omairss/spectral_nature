@@ -1,0 +1,36 @@
+{
+  "latest_local_source": {
+    "services/zopedia_agent.py": "5dc9eeaac75e752378c302734f22c7b90ee88ba9710892229971ace13a44da74",
+    "services/aql_zopedia_engine.py": "cd9c00fc6f531d1481f91942029fc7d6b76fe8826bb200c3284d48e8360c907d",
+    "services/llm_flow.py": "110bd469a7628604140902cbe5671423cea9ee8d1f630f5d247c4974d0717c3b",
+    "services/agent_tools.py": "1714745d0ff7ff3d1c9c5f3518609c132d0f1ef3319c5661c9384319260d6ffe",
+    "services/zopedia_analysis.py": "0f3193b650e01831525349b7e0ec378b3b273918a37429ae7fc0a80dd487f7fe",
+    "services/aql_zopedia_gateway.py": "a2368a025b1d31ff4ac871cdfbe2454b36caaf1057564ebd1a991f4b70427814",
+    "services/llm.py": "ac049b1a138c5ee1e75982ad3782d5e012d4a393bd45404caf8d99853eccf792",
+    "services/llm_execution.py": "02ba48ce745efe1b62f2b3f52c7ebe5de5aafc17b85f1c40a558516fa0f65dbf",
+    "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
+    "services/aql/evidence_pack.py": "8557987d669e742ebd50b42ff15a3377490b45ee4602355745fa29b3fe3f305a",
+    "services/agents/research_session.py": "5c44b9453e26f6bab7a0c9e2f85b1b16d14b0ec6bec0b70d9a663978b7463423",
+    "services/pipeline_store.py": "588ec3b9611e26f6df22e42a68f38152f3211c4c270b299a506f1d3fd91c88c9",
+    "tests/test_llm_execution.py": "e324dcf456e40c79bbca6f39c595675caf7d96b021b9099f4e1a307bd7c62bec",
+    "tests/test_llm_settings.py": "c71451812bf8ad072eeea7f5d973ecd3ec1820e6c1a22e7b53ec8d6928972af2",
+    "tests/test_zopedia_analysis.py": "f93655adfa3f841218156289718fb835d359aedd386eb8e31e28bc126dbffc3f"
+  },
+  "final_live_batch_source": {
+    "services/zopedia_agent.py": "b5b55be2a12951e2cde6dc585eca929f7d8792b187786482923879febd20f3be",
+    "services/aql_zopedia_engine.py": "cd9c00fc6f531d1481f91942029fc7d6b76fe8826bb200c3284d48e8360c907d",
+    "services/llm_flow.py": "110bd469a7628604140902cbe5671423cea9ee8d1f630f5d247c4974d0717c3b",
+    "services/agent_tools.py": "1714745d0ff7ff3d1c9c5f3518609c132d0f1ef3319c5661c9384319260d6ffe",
+    "services/zopedia_analysis.py": "0f3193b650e01831525349b7e0ec378b3b273918a37429ae7fc0a80dd487f7fe",
+    "services/aql_zopedia_gateway.py": "a2368a025b1d31ff4ac871cdfbe2454b36caaf1057564ebd1a991f4b70427814",
+    "services/llm.py": "ac049b1a138c5ee1e75982ad3782d5e012d4a393bd45404caf8d99853eccf792",
+    "services/llm_execution.py": "02ba48ce745efe1b62f2b3f52c7ebe5de5aafc17b85f1c40a558516fa0f65dbf",
+    "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
+    "services/aql/evidence_pack.py": "8557987d669e742ebd50b42ff15a3377490b45ee4602355745fa29b3fe3f305a",
+    "services/agents/research_session.py": "5c44b9453e26f6bab7a0c9e2f85b1b16d14b0ec6bec0b70d9a663978b7463423",
+    "services/pipeline_store.py": "588ec3b9611e26f6df22e42a68f38152f3211c4c270b299a506f1d3fd91c88c9"
+  },
+  "final_live_batch_snapshot": "/tmp/sn-reasoning-repair-20261016/final-source",
+  "latest_snapshot": "/tmp/sn-reasoning-repair-20261016/handoff/source",
+  "note": "After the final live batch, only review checkpoint timing and same-cycle follow-up bookkeeping changed. The last correction-only continuation uses this latest code; 71 mechanical checks cover it. Earlier runs are exploratory variants, not a matched comparison of this snapshot."
+}

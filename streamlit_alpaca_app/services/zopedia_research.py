@@ -1,10 +1,15 @@
 from __future__ import annotations
 
+from services.work_scope import WorkScope
+from services.llm import llm_request_deadline
+
+import hashlib
 import json
 import os
 import re
 import threading
 import time
+from contextvars import copy_context
 from typing import Any
 
 import pandas as pd
@@ -12,11 +17,17 @@ import pandas as pd
 from data_access.layer import DataAccessLayer
 from services.attention_agentic import search_symbol_news_payload
 from services.attention_live_research import search_market_event_news_payload
-from services.llm import get_config_param, register_config_param
+from services.llm import get_config_param, get_prompt, register_config_param, register_narrative_prompt, remaining_request_timeout
 from services.zopedia_resolver import resolve_zopedia
 from services.aql_zopedia_engine import load_aql_zopedia_llm_client
 from services.common.news_freshness import is_recent_for_attention
 from .page_browsing import browse_page
+from .llm_flow import SEARCH_QUERIES, SEARCH_RESULTS, SEARCH_PARALLEL
+
+_P_READ_WINDOW = register_config_param("Source read characters", "Research flow", 5000, "Characters returned from a retained capture in one read.", stage="read", minimum=800, maximum=100000)
+_P_CAPTURE_LIMIT = register_config_param("Source capture characters", "Research flow", 1000000, "Maximum text acquired and retained from one page.", stage="read", minimum=12000, maximum=10000000)
+
+_SOURCE_SUMMARY_PROMPT = register_narrative_prompt("Source first-pass summary", "services/zopedia_research.py", "Summarize the supplied source faithfully. Preserve useful facts, exact numbers, dates, qualifications and competing explanations. Do not invent missing context or replace the original with your interpretation. Return a concise summary.", group="Research flow", stage="summary")
 from .saa import (
     apply_zopedia_typed_mutation,
     build_zopedia_change_proposal,
@@ -41,42 +52,97 @@ _P_LIVE_EVENT_MAX_RESULTS = register_config_param(
     group="Zopedia",
     default=6,
     description="Default max articles returned by live_event_evidence",
+    stage="search",
+    label="Maximum live articles", section="Live web search", minimum=1, maximum=15,
 )
 _P_LIVE_EVENT_MAX_SYMBOLS = register_config_param(
     "Live event max symbols",
     group="Zopedia",
     default=8,
     description="Max symbols to resolve for live event evidence searches",
+    stage="search",
+    label="Focus symbols", section="Live web search",
 )
 _P_LIVE_EVENT_TOTAL_BUDGET_SECONDS = register_config_param(
     "Live event total budget seconds",
     group="Zopedia",
     default=18,
     description="Total internal wall-clock budget for live_event_evidence before returning partial results",
+    stage="search",
+    label="Search time (seconds)", section="Live web search",
+    environment_variable="ZOPEDIA_LIVE_EVENT_TOTAL_BUDGET_SECONDS",
+    minimum=6, maximum=900,
 )
 _P_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS = register_config_param(
     "Live event LLM helper timeout seconds",
     group="Zopedia",
     default=4,
     description="Max seconds for internal live-event helper LLM calls before using direct query fallbacks",
+    stage="search",
+    retired=True,
+    environment_variable="ZOPEDIA_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS",
+    minimum=1, maximum=120,
 )
 _P_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS = register_config_param(
     "Live event provider timeout seconds",
     group="Zopedia",
     default=6,
     description="Per-provider timeout for interactive live-event news searches",
+    stage="search",
+    label="Provider timeout (seconds)", section="Live web search",
+    environment_variable="ZOPEDIA_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS",
+    minimum=3, maximum=180,
 )
 _P_RETAINED_CONTEXT_MAX_ITEMS = register_config_param(
     "Retained context max items",
     group="Zopedia",
     default=5,
     description="Default max items returned by retained_context",
+    stage="search",
+    label="Retained context items", section="Retained search",
 )
 _P_SUMMARY_TRIM_LIMIT = register_config_param(
     "Research summary text trim limit",
     group="Zopedia",
     default=220,
     description="Max chars for summary text in research results",
+    stage="summary",
+    label="Search preview characters", section="Search previews",
+)
+
+_RETAINED_SEARCH_PLAN_PROMPT = register_narrative_prompt(
+    "Retained Evidence Search Plan",
+    "services/zopedia_research.py",
+    "Plan high-recall retrieval for the actual research request. Return varied short semantic search queries, "
+    "including indirect relationships and competing explanations where useful. The caller's query is a search focus; "
+    "use the original request and application time context to understand it. Do not require exact tickers or guess a "
+    "single cause before discovery. Set reporting_start and reporting_end when dated developments matter to the question. "
+    "Interpret relative dates in the supplied timezone, anchored to asof_time_utc, never your training date. "
+    "Use ISO dates or timezone-aware timestamps. For a current session, cover that local calendar day through the as-of time. "
+    "Caller dates are search hints. Derive the primary reporting window from the original request rather than copying "
+    "a caller's broader lookback. Use null for both boundaries when the request is timeless. This window adds broad reporting from that period; "
+    "historical and business-context searches remain available across the whole corpus. Return the requested JSON.",
+    group="Zopedia",
+    stage="search",
+)
+_RETAINED_SEARCH_PLAN_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "queries": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 5},
+        "reporting_start": {"type": ["string", "null"]},
+        "reporting_end": {"type": ["string", "null"]},
+    },
+    "required": ["queries", "reporting_start", "reporting_end"],
+}
+
+_RELEVANCE_PROMPT = register_narrative_prompt(
+    "Source relevance", "services/zopedia_research.py",
+    "Organize the candidate sources around the research question. Rank useful direct evidence, indirect connections, "
+    "competing explanations and background by their expected research value. Distinguish original reports from generated analysis and retained knowledge. "
+    "Use actual chunk_record_id values in ordered_source_ids. Preserve broad recall; this ranking does not discard sources. "
+    "Briefly identify useful connections in connections. Do not decide the final answer from previews alone.",
+    group="Research flow", stage="relevance",
 )
 
 
@@ -178,16 +244,6 @@ def _safe_int(value: object, default: int, *, minimum: int = 1, maximum: int = 2
     return min(max(parsed, minimum), maximum)
 
 
-def _env_or_config_int(name: str, key: str, default: int, *, minimum: int, maximum: int) -> int:
-    raw = _clean(os.getenv(name))
-    if raw:
-        try:
-            return min(max(int(raw), minimum), maximum)
-        except Exception:
-            pass
-    return _safe_int(get_config_param(key), default, minimum=minimum, maximum=maximum)
-
-
 def _symbol_news_max_age_days_for_live_event() -> int:
     raw = _clean(os.getenv("ATTENTION_SYMBOL_NEWS_MAX_AGE_DAYS"))
     if raw:
@@ -200,20 +256,29 @@ def _symbol_news_max_age_days_for_live_event() -> int:
 
 def _run_with_timeout(label: str, timeout_seconds: int, func: Any, fallback: Any) -> tuple[Any, str]:
     """Run a helper in a daemon thread and return a fallback if it exceeds its budget."""
-    timeout = max(int(timeout_seconds), 1)
+    try:
+        timeout = remaining_request_timeout(max(float(timeout_seconds), 0))
+    except TimeoutError:
+        return fallback, f"{label} skipped: caller budget expired"
+    if timeout <= 0:
+        return fallback, f"{label} skipped: caller budget expired"
+    work = WorkScope(time.monotonic() + timeout)
+    context = copy_context()
     result_box: list[Any] = [fallback]
     error_box: list[BaseException | None] = [None]
 
     def _runner() -> None:
         try:
-            result_box[0] = func()
+            with work.activate(), llm_request_deadline(work.deadline):
+                result_box[0] = func()
         except BaseException as exc:
             error_box[0] = exc
 
-    thread = threading.Thread(target=_runner, name=f"zopedia-live-{label[:32]}", daemon=True)
+    thread = threading.Thread(target=lambda: context.run(_runner), name=f"zopedia-live-{label[:32]}", daemon=True)
     thread.start()
     thread.join(timeout=timeout)
     if thread.is_alive():
+        work.cancel()
         return fallback, f"{label} timed out after {timeout}s"
     if error_box[0] is not None:
         exc = error_box[0]
@@ -246,36 +311,28 @@ def _llm_query_intent(query: str, *, llm_client: object, max_symbols: int) -> di
     if llm_client is None or not hasattr(llm_client, "generate_json"):
         return baseline
     try:
-        data = llm_client.generate_json(
-            system_prompt=(
-                "You are a market-theme classifier for a financial research platform. "
-                "Given a user query, classify it and infer the directional impact on financial markets. "
-                "event_type must be one of: oil, rates, defensives, risk, squeeze, earnings, sector, generic. "
-                "Use 'rates' for interest rates, inflation, central banks, CPI, PPI, PCE, NFP, or any economic data release. "
-                "Use 'oil' for energy, commodities, or geopolitical supply risk. "
-                "Use 'defensives' for gold, safe havens, volatility, or risk-off moves. "
-                "Use 'squeeze' for short squeezes, gamma squeezes, or heavily-shorted stock moves. "
-                "Use 'earnings' for earnings reports, beats, misses, or guidance. "
-                "Use 'sector' for sector rotation, industry-specific trends, or thematic moves. "
-                "Use 'risk' for broad equity risk, growth scares, or systemic market moves. "
-                "Use 'generic' only when nothing else fits. "
-                "direction is 'up' for stress/supply-risk/hawkish reads, 'down' for relief/dovish/risk-on reads. "
-                "evidence_needed is true when the query requires fresh external data to answer (news, macro releases, "
-                "live prices, recent events). False for simple ticker lookups or questions answerable from static knowledge. "
-                "search_keywords: extract the key domain-specific phrases from the query that should be preserved "
-                "in any search (e.g. 'short squeeze', 'earnings miss', 'tariff impact'). Do not generalize. "
-                "relevant_symbols: the actual US-listed tickers most directly impacted by the event described. "
-                "Use the specific stocks/ETFs the query is about. When the user asks for market impact rather than one ticker, "
-                "return a compact cross-asset evidence basket: broad benchmarks, directly exposed instruments, and second-order sector or style proxies that would test spillovers beyond the original asset class. "
-                "For a rates or bond-market shock, do not return only bond instruments; include enough cross-asset proxies to test whether equities, style, or sectors are moving too. "
-                "For interest-rate shocks, the basket must cover the direct rate instrument, a broad equity benchmark, a duration/growth proxy, and a credit/financial or balance-sheet-sensitive proxy when liquid listed instruments exist. "
-                "Do not return symbols only because they are popular; each symbol needs a role tied to the query. "
-                f"Return at most {max_symbols} symbols."
-            ),
-            user_prompt=json.dumps({"query": query}, ensure_ascii=False),
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=json.dumps({"query": query}, ensure_ascii=False),
+            instructions=f"You are a market-theme classifier for a financial research platform. Given a user query, classify it and infer the directional impact on financial markets. event_type must be one of: oil, rates, defensives, risk, squeeze, earnings, sector, generic. Use 'rates' for interest rates, inflation, central banks, CPI, PPI, PCE, NFP, or any economic data release. Use 'oil' for energy, commodities, or geopolitical supply risk. Use 'defensives' for gold, safe havens, volatility, or risk-off moves. Use 'squeeze' for short squeezes, gamma squeezes, or heavily-shorted stock moves. Use 'earnings' for earnings reports, beats, misses, or guidance. Use 'sector' for sector rotation, industry-specific trends, or thematic moves. Use 'risk' for broad equity risk, growth scares, or systemic market moves. Use 'generic' only when nothing else fits. direction is 'up' for stress/supply-risk/hawkish reads, 'down' for relief/dovish/risk-on reads. evidence_needed is true when the query requires fresh external data to answer (news, macro releases, live prices, recent events). False for simple ticker lookups or questions answerable from static knowledge. search_keywords: extract the key domain-specific phrases from the query that should be preserved in any search (e.g. 'short squeeze', 'earnings miss', 'tariff impact'). Do not generalize. relevant_symbols: the actual US-listed tickers most directly impacted by the event described. Use the specific stocks/ETFs the query is about. When the user asks for market impact rather than one ticker, return a compact cross-asset evidence basket: broad benchmarks, directly exposed instruments, and second-order sector or style proxies that would test spillovers beyond the original asset class. For a rates or bond-market shock, do not return only bond instruments; include enough cross-asset proxies to test whether equities, style, or sectors are moving too. For interest-rate shocks, the basket must cover the direct rate instrument, a broad equity benchmark, a duration/growth proxy, and a credit/financial or balance-sheet-sensitive proxy when liquid listed instruments exist. Do not return symbols only because they are popular; each symbol needs a role tied to the query. Return at most {max_symbols} symbols.",
             schema_name="query_market_intent",
             schema=_QUERY_INTENT_SCHEMA,
+            task="query_market_intent", stage='search',
+            surface="services.zopedia_research",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
+            run_timeout_seconds=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
         if not isinstance(data, dict):
             return baseline
         event_type = str(data.get("event_type") or "generic").lower()
@@ -392,7 +449,9 @@ def retained_context(
 ) -> dict[str, Any]:
     resolved_layer = _layer(layer)
     default_items = int(get_config_param(_P_RETAINED_CONTEXT_MAX_ITEMS))
-    safe_limit = _safe_int(max_items if max_items != 5 else default_items, default_items, minimum=1, maximum=12)
+    safe_limit = _safe_int(
+        max_items if max_items != 5 else default_items, default_items, minimum=1, maximum=12
+    )
     scoped_symbols = _symbol_list(focus_symbols)
     if scoped_symbols:
         resolution = {
@@ -408,21 +467,11 @@ def retained_context(
                 for symbol in scoped_symbols
             ],
         }
-        try:
-            impact = market_impact_map(query=query, max_symbols=max(4, min(safe_limit + 2, 6)))
-        except Exception:
-            impact = {}
-        if not isinstance(impact, dict):
-            impact = {}
-        impact["focus_symbols"] = list(dict.fromkeys(scoped_symbols + list(impact.get("focus_symbols") or [])))[:6]
     else:
         resolution = resolve_zopedia(
-            query=query,
-            preferred_mode="search",
-            force_refresh=force_refresh,
-            layer=resolved_layer,
+            query=query, preferred_mode="search", force_refresh=force_refresh, layer=resolved_layer
         )
-        impact = market_impact_map(query=query, max_symbols=6)
+    impact = {"focus_symbols": scoped_symbols, "search_keywords": []}
     rows: list[dict[str, Any]] = []
     seen_refs: set[tuple[str, str]] = set()
     search_results = list(resolution.get("search_results") or [])
@@ -434,20 +483,35 @@ def retained_context(
             if not bundle_id or (kind, bundle_id) in seen_refs:
                 continue
             result_symbols = set(_symbol_list(result.get("symbols")))
-            ref_symbol = _normalize_symbol(bundle_id.split("::", 1)[1]) if bundle_id.lower().startswith("symbol::") else ""
-            if scoped_symbols and not (result_symbols.intersection(scoped_symbols) or ref_symbol in scoped_symbols):
+            ref_symbol = (
+                _normalize_symbol(bundle_id.split("::", 1)[1])
+                if bundle_id.lower().startswith("symbol::")
+                else ""
+            )
+            if scoped_symbols and not (
+                result_symbols.intersection(scoped_symbols) or ref_symbol in scoped_symbols
+            ):
                 continue
             seen_refs.add((kind, bundle_id))
-            payload = resolved_layer.resolve_attention_research_bundle(bundle_id, force_refresh=force_refresh).payload
+            payload = resolved_layer.resolve_attention_research_bundle(
+                bundle_id, force_refresh=force_refresh
+            ).payload
             payload = payload if isinstance(payload, dict) else {}
             rows.append(
                 {
                     "kind": "bundle",
                     "ref": bundle_id,
                     "label": _clean(result.get("label")) or bundle_id,
-                    "summary_text": _bundle_summary(payload) or _trim(result.get("subtitle"), limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
+                    "summary_text": _bundle_summary(payload)
+                    or _trim(result.get("subtitle"), limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
                     "source_line": _clean(payload.get("source_summary") or payload.get("source_line")),
-                    "supporting_symbols": ", ".join(_symbol_list(payload.get("related_symbols") if isinstance(payload.get("related_symbols"), list) else result.get("symbols"))[:4]),
+                    "supporting_symbols": ", ".join(
+                        _symbol_list(
+                            payload.get("related_symbols")
+                            if isinstance(payload.get("related_symbols"), list)
+                            else result.get("symbols")
+                        )[:4]
+                    ),
                 }
             )
         elif kind == "symbol":
@@ -457,7 +521,9 @@ def retained_context(
             if scoped_symbols and symbol not in scoped_symbols:
                 continue
             seen_refs.add((kind, symbol))
-            payload = resolved_layer.resolve_attention_ticker_background(symbol, force_refresh=force_refresh).payload
+            payload = resolved_layer.resolve_attention_ticker_background(
+                symbol, force_refresh=force_refresh
+            ).payload
             payload = payload if isinstance(payload, dict) else {}
             rows.append(
                 {
@@ -465,8 +531,13 @@ def retained_context(
                     "ref": symbol,
                     "label": symbol,
                     "summary_text": _background_summary(payload),
-                    "company_name": _clean(payload.get("company_name")) or _asset_name(resolved_layer, symbol, force_refresh=force_refresh),
-                    "source_line": _clean(payload.get("llm_source_line") or payload.get("source_line") or payload.get("source_summary")),
+                    "company_name": _clean(payload.get("company_name"))
+                    or _asset_name(resolved_layer, symbol, force_refresh=force_refresh),
+                    "source_line": _clean(
+                        payload.get("llm_source_line")
+                        or payload.get("source_line")
+                        or payload.get("source_summary")
+                    ),
                 }
             )
         elif kind == "macro_release":
@@ -479,7 +550,9 @@ def retained_context(
                     "kind": "macro_release",
                     "ref": ref,
                     "label": _clean(result.get("label")) or ref,
-                    "summary_text": _trim(result.get("subtitle"), limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
+                    "summary_text": _trim(
+                        result.get("subtitle"), limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))
+                    ),
                     "company_name": "",
                     "source_line": "Macro release context",
                 }
@@ -496,17 +569,24 @@ def retained_context(
             break
         if ("symbol", symbol) in seen_refs:
             continue
-        payload = resolved_layer.resolve_attention_ticker_background(symbol, force_refresh=force_refresh).payload
+        payload = resolved_layer.resolve_attention_ticker_background(
+            symbol, force_refresh=force_refresh
+        ).payload
         payload = payload if isinstance(payload, dict) else {}
         rows.append(
             {
                 "kind": "symbol" if symbol in scoped_symbols else "adjacent_symbol",
                 "ref": symbol,
                 "label": symbol,
-                "relationship_to_query": "primary" if symbol in scoped_symbols else "adjacent_context",
+                "relationship_to_query": ("primary" if symbol in scoped_symbols else "adjacent_context"),
                 "summary_text": _background_summary(payload),
-                "company_name": _clean(payload.get("company_name")) or _asset_name(resolved_layer, symbol, force_refresh=force_refresh),
-                "source_line": _clean(payload.get("llm_source_line") or payload.get("source_line") or payload.get("source_summary")),
+                "company_name": _clean(payload.get("company_name"))
+                or _asset_name(resolved_layer, symbol, force_refresh=force_refresh),
+                "source_line": _clean(
+                    payload.get("llm_source_line")
+                    or payload.get("source_line")
+                    or payload.get("source_summary")
+                ),
             }
         )
         seen_refs.add(("symbol", symbol))
@@ -516,12 +596,12 @@ def retained_context(
         llm_lines.append("Primary company symbols: " + ", ".join(scoped_symbols) + ".")
     if adjacent_symbols:
         llm_lines.append(
-            "Adjacent recall to organize around the primary company: "
-            + ", ".join(adjacent_symbols)
-            + "."
+            "Adjacent recall to organize around the primary company: " + ", ".join(adjacent_symbols) + "."
         )
     elif impact.get("focus_symbols"):
-        llm_lines.append("Possible follow-up symbols: " + ", ".join(list(impact.get("focus_symbols") or [])[:6]) + ".")
+        llm_lines.append(
+            "Possible follow-up symbols: " + ", ".join(list(impact.get("focus_symbols") or [])[:6]) + "."
+        )
     for row in rows[:safe_limit]:
         label = _clean(row.get("label") or row.get("ref"))
         company_name = _clean(row.get("company_name"))
@@ -579,7 +659,7 @@ def _news_rows_from_payload(
                 "scope": scope,
                 "symbol": symbol,
                 "headline": headline,
-                "summary_text": _trim(summary or headline, limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
+                "summary_text": summary or headline,
                 "source": _clean(article.get("source")),
                 "published_at": published_at.isoformat() if pd.notna(published_at) else "",
                 "url": url,
@@ -600,30 +680,29 @@ def live_event_evidence(
     normalized_query = _clean(query)
     asof_ts = pd.Timestamp.utcnow()
     default_results = int(get_config_param(_P_LIVE_EVENT_MAX_RESULTS))
-    safe_limit = _safe_int(max_results if max_results != 6 else default_results, default_results, minimum=1, maximum=15)
+    safe_limit = _safe_int(
+        max_results if max_results != 6 else default_results, default_results, minimum=1, maximum=15
+    )
     max_sym = int(get_config_param(_P_LIVE_EVENT_MAX_SYMBOLS))
-    total_budget_seconds = _env_or_config_int(
-        "ZOPEDIA_LIVE_EVENT_TOTAL_BUDGET_SECONDS",
-        _P_LIVE_EVENT_TOTAL_BUDGET_SECONDS,
+    total_budget_seconds = _safe_int(
+        get_config_param(_P_LIVE_EVENT_TOTAL_BUDGET_SECONDS),
         18,
         minimum=6,
         maximum=900,
     )
-    helper_timeout_seconds = _env_or_config_int(
-        "ZOPEDIA_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS",
-        _P_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS,
+    helper_timeout_seconds = _safe_int(
+        get_config_param(_P_LIVE_EVENT_LLM_HELPER_TIMEOUT_SECONDS),
         4,
         minimum=1,
         maximum=120,
     )
-    provider_timeout_seconds = _env_or_config_int(
-        "ZOPEDIA_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS",
-        _P_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS,
+    provider_timeout_seconds = _safe_int(
+        get_config_param(_P_LIVE_EVENT_PROVIDER_TIMEOUT_SECONDS),
         6,
         minimum=3,
         maximum=180,
     )
-    deadline = time.monotonic() + total_budget_seconds
+    deadline = time.monotonic() + remaining_request_timeout(total_budget_seconds)
     messages: list[str] = []
 
     selected_symbols = _symbol_list(focus_symbols)
@@ -637,43 +716,13 @@ def live_event_evidence(
         "summary": [],
         "llm_context_text": "",
     }
-    impact, impact_warning = _run_with_timeout(
-        "live_event_impact_map",
-        min(helper_timeout_seconds, max(_remaining_budget(deadline), 1)),
-        lambda: market_impact_map(query=normalized_query, max_symbols=max_sym),
-        direct_query_intent,
-    )
-    if impact_warning:
-        messages.append(impact_warning)
-    if not isinstance(impact, dict):
-        impact = direct_query_intent
-    theme = _clean(impact.get("theme"))
-    direction = _clean(impact.get("expected_direction"))
-
+    # Acquisition executes the planner's query. It does not run hidden market
+    # classifiers or reinterpret model expectations as observed price changes.
+    impact = direct_query_intent
+    theme = ""
+    direction = ""
     explicitly_resolved = bool(selected_symbols)
-    if not selected_symbols:
-        resolution, resolution_warning = _run_with_timeout(
-            "live_event_symbol_resolution",
-            min(helper_timeout_seconds, max(_remaining_budget(deadline), 1)),
-            lambda: resolve_zopedia(
-                query=normalized_query,
-                preferred_mode="search",
-                force_refresh=force_refresh,
-                layer=resolved_layer,
-            ),
-            {"search_results": []},
-        )
-        if resolution_warning:
-            messages.append(resolution_warning)
-        selected_symbols = [
-            _normalize_symbol(item.get("symbol") or item.get("ref"))
-            for item in list(resolution.get("search_results") or [])
-            if _clean(item.get("kind")).lower() == "symbol"
-        ]
-        explicitly_resolved = bool(selected_symbols)
-    if not selected_symbols:
-        selected_symbols = [str(item) for item in list(impact.get("focus_symbols") or [])]
-    selected_symbols = list(dict.fromkeys([symbol for symbol in selected_symbols if symbol]))[:4]
+    selected_symbols = selected_symbols[:max_sym]
 
     rows: list[dict[str, Any]] = []
     if impact.get("evidence_needed", True):
@@ -696,12 +745,17 @@ def live_event_evidence(
                 search_query=normalized_query,
                 allow_llm_query=False,
             ),
-            {"articles": pd.DataFrame(), "messages": ["Live event news search did not finish within budget."]},
+            {
+                "articles": pd.DataFrame(),
+                "messages": ["Live event news search did not finish within budget."],
+            },
         )
         if event_warning:
             messages.append(event_warning)
         if isinstance(event_payload, dict):
-            messages.extend([_clean(item) for item in list(event_payload.get("messages") or []) if _clean(item)])
+            messages.extend(
+                [_clean(item) for item in list(event_payload.get("messages") or []) if _clean(item)]
+            )
         rows.extend(_news_rows_from_payload(event_payload, scope="market_event"))
 
     event_rows_are_sufficient = len(rows) >= min(max(safe_limit // 2, 3), safe_limit)
@@ -716,7 +770,9 @@ def live_event_evidence(
     for symbol in selected_symbols[:symbol_search_limit]:
         remaining = _remaining_budget(deadline)
         if remaining <= max(provider_timeout_seconds, 3):
-            messages.append("Skipped remaining symbol news searches because the live-event budget was exhausted.")
+            messages.append(
+                "Skipped remaining symbol news searches because the live-event budget was exhausted."
+            )
             break
         company_name, asset_warning = _run_with_timeout(
             f"asset_name_{symbol}",
@@ -737,7 +793,10 @@ def live_event_evidence(
                 tavily_client=None,
                 llm_client=None,
             ),
-            {"articles": pd.DataFrame(), "messages": [f"Symbol news search for {symbol} did not finish within budget."]},
+            {
+                "articles": pd.DataFrame(),
+                "messages": [f"Symbol news search for {symbol} did not finish within budget."],
+            },
         )
         if symbol_warning:
             messages.append(symbol_warning)
@@ -752,7 +811,7 @@ def live_event_evidence(
             row.get("published_at"),
             asof_time_utc=asof_ts,
             max_age_days=_symbol_news_max_age_days_for_live_event(),
-            include_undated=False,
+            include_undated=True,
         ):
             continue
         key = (
@@ -765,15 +824,10 @@ def live_event_evidence(
         seen.add(key)
         deduped.append(row)
 
-    def _sort_key(item: dict[str, Any]) -> tuple[float, str]:
-        published_at = pd.to_datetime(item.get("published_at"), utc=True, errors="coerce")
-        timestamp = published_at.timestamp() if pd.notna(published_at) else 0.0
-        return (-timestamp, _clean(item.get("headline")).lower())
-
-    ordered = sorted(deduped, key=_sort_key)[:safe_limit]
+    ordered = deduped[:safe_limit]
     llm_lines = [
         "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies.",
-        f"Live evidence theme={theme} direction={direction}.",
+        "These are source reports. They do not establish a causal ranking.",
     ]
     if selected_symbols:
         llm_lines.append("Focused symbols: " + ", ".join(selected_symbols) + ".")
@@ -803,6 +857,23 @@ def live_event_evidence(
         "expected_direction": direction,
         "focus_symbols": selected_symbols,
         "summary": ordered,
+        "candidate_sources": [
+            {
+                **row,
+                "chunk_record_id": "news_"
+                + hashlib.sha256(
+                    (row["url"] + "\n" + row["headline"]).encode()
+                ).hexdigest()[:20],
+                "canonical_document_id": "url_"
+                + hashlib.sha256(row["url"].encode()).hexdigest()[:20],
+                "title": row["headline"],
+                "chunk_text": "\n\n".join(
+                    dict.fromkeys([row["headline"], row["summary_text"]])
+                ),
+                "source_kind": "provider_snippet",
+            }
+            for row in ordered
+        ],
         "llm_context_text": " ".join(item for item in llm_lines if item),
         "messages": _dedupe_text_items(messages, limit=8),
     }
@@ -813,87 +884,270 @@ def search_evidence(
     query: str,
     tickers: list[str] | None = None,
     max_results: int = 10,
+    queries: list[str] | None = None,
+    start_date: str | None = None,
+    end_date: str | None = None,
+    asof_time_utc: str | None = None,
+    timezone: str = "UTC",
+    strict_tickers: bool = False,
+    original_query: str = "",
+    resolved_plan: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Search the retained SAA evidence store for matching documents and chunks."""
+    """Interpret retrieval intent, then acquire broad semantic and dated candidates."""
+    remaining_request_timeout(0)
+    from concurrent.futures import ThreadPoolExecutor
+    from contextvars import copy_context
+    from datetime import datetime, time as day_time, timedelta, timezone as utc_timezone
+    from zoneinfo import ZoneInfo
     from .saa import search_retained_evidence_chunks
 
-    normalized_query = _clean(query)
-    safe_limit = _safe_int(max_results, 10, minimum=1, maximum=20)
-    normalized_tickers = _symbol_list(tickers)
+    normalized_query = str(query or "").strip()
+    safe_limit = _safe_int(max_results, 10, minimum=1, maximum=30)
+    query_limit = int(get_config_param(SEARCH_QUERIES))
+    result_limit = int(get_config_param(SEARCH_RESULTS))
+    parallel_queries = int(get_config_param(SEARCH_PARALLEL))
+    supplied_searches = list(
+        dict.fromkeys([normalized_query, *[str(item).strip() for item in queries or [] if str(item).strip()]])
+    )[:query_limit]
+    plan = {}
+    warnings = []
+    if resolved_plan is not None:
+        from jsonschema import Draft202012Validator
+        schema = {**_RETAINED_SEARCH_PLAN_SCHEMA, "properties": {
+            **_RETAINED_SEARCH_PLAN_SCHEMA["properties"],
+            "queries": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1, "maxItems": query_limit},
+        }}
+        errors = list(Draft202012Validator(schema).iter_errors(resolved_plan))
+        if errors or any(not text.strip() for text in resolved_plan.get("queries", [])):
+            raise ValueError("Invalid resolved search plan: " + (errors[0].message if errors else "Empty query"))
+        plan = resolved_plan
+    elif normalized_query or queries:
+        try:
+            from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+            llm = load_aql_zopedia_llm_client(surface="research.search_evidence")
 
-    frame = search_retained_evidence_chunks(
-        query=normalized_query,
-        tickers=normalized_tickers or None,
-        limit=safe_limit,
-        use_semantic=False,
-    )
+            engine_operation = run_aql_zopedia_structured_agent(
+                query=json.dumps(
+                    {
+                        "original_query": original_query or normalized_query,
+                        "search_focus": normalized_query,
+                        "query_hints": supplied_searches,
+                        "asof_time_utc": asof_time_utc,
+                        "timezone": timezone,
+                        "explicit_start": start_date,
+                        "explicit_end": end_date,
+                    },
+                    ensure_ascii=False,
+                ),
+                instructions=get_prompt(_RETAINED_SEARCH_PLAN_PROMPT),
+                schema_name="retained_evidence_search_plan",
+                schema={**_RETAINED_SEARCH_PLAN_SCHEMA, "properties": {**_RETAINED_SEARCH_PLAN_SCHEMA["properties"], "queries": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": query_limit}}},
+                task="retrieval.plan",
+                stage="search",
+                surface="research.search_evidence",
+                llm_client=llm,
+                max_tool_calls=0,
+                persist_findings=False,
+                write_policy="none",
+                call_type="research_grade",
+                operation_metadata=None,
+            )
+            if engine_operation.get("status") != "completed":
+                raise RuntimeError(
+                    engine_operation.get("error") or "Shared AI operation failed"
+                )
+            plan = engine_operation["payload"]
+        except Exception as exc:
+            remaining_request_timeout(0)
+            warnings.append(
+                f"Search interpretation unavailable: {type(exc).__name__}; using supplied queries."
+            )
+    searches = list(dict.fromkeys(plan["queries"] if resolved_plan is not None else [normalized_query, *plan.get("queries", []), *supplied_searches]))[:query_limit] or [
+        ""
+    ]
+    if resolved_plan is not None:
+        start_date, end_date = plan["reporting_start"], plan["reporting_end"]
+    else:
+        start_date = plan.get("reporting_start") or start_date
+        end_date = plan.get("reporting_end") or end_date
 
-    rows: list[dict[str, Any]] = []
-    if not frame.empty:
+    def date_boundary(value, *, end=False):
+        if not value:
+            return None
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if len(str(value)) == 10:
+            parsed = datetime.combine(parsed.date(), day_time(), tzinfo=ZoneInfo(timezone))
+            if end:
+                parsed += timedelta(days=1, microseconds=-1)
+        elif parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=ZoneInfo(timezone))
+        return parsed.astimezone(utc_timezone.utc).isoformat()
+
+    start_date, end_date = date_boundary(start_date), date_boundary(end_date, end=True)
+    symbols = _symbol_list(tickers)
+    requests = [
+        (text, symbols if strict_tickers else None, dated)
+        for text in searches
+        for dated in ([True, False] if start_date or end_date else [False])
+    ]
+    if symbols and not strict_tickers:
+        requests.append((normalized_query, symbols, False))
+
+    def search(request):
+        remaining_request_timeout(0)
+        text, scoped_symbols, publication_only = request
+        found = search_retained_evidence_chunks(
+            query=text,
+            tickers=scoped_symbols,
+            start_date=start_date if publication_only else None,
+            end_date=end_date if publication_only else None,
+            limit=result_limit,
+            use_semantic=True,
+            include_source_references=False,
+            publication_dates_only=publication_only,
+        )
+        found["_candidate_rank"] = range(len(found))
+        return found
+
+    with ThreadPoolExecutor(max_workers=min(len(requests), parallel_queries) or 1) as pool:
+        futures = [pool.submit(copy_context().run, search, request) for request in requests]
+        frames = []
+        for request, future in zip(requests, futures):
+            try:
+                frames.append(future.result())
+            except Exception as exc:
+                remaining_request_timeout(0)
+                warnings.append(f"Search failed for {request[0]!r}: {type(exc).__name__}")
+    if not frames and requests:
+        raise RuntimeError("Retained retrieval failed: " + "; ".join(warnings))
+    frame = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    if start_date or end_date:
+        # A dated request also gets a broad view of reporting in that period.
+        # Discovery must not depend on already guessing the event's vocabulary.
+        recent = search_retained_evidence_chunks(
+            query="",
+            source_kinds=["news", "search", "sec", "treasury"],
+            start_date=start_date,
+            end_date=end_date or asof_time_utc,
+            publication_dates_only=True,
+            limit=100,
+            use_semantic=False,
+            include_source_references=False,
+        )
+    else:
+        recent = pd.DataFrame()
+    rows = []
+    if not frame.empty or not recent.empty:
+        # Interleave actual ranks before deduplication: result lists have
+        # different lengths, and broad searches must survive scoped hints.
+        if not frame.empty:
+            frame = frame.sort_values("_candidate_rank", kind="stable")
+            frame = frame.drop_duplicates("chunk_identity_sha256")
+        frame = pd.concat([frame, recent], ignore_index=True).drop_duplicates("chunk_identity_sha256")
         for _, row in frame.iterrows():
-            title = _clean(row.get("title"))
-            chunk_text = _clean(row.get("chunk_text"))
-            source_provider = _clean(row.get("source_provider"))
-            published_date = _clean(row.get("published_date"))
-            mentioned_tickers = _clean(row.get("mentioned_tickers_key"))
-            url = _clean(row.get("canonical_url") if "canonical_url" in frame.columns else "")
-            rows.append({
-                "chunk_record_id": _clean(row.get("chunk_record_id")),
-                "canonical_document_id": _clean(row.get("canonical_document_id")),
-                "document_id": _clean(row.get("document_id")),
-                "chunk_id": _clean(row.get("chunk_id")),
-                "title": title,
-                "chunk_text": _trim(chunk_text, limit=300),
-                "source": source_provider,
-                "published_date": published_date,
-                "tickers": mentioned_tickers,
-                "url": url,
-            })
-
-    llm_lines = [f"SAA evidence search for '{normalized_query}': {len(rows)} result(s)."]
-    if normalized_tickers:
-        llm_lines.append("Ticker filter: " + ", ".join(normalized_tickers) + ".")
-    for row in rows[:safe_limit]:
-        title = row.get("title") or ""
-        source = row.get("source") or ""
-        date = row.get("published_date") or ""
-        tickers_text = row.get("tickers") or ""
-        chunk = row.get("chunk_text") or ""
-        line = f"{title}"
-        if source:
-            line += f" ({source})"
-        if date:
-            line += f" [{date}]"
-        if tickers_text:
-            line += f" tickers={tickers_text}"
-        if chunk:
-            line += f": {chunk}"
-        llm_lines.append(line)
-
+            refs = row.get("source_refs") if isinstance(row.get("source_refs"), list) else []
+            rows.append(
+                {
+                    "chunk_record_id": _clean(row.get("chunk_record_id")),
+                    "canonical_document_id": _clean(row.get("canonical_document_id")),
+                    "document_id": _clean(row.get("document_id")),
+                    "chunk_id": _clean(row.get("chunk_id")),
+                    "page_id": _clean(row.get("page_id")),
+                    "title": _clean(row.get("title")),
+                    "chunk_text": str(row.get("chunk_text") or "").strip()[:400],
+                    "text_coverage": {"kind": "preview", "start": 0, "end": min(400, len(str(row.get("chunk_text") or ""))), "total_characters": len(str(row.get("chunk_text") or "")), "read_tool": "research.read_evidence"},
+                    "source": _clean(row.get("source_provider")),
+                    "source_kind": _clean(row.get("source_kind")),
+                    "evidence_type": _clean(row.get("evidence_type")),
+                    "source_refs": refs,
+                    "source_references_loaded": bool(row.get("source_references_loaded", True)),
+                    "source_reference_resource": {"tool": "research.read_evidence", "arguments": {
+                        "chunk_record_id": _clean(row.get("chunk_record_id")), "include_source_references": True,
+                    }},
+                    "published_date": _clean(row.get("published_date")),
+                    "published_at": "" if pd.isna(row.get("published_at")) else str(row.get("published_at")),
+                    "retained_at": str(row.get("asof_time_utc") or ""),
+                    "url": _clean(row.get("canonical_url")),
+                }
+            )
     return {
         "query": normalized_query,
-        "tickers": normalized_tickers,
-        "result_count": len(rows),
-        "summary": rows,
-        "llm_context_text": " ".join(item for item in llm_lines if item),
+        "queries": searches,
+        "relevance": {"status": "not_run"},
+        "retrieval_modes": [frame.attrs.get("retrieval", {}) for frame in frames],
+        "workload": {"query_limit": query_limit, "results_per_query": result_limit, "parallel_queries": parallel_queries},
+        "asof_time_utc": asof_time_utc,
+        "timezone": timezone,
+        "reporting_window": {"start": start_date, "end": end_date},
+        "warnings": warnings,
+        "result_count": min(len(rows), safe_limit),
+        "summary": rows[:safe_limit],
+        "candidate_sources": rows,
+        "llm_context_text": json.dumps(rows, ensure_ascii=False),
+        "evidence_context_text": json.dumps(rows, ensure_ascii=False),
+    }
+
+
+def read_evidence(*, chunk_record_id: str, include_source_references: bool = False) -> dict[str, Any]:
+    from .saa.storage import load_retained_evidence_chunk, load_retained_document_metadata
+
+    row = load_retained_evidence_chunk(chunk_record_id, include_source_references=include_source_references)
+    if not row:
+        return {"summary": [], "llm_context_text": "The retained source is unavailable."}
+    doc = load_retained_document_metadata(row.get("canonical_document_id") or "", include_source_references=False) or {}
+    source = {
+        "chunk_record_id": chunk_record_id,
+        "canonical_document_id": row.get("canonical_document_id"),
+        "title": row.get("title"),
+        "chunk_text": row.get("chunk_text"),
+        "source_kind": row.get("source_kind"),
+        "evidence_type": row.get("evidence_type"),
+        "source_refs": row.get("source_refs") or [],
+        "source_references_loaded": include_source_references,
+        "source_reference_resource": {"tool": "research.read_evidence", "arguments": {
+            "chunk_record_id": chunk_record_id, "include_source_references": True,
+        }},
+        "page_id": row.get("page_id"),
+        "url": doc.get("canonical_url") or row.get("canonical_url"),
+        "published_date": row.get("published_date"),
+        "retained_at": str(row.get("asof_time_utc") or ""),
+        "text_coverage": {"kind": "complete_chunk", "start": 0, "end": len(str(row.get("chunk_text") or "")), "total_characters": len(str(row.get("chunk_text") or ""))},
+    }
+    return {
+        "summary": [source],
+        "status": "completed",
+        "candidate_sources": [source],
+        "llm_context_text": json.dumps(source, ensure_ascii=False, default=str),
     }
 
 
 def open_page(
     *,
     url: str,
-    max_chars: int = 5000,
+    max_chars: int | None = None,
     require_main_content: bool = False,
     min_text_chars: int = 500,
+    capture_id: str = "",
+    offset: int = 0,
 ) -> dict[str, Any]:
-    safe_max_chars = _safe_int(max_chars, 5000, minimum=800, maximum=12000)
+    from .saa.storage import load_web_capture, retain_web_capture
+    safe_max_chars = _safe_int(max_chars or get_config_param(_P_READ_WINDOW), 5000, minimum=800, maximum=100000)
     safe_min_text_chars = _safe_int(min_text_chars, 500, minimum=1, maximum=5000)
-    page = browse_page(
-        url,
-        max_text_chars=safe_max_chars,
-        require_main_content=bool(require_main_content),
-        min_text_chars=safe_min_text_chars,
-    )
+    offset = max(0, int(offset))
+    capture_limit = int(get_config_param(_P_CAPTURE_LIMIT))
+    if capture_id:
+        retained = load_web_capture(capture_id)
+        capture_metadata = retained["capture_metadata"]
+        page = {**retained, "mode": "retained_capture", "warning": capture_metadata.get("warning"), "quality_issue": capture_metadata.get("quality_issue")}
+        capture = {"status": "retained", "capture_id": capture_id, "chunk_record_id": capture_id, "canonical_document_id": retained.get("canonical_document_id"), "captured_at": retained.get("captured_at")}
+    else:
+        page = browse_page(url, max_text_chars=capture_limit, require_main_content=bool(require_main_content), min_text_chars=safe_min_text_chars)
+        capture_metadata = {"capture_limit_reached": len(str(page.get("text") or "")) >= capture_limit, "mode": page.get("mode"), "warning": page.get("warning"), "quality_issue": page.get("quality_issue")}
+        try:
+            capture = retain_web_capture(url=page.get("final_url") or url, title=page.get("title") or "", text=str(page.get("text") or ""), metadata=capture_metadata)
+        except Exception as exc:
+            remaining_request_timeout(0)
+            capture = {"status": "unavailable", "reason": type(exc).__name__}
     summary_row = {
         "url": _clean(page.get("final_url") or page.get("url")),
         "title": _clean(page.get("title")),
@@ -912,15 +1166,73 @@ def open_page(
         llm_lines.append(f"Quality issue: {summary_row['quality_issue']}.")
     if summary_row["excerpt"]:
         llm_lines.append(f"Excerpt: {summary_row['excerpt']}.")
-    text = _trim(page.get("text"), limit=safe_max_chars)
+    original = str(page.get("text") or "").strip()
+    text = original[offset:offset + safe_max_chars]
+    coverage = {"start": offset, "end": offset + len(text), "total_characters": len(original), "has_more": offset + len(text) < len(original), "capture_limit_reached": capture_metadata.get("capture_limit_reached", False)}
+    summary_row.update(capture=capture, text_coverage=coverage)
+    first_pass = {"status": "not_run"}
     if text:
         llm_lines.append(f"Visible text: {text}")
     return {
         "url": summary_row["url"],
         "summary": [summary_row],
         "page_text": text,
+        "capture": capture,
+        "text_coverage": coverage,
+        "first_pass_summary": first_pass,
+        "candidate_sources": [{**summary_row, **capture, "chunk_text": text, "first_pass_summary": first_pass, "source_kind": "web", "evidence_type": "source_capture"}],
+        "unretained_capture_text": original if capture["status"] != "retained" else "",
         "llm_context_text": " ".join(item for item in llm_lines if item),
     }
+
+
+def rank_evidence_candidates(payload: dict[str, Any], *, question: str, llm_client: Any) -> dict[str, Any]:
+    """Add a relevance view after the executor has saved the acquired candidates."""
+    from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+    rows = list(payload.get("candidate_sources") or [])
+    if not rows:
+        return payload
+    operation = run_aql_zopedia_structured_agent(
+        query=json.dumps({"question": question, "sources": rows}, ensure_ascii=False),
+        instructions=get_prompt(_RELEVANCE_PROMPT), stage="relevance",
+        schema_name="source_relevance",
+        schema={"type": "object", "properties": {"ordered_source_ids": {"type": "array", "items": {"type": "string"}}, "connections": {"type": "array", "items": {"type": "string"}}}, "required": ["ordered_source_ids", "connections"], "additionalProperties": False},
+        task="retrieval.relevance", surface="research.search_evidence", max_tool_calls=0,
+        llm_client=llm_client, persist_findings=False, write_policy="none", call_type="research_grade",
+    )
+    relevance = {"status": operation["status"], **(operation.get("payload") or {})}
+    if operation.get("status") == "completed":
+        order = {key: i for i, key in enumerate(relevance["ordered_source_ids"])}
+        rows = sorted(rows, key=lambda source: order.get(source["chunk_record_id"], len(order)))
+    else:
+        relevance["reason"] = operation.get("error")
+    context = json.dumps({"sources": rows, "relevance": relevance}, ensure_ascii=False)
+    return {**payload, "relevance": relevance, "candidate_sources": rows,
+            "summary": rows[:payload["result_count"]], "llm_context_text": context,
+            "evidence_context_text": context}
+
+
+def summarize_source_capture(payload: dict[str, Any], *, llm_client: Any) -> dict[str, Any]:
+    """Add a first-pass view without changing the captured original or its coverage."""
+    from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+    text = payload.get("page_text") or ""
+    if not text:
+        return payload
+    operation = run_aql_zopedia_structured_agent(
+        query=json.dumps({"source": (payload.get("summary") or [{}])[0], "original_text": text}, ensure_ascii=False),
+        instructions=get_prompt(_SOURCE_SUMMARY_PROMPT), stage="summary", schema_name="source_first_pass",
+        schema={"type": "object", "properties": {"summary": {"type": "string"}}, "required": ["summary"], "additionalProperties": False},
+        task="source.summary", surface="research.open_page", max_tool_calls=0,
+        llm_client=llm_client, persist_findings=False, write_policy="none", call_type="utility",
+    )
+    first_pass = {"status": operation["status"], **(operation.get("payload") or {})}
+    if operation.get("status") != "completed":
+        first_pass["reason"] = operation.get("error")
+    return {**payload, "first_pass_summary": first_pass,
+            "candidate_sources": [{**source, "first_pass_summary": first_pass}
+                                  for source in payload.get("candidate_sources") or []]}
 
 
 def _zopedia_rows_from_frame(frame: pd.DataFrame, *, limit: int) -> list[dict[str, Any]]:
@@ -935,6 +1247,11 @@ def _zopedia_rows_from_frame(frame: pd.DataFrame, *, limit: int) -> list[dict[st
                 "ref": _clean(row.get("page_id")),
                 "page_id": _clean(row.get("page_id")),
                 "page_type": _clean(row.get("page_type")),
+                "evidence_type": "retained_knowledge",
+                "source_kind": "zopedia_memory",
+                "source_refs": [{"url": url} for url in source_urls],
+                "source_version": row.get("version"),
+                "retained_at": str(row.get("updated_at_utc") or ""),
                 "title": _clean(row.get("title")),
                 "summary_text": _trim(row.get("summary"), limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
                 "source_urls": source_urls,
@@ -978,7 +1295,7 @@ def zopedia_search_pages(
     }
 
 
-def zopedia_read_page(*, page_id: str) -> dict[str, Any]:
+def zopedia_read_page(*, page_id: str, offset: int = 0, max_chars: int = 20000) -> dict[str, Any]:
     page = load_zopedia_page(page_id=page_id)
     if not page:
         return {
@@ -993,6 +1310,12 @@ def zopedia_read_page(*, page_id: str) -> dict[str, Any]:
         "ref": _clean(page.get("page_id")),
         "page_id": _clean(page.get("page_id")),
         "page_type": _clean(page.get("page_type")),
+        "evidence_type": "retained_knowledge",
+        "source_kind": "zopedia_memory",
+        "source_refs": [{"url": url} for url in source_urls]
+        + [{"canonical_document_id": doc} for doc in page.get("source_document_ids") or []],
+        "source_version": page.get("version"),
+        "retained_at": str(page.get("updated_at_utc") or ""),
         "title": _clean(page.get("title")),
         "summary_text": _trim(page.get("summary"), limit=int(get_config_param(_P_SUMMARY_TRIM_LIMIT))),
         "source_urls": source_urls,
@@ -1000,7 +1323,17 @@ def zopedia_read_page(*, page_id: str) -> dict[str, Any]:
         "entity_refs": list(page.get("entity_refs") or [])[:12],
         "outgoing_links": list(page.get("outgoing_links") or [])[:12],
     }
-    body = _trim(page.get("body_markdown"), limit=5000)
+    full_body = str(page.get("body_markdown") or "").strip()
+    offset = max(int(offset), 0)
+    max_chars = max(1000, min(int(max_chars), 100000))
+    body = full_body[offset : offset + max_chars]
+    row.update(
+        {
+            "body_chars": len(full_body),
+            "offset": offset,
+            "next_offset": offset + len(body) if offset + len(body) < len(full_body) else None,
+        }
+    )
     lines = [
         f"Zopedia page: {row['title']} [{row['page_type']}].",
         f"Summary: {row['summary_text']}.",
@@ -1016,7 +1349,8 @@ def zopedia_read_page(*, page_id: str) -> dict[str, Any]:
         "status": "found",
         "summary": [row],
         "page": page,
-        "llm_context_text": " ".join(item for item in lines if item),
+        "llm_context_text": "\n\n".join(item for item in lines if item),
+        "evidence_context_text": json.dumps({**row, "body_markdown": body}, ensure_ascii=False, default=str),
     }
 
 

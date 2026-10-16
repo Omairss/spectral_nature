@@ -1,0 +1,67 @@
+{
+  "execution": "trading-agent-build-uzo29go",
+  "run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+  "status": "Succeeded",
+  "started_at_utc": "2026-10-16T07:15:35+00:00",
+  "ended_at_utc": "2026-10-16T07:35:56+00:00",
+  "replicas": 1,
+  "replica_restarts": 0,
+  "exit_code": 0,
+  "memory": {
+    "limit_bytes": 2147483648,
+    "peak_bytes": 646582272,
+    "headroom_bytes": 1500901376
+  },
+  "company_reports": 8,
+  "successful_horizons": 5,
+  "candidates": 20,
+  "stances": {
+    "short": 7,
+    "long": 4,
+    "no_call": 9
+  },
+  "research_statuses": {
+    "supported": 11,
+    "watch": 8,
+    "avoid": 1
+  },
+  "outcomes": 204,
+  "historical_reviews": 0,
+  "dataset_versions": {
+    "trading_agent_runs": "trading_agent_runs__20261016T071604Z__6b8d2a57",
+    "trading_agent_candidates": "trading_agent_candidates__20261016T071604Z__6b8d2a57",
+    "trading_agent_research_packages": "trading_agent_research_packages__20261016T071604Z__6b8d2a57",
+    "trading_agent_outcomes": "trading_agent_outcomes__20261016T071604Z__6b8d2a57",
+    "trading_agent_research_reviews": "trading_agent_research_reviews__20261016T071604Z__6b8d2a57"
+  },
+  "personal_review": {
+    "complete_company_answers_read": 8,
+    "complete_horizon_summaries_read": 5,
+    "complete_candidate_fields_read": 20,
+    "accepted_scope": "Production execution, memory headroom and published directional calls. Not a blanket research-quality or forecast-performance acceptance.",
+    "improvements": [
+      "Forward long and short calls now survive publication; the previous production dataset had 16 no_call cards and one failed horizon.",
+      "MRNA now explicitly distinguishes seasonal quarterly revenue from deterioration, and separates the 3M Watch, 1Y Long and 5Y Watch cases.",
+      "CORZ distinguishes growth capex from operating losses; BAC discusses bank-specific spread income, credit, capital and compliance."
+    ],
+    "remaining_reasoning_issues": [
+      "The MRNA company brief reverses bull/bear invalidation labels in one paragraph; the final 3M card expresses the directions correctly.",
+      "ASST says a discount below bitcoin value invalidates its bull case without explaining why; its final card remains Watch.",
+      "Long-horizon views still partly extrapolate short reporting windows and historical returns. NVAX uses an older prior-close level as an invalidation anchor.",
+      "The 1M portfolio-posture text says three watch names while the emitted cards contain two. These need shared synthesis/review work, not ticker-specific rewriting.",
+      "Generated company briefs still contain some process prose and generic disclaimer language. Address through the shared narrative instructions/review, not phrase stripping or local UI rewriting."
+    ],
+    "acquisition_limits": {
+      "CORZ": [
+        "Planning stopped: ResearchStepTimeout"
+      ],
+      "MRNA": [
+        "Planning stopped: ResearchStepTimeout"
+      ]
+    }
+  },
+  "recovered_mrna_qa_draft_published": false,
+  "production_acquisition_replay": "Not asserted: unchanged production knowledge write policy defaults to safe_auto, excluded from read-only operational replay.",
+  "artifacts_private_root": "/tmp/sn-production-build8-20261016",
+  "authenticated_production_ui_verified": true
+}

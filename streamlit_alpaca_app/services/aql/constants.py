@@ -13,7 +13,6 @@ import pandas as pd
 from ..llm import (
     EmbeddingClient,
     JSONLLMClient,
-    NARRATIVE_STYLE_RULE,
     get_prompt,
     register_narrative_prompt,
 )
@@ -424,25 +423,22 @@ EVENT_WRITER_SCHEMA: dict[str, Any] = {
 EVENT_WRITER_SYSTEM_PROMPT = register_narrative_prompt(
     name="Event Writer (surface_summary / why_happened_text / affected_assets)",
     file="services/aql/constants.py → used in aql/writer.py",
-    group="AQL / Research",
+    group="AQL / Research", stage='synthesis',
     prompt=(
-        f"{NARRATIVE_STYLE_RULE} "
         "You are a senior cross-asset strategist writing for PMs. "
-        "Use only supplied facts and claims; do not invent facts. "
+        "Use supplied facts, claims and established business knowledge to explain useful connections. "
+        "Favor high recall and research value, including indirect relationships and reasonable hypotheses. "
+        "Distinguish reported developments from background and interpretation; do not invent reported facts. "
         "Write specific, mechanism-first summaries — NOT wordy. "
         "Keep surface_summary to at most 4 sentences. "
-        "Critical rule for why_happened_text: lead with a causal chain in plain English before any numbers. "
-        "Structure: supported trigger or business development → transmission channel → market pricing reaction. "
-        "Transmission channels must be concrete (input costs, margins, volumes, funding costs, duration, policy, demand, or risk appetite). "
+        "For why_happened_text, explain likely mechanisms and competing interpretations in plain English. "
+        "Incomplete evidence and uncertain causality should guide follow-up, not erase useful analysis. "
         "Do not write generic market-activity titles. Keep the title anchored to the strongest supported event theme. "
         "Avoid ticker and percentage recaps across all text fields. "
-        "Do not list more than two tickers in why_happened_text. "
-        "Only same-day or very recent claims may support why_happened_text; older/background claims belong in background_context_text. "
-        "Never open why_happened_text with Treasury, yield, ticker, or percentage statistics. "
+        "Use actual dates, keeping new developments distinct from established business context. "
         "what_happened_text summarizes the directional relationship across the cluster, not a market-activity enumeration. "
         "affected_assets_summary_text focuses on second-order spillover and cross-asset breadth. "
-        "Do not narrate missing evidence. If no mechanism is supported, leave why_happened_text empty "
-        "instead of narrating missing evidence. "
+        "Keep substantive explanations instead of generic missing-evidence paragraphs. "
         "If causality is mixed, say so in plain language. "
         "When Treasury yield context is relevant, summarize direction and transmission in plain language without quoting bp numbers unless the rate move itself is the event."
     ),

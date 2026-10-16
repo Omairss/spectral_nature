@@ -1,0 +1,52 @@
+[
+  {
+    "optional_summary_failed": true,
+    "acquisition_status": "completed",
+    "summary_status": "failed",
+    "original_retained": true,
+    "checkpoint_precedes_summary": true,
+    "calls": [
+      {
+        "stage": "researcher",
+        "model": "deepseek-v4-pro"
+      },
+      {
+        "stage": "summary",
+        "model": "deepseek-flash"
+      },
+      {
+        "stage": "synthesis",
+        "model": "deepseek-v4-pro"
+      },
+      {
+        "stage": "answer",
+        "model": "deepseek-flash"
+      }
+    ]
+  },
+  {
+    "optional_summary_failed": false,
+    "acquisition_status": "completed",
+    "summary_status": "completed",
+    "original_retained": true,
+    "checkpoint_precedes_summary": true,
+    "calls": [
+      {
+        "stage": "researcher",
+        "model": "deepseek-v4-pro"
+      },
+      {
+        "stage": "summary",
+        "model": "deepseek-flash"
+      },
+      {
+        "stage": "synthesis",
+        "model": "deepseek-v4-pro"
+      },
+      {
+        "stage": "answer",
+        "model": "deepseek-flash"
+      }
+    ]
+  }
+]

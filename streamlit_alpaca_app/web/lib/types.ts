@@ -61,6 +61,9 @@ export type HomeBeat = {
   title: string;
   summary: string;
   business_context: string;
+  what_changed?: string;
+  why?: string;
+  watch_next?: string;
   symbols: string[];
   primary_symbol: string;
   change_pct: number | null;
@@ -82,9 +85,16 @@ export type HomeTickerSnapshot = {
   net_income_yoy_pct: number | null;
   operating_cash_flow: number | null;
   free_cash_flow: number | null;
+  total_assets?: number | null;
+  stockholders_equity?: number | null;
   fundamentals_period: string;
   fundamentals_report_date: string;
   sparkline_data_uri: string;
+  price_trend?: TrendPoint[];
+  intraday_price_history?: {
+    status: string; points: TrendPoint[]; interval: string; feed: string; session: string;
+    as_of: string; prefetched_at: string; change_pct: number | null;
+  };
   financial_trends: Record<string, TrendPoint[]>;
 };
 
@@ -108,6 +118,7 @@ export type HomeView = {
   graph: VisualizationArtifact | null;
   beats: HomeBeat[];
   daily_datapoints: DailyDatapoint[];
+  daily_datapoints_as_of?: string;
   coverage: Record<string, number>;
   provenance: { mode: string; datasets: string[] };
 };
@@ -144,6 +155,8 @@ export type ResearchCitation = { url: string; label: string };
 export type ResearchResult = {
   status: string;
   answer_markdown: string;
+  answer_status?: "draft" | "reviewed" | "structured";
+  quality_review?: { status: string; verdict: string };
   confidence: string;
   limitations: string[];
   citations: ResearchCitation[];
@@ -155,6 +168,8 @@ export type ResearchResult = {
 
 export type ResearchRun = {
   run_id: string;
+  conversation_id: string;
+  turn_id: string;
   surface: string;
   task: string;
   query: string;
@@ -189,6 +204,26 @@ export type ResearchEvents = {
   events: ResearchEvent[];
   last_event_sequence: number;
 };
+
+export type ResearchConversationSummary = {
+  conversation_id: string;
+  title: string;
+  latest_run_id: string;
+  status: ResearchRun["status"];
+  turn_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ResearchConversation = {
+  conversation_id: string;
+  title: string;
+  created_at: string;
+  updated_at: string;
+  turns: Array<{ turn_id: string; query: string; created_at: string; attempts: ResearchRun[] }>;
+};
+
+export type ResearchPublicUpdate = { summary: string; finding: string; next_step: string };
 
 export type DatasetColumn = {
   name: string;

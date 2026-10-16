@@ -7,14 +7,13 @@ from typing import Any
 
 import pandas as pd
 
-from .llm import NARRATIVE_STYLE_RULE, LLMAPIError, OpenAIChatJSONClient, get_prompt, register_narrative_prompt
+from .llm import LLMAPIError, OpenAIChatJSONClient, get_prompt, register_narrative_prompt
 
 _FILING_ANALYST_SYSTEM_PROMPT = register_narrative_prompt(
     name="SEC Filing Analyst (evidence extraction)",
     file="services/attention_context_llm.py",
-    group="Attention Pipeline",
+    group="Attention Pipeline", stage='summary',
     prompt=(
-        f"{NARRATIVE_STYLE_RULE} "
         "You are an SEC filing analyst. Use only the provided filing metadata and filing text. "
         "Do not invent facts, numbers, or motives. Summaries should be concise and readable."
     ),
@@ -23,9 +22,8 @@ _FILING_ANALYST_SYSTEM_PROMPT = register_narrative_prompt(
 _ATTENTION_NARRATIVE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Attention Feed Narrative (anomaly + EDGAR context)",
     file="services/attention_context_llm.py",
-    group="Attention Pipeline",
+    group="Attention Pipeline", stage='synthesis',
     prompt=(
-        f"{NARRATIVE_STYLE_RULE} "
         "You write short, human-readable market narratives for an attention feed. "
         "Use only the supplied anomaly metadata and EDGAR-derived evidence. "
         "Be concrete and explicitly reflect uncertainty when evidence is thin."
@@ -258,15 +256,27 @@ def build_edgar_evidence(
             "document_text": _trim(_coerce_text(filing.get("document_text")), 10_000),
         }
         evidence_input_hash = _stable_hash(filing_payload)
-        data = llm_client.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=(
-                "Extract the management signal from this SEC filing into structured JSON.\n"
-                f"{json.dumps(filing_payload, ensure_ascii=False, default=str, indent=2)}"
-            ),
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=f"Extract the management signal from this SEC filing into structured JSON.\n{json.dumps(filing_payload, ensure_ascii=False, default=str, indent=2)}",
+            instructions=system_prompt,
             schema_name="edgar_evidence",
             schema=EVIDENCE_SCHEMA,
+            task="edgar_evidence", stage='summary',
+            surface="services.attention_context_llm",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
         rows.append(
             {
                 "symbol": filing_payload["symbol"],
@@ -375,16 +385,27 @@ def build_attention_context_narratives(
             rows.append(existing_by_hash[input_hash])
             continue
 
-        data = llm_client.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=(
-                "Write a short feed-ready explanation of what is likely going on for this attention item. "
-                "Tie the anomaly context to the EDGAR evidence.\n"
-                f"{json.dumps(narrative_input, ensure_ascii=False, default=str, indent=2)}"
-            ),
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=f"Write a short feed-ready explanation of what is likely going on for this attention item. Tie the anomaly context to the EDGAR evidence.\n{json.dumps(narrative_input, ensure_ascii=False, default=str, indent=2)}",
+            instructions=system_prompt,
             schema_name="attention_context_narrative",
             schema=NARRATIVE_SCHEMA,
+            task="attention_context_narrative", stage='synthesis',
+            surface="services.attention_context_llm",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
         rows.append(
             {
                 "symbol": symbol,

@@ -1,0 +1,599 @@
+{
+  "release": "Shared Zopedia/AQL research repair",
+  "date_local": "2026-10-08",
+  "verified_at_utc": "2026-10-09T05:58:42.202744+00:00",
+  "environment": "development",
+  "site": "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io/zopedia",
+  "status": "Shared architecture deployed and live execution verified; qualitative limitations recorded below.",
+  "changes": [
+    "Corpus-wide semantic and lexical search with model-generated query variants, request-aware dates and broad current reporting.",
+    "Explicit original question, conversation, timezone/as-of context, typed sources and dependencies, and enforceable source/write permissions.",
+    "Actual acquisition/time budgets, executable review feedback and private resumable checkpoints.",
+    "Useful inference and alternative explanations without source-count or causal-proof publication gates.",
+    "Shared configured 80% ASD-STE100-inspired plain-English preference, research/writing separation, preserved paragraphs and citations."
+  ],
+  "runtime": {
+    "verified_at_utc": "2026-10-09T05:51:17.250281+00:00",
+    "targets": [
+      {
+        "name": "sn-api-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:2d01dd726d4a77f7249be4d8758835b308726d24fdc5b3c52448ce14555b0d55",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:38f1d40b0692dbba44fb5c90869193a1583970c1ff8efb5fd3dc1f37e813364c",
+        "revision": "sn-api-next-dev--0000020",
+        "ready_revision": "sn-api-next-dev--0000020",
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "sn-research-run-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:125d369ade1684c2e39c5c0a977ddc07c096edfe129be46f058c41b2107ada7c",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+        "revision": null,
+        "ready_revision": null,
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "attention-home-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "revision": null,
+        "ready_revision": null,
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "equities-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "revision": null,
+        "ready_revision": null,
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "daily-datapoints-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+        "revision": null,
+        "ready_revision": null,
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "sn-next-ui-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:076438b8b933a79da2c7d7dd3f56c2557a82827b77e5f713ac3e627cd73e7db4",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c",
+        "revision": "sn-next-ui-dev--0000014",
+        "ready_revision": "sn-next-ui-dev--0000014",
+        "embedding_configuration": {},
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "trading-agent-build-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9919767d11ceb70e9e3e4fc5d0cabd0ab96f8f82eceef9567fdee5334c173fec",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+        "revision": null,
+        "ready_revision": null,
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "macro-fred-daily-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:c9f320e2fbd7dcd77707de4eac484fc4ff30c86cb57c5760e957bd06413064ce",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+        "revision": null,
+        "ready_revision": null,
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "attention-ticker-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:09d62d939d8f85ea1a9703ad0bc02b9dbb8928bf4ffb158705f733ecc64a3b66",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+        "revision": null,
+        "ready_revision": null,
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      },
+      {
+        "name": "technical-history-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:09d62d939d8f85ea1a9703ad0bc02b9dbb8928bf4ffb158705f733ecc64a3b66",
+        "rollback_image": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+        "revision": null,
+        "ready_revision": null,
+        "embedding_configuration": {
+          "EMBEDDING_PROVIDER": "azure_openai",
+          "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+          "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+          "EMBEDDING_MODEL": "text-embedding-3-small",
+          "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+        },
+        "other_configuration_preserved": true
+      }
+    ],
+    "acr_runs": {
+      "python-0": "cjtj",
+      "python-1": "cjtr",
+      "python-2": "cjth",
+      "web": "cjtm",
+      "extra-python-0": "cjtn",
+      "extra-python-1": "cjtq",
+      "extra-python-2": "cjtp"
+    },
+    "protected_configuration_preserved": true,
+    "production_applications_checked": [
+      "sn-api-next",
+      "sn-next-ui",
+      "sn-streamlit-ui",
+      "universe-builder",
+      "equities-intraday-preload",
+      "macro-fred-daily",
+      "commodities-regime",
+      "options-liquid-universe",
+      "news-ingest-and-features",
+      "entity-taxonomy-refresh",
+      "attention-home-build",
+      "fundamentals-quarterly-refresh",
+      "company-baseline-prefetch",
+      "trading-agent-build",
+      "zopedia-maintenance",
+      "zopedia-learning",
+      "system-health",
+      "robinhood-main-sync-prod",
+      "sn-research-run"
+    ],
+    "production_application_configuration_changed": false,
+    "http": {
+      "/": 200,
+      "/api/home": 200,
+      "/api/research-runs": 401
+    },
+    "site": "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+    "authenticated_ui_visual_check": "Not completed: browser extension attachment timed out. Deployed endpoint and worker flow checked separately."
+  },
+  "index_job": {
+    "name": "evidence-index-dev",
+    "image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:9ffaf7f0bbd3b8387f0b9e866b8b26708954960301a4b1e30f60d39d459f7213",
+    "cron": "*/5 * * * *",
+    "replica_timeout_seconds": 600,
+    "retries": 1,
+    "shared_advisory_lock": true
+  },
+  "index_coverage": {
+    "total_chunks": 13443,
+    "covered_chunks": 13443,
+    "pending_chunks": 0,
+    "embedding_space": "azure_openai:https://spectral-nature-oai.openai.azure.com/openai/v1:zopedia-embedding:text-embedding-3-small:1536"
+  },
+  "index_successful_executions": [
+    "evidence-index-dev-1l0ddlk",
+    "evidence-index-dev-29858745"
+  ],
+  "deployed_probe": {
+    "api_revision": "sn-api-next-dev--0000020",
+    "embedding_dimensions": 1536,
+    "health_status": 200,
+    "unauthenticated_research_status": 401,
+    "writing_preference": "80% ASD-STE100-inspired Simplified Technical English, loaded through the shared configured provider",
+    "parent_run_id": "agrun_6e731899dcd84c029d41eefc",
+    "dispatch_status": "dispatched",
+    "creation_path": "Deployed API endpoint function with an isolated synthetic principal; actual managed-identity worker dispatch. No authentication settings changed.",
+    "worker_execution": "sn-research-run-dev-azrx458",
+    "worker_image": "snpipelineacr03130136.azurecr.io/zopedia-general-dev@sha256:125d369ade1684c2e39c5c0a977ddc07c096edfe129be46f058c41b2107ada7c",
+    "initial_worker_failure": {
+      "execution": "sn-research-run-dev-l7a4ikx",
+      "phase": "startup, before claiming research",
+      "cause": "undeclared stale merge-conflict file in build payload",
+      "restored_original_image": true,
+      "replacement_build": "cjtr",
+      "replacement_entrypoint_import_verified": true
+    }
+  },
+  "research_runs": [
+    {
+      "kind": "initial_question",
+      "run_id": "agrun_6e731899dcd84c029d41eefc",
+      "status": "completed",
+      "question": "What are some causes of today’s downturn in AI stocks? Explain the main connections clearly.",
+      "budget": {
+        "max_tool_calls": 8,
+        "run_timeout_seconds": 300.0,
+        "llm_step_timeout_seconds": 90,
+        "prefetch_timeout_seconds": 15,
+        "tool_call_timeout_seconds": 45
+      },
+      "checkpoint_saved": true,
+      "source_policy": "retained_only",
+      "write_policy": "none",
+      "tool_calls": [
+        {
+          "name": "research.search_evidence",
+          "status": "completed",
+          "carried_forward": false
+        },
+        {
+          "name": "research.search_evidence",
+          "status": "completed",
+          "carried_forward": false
+        },
+        {
+          "name": "research.search_evidence",
+          "status": "completed",
+          "carried_forward": false
+        }
+      ],
+      "public_paragraph_count": 5,
+      "public_citation_count": 24,
+      "private_checkpoint_exposed": false,
+      "generated_searchable_chunks": 0,
+      "answer_markdown": "AI stocks fell on 8 October 2026, but the move was not a crash and no single cause is confirmed. Two forces overlapped inside a broadly weaker market, and each force pushed the same group of shares down for a different reason.\n\nThe first force was weaker expected demand. The Financial Times reported that OpenAI's yearly revenue run rate is near $50 billion, about $20 billion below what earlier signals suggested (\"'OpenAI annualised revenues $20bn less than previously signalled' - Financial Times\"). AI chip and data-center spending depends on customers like OpenAI, so a lower revenue path means less future spending on computing. Oracle fell on that report, and Nvidia fell with it (\"Oracle Stock Drops Thursday: What's Happening?\", \"OpenAI Revenue $20B Below Previous Reports, ORCL, NVDA Tumble\").\n\nThe second force was a higher discount rate. The 10-year Treasury yield — the interest rate the government pays to borrow for 10 years, used as a benchmark for other investments — came close to 5.35% (\"Stock Market Today: S&P 500 Slips as Oil Spikes 5%, 10-Year Yields Near 5.35%\"). Higher yields lower the present value of profits that arrive years from now and raise borrowing costs for capital-heavy data centers. That explains why Bloom Energy fell on the yield move (\"Why Is Bloom Energy Stock Falling on Thursday?\") and why \"neoclouds\" — companies that rent out AI computing capacity — came under pressure (\"Bitcoin Slide Meets 5.7% Bond Yields: Neoclouds Get Hit From Both Sides\"). Falling crypto prices added to this: bitcoin dropped below $81,000 with about $974 million of crypto liquidations, which dragged down crypto-linked AI infrastructure shares (\"TradingView: Bitcoin Drops Below $81K, Triggering Nearly $1B Crypto Liquidation Wave\").\n\nA third cluster is about money for the buildout. A Nvidia-backed initial public offering (a company's first sale of shares to the public) drew very weak demand, Nvidia-backed Firmus postponed its IPO, SpaceX plans about $40 billion of debt to buy Nvidia chips with record credit-default swaps (insurance-like contracts that signal lenders see more risk), and Broadcom's AI financing deals drew analyst debt warnings (\"'Nvidia-Backed IPO's Cratering Demand Sends Warning on AI Funding' - Bloomberg\", \"'Nvidia-Backed Firmus Is Set to Postpone IPO, Weigh Private Round'\", \"Elon Musk Is Betting $40 Billion on Nvidia Chips — SpaceX Investors Aren't So Sure\", \"What's Going On With Broadcom Stock Thursday?\"). If buildout money becomes more expensive or harder to raise, spending can slow. Oil rose 5% with Brent above $105 after Gulf tanker attacks, which fed inflation worries and pushed yields higher, and Ray Dalio's bubble warning added to the mood (\"Stock Market Today\", \"AI Bubble Nearing a Breaking Point? Ray Dalio's Warning\"). AI hardware fell too: Astera Labs -9.2%, TTM Technologies -8.2%, and AXT -10% (\"Astera Labs (NASDAQ:ALAB) Stock Price Down 9.2%\", \"TTM Technologies (NASDAQ:TTMI) Shares Down 8.2%\", \"AXT slumps 10%\").\n\nTreat the attribution with care: most sources are same-day reports and do not confirm causes. Counterweights also exist, including Nvidia's $250 billion OpenAI financing backstop, TSMC's planned capital spending of up to $64 billion, and US AI research pledges (\"CRWV, NBIS Stocks Climb – Nvidia's $250B OpenAI Guarantee Is A 'Constructive' Signal\", \"EXCLUSIVE: TSMC Plans Up to $64 Billion in Capex\")."
+    },
+    {
+      "kind": "followup",
+      "run_id": "agrun_e63adad4da8448eb98cc241e",
+      "status": "completed",
+      "question": "Which cause matters most? Explain in two short sentences.",
+      "budget": {
+        "max_tool_calls": 8,
+        "run_timeout_seconds": 300.0,
+        "llm_step_timeout_seconds": 90,
+        "prefetch_timeout_seconds": 15,
+        "tool_call_timeout_seconds": 45
+      },
+      "checkpoint_saved": true,
+      "source_policy": "retained_only",
+      "write_policy": "none",
+      "tool_calls": [
+        {
+          "name": "research.search_evidence",
+          "status": "completed",
+          "carried_forward": true
+        },
+        {
+          "name": "research.search_evidence",
+          "status": "completed",
+          "carried_forward": true
+        },
+        {
+          "name": "research.search_evidence",
+          "status": "completed",
+          "carried_forward": true
+        }
+      ],
+      "public_paragraph_count": 2,
+      "public_citation_count": 24,
+      "private_checkpoint_exposed": false,
+      "generated_searchable_chunks": 0,
+      "answer_markdown": "The weaker demand signal matters most: the Financial Times reported that OpenAI's yearly revenue run rate is near $50 billion, about $20 billion below earlier signals, and because AI chip and data-center spending depends on buyers like OpenAI, Oracle and Nvidia fell with it ([\"'OpenAI annualised revenues $20bn less than previously signalled' - Financial Times\"](https://benzinga.com/news/26/10/62253618/openai-annualised-revenues-20bn-less-than-previously-signalled-financial-times), [\"Oracle Stock Drops Thursday: What's Happening?\"](https://benzinga.com/trading-ideas/movers/26/10/62258380/oracle-stock-drops-thursday-whats-happening)).\n\nThe 10-year Treasury yield near 5.35% and a 5% jump in oil prices pushed the whole market down and made the AI drop deeper, but they hit every sector, so they added to the fall rather than started it ([\"Stock Market Today: S&P 500 Slips as Oil Spikes 5%, 10-Year Yields Near 5.35%\"](https://benzinga.com/markets/equities/26/10/62255036/stock-market-today-sp-500-slips-oil-rallies-yields))."
+    }
+  ],
+  "model_routing": [
+    {
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 3389.4409740169067
+    },
+    {
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 17691.990333987633
+    },
+    {
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 18345.93787501217
+    },
+    {
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 10370.71713100886
+    },
+    {
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 9346.288103988627
+    },
+    {
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 17662.103292008396
+    },
+    {
+      "purpose": "agent.final_synthesis",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 7438.926875998732
+    },
+    {
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 13055.767338024452
+    },
+    {
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 10687.237945152447
+    },
+    {
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 15416.286126011983
+    },
+    {
+      "purpose": "agent.final_synthesis",
+      "requested_model": "deepseek-reasoner",
+      "resolved_model": "deepseek-flash",
+      "provider_reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 3278.1450210604817
+    }
+  ],
+  "generation_model_migration": false,
+  "shared_configuration_note": "Requested deepseek-reasoner; provider reported deepseek-flash for the observed run calls. Embeddings use a separate Azure deployment and credential.",
+  "local_qualitative_observations": [
+    "Both original market questions now recover the previously missed retained OpenAI report naturally. Broad-market ranking differs from the AI-specific assessment, rather than requiring that story to lead every answer.",
+    "The retained-only Ciena run explains the optical-capacity connection and distinguishes company results, dated customer deployments and analyst estimates.",
+    "Concept and zero-acquisition requests produce coherent numerical profit-versus-cash explanations; follow-ups use saved research and honor requested format.",
+    "The unrelated gas/electricity sample still makes an overly loose inference about alternative power technologies and retains some unexplained abbreviations.",
+    "The deployed long answer explains key terms but still leads and ends with unnecessary causal caution and includes secondary figures. The short follow-up is clearer but overgeneralizes the breadth of one market effect.",
+    "These are qualitative observations, not deterministic semantic tests or a guarantee for unseen prompts."
+  ],
+  "mechanical_contracts": {
+    "paragraphs": true,
+    "typed_checkpoint": true,
+    "idempotency_context": true,
+    "short_followup": true,
+    "owner_isolation": true,
+    "private_state_omitted": true,
+    "no_knowledge_retention": true,
+    "queued_budget": {
+      "max_tool_calls": 8,
+      "run_timeout_seconds": 300,
+      "llm_step_timeout_seconds": 90,
+      "prefetch_timeout_seconds": 15,
+      "tool_call_timeout_seconds": 45
+    }
+  },
+  "shared_database_changes": {
+    "vector_extension": "0.8.2",
+    "embedding_table": "aql_evidence_embeddings",
+    "checkpoint_column": "aql_research_sessions.checkpoint_json",
+    "invalid_chunk_dates_corrected": 3779,
+    "invalid_document_dates_corrected": 2244,
+    "date_correction_metadata_preserved": true,
+    "wiki_body_mutations_by_evaluations": 0
+  },
+  "source_artifacts": [
+    {
+      "name": "python-0",
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:38f1d40b0692dbba44fb5c90869193a1583970c1ff8efb5fd3dc1f37e813364c",
+      "targets": [
+        "sn-api-next-dev"
+      ],
+      "tag": "zopedia-general-dev:20261008-python-0",
+      "source_sha256": {
+        "services/llm.py": "9c620c716961d1dbeac98bec6b6b47327f1ba969fa11e1d67b0e16ec5fde73e4",
+        "services/zopedia_agent.py": "5db4fe57ca5506fc31217e87bb6efc41cf17567b5a51de81544ef967d042555e",
+        "services/zopedia_research.py": "6c172e522cc1ab4c86eab7255086ac1b54e0030e50734fcb2921e79b8b9a042a",
+        "services/agent_tools.py": "15355ea5bd78019dfb3327d80509c099fbbcb86ba5f573301f26c4ab8f48c7c9",
+        "services/agents/research_session.py": "26a5933303509c6e399f644bee4be8bc4bed4e08fabbff051a6352d26add571e",
+        "services/aql_zopedia_engine.py": "ef8aa0a1eaa3e6f448df9b74bcaf025677464414f0b0d0b233266ebcad315585",
+        "services/saa/storage.py": "563b9b317f888a423ffef1bb9e317e46c8ead3b4f3f59773ab6b243e3d16470b",
+        "data_access/layer.py": "371140cafec7c8af8bafe1f9384dc7e299a2ee95084e6c727148a138cd4db5ab",
+        "api/main.py": "dcf8e4b09745eacbdafdf19e6df90bf5bbfba0fc50e670feed40f3e16de36a03",
+        "services/agents/research_runs.py": "f07aa1399ebf9f518d47307d217026505708bf5fac96f7879b2b6d6cec5f1b63",
+        "services/saa/semantic_index.py": "6b05fef48e485f38e88db5d7262d5e6fdca1c0f6ba2a4729da509884f9f323bb"
+      }
+    },
+    {
+      "name": "python-1",
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:b22fd0ceef4494fd7fc99d5dcad93fe997cca988d946641bded6b947607337fc",
+      "targets": [
+        "sn-research-run-dev"
+      ],
+      "tag": "zopedia-general-dev:20261008-python-1-r2",
+      "source_sha256": {
+        "services/llm.py": "9c620c716961d1dbeac98bec6b6b47327f1ba969fa11e1d67b0e16ec5fde73e4",
+        "services/zopedia_agent.py": "5db4fe57ca5506fc31217e87bb6efc41cf17567b5a51de81544ef967d042555e",
+        "services/zopedia_research.py": "6c172e522cc1ab4c86eab7255086ac1b54e0030e50734fcb2921e79b8b9a042a",
+        "services/agent_tools.py": "15355ea5bd78019dfb3327d80509c099fbbcb86ba5f573301f26c4ab8f48c7c9",
+        "services/agents/research_session.py": "26a5933303509c6e399f644bee4be8bc4bed4e08fabbff051a6352d26add571e",
+        "services/aql_zopedia_engine.py": "ef8aa0a1eaa3e6f448df9b74bcaf025677464414f0b0d0b233266ebcad315585",
+        "services/saa/storage.py": "9e920ebf4d5c2c05c6c8ac3319e307b92db962776ec6d24b87343ed9ab0485ef",
+        "data_access/layer.py": "69f21313eb87e1d1a0360a06b26ea4309cd87d06581f454250fb476888ff4541",
+        "services/agents/research_runs.py": "f07aa1399ebf9f518d47307d217026505708bf5fac96f7879b2b6d6cec5f1b63",
+        "services/saa/semantic_index.py": "6b05fef48e485f38e88db5d7262d5e6fdca1c0f6ba2a4729da509884f9f323bb"
+      },
+      "base_entrypoint_sha256": "c706b234dc6b117cd6057d1500fb5e44e05a1f4a6b5a290557b9b523a61e1fb7"
+    },
+    {
+      "name": "python-2",
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:c6f280a571303fd28ae530963c1a6197ec2576c5200856e6366b62cb2a815ee7",
+      "targets": [
+        "attention-home-next-dev",
+        "equities-next-dev",
+        "daily-datapoints-next-dev"
+      ],
+      "tag": "zopedia-general-dev:20261008-python-2",
+      "source_sha256": {
+        "services/llm.py": "9c620c716961d1dbeac98bec6b6b47327f1ba969fa11e1d67b0e16ec5fde73e4",
+        "services/zopedia_agent.py": "5db4fe57ca5506fc31217e87bb6efc41cf17567b5a51de81544ef967d042555e",
+        "services/zopedia_research.py": "6c172e522cc1ab4c86eab7255086ac1b54e0030e50734fcb2921e79b8b9a042a",
+        "services/agent_tools.py": "15355ea5bd78019dfb3327d80509c099fbbcb86ba5f573301f26c4ab8f48c7c9",
+        "services/agents/research_session.py": "26a5933303509c6e399f644bee4be8bc4bed4e08fabbff051a6352d26add571e",
+        "services/aql_zopedia_engine.py": "ef8aa0a1eaa3e6f448df9b74bcaf025677464414f0b0d0b233266ebcad315585",
+        "services/saa/storage.py": "563b9b317f888a423ffef1bb9e317e46c8ead3b4f3f59773ab6b243e3d16470b",
+        "data_access/layer.py": "fcfa75b6df8b82daf6b1e2ec9b79333e0412495187c4604272bb38d71ded897b",
+        "pipeline/jobs/main.py": "9a9a999554fb5532ad533353eec7f191a0eab8e759cbd21564b80622f9417581",
+        "services/saa/semantic_index.py": "6b05fef48e485f38e88db5d7262d5e6fdca1c0f6ba2a4729da509884f9f323bb"
+      }
+    },
+    {
+      "name": "web",
+      "tag": "zopedia-general-dev:20261008-web",
+      "targets": [
+        "sn-next-ui-dev"
+      ],
+      "source_sha256": {
+        "web/app/zopedia/page.tsx": "9a73ecc13c346d8395c81d446c9b5ce5fb24eb84187528396f445fc23f1ae890",
+        "web/app/zopedia/runs/[runId]/research-run-view.tsx": "404fc1c2b7b98a2bd18000d6b858eeed351f23d0b07429ab81f689cef1588140"
+      },
+      "accepted_base_image": "snpipelineacr03130136.azurecr.io/home-repair-dev@sha256:0199e4b091d48a5ba7bbc38b191b8a567588b4aa13c36318c29cfe6d5850471c"
+    },
+    {
+      "name": "extra-python-0",
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9f0fae41af46b73aa4be941099c7f3c5034f0f59eb4abee97372f2fa50001ede",
+      "targets": [
+        "trading-agent-build-dev"
+      ],
+      "tag": "zopedia-general-dev:20261008-extra-python-0",
+      "source_sha256": {
+        "services/llm.py": "9c620c716961d1dbeac98bec6b6b47327f1ba969fa11e1d67b0e16ec5fde73e4",
+        "services/zopedia_agent.py": "c295a8b56ad019e03ba4f9e0e52d28145064471763973b0dfff918dc2d8cf15c",
+        "services/zopedia_research.py": "6c172e522cc1ab4c86eab7255086ac1b54e0030e50734fcb2921e79b8b9a042a",
+        "services/agent_tools.py": "15355ea5bd78019dfb3327d80509c099fbbcb86ba5f573301f26c4ab8f48c7c9",
+        "services/agents/research_session.py": "26a5933303509c6e399f644bee4be8bc4bed4e08fabbff051a6352d26add571e",
+        "services/aql_zopedia_engine.py": "ef8aa0a1eaa3e6f448df9b74bcaf025677464414f0b0d0b233266ebcad315585",
+        "services/saa/storage.py": "956d0b76dd210f6625ed572869a1573495aa124cbd134e11caa4c53d4ad0632c",
+        "data_access/layer.py": "8f4ad7b0031f177972fcb38dcd2bffcdd565ff163787defe0d99c3a7dc4498fd",
+        "services/saa/semantic_index.py": "6b05fef48e485f38e88db5d7262d5e6fdca1c0f6ba2a4729da509884f9f323bb"
+      }
+    },
+    {
+      "name": "extra-python-1",
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:9bd4e70f3778168027c58382bcdf38d0aafa62bd9397ddc1fce705b325a238ae",
+      "targets": [
+        "macro-fred-daily-dev"
+      ],
+      "tag": "zopedia-general-dev:20261008-extra-python-1",
+      "source_sha256": {
+        "services/llm.py": "9c620c716961d1dbeac98bec6b6b47327f1ba969fa11e1d67b0e16ec5fde73e4",
+        "services/zopedia_agent.py": "c295a8b56ad019e03ba4f9e0e52d28145064471763973b0dfff918dc2d8cf15c",
+        "services/zopedia_research.py": "6c172e522cc1ab4c86eab7255086ac1b54e0030e50734fcb2921e79b8b9a042a",
+        "services/agent_tools.py": "15355ea5bd78019dfb3327d80509c099fbbcb86ba5f573301f26c4ab8f48c7c9",
+        "services/agents/research_session.py": "26a5933303509c6e399f644bee4be8bc4bed4e08fabbff051a6352d26add571e",
+        "services/aql_zopedia_engine.py": "ef8aa0a1eaa3e6f448df9b74bcaf025677464414f0b0d0b233266ebcad315585",
+        "services/saa/storage.py": "956d0b76dd210f6625ed572869a1573495aa124cbd134e11caa4c53d4ad0632c",
+        "data_access/layer.py": "8f4ad7b0031f177972fcb38dcd2bffcdd565ff163787defe0d99c3a7dc4498fd",
+        "services/saa/semantic_index.py": "6b05fef48e485f38e88db5d7262d5e6fdca1c0f6ba2a4729da509884f9f323bb"
+      }
+    },
+    {
+      "name": "extra-python-2",
+      "base": "snpipelineacr03130136.azurecr.io/home-repair-prod@sha256:07ee290de90474f955eac9e10514c8321ad3b51b3a32d9a4fb4ccfbf1aa1581f",
+      "targets": [
+        "attention-ticker-next-dev",
+        "technical-history-next-dev"
+      ],
+      "tag": "zopedia-general-dev:20261008-extra-python-2",
+      "source_sha256": {
+        "services/llm.py": "9c620c716961d1dbeac98bec6b6b47327f1ba969fa11e1d67b0e16ec5fde73e4",
+        "services/zopedia_agent.py": "5db4fe57ca5506fc31217e87bb6efc41cf17567b5a51de81544ef967d042555e",
+        "services/zopedia_research.py": "6c172e522cc1ab4c86eab7255086ac1b54e0030e50734fcb2921e79b8b9a042a",
+        "services/agent_tools.py": "15355ea5bd78019dfb3327d80509c099fbbcb86ba5f573301f26c4ab8f48c7c9",
+        "services/agents/research_session.py": "26a5933303509c6e399f644bee4be8bc4bed4e08fabbff051a6352d26add571e",
+        "services/aql_zopedia_engine.py": "ef8aa0a1eaa3e6f448df9b74bcaf025677464414f0b0d0b233266ebcad315585",
+        "services/saa/storage.py": "132c6d96da6cbdf9a93b97216d9e127bca2b97d166039da3eeb66fe89e62c14d",
+        "data_access/layer.py": "fcfa75b6df8b82daf6b1e2ec9b79333e0412495187c4604272bb38d71ded897b",
+        "services/saa/semantic_index.py": "6b05fef48e485f38e88db5d7262d5e6fdca1c0f6ba2a4729da509884f9f323bb"
+      }
+    }
+  ],
+  "compatibility_upgrade": "Two older dev worker image groups received the already accepted API research-session implementation because the new checkpoint contract depends on that shared owner. Other source changes were merged against the task baseline with original source hashes guarded.",
+  "packaging_correction": {
+    "execution": "sn-research-run-dev-l7a4ikx",
+    "phase": "startup, before claiming research",
+    "cause": "undeclared stale merge-conflict file in build payload",
+    "restored_original_image": true,
+    "replacement_build": "cjtr",
+    "replacement_entrypoint_import_verified": true
+  },
+  "remaining_limits": [
+    "Automatic re-dispatch of a dead worker is not implemented; persisted research supports continuation.",
+    "Writing quality remains variable, including verbosity, excess caution and occasional reasoning or citation errors.",
+    "Authenticated UI rendering was not visually checked because browser attachment failed; deployed endpoint functions, HTTP boundaries, actual managed-identity dispatch and worker execution were checked.",
+    "Production applications were not deployed. Additive index/schema work and retained date corrections affect the shared database; old production persistence code can still reproduce missing-date corruption until separately promoted."
+  ],
+  "references": {
+    "plan": "../../../plans/ZOPEDIA_GENERAL_RESEARCH_REPAIR_2026-10-08.md",
+    "original_failure_audit": "ZOPEDIA_CHAT_RETRIEVAL_FAILURE_2026-10-08.md"
+  }
+}

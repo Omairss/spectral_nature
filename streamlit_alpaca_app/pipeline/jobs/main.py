@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from services.database import open_database_session, database_workload
+from services.work_scope import WorkScope
+from contextvars import copy_context
+
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
 import hashlib
@@ -8,8 +12,9 @@ import json
 import os
 import queue
 import threading
+import time
 import uuid
-from typing import Any
+from typing import Any, Iterator
 
 import pandas as pd
 
@@ -51,6 +56,7 @@ from services.entity_taxonomy import (
 )
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
 from services.llm import LLMAPIError
+from services.llm_flow import configured_research, workload_value
 from services.market_data import (
     build_correlation_phase_shifts_from_bars,
     build_momentum_profiles_from_bars,
@@ -83,6 +89,11 @@ from services.pipeline_store import (
     dataset_version_id_for_namespace,
     load_latest_dataset_frame,
     load_recent_dataset_frames,
+    load_dataset_frame,
+    recent_dataset_metadata,
+    dataset_input_versions,
+    read_execution_state,
+    write_execution_state,
     symbol_partition_bucket,
 )
 from services.saa import (
@@ -132,6 +143,9 @@ class JobContext:
     run_id: str
     asof: datetime
     universe_version: str
+    tracking_connection: Any | None = field(default=None, repr=False, compare=False)
+    degraded_components: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
+    published_datasets: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
 
 
 class _PipelineStepTimeout(TimeoutError):
@@ -207,7 +221,12 @@ def _postgres_bootstrap_timeout_seconds(default: int = 30) -> int:
     return min(max(parsed, 5), 180)
 
 
-def _db_connection() -> Any | None:
+def _db_connection(*, workload: str | None = None) -> Any | None:
+    timeout = _postgres_startup_timeout_seconds()
+    if workload == "background":
+        timeout = max(timeout, int(os.getenv("POSTGRES_BACKGROUND_ACQUIRE_TIMEOUT_SECONDS", "300")))
+    deadline = time.monotonic() + timeout
+
     def _connect() -> Any | None:
         conn_str = resolve_secret_value(
             ["POSTGRES_CONNECTION_STRING"],
@@ -220,14 +239,30 @@ def _db_connection() -> Any | None:
         if psycopg is None:
             print("[warn] psycopg unavailable; continuing without db sink")
             return None
-        return psycopg.connect(
-            conn_str,
-            connect_timeout=postgres_connect_timeout_seconds(),
-            application_name=f"spectral_pipeline:{(os.getenv('PIPELINE_JOB_NAME') or 'unknown')[:45]}",
-            options="-c lock_timeout=5000 -c statement_timeout=120000 -c idle_in_transaction_session_timeout=60000",
-        )
+        for attempt in range(3):
+            remaining = deadline - time.monotonic()
+            if remaining < 2:
+                raise _PipelineStepTimeout("postgres startup exhausted its connection budget")
+            try:
+                conn = open_database_session(
+                    conn_str,
+                    connect_timeout=min(postgres_connect_timeout_seconds(), int(remaining)),
+                    application_name=f"spectral_pipeline:{(os.getenv('PIPELINE_JOB_NAME') or 'unknown')[:45]}",
+                    workload=workload,
+                )
+                if time.monotonic() >= deadline:
+                    conn.close()
+                    raise _PipelineStepTimeout("postgres connection completed after its startup deadline")
+                return conn
+            except psycopg.OperationalError as exc:
+                state = getattr(exc, "sqlstate", None)
+                transient = state is None or state.startswith("08") or state in {"53300", "57P03"}
+                delay = 0.5 * (2 ** attempt)
+                if not transient or attempt == 2 or deadline - time.monotonic() < delay + 2:
+                    raise
+                print(f"[info] postgres startup retry attempt={attempt + 2}/3", flush=True)
+                time.sleep(delay)
 
-    timeout = _postgres_startup_timeout_seconds()
     print(f"[info] postgres tracking startup timeout={timeout}s", flush=True)
     try:
         conn = _call_with_timeout("postgres startup", timeout, _connect)
@@ -291,6 +326,8 @@ def _db_bootstrap(conn: Any) -> None:
                 progress_message TEXT,
                 progress_pct DOUBLE PRECISION,
                 heartbeat_time_utc TIMESTAMPTZ,
+                platform_job_name TEXT,
+                platform_execution_name TEXT,
                 universe_version TEXT,
                 asof_time_utc TIMESTAMPTZ
             )
@@ -320,6 +357,8 @@ def _db_bootstrap(conn: Any) -> None:
             ADD COLUMN IF NOT EXISTS heartbeat_time_utc TIMESTAMPTZ
             """
         )
+        cur.execute("ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS platform_job_name TEXT")
+        cur.execute("ALTER TABLE job_runs ADD COLUMN IF NOT EXISTS platform_execution_name TEXT")
     conn.commit()
     bootstrap_entity_taxonomy_tables(conn)
     bootstrap_saa_storage(conn)
@@ -332,20 +371,25 @@ def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
             INSERT INTO job_runs (
                 run_id, job_name, schedule_slot, start_time_utc,
                 status, retries, progress_stage, progress_message, progress_pct,
-                heartbeat_time_utc, universe_version, asof_time_utc
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                heartbeat_time_utc, universe_version, asof_time_utc,
+                platform_job_name, platform_execution_name
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (run_id) DO UPDATE SET
                 job_name = EXCLUDED.job_name,
                 schedule_slot = EXCLUDED.schedule_slot,
-                start_time_utc = EXCLUDED.start_time_utc,
+                start_time_utc = COALESCE(job_runs.start_time_utc, EXCLUDED.start_time_utc),
+                end_time_utc = NULL,
+                error_summary = NULL,
                 status = EXCLUDED.status,
-                retries = EXCLUDED.retries,
+                retries = job_runs.retries + 1,
                 progress_stage = EXCLUDED.progress_stage,
                 progress_message = EXCLUDED.progress_message,
                 progress_pct = EXCLUDED.progress_pct,
                 heartbeat_time_utc = EXCLUDED.heartbeat_time_utc,
                 universe_version = EXCLUDED.universe_version,
-                asof_time_utc = EXCLUDED.asof_time_utc
+                asof_time_utc = EXCLUDED.asof_time_utc,
+                platform_job_name = EXCLUDED.platform_job_name,
+                platform_execution_name = EXCLUDED.platform_execution_name
             """,
             (
                 ctx.run_id,
@@ -360,6 +404,8 @@ def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
                 _utc_now(),
                 ctx.universe_version,
                 ctx.asof,
+                (os.getenv("CONTAINER_APP_JOB_NAME") or "").strip() or None,
+                (os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or "").strip() or None,
             ),
         )
     conn.commit()
@@ -367,9 +413,9 @@ def _db_mark_job_start(conn: Any, ctx: JobContext) -> None:
 
 def _db_mark_job_end(conn: Any, ctx: JobContext, status: str, error_summary: str | None = None) -> None:
     normalized = _normalize_job_status(status)
-    stage = "completed" if normalized == "Succeeded" else "failed"
-    progress_pct = 100.0 if normalized == "Succeeded" else None
-    progress_message = "Completed successfully." if normalized == "Succeeded" else (error_summary or "Job failed.")
+    stage = "completed" if normalized == "Succeeded" else "research_degraded" if normalized == "Warning" else "failed"
+    progress_pct = 100.0 if normalized in {"Succeeded", "Warning"} else None
+    progress_message = "Completed successfully." if normalized == "Succeeded" else error_summary or ("Job completed with warnings." if normalized == "Warning" else "Job failed.")
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -439,11 +485,36 @@ def _job_progress(
 ) -> None:
     suffix = f" progress={progress_pct:.1f}%" if isinstance(progress_pct, (int, float)) else ""
     print(f"[info] job_progress stage={stage}{suffix} message={message}")
-    if conn is None:
+    memory = {}
+    for key, paths in {
+        "current_bytes": ("/sys/fs/cgroup/memory.current", "/sys/fs/cgroup/memory/memory.usage_in_bytes"),
+        "peak_bytes": ("/sys/fs/cgroup/memory.peak", "/sys/fs/cgroup/memory/memory.max_usage_in_bytes"),
+        "limit_bytes": ("/sys/fs/cgroup/memory.max", "/sys/fs/cgroup/memory/memory.limit_in_bytes"),
+    }.items():
+        for path in paths:
+            try:
+                with open(path) as source:
+                    memory[key] = int(source.read().strip())
+                break
+            except (OSError, ValueError):
+                continue
+    for name in ("stat", "events"):
+        try:
+            with open(f"/sys/fs/cgroup/memory.{name}") as source:
+                values = {key: int(value) for key, value in (line.split() for line in source)}
+            memory[name] = (values if name == "events" else {
+                key: values[key] for key in ("anon", "file", "kernel", "shmem", "slab", "pagetables") if key in values
+            })
+        except (OSError, ValueError):
+            pass
+    if memory:
+        print(f"[info] job_memory stage={stage} {json.dumps(memory, sort_keys=True)}", flush=True)
+    progress_conn = getattr(ctx, "tracking_connection", None) or conn
+    if progress_conn is None:
         return
     try:
         _db_update_job_progress(
-            conn,
+            progress_conn,
             ctx,
             stage=stage,
             message=message,
@@ -516,54 +587,8 @@ def _make_stdout_zopedia_progress_callback(*, scope: str):
 
 
 def _db_upsert_dataset_version(conn: Any, manifest: dict, ctx: JobContext) -> None:
-    checksum = hashlib.sha256(
-        f"{manifest.get('blob_path','')}|{manifest.get('row_count',0)}|{manifest.get('asof_time_utc','')}".encode("utf-8")
-    ).hexdigest()
-    with conn.cursor() as cur:
-        cur.execute(
-            """
-            INSERT INTO dataset_versions (
-                dataset_version_id, dataset_name, universe_version, parameter_hash,
-                asof_time_utc, ingested_at_utc, blob_path, row_count,
-                checksum, code_version, schema_version, status, run_id, schema_columns
-            ) VALUES (
-                %s, %s, %s, %s,
-                %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s::jsonb
-            )
-            ON CONFLICT (dataset_version_id) DO UPDATE SET
-                dataset_name = EXCLUDED.dataset_name,
-                universe_version = EXCLUDED.universe_version,
-                parameter_hash = EXCLUDED.parameter_hash,
-                asof_time_utc = EXCLUDED.asof_time_utc,
-                ingested_at_utc = EXCLUDED.ingested_at_utc,
-                blob_path = EXCLUDED.blob_path,
-                row_count = EXCLUDED.row_count,
-                checksum = EXCLUDED.checksum,
-                code_version = EXCLUDED.code_version,
-                schema_version = EXCLUDED.schema_version,
-                status = EXCLUDED.status,
-                run_id = EXCLUDED.run_id,
-                schema_columns = EXCLUDED.schema_columns
-            """,
-            (
-                manifest["dataset_version_id"],
-                dataset_storage_name(manifest["dataset_name"]),
-                manifest.get("universe_version"),
-                _parameter_hash(ctx),
-                manifest["asof_time_utc"],
-                manifest["ingested_at_utc"],
-                manifest["blob_path"],
-                int(manifest.get("row_count", 0)),
-                checksum,
-                _code_version(),
-                "v1",
-                "ready",
-                manifest.get("run_id") or ctx.run_id,
-                json.dumps(manifest.get("schema_columns", [])),
-            ),
-        )
-    conn.commit()
+    from services.pipeline_store import index_dataset_manifest
+    index_dataset_manifest(conn, manifest)
 
 
 def _db_dataset_is_fresh(conn: Any, dataset_name: str, max_age_hours: float) -> bool:
@@ -589,19 +614,15 @@ def _db_dataset_is_fresh(conn: Any, dataset_name: str, max_age_hours: float) -> 
 
 
 def _blob_client() -> Any | None:
-    account_url = (os.getenv("AZURE_STORAGE_ACCOUNT_URL") or "").strip()
-    if not account_url or DefaultAzureCredential is None or BlobServiceClient is None:
-        return None
-    credential = DefaultAzureCredential()
-    return BlobServiceClient(account_url=account_url, credential=credential)
+    from services.pipeline_store import _blob_service_client
+    return _blob_service_client()
 
 
 def _upload_bytes(path: str, payload: bytes, content_type: str) -> None:
     container = (os.getenv("AZURE_STORAGE_CONTAINER") or "datasets").strip() or "datasets"
     client = _blob_client()
     if client is None:
-        print(f"[warn] blob client unavailable; skip upload path={path}")
-        return
+        raise RuntimeError("Dataset storage is unavailable")
     blob = client.get_blob_client(container=container, blob=path)
     blob.upload_blob(payload, overwrite=True, content_type=content_type)
     print(f"[info] uploaded blob://{container}/{path} bytes={len(payload)}")
@@ -728,13 +749,14 @@ def _upload_manifest(
         "blob_path": path,
         "row_count": int(len(frame)),
         "schema_columns": list(frame.columns),
+        "parameter_hash": _parameter_hash(ctx),
+        "code_version": _code_version(),
+        "schema_version": "v1",
     }
     if partitioning:
         manifest["partitioning"] = partitioning
-    manifest_path = dataset_blob_path(f"manifests/{dataset_name}/{dataset_version_id}.json")
-    payload = _to_json(manifest).encode("utf-8")
-    _upload_bytes(manifest_path, payload, "application/json")
-    _upload_bytes(dataset_blob_path(f"manifests/{dataset_name}/latest.json"), payload, "application/json")
+    from services.pipeline_store import publish_dataset_manifest
+    publish_dataset_manifest(manifest)
     return manifest
 
 
@@ -753,7 +775,12 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
                 upload_bytes_fn=_upload_bytes,
             )
         except Exception as exc:
-            print(f"[warn] failed to retain source documents for `{dataset_name}`: {type(exc).__name__}: {exc}")
+            if conn is not None:
+                conn.rollback()
+            ctx.degraded_components["source_documents_index"] = type(exc).__name__
+            print(
+                f"[warn] failed to retain source documents for `{dataset_name}`: {type(exc).__name__}: {exc}"
+            )
     if dataset_name == "attention_evidence_chunks" and not prepared_frame.empty:
         try:
             prepared_frame = persist_retained_evidence_chunks(
@@ -765,7 +792,12 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
                 conn=conn,
             )
         except Exception as exc:
-            print(f"[warn] failed to retain evidence chunks for `{dataset_name}`: {type(exc).__name__}: {exc}")
+            if conn is not None:
+                conn.rollback()
+            ctx.degraded_components["evidence_chunks_index"] = type(exc).__name__
+            print(
+                f"[warn] failed to retain evidence chunks for `{dataset_name}`: {type(exc).__name__}: {exc}"
+            )
     path = _upload_frame(dataset_name, prepared_frame, ctx)
     partitioning = _upload_symbol_partitions(dataset_name, prepared_frame, ctx)
     manifest = (
@@ -773,8 +805,23 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
         if partitioning
         else _upload_manifest(dataset_name, path, prepared_frame, ctx)
     )
+    if manifest:
+        ctx.published_datasets[dataset_name] = manifest["dataset_version_id"]
+    if dataset_name == "news_articles" and not prepared_frame.empty and conn is not None:
+        from services.saa.semantic_index import retain_news_evidence
+        try:
+            retain_news_evidence(prepared_frame, conn=conn, dataset_version_id=_dataset_version_id(dataset_name, ctx), run_id=ctx.run_id, asof=ctx.asof)
+        except Exception as exc:
+            conn.rollback()
+            ctx.degraded_components["retained_news_index"] = type(exc).__name__
+            print(f"[warn] committed news awaits retained-source indexing: {type(exc).__name__}", flush=True)
     if manifest and conn is not None:
-        _db_upsert_dataset_version(conn, manifest, ctx)
+        try:
+            _db_upsert_dataset_version(conn, manifest, ctx)
+        except Exception as exc:
+            conn.rollback()
+            ctx.degraded_components["database_index:" + dataset_name] = type(exc).__name__
+            print(f"[warn] committed dataset {dataset_name} awaits database indexing: {type(exc).__name__}", flush=True)
     _job_progress(
         ctx,
         conn,
@@ -1083,7 +1130,7 @@ def _setdefault_int_env(name: str, value: int) -> None:
 
 
 def _configure_news_business_research_budget_env() -> None:
-    budget = _parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_BUDGET_SECONDS", 3600, minimum=60)
+    budget = workload_value("news", "research_seconds")
     tool_timeout = _parse_int_env(
         "ZOPEDIA_TICKER_BUSINESS_AGENT_TOOL_TIMEOUT_SECONDS",
         min(max(budget // 2, 300), budget),
@@ -1142,17 +1189,21 @@ def _call_with_timeout(label: str, timeout_seconds: int, fn: Any) -> Any:
         return fn()
 
     result_queue: queue.Queue[tuple[str, Any]] = queue.Queue(maxsize=1)
+    work = WorkScope(time.monotonic() + timeout)
 
     def _runner() -> None:
         try:
-            result_queue.put(("ok", fn()))
+            with work.activate():
+                value = fn()
+            result_queue.put(("ok", value))
         except BaseException as exc:
             result_queue.put(("error", exc))
 
-    thread = threading.Thread(target=_runner, name=f"pipeline-timeout-{label[:32]}", daemon=True)
+    thread = threading.Thread(target=copy_context().run, args=(_runner,), name=f"pipeline-timeout-{label[:32]}", daemon=True)
     thread.start()
     thread.join(float(timeout))
     if thread.is_alive():
+        work.cancel()
         raise _PipelineStepTimeout(f"{label} exceeded {timeout}s")
     status, payload = result_queue.get_nowait()
     if status == "error":
@@ -1328,8 +1379,11 @@ def _load_latest_attention_seed(limit: int) -> pd.DataFrame:
 
 def _load_latest_materialized_frame(dataset_name: str) -> pd.DataFrame:
     try:
-        frame, _ = load_latest_dataset_frame(dataset_name)
-    except Exception:
+        frame, metadata = load_latest_dataset_frame(dataset_name)
+        if dataset_name in {"daily_movers", "macro_anchor_daily_movers"} and not frame.empty and "observed_at_utc" not in frame:
+            frame = frame.assign(observed_at_utc=metadata.asof_time_utc if metadata is not None else None)
+    except Exception as exc:
+        print(f"[warn] failed to load materialized {dataset_name}: {type(exc).__name__}: {exc}")
         frame = pd.DataFrame()
     return frame.copy() if isinstance(frame, pd.DataFrame) else pd.DataFrame()
 
@@ -1798,9 +1852,12 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
     try:
         _job_progress(ctx, conn, stage="scan_movers", message="Scanning daily movers and positions.", progress_pct=12.0)
         movers = scan_daily_movers(api, symbols=symbols)
+        movers["observed_at_utc"] = _utc_now()
         _persist_dataset("daily_movers", movers, ctx, conn)
         macro_symbols = resolve_macro_anchor_symbols(symbols)
         macro_movers = scan_daily_movers(api, symbols=macro_symbols) if macro_symbols else pd.DataFrame()
+        if not macro_movers.empty:
+            macro_movers["observed_at_utc"] = _utc_now()
         _persist_dataset("macro_anchor_daily_movers", macro_movers, ctx, conn)
         positions = _load_attention_positions(api)
         _persist_dataset("positions_snapshot", positions, ctx, conn)
@@ -1971,6 +2028,13 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
             _persist_dataset("attention_feed", attention_feed, ctx, conn)
         except Exception as exc:
             print(f"[warn] anomaly layer skipped: {type(exc).__name__}: {exc}")
+
+        # Publish the core equity artifacts before optional paper-call valuation.
+        try:
+            run_trading_call_tracking(ctx, conn, api=api)
+        except Exception as exc:
+            ctx.degraded_components["trading_call_tracking"] = type(exc).__name__
+            print(f"[warn] approved-call tracking refresh failed: {type(exc).__name__}: {exc}", flush=True)
 
         # Fundamentals refresh moved to standalone job: fundamentals-quarterly-refresh
     except AlpacaAPIError as exc:
@@ -2307,7 +2371,7 @@ def _company_baselines_with_listing_fallback(
     return merged.reset_index(drop=True)
 
 
-def _build_news_business_resolution_output_frames(
+def _iter_news_business_research_output_phases(
     *,
     news: pd.DataFrame,
     edgar_evidence: pd.DataFrame,
@@ -2315,7 +2379,7 @@ def _build_news_business_resolution_output_frames(
     llm_client: Any | None,
     ctx: JobContext,
     conn: Any | None,
-) -> dict[str, pd.DataFrame]:
+) -> Iterator[dict[str, pd.DataFrame]]:
     if not isinstance(news, pd.DataFrame) or news.empty:
         write_policy = _normalize_zopedia_write_policy(os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "safe_auto"))
         commit_report = _zopedia_memory_commit_report_frame(
@@ -2327,7 +2391,7 @@ def _build_news_business_resolution_output_frames(
             eligible_page_count=0,
             rejected_pages=[],
         )
-        return {
+        yield {
             "zopedia_business_model_research_plans": pd.DataFrame(),
             "zopedia_business_model_search_requests": pd.DataFrame(),
             "zopedia_business_model_search_results": pd.DataFrame(),
@@ -2336,6 +2400,7 @@ def _build_news_business_resolution_output_frames(
             "zopedia_company_business_memory_pages": pd.DataFrame(),
             "zopedia_memory_commit_report": commit_report,
         }
+        return
     try:
         company_baselines = _load_latest_materialized_frame("company_baselines")
     except Exception:
@@ -2352,7 +2417,6 @@ def _build_news_business_resolution_output_frames(
     zopedia_pages = _zopedia_pages_for_news_resolution(conn)
     write_policy = _normalize_zopedia_write_policy(os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "safe_auto"))
     execute_business_research = _parse_bool_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_ENABLED", True)
-    _configure_news_business_research_budget_env()
     serp_client = None
     tavily_client = None
     if execute_business_research:
@@ -2371,16 +2435,24 @@ def _build_news_business_resolution_output_frames(
         serp_client=serp_client,
         tavily_client=tavily_client,
         execute_research=execute_business_research,
-        max_research_queries=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_QUERY_LIMIT", 24, minimum=1),
-        max_search_results_per_query=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_RESULTS_PER_QUERY", 4, minimum=1),
+        max_research_queries=workload_value("news", "queries"),
+        max_search_results_per_query=workload_value("news", "results"),
         llm_client=llm_client,
         run_id=ctx.run_id,
         asof_time_utc=ctx.asof,
         write_policy=write_policy,
-        limit=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_STACK_LIMIT", 25, minimum=1),
+        limit=workload_value("news", "companies"),
         progress_callback=_make_stdout_zopedia_progress_callback(scope="ticker_business_model_stack"),
     )
     stack_frame = business_stack_frames.get("zopedia_ticker_business_model_stacks", pd.DataFrame())
+    yield {
+        "zopedia_business_model_research_plans": business_stack_frames.get("zopedia_business_model_research_plans", pd.DataFrame()),
+        "zopedia_business_model_search_requests": business_stack_frames.get("zopedia_business_model_search_requests", pd.DataFrame()),
+        "zopedia_business_model_search_results": business_stack_frames.get("zopedia_business_model_search_results", pd.DataFrame()),
+        "zopedia_ticker_business_model_stacks": stack_frame,
+    }
+    _job_progress(ctx, conn, stage="news_story_resolution",
+                  message="Company research persisted; resolving news against company memory.", progress_pct=88.0)
     resolution_frames = build_news_business_resolution_frames(
         news_frame=news,
         company_baselines_frame=company_baselines,
@@ -2393,7 +2465,7 @@ def _build_news_business_resolution_output_frames(
         run_id=ctx.run_id,
         asof_time_utc=ctx.asof,
         write_policy=write_policy,
-        limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_LIMIT", 12, minimum=1),
+        limit=workload_value("news", "stories"),
     )
     memory_parts = [
         business_stack_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
@@ -2435,17 +2507,29 @@ def _build_news_business_resolution_output_frames(
         eligible_page_count=int(commit_result.get("eligible_page_count") or 0),
         rejected_pages=rejected_pages,
     )
-    return {
-        "zopedia_business_model_research_plans": business_stack_frames.get("zopedia_business_model_research_plans", pd.DataFrame()),
-        "zopedia_business_model_search_requests": business_stack_frames.get("zopedia_business_model_search_requests", pd.DataFrame()),
-        "zopedia_business_model_search_results": business_stack_frames.get("zopedia_business_model_search_results", pd.DataFrame()),
-        "zopedia_ticker_business_model_stacks": stack_frame,
+    yield {
         "zopedia_news_business_resolutions": resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame()),
         "zopedia_company_business_memory_pages": memory_pages,
         "zopedia_memory_commit_report": commit_report,
     }
+    if str(commit_result.get("status") or "") == "failed":
+        ctx.degraded_components["news_memory"] = str(commit_result.get("reason") or "Memory persistence failed")
+    missing_narratives: dict[str, int] = {}
+    for dataset_name, column, frame in (
+        ("company profiles", "business_story_markdown", stack_frame),
+        ("news interpretations", "coherent_story_markdown", resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame())),
+    ):
+        if not frame.empty:
+            count = int(frame[column].fillna("").astype(str).str.strip().eq("").sum()) if column in frame else len(frame)
+            if count:
+                missing_narratives[dataset_name] = count
+    if missing_narratives:
+        # Valid research is already retained. Report missing units separately;
+        # one optional interpretation does not justify a blind whole-job retry.
+        ctx.degraded_components["news_narratives"] = json.dumps(missing_narratives, sort_keys=True)
 
 
+@configured_research(workload="news", prepare=_configure_news_business_research_budget_env)
 def run_news(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting news and attention preload.", progress_pct=1.0)
     cfg = _alpaca_config()
@@ -2551,7 +2635,7 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
                 message="Building ticker business stacks and resolving company news against memory.",
                 progress_pct=84.0,
             )
-            business_resolution_frames = _build_news_business_resolution_output_frames(
+            business_resolution_phases = _iter_news_business_research_output_phases(
                 news=news,
                 edgar_evidence=edgar_evidence,
                 symbols=symbols,
@@ -2559,24 +2643,32 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
                 ctx=ctx,
                 conn=conn,
             )
-            for dataset_name, frame in business_resolution_frames.items():
-                _persist_dataset(dataset_name, frame, ctx, conn)
+            for phase in business_resolution_phases:
+                for dataset_name, frame in phase.items():
+                    _persist_dataset(dataset_name, frame, ctx, conn)
         except Exception as exc:
-            print(f"[warn] news business resolution skipped: {type(exc).__name__}: {exc}")
+            print(f"[error] news business resolution failed: {type(exc).__name__}: {exc}", flush=True)
+            raise
     except AlpacaAPIError as exc:
         print(f"[error] news preload failed: {exc}")
+        raise
     except EdgarAPIError as exc:
         print(f"[error] EDGAR attention context failed: {exc}")
+        raise
 
 
-def run_attention_home(ctx: JobContext, conn: Any | None = None) -> None:
-    run_attention_home_build_job(
+def run_attention_home(ctx: JobContext, conn: Any | None = None) -> dict[str, Any]:
+    frames = run_attention_home_build_job(
         ctx,
         conn,
         persist_dataset_fn=_persist_dataset,
         job_progress_fn=_job_progress,
         load_materialized_frame_fn=_load_latest_materialized_frame,
     )
+    health = frames.get("attention_research_health", pd.DataFrame())
+    if not health.empty and health.iloc[0]["status"] == "degraded":
+        return {"job_status": "Warning", "job_message": str(health.iloc[0]["summary"])}
+    return {"job_status": "Succeeded"}
 
 
 def run_attention_ticker_snapshots(ctx: JobContext, conn: Any | None = None) -> None:
@@ -2593,9 +2685,61 @@ def run_daily_datapoints(ctx: JobContext, conn: Any | None = None) -> None:
     run_daily_market_datapoints_build(ctx, conn, persist_dataset_fn=_persist_dataset, job_progress_fn=_job_progress, load_materialized_frame_fn=_load_latest_materialized_frame)
 
 
+@configured_research(workload="trading")
+def run_trading_call_tracking(ctx: JobContext, conn: Any | None = None, *, api: AlpacaAPI | None = None) -> None:
+    """Price refresh for approved calls; never waits for or starts inference."""
+    from services import trading_call_tracking as tracking
+    tracking.initialize_tracking()
+    calls = tracking.approved_calls()
+    if not calls:
+        return
+    previous, _ = load_latest_dataset_frame(tracking.DATASET)
+    previous_ids = set(previous.get("tracking_id", pd.Series(dtype=str)).astype(str))
+    active = [item for item in calls if not item.get("completed_at_utc") or item["tracking_id"] not in previous_ids]
+    if not active:
+        return
+    if api is None:
+        config = _alpaca_config()
+        if config is None:
+            raise RuntimeError("Alpaca price data is unavailable for approved-call tracking.")
+        api = AlpacaAPI(config)
+    symbols = sorted({item["ticker"] for item in active} | {"SPY"})
+    start = min(pd.Timestamp(item["approved_at_utc"]) for item in active).to_pydatetime()
+    calendar = api.get_market_calendar(
+        start=pd.Timestamp(start).tz_convert("America/New_York").date().isoformat(),
+        end=(pd.Timestamp(ctx.asof).tz_convert("America/New_York") + pd.Timedelta(days=14)).date().isoformat(),
+    )
+    trading_days = [row["date"] for row in calendar]
+    # A fresh adjusted window keeps the entry and mark on the same corporate-
+    # action basis. The general incremental cache can contain older adjustments.
+    bars = api.get_stock_bars(symbols, start=start, end=ctx.asof, timeframe="1Day", feed="iex", adjustment="all")
+    prices = _bars_to_price_history_frame(bars)
+    version = ""
+    if not prices.empty:
+        _persist_dataset(tracking.PRICE_DATASET, prices, ctx, conn)
+        version = ctx.published_datasets[tracking.PRICE_DATASET]
+    outcomes, entries = tracking.build_approved_outcomes(
+        calls=calls, prices=prices, previous=previous, as_of=ctx.asof, price_version=version, trading_days=trading_days,
+    )
+    pinned = tracking.pin_entries(entries)
+    if pinned != entries:
+        for item in calls:
+            if item["tracking_id"] in pinned:
+                item["entry_payload"] = pinned[item["tracking_id"]]
+        outcomes, _ = tracking.build_approved_outcomes(
+            calls=calls, prices=prices, previous=previous, as_of=ctx.asof, price_version=version, trading_days=trading_days,
+        )
+    _persist_dataset(tracking.DATASET, outcomes, ctx, conn)
+    tracking.complete_calls(outcomes)
+    _job_progress(ctx, conn, stage="approved_call_tracking", message=f"Updated {len(outcomes)} approved paper calls.")
+
+
 def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting Trading Agent materialization.", progress_pct=1.0)
-    opportunity_feed = _load_latest_materialized_frame("market_opportunity_feed")
+    input_versions = dataset_input_versions([
+        "market_opportunity_feed", *RANKING_DATASET_NAMES, "page_agentic_summaries", "price_history",
+    ])
+    opportunity_feed = load_dataset_frame(input_versions["market_opportunity_feed"])
     if opportunity_feed.empty:
         message = "Trading Agent materialization requires market_opportunity_feed from attention-home-build."
         _job_progress(ctx, conn, stage="failed", message=message, progress_pct=100.0, status="Failed")
@@ -2609,7 +2753,7 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
             opportunity_feed = all_market
 
     ranking_frames = {
-        dataset_name: _load_latest_materialized_frame(dataset_name)
+        dataset_name: load_dataset_frame(input_versions[dataset_name])
         for dataset_name in RANKING_DATASET_NAMES
     }
     opportunity_feed = rank_trading_agent_opportunities(opportunity_feed, ranking_frames)
@@ -2623,15 +2767,17 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         f"rows={len(opportunity_feed)} datasets={len(available_ranking_datasets)} "
         f"sources={','.join(available_ranking_datasets)}"
     )
+    quarterly_fundamentals = ranking_frames.pop("quarterly_fundamentals", pd.DataFrame())
+    ranking_frames.clear()
 
-    page_summaries = _load_latest_materialized_frame("page_agentic_summaries")
+    page_summaries = load_dataset_frame(input_versions["page_agentic_summaries"])
     llm_client = None
     try:
         llm_client = load_aql_zopedia_llm_client(surface="trading_agent")
     except LLMAPIError as exc:
         print(f"[warn] trading-agent LLM runtime unavailable: {exc}")
 
-    candidate_limit = _parse_int_env("TRADING_AGENT_CANDIDATE_LIMIT", 4, minimum=1)
+    candidate_limit = workload_value("trading", "candidates")
     generation_mode = str(os.getenv("TRADING_AGENT_GENERATION_MODE") or "shared_research_v2").strip().lower()
     if generation_mode not in {"shared_research_v2", "legacy_per_horizon_v1"}:
         raise ValueError(
@@ -2668,20 +2814,17 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         runs, candidates, research_packages = build_trading_agent_shared_research_frames(
             opportunity_feed=opportunity_feed,
             page_summaries=page_summaries,
+            quarterly_fundamentals=quarterly_fundamentals,
             llm_client=llm_client,
             run_id=ctx.run_id,
             asof_time_utc=ctx.asof,
             business_filter="All Market",
             max_candidates=candidate_limit,
-            research_candidate_limit=_parse_int_env(
-                "TRADING_AGENT_SCOUT_LIMIT_PER_HORIZON",
-                6,
-                minimum=candidate_limit,
-            ),
-            research_pool_limit=_parse_int_env("TRADING_AGENT_RESEARCH_POOL_LIMIT", 8, minimum=1),
-            research_parallelism=_parse_int_env("TRADING_AGENT_RESEARCH_PARALLELISM", 2, minimum=1),
-            research_max_tool_calls=_parse_int_env("TRADING_AGENT_RESEARCH_MAX_TOOL_CALLS", 4, minimum=1),
-            research_attempts=_parse_int_env("TRADING_AGENT_RESEARCH_ATTEMPTS", 2, minimum=1),
+            research_candidate_limit=max(workload_value("trading", "shortlist"), candidate_limit),
+            research_pool_limit=workload_value("trading", "research_pool"),
+            research_parallelism=workload_value("trading", "parallelism"),
+            research_max_tool_calls=workload_value("trading", "tool_calls"),
+            research_attempts=workload_value("trading", "attempts"),
             research_tool_timeout_seconds=_parse_int_env(
                 "TRADING_AGENT_RESEARCH_TOOL_TIMEOUT_SECONDS",
                 45,
@@ -2703,6 +2846,7 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         runs, candidates = build_trading_agent_materialized_frames(
             opportunity_feed=opportunity_feed,
             page_summaries=page_summaries,
+            quarterly_fundamentals=quarterly_fundamentals,
             llm_client=llm_client,
             run_id=ctx.run_id,
             asof_time_utc=ctx.asof,
@@ -2725,24 +2869,27 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     _persist_dataset("trading_agent_ranked_opportunities", opportunity_feed, ctx, conn)
     _persist_dataset("trading_agent_runs", runs, ctx, conn)
     _persist_dataset("trading_agent_candidates", candidates, ctx, conn)
+    research_package_count = len(research_packages)
+    del research_packages, quarterly_fundamentals, page_summaries
 
     history_versions = _parse_int_env("TRADING_AGENT_OUTCOME_HISTORY_VERSIONS", 12, minimum=1)
     candidate_parts: list[pd.DataFrame] = []
     run_parts: list[pd.DataFrame] = []
     try:
-        candidate_parts.extend(
-            frame.copy()
-            for frame, _metadata in load_recent_dataset_frames("trading_agent_candidates", limit=history_versions)
-            if isinstance(frame, pd.DataFrame) and not frame.empty
-        )
+        for metadata in recent_dataset_metadata("trading_agent_candidates", limit=history_versions):
+            frame = load_dataset_frame(metadata)
+            if not frame.empty:
+                candidate_parts.append(frame)
     except Exception as exc:
         print(f"[warn] trading-agent recent candidates unavailable: {type(exc).__name__}: {exc}")
     try:
-        run_parts.extend(
-            frame.copy()
-            for frame, _metadata in load_recent_dataset_frames("trading_agent_runs", limit=history_versions)
-            if isinstance(frame, pd.DataFrame) and not frame.empty
-        )
+        for metadata in recent_dataset_metadata("trading_agent_runs", limit=history_versions):
+            frame = load_dataset_frame(metadata, columns=[
+                "trading_agent_run_id", "regime_read", "portfolio_posture",
+                "data_gaps_json", "status", "aql_agent_json",
+            ])
+            if not frame.empty:
+                run_parts.append(frame)
     except Exception as exc:
         print(f"[warn] trading-agent recent runs unavailable: {type(exc).__name__}: {exc}")
     candidate_parts.append(candidates)
@@ -2758,6 +2905,8 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     all_runs = pd.concat(run_parts, ignore_index=True, sort=False) if run_parts else pd.DataFrame()
     if not all_runs.empty and "trading_agent_run_id" in all_runs.columns:
         all_runs = all_runs.drop_duplicates(subset=["trading_agent_run_id"], keep="last").reset_index(drop=True)
+    candidate_parts.clear()
+    run_parts.clear()
 
     _job_progress(
         ctx,
@@ -2766,7 +2915,13 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         message=f"Building Trading Agent outcomes for {len(all_candidates)} candidate experiment(s).",
         progress_pct=92.0,
     )
-    price_history = _load_latest_materialized_frame("price_history")
+    outcome_symbols = sorted({
+        str(symbol).strip().upper() for symbol in all_candidates.get("ticker", pd.Series(dtype=str))
+        if str(symbol).strip()
+    } | {"SPY"})
+    price_history = load_dataset_frame(
+        input_versions["price_history"], columns=["symbol", "ticker", "timestamp", "close"], symbols=outcome_symbols,
+    )
     outcomes = build_trading_agent_outcomes(
         candidates=all_candidates,
         price_history=price_history,
@@ -2788,7 +2943,7 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     successful_horizons = int(runs["status"].astype(str).str.lower().eq("ok").sum()) if "status" in runs.columns else 0
     completion_message = (
         "Trading Agent materialization complete: "
-        f"mode={generation_mode} packages={len(research_packages)} "
+        f"mode={generation_mode} packages={research_package_count} "
         f"successful_horizons={successful_horizons}/{len(runs)} "
         f"candidates={len(candidates)} outcomes={len(outcomes)} reviews={len(reviews)}."
     )
@@ -3146,7 +3301,7 @@ def run_zopedia_maintenance_job(ctx: JobContext, conn: Any | None = None) -> Non
     )
 
 
-def run_zopedia_learning_job(ctx: JobContext, conn: Any | None = None) -> None:
+def run_zopedia_learning_job(ctx: JobContext, conn: Any | None = None) -> dict[str, Any]:
     _job_progress(ctx, conn, stage="starting", message="Starting Zopedia learning.", progress_pct=1.0)
     if conn is None:
         raise RuntimeError("Zopedia learning requires a database connection.")
@@ -3162,11 +3317,12 @@ def run_zopedia_learning_job(ctx: JobContext, conn: Any | None = None) -> None:
             f"events={result.get('events_detected', 0)}, "
             f"evals={result.get('evals_generated', 0)}, "
             f"updates={result.get('safe_updates_applied', 0)}, "
-            f"verified={result.get('verified', 0)}, "
-            f"regressed={result.get('regressed', 0)}."
+            f"pending={result.get('critiques_pending', 0)}, "
+            f"reused={result.get('critiques_reused', 0)}."
         ),
         progress_pct=100.0,
     )
+    return result
 
 
 def run_system_health(ctx: JobContext, conn: Any | None = None) -> None:
@@ -3182,6 +3338,60 @@ def run_system_health(ctx: JobContext, conn: Any | None = None) -> None:
             "System health check complete: "
             f"open={len(result.open_issues)}, opened={len(result.opened_issue_keys)}, "
             f"recovered={len(result.recovered_issue_keys)}, emails={result.emails_sent}."
+        ),
+        progress_pct=100.0,
+    )
+
+
+def run_system_recovery(ctx: JobContext, conn: Any | None = None) -> dict[str, Any]:
+    """Drain bounded durable maintenance independently of health observation."""
+    from services.pipeline_store import (dataset_namespace, read_execution_state, write_execution_state,
+                                         reconcile_dataset_manifests, reconcile_provider_attempt_receipts)
+    from services.work_scope import WorkCancelled
+    if conn is None:
+        raise RuntimeError("Recovery requires a database connection")
+    budget = max(5, int(os.getenv("SYSTEM_RECOVERY_BUDGET_SECONDS", "60")))
+    deadline = time.monotonic() + budget
+    namespace = "system_recovery:" + dataset_namespace()
+    manifests = receipts = None
+    try:
+        with WorkScope(deadline).activate():
+            state = read_execution_state(namespace, "manifest_cursor", strict=True) or {}
+            try:
+                with WorkScope(min(deadline, time.monotonic() + budget * 0.4)).activate():
+                    manifests = reconcile_dataset_manifests(conn, offset=int(state.get("offset", 0)), limit=4)
+            except WorkCancelled:
+                conn.rollback()
+            if manifests is not None:
+                write_execution_state(namespace, "manifest_cursor", {"offset": manifests["next_offset"]})
+            receipts = reconcile_provider_attempt_receipts(days=7, limit=25)
+    except WorkCancelled:
+        conn.rollback()
+    complete = bool(manifests and manifests["scan_complete"] and receipts and receipts["scan_complete"])
+    details = {"manifests": manifests, "receipts": receipts, "scan_complete": complete}
+    return {**details, "job_status": "Succeeded" if complete else "Warning",
+            "job_message": ("Recovery scan completed." if complete else
+                            "Recovery batch completed; remaining durable work resumes in a later batch.")}
+
+
+def run_evidence_index(ctx: JobContext, conn: Any | None = None) -> dict[str, Any] | None:
+    if conn is None:
+        raise RuntimeError("Evidence indexing requires the retained-source database.")
+    from services.saa.semantic_index import refresh_evidence_index
+
+    result = refresh_evidence_index(conn=conn, max_batches=100)
+    if result.get("status") == "already_running":
+        return {"job_status": "Warning", "job_message": "An evidence refresh is already running; this invocation left it to finish."}
+    if result.get("status") == "paused":
+        return {"job_status": "Warning", "job_message": "Evidence indexing paused; completed projections remain retained for continuation."}
+    _job_progress(
+        ctx,
+        conn,
+        stage="done",
+        message=(
+            "Evidence indexing is already running."
+            if result.get("status") == "already_running"
+            else f"Indexed evidence: {result['covered_chunks']}/{result['total_chunks']} chunks."
         ),
         progress_pct=100.0,
     )
@@ -3204,8 +3414,22 @@ def main() -> None:
         name=job_name,
         run_id=str(uuid.uuid4()),
         asof=_utc_now(),
-        universe_version=(os.getenv("UNIVERSE_VERSION") or datetime.now(timezone.utc).strftime("%Y%m%d")).strip(),
+        universe_version=(
+            os.getenv("UNIVERSE_VERSION") or datetime.now(timezone.utc).strftime("%Y%m%d")
+        ).strip(),
     )
+    execution = (os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or "").strip()
+    if execution and os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE"):
+        namespace = "pipeline_execution:" + dataset_namespace()
+        state_key = ctx.name + ":" + execution
+        proposed = {"run_id": ctx.run_id, "asof": ctx.asof.isoformat(), "universe_version": ctx.universe_version}
+        if not write_execution_state(namespace, state_key, proposed, immutable=True):
+            raise RuntimeError("Pipeline execution identity could not be retained.")
+        retained = read_execution_state(namespace, state_key, strict=True)
+        if retained is None:
+            raise RuntimeError("Pipeline execution identity could not be read back.")
+        ctx = replace(ctx, run_id=retained["run_id"], asof=datetime.fromisoformat(retained["asof"]),
+                      universe_version=retained["universe_version"])
     os.environ["PIPELINE_JOB_NAME"] = ctx.name
     os.environ["PIPELINE_RUN_ID"] = ctx.run_id
     print(f"[info] job={ctx.name} run_id={ctx.run_id} asof={ctx.asof.isoformat()}")
@@ -3221,13 +3445,16 @@ def main() -> None:
         "attention-ticker-snapshot-build": run_attention_ticker_snapshots,
         "daily-market-datapoints-build": run_daily_datapoints,
         "trading-agent-build": run_trading_agent,
+        "trading-call-tracking": run_trading_call_tracking,
         "entity-taxonomy-refresh": run_entity_taxonomy,
         "company-baseline-prefetch": run_company_baselines,
         "fundamentals-quarterly-refresh": run_fundamentals,
         "zopedia-maintenance": run_zopedia_maintenance_job,
         "zopedia-learning": run_zopedia_learning_job,
         "system-health": run_system_health,
+        "system-recovery": run_system_recovery,
         "research-run-execute": run_research_run_executor,
+        "evidence-index": run_evidence_index,
     }
 
     handler = dispatch.get(ctx.name)
@@ -3235,13 +3462,19 @@ def main() -> None:
         print(f"[error] unknown PIPELINE_JOB_NAME={ctx.name}")
         raise SystemExit(2)
 
-    db_conn = _db_connection()
+    db_conn = _db_connection(workload="interactive")
     if db_conn is not None:
         try:
             bootstrap_timeout = _postgres_bootstrap_timeout_seconds()
             print(f"[info] postgres tracking bootstrap timeout={bootstrap_timeout}s", flush=True)
-            _call_with_timeout("postgres tracking bootstrap", bootstrap_timeout, lambda: _db_bootstrap(db_conn))
-            _call_with_timeout("postgres tracking job start", bootstrap_timeout, lambda: _db_mark_job_start(db_conn, ctx))
+            _call_with_timeout(
+                "postgres tracking bootstrap", bootstrap_timeout, lambda: _db_bootstrap(db_conn)
+            )
+            _call_with_timeout(
+                "postgres tracking job start",
+                bootstrap_timeout,
+                lambda: _db_mark_job_start(db_conn, ctx),
+            )
         except Exception as exc:
             print(f"[warn] failed to initialize postgres tracking: {exc}")
             try:
@@ -3252,13 +3485,43 @@ def main() -> None:
 
     status = "Succeeded"
     error_summary: str | None = None
+    work_conn = None
+    if db_conn is None:
+        ctx.degraded_components["database_tracking"] = "Database unavailable"
     try:
-        handler(ctx, db_conn)
+        if db_conn is not None:
+            # Tracking owns only short status statements, independently of the
+            # service's result transactions and remote research.
+            db_conn.autocommit = True
+            ctx = replace(ctx, tracking_connection=db_conn)
+            work_conn = _db_connection(workload="interactive" if ctx.name in {"system-health", "research-run-execute"} else "background")
+            if work_conn is None:
+                raise RuntimeError("Pipeline work database connection is unavailable.")
+        with database_workload("interactive" if ctx.name in {"system-health", "research-run-execute"} else "background"):
+            result = handler(ctx, work_conn)
+        if isinstance(result, dict) and result.get("job_status") == "Warning":
+            status = "Warning"
+            error_summary = str(result.get("job_message") or "Research completed with degraded stages.")
+        if ctx.degraded_components:
+            status = "Warning"
+            error_summary = json.dumps(ctx.degraded_components, sort_keys=True)[:4000]
     except Exception as exc:
         status = "Failed"
         error_summary = f"{type(exc).__name__}: {exc}"[:4000]
         raise
     finally:
+        if work_conn is not None:
+            work_conn.close()
+        from services.pipeline_store import retain_job_execution_receipt
+        receipt = {"schema_version": 1, "job_name": ctx.name, "run_id": ctx.run_id,
+                   "platform_execution_name": execution or None, "status": status,
+                   "asof_time_utc": ctx.asof.isoformat(), "finished_at_utc": _utc_now().isoformat(),
+                   "datasets": ctx.published_datasets, "components": ctx.degraded_components,
+                   "error": error_summary}
+        try:
+            retain_job_execution_receipt(receipt)
+        except Exception as exc:
+            print(f"[warn] job completion receipt unavailable: {type(exc).__name__}; receipt={_to_json(receipt)}", flush=True)
         if db_conn is not None:
             try:
                 _db_mark_job_end(db_conn, ctx, status=status, error_summary=error_summary)

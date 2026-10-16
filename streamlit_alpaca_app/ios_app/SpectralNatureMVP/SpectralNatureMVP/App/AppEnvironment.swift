@@ -1,8 +1,7 @@
 import Foundation
 
 enum AppEnvironment {
-  static let developmentURL = URL(
-    string: "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io")!
+  static let liveURL = URL(string: "https://spectral-nature.com")!
   static var serverURL: URL {
     #if DEBUG
       if let raw = ProcessInfo.processInfo.environment["SN_SERVER_URL"],
@@ -13,6 +12,6 @@ enum AppEnvironment {
         return url
       }
     #endif
-    return developmentURL
+    return liveURL
   }
 }

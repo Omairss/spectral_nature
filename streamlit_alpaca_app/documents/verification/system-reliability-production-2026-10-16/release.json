@@ -1,0 +1,444 @@
+{
+  "environment": "production",
+  "status": "deployed; operational health remains degraded",
+  "engine_revision": "7281e3631a1764cf48c9",
+  "targets": [
+    {
+      "name": "sn-streamlit-ui",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/containerapps/sn-streamlit-ui",
+      "kind": "app",
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
+      "previous_image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6"
+    },
+    {
+      "name": "sn-api",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/containerapps/sn-api",
+      "kind": "app",
+      "role": "api-legacy",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
+      "previous_image": "snpipelineacr03130136.azurecr.io/api@sha256:6e2cd73a734cb51e08963f8bffbfcb568f62872efbf16e95ae0a7646c41aae45"
+    },
+    {
+      "name": "sn-next-ui",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/containerapps/sn-next-ui",
+      "kind": "app",
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
+      "previous_image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6"
+    },
+    {
+      "name": "sn-api-next",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/containerapps/sn-api-next",
+      "kind": "app",
+      "role": "api-next",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
+      "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b"
+    },
+    {
+      "name": "universe-builder",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/universe-builder",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/equities-intraday-preload",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98"
+    },
+    {
+      "name": "macro-fred-daily",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/macro-fred-daily",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95"
+    },
+    {
+      "name": "commodities-regime",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/commodities-regime",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+    },
+    {
+      "name": "options-liquid-universe",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/options-liquid-universe",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/news-ingest-and-features",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/entity-taxonomy-refresh",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+    },
+    {
+      "name": "attention-home-build",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/attention-home-build",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/fundamentals-quarterly-refresh",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/company-baseline-prefetch",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+    },
+    {
+      "name": "trading-agent-build",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/trading-agent-build",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/zopedia-maintenance",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+    },
+    {
+      "name": "zopedia-learning",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/zopedia-learning",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+    },
+    {
+      "name": "system-health",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/system-health",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/robinhood-main-sync-prod",
+      "kind": "job",
+      "role": "broker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-broker@sha256:741ef70b2d3e2e3eaea9947289faf9f8a20e1b012655baf37e9ca3b9ea7a910d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3"
+    },
+    {
+      "name": "sn-research-run",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/sn-research-run",
+      "kind": "job",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487"
+    }
+  ],
+  "configuration": {
+    "production": [
+      {
+        "name": "sn-streamlit-ui",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
+        "revision": "sn-streamlit-ui--0000094",
+        "ready_revision": "sn-streamlit-ui--0000094"
+      },
+      {
+        "name": "sn-api",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
+        "revision": "sn-api--0000005",
+        "ready_revision": "sn-api--0000005"
+      },
+      {
+        "name": "sn-next-ui",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
+        "revision": "sn-next-ui--0000010",
+        "ready_revision": "sn-next-ui--0000010"
+      },
+      {
+        "name": "sn-api-next",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
+        "revision": "sn-api-next--0000010",
+        "ready_revision": "sn-api-next--0000010"
+      },
+      {
+        "name": "universe-builder",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "equities-intraday-preload",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "macro-fred-daily",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "commodities-regime",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "options-liquid-universe",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "news-ingest-and-features",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "entity-taxonomy-refresh",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "attention-home-build",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "fundamentals-quarterly-refresh",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "company-baseline-prefetch",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "trading-agent-build",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "zopedia-maintenance",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "zopedia-learning",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "system-health",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "robinhood-main-sync-prod",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-broker@sha256:741ef70b2d3e2e3eaea9947289faf9f8a20e1b012655baf37e9ca3b9ea7a910d",
+        "revision": null,
+        "ready_revision": null
+      },
+      {
+        "name": "sn-research-run",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "revision": null,
+        "ready_revision": null
+      }
+    ],
+    "all_templates_and_configuration_preserved": true,
+    "development_unchanged_except_verified_health_api_images": true
+  },
+  "health_api_update": {
+    "targets": [
+      {
+        "name": "sn-api-next-dev",
+        "role": "api-next",
+        "environment": "development",
+        "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/containerapps/sn-api-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
+        "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-api-next@sha256:e0a20ba3532636470eb7a5ab37d7f623727d04c0c2a2d8df6cd797cf9ce6308f"
+      },
+      {
+        "name": "sn-api-dev",
+        "role": "api-legacy",
+        "environment": "development",
+        "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/containerapps/sn-api-dev",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
+        "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-api-legacy@sha256:50d1885d294635c730450411b89c6c2d3107ca24c4fad5503542261ce9eaf565"
+      },
+      {
+        "name": "sn-api-next",
+        "role": "api-next",
+        "environment": "production",
+        "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/containerapps/sn-api-next",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
+        "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-api-next@sha256:e0a20ba3532636470eb7a5ab37d7f623727d04c0c2a2d8df6cd797cf9ce6308f"
+      },
+      {
+        "name": "sn-api",
+        "role": "api-legacy",
+        "environment": "production",
+        "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/containerapps/sn-api",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
+        "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-api-legacy@sha256:50d1885d294635c730450411b89c6c2d3107ca24c4fad5503542261ce9eaf565"
+      }
+    ],
+    "source": {
+      "api-next": {
+        "base": "snpipelineacr03130136.azurecr.io/system-reliability-dev-api-next@sha256:e0a20ba3532636470eb7a5ab37d7f623727d04c0c2a2d8df6cd797cf9ce6308f",
+        "old_source_sha256": "41fe2000d6b9f3065c1e344d7765a30b3f413c520d0c603d8359a8e54ae22d5f",
+        "new_source_sha256": "b6078ce09e56c376916947a1d460e5dac4a8eacd28e6345097c5d073e4a2fb9d",
+        "context": "/tmp/sn-reliability-prod-20261016/health-v2/api-next"
+      },
+      "api-legacy": {
+        "base": "snpipelineacr03130136.azurecr.io/system-reliability-dev-api-legacy@sha256:50d1885d294635c730450411b89c6c2d3107ca24c4fad5503542261ce9eaf565",
+        "old_source_sha256": "41fe2000d6b9f3065c1e344d7765a30b3f413c520d0c603d8359a8e54ae22d5f",
+        "new_source_sha256": "b6078ce09e56c376916947a1d460e5dac4a8eacd28e6345097c5d073e4a2fb9d",
+        "context": "/tmp/sn-reliability-prod-20261016/health-v2/api-legacy"
+      }
+    },
+    "development": [
+      {
+        "name": "sn-api-next-dev",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
+        "revision": "sn-api-next-dev--0000035"
+      },
+      {
+        "name": "sn-api-dev",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
+        "revision": "sn-api-dev--0000051"
+      }
+    ],
+    "production": [
+      {
+        "name": "sn-api-next",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
+        "revision": "sn-api-next--0000010"
+      },
+      {
+        "name": "sn-api",
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
+        "revision": "sn-api--0000005"
+      }
+    ],
+    "plumbing_checks_passed": 8,
+    "real_loaded_database_review": {
+      "request_seconds": 20.001382874965202,
+      "sql_collection": "pending",
+      "resources": 17,
+      "publication_records": 6,
+      "metric_series": 4
+    },
+    "production_runtime_verified": {
+      "scope": "production",
+      "publication_records": 6,
+      "selected_azure_resource": "sn-pg-03130136",
+      "provider_usage_returned": true,
+      "observed_at_local": "2026-10-16 10:56:48 America/Los_Angeles",
+      "legacy_admin_workspace_timeout_still_visible": true
+    }
+  },
+  "database_role_default": {
+    "database": "pipeline",
+    "role": "snadmin",
+    "previous_statement_timeout": null,
+    "statement_timeout": "120s",
+    "fresh_connection_observed": "2min",
+    "terminated_stale_read_connections": [
+      {
+        "pid": 146186,
+        "query_start": "2026-10-16 17:36:39.322372+00:00",
+        "age_seconds": 208,
+        "query_sha256": "916dd2db7a573b0d07743df1a3eee9e750230b8192fd61599260cb12d8007aa3",
+        "terminated": true
+      },
+      {
+        "pid": 146183,
+        "query_start": "2026-10-16 17:36:33.102398+00:00",
+        "age_seconds": 215,
+        "query_sha256": "916dd2db7a573b0d07743df1a3eee9e750230b8192fd61599260cb12d8007aa3",
+        "terminated": true
+      }
+    ],
+    "rollback_sql": "ALTER ROLE \"snadmin\" IN DATABASE \"pipeline\" RESET statement_timeout"
+  },
+  "stale_read_recovery": {
+    "client_queries_cancelled": 12,
+    "parallel_workers_cancelled": 1,
+    "client_connections_terminated": 2
+  },
+  "research_smoke": [
+    {
+      "run_id": "agrun_5d01a223232f4fde82aa7c1e",
+      "status": "failed",
+      "started_at": "2026-10-16 17:33:23.608457+00:00",
+      "updated_at": "2026-10-16 17:39:44.679845+00:00",
+      "claimed_at": "2026-10-16 17:34:21.348579+00:00",
+      "completed_at": "2026-10-16 17:39:44.679845+00:00",
+      "error_code": "no_usable_answer",
+      "write_policy": "none",
+      "engine_revision": "7281e3631a1764cf48c9",
+      "result_summary_json": {
+        "status": "failed",
+        "confidence": "low",
+        "answer_chars": 0,
+        "citation_count": 0
+      },
+      "answer": ""
+    }
+  ],
+  "excluded": [
+    "unaccepted LLM reasoning/cost flow",
+    "hierarchical summarization defaults"
+  ],
+  "final_public_home_http_status": 503,
+  "remaining": [
+    "Public Home still intermittently returns 503 under database load",
+    "Database CPU remains saturated under legacy/in-progress evidence retrieval and indexing",
+    "Scheduled health worker exceeded 300-second platform limit while draining recovery backlog",
+    "Production retained-data research check produced no usable answer; final transport was not sent after deadline",
+    "Heavy legacy Admin workspace collection can still time out independently of the bounded Health snapshot"
+  ]
+}

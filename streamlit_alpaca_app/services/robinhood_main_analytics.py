@@ -434,11 +434,25 @@ def opportunity_analytics(
     lookback: str,
     group_keys: list[str] | None = None,
 ) -> dict[str, Any]:
+    catalog = robinhood_main_store.get_resource(
+        portfolio_id=portfolio_id, environment=environment,
+        resource_kind="opportunity_catalog", resource_key="catalog",
+    )
+    if catalog and isinstance(catalog.get("payload"), dict):
+        active_sets = list(catalog["payload"].get("sets") or [])
+    else:
+        snapshot = robinhood_main_store.get_snapshot(portfolio_id=portfolio_id, environment=environment) or {}
+        active_sets = list(dict(snapshot.get("details") or {}).get("opportunity_sets") or [])
+    active_keys = {str(item["set_key"]) for item in active_sets if isinstance(item, dict) and item.get("set_key")}
+    requested_keys = active_keys if group_keys is None else active_keys.intersection(group_keys)
+    if not requested_keys:
+        return {"series": pd.DataFrame(), "rankings": pd.DataFrame(), "contributions": pd.DataFrame(),
+                "correlation": pd.DataFrame(), "groups": [], "lookback": lookback}
     resources = robinhood_main_store.list_resources(
         portfolio_id=portfolio_id,
         environment=environment,
         resource_kind="opportunity_group",
-        resource_keys=group_keys,
+        resource_keys=sorted(requested_keys),
     )
     group_by_key = {
         str(resource.get("resource_key") or ""): dict(resource.get("payload") or {})
@@ -447,6 +461,16 @@ def opportunity_analytics(
         and str((resource.get("payload") or {}).get("status") or "") == "ready"
         and str((resource.get("payload") or {}).get("analytics_status") or "") == "ready"
     }
+    # Stable IDs own series and correlation. Qualify genuinely identical names
+    # for display without letting a name collapse two separate groups.
+    named_keys: dict[str, list[str]] = {}
+    for key, group in group_by_key.items():
+        named_keys.setdefault(str(group.get("name") or "Untitled"), []).append(key)
+    for name, keys in named_keys.items():
+        if len(keys) > 1:
+            for index, key in enumerate(sorted(keys), start=1):
+                kind = str(group_by_key[key].get("kind") or "group").replace("_", " ").title()
+                group_by_key[key]["name"] = f"{name} · {kind} {index}"
     symbols = sorted(
         {
             str(member.get("symbol") or "").upper()
@@ -523,7 +547,7 @@ def opportunity_analytics(
         ]
         risk_returns = risk_returns[eligible]
         group_daily = risk_returns.mean(axis=1, skipna=True).dropna()
-        group_return_series[name] = group_daily
+        group_return_series[group_key] = group_daily
         volatility = (
             float(group_daily.std() * math.sqrt(_ANNUAL_TRADING_DAYS))
             if len(group_daily) >= _MIN_RISK_OBSERVATIONS
@@ -580,6 +604,11 @@ def opportunity_analytics(
                 "diversification_ratio": diversification_ratio,
                 "regime": group_regime,
                 "members": len(member_returns),
+                "total_members": len(list(group.get("members") or [])),
+                "history_coverage": len(member_returns) / len(group["members"]) if group.get("members") else None,
+                "risk_members": len(eligible),
+                "start_at": group_index.index[0],
+                "end_at": group_index.index[-1],
             }
         )
 

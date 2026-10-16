@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from typing import Any
 
 import pandas as pd
 
+from data_access.query_service import QueryService
 from services.aql_zopedia_engine import run_aql_zopedia_structured_agent
 
 
@@ -46,7 +48,7 @@ def build_daily_datapoint_catalog(*, snapshots: pd.DataFrame, fred_observations:
         except (ValueError, TypeError):
             financials = {}
         if isinstance(financials, dict):
-            series.update({key: _points(value) for key, value in financials.items() if key in {"revenue", "net_income", "free_cash_flow"}})
+            series.update({key: _points(value) for key, value in financials.items()})
         for metric, points in series.items():
             points = [point for point in points if pd.Timestamp(point["date"], tz="UTC") <= cutoff]
             if len(points) < 2:
@@ -67,7 +69,7 @@ def build_daily_datapoint_catalog(*, snapshots: pd.DataFrame, fred_observations:
         frame = frame.dropna(subset=["date", "value"])
         frame = frame[(frame["date"] <= cutoff) & (frame["date"] >= cutoff - pd.Timedelta(days=365 * 3))]
         for series_id, rows in frame.groupby("series_id", sort=False):
-            rows = rows.sort_values("date").drop_duplicates("date", keep="last").tail(20)
+            rows = rows.sort_values("date").drop_duplicates("date", keep="last")
             if len(rows) < 2:
                 continue
             meta = metadata.get(str(series_id), {})
@@ -86,23 +88,37 @@ def build_daily_datapoint_catalog(*, snapshots: pd.DataFrame, fred_observations:
 def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, dict[str, Any]], asof: object, run_id: str) -> pd.DataFrame:
     if len(catalog) < 5:
         raise ValueError("Daily datapoint selection requires at least five source-backed chart candidates.")
-    candidates = [{
-        **{key: value for key, value in candidate.items() if key != "points"},
-        "chart_range": {"start": candidate["points"][0]["date"], "end": candidate["points"][-1]["date"], "observation_count": len(candidate["points"])},
-        "observations": candidate["points"],
-    } for candidate in catalog.values()]
+    records = {
+        key: {"title": candidate["label"], "metadata": {
+            **{field: value for field, value in candidate.items() if field != "points"},
+            "start_date": candidate["points"][0]["date"], "observation_count": len(candidate["points"]),
+            "minimum_observation": min(candidate["points"], key=lambda point: point["value"]),
+            "maximum_observation": max(candidate["points"], key=lambda point: point["value"]),
+            "first_observation": candidate["points"][0],
+        }, "content": candidate}
+        for key, candidate in catalog.items()
+    }
+    summary = home.get("homepage_summary") or {}
+    brief = {key: home.get(key) for key in ("generated_at_utc", "coverage_summary", "top_events", "must_read_movers", "unresolved_large_moves")}
+    brief["homepage_summary"] = {key: summary.get(key) for key in ("headline", "summary_text", "answer_markdown")} if isinstance(summary, dict) else summary
+    records["daily_brief"] = {"title": "Today's complete investor brief", "metadata": {
+        "kind": "daily_brief", "role": "Dated narrative context for relevance; chart originals establish plotted observations"}, "content": brief}
+    # A generation input must not contain the output it is replacing. The old
+    # captions otherwise become circular evidence for the next chart selection.
+    # Preserve every research field and numeric source; exclude presentation
+    # media and the previous chart artifact. The original bundle remains stored.
+    home_context = {key: value for key, value in home.items() if key not in {"daily_datapoints", "homepage_summary"}}
+    home_context["homepage_summary"] = brief["homepage_summary"]
+    records["home_context"] = {"title": "Complete Home research context", "metadata": {
+        "kind": "derived_research", "role": "Dated research context; individual chart originals establish plotted observations"}, "content": home_context}
+    service = QueryService.from_environment().with_supplied_evidence(records)
     schema = {"type": "object", "additionalProperties": False, "properties": {"datapoints": {"type": "array", "minItems": 5, "maxItems": 5, "items": {
         "type": "object", "additionalProperties": False, "properties": {
-            "id": {"type": "string", "enum": list(catalog)}, "title": {"type": "string"}, "significance": {"type": "string"},
+            "id": {"type": "string"}, "title": {"type": "string"}, "significance": {"type": "string"},
         }, "required": ["id", "title", "significance"],
     }}}, "required": ["datapoints"]}
-    context = {"homepage_summary": home.get("homepage_summary"), "market_coverage": home.get("market_coverage") or (home.get("coverage_summary") or {}).get("market_coverage")}
-    evidence_fields = ("event_title", "headline", "symbol", "change_pct", "surface_summary_text", "surface_what_changed_text", "surface_why_text", "business_context_text", "watch_next_text", "surface_cause_status", "cause_status", "confidence_label", "same_day_evidence_count", "supporting_symbols")
-    for section in ("top_events", "must_read_movers"):
-        context[section] = [{key: str(item[key])[:1200] if isinstance(item.get(key), str) else item[key] for key in evidence_fields if key in item} for item in (home.get(section) or [])[:16] if isinstance(item, dict)]
-    if isinstance(context.get("homepage_summary"), dict):
-        context["homepage_summary"] = {key: value for key, value in context["homepage_summary"].items() if key in {"summary_text", "answer_markdown", "headline"}}
-    selection_query = (
+    result = run_aql_zopedia_structured_agent(
+        query=(
             f"As of {pd.Timestamp(asof).isoformat()}, choose the FIVE most crucial datapoints for today's informed investor daily brief. "
             "Rank by decision relevance to the session's evidence, not absolute price, popularity, or largest percentage move alone. "
             "Choose the five CHARTS that best explain what matters, not another top-movers leaderboard. "
@@ -112,79 +128,39 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             "Every mover's price is already visible elsewhere on Home. Prefer charts that add material explanation beyond those price labels. "
             "The chosen chart must directly visualize the principal quantitative insight in its significance: if that insight is cash generation or revenue growth, choose that financial series. "
             "Use only catalog ids. Never invent a number, source, reporting period, release date, or cause. "
+            "The selected chart's original points establish the quantitative finding in its caption. "
+            "Keep numerical comparisons inside that plotted history; other sources explain relevance and do not extend the chart. "
+            "Separate observed financial conditions from investment hypotheses. One financial series cannot settle a claim that requires different evidence. "
+            "Explain how a plotted condition bears on an investor's next decision without treating it as proof for or against a price move. "
             "Quarterly financials and slow macro releases are background conditions unless evidence establishes a fresh release. "
             "Respect each observation's actual date; do not describe stale changes as today's move. "
             "Partial causes and plausible business channels are not proven causes. No universal ranking or 'only' claim from this bounded candidate catalog. "
-            "Historical financial performance cannot establish or rule out the cause of today's repricing. Do not infer that a move was not a revenue, earnings, or demand event because a past quarter improved. "
             "Do not infer solvency, financing dependence, or balance-sheet strength from an income or cash-flow series alone. "
             "Check trend descriptions against every supplied observation: endpoint growth does not establish consecutive increases, and a range does not establish a direction. "
-            "For seasonal quarterly businesses, compare the same fiscal quarter across years before claiming deterioration or acceleration. "
-            "A sequential fall from a seasonal peak is not evidence of a structural collapse; consider the complete history and do not cherry-pick the comparator. "
-            "The observations and chart_range are exactly the full displayed history. State explicit reporting periods or dates when discussing a subset of that history. "
             "Return a concise descriptive title (at most 65 characters) and one specific sentence of significance (at most 180 characters) for each. "
-            "Significance connects a concrete chart finding to a documented decision in today's brief; it is not a chart-window inventory or a recap of endpoints alone. "
-            "Dates and ranges are already visible in the chart. Include only the comparison periods needed to understand the insight, not metadata about what is displayed. "
             "Titles describe the insight without repeating the price or latest value already shown by the chart. "
             "No generic market commentary, process language, disclaimer, or evidence-gap filler. "
             "The application will render the exact referenced time series, units, dates and current values.\n\n"
-            f"Daily brief evidence:\n{json.dumps(context, ensure_ascii=False, default=str)}\n\n"
-            f"Candidate catalog:\n{json.dumps(candidates, ensure_ascii=False, default=str)}\n\n"
-            "Before submitting, verify every cited date/value is actually present in its selected chart. "
-            "Use period-matched financial comparisons, distinguish background from a new release, and avoid unsupported causes."
+            "Read the daily_brief source, browse or search the complete supplied chart catalog, and inspect original histories as useful. "
+            "Use research.list_supplied_evidence and research.read_supplied_evidence. Every source remains accessible; follow pagination as needed. "
+            "Catalog metadata helps choose what to inspect; it cannot establish a trend or the cause of a move. "
+            "Financial comparisons need matching reporting periods, including seasonal comparisons when relevant. "
+            "Do not infer the cause of today's repricing from a past quarter alone. "
+            f"Supplied evidence manifest: {json.dumps(service.supplied_evidence_manifest)}"
+        ),
+        schema_name="daily_market_datapoints", schema=schema, task="daily_market_datapoints",
+        surface="attention_home.daily_datapoints", service=service,
+        initial_evidence=[{"title": "Evidence navigation", **service.supplied_evidence_manifest}],
+        request_context={"allow_web": False, "allowed_source_access": ["supplied"]},
+        run_timeout_seconds=float(os.getenv("DAILY_MARKET_DATAPOINTS_TIMEOUT_SECONDS", "600")),
+        persist_findings=False, write_policy="none",
     )
-    review_schema = {"type": "object", "additionalProperties": False, "properties": {
-        "approved": {"type": "boolean"}, "issues": {"type": "array", "items": {"type": "string"}},
-    }, "required": ["approved", "issues"]}
-    feedback = ""
-    for attempt in range(2):
-        result = run_aql_zopedia_structured_agent(
-            query=selection_query + feedback,
-            schema_name="daily_market_datapoints", schema=schema, task="daily_market_datapoints",
-            surface="attention_home.daily_datapoints", max_tool_calls=0, persist_findings=False, write_policy="none",
-        )
-        if result.get("status") != "completed":
-            raise RuntimeError("AQL/Zopedia could not complete the daily datapoint selection.")
-        selections = (result.get("payload") or {}).get("datapoints") or []
-        ids = [str(item.get("id") or "") for item in selections if isinstance(item, dict)]
-        if len(ids) != 5 or len(set(ids)) != 5 or any(key not in catalog for key in ids):
-            raise ValueError("Daily datapoints must reference five distinct catalog entries.")
-        review = run_aql_zopedia_structured_agent(
-            query=(
-                "Review this five-chart investor brief against its exact supplied data and session evidence. "
-                "Approve only if the chosen charts add complementary decision value and their titles and significance are accurate. "
-                "Read the complete selected histories: verify each date, endpoint, percentage, sequence and reporting period. "
-                "Every cited dated value must be inside that chart's displayed observations, not a neighboring series. "
-                "Check same-period prior-year behavior before accepting a structural trend claim about seasonal quarterly data. "
-                "Reject cherry-picked seasonal peaks, overstated direction/consecutive counts, invented causes, unsupported rankings, "
-                "and stale observations presented as new releases. Evidence of a business channel is not proof of causation. "
-                "Check negative causal claims as carefully as positive ones: old financial growth cannot rule out new revenue, demand, guidance, or earnings information behind today's price move. "
-                "Require a clear connection to the day's decision context, but do not require each background series to have been released today. "
-                "A significance sentence must explain why the quantitative finding matters in that context, not merely list endpoints or describe the chart window. "
-                "Return approved=false with specific actionable issues when revision is needed; otherwise approved=true and no issues. "
-                "Judge meaning, not preferred wording. Do not manufacture objections.\n\n"
-                f"As of: {pd.Timestamp(asof).isoformat()}\nDaily evidence: {json.dumps(context, ensure_ascii=False, default=str)}\n"
-                f"Draft: {json.dumps(selections, ensure_ascii=False)}\n"
-                f"Exact selected charts: {json.dumps([catalog[key] for key in ids], ensure_ascii=False, default=str)}"
-            ),
-            schema_name="daily_market_datapoints_review", schema=review_schema, task="daily_market_datapoints_review",
-            surface="attention_home.daily_datapoints.review", max_tool_calls=0, persist_findings=False, write_policy="none",
-        )
-        verdict = review.get("payload") or {}
-        if review.get("status") != "completed":
-            raise RuntimeError("AQL/Zopedia could not review the daily datapoint selection.")
-        if verdict.get("approved") is True and not verdict.get("issues"):
-            break
-        print(f"[info] daily datapoint semantic review attempt={attempt + 1} issues="
-              + json.dumps(verdict.get("issues") or [], ensure_ascii=False), flush=True)
-        feedback = (
-            "\n\nRevise this exact prior draft against its review. Preserve supported choices and comparisons; "
-            "correct the rejected interpretations without introducing unrelated claims. Replace a chart only if "
-            "it cannot support a useful decision-relevant finding. Do not restart the selection from scratch.\n"
-            + json.dumps({"previous_draft": selections, "review": verdict}, ensure_ascii=False)
-        )
-    else:
-        raise RuntimeError("Daily datapoint selection did not pass its source-backed semantic review: "
-                           + json.dumps(verdict.get("issues") or [], ensure_ascii=False))
+    if result.get("status") != "completed":
+        raise RuntimeError("AQL/Zopedia could not complete the daily datapoint selection.")
+    selections = (result.get("payload") or {}).get("datapoints") or []
+    ids = [str(item.get("id") or "") for item in selections if isinstance(item, dict)]
+    if len(ids) != 5 or len(set(ids)) != 5 or any(key not in catalog for key in ids):
+        raise ValueError("Daily datapoints must reference five distinct catalog entries.")
     rows = []
     for rank, item in enumerate(selections, 1):
         title = str(item.get("title") or "").strip()
@@ -195,5 +171,5 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
         points = candidate.pop("points")
         rows.append({**candidate, "rank": rank, "title": title[:100], "significance": significance[:260],
                      "points_json": json.dumps(points, ensure_ascii=False), "home_run_id": str(home.get("run_id") or ""),
-                     "run_id": run_id, "asof_time_utc": pd.Timestamp(asof).isoformat(), "selection_method": "aql_zopedia"})
+                     "run_id": run_id, "asof_time_utc": pd.Timestamp(asof).isoformat(), "selection_method": "aql_zopedia", "quality_review_json": json.dumps((result.get("agent_result") or {}).get("quality_review") or {}, ensure_ascii=False)})
     return pd.DataFrame(rows)

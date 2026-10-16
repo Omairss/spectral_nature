@@ -10,7 +10,13 @@ final class AppSession: ObservableObject {
   @Published var revision = UUID()
   @Published var accountLink: AccountLink?
   @Published var accountLinkError = ""
-  let api = APIClient()
+  let api: APIClient
+  let research: ResearchActivityStore
+  init() {
+    let client = APIClient()
+    api = client
+    research = ResearchActivityStore(api: client)
+  }
   private var generation = 0
   private var changingSession = false
   var authenticated: Bool { context != nil }
@@ -24,6 +30,7 @@ final class AppSession: ObservableObject {
       guard request == generation, !Task.isCancelled else { return }
       if context != nil && !response.authenticated { revision = UUID() }
       context = response.authenticated ? response.context : nil
+      research.setOwner(context?.userId ?? "")
       error = ""
     } catch {
       if request == generation && !Task.isCancelled { self.error = error.localizedDescription }
@@ -52,6 +59,7 @@ final class AppSession: ObservableObject {
       }
       guard request == generation, !Task.isCancelled else { return false }
       self.context = context
+      research.setOwner(context.userId)
       error = ""
       revision = UUID()
       showingLogin = false
@@ -78,6 +86,7 @@ final class AppSession: ObservableObject {
   func expire() {
     generation += 1
     context = nil
+    research.setOwner("")
     restoring = false
     revision = UUID()
   }
@@ -113,6 +122,7 @@ final class AppSession: ObservableObject {
     }
     guard request == generation, !Task.isCancelled else { throw CancellationError() }
     self.context = context
+    research.setOwner(context.userId)
     revision = UUID()
     accountLink = nil
     showingLogin = false

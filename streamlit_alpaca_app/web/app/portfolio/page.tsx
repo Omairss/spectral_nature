@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { DataPlot } from "@/components/visualizations/data-plot";
 import { DataTable, MetricStrip, WorkbookTabs } from "@/components/workbook";
 import { useAuthenticatedSession } from "@/lib/client/session";
+import { PortfolioLists } from "@/components/portfolio-lists";
 import { usePortfolio } from "@/lib/client/portfolio";
 
 type Row = Record<string, unknown> & { asset_class?: string; symbol?: string; description?: string };
@@ -99,9 +100,7 @@ export default function PortfolioPage() {
             { key: "momentum_regime", label: "Regime" },
           ]} onRowClick={(row) => row.symbol && router.push(`/stock-investigator?ticker=${encodeURIComponent(String(row.symbol))}`)} rowKey={(row, index) => String(row.symbol || index)} rows={readyDiagnostics} />
         </section> : null}
-        {portfolio.opportunity_sets.length ? <section className="workbook-panel"><header className="panel-header"><div><p className="section-label">Lists and screeners</p><h2>Tracked opportunity sets</h2></div><span>{portfolio.opportunity_sets.length}</span></header>
-          <DataTable columns={[{ key: "name", label: "Group" }, { key: "kind", label: "Type" }, { key: "member_count", label: "Members", align: "right" }, { key: "analytics_status", label: "Analytics" }]} rowKey={(row, index) => String(row.set_key || index)} rows={portfolio.opportunity_sets} />
-        </section> : null}
+        {!loading && portfolio.period === period && portfolio.opportunity_sets.length ? <PortfolioLists key={period} period={period} /> : null}
       </> : null}
     </div>
   );

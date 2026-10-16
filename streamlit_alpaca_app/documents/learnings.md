@@ -1,5 +1,313 @@
 # Learnings — Active Guidelines
 
+## Frontier research evaluation — 2026-10-16
+
+- Whole-repository publication needs an explicit scope decision when several agents share a dirty checkout. The owner chose all pending work for this checkpoint. Ignore temporary release copies/private diagnostics, retain useful evidence, and keep checkpoint publication separate from each workstream's acceptance status.
+
+- The accepted applied-research agenda has one canonical [October Applied Research Fall 2026 Master plan](plans/OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md). Preserve the full four-column comparison, link supporting research/evidence, and update its next-agent queue as work progresses.
+
+- An additive table request preserves the original columns in the displayed answer as well as the saved document. Keep current position, proposed improvement and evaluation visible together.
+
+- Attach a measurable objective and matched baseline to every capability gap. Separate source/math correctness, subjective usefulness, future forecast loss and decision utility; measure review repairs together with newly introduced errors. Choose endpoints before candidate selection and report uncertainty plus total workload cost. See the [eval column and definitions](plans/OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md#objective-definitions-and-comparison-rules).
+
+- Close the prediction-system gap layer by layer: compare harnesses with the same cheap model, retrieval/ranking with matched capacity, forecasts against later outcomes, and decision policies with the same forecasts. Include strong simple baselines; a new method's publication-time benchmark win is not universal financial SOTA. See the [current position and closure sequence](plans/OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md).
+
+- Cheap open-source models are a firm owner constraint for runtime, teachers and graders. Improve the entire prediction machine around them, including retrieval/ranking, research, projections, calibration, strategy, sizing and optionality. Hold the model fixed for primary system comparisons; mark eligible alternatives separately. See the [scope](research/frontier-agentic-research/PREDICTION_MACHINE_SCOPE_2026-10-16.md) and [candidate shortlist](research/frontier-agentic-research/OPEN_MODEL_CANDIDATES_2026-10-16.md).
+- Verify actual published weights and license metadata before calling a model open-source. Keep benchmark per-task cost, current provider token pricing and actual serving availability distinct; a listed promotion or empty endpoint inventory does not prove a usable production route.
+
+- Separate present SOTA gaps from future research proposals. Report available same-harness model comparisons, concrete missing mechanisms and observed local failures before explaining that the end-to-end application margin is unmeasured. Make the [current-gap assessment](plans/OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md) directly discoverable from the research index.
+
+- Pin SOTA comparisons to task, split, harness, metric, judge version, budget and date. Check current official listings separately from paper-era and newer author-reported results; judge migrations can make scores incomparable. See the [survey](research/frontier-agentic-research/LITERATURE_SURVEY_2026-10-16.md).
+- Future outcomes can label defined forecasts and operationalized discovery utility; they cannot prove source faithfulness, logical validity or past causal attribution. Keep objective, conditional, judgment and future labels separate. Derive action-value labels from controlled alternatives rather than treating unchosen actions as failures.
+- Measure research-guidance overhead against its ordinary baseline as well as its expensive alternative. Offline strategy collection, evaluator costs and induced corrections matter alongside serving tokens. Retain the [research TODOs and ground-truth inventory](research/frontier-agentic-research/README.md) before choosing another model or agent.
+
+## Publication assessment — 2026-10-16
+
+- With one human annotator, use external future outcomes or executable latent environments for primary supervision. Reserve expert effort for task meaning, semantic mappings and disputed cases; report personal usefulness separately from objective prediction/reasoning results. The [new research program](research/TOP_TIER_RESEARCH_PROGRAM_2026-10-16.md) specifies two main-conference projects.
+- Measure research value on the entire declared task population, including tasks receiving no additional investigation. Match artifact sharing across allocation baselines and separate correlated event questions from independent observations. A public app supplies infrastructure, not an assumed user-study cohort.
+- Separate implemented mechanisms, retained empirical findings and proposed learners when assessing novelty. The frozen hierarchy and review failures provide pilot evidence; the discovery preference learner remains a proposal.
+- Financial screening/discovery, temporal evaluation, hierarchical retrieval and provenance memory all have direct prior work. The more specific research opportunity is longitudinal investigation choice and evidence-to-analysis revision. See the [publication assessment](architecture/overall/audits/PUBLICATION_PROSPECTS_2026-10-16.md).
+- Date corpus counts to their saved release and distinguish archive rows from verified examples. Frozen retrieval cannot remove future knowledge from model weights; prospective observations remain necessary for real-time discovery claims.
+- Separate venue fit from acceptance readiness. Sufficient Context and Lost in the Middle already establish failures to use available evidence; the proposed paper needs a narrower contribution about derived interpretations, original-source exposure and revision. Later successful controls and evaluator corrections belong in that assessment.
+
+## LLM cost and reasoning review — 2026-10-15
+
+- Expose producer controls through the same frozen settings registry consumed by workers. Show the actual worker default after reset, not the last run's overridden value.
+- Version completed supplied-evidence work by its producer, input, schema, instructions, model and ownership. Unrelated downstream settings should not force another paid producer; coordinate identical in-flight work.
+- Keep original context as the initial view; compact indexes should be optional and navigable. Forcing every decision through an index can spend more calls reading originals and leave no time for analysis.
+- Read final answers and personally check numerical feasibility and causal logic. A reviewer verdict, premium model or execution test does not establish reasoning quality. Keep projected workload savings separate from actual measured spend.
+
+## Native requests and peripheral charts — 2026-10-15
+
+- Preserve source marker symbols and intentionally suppressed labels in graph adapters. Movement needs shape plus color; selection highlighting must not overwrite direction.
+- Select sparse market points geometrically across convex-hull layers while keeping full-universe axes, color scales and rankings. Verify real-data extrema and degenerate/coincident positions.
+- Product feedback belongs in durable, user-owned, environment-scoped threads. Derive identity and admin capability on the server; make initial writes atomic and retries idempotent.
+- Keep dependency copies and build contexts outside the watched workspace. Local UI previews use synthetic actors only in isolated QA namespaces; they do not prove normal signed-in dev acceptance.
+
+## Native market charts — 2026-10-14
+
+- Plot complete numeric histories independently of a research shortlist. Join names
+  and research context by instrument identity; missing history stays missing and
+  breadth/coverage denominators count observed returns.
+- A mark's numeric color scale and its legend must have one owner. Center signed
+  returns at zero; label saturated tails explicitly when outliers would otherwise
+  erase ordinary variation. Keep original values available through inspection.
+- Scatter selection uses distance in both screen dimensions, not just the nearest
+  x value. Use durable group keys where display names can repeat. Named return
+  bars complement dense clouds, and compact-device review reveals tick truncation.
+
+## Native parity installation — 2026-10-14
+
+- Carry fiscal-period labels across the numeric DTO; calendar quarter inference
+  mislabels issuers with different fiscal years. Keep each financial value and its
+  history together, including history-only and scalar-only source cases.
+- Preserve the daily/session scale boundary in combined price charts. Expand the
+  latest session separately with a shared price axis and inspectable actual dates;
+  never connect the gap with invented observations.
+- Confirm the device's installed version and running process separately from build
+  and transfer success. A connected USB phone may still be locked; an iOS trust
+  rejection can occur after a valid signed installation. Preserve the existing app
+  identity and Keychain instead of uninstalling to troubleshoot.
+
+## Whole-stack production promotion — 2026-10-14
+
+- Promote the accepted immutable frontend/API images and every applicable queued/scheduled consumer together. Source guards on older worker baselines preserve production reliability fixes; functional parity does not require replacing unrelated operational code with an older dev copy.
+- Preserve production data, identity, secrets, commands and schedules. Public research-artifact reuse is an explicit producer declaration; private conversations and knowledge-maintenance workers must not inherit that declaration from a convenient dev template.
+- A successful template update does not establish live readiness. Require the latest revision to be ready and healthy with full traffic, then inspect the actual frontend and queued-worker result. Keep subsequent local architecture work distinct from the accepted deployed source.
+- Separate provider availability from release health. The production acceptance worker identified the correct engine but encountered a planning timeout and then a recorded DeepSeek HTTP 503. Preserve both failed turns, report research acceptance as blocked, and never describe unavailable token usage as zero cost.
+
+## Admin LLM flow design — 2026-10-14
+
+- When an inline preview is unavailable to the owner, open and verify the interactive local preview in a browser and preserve its tab for review.
+- Model routing, workload limits, instructions and data handoffs should share the executor's stage contract. An admin graph must not be a decorative frontend map over an unrelated flat parameter registry. Freeze the effective settings for each run and apply later saves to new runs.
+- Reviewer count and review cycles are independent. Multiple reviewers can inspect the same draft/evidence in one cycle; the configured synthesis role resolves substantive corrections. Monitor freedom is a semantic instruction, separate from check frequency. Keep these decisions visible at their actual steps.
+
+## Zopedia/AQL model-call accounting — 2026-10-14
+
+- Count planner, synthesis, review, nested tool inference and provider attempts separately. The ten-tool default is not a ten-LLM-call cap; supplied context is not execution. Ordinary no-tool chat currently drafts, reviews and rewrites in three calls. See the [source and retained-trace audit](architecture/AQL/audits/ZOPEDIA_LLM_CALL_COUNTS_2026-10-14.md).
+- Distinguish the owner's role diagram from individual model invocations. Separate researcher, monitor, evidence lookup, synthesis, review and memory responsibilities are intentional. Evaluate context, useful work and handoffs before recommending consolidation; an LLM retrieval specialist is not inherently redundant.
+- The owner accepts one configurable review cycle. Check for a numeric cycle setting rather than equating the existing review on/off flag with configurability. Review-to-writer evidence transport and identifying what was reviewed remain separate requirements.
+- Describe retained search completely: independent PostgreSQL full-text and embedding candidates are combined with reciprocal rank fusion; substring matching supplements them. Trace caller write policy and the background memory commit before describing knowledge updates as unavailable. See the [handoff review](architecture/AQL/audits/ZOPEDIA_HANDOFF_REVIEW_2026-10-14.md).
+- A lower thinking effort does not select a lower-priced model. Resolve explicit responsibility-to-model profiles centrally, including nested schema repair, and keep model identity distinct from reasoning effort. Cheap summaries retain originals; cheap review flags substantive changes for premium analysis to resolve. The [existing repair plan](plans/ZOPEDIA_CONVERSATION_REPAIR_2026-10-14.md#proposed-deepseek-routing) owns this proposal; it is not implemented.
+
+## Attention feed cards — 2026-10-14
+
+- Keep each fundamental's current value and historical chart together once in the feed card. Removing a repeated value grid preserves the requested charts; deleting the charts is a feature regression. Use a compact two-column layout alongside one combined week/latest-day price chart and no period selector.
+- A mixed-resolution chart needs explicit date ranges and a shared price scale. Keep weekly closes and intraday observations distinct; do not draw a fabricated connection across missing sessions. Use actual snapshot observations without read-time market calls.
+- Inspect the complete card at desktop and phone sizes before deployment. Count repeated values and chart panels, check geometry and interaction, and review both complete and missing-history cases. Types and successful rendering do not establish visual quality.
+- Check frontend/backend compatibility before promoting a development image. The card release shared dev with a newer conversation UI that required the dev API. Preserve the requested release scope by applying the exact accepted card components and card CSS to the verified production source, keeping every other production file unchanged.
+
+## Native analytics parity — 2026-10-14
+
+- Price changes must use the same source and consecutive observed sessions. A fresh intraday quote and an older daily cache cannot define a daily move. Keep the previous close timestamp in provenance and show the longer history's ending date.
+
+- Materialize intraday market points during generation through the existing adapter, including UTC timestamps, regular-session boundaries, feed and observation time. Retained charts should remain usable without provider calls during public reads. Multi-year axes need years, and chart interaction must sit outside private drilldown links.
+- Bulk fundamentals have separate general, bank and insurance statement families. Refresh and load the entire family contract before diagnosing a missing bank as an absent value. Preserve real gaps: adding families does not create provider coverage for an excluded issuer.
+- Opportunity analytics must intersect requested IDs with the current catalog. An empty selection must return empty; some store APIs interpret an empty filter as every historical resource. Use stable group IDs for correlations and joins, and qualify genuinely identical display names separately.
+- Verify the producer, public DTO and actual native/web chart together. Use retained real broker analytics for local chart review without moving production connections into development. A signed native candidate and published server data are separate release steps.
+- An independent numeric refresh can run through an execution-only override of an existing producer template. Preserve every setting except the dispatch name, verify the production namespace, and avoid repeating paid narrative/audio generation just to publish chart arrays.
+
+See [the implementation and release record](plans/NATIVE_ANALYTICS_PARITY_2026-10-13.md).
+
+- 2026-10-11: Carry acquired research references into durable memory. The company stack passed only recent-news URLs, dropping 59–86 acquired URLs from each of eight rejected pages. Repair reference transport from actual acquisition rows; do not weaken write authorization or invent citations.
+
+- 2026-10-11: Match acceptance readers to the actual environment's worker generation. A shared research-module overlay does not make an older production dataset reader namespace-aware. Keep exact run/version guards; they rejected the wrong-reader preview before writes, and the actual development image then validated its nine affected pages.
+
+- 2026-10-11: Separate acquisition/fact resolution from final narrative generation. Repeating a large resolved fact inventory in final JSON increases malformed-output exposure and couples writing to memory eligibility. Give tool research an explicit whole-operation clock with enough reserved synthesis time; a large provider step timeout cannot override a short whole-run reserve.
+
+- 2026-10-10: A company narrative and durable-memory eligibility are separate contracts. Keep a usable model narrative even if it adds no eligible memory facts. Validate required narrative presence before marking a profile ready, and apply bounded shared model-based schema conversion to valid JSON with incorrect field types.
+
+## Production alert diagnosis — 2026-10-09
+
+- Retry transient connection establishment inside the shared startup allowance, before launching or restarting job work. Preserve protective SQL timeouts, stop on known terminal SQL states, bound the attempt count and total clock, and close a connection returned after caller expiry. A successful automatic replica retry can conceal this transport defect.
+
+- Inspect replica history as well as execution status. Azure can restart a killed worker under the same execution name, concealing a failed attempt and creating multiple database run IDs. Home now uses 4 CPU/8 GiB after a development exit 137 near 4 GiB; preserve browser limits and full research inputs while measuring complete-worker headroom.
+
+- Validate feature parity on the public response after every fresh publication: stories, charts and audio can fail independently. Successful core review does not prove optional artifact preservation. Daily chart selection keeps catalog/data contracts while treating semantic review as improvement and retaining useful valid drafts.
+
+- Chat and embedding inputs have separate provider limits. Preserve complete long embedding inputs through token-aware chunks and bounded batches, retain the caller clock and combine chunk vectors explicitly. Validate real semantic retrieval as well as transport; lexical fallback can conceal a degraded capability. Preload tokenizer assets during image construction.
+
+- Audit the entire fault family when a context adapter cuts serialized JSON. All five shared adapters now use the same lossless representation. Image compatibility probes protect transport; actual largest-input research and full producer output establish runtime acceptance.
+
+- Inspect the returned and materialized narrative after review. A shared presentation cleaner can erase the business explanation after the model succeeds. Text transport preserves complete reviewed content and markdown; semantic selection belongs to the LLM.
+
+- Review improves a research draft; it must not erase it because objections or follow-ups remain. Preserve the latest valid draft on failed revision or incomplete review. Keep review state private and distinguish it from execution failure.
+- JSON repair is model input too. Preserve the full raw response and record repair usage separately; valid JSON with empty required narrative fields can hide lost content. Inspect saved output alongside worker and platform status.
+
+- Compose background-operation budgets across research, formatting and review. The research phase must leave an explicit remainder for downstream work under the same caller clock. Preserve internal failure details before sanitizing a public summary; otherwise a missing optional artifact cannot be diagnosed.
+
+- Inspect every model-input phase, including planning after retrieval. Factoring
+  final synthesis alone leaves raw candidate catalogs and repeated source refs
+  capable of exceeding the context window. Preserve source records through one
+  shared typed representation and replay the actual failed phase.
+- A provider billing failure is an external blocker, not a retryable model step.
+  Stop affected acceptance runs, preserve the last good publication and report
+  the required account decision without inventing a successful pipeline result.
+  After funding, require a fresh configured model response, replay the failed
+  model boundary, and resume complete producers; connectivity alone is not recovery.
+
+- Cancellation is separate from provider degradation. When the caller's clock
+  expires, stop queued retrieval and propagate cancellation; a shorter provider
+  timeout may still use fallback within an active caller. Reader-owned SQL
+  connections must not keep transactions open across embedding calls. Preserve
+  caller-owned transaction boundaries.
+- Profile the full worker after increasing parallelism. The actual four-browser
+  development news workload reached 4.08 GiB against 4 GiB; an isolated browser
+  probe alone cannot establish whole-job headroom. News now has 4 CPU/8 GiB.
+
+- Bound heavyweight external runtimes by both capacity and lifetime. A driver
+  crash can hang its bindings or cleanup; isolate browser attempts in owned
+  process groups, enforce a separate worker deadline, and kill/reap descendants.
+  Preserve navigation budgets, source queues and fallback readers.
+- Persist coherent completed research phases before starting the next external
+  phase. Retain useful outputs on later failure, propagate the failure to tracking,
+  and inspect every serial stage and actual platform allowance.
+
+- Model inputs and durable research traces have different contracts. Keep task
+  instructions separate from typed evidence; do not repeat the original request
+  inside prompt metadata. Resolve exact repeated context through a shared catalog
+  rather than dropping candidates or source text. Replay the actual failed input,
+  verify retained content, and inspect the real synthesis and review.
+
+- Materialization deadlines must reflect the entire research batch. Fixing memory
+  exposed a serial 25-company news pipeline. Bound independent investigations in
+  parallel while preserving inputs/order, and keep browser/provider limits at
+  their separate owners. Pass request-local timeout settings through context,
+  rather than mutating process environment while concurrent agents run.
+- An intentionally Stopped retry is not producer recovery. Keep the previous
+  completed success/warning/failure until another producer actually completes;
+  retain the cancelled execution itself as honest historical state.
+
+- Status recording needs its own autocommit connection; it must neither inherit
+  research transaction failures nor commit work merely to report progress.
+  Verify this with a real disconnected work session and actual status SQL.
+- Bound browser concurrency at the shared page-reader owner, independently of
+  search/model parallelism. A missing optional metadata tag must not incur a
+  browser locator wait. Measure actual browser children/cgroup usage, and keep
+  every queued source instead of cutting recall to fit memory.
+- Index shared catalogs once for batch graph/reference work. Maintenance rebuilt
+  the full source catalog for every page; an index preserved exact IDs/order and
+  removed quadratic work. Distinguish this CPU cost from transaction ownership.
+- Compare actual workload settings when reusing a development worker. The donor
+  defaulted to 80 context symbols; production was configured for 20. Namespace
+  isolation alone does not make their full-run acceptance equivalent.
+- Numerical coverage must join existing model-produced classifications at its
+  data owner. Loading taxonomy for research entities did not supply sectors to
+  Home aggregation, producing a permanent warning despite available labels.
+
+- A protective idle-transaction limit requires short service-owned transactions
+  throughout every caller. Maintenance computation and learning model/replay work
+  cannot retain implicit read/write transactions. Separate materialized reads,
+  external computation and atomic result/audit writes; do not disable the limit
+  or scatter reconnects to conceal the ownership error.
+- Newly expanded monitoring has a historical coverage gap until older execution
+  identities are recovered or each job runs again. Compare scheduler inventory
+  with Azure history before interpreting zero incidents as global recovery.
+  Release configuration verification is distinct from full job acceptance.
+- Capacity belongs to each worker. Equity's memory repair did not cover news,
+  whose acquisition reached 2.1057 GiB against 2 GiB. Profile shared acquisition
+  and control simultaneous expensive work while preserving every planned lead.
+- Convert each completely paginated market-data batch before requesting the next.
+  Keeping all raw dictionaries and all resulting DataFrames simultaneously is
+  unnecessary. The same 1,471,470-bar workload retained every row and value with
+  peak RSS reduced from 1,011 to 240 MiB. Validate the whole worker separately;
+  this measurement alone does not prove the cause of a platform exit 137.
+- Persist the platform job and execution IDs at run creation. Reconcile terminal
+  platform state against those exact IDs, with namespace guards on both SELECT
+  and UPDATE. Preserve active and unidentified rows. Platform success without a
+  database completion receipt is a warning, not an invented successful run.
+- Compatibility acceptance must exercise namespace selection as well as imports,
+  method dependencies and pagination. A no-op text replacement is not evidence
+  that a deployed function belongs to an older generation.
+- Measure whole-worker peaks and retain capacity headroom. A successful 2 GiB
+  equity run peaked at 2,051,304 KiB; a corrected replay was killed, and the 4 GiB
+  replay completed with a 2,206,832 KiB peak. Minute-scale platform metrics missed
+  the transient peak. The reader optimization and allocation fix address different
+  parts of the same reliability problem without dropping history or symbols.
+- Validate the final compatibility image's execution boundary. The local module
+  imported `time`, but the older-worker projection copied `ResearchBudget` without
+  its dependency. Compilation and module import cannot detect a name used only
+  inside a method. Inspect the actual registry payload and execute the relevant
+  runtime boundary for each distinct worker variant before broad promotion.
+- Cross-check Azure execution state, database heartbeat, retained research errors
+  and the public read separately. Today the website and Home were available while
+  Trading Agent's eight company calls failed with an undefined `time` name. The
+  equity refresh was killed with exit 137, but its database row remained `Running`.
+  A missing failure row is not evidence of a healthy producer. Exit 137 alone does
+  not establish OOM; retain the platform reason and last stage. Evidence:
+  [production health capture](architecture/overall/audits/evidence/SERVICE_HEALTH_2026-10-09.json).
+
+## Shared chat retrieval audit — 2026-10-08
+
+- Read the deployed answer as well as local samples. The repaired worker recovered
+  the missing report and its follow-up reused saved research, but the long answer
+  still included excess detail and causal caution. An active writing preference
+  and successful execution do not establish consistent prose or reasoning quality.
+  See the [development receipt](architecture/AQL/audits/DEV_ZOPEDIA_GENERAL_REPAIR_2026-10-08.json).
+- Build overlays from a clean payload directory and verify that its complete file
+  inventory equals the release manifest. Import the actual runtime entrypoint,
+  including unchanged entrypoints, after copying the payload. Guards on declared
+  files alone do not catch an undeclared file left by a failed preparation.
+- Missing pandas identity fields must remain missing. A stringified `nan` page ID
+  incorrectly joined unrelated selected sources. Initialize typed metadata columns
+  before concatenation and normalize scalar values at the shared read boundary.
+- Give the prose writer a deduplicated index of selected citations, rather than
+  every search's catalog. Preserve the meaning of included points without requiring
+  every research finding in the answer. Keep a full-context synthesis path when
+  no research outline exists, including zero-acquisition requests.
+- Interpret temporal retrieval intent explicitly through the shared model. A date
+  argument that the planner sometimes omits cannot reliably serve relative-date
+  questions. Combine broad dated reporting with unrestricted context retrieval;
+  retain successful queries when another acquisition fails.
+- Keep research findings separate from the reader's outline. Review corrections
+  must update the outline used by the final writer. A final wording pass can undo
+  a correct analysis if it receives stale points or starts reasoning afresh from
+  the entire source catalog. Read unrelated outputs as carefully as the reported
+  failure before declaring the repair general.
+- Convert pandas NaT to SQL NULL at persistence. Psycopg adapted these missing
+  dates into year 48,113; thousands of such rows displaced current sources before
+  retrieval limits. Validate the actual database value, not only a parsed frame.
+- No-write means no searchable answer retention or source-ingestion capability,
+  while private research audit/checkpoints remain durable. Declare tool effects
+  at the registry and enforce the allowed registry at execution.
+- Semantic retrieval needs an actual indexed corpus. Chat's prefetch and evidence tool disabled it, all 11,340 retained chunks lacked embeddings, and whole-question AND matching preferentially retrieved an earlier generated answer. Preserve broad source recall, varied LLM queries and original-source dependencies; a semantic flag or a better writer cannot recover candidates never found.
+- Separate acquisition budgets from planner/monitor iterations. Both audited runs ended immediately after their sixth monitor requested a correction. Record effective limits once; an explicit caller value must not be replaced because it happens to equal a module default. Preserve Markdown through review and carry source links through prefetch exactly as through direct tools.
+
+- Check the installed bundle version before recommending another phone install.
+  Verify scalar quotes and history charts separately on the selected server;
+  installing a client cannot publish a development-only backend contract.
+
+## Home discovery objective — 2026-10-08
+
+- Verify artifact, API and cached frontend separately. A fresh sixteen-card production API preceded the frontend's normal background cache refresh. The recovered publication's Azure success and database warning both matter: advisory review exhaustion must remain visible without discarding a valid draft. Read for duplicate stories, unexplained names, conflicting identity and stronger-than-supported causality even when recall improves.
+- Retry incomplete HTTP bodies within the same shared provider deadline as timeouts and connection failures. Preserve complete pre-publication research inputs, beyond raw documents and claims, so a publication failure can resume without reacquiring the entire run. Report a recovered publication separately from a failed full producer.
+- A publication replay and a standard producer exercise different input boundaries. Verify the actual scheduled loader against retained metadata, including older frames without additive timestamp columns; preserve the metadata type and log failures before returning an empty frame.
+- Optimize expected relevance and high recall. Noisy, indirect and incomplete leads are useful. Let the LLM rank and develop them; review improves analysis and follow-up instead of certifying admission.
+- Preserve a valid artifact when review times out or finds uncertainty. Record review state honestly in operational metadata. Source counts and phrase checks cannot estimate semantic quality.
+- Keep reporting, retained business context and generated interpretations distinct without requiring an exact citation for every useful inference. Read the complete output personally for information, coherence and connections.
+- Preserve canonical explanations through the DTO and page. Generate each field once and map aliases mechanically; redundant output contracts waste the shared completion budget.
+- Evaluation must set `write_policy="none"` explicitly. `persist_findings=False` does not override an explicit `safe_auto` policy, and a development run can share durable Zopedia storage. One accidental HUT evaluation update was reversed through the audited rollback after confirming no intervening write.
+- Source-guarded release overlays must inspect the actual deployed files. Preserve accepted fields and older worker compatibility; a Git baseline alone can differ from the runtime.
+- Scope shared model telemetry by settings environment or exact run, not just a job name reused across dev and production. Dataset database names use `namespace::name`; version IDs use a different namespace format.
+- Use the same artifact schema during synthesis and review, retain full sources, and give cards and overview one publication owner.
+- Research allocation is not publication admission. Pass the complete retained news intake to final synthesis, and let it create useful stories outside the researched candidate list. A nomination timeout must not hide a report. Source-led nomination can read reports independently of a thousand-row price context; market observations remain available to the subsequent investigation.
+- Follow valid artifacts through the actual read path. Legacy phrase and percentage-count checks in data access hid an entire newly published Home and retained bundles. Semantic quality belongs to LLM editing and personal evaluation, not a second coded admission layer.
+- Separate diagnostic success from generalization. A repair developed against a known missed article is not a blind evaluation, even without company-specific rules. Distinguish relationships already stated in incoming reports from model-inferred connections; unseen-day attribution remains a separate qualitative evaluation.
+- Record Azure execution state and database research state separately when they disagree. A `Warning` row and an Azure `Failed` execution do not prove a timeout; preserve the ready core artifacts and report the unresolved operational cause.
+
+## Home research audit — 2026-10-08
+
+- Retained news needs event-level access before ticker selection. Exact provider tags excluded an available private-company report from every shortlisted subject; let the shared LLM investigate indirect relationships and nominate research.
+- A whole-agent deadline must own collected evidence, useful drafts and cancellation/continuation. A ninety-second wrapper discarded twelve runs whose model calls continued for 91–365 seconds. Provider success did not mean the product received an answer.
+- Verify scheduled narrative completion and personally read public output. Home returned available and its job succeeded while twelve enrichments failed, summary failed and group synthesis skipped. Preserve partial discovery while making degraded research observable in Admin.
+- Check input availability and producer order. An 11:20 snapshot selected movers from 09:35, before the relevant report; fresh prices elsewhere did not refresh that explanation.
+
+- Native app acceptance must use the intended live account environment. Shared
+  users do not imply shared broker connections or snapshots. Correct the common
+  gateway selection, retain origin-scoped sessions, and require fresh sign-in
+  when changing origins; never copy broker credentials or fall back to another
+  portfolio to make the screen appear populated.
+
 Distilled from 40 past learnings (archived in `past_learnings.md`). These are principles to apply going forward.
 
 ---
@@ -520,7 +828,251 @@ Distilled from 40 past learnings (archived in `past_learnings.md`). These are pr
 - Folder navigation uses the service's folder path, while connected knowledge navigation uses page identity. Verify both against real nested folders and connected pages; an opaque identifier is not interchangeable with a route parameter.
 - Portfolio dollars and benchmark prices are different units. Show portfolio value alone on a value chart and compare normalized histories on the performance chart. Missing monthly boundaries and numeric surface inputs remain missing, never zero-filled.
 - An existing Keychain session enabled live private read acceptance without transferring credentials. Record mutation and credential-lifecycle acceptance separately; successful builds and private reads do not prove those actions.
+- Select the connected physical iPhone before asking Xcode to generate a development profile. A trusted device can be visible to CoreDevice while the project still targets a simulator. Inspect the actual destination and signing status; a newer reported phone OS alone does not establish that provisioning is blocked by the Xcode version.
 
 ## Shared read-layer cleanup — 2026-10-07
 
 - Remove duplicate research runtimes rather than hiding them behind default-on environment switches. The shared DAL now reads retained research in all modes; ordinary raw market-provider reads remain a separate supported contract.
+
+## Native quotes and continued parity — 2026-10-07
+
+- Publish numeric history from the owned materialized ticker snapshot for native charts. Home already retained `price_trend_json`; extending its DTO avoids SVG reverse engineering, per-ticker network fan-out, and duplicated market acquisition.
+- Stock quotes need their own exact currency presentation, separate from compact market caps and portfolio totals. Keep the quote in the ticker heading across company-analysis tabs, even when company narrative is unavailable.
+- Match each workspace's authoritative failure semantics. Clear failed portfolio reads and clear knowledge results before refresh; preserve request-generation cancellation checks. Keep last-good retention explicit for other screens.
+- Capability-gate new client controls using the actual server contract. A native admin editor can consume the same dynamic prompt/parameter metadata and authenticated PATCH route while older deployments continue providing inspection.
+
+## LLM configuration and harness audit — 2026-10-07
+
+- Apply global prose policy in the shared provider request, after reading active settings. Module-import prompt copies freeze old rules; string replacement after generation corrupts quotations, source URLs, code, and machine values. Judge language by reading live outputs, with literal preservation checked separately.
+- A prompt editor needs per-key transactions, deployment scope, explicit resets, and bounded refresh. A failed first read must retry. Do not replace a shared table to save one field or require provider credentials just to inspect non-secret routing defaults.
+- Verify actual model identity through the authenticated provider response. Here `deepseek-reasoner` resolved to `deepseek-flash`; the configured label did not identify Pro. Keep requested and reported identities separate in telemetry.
+- Model selection and harness quality are separate decisions. Truncated source previews, review that fails open, and non-cancellable work constrain every model. Keep application-owned tools, evidence, permissions, and memory while improving the shared execution/context contract.
+
+## Sustained stock decline discovery audit — 2026-10-07
+
+- Diagnose missed discovery from retained production artifacts and job history before tuning scores. Here 309 provider-balance failures blocked Home publication while price ingestion continued; the same dependency left Trading Agent consuming month-old opportunities. Current repository code alone would not establish that history.
+- Relative surprise and sustained deterioration are different discovery questions. Peer subtraction can hide an industry-wide decline, and a positive trailing return can coexist with a large recent peak drawdown. Preserve dated company and cohort observations before research selection.
+- A feature's presence does not prove recall. Drawdowns and multiple horizons already enter some ranks, but daily eligibility, a small research pool, unstable universe membership, and narrow source acquisition can exclude the relevant company before AQL sees it. Extend existing shared owners and retained contracts rather than adding ticker exceptions or a second agent.
+- Audit prose fields after decoding their schema. Scanning serialized Home JSON also scans encoded audio and internal tool logs, producing false company-name matches. Separate dedicated cards, linked supporting tickers, meaningful prose mentions, and adjacent industry context.
+
+## LLM discovery redesign — 2026-10-07
+
+- Product direction: an LLM research workbench and recommender that optimizes useful discovery, organized recall, exploration, and continuing research. Sparse tickers and indirect articles are valid leads; reasonable errors can be corrected through shared memory. Do not introduce exact-source identity or complete-provenance admission gates.
+- Historical observations and Zopedia's article-derived relationships should independently nominate research before daily selection. Existing Treasury/FRED and correlation capabilities are reusable, but current macro checks materialize configured signs and target lists and inspect shortlisted daily moves. Extend those owners into learned relationship context rather than adding more fixed transmission rules.
+- Numerical detection, explanatory research, and prediction are separate objectives. Current residuals cannot explain a historical onset; chronological replay, personal qualitative review, unseen examples, and forward observation are needed. Financial narratives remain hypotheses whose utility must be established empirically.
+- Broadening results is different from increasing computation. The ranked Market view requests 80 rows while Broad Markets already exposes the full universe. Compare a 12-to-24 Home research budget separately from provider concurrency, source coverage, and inexpensive whole-universe numerical context.
+- An ML restructuring must specify the training view, model architecture, losses, learned relationships, selection objective, cold start and evaluation. Product positioning and a UI mockup did not answer that request. User examples are diagnostic observations, never ticker rules, financial-pattern classes or a selected inclusion test.
+- Masked multiresolution temporal learning, conditional relationship estimation and research preference learning have different objectives. Numerical prediction cannot stand in for investigation usefulness. Broad indexing precedes selection; unknown research is unlabeled, and deterministic old logs cannot prove off-policy outcomes without selection support.
+- The [14-page technical redesign, revision 2](../output/pdf/SPECTRAL_NATURE_LLM_DISCOVERY_REDESIGN_2026-10-07.pdf) replaces the rejected product-oriented document. It defines these objectives, actual source boundaries, chronological/qualitative evaluation and the migration sequence. Application behavior was not changed.
+
+## Shared harness reliability — 2026-10-07
+
+- Review completion and answer availability are separate contracts. Keep a useful draft with its actual review state; require a valid completed accept/revise review before automatic wiki reflection, scratchpad answer retention, or SAA answer write-back. Durable conversation logs preserve the draft for inspection.
+- Keep complete collected passages and source references beside planner previews. Reusing a preview in synthesis or review can remove the one correction that matters. Personally read live answers with decisive evidence beyond the old character cut.
+- A caller deadline must reach provider retries and JSON repair, including model work inside a tool call. Use scoped monotonic budgets without changing a shared client. Bound waits and reject late results; socket timeouts do not provide hard cancellation.
+- Public state must survive each boundary, including typed API response serialization. Verify the actual response model and rendered view, not only the repository dictionary.
+
+- Pinned images can still contain different source generations. Compare every changed module before overlaying it. For older workers, apply the exact shared patch with zero fuzz and verify its contracts; keep unrelated baseline modules and dependencies intact.
+
+## Production harness promotion — 2026-10-07
+
+- Promote accepted digests when production shares their original base; otherwise inspect and hash-check the exact production source before overlaying accepted modules. The modern private API passed all source checks. The older worker accepted the shared agent patch with zero fuzz and passed its 26 contracts; the separate legacy public API remains outside this modern workbench release.
+- Scoped LLM configuration also needs an explicit environment on workers. Thirteen production jobs had `PIPELINE_JOB_NAME` but no `APP_TRACK`; add only `APP_TRACK=production` while preserving their existing production namespace, schedules and credentials. The active production language rule already matched the 80% default, so no database settings write was needed.
+
+## Historical context corpus — 2026-10-07
+
+- A static event corpus needs raw sources, several available-at-time views and separately retained later outcomes. Current FRED history, fully adjusted prices, edited articles and present-day social counts do not establish historical inputs. Reuse shared acquisition/storage owners, verify vintage/feed/time coverage and upload receipts, and include background periods beside selected events. Configured credentials establish neither archive entitlement nor complete coverage. See [the collection design](plans/HISTORICAL_CONTEXT_TRAINING_HARNESS_2026-10-07.md).
+
+
+## Historical corpus acquisition and replay — 2026-10-07
+
+- Exhaustion has more than one dimension. FRED JSON limits vintage dates independently of row pagination; partition the vintage catalog as well as observation pages. HN's capped index requires recursive time partitioning. Preserve provider totals and explicit exhaustion state.
+- A broker asset catalog is not a validated price-history universe. Active/inactive catalogs include escrow identifiers and delisted aliases rejected by market-data endpoints. Retain provider rejections, resume valid identifiers and keep unpriced/delisted outcomes missing. Existing SIP entitlement can differ from the default IEX path.
+- Source dates need source timezones. UTC midnight can precede a late US filing, vintage update or completed daily bar. Normalize date-only availability after the source's local day ends, canonicalize earlier partitions, and version return targets alongside that contract.
+- Article containers and generic extraction can still include future recommendation cards. Shared model selection over verbatim blocks removed those cards while preserving raw HTML, exact block selections and trace metadata; direct personal reading caught what schema checks could not.
+- Immutable releases need separately mutable discovery pointers and visible partial status. Bound each publication's canonicalization/target work so the much larger acquisition job does not make progress invisible. Price targets begin at the next observed session open; elapsed days, adverse paths, target availability and boundary purging stay explicit.
+- API access and infrastructure permissions are separate. The local runtime credential could read Blob but not write; existing operator account-key access enabled verified development writes without changing roles or storing credentials. SEC access worked with a real configured contact. Source purchases remained zero; storage/model usage is a separate cost.
+- Treasury feeds declare their numeric and date types in XML metadata. Curves use NEW_DATE while bill observations use INDEX_DATE; maturity and quote fields remain separate. Parse through the shared Treasury owner, retain identifiers as strings and reprocess older tables from retained XML.
+- Large HN months need checkpoints at every completed time-tree leaf, not only at month completion. Local supervision still depends on workstation uptime. macOS attributes Homebrew Python's Documents access to its command-line executable, which can differ from the Python.app bundle permission; verify the actual Files & Folders switch and background execution after owner consent.
+- Acquisition ownership belongs in the harness: hold OS leases for each running source family and exact frozen task, and publish receipts with unique atomic sibling temporaries. Filter process inventory before truncating tool output; absence from truncated output cannot establish that a collector stopped.
+
+## Event-led discovery — 2026-10-08
+
+- Trace an event through actual retained inputs and research before assuming acquisition failed. Today's FT headline existed before Home ran, but none of its provider-tagged instruments entered the candidate dataset or primary research plans. A private-entity development needs an independent event/investigation path; daily ticker eligibility must not be its admission gate.
+- Research-call count is not useful coverage. All 12 Home ticker enrichments recorded timeouts. Three direct shared-agent probes completed but missed the central event; one received an accepting review despite returning little useful context. Read actual retrieval, answers and source dates, not just completion/review state.
+- Compare provider modes before spending on throughput. The same short query returned zero Serper news results and nine general-web results including current coverage. Shared acquisition needs both modes and access to ingested raw events; fixed word/ticker relevance gates and tiny nested timeouts can remove information before the LLM reasons.
+- A numerical model is not a prerequisite for investigating an explicit source event. Let the shared agent plan focused research, retain results and synthesize the common development with linked business context. Learn importance and evaluate useful organization and publication latency; do not translate this example into a fixed affected-stock list or revenue-comparison rule. [Audit evidence](architecture/overall/audits/evidence/AI_SELLOFF_DISCOVERY_AUDIT_2026-10-08.json).
+
+## LLM cost audit — 2026-10-12
+
+- Measure actual reported models and usage by purpose, environment and root research run. Gateway logical calls are not billable HTTP attempts; nested repairs, direct client paths, embeddings, audio and missing usage require separate accounting. Repair-week traffic is not a normal monthly baseline. See [audit evidence](./architecture/overall/audits/evidence/LLM_COST_AUDIT_2026-10-12.json).
+- Reuse a shared research result before buying repeated interpretation. The company dossier already produces facts, but the following question pass discards its gap list and repeats common context. Resolve related questions jointly and let the shared LLM select worthwhile follow-ups while retaining exploration.
+- Provider caching needs identical prefixes. Put versioned common evidence before changing questions; repeated text later in a prompt does not receive the same benefit. Distinguish provider prefix caching, exact response reuse and semantic research reuse.
+- Route reasoning by actual semantic work, not transport labels: `formatter_over_aql` currently includes substantial research inference. Compare complete live outputs personally before reducing thinking or consolidating reviews. Savings overlap; stage cost shares are not promised savings.
+
+## Shared LLM cost implementation — 2026-10-13
+
+- Stable prefixes are an execution contract. Clock/state-first planners and duplicate factoring that rewrites earlier tool entries defeat caching. Append immutable evidence definitions and new references; place changing instructions/state afterward. Measure reported cached tokens.
+- Reuse completed, versioned stages and dated prior research; let the LLM decide which questions need fresh acquisition. Retain continuation deltas against stable finding IDs, and commit artifact plus discovery pointers atomically. Public producer scope must be explicit; private inputs default out of shared reuse.
+- Literal conversion must bypass the shared prose style instruction as well as disable thinking. Personally compare complete public fields: a successful schema conversion can still rewrite meaning.
+- One downstream editor can correct the public artifact in its review response. Defer an upstream review only under an explicit owner contract that cannot authorize memory writes. Preserve useful drafts when optional review fails.
+- Character cuts and fixed finding-status vocabularies removed useful context in the old dossier path. Group duplicate source captures losslessly and retain unknown research topics. Cost optimization must buy less repeated interpretation, not erase discovery.
+- Account for every actual HTTP attempt with causal identity. Price missing usage and unknown Azure/audio rates as unknown; reasoning tokens are included in output. Atomic checkpoints, immutable audio receipts and description-plus-embedding-space vector keys belong in shared persistence.
+- Environment identity and model output allowances must be explicit. A development dataset namespace alone does not select development LLM settings when `APP_TRACK` is missing. Disabling DeepSeek thinking also changes its default output ceiling; mechanical conversion needs enough allowance to preserve the original artifact. Verify retained-tool findings through the actual context reader, not just successful storage or invocation.
+
+
+- Acquired source catalogs are application state, not prose to regenerate. Persist complete document/capture metadata beside model findings, and let inference add sparse interpretation. Keep complete passages in the research input. Interrupted schema conversion should resume from its retained paid draft, without publishing incomplete work as completed research.
+
+- Metering must survive the data store it measures. Use the existing independent archive for failed SQL receipts, reconcile by immutable attempt ID, and preserve a prompt-free execution-log receipt if both stores fail. Verify storage writes under the actual worker identity; local read-only credentials cannot establish that boundary. Database unavailability is distinct from an empty completed-research catalog.
+
+- Persisting completed research and exposing a readable tool is insufficient if downstream planners and writers never receive it. Supply dated investigations at the shared AQL context boundary, keep prior model analysis distinct from new sources, and let the LLM choose incremental acquisition. Tool-stage resumes belong to an execution identity; a fresh scheduled execution is fresh acquisition.
+- Fewer model calls do not establish a lower bill. Compare captured tokens at common prices, include failed work and recovery, and distinguish stage replay/cache savings from a complete workload. The first cold comparison was 8.4% cheaper before recovery and 1.8% more expensive after it; the 49% planning estimate remains unproven. Richer context, cold population and different accounting coverage must remain visible in that comparison.
+- Richer shared context needs an explicit background budget. An inherited short model-step ceiling can waste completed acquisition before synthesis. Let the shared phase clock reserve time for synthesis/review within the declared operation budget; retain failed state for continuation. Actual database interruptions also confirmed that archive-backed metering receipts reconcile without buying provider work again.
+- The final Home run succeeded with all twelve ticker and four source-event investigations, but captured common-price spend rose from $1.03 to $1.87 while attempts fell from 888 to 821 and chat cache share rose from 35.3% to 42.2%. More useful context has a cost; stage efficiencies are not a demonstrated bill reduction. Older source inventories contain substantive annotations, so removing them blindly would lose research. Prefer measured, model-directed access to retained context.
+
+## Zopedia conversation audit — 2026-10-14
+
+- A queued research worker has its own deployed source generation. Verify the exact image in execution history and inspect that source; frontend/API promotion and improved Attention output do not establish interactive-agent parity. The October 14 production worker still had the October 8 Markdown and fixed-loop defects despite newer local/dev code.
+- Parent-run links are execution lineage, not conversation memory. Immediate-parent answer concatenation loses the entire useful history after an empty failed turn. Conversation messages, evidence and execution outcomes must survive independently of whether an attempt produced prose.
+- A ten-row tool result became an eight-row model preview, and the answer treated the other two observations as missing. Display sampling must not become the research evidence boundary. Preserve complete result access, observation dates and explicit partial-preview metadata.
+- Public research transparency needs its own concise action/finding contract. Removing private reasoning is compatible with useful progress; generic heartbeats and raw tool journals cannot replace it. A private checkpoint is not a public research update.
+- A phase deadline can produce an empty answer while much of the whole budget remains reserved. The failed follow-up spent about 134 seconds before its first preparation event, then exhausted a 150-second research phase with no tools. Instrument initialization and measure the whole execution; the exact slow dependency remains unproven. See the [audit](./architecture/AQL/audits/ZOPEDIA_CONVERSATION_AUDIT_2026-10-14.md) and [repair plan](./plans/ZOPEDIA_CONVERSATION_REPAIR_2026-10-14.md).
+
+
+## One engine and conversation implementation — 2026-10-14
+
+- A gateway is transport ownership. Consolidation also requires deleting independent research orchestration and removing blanket feature-module exemptions. Separate task/schema/storage adapters are compatible with one engine.
+- Conversation state belongs to ordered messages and linked attempts. Carry complete evidence with its origin run/turn; a later failed turn must not inherit an earlier source timeout as its own cause. Submission and execution timestamps are different facts.
+- Public progress needs a typed, durable summary/finding/next-step event and actual execution phase labels. Keep it independent from private model reasoning and heartbeat traffic in both clients.
+- Query preparation must defer unrelated provider credentials. Lazy configuration at the shared data-access boundary removed unnecessary Alpaca/FRED setup from conceptual questions without feature-specific routing.
+- Source identity is distinct from lossless prompt serialization references. Preserve each provider snippet and opened article separately, including date, original URL and capture kind. A materialization adapter must not attribute aggregate tool text to every cited URL.
+- Validate the actual transcript at a phone width, including wide Markdown tables, auto-scroll and focus. Nested hidden overflow containers can let browser focus scroll the root away from its fixed navigation; the app viewport and the canvas scroll need explicit ownership.
+
+
+## Research depth follow-up — 2026-10-14
+
+- The retained Attention investigation used four live searches and one timed-out retained search without opening any source. Distinguish an agent's choice not to read from a reader execution failure; both need different evidence.
+- The final prose writer's outline branch can discard original passages, and source selectors disagree about tool-call/document/chunk identity. Normalize source references at one shared boundary and preserve the selected original content through planning, writing and review.
+- Missing questions identified only after final synthesis cannot improve that run's acquisition. Research depth needs an actionable mid-investigation decision, not an article quota or an extra end-of-run disclaimer.
+
+
+## Philosophical interpretation of the research plan — 2026-10-14
+
+- Preserve original observations and source qualifications in storage and model access; let the model revise conclusions, omit irrelevant detail, reorganize prose and develop warranted new inferences. Faithful formatting must not freeze an earlier analytical thesis.
+- One canonical source catalog can support different role-specific views. Shared reference resolution does not require the reviewer, writer and memory stage to see only the same selected subset; the reviewer needs access to contradictions and discarded alternatives too.
+- Research may discover new questions and retain several plausible explanations. Evidence changes their relative plausibility; incomplete support is not zero probability and uncertainty is not execution failure. Do not invent numerical confidence thresholds or require a probability field for every answer.
+- The owner's architecture stays: Attention/user requests enter one Zopedia/AQL engine, researcher/monitor use tools and SAA retrieval, synthesis/review produce output, and authorized memory updates return knowledge to retrieval. Clarify feedback from review to research, source-body access within SAA, lexical-plus-vector fusion instead of a literal BM25 label, and policy-controlled memory writes. These are internal repairs and clarified connections, not a replacement engine or a prescribed fixed sequence of model calls.
+
+## Configurable research flow — 2026-10-14
+
+- One backend stage contract now supplies both execution routes and the Admin graph. Freeze complete prompts, workload, model profiles and reviewer settings at submission; later turns inherit evidence while new attempts use the newly saved configuration. Actual API saves and isolated queued-worker checks verified that distinction.
+- Reviewer count and cycle count are independent. Independent reviewers inspect the same draft and complete available evidence; synthesis owns corrections and a researcher can acquire requested follow-up inside that cycle. Accepted drafts need no extra synthesis, and invalid corrections preserve the useful artifact and paid partial work.
+- A read timeout measures inactivity, not total HTTP duration. DeepSeek's whitespace keepalives kept an old 300-second probe alive for over 900 seconds. A cancellable total HTTP deadline closed a continuously active local response in 0.402 seconds against a 0.4-second limit. Record started attempts before waiting so interrupted work remains visible.
+- Reader quality begins before summarization. DOM word/length filters had discarded code and short numerical cells, while whitespace cleanup erased source structure. Preserve visible original text and use model summaries as an additional view. Retained capture identity must resolve the archived version, not the latest body for its URL.
+- Live numerical review corrected units, margin arithmetic and an unsupported price explanation. A later source answer was rejected despite two approving reviewers because it confused observed liveness with the underlying cause. Passing review is not personal qualitative acceptance.
+- Checkpoint acquisition before optional model enrichment. Ranking and first-pass summarization inside a source tool's deadline could discard already acquired originals when the optional call expired. The shared executor now saves the source first and runs those stages separately; success and timeout probes both preserve the original for synthesis.
+- Bind nested model helpers to the run's base client as well as its frozen settings. Otherwise they can reload a connection and escape an injected transport. Saved settings precede environment defaults, and effective environment values are frozen at submission too.
+- The real queue produced a sound cash-flow analysis through Pro planning/synthesis/correction and two parallel Flash critics. A typed background page summary also passed personal inspection. One cheap critic proposed an unsupported causal claim; accepting the existing premium draft kept it out of the result. Reviewers provide suggestions, not replacement analyses.
+- The existing research worker's pipeline identity successfully uploaded and read an archive proof while its image, settings and template stayed unchanged. A local read-only identity's upload denial did not establish worker failure. Started and terminal attempt receipts use separate pointers so reconciliation cannot erase a later terminal receipt.
+
+## System health investigation — 2026-10-15
+
+- The owner accepts recoverable failures when useful output quality is preserved. Hierarchical summaries should be adaptive views over retrievable originals, not mandatory agent layers. Operational resource/usage trends belong in Admin/Health; repair database concurrency within current paid infrastructure before proposing upgrades. See the [revised proposal](./plans/SYSTEM_RELIABILITY_REPAIR_2026-10-15.md).
+- Join platform executions, model receipts, Blob manifests, database rows and output contracts. A job whose database sink never opened can publish a newer usable artifact without appearing in monitoring; successful jobs can retain failed horizons or missing charts. See the [investigation](./architecture/overall/audits/SYSTEM_HEALTH_2026-10-15.md).
+- Measure actual inputs at shared evidence handoffs. Home sent 1.8–2.2 million tokens and learning critics sent 3.5–5.3 million against a 1,048,576-token limit. Preserve complete evidence access while repairing representation/reuse; fixed fallback critiques and successful exits do not establish model success.
+- Correlate exit 137 with allocation, memory metrics and final progress. Both failed Trading Agent executions exceeded 2 GiB after publishing research, during outcome generation. The later completed execution still retained one failed horizon: recovery and complete output are separate observations.
+
+## Reasoning within the cost allowance — 2026-10-15
+
+- Explicit assertion/basis checking caught two causal-reasoning mistakes that more expensive generic review missed in one live source case. This supports improving the handoff, not a general ranking of model capability. Structured output, more thinking and independent checks did not by themselves establish better analysis.
+- User observations and task assumptions have their own provenance. The prepared reviewer replaced an explicit client deadline with uncertainty because its basis was paired only with external documents. Pro accepted the objection despite receiving the original question. Preserve message origins and let models distinguish assumptions from external claims; no keyword classifier or proof gate is needed.
+- Review cost includes the premium work it triggers. A prepared Flash review and Pro/low correction projected roughly flat on ordinary research but raised the same retained direct-analysis replay by 45.7%. Neither a cheap reviewer nor a projection across different drafts establishes whole-workload compliance. The owner clarified a +20% combined-workload allowance, with higher individual increases permitted; +50% overall is unacceptable. Compare total spend at representative task frequencies, not an unweighted mean of percentage changes.
+- Removing duplicate feedback reduced one serialized packet by 35.8% in characters, not a demonstrated token or bill saving. Preserve substantive corrections and original sources once; replace repeated representation rather than cutting evidence. See the [investigation and next implementation plan](./plans/ZOPEDIA_REASONING_QUALITY_COST_2026-10-15.md).
+- An overall cost estimate must include full scheduled workloads. The retained complete Home run used 16.77 million captured generation tokens across 526 chat/repair attempts; a few short analytical examples do not represent its context volume or role mix. Historical Home cost also predates the proposed routing, so establish per-role tokens and frequency before repricing or projecting an application-wide percentage.
+- Worker names do not establish workload identity: earlier news/dossier probes used the Trading Agent Azure worker with explicit task overrides. Actual retained Trading Agent candidate batches used 0.67–0.88 million tokens. Repricing one batch's reported Flash usage to Pro for core roles raises its fixed-token cost by roughly 167%, far more than small feedback overhead. Keep model-routing rollout cost separate from marginal handoff cost, and do not assume cross-model cache reuse.
+- Daily cost requires actual execution frequency and failed work. The October 15 provider total is $37.21; a read-only SQL/outbox merge accounts for $35.64, dominated by $27.03 news and $5.92 Home. One configured platform retry created a fresh application run and bought another $4.19 of work. The archive held 161 receipts absent from SQL, worth $1.635. Read archived receipts without double counting logical gateway events, retain the remaining gap and prioritize the dominant production workload over cheap-review token savings. See the [daily audit](./architecture/AQL/audits/ZOPEDIA_DAILY_SPEND_2026-10-15.md).
+- A barbell must follow analytical responsibility and actual token volume. Home/Trading/queued-query synthesis uses only 6.11 million known tokens here; selectively upgrading it adds $4.21 with cold Pro caches. Blanket synthesis promotion also upgrades 28.64 million news input tokens and raises the reference daily bill by 54.7%. A small call share is not necessarily a small cost share. See the [offline allocation proposal](./plans/ZOPEDIA_REASONING_QUALITY_COST_2026-10-15.md#barbell-model-allocation--proposal-october-15).
+- Reuse identity should follow a producer's actual dependencies, while full run configuration remains provenance. The local artifact key includes the complete flow revision, so a reviewer/monitor change can invalidate unchanged company research. Preserve source, prompt, model, authorization and environment boundaries without invalidating unrelated upstream work.
+- Cheap-model optimization must separate input from reasoning. Known production spend here is 78.5% input; review costs $7.39 but only $0.79 is reasoning, and retrieval planning costs $4.13 but only $0.20 is reasoning. Resolved-search execution, context reuse and avoiding unnecessary rewrites have more scope than simply disabling thinking. See the [offload review](./plans/ZOPEDIA_REASONING_QUALITY_COST_2026-10-15.md#upgrade-downgrade-and-offload-review--proposal-october-15).
+- Combine cost opportunities on disjoint or sequentially reduced inputs. The savings scenarios separate news excluding search planning, all search planning, and cache discounts on remaining non-premium input. Retry recovery is inside news reuse, not a second saving. Assumed eligible fractions produce about $4–$8 of savings on the $37.21 reference day; they are scenario inputs, not measured results.
+- Breadth, depth and display limits need distinct owners. Trading already separates per-horizon shortlist, shared company research pool and final output; Home separates candidate research and enrichment. Expose effective producer overrides alongside shared defaults. Tool allowances are neither call counts nor guaranteed spend, concurrency mainly controls latency, and source read windows must preserve continuation to full retained originals. See the [workload tuning proposal](./plans/ZOPEDIA_REASONING_QUALITY_COST_2026-10-15.md#breadth-depth-and-refresh-controls--proposal).
+
+## Native workbench refinement — 2026-10-15
+
+- Independently generated highlight selections need their own date/lineage. Comparing their run ID to the newer Home run hid five valid charts. Live reads choose the latest valid selection; historical replay remains pinned to its original bundle.
+- Numerical fundamentals used for ranking do not automatically reach company research. Reuse the existing quarter-aware snapshot owner at the research boundary, preserve dates and actual absent coverage, and read the complete forward thesis at the requested horizon. The same IOVA findings supported a 3M long and a 1Y Watch without a coded call quota.
+- Evaluate a release against its actual pinned worker source/configuration. Trials on unrelated in-progress engine changes had deadlines; the scoped accepted worker produced a substantive typed candidate. A bounded candidate review is not full-job reliability acceptance.
+- Render reduction and preparation ownership solve different costs. Keep outer K, a phone mark limit, cached full-universe scales and off-main hull selection. The 999-instrument Mac benchmark is algorithm evidence, not a phone FPS result.
+- A free Personal Team has no push entitlement. Session-owned polling can update/notify while foregrounded and recover on return; it cannot deliver completion while locked or closed. Preserve that deployment limitation explicitly.
+
+- Zero shares traded is a quantitative zero, not missing coverage. Use a zero-safe logarithmic transform, and label absent direction/volume rather than leaving an unexplained shape or implying a measured area.
+
+- Azure can report a job execution Running after one replica died and an automatic retry began. Check replica states and timestamps. This Trading trial exited137 during company research with a1.68GiB sampled peak against2GiB; memory pressure is suspected, but that is not a captured OOM or an identified allocation. Stop only the test execution to prevent repeated paid work while investigating.
+
+- Retrieve candidate identities before complete evidence bodies. Keeping the same lexical/semantic candidates, source diversity and full returned content reduced one snapshot search's tracked temporary allocation from26.59MB to1.93MB. Stabilize SQL ties before comparing exact rankings; unspecified equal-score ordering can obscure equivalence.
+- Outcome scoring needs historical candidate symbols, benchmark and price columns. A frozen comparison retained all96 candidates across all6 available versions and matched every outcome/provenance field while reading31,021 relevant bars from1,467,928 total. Isolated process peak fell from743MB to219MB; this does not establish full-container headroom.
+- Knowledge write permission and operational recovery are separate. Scope paid checkpoints to environment, declared access, input versions, inference contract and platform execution. A new scheduled observation stays fresh; replicas retain logical run/as-of, completed stages and unfinished evidence. Required recovery-store reads must distinguish unavailable persistence from a cache miss.
+- Supplied-evidence synthesis had an implicit60-second cap despite a300-second configured research budget and480-second provider timeout. Honor the operation budget globally and retain explicit caller limits. Four horizons were preserved; only the failed fifth was retried. Read complete outputs, not merely status or the number of directional calls.
+
+- Provenance is a graph of source records, not copied ancestry in every search hit. One real hit contained8,034 references/60,458 nested records but only689 distinct records. Linked records preserve metadata and ancestry; agent search can expose a callable provenance read while retaining every passage/date. The recorded160-source checkpoint fell197MB→0.73MB without reducing recall or text. Keep the raw SAA reader's full-reference default for ingestion consumers and preserve source read resources during materialization.
+- Recover paid acquisition through its original clock, state and tool results. Resuming the failed MRNA investigation required only one new search; seven completed companies were not repurchased. A completed answer is execution evidence only: personally reading it still exposed seasonal-comparison and horizon-consistency errors, so the QA answer remains unpublished.
+
+## Admin health and hierarchical evidence experiments — 2026-10-15
+
+- Keep monitoring failure domains independent: database acquisition failures must not erase Azure metrics, and an allocation lookup failure must not discard successfully collected usage. Preserve observation times and unknown usage/pricing. Authenticated Admin requests share cached collections to avoid telemetry-driven fan-out.
+- A summary catalog plus callable originals does not establish effective retrieval. In cheap matched trials the agent often answered from its overview and missed consequential calculations, tier restrictions or detailed benchmark comparisons. Personally assess the complete answer and tool behavior before treating compression as an improvement.
+- Freeze the actual imported engine source for a controlled experiment in a shared workspace. Record source hashes, summary construction and reuse, all provider attempts and interrupted unknown charges; exploratory results from changing code are not a matched comparison.
+
+- An original-read option has to be visible at the decision point. Catalog entries and guidance placed after a long overview can fall outside the planner preview. Making them visible increased some reads, but complete-answer review still found earlier summary errors surviving those reads. The cheap hierarchy batch remains unaccepted: 38 final-batch answers, $0.37509 known total investigation cost plus one unpriced interrupted attempt.
+
+
+## Transaction-owned SQL sessions — 2026-10-16
+
+A logical job/session can outlive many SQL transactions without holding a physical connection during model or browser waits. Preserve explicit transactions, savepoints and session advisory locks deliberately; verify those contracts against PostgreSQL. Bounded per-process pools are not a server-wide connection budget.
+
+Navigation must separate narrative context, plotted observations and original media. A completed schema-valid answer can still make an unplotted comparison or overstate what one financial series establishes; personally read captions against the complete source arrays.
+
+## Native production promotion — 2026-10-16
+
+- Promote immutable, role-specific images after comparing the current production baseline. Preserve schedules, identities, resources and full container templates with an image-only update; a fresh GET is the configuration receipt.
+- In-place same-bundle installation preserves the app's session boundary. Build8 inventory and successful post-launch authenticated `/v1/me`, conversation and portfolio reads establish the actual phone path without copying credentials or resetting Keychain.
+
+- A read-only deployment verifier must resolve the target's actual secret binding. Local dotenv credentials can silently override the correct production secret name even when all runtime flags are copied. Check dataset run/version identity as well as connectivity.
+- Acquisition replay deliberately excludes write-capable research. Dev's explicit `none` policy and production's preserved `safe_auto` default have different recovery eligibility; keep that boundary in release claims.
+
+- Full production inference confirmed the provenance repair under the unchanged1CPU/2GiB allocation:8 company reports,5 horizons,20 cards and204 outcomes;646,582,272-byte cgroup peak, one successful replica with no restart. Keep this fresh-work evidence distinct from the earlier recorded-work stress check and from research/forecast quality.
+- Read the full company brief and the final horizon cards separately. The final MRNA card expressed the direction correctly while its upstream brief reversed invalidation labels; a completed execution and mixed long/short output do not establish consistent reasoning.
+
+
+## Reasoning ownership and verification handoffs — 2026-10-16
+
+- The analytical model must retain control after requesting a tool; returning to the acquisition model loses analytical ownership. A compact tool-or-answer contract avoids regenerating planner bookkeeping and replaces a separate synthesis call.
+- A successful calculation is useless to the next model if the context carries only stdout statistics. Keep optional summary views, but pass actual bounded computation results as original evidence to analysis and review. Pure computation does not require a dataset.
+- Put each review edit beside its checked claim, and checkpoint the completed review before starting correction inference. Resume a pending correction directly, preserving review-cycle usage and the remaining run budget. This protects paid work; it does not prove the correction is right.
+- Pro/high completed some correct analyses where Pro/max exceeded a 90-second step limit, but later high-effort corrections also timed out. A tier/effort change and passing mechanical checks do not establish reliable reasoning or a workload cost improvement. The October 16 candidate remains held.
+
+## Combined development reliability release — 2026-10-16
+
+Use the same ARM API version to read and patch a resource; CLI-expanded response fields are not necessarily writable. Preserve complete templates, wait for asynchronous readiness, then compare configuration and immutable images. A complete accepted source union must preserve each consumer’s deployed import contracts; a successful API import alone cannot establish worker compatibility.
+
+Separate source observation time from publication time when replaying dated material. Keep runtime execution checks distinct from personal reasoning review: the live dev answer completed but still used a weak seasonal comparison, so the reasoning candidate remains held.
+
+- Frozen baseline/candidate evals are the primary LLM-quality comparison. Fresh inference can use immutable evidence and isolated replay tools; it does not imply current-web research or a production run. Keep development/held-out cases distinct, inspect review improvements and regressions separately, and weight complete-workflow cost by actual workload frequency.
+
+## Production telemetry under database saturation — 2026-10-16
+
+A monitoring read model needs a total request budget as well as per-query timeouts. Slow SQL must not hide independently collected Azure metrics or Blob publication dates. Share in-flight collections by snapshot identity, bound queued work, retain completed observations and give a contiguous SQL collection one physical lease. The real loaded-server review returned six publication records, 17 resources and four metric series in 20 seconds while explicitly leaving SQL collection pending.
+
+Application connection defaults do not cover uncapped legacy connections. Preserve a database-role default as a safety net, verify it on a fresh connection and retain its rollback. Operational read cancellation and connection termination must be tied to the inspected query family, backend identity and execution age; they do not establish that the database load is fully resolved.
+
+Connection ownership, publication recovery and service recovery require separate evidence. Per-process limits do not bound aggregate query work; a valid Blob pointer is not an isolated serving path if its reader still waits on SQL. Health observation must complete independently of maintenance backlog. Use the actual overlap of serving, scheduled work and recovery to assess the overall outcome. [October 16 failure analysis](./research/system-reliability/PRODUCTION_FAILURES_2026-10-16.md).
+
+Open LLM questions and their complete evidence now have a [master research index](./research/README.md). Preserve control successes and evaluator/protocol mistakes alongside model failures. The hierarchy record distinguishes analytical omission despite surviving figures, exception loss, inadequate revision after original reads and errors shared with full-source controls; none establishes a universal fixed-depth or mandatory-read policy.
+
+## Database lifecycle and refresh pacing — 2026-10-16
+
+A thread timeout must cancel the operation it owns, prevent later IO and retain its database permit until SQL ends and rollback completes. On this Azure PostgreSQL binding, the driver's cancellation transport timed out; cancellation through a bounded independent SQL connection worked. Match PID, backend start time, database and application label, and synchronize callback removal with connection reuse so an expired owner cannot cancel a later borrower.
+
+Global admission should cover database phases across processes, while releasing connections during provider calls. Protect interactive/progress capacity independently of background transactions. Let background work wait within its real execution budget rather than inheriting an urgent interactive queue timeout. A concurrency allowance protects slots, not a fixed percentage of CPU, and only participating deployments obey it.
+
+Publication identity is sufficient to serve a completed immutable dataset. Stable Blob manifests can keep normal latest reads independent of a saturated SQL index; update latest pointers with conditional writes and prevent older generations replacing newer ones. Keep metadata misses coalesced and frame caches keyed by version. Checkpoint source projection after successful persistence, batch cold-start work, and skip unchanged versions without reducing retained evidence. Health observation must not drain recovery work. [Active repair and acceptance](plans/DATABASE_WORK_LIFECYCLE_2026-10-16.md).

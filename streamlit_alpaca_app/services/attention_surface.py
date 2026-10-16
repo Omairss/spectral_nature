@@ -14,63 +14,11 @@ from .common.market_activity import (
 )
 
 
-def _looks_like_numeric_market_activity_sentence(sentence: object) -> bool:
-    return _looks_like_stat_dump(sentence) and not _has_causal_language(sentence)
-
-
-def _looks_like_absence_sentence(sentence: object) -> bool:
-    clean = " ".join(str(sentence or "").split()).lower()
-    if not clean:
-        return False
-    return bool(
-        re.search(
-            r"\b(?:no|not|without|lacks?|missing|unclear|unresolved|unconfirmed|unidentified|unknown)\b"
-            r"(?:(?![.!?]).){0,80}"
-            r"\b(?:catalyst|driver|trigger|reason|evidence|news|company-specific news|source support)\b",
-            clean,
-        )
-        or re.search(
-            r"\b(?:catalyst|driver|trigger|reason|evidence|news|company-specific news|source support)\b"
-            r"(?:(?![.!?]).){0,80}"
-            r"\b(?:not|without|missing|unclear|unresolved|unconfirmed|unidentified|unknown)\b",
-            clean,
-        )
-    )
 
 
 def clean_attention_text(text: object) -> str:
-    clean = " ".join(str(text or "").split())
-    if not clean:
-        return ""
-    sentences = re.split(r"(?<=[.!?])\s+", clean)
-    kept: list[str] = []
-    dropped_low_signal = False
-    for sentence in sentences:
-        sentence = sentence.strip()
-        if not sentence:
-            continue
-        if re.search(
-            r"\b(observed|expected|residual|zscore|z-score|attention score|20-day baseline)\b|"
-            r"\bz away from expectation\b|"
-            r"\bversus an expected\b|"
-            r"\bleaving a residual\b",
-            sentence.lower(),
-        ):
-            dropped_low_signal = True
-            continue
-        if _looks_like_numeric_market_activity_sentence(sentence):
-            dropped_low_signal = True
-            continue
-        if _looks_like_absence_sentence(sentence):
-            dropped_low_signal = True
-            continue
-        kept.append(sentence)
-    trimmed = " ".join(kept[:2]).strip()
-    if trimmed:
-        return trimmed
-    if dropped_low_signal:
-        return ""
-    return clean
+    """Normalize a narrative boundary without changing its reviewed content."""
+    return "" if text is None else str(text).strip()
 
 
 def has_causal_language(text: object) -> bool:

@@ -1,12 +1,52 @@
 import SwiftUI
 
 struct AttentionGraphView: View {
+  private enum Movement {
+    case up, down, flat, context, unavailable
+    init(marker: String) {
+      switch marker {
+      case "triangle-up", "triangle-up-open": self = .up
+      case "triangle-down", "triangle-down-open": self = .down
+      case "circle": self = .flat
+      case "circle-open", "diamond", "diamond-open": self = .context
+      default: self = .unavailable
+      }
+    }
+    var label: String {
+      switch self {
+      case .up: return "Up"
+      case .down: return "Down"
+      case .flat: return "Flat"
+      case .context: return "Context"
+      case .unavailable: return "Movement unavailable"
+      }
+    }
+    var color: Color {
+      switch self {
+      case .up: return Theme.teal
+      case .down: return Theme.coral
+      case .flat: return Theme.blue
+      case .context, .unavailable: return .gray
+      }
+    }
+    var icon: String {
+      switch self {
+      case .up: return "arrowtriangle.up.fill"
+      case .down: return "arrowtriangle.down.fill"
+      case .flat: return "circle.fill"
+      case .context: return "diamond"
+      case .unavailable: return "questionmark.circle"
+      }
+    }
+  }
   private struct Node: Identifiable {
     let id: Int
     let x: Double
     let y: Double
     let label: String
+    let title: String
     let group: String
+    let movement: Movement
   }
   private struct Edge {
     let x1: Double
@@ -30,11 +70,12 @@ struct AttentionGraphView: View {
           index < trace["hovertext"].array.count ? trace["hovertext"].array[index].string : text
         let detail = hover.replacingOccurrences(of: "<br>", with: "\n").replacingOccurrences(
           of: "<[^>]+>", with: "", options: .regularExpression)
-        let label =
-          text.isEmpty
-          ? detail.components(separatedBy: "\n").first ?? ""
-          : text.components(separatedBy: "<br>").first ?? ""
-        output.append(Node(id: output.count, x: x, y: y, label: label, group: trace["name"].string))
+        let label = text.components(separatedBy: "<br>").first ?? ""
+        let title = label.isEmpty ? detail.components(separatedBy: "\n").first ?? "" : label
+        let markers = trace["marker"]["symbol"]
+        let marker = index < markers.array.count ? markers.array[index].string : markers.string
+        output.append(Node(id: output.count, x: x, y: y, label: label, title: title,
+          group: trace["name"].string, movement: Movement(marker: marker)))
       }
     }
     return output
@@ -58,6 +99,11 @@ struct AttentionGraphView: View {
     let spanY = max((nodes.map(\.y).max() ?? 1) - minY, 0.000001)
     let selectedNode = nodes.first { $0.id == selected }
     VStack(alignment: .leading, spacing: 16) {
+      HStack(spacing: 16) {
+        ForEach([Movement.up, .down, .flat, .context], id: \.label) { movement in
+          Label(movement.label, systemImage: movement.icon).foregroundStyle(movement.color)
+        }
+      }.font(.caption).padding(.horizontal, 20).accessibilityElement(children: .combine)
       HStack {
         Image(systemName: "minus.magnifyingglass")
         Slider(value: $zoom, in: 1...3).accessibilityLabel("Network zoom")
@@ -70,7 +116,9 @@ struct AttentionGraphView: View {
       if let node = selectedNode {
         VStack(alignment: .leading, spacing: 8) {
           Text(node.group).font(.caption).foregroundStyle(Theme.violet)
-          Text(node.label).font(.subheadline).textSelection(.enabled)
+          Text(node.title).font(.subheadline).textSelection(.enabled)
+          Label(node.movement.label, systemImage: node.movement.icon)
+            .font(.subheadline.weight(.medium)).foregroundStyle(node.movement.color)
         }.padding(.horizontal, 20)
       }
       GeometryReader { geometry in
@@ -98,22 +146,24 @@ struct AttentionGraphView: View {
                 selected = node.id
               } label: {
                 VStack(spacing: 3) {
-                  Circle().fill(selected == node.id ? Theme.violet : Theme.teal).frame(
-                    width: selected == node.id ? 14 : 9, height: selected == node.id ? 14 : 9)
-                  if !node.label.isEmpty {
-                    Text(node.label).font(.system(size: 9)).foregroundStyle(.primary).lineLimit(1)
+                  Image(systemName: node.movement.icon).font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(node.movement.color)
+                    .padding(4)
+                    .overlay(Circle().stroke(selected == node.id ? Theme.violet : .clear, lineWidth: 2))
+                  if !node.label.isEmpty || selected == node.id {
+                    Text(node.title).font(.system(size: 9)).foregroundStyle(Theme.text).lineLimit(1)
                   }
                 }.frame(width: 68, height: 44).contentShape(Rectangle())
               }.buttonStyle(.plain).position(
                 position(node.x, node.y, minX, minY, spanX, spanY, side)
-              ).accessibilityLabel(node.label.isEmpty ? node.group : node.label)
+              ).accessibilityLabel("\(node.title.isEmpty ? node.group : node.title), \(node.movement.label)")
             }
           }.frame(width: side, height: side)
         }
       }
     }.padding(.top, 16).navigationTitle("Attention network").navigationBarTitleDisplayMode(.inline)
       .workbench().researchContext(
-        "Daily Brief attention network; artifact_id=\(artifact["artifact_id"].string); selected=\(selectedNode?.label ?? "")"
+        "Daily Brief attention network; artifact_id=\(artifact["artifact_id"].string); selected=\(selectedNode?.title ?? "")"
       )
   }
   private func position(

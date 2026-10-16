@@ -24,6 +24,7 @@ HOLDING_FIELDS = (
     "expirations", "multiplier", "implied_volatility", "open_interest", "volume", "delta", "gamma",
     "theta", "vega", "rho",
 )
+OPPORTUNITY_FIELDS = ("set_key", "name", "kind", "member_count", "analytics_status")
 
 
 def _frame(value: object) -> pd.DataFrame:
@@ -166,7 +167,7 @@ def build_portfolio_view(
             "equity_analytics": equity_analytics,
             "performance": _performance(timeseries),
             "account_performance": to_jsonable(list(details.get("performance_accounts") or [])),
-            "opportunity_sets": to_jsonable(list(details.get("opportunity_sets") or [])),
+            "opportunity_sets": _records(_frame(details.get("opportunity_sets")), OPPORTUNITY_FIELDS),
             "refresh": to_jsonable(dict(details.get("refresh") or {})),
             "collector_errors": to_jsonable(dict(details.get("collector_errors") or {})),
             "capabilities": to_jsonable(dict(details.get("capabilities") or {})),
@@ -207,4 +208,44 @@ def build_portfolio_view(
     }
 
 
-__all__ = ["PERIODS", "build_portfolio_view"]
+def build_portfolio_opportunity_view(context: UserContext, *, period: str = "5Y") -> dict[str, Any]:
+    selected_period = str(period or "5Y").strip().upper()
+    if selected_period not in PERIODS:
+        raise ValueError("Portfolio period is invalid.")
+    # Use the same membership and environment checks as the holdings read.
+    # List analytics load independently, so a chart failure cannot hide holdings.
+    snapshot = robinhood_main.portfolio_snapshot(user_id=context.user_id, portfolio_id=context.portfolio_id)
+    if snapshot is None:
+        raise robinhood_main.RobinhoodMainError("Linked portfolio data is unavailable.")
+    sets = list(dict(snapshot.get("details") or {}).get("opportunity_sets") or [])
+    keys = [str(item["set_key"]) for item in sets if isinstance(item, dict)
+            and item.get("set_key") and item.get("kind") != "screener"
+            and item.get("analytics_status") == "ready"]
+    analytics = robinhood_main_analytics.opportunity_analytics(
+        portfolio_id=context.portfolio_id, environment=robinhood_main.environment_name(),
+        lookback=selected_period, group_keys=keys,
+    ) if keys else {}
+    correlation = analytics.get("correlation", pd.DataFrame())
+    rankings = _records(analytics.get("rankings", pd.DataFrame()))
+    series_frame = analytics.get("series", pd.DataFrame())
+    histories = [
+        {"group_key": str(key), "points": [
+            {"date": point["timestamp"], "value": point["index"]}
+            for point in _records(group, ("timestamp", "index"))
+        ]}
+        for key, group in series_frame.groupby("group_key", sort=False)
+    ] if not series_frame.empty else []
+    return {
+        "status": "available" if rankings else "unavailable",
+        "series": histories,
+        "rankings": rankings,
+        "contributions": _records(analytics.get("contributions", pd.DataFrame())),
+        "correlation": {"keys": list(correlation.columns),
+                        "labels": [next((row["group"] for row in rankings if row["group_key"] == key), key) for key in correlation.columns],
+                        "values": to_jsonable(correlation.to_numpy())},
+        "sets": _records(_frame(sets), OPPORTUNITY_FIELDS), "return_period": selected_period, "risk_period": "1Y",
+        "as_of": str(snapshot.get("source_updated_at") or ""),
+    }
+
+
+__all__ = ["PERIODS", "build_portfolio_view", "build_portfolio_opportunity_view"]

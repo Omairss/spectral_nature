@@ -16,7 +16,10 @@ from .config import AppConfig
 
 
 class AlpacaAPIError(RuntimeError):
-    pass
+    def __init__(self, message: str, *, status_code: int | None = None, payload: Any = None):
+        super().__init__(message)
+        self.status_code = status_code
+        self.payload = payload
 
 
 @dataclass
@@ -194,7 +197,11 @@ class AlpacaAPI:
             if should_retry and attempt < max_attempts:
                 self._sleep(self._retry_delay_seconds(attempt, resp.headers))
                 continue
-            raise AlpacaAPIError(last_error)
+            try:
+                error_payload = resp.json()
+            except ValueError:
+                error_payload = None
+            raise AlpacaAPIError(last_error, status_code=resp.status_code, payload=error_payload)
 
         raise AlpacaAPIError(last_error or "Alpaca request failed")
 
@@ -216,6 +223,15 @@ class AlpacaAPI:
             f"/v2/assets/{normalized_symbol}",
         )
         return payload or {}
+
+    def get_market_calendar(self, *, start: str, end: str) -> list[dict[str, Any]]:
+        payload = self._request(
+            "GET", self.config.alpaca_trading_base_url, "/v2/calendar",
+            params={"start": start, "end": end, "date_type": "TRADING"},
+        )
+        if not isinstance(payload, list) or not payload or any(not isinstance(row, dict) or not row.get("date") for row in payload):
+            raise AlpacaAPIError("Market calendar is unavailable.")
+        return payload
 
     def get_positions(self) -> pd.DataFrame:
         try:
@@ -380,6 +396,7 @@ class AlpacaAPI:
         end: datetime | None = None,
         timeframe: str = "1Day",
         feed: str = "iex",
+        adjustment: str = "all",
     ) -> dict[str, pd.DataFrame]:
         normalized_symbols = self._normalize_symbols(symbols)
         if not normalized_symbols:
@@ -387,7 +404,7 @@ class AlpacaAPI:
 
         end = end or datetime.now(timezone.utc)
         start = start or (end - timedelta(days=365))
-        by_symbol: dict[str, list[dict[str, Any]]] = {}
+        parsed: dict[str, pd.DataFrame] = {}
 
         # Alpaca's bars endpoint applies the limit to the whole request, not per symbol.
         # Large universes therefore need batching or the later symbols can be silently dropped.
@@ -395,6 +412,10 @@ class AlpacaAPI:
         batch_size = self._stock_bars_batch_size()
         pause_seconds = self._batch_pause_seconds()
         for index, batch in enumerate(self._chunked(deduped_symbols, batch_size), start=1):
+            # Keep raw JSON bounded to one batch. Historical universes contain
+            # millions of bars; retaining all dicts alongside their DataFrames
+            # can exceed the worker's memory before the fetch completes.
+            by_symbol: dict[str, list[dict[str, Any]]] = {}
             page_token: str | None = None
             while True:
                 params = {
@@ -402,7 +423,7 @@ class AlpacaAPI:
                     "timeframe": timeframe,
                     "start": start.isoformat(),
                     "end": end.isoformat(),
-                    "adjustment": "all",
+                    "adjustment": adjustment,
                     "feed": feed,
                     "sort": "asc",
                     "limit": 10000,
@@ -433,33 +454,36 @@ class AlpacaAPI:
                 if page_token is None:
                     break
 
-        parsed: dict[str, pd.DataFrame] = {}
-        for symbol, rows in by_symbol.items():
-            frame = pd.DataFrame(rows)
-            if frame.empty:
-                parsed[symbol] = frame
-                continue
+            for symbol, rows in by_symbol.items():
+                frame = pd.DataFrame(rows)
+                if frame.empty:
+                    parsed.setdefault(symbol, frame)
+                    continue
 
-            rename_map = {
-                "t": "timestamp",
-                "o": "open",
-                "h": "high",
-                "l": "low",
-                "c": "close",
-                "v": "volume",
-                "n": "trade_count",
-                "vw": "vwap",
-                "S": "symbol",
-            }
-            frame = frame.rename(columns=rename_map)
-            if "timestamp" in frame.columns:
-                frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True, errors="coerce")
-            for col in ["open", "high", "low", "close", "volume", "trade_count", "vwap"]:
-                if col in frame.columns:
-                    frame[col] = pd.to_numeric(frame[col], errors="coerce")
+                rename_map = {
+                    "t": "timestamp",
+                    "o": "open",
+                    "h": "high",
+                    "l": "low",
+                    "c": "close",
+                    "v": "volume",
+                    "n": "trade_count",
+                    "vw": "vwap",
+                    "S": "symbol",
+                }
+                frame = frame.rename(columns=rename_map)
+                if "timestamp" in frame.columns:
+                    frame["timestamp"] = pd.to_datetime(frame["timestamp"], utc=True, errors="coerce")
+                for col in ["open", "high", "low", "close", "volume", "trade_count", "vwap"]:
+                    if col in frame.columns:
+                        frame[col] = pd.to_numeric(frame[col], errors="coerce")
 
-            frame = frame.sort_values("timestamp")
-            parsed[symbol.upper()] = frame
+                previous = parsed.get(symbol.upper())
+                if previous is not None and not previous.empty:
+                    frame = pd.concat([previous, frame], ignore_index=True)
+                parsed[symbol.upper()] = frame.sort_values("timestamp")
+            by_symbol.clear()
+            del payload
 
         return parsed
 
@@ -489,6 +513,49 @@ class AlpacaAPI:
                 self._sleep(pause_seconds)
         return snapshots
 
+    def iter_market_data_pages(
+        self, path: str, params: dict[str, Any], *, page_token: str | None = None
+    ) -> Iterator[dict[str, Any]]:
+        """Read a complete, resumable market-data query without truncating pages."""
+        seen: set[str] = set()
+        while True:
+            query = dict(params)
+            if page_token:
+                if page_token in seen:
+                    raise AlpacaAPIError("Market data pagination repeated a token")
+                seen.add(page_token)
+                query["page_token"] = page_token
+            payload = self._request("GET", self.config.alpaca_data_base_url, path, params=query)
+            yield payload
+            page_token = payload.get("next_page_token") or payload.get("nextPageToken")
+            if not page_token:
+                return
+
+    def iter_news_pages(
+        self,
+        symbols: list[str] | None = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
+        *,
+        page_size: int = 50,
+        include_content: bool = True,
+        sort: str = "asc",
+        page_token: str | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Historical/news-wide acquisition; an omitted symbol filter means all news."""
+        params: dict[str, Any] = {
+            "sort": sort,
+            "limit": min(max(int(page_size), 1), 50),
+            "include_content": str(include_content).lower(),
+        }
+        if symbols:
+            params["symbols"] = ",".join(sorted(set(self._normalize_symbols(symbols))))
+        if start is not None:
+            params["start"] = start.isoformat()
+        if end is not None:
+            params["end"] = end.isoformat()
+        yield from self.iter_market_data_pages("/v1beta1/news", params, page_token=page_token)
+
     def get_news(
         self,
         symbols: list[str],
@@ -500,37 +567,17 @@ class AlpacaAPI:
         if not normalized_symbols:
             return pd.DataFrame()
 
-        params: dict[str, Any] = {
-            "symbols": ",".join(sorted(set(normalized_symbols))),
-            "sort": "desc",
-            "limit": min(max(int(limit), 1), 50),
-        }
-        if start is not None:
-            params["start"] = start.isoformat()
-        if end is not None:
-            params["end"] = end.isoformat()
-
+        result_limit = min(max(int(limit), 1), 50)
         rows: list[dict[str, Any]] = []
-        next_page_token: str | None = None
-
-        while True:
-            page_params = dict(params)
-            if next_page_token:
-                page_params["page_token"] = next_page_token
-
-            payload = self._request(
-                "GET",
-                self.config.alpaca_data_base_url,
-                "/v1beta1/news",
-                params=page_params,
-            )
+        for payload in self.iter_news_pages(
+            normalized_symbols, start, end, page_size=result_limit, sort="desc"
+        ):
             articles = payload.get("news", []) or []
             rows.extend(articles)
-            next_page_token = payload.get("next_page_token")
-            if not next_page_token or len(rows) >= params["limit"]:
+            if len(rows) >= result_limit:
                 break
 
-        frame = pd.DataFrame(rows[: params["limit"]])
+        frame = pd.DataFrame(rows[:result_limit])
         if frame.empty:
             return frame
 

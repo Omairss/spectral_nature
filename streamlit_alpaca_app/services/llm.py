@@ -1,24 +1,96 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from contextlib import contextmanager
+from contextvars import ContextVar
 import json
 import os
+import math
+import threading
+import time
 import re
 from typing import Any, Protocol, runtime_checkable
 
 import requests
 
 from .secrets import resolve_secret_value, runtime_env_value
+from .llm_execution import execution_effort, provider_post, preserves_literal_output, ProviderHTTPSession
 
 
 class LLMAPIError(RuntimeError):
     pass
 
 
+class LLMDeadlineExceeded(LLMAPIError, TimeoutError):
+    pass
+
+
+class LLMProviderUnavailable(LLMAPIError):
+    """Terminal account state; completed research remains resumable."""
+
+
+_REQUEST_DEADLINE: ContextVar[float | None] = ContextVar("llm_request_deadline", default=None)
+
+
+@contextmanager
+def llm_request_deadline(deadline_monotonic: float | None):
+    """Share a caller's deadline without changing a client used by other threads."""
+    current = _REQUEST_DEADLINE.get()
+    deadline = min(current, deadline_monotonic) if current is not None and deadline_monotonic is not None else (
+        current if deadline_monotonic is None else deadline_monotonic
+    )
+    token = _REQUEST_DEADLINE.set(deadline)
+    try:
+        if deadline is not None:
+            _remaining_request_timeout(deadline)
+        yield
+        if deadline is not None:
+            _remaining_request_timeout(deadline)
+    finally:
+        _REQUEST_DEADLINE.reset(token)
+
+
+def _request_deadline(timeout_seconds: float) -> float:
+    deadline = time.monotonic() + timeout_seconds
+    caller_deadline = _REQUEST_DEADLINE.get()
+    return min(deadline, caller_deadline) if caller_deadline is not None else deadline
+
+
+def _remaining_request_timeout(deadline: float) -> float:
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise LLMDeadlineExceeded("LLM request deadline expired.")
+    return remaining
+
+
+def remaining_request_timeout(maximum_seconds: float) -> float:
+    """Bound nested acquisition by the same caller clock as its model work."""
+    deadline = _REQUEST_DEADLINE.get()
+    return min(float(maximum_seconds), _remaining_request_timeout(deadline)) if deadline is not None else float(maximum_seconds)
+
+
 class LLMJSONParseError(LLMAPIError):
     def __init__(self, message: str, *, raw_content: str = "") -> None:
         super().__init__(message)
         self.raw_content = raw_content
+
+
+class LLMJSONResult(dict[str, Any]):
+    """Keep provider identity and usage outside the model's schema fields."""
+
+    def __init__(self, value: dict[str, Any], response: dict[str, Any], *, repair_response: dict[str, Any] | None = None) -> None:
+        super().__init__(value)
+        self.response_metadata = {
+            "provider_reported_model": str(response.get("model") or ""),
+            "usage": response.get("usage") or {},
+            "finish_reason": (response.get("choices") or [{}])[0].get("finish_reason"),
+            "json_repair": {
+                "used": repair_response is not None,
+                "provider_reported_model": str((repair_response or {}).get("model") or ""),
+                "usage": (repair_response or {}).get("usage") or {},
+                "finish_reason": ((repair_response or {}).get("choices") or [{}])[0].get("finish_reason"),
+            },
+        }
 
 
 def _deepseek_response_error(response: requests.Response, *, operation: str = "request") -> LLMAPIError:
@@ -54,64 +126,23 @@ def _deepseek_response_error(response: requests.Response, *, operation: str = "r
     return LLMAPIError(f"DeepSeek {operation} failed: HTTP {status_code}. {detail}")
 
 
-# Words/phrases the LLM must never use in user-facing narrative.
-# These are matched case-insensitively and replaced with plain alternatives or removed.
-_JARGON_REPLACEMENTS: list[tuple[str, str]] = [
-    (r"\bidiosyncratic(?:ally)?\b", "stock-specific"),
-    (r"\bnuanced\b", ""),
-    (r"\bmultifaceted\b", ""),
-    (r"\brobust\b", "strong"),
-    (r"\bgranular\b", "detailed"),
-    (r"\blocalized\b", ""),
-    (r"\bleverag(?:e|ing|ed)\b", "use"),
-    (r"\bsynerg(?:y|ies|istic)\b", ""),
-    (r"\bparadigm\b", "model"),
-    (r"\bactionable\b", "useful"),
-    (r"\bholistic\b", "overall"),
-    (r"\bbespoke\b", "custom"),
-    (r"\bcutting-edge\b", ""),
-    (r"\bbest-in-class\b", ""),
-    (r"\bgame-changer\b", ""),
-    (r"\bdeep.dive\b", "look"),
-    (r"\bsurfacing\b", "showing"),
-    (r"\bunpack(?:ing|ed)?\b", "explain"),
-]
-
-# Style rule for all system prompts that generate user-facing narrative.
-# Import this and include it in any prompt that writes text shown to users.
+# Applied at request time by every provider adapter, including direct callers.
 NARRATIVE_STYLE_RULE = (
-    "Write like a trader speaking plainly — short sentences, real numbers, no jargon. "
-    "Lead with the conclusion. Every sentence must add a fact, an interpretation, or a concrete next check. "
-    "Do not add audience qualification, generic caveats, process narration, or commentary about tools, prompts, storage, and data plumbing. "
-    "Never use: idiosyncratic, nuanced, multifaceted, robust, granular, leverage (as a verb), "
-    "synergy, paradigm, actionable, holistic, bespoke, cutting-edge, game-changer, deep-dive, "
-    "unpack, or surface (as a verb meaning 'explain'). "
-    "Avoid trading-floor shorthand such as tape; say market data, price action, or market move. "
-    "If cause is unclear, state the exact missing evidence succinctly — do not invent a reason."
+    "Use an 80% ASD-STE100-inspired Simplified Technical English style for all text that people will read. "
+    "Write as if explaining the answer aloud to a smart person who is unfamiliar with the field. Lead with the answer. "
+    "Use ordinary words, active voice and short, connected sentences. Explain how and why things connect. "
+    "Replace jargon with what it means. When a technical term is necessary, explain it on first use. "
+    "Do not copy the sources' style or specialist shorthand. Use the same term for the same thing. "
+    "Choose the few details that answer the question; research can be broad without making the answer long. "
+    "Follow the requested length and format. An ordinary question usually needs two to four short paragraphs. "
+    "Use lists or tables when they help. Cite sources inline with useful links. "
+    "Preserve the meaning, names, numbers, dates, units and quotations of facts you include. "
+    "Distinguish reported facts from your interpretation and material unknowns. "
+    "Omit filler, repeated conclusions, generic caveats and unrequested next steps. Keep internal research notes private. "
+    "Do not change URLs, identifiers, JSON keys, code, formulas or other machine-readable fields. "
+    "Apply this preference to answers, titles, summaries, explanations, progress messages, reports, knowledge pages and audio scripts. "
+    "It is a writing preference, not a numeric compliance score or a limit on research depth."
 )
-
-
-def strip_jargon(text: str) -> str:
-    """Remove or replace known jargon words from any user-facing narrative string."""
-    if not text:
-        return text
-    result = text
-    for pattern, replacement in _JARGON_REPLACEMENTS:
-        result = re.sub(pattern, replacement, result, flags=re.IGNORECASE)
-    # Collapse double spaces left by empty replacements
-    result = re.sub(r"  +", " ", result).strip()
-    return result
-
-
-def _strip_jargon_from_dict(obj: Any) -> Any:
-    """Recursively apply strip_jargon to all string values in a dict/list structure."""
-    if isinstance(obj, str):
-        return strip_jargon(obj)
-    if isinstance(obj, dict):
-        return {k: _strip_jargon_from_dict(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [_strip_jargon_from_dict(item) for item in obj]
-    return obj
 
 
 # Registry of user-facing system prompts.
@@ -120,22 +151,54 @@ _PROMPT_REGISTRY: dict[str, dict[str, str]] = {}
 # Runtime overrides loaded from the database.
 _PROMPT_OVERRIDES: dict[str, str] = {}
 _OVERRIDES_LOADED = False
+_OVERRIDES_SCOPE = ""
+_OVERRIDES_CHECKED_AT = 0.0
+_OVERRIDES_LOCK = threading.RLock()
+_PENDING_OVERRIDES: dict[str, str | None] = {}
+_RUN_SETTINGS: ContextVar[dict[str, str] | None] = ContextVar("llm_run_settings", default=None)
+
+
+def snapshot_llm_settings(*, refresh: bool = False) -> dict[str, str]:
+    frozen = _RUN_SETTINGS.get()
+    if frozen is not None:
+        return dict(frozen)
+    load_prompt_overrides(force=refresh)
+    with _OVERRIDES_LOCK:
+        return {**{k: v["default"] for k, v in _PROMPT_REGISTRY.items()},
+                **{k: str(get_config_param(k)) for k in _PARAM_REGISTRY},
+                "__narrative_style_rule__": NARRATIVE_STYLE_RULE, **_PROMPT_OVERRIDES}
+
+
+@contextmanager
+def frozen_llm_settings(settings: dict[str, str]):
+    token = _RUN_SETTINGS.set(dict(settings))
+    try:
+        yield
+    finally:
+        _RUN_SETTINGS.reset(token)
+
+
+def active_llm_overrides() -> dict[str, str]:
+    frozen = _RUN_SETTINGS.get()
+    return frozen if frozen is not None else _PROMPT_OVERRIDES
+
 
 
 def _prompt_key(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
-def register_narrative_prompt(name: str, file: str, prompt: str, *, group: str = "") -> str:
+def register_narrative_prompt(name: str, file: str, prompt: str, *, group: str = "", stage: str = "") -> str:
     """Register a user-facing system prompt. Returns the key for use with get_prompt()."""
     key = _prompt_key(name)
-    _PROMPT_REGISTRY[key] = {"name": name, "file": file, "default": prompt, "group": group}
+    _PROMPT_REGISTRY[key] = {"name": name, "file": file, "default": prompt, "group": group, "stage": stage}
     return key
 
 
 def get_prompt(key: str) -> str:
     """Resolve the active prompt for a registered key (override or default)."""
-    override = _PROMPT_OVERRIDES.get(key)
+    load_prompt_overrides()
+    override = active_llm_overrides().get(key)
     if override is not None:
         return override
     info = _PROMPT_REGISTRY.get(key)
@@ -148,21 +211,23 @@ def list_narrative_prompts() -> list[dict[str, str]]:
     """Return all registered prompts with their active (override or default) values."""
     entries = []
     for key, info in _PROMPT_REGISTRY.items():
-        override = _PROMPT_OVERRIDES.get(key)
+        override = active_llm_overrides().get(key)
         entries.append({
             "key": key,
             "name": info["name"],
             "file": info["file"],
             "default": info["default"],
             "prompt": override if override is not None else info["default"],
-            "is_override": override is not None,
+            "is_override": override is not None and override != info["default"],
             "group": info.get("group", ""),
+            "stage": info.get("stage", ""),
         })
     return entries
 
 
 def set_narrative_prompt_override(key: str, value: str | None) -> None:
     """Set or clear a prompt override in memory. Call save_prompt_overrides() to persist."""
+    _PENDING_OVERRIDES[key] = value
     if value is None or value.strip() == _PROMPT_REGISTRY.get(key, {}).get("default", "").strip():
         _PROMPT_OVERRIDES.pop(key, None)
     else:
@@ -174,16 +239,33 @@ def set_narrative_prompt_override(key: str, value: str | None) -> None:
 _PARAM_REGISTRY: dict[str, dict[str, Any]] = {}
 
 
-def register_config_param(name: str, group: str, default: int | float, description: str) -> str:
+def register_config_param(name: str, group: str, default: int | float | str, description: str, *, choices: tuple[str, ...] = (), stage: str = "", minimum: float = 0, maximum: float | None = None, label: str = "", section: str = "", retired: bool = False, control: str = "", environment_variable: str | tuple[str, ...] = "", workload: str = "", default_resolver=None) -> str:
     """Register a tunable config parameter. Returns the key for use with get_config_param()."""
     key = f"param:{_prompt_key(name)}"
-    _PARAM_REGISTRY[key] = {"name": name, "group": group, "default": default, "description": description}
+    _PARAM_REGISTRY[key] = {"name": name, "label": label or name, "group": group, "default": default, "description": description, "choices": choices, "stage": stage, "minimum": minimum, "maximum": maximum, "section": section, "retired": retired, "control": control, "environment_variable": environment_variable, "workload": workload, "default_resolver": default_resolver}
     return key
 
 
-def get_config_param(key: str) -> int | float:
+def _config_param_default(info: dict[str, Any]) -> int | float | str:
+    default = info["default_resolver"]() if info.get("default_resolver") else info["default"]
+    names = info.get("environment_variable") or ""
+    names = (names,) if isinstance(names, str) else names
+    raw = next((os.getenv(name) for name in names if os.getenv(name)), None)
+    if raw:
+        try:
+            value = type(default)(raw)
+            if isinstance(value, (int, float)) and (not math.isfinite(value) or value < info["minimum"] or (info["maximum"] is not None and value > info["maximum"])):
+                return default
+            return value
+        except (ValueError, TypeError):
+            pass
+    return default
+
+
+def get_config_param(key: str) -> int | float | str:
     """Resolve the active value for a registered config parameter."""
-    override = _PROMPT_OVERRIDES.get(key)
+    load_prompt_overrides()
+    override = active_llm_overrides().get(key)
     if override is not None:
         try:
             info = _PARAM_REGISTRY.get(key, {})
@@ -193,7 +275,7 @@ def get_config_param(key: str) -> int | float:
             pass
     info = _PARAM_REGISTRY.get(key)
     if info:
-        return info["default"]
+        return _config_param_default(info)
     return 0
 
 
@@ -201,31 +283,43 @@ def list_config_params() -> list[dict[str, Any]]:
     """Return all registered config parameters with active values, grouped."""
     entries = []
     for key, info in _PARAM_REGISTRY.items():
-        override = _PROMPT_OVERRIDES.get(key)
-        active = info["default"]
+        override = active_llm_overrides().get(key)
+        default = _config_param_default(info)
+        active = default
         is_override = False
         if override is not None:
             try:
                 active = type(info["default"])(override)
-                is_override = True
+                is_override = active != default
             except (ValueError, TypeError):
                 pass
         entries.append({
             "key": key,
             "name": info["name"],
             "group": info["group"],
-            "default": info["default"],
+            "default": default,
             "value": active,
             "description": info["description"],
             "is_override": is_override,
+            "choices": list(info.get("choices", ())),
+            "stage": info.get("stage", ""),
+            "minimum": info.get("minimum", 0),
+            "maximum": info.get("maximum"),
+            "label": info.get("label", info["name"]),
+            "section": info.get("section", ""),
+            "retired": info.get("retired", False),
+            "control": info.get("control", ""),
+            "workload": info.get("workload", ""),
+            "source": "saved" if is_override else "environment" if any(os.getenv(name) for name in ([info["environment_variable"]] if isinstance(info.get("environment_variable"), str) else info.get("environment_variable", ()))) else "default",
         })
     return entries
 
 
 def set_config_param_override(key: str, value: int | float | None) -> None:
     """Set or clear a config parameter override. Call save_prompt_overrides() to persist."""
+    _PENDING_OVERRIDES[key] = None if value is None else str(value)
     info = _PARAM_REGISTRY.get(key)
-    if info and (value is None or value == info["default"]):
+    if info and (value is None or value == _config_param_default(info)):
         _PROMPT_OVERRIDES.pop(key, None)
     elif value is not None:
         _PROMPT_OVERRIDES[key] = str(value)
@@ -237,42 +331,46 @@ def _narrative_style_rule_key() -> str:
 
 def get_active_narrative_style_rule() -> str:
     """Return the active narrative style rule (override or default)."""
-    return _PROMPT_OVERRIDES.get(_narrative_style_rule_key(), NARRATIVE_STYLE_RULE)
+    load_prompt_overrides()
+    return active_llm_overrides().get(_narrative_style_rule_key(), NARRATIVE_STYLE_RULE)
 
 
 def set_narrative_style_rule_override(value: str | None) -> None:
     key = _narrative_style_rule_key()
+    _PENDING_OVERRIDES[key] = value
     if value is None or value.strip() == NARRATIVE_STYLE_RULE.strip():
         _PROMPT_OVERRIDES.pop(key, None)
     else:
         _PROMPT_OVERRIDES[key] = value.strip()
 
 
-def save_prompt_overrides() -> bool:
-    """Persist all prompt overrides to the database. Returns True on success."""
-    try:
-        from .pipeline_store import _db_connect
-    except ImportError:
-        return False
+def llm_settings_scope() -> str:
+    track = _env_value("", "APP_TRACK").lower() or "local"
+    return {"dev": "development", "prod": "production"}.get(track, track)
+
+
+def save_prompt_override_changes(changes: dict[str, str | None]) -> bool:
+    """Commit only submitted keys. Empty scoped values mean reset to code default."""
+    from .pipeline_store import _db_connect
+
+    scope = llm_settings_scope()
     conn = _db_connect()
     if conn is None:
         return False
     try:
         with conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    "CREATE TABLE IF NOT EXISTS llm_prompt_overrides ("
-                    "  key TEXT PRIMARY KEY,"
-                    "  value TEXT NOT NULL,"
-                    "  updated_at TIMESTAMPTZ DEFAULT NOW()"
-                    ")"
-                )
-                cur.execute("DELETE FROM llm_prompt_overrides")
-                for key, value in _PROMPT_OVERRIDES.items():
+                for key, value in changes.items():
                     cur.execute(
-                        "INSERT INTO llm_prompt_overrides (key, value) VALUES (%s, %s)",
-                        (key, value),
+                        "INSERT INTO llm_prompt_overrides (key, value, updated_at) VALUES (%s, %s, NOW()) "
+                        "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()",
+                        (f"{scope}::{key}", value.strip() if value is not None else ""),
                     )
+        # Invalidate only after a successful commit; failed writes never change active settings.
+        with _OVERRIDES_LOCK:
+            global _OVERRIDES_LOADED
+            _OVERRIDES_LOADED = False
+        load_prompt_overrides(force=True)
         return True
     except Exception:
         return False
@@ -280,31 +378,125 @@ def save_prompt_overrides() -> bool:
         conn.close()
 
 
-def load_prompt_overrides() -> None:
-    """Load prompt overrides from the database into memory."""
-    global _OVERRIDES_LOADED
-    if _OVERRIDES_LOADED:
-        return
-    _OVERRIDES_LOADED = True
-    try:
+def save_prompt_overrides() -> bool:
+    """Compatibility entry point for the Streamlit editor; never replace the table."""
+    changes = dict(_PENDING_OVERRIDES)
+    saved = save_prompt_override_changes(changes)
+    if saved:
+        _PENDING_OVERRIDES.clear()
+    else:
+        load_prompt_overrides(force=True)
+    return saved
+
+
+def load_prompt_overrides(*, force: bool = False) -> bool:
+    """Refresh a process snapshot at most every 30 seconds; retry failed loads."""
+    global _OVERRIDES_LOADED, _OVERRIDES_SCOPE, _OVERRIDES_CHECKED_AT
+    if _RUN_SETTINGS.get() is not None and not force:
+        return True
+    scope = llm_settings_scope()
+    with _OVERRIDES_LOCK:
+        now = time.monotonic()
+        if not force and scope == _OVERRIDES_SCOPE and now - _OVERRIDES_CHECKED_AT < (30 if _OVERRIDES_LOADED else 5):
+            return _OVERRIDES_LOADED
+        _OVERRIDES_CHECKED_AT = now
+        if scope != _OVERRIDES_SCOPE:
+            _PROMPT_OVERRIDES.clear()
+            _OVERRIDES_LOADED = False
+            _OVERRIDES_SCOPE = scope
         from .pipeline_store import _db_connect
-    except ImportError:
-        return
-    conn = _db_connect()
-    if conn is None:
-        return
-    try:
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT key, value FROM llm_prompt_overrides"
-                )
-                for row in cur.fetchall():
-                    _PROMPT_OVERRIDES[row[0]] = row[1]
-    except Exception:
-        pass
-    finally:
-        conn.close()
+
+        conn = _db_connect()
+        if conn is None:
+            _OVERRIDES_LOADED = False
+            return False
+        try:
+            with conn:
+                with conn.cursor() as cur:
+                    cur.execute("SELECT key, value FROM llm_prompt_overrides WHERE key NOT LIKE %s OR key LIKE %s",
+                                ("%::%", f"{scope}::%"))
+                    rows = cur.fetchall()
+            active = {key: value for key, value in rows if "::" not in key}
+            for key, value in rows:
+                if key.startswith(f"{scope}::"):
+                    local_key = key[len(scope) + 2:]
+                    if value:
+                        active[local_key] = value
+                    else:
+                        active.pop(local_key, None)
+            _PROMPT_OVERRIDES.clear()
+            _PROMPT_OVERRIDES.update(active)
+            _OVERRIDES_LOADED = True
+            return True
+        except Exception:
+            _OVERRIDES_LOADED = False
+            return False
+        finally:
+            conn.close()
+
+
+def apply_narrative_style(system_prompt: str) -> str:
+    """Generate plain language at source without modifying model output."""
+    if preserves_literal_output():
+        return system_prompt
+    return (
+        f"{system_prompt}\n\nGlobal language policy (takes precedence over other prose-style instructions; "
+        "preserve task, evidence, and output-schema requirements):\n"
+        f"{get_active_narrative_style_rule()}"
+    )
+
+
+def validate_llm_setting_changes(changes: dict[str, Any]) -> dict[str, str | None]:
+    """Validate the admin patch before any database mutation."""
+    result: dict[str, str | None] = {}
+    for key, value in changes.items():
+        if key == "flow:configuration":
+            from .llm_flow import validate_flow_configuration
+            value = None if value is None else json.dumps(validate_flow_configuration(json.loads(value) if isinstance(value, str) else value))
+        elif key in _PARAM_REGISTRY:
+            default = _PARAM_REGISTRY[key]["default"]
+            choices = _PARAM_REGISTRY[key].get("choices", ())
+            if isinstance(default, str) and value is not None:
+                if not isinstance(value, str) or not value.strip() or (choices and value not in choices):
+                    raise ValueError(f"Invalid value for {_PARAM_REGISTRY[key]['name']}.")
+            elif value is not None:
+                number = float(value)
+                info = _PARAM_REGISTRY[key]
+                if not math.isfinite(number) or number < info.get("minimum", 0) or (info.get("maximum") is not None and number > info["maximum"]) or (isinstance(default, int) and not number.is_integer()):
+                    raise ValueError(f"Invalid value for {_PARAM_REGISTRY[key]['name']}.")
+                value = str(type(default)(number))
+        elif key in _PROMPT_REGISTRY or key == _narrative_style_rule_key():
+            if value is not None and (not isinstance(value, str) or not value.strip() or len(value) > 100_000):
+                raise ValueError("Prompts must contain between 1 and 100,000 characters.")
+        elif key.startswith("runtime:"):
+            provider, field = key.removeprefix("runtime:").split(":", 1) if key.count(":") == 2 else ("", "")
+            config = load_llm_config(require_api_key=False)
+            if config is None or provider != config.provider or field not in {"model", "temperature", "timeout_seconds", "reasoning_effort", "thinking_mode"}:
+                raise ValueError("Unsupported runtime setting.")
+            if field == "model":
+                if provider == "azure_openai":
+                    raise ValueError("Azure deployment selection is managed by the deployment configuration.")
+                if value is not None and (not isinstance(value, str) or not value.strip() or len(value) > 200):
+                    raise ValueError("Enter a model name.")
+            elif field in {"temperature", "timeout_seconds"} and value is not None:
+                number = float(value)
+                low, high = (0, 2) if field == "temperature" else (10, 1800)
+                if not math.isfinite(number) or not low <= number <= high or (field == "timeout_seconds" and not number.is_integer()):
+                    raise ValueError(f"Invalid {field}.")
+                value = str(int(number) if field == "timeout_seconds" else number)
+            elif field == "reasoning_effort" and value is not None and value not in {"", "minimal", "low", "medium", "high", "max", "xhigh", "ultra"}:
+                raise ValueError("Invalid reasoning effort.")
+            elif field == "thinking_mode" and (provider != "deepseek" or value not in {None, "enabled", "disabled"}):
+                raise ValueError("Invalid thinking mode.")
+        else:
+            raise ValueError(f"Unknown LLM setting: {key}")
+        default = (_PARAM_REGISTRY.get(key) or _PROMPT_REGISTRY.get(key) or {}).get("default")
+        if key == _narrative_style_rule_key():
+            default = NARRATIVE_STYLE_RULE
+        if value is not None and default is not None and str(value).strip() == str(default).strip():
+            value = None
+        result[key] = None if value is None else str(value).strip()
+    return result
 
 
 @dataclass(frozen=True)
@@ -319,7 +511,9 @@ class LLMConfig:
     timeout_seconds: int = 480
     temperature: float = 0.2
     reasoning_effort: str = ""
+    thinking_mode: str = ""
     embedding_model: str = "text-embedding-3-small"
+    embedding_dimensions: int = 1536
 
 
 @runtime_checkable
@@ -343,6 +537,11 @@ class EmbeddingClient(Protocol):
     config: LLMConfig
 
     def generate_embeddings(self, texts: list[str]) -> list[list[float]]: ...
+
+
+def embedding_space(client: Any) -> str:
+    config = client.config
+    return f"{config.provider}:{config.base_url}:{config.embedding_deployment}:{config.embedding_model}:{config.embedding_dimensions}"
 
 
 def _clean(value: object) -> str:
@@ -424,7 +623,7 @@ def _normalized_reasoning_effort(value: object) -> str:
     effort = _clean(value).lower()
     if effort in {"", "none", "off", "disabled", "false", "0"}:
         return ""
-    if effort in {"minimal", "low", "medium", "high"}:
+    if effort in {"minimal", "low", "medium", "high", "max", "xhigh", "ultra"}:
         return effort
     return ""
 
@@ -499,7 +698,7 @@ def _json_repair_messages(
                 "Repair the model output into exactly one valid JSON object. "
                 "Use only information already present in the model output. "
                 f"The repaired object must match schema `{schema_name}`. "
-                "Do not add explanations, markdown, or fallback prose."
+                "Preserve existing string values, numbers, URLs and array values exactly. Do not rewrite prose. Do not add explanations, markdown, or fallback prose."
             ),
         },
         {
@@ -507,29 +706,31 @@ def _json_repair_messages(
             "content": (
                 f"JSON Schema:\n{schema_text}\n\n"
                 "Model output to repair:\n"
-                f"{raw_text[:12000]}"
+                f"{raw_text}"
             ),
         },
     ]
 
 
-def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
+def load_llm_config(env_prefix: str = "", *, require_api_key: bool = True) -> LLMConfig | None:
+    load_prompt_overrides()
     process_provider = _process_env_value(env_prefix, "LLM_PROVIDER")
     config_value = _process_env_value if process_provider else _env_value
     provider = (process_provider or _env_value(env_prefix, "LLM_PROVIDER") or "openai").lower()
     if provider in {"", "none", "disabled", "off"}:
         return None
 
-    api_key = _resolve_api_key(env_prefix)
-    if not api_key and provider != "local":
+    api_key = _resolve_api_key(env_prefix) if require_api_key else ""
+    if require_api_key and not api_key and provider != "local":
         return None
 
     default_models = {
-        "deepseek": "deepseek-chat",
+        "deepseek": "deepseek-v4-pro",
         "local": "local-model",
     }
     default_model = default_models.get(provider, "gpt-4.1-mini")
     model = config_value(env_prefix, "LLM_MODEL", "OPENAI_MODEL") or default_model
+    model = active_llm_overrides().get(f"runtime:{provider}:model", model)
     deployment = config_value(env_prefix, "LLM_DEPLOYMENT", "AZURE_OPENAI_DEPLOYMENT") or model
     if provider == "azure_openai":
         base_url = _normalize_azure_base_url(
@@ -553,11 +754,16 @@ def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
     reasoning_effort = _normalized_reasoning_effort(
         config_value(env_prefix, "LLM_REASONING_EFFORT", "OPENAI_REASONING_EFFORT")
     )
-    if provider in {"deepseek", "local"}:
-        # DeepSeek reasoning traces come from the reasoning model response
-        # itself. Do not forward OpenAI-style reasoning_effort settings; a
-        # global provider swap should not inherit Azure/OpenAI-only knobs.
+    if provider == "local":
         reasoning_effort = ""
+    timeout_seconds = int(active_llm_overrides().get(f"runtime:{provider}:timeout_seconds", timeout_seconds))
+    temperature = float(active_llm_overrides().get(f"runtime:{provider}:temperature", temperature))
+    reasoning_effort = active_llm_overrides().get(f"runtime:{provider}:reasoning_effort", reasoning_effort)
+    thinking_mode = active_llm_overrides().get(
+        f"runtime:{provider}:thinking_mode", config_value(env_prefix, "LLM_THINKING_MODE")
+    )
+    if provider == "deepseek" and not thinking_mode:
+        thinking_mode = "disabled" if model == "deepseek-chat" else "enabled"
     embedding_model = config_value(env_prefix, "EMBEDDING_MODEL") or "text-embedding-3-small"
     embedding_deployment = config_value(env_prefix, "EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
 
@@ -572,6 +778,7 @@ def load_llm_config(env_prefix: str = "") -> LLMConfig | None:
         timeout_seconds=timeout_seconds,
         temperature=temperature,
         reasoning_effort=reasoning_effort,
+        thinking_mode=thinking_mode,
         embedding_model=embedding_model,
     )
 
@@ -581,7 +788,7 @@ class OpenAIChatJSONClient:
         if not config.api_key:
             raise LLMAPIError("Missing LLM API key.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     def generate_json(
         self,
@@ -591,10 +798,11 @@ class OpenAIChatJSONClient:
         schema_name: str,
         schema: dict[str, Any],
     ) -> dict[str, Any]:
+        deadline = _request_deadline(self.config.timeout_seconds)
         payload = {
             "model": self.config.model,
             "messages": [
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": apply_narrative_style(system_prompt)},
                 {"role": "user", "content": user_prompt},
             ],
             "temperature": self.config.temperature,
@@ -607,6 +815,9 @@ class OpenAIChatJSONClient:
                 },
             },
         }
+        if execution_effort(self.config.reasoning_effort):
+            payload["reasoning_effort"] = execution_effort(self.config.reasoning_effort)
+            payload.pop("temperature", None)
         request_url = f"{self.config.base_url}/chat/completions"
         request_headers = {
             "Authorization": f"Bearer {self.config.api_key}",
@@ -616,25 +827,29 @@ class OpenAIChatJSONClient:
         _max_timeout_retries = 2
         for _attempt in range(_max_timeout_retries):
             try:
-                response = self.session.post(
+                response = provider_post(self, url=
                     request_url,
                     headers=request_headers,
                     json=payload,
-                    timeout=self.config.timeout_seconds,
+                    timeout=_remaining_request_timeout(deadline),
                 )
                 break
-            except (_requests_mod.exceptions.ReadTimeout, _requests_mod.exceptions.ConnectionError):
+            except (
+                _requests_mod.exceptions.ReadTimeout,
+                _requests_mod.exceptions.ConnectionError,
+                _requests_mod.exceptions.ChunkedEncodingError,
+            ):
                 if _attempt < _max_timeout_retries - 1:
                     continue
                 raise
         if response.status_code != 200 and payload.get("reasoning_effort") and _supports_reasoning_effort_retry(response.status_code, response.text):
             payload = dict(payload)
             payload.pop("reasoning_effort", None)
-            response = self.session.post(
+            response = provider_post(self, url=
                 request_url,
                 headers=request_headers,
                 json=payload,
-                timeout=self.config.timeout_seconds,
+                timeout=_remaining_request_timeout(deadline),
             )
         if response.status_code != 200:
             raise LLMAPIError(f"LLM request failed status={response.status_code}: {response.text[:400]}")
@@ -654,20 +869,31 @@ class OpenAIChatJSONClient:
         raw = _chat_message_text(message)
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
+        repair_parsed = None
         try:
             parsed_object = _extract_first_json_object(raw)
         except LLMJSONParseError as exc:
             repair_payload = dict(payload)
+            from .llm_flow import stage_client
+            repair_client, repair_route = stage_client(self, "repair")
+            repair_payload["model"] = repair_client.config.model
+            repair_payload.pop("reasoning_effort", None)
+            if repair_client.config.provider == "deepseek":
+                repair_payload["thinking"] = {"type": repair_client.config.thinking_mode}
+                if repair_client.config.thinking_mode == "enabled":
+                    repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
+            elif repair_client.config.reasoning_effort != "none":
+                repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
             repair_payload["messages"] = _json_repair_messages(
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
             )
-            repair_response = self.session.post(
+            repair_response = provider_post(repair_client, operation="json_repair", url=
                 request_url,
                 headers=request_headers,
                 json=repair_payload,
-                timeout=self.config.timeout_seconds,
+                timeout=min(_remaining_request_timeout(deadline), repair_client.config.timeout_seconds),
             )
             if repair_response.status_code != 200:
                 raise LLMAPIError(
@@ -688,7 +914,8 @@ class OpenAIChatJSONClient:
             if not repair_raw:
                 raise LLMAPIError("LLM JSON repair returned empty content.") from exc
             parsed_object = _extract_first_json_object(repair_raw)
-        return _strip_jargon_from_dict(parsed_object)
+        _remaining_request_timeout(deadline)
+        return LLMJSONResult(parsed_object, parsed, repair_response=repair_parsed)
 
 
 class AzureOpenAIChatJSONClient:
@@ -700,7 +927,7 @@ class AzureOpenAIChatJSONClient:
         if not config.deployment:
             raise LLMAPIError("Missing Azure OpenAI deployment.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     def generate_json(
         self,
@@ -710,10 +937,11 @@ class AzureOpenAIChatJSONClient:
         schema_name: str,
         schema: dict[str, Any],
     ) -> dict[str, Any]:
+        deadline = _request_deadline(self.config.timeout_seconds)
         payload = {
             "model": self.config.deployment,
             "messages": [
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": apply_narrative_style(system_prompt)},
                 {"role": "user", "content": user_prompt},
             ],
             "temperature": self.config.temperature,
@@ -726,8 +954,8 @@ class AzureOpenAIChatJSONClient:
                 },
             },
         }
-        if self.config.reasoning_effort:
-            payload["reasoning_effort"] = self.config.reasoning_effort
+        if execution_effort(self.config.reasoning_effort):
+            payload["reasoning_effort"] = execution_effort(self.config.reasoning_effort)
 
         request_url = f"{self.config.base_url}/chat/completions"
         request_headers = {
@@ -739,27 +967,31 @@ class AzureOpenAIChatJSONClient:
         _max_timeout_retries = 2
         for _attempt in range(_max_timeout_retries):
             try:
-                response = self.session.post(
+                response = provider_post(self, url=
                     request_url,
                     headers=request_headers,
                     params=request_params,
                     json=payload,
-                    timeout=self.config.timeout_seconds,
+                    timeout=_remaining_request_timeout(deadline),
                 )
                 break
-            except (_requests_mod.exceptions.ReadTimeout, _requests_mod.exceptions.ConnectionError):
+            except (
+                _requests_mod.exceptions.ReadTimeout,
+                _requests_mod.exceptions.ConnectionError,
+                _requests_mod.exceptions.ChunkedEncodingError,
+            ):
                 if _attempt < _max_timeout_retries - 1:
                     continue
                 raise
         if response.status_code != 200 and payload.get("reasoning_effort") and _supports_reasoning_effort_retry(response.status_code, response.text):
             payload = dict(payload)
             payload.pop("reasoning_effort", None)
-            response = self.session.post(
+            response = provider_post(self, url=
                 request_url,
                 headers=request_headers,
                 params=request_params,
                 json=payload,
-                timeout=self.config.timeout_seconds,
+                timeout=_remaining_request_timeout(deadline),
             )
         if response.status_code != 200:
             raise LLMAPIError(f"LLM request failed status={response.status_code}: {response.text[:400]}")
@@ -778,21 +1010,32 @@ class AzureOpenAIChatJSONClient:
         raw = _chat_message_text(message)
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
+        repair_parsed = None
         try:
             parsed_object = _extract_first_json_object(raw)
         except LLMJSONParseError as exc:
             repair_payload = dict(payload)
+            from .llm_flow import stage_client
+            repair_client, repair_route = stage_client(self, "repair")
+            repair_payload["model"] = repair_client.config.model
+            repair_payload.pop("reasoning_effort", None)
+            if repair_client.config.provider == "deepseek":
+                repair_payload["thinking"] = {"type": repair_client.config.thinking_mode}
+                if repair_client.config.thinking_mode == "enabled":
+                    repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
+            elif repair_client.config.reasoning_effort != "none":
+                repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
             repair_payload["messages"] = _json_repair_messages(
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
             )
-            repair_response = self.session.post(
-                request_url,
+            repair_response = provider_post(repair_client, operation="json_repair", url=
+                request_url.replace(f"/deployments/{self.config.deployment}/", f"/deployments/{repair_client.config.deployment}/"),
                 headers=request_headers,
                 params=request_params,
                 json=repair_payload,
-                timeout=self.config.timeout_seconds,
+                timeout=min(_remaining_request_timeout(deadline), repair_client.config.timeout_seconds),
             )
             if repair_response.status_code != 200:
                 raise LLMAPIError(
@@ -813,7 +1056,8 @@ class AzureOpenAIChatJSONClient:
             if not repair_raw:
                 raise LLMAPIError("LLM JSON repair returned empty content.") from exc
             parsed_object = _extract_first_json_object(repair_raw)
-        return _strip_jargon_from_dict(parsed_object)
+        _remaining_request_timeout(deadline)
+        return LLMJSONResult(parsed_object, parsed, repair_response=repair_parsed)
 
 
 class DeepSeekChatJSONClient:
@@ -823,7 +1067,7 @@ class DeepSeekChatJSONClient:
         if not config.base_url:
             raise LLMAPIError("Missing DeepSeek base URL.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     @property
     def provider_label(self) -> str:
@@ -840,6 +1084,7 @@ class DeepSeekChatJSONClient:
         schema_name: str,
         schema: dict[str, Any],
     ) -> dict[str, Any]:
+        deadline = _request_deadline(self.config.timeout_seconds)
         json_instruction = (
             f"Return only one valid JSON object for schema `{schema_name}`. "
             "Do not wrap it in markdown. The JSON object must match this JSON Schema:\n"
@@ -848,12 +1093,25 @@ class DeepSeekChatJSONClient:
         payload: dict[str, Any] = {
             "model": self.config.model,
             "messages": [
-                {"role": "system", "content": f"{system_prompt}\n\n{json_instruction}"},
-                {"role": "user", "content": user_prompt},
+                {"role": "system", "content": apply_narrative_style(system_prompt)},
+                {"role": "user", "content": f"{user_prompt}\n\n{json_instruction}"},
             ],
             "response_format": {"type": "json_object"},
         }
-        if not self.config.model.startswith("deepseek-reasoner"):
+        if self.config.provider == "deepseek":
+            effort_override = execution_effort()
+            effort = effort_override or self.config.reasoning_effort
+            thinking = "disabled" if effort_override == "none" else (
+                "enabled" if effort_override else self.config.thinking_mode or (
+                    "disabled" if self.config.model == "deepseek-chat" else "enabled"))
+            payload["thinking"] = {"type": thinking}
+            if thinking == "enabled" and effort:
+                payload["reasoning_effort"] = {
+                    "minimal": "low", "medium": "high", "xhigh": "high", "ultra": "max",
+                }.get(effort, effort)
+            if thinking == "disabled":
+                payload["temperature"] = self.config.temperature
+        elif not self.config.model.startswith("deepseek-reasoner"):
             payload["temperature"] = self.config.temperature
 
         request_url = f"{self.config.base_url}/chat/completions"
@@ -865,13 +1123,17 @@ class DeepSeekChatJSONClient:
         raw = ""
         for attempt in range(2):
             try:
-                response = self.session.post(
+                response = provider_post(self, url=
                     request_url,
                     headers=headers,
                     json=payload,
-                    timeout=self.config.timeout_seconds,
+                    timeout=_remaining_request_timeout(deadline),
                 )
-            except (_requests_mod.exceptions.ReadTimeout, _requests_mod.exceptions.ConnectionError):
+            except (
+                _requests_mod.exceptions.ReadTimeout,
+                _requests_mod.exceptions.ConnectionError,
+                _requests_mod.exceptions.ChunkedEncodingError,
+            ):
                 if attempt == 0:
                     continue
                 raise
@@ -893,20 +1155,31 @@ class DeepSeekChatJSONClient:
             if not choices:
                 raise LLMAPIError(f"{self.provider_label} returned no choices.")
             raise LLMAPIError(f"{self.provider_label} returned empty content.")
+        repair_parsed = None
         try:
             parsed_object = _extract_first_json_object(raw)
         except LLMJSONParseError as exc:
             repair_payload = dict(payload)
+            from .llm_flow import stage_client
+            repair_client, repair_route = stage_client(self, "repair")
+            repair_payload["model"] = repair_client.config.model
+            repair_payload.pop("reasoning_effort", None)
+            if repair_client.config.provider == "deepseek":
+                repair_payload["thinking"] = {"type": repair_client.config.thinking_mode}
+                if repair_client.config.thinking_mode == "enabled":
+                    repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
+            elif repair_client.config.reasoning_effort != "none":
+                repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
             repair_payload["messages"] = _json_repair_messages(
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
             )
-            repair_response = self.session.post(
+            repair_response = provider_post(repair_client, operation="json_repair", url=
                 request_url,
                 headers=headers,
                 json=repair_payload,
-                timeout=self.config.timeout_seconds,
+                timeout=min(_remaining_request_timeout(deadline), repair_client.config.timeout_seconds),
             )
             if repair_response.status_code != 200:
                 raise self._response_error(repair_response, operation="JSON repair") from exc
@@ -922,11 +1195,12 @@ class DeepSeekChatJSONClient:
             if not repair_raw:
                 raise LLMAPIError(f"{self.provider_label} JSON repair returned empty content.") from exc
             parsed_object = _extract_first_json_object(repair_raw)
-        result = _strip_jargon_from_dict(parsed_object)
+        result = parsed_object
         reasoning_content = _clean(message.get("reasoning_content"))
         if reasoning_content:
             result["__reasoning_content"] = reasoning_content
-        return result
+        _remaining_request_timeout(deadline)
+        return LLMJSONResult(result, parsed, repair_response=repair_parsed)
 
 
 class LocalChatJSONClient(DeepSeekChatJSONClient):
@@ -940,7 +1214,7 @@ class LocalChatJSONClient(DeepSeekChatJSONClient):
         if not config.base_url:
             raise LLMAPIError("Missing local LLM base URL.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     @property
     def provider_label(self) -> str:
@@ -951,28 +1225,69 @@ class LocalChatJSONClient(DeepSeekChatJSONClient):
         return LLMAPIError(f"Local LLM {operation} failed: HTTP {int(response.status_code)}. {detail}")
 
 
-class OpenAIEmbeddingClient:
-    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
-        if not config.api_key:
-            raise LLMAPIError("Missing LLM API key.")
-        self.config = config
-        self.session = session or requests.Session()
+def _embedding_post(session: requests.Session, *, config: LLMConfig, deadline: float, **kwargs: Any) -> requests.Response:
+    for attempt in range(4):
+        try:
+            response = provider_post(config=config, session=session, operation="embedding", timeout=_remaining_request_timeout(deadline), **kwargs)
+        except (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.ChunkedEncodingError,
+            requests.exceptions.ReadTimeout,
+        ):
+            if attempt == 3:
+                raise
+            continue
+        if response.status_code not in {429, 500, 502, 503, 504} or attempt == 3:
+            return response
+        try:
+            delay = max(float(response.headers.get("retry-after", 1)), 0.1)
+        except ValueError:
+            delay = 1.0
+        if delay >= _remaining_request_timeout(deadline):
+            return response
+        time.sleep(delay)
+    raise LLMAPIError("Embedding request retries exhausted.")
 
-    def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
-        clean_texts = [str(text or "").strip() for text in list(texts or []) if str(text or "").strip()]
-        if not clean_texts:
-            return []
-        response = self.session.post(
-            f"{self.config.base_url}/embeddings",
-            headers={
-                "Authorization": f"Bearer {self.config.api_key}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": self.config.embedding_model,
-                "input": clean_texts,
-            },
-            timeout=self.config.timeout_seconds,
+
+def _generate_openai_embedding_vectors(
+    *, config: LLMConfig, session: requests.Session, texts: list[str],
+    model: str, headers: dict[str, str], params: dict[str, str] | None = None,
+) -> list[list[float]]:
+    """Embed complete inputs within provider limits, preserving input order.
+
+    Long inputs use token-weighted, unit-normalized chunk vectors. Short inputs
+    retain the provider vector unchanged. Chunking is a transport representation;
+    it does not select or discard research content.
+    """
+    import tiktoken
+
+    clean_texts = [str(text or "").strip() for text in list(texts or []) if str(text or "").strip()]
+    if not clean_texts:
+        return []
+    deadline = _request_deadline(config.timeout_seconds)
+    requested_dimensions = getattr(config, "embedding_dimensions", None)
+    dimensions = requested_dimensions
+    # OpenAI's text embedding models use cl100k_base and allow 8,192 tokens per
+    # input, 300,000 tokens and 2,048 inputs per request. Leave one token margin.
+    encoding = tiktoken.get_encoding("cl100k_base")
+    chunks = []
+    for index, text in enumerate(clean_texts):
+        tokens = encoding.encode(text, disallowed_special=())
+        chunks.extend((index, tokens[start:start + 8191]) for start in range(0, len(tokens), 8191))
+    parts: list[list[tuple[int, list[float]]]] = [[] for _ in clean_texts]
+    start = 0
+    while start < len(chunks):
+        end, token_count = start, 0
+        while end < len(chunks) and end - start < 2048 and token_count + len(chunks[end][1]) <= 300000:
+            token_count += len(chunks[end][1])
+            end += 1
+        batch = chunks[start:end]
+        payload = {"model": model, "input": [tokens for _, tokens in batch], "encoding_format": "float"}
+        if requested_dimensions is not None and config.embedding_model.startswith("text-embedding-3"):
+            payload["dimensions"] = requested_dimensions
+        response = _embedding_post(
+            session, config=config, deadline=deadline, url=f"{config.base_url}/embeddings",
+            headers=headers, params=params, json=payload,
         )
         if response.status_code != 200:
             raise LLMAPIError(f"Embedding request failed status={response.status_code}: {response.text[:400]}")
@@ -983,14 +1298,39 @@ class OpenAIEmbeddingClient:
         data = parsed.get("data") or []
         if not isinstance(data, list):
             raise LLMAPIError("Embedding response missing data list.")
-        vectors: list[list[float]] = []
-        for item in data:
-            if not isinstance(item, dict):
-                continue
-            embedding = item.get("embedding") or []
-            if isinstance(embedding, list):
-                vectors.append([float(value) for value in embedding])
-        return vectors
+        vectors = _ordered_embedding_vectors(data, len(batch), dimensions)
+        dimensions = len(vectors[0])
+        for (index, tokens), vector in zip(batch, vectors, strict=True):
+            parts[index].append((len(tokens), vector))
+        start = end
+    result = []
+    for input_parts in parts:
+        if len(input_parts) == 1:
+            result.append(input_parts[0][1])
+            continue
+        total = sum(weight for weight, _ in input_parts)
+        vector = [math.fsum(weight * values[i] for weight, values in input_parts) / total
+                  for i in range(len(input_parts[0][1]))]
+        norm = math.sqrt(math.fsum(value * value for value in vector))
+        if not math.isfinite(norm) or norm <= 0:
+            raise LLMAPIError("Embedding chunks produced an invalid combined vector.")
+        result.append([value / norm for value in vector])
+    return result
+
+
+class OpenAIEmbeddingClient:
+    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+        if not config.api_key:
+            raise LLMAPIError("Missing LLM API key.")
+        self.config = config
+        self.session = session or ProviderHTTPSession()
+
+    def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
+        return _generate_openai_embedding_vectors(
+            config=self.config, session=self.session, texts=texts,
+            model=self.config.embedding_model,
+            headers={"Authorization": f"Bearer {self.config.api_key}", "Content-Type": "application/json"},
+        )
 
 
 class AzureOpenAIEmbeddingClient:
@@ -1002,70 +1342,88 @@ class AzureOpenAIEmbeddingClient:
         if not (config.embedding_deployment or config.embedding_model):
             raise LLMAPIError("Missing Azure OpenAI embedding deployment.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
-        clean_texts = [str(text or "").strip() for text in list(texts or []) if str(text or "").strip()]
-        if not clean_texts:
-            return []
-        response = self.session.post(
-            f"{self.config.base_url}/embeddings",
-            headers={
-                "api-key": self.config.api_key,
-                "Content-Type": "application/json",
-            },
+        return _generate_openai_embedding_vectors(
+            config=self.config, session=self.session, texts=texts,
+            model=self.config.embedding_deployment or self.config.embedding_model,
+            headers={"api-key": self.config.api_key, "Content-Type": "application/json"},
             params={"api-version": self.config.api_version} if self.config.api_version else None,
-            json={
-                "model": self.config.embedding_deployment or self.config.embedding_model,
-                "input": clean_texts,
-            },
-            timeout=self.config.timeout_seconds,
         )
-        if response.status_code != 200:
-            raise LLMAPIError(f"Embedding request failed status={response.status_code}: {response.text[:400]}")
-        try:
-            parsed = response.json()
-        except Exception as exc:
-            raise LLMAPIError(f"Embedding response returned invalid JSON: {exc}") from exc
-        data = parsed.get("data") or []
-        if not isinstance(data, list):
-            raise LLMAPIError("Embedding response missing data list.")
-        vectors: list[list[float]] = []
-        for item in data:
-            if not isinstance(item, dict):
-                continue
-            embedding = item.get("embedding") or []
-            if isinstance(embedding, list):
-                vectors.append([float(value) for value in embedding])
-        return vectors
+
+
+def _ordered_embedding_vectors(data: list[Any], count: int, dimensions: int | None) -> list[list[float]]:
+    by_index = {
+        item["index"]: item.get("embedding") for item in data if isinstance(item, dict) and "index" in item
+    }
+    if len(data) != count or set(by_index) != set(range(count)):
+        raise LLMAPIError("Embedding response does not match the input batch.")
+    vectors = [[float(value) for value in by_index[index]] for index in range(count)]
+    dimensions = dimensions if dimensions is not None else len(vectors[0])
+    if any(
+        not vector or len(vector) != dimensions or not all(math.isfinite(value) for value in vector) for vector in vectors
+    ):
+        raise LLMAPIError("Embedding response has invalid vector dimensions or values.")
+    return vectors
 
 
 def load_llm_client(env_prefix: str = "") -> JSONLLMClient | None:
     config = load_llm_config(env_prefix=env_prefix)
     if config is None:
         return None
+    return client_from_config(config)
+
+
+def client_from_config(config: LLMConfig, *, session: Any | None = None) -> JSONLLMClient:
     if config.provider == "openai":
-        return OpenAIChatJSONClient(config)
+        return OpenAIChatJSONClient(config, session=session)
     if config.provider == "azure_openai":
-        return AzureOpenAIChatJSONClient(config)
+        return AzureOpenAIChatJSONClient(config, session=session)
     if config.provider == "deepseek":
-        return DeepSeekChatJSONClient(config)
+        return DeepSeekChatJSONClient(config, session=session)
     if config.provider == "local":
-        return LocalChatJSONClient(config)
+        return LocalChatJSONClient(config, session=session)
     raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
 
 
 def load_embedding_client() -> OpenAIEmbeddingClient | AzureOpenAIEmbeddingClient | None:
-    config = load_llm_config()
-    if config is None:
+    # Embeddings are a separate capability. Never send a chat provider's key to
+    # another host or assume every OpenAI-compatible chat endpoint embeds text.
+    provider = _env_value("", "EMBEDDING_PROVIDER").lower()
+    chat = load_llm_config(require_api_key=False)
+    if not provider and chat and chat.provider in {"openai", "azure_openai"}:
+        provider = chat.provider
+    if provider not in {"openai", "azure_openai"}:
         return None
-    if config.provider in ("openai", "deepseek"):
-        return OpenAIEmbeddingClient(config)
-    if config.provider == "azure_openai":
-        if not config.embedding_deployment:
-            return None
-        return AzureOpenAIEmbeddingClient(config)
-    raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
+    base = _env_value("", "EMBEDDING_BASE_URL")
+    if not base and chat and provider == chat.provider:
+        base = chat.base_url
+    key = resolve_secret_value(["EMBEDDING_API_KEY"], secret_name_env="EMBEDDING_API_KEY_SECRET_NAME")
+    if not key and chat and provider == chat.provider and base.rstrip("/") == chat.base_url.rstrip("/"):
+        key = _resolve_api_key()
+    if not key:
+        return None
+    model = _env_value("", "EMBEDDING_MODEL") or "text-embedding-3-small"
+    deployment = _env_value("", "EMBEDDING_DEPLOYMENT", "AZURE_OPENAI_EMBEDDING_DEPLOYMENT")
+    if provider == "azure_openai" and (not base or not deployment):
+        return None
+    config = LLMConfig(
+        provider=provider,
+        api_key=key,
+        model=model,
+        embedding_model=model,
+        embedding_deployment=deployment,
+        base_url=(
+            _normalize_azure_base_url(base)
+            if provider == "azure_openai"
+            else (base or "https://api.openai.com/v1").rstrip("/")
+        ),
+        api_version=_env_value("", "EMBEDDING_API_VERSION"),
+        embedding_dimensions=int(_env_value("", "EMBEDDING_DIMENSIONS") or "1536"),
+        timeout_seconds=int(_env_value("", "EMBEDDING_TIMEOUT_SECONDS") or "30"),
+    )
+    return AzureOpenAIEmbeddingClient(config) if provider == "azure_openai" else OpenAIEmbeddingClient(config)
 
 
 def check_llm_readiness() -> dict[str, str]:
@@ -1096,23 +1454,17 @@ def check_llm_readiness() -> dict[str, str]:
     except Exception as exc:
         status["llm"] = f"error — {type(exc).__name__}: {exc}"
 
-    # Check embeddings
-    status["embedding_model"] = config.embedding_model or "(none)"
-    status["embedding_deployment"] = config.embedding_deployment or "(none)"
-    if not config.embedding_deployment:
-        status["embeddings"] = (
-            "disabled — EMBEDDING_DEPLOYMENT not set. "
-            "Semantic retrieval will not work. Set EMBEDDING_DEPLOYMENT to enable."
-        )
-    else:
-        try:
-            emb_client = load_embedding_client()
-            if emb_client is None:
-                status["embeddings"] = "unavailable — load_embedding_client returned None"
-            else:
-                status["embeddings"] = "configured"
-        except Exception as exc:
-            status["embeddings"] = f"error — {type(exc).__name__}: {exc}"
+    try:
+        emb_client = load_embedding_client()
+        if emb_client is None:
+            status["embeddings"] = "unavailable — configure EMBEDDING_PROVIDER, endpoint and credentials"
+        else:
+            status["embedding_model"] = emb_client.config.embedding_model
+            status["embedding_deployment"] = emb_client.config.embedding_deployment or "(none)"
+            status["embedding_provider"] = emb_client.config.provider
+            status["embeddings"] = "configured"
+    except Exception as exc:
+        status["embeddings"] = f"error — {type(exc).__name__}: {exc}"
 
     return status
 

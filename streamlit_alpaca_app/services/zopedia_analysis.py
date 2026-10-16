@@ -333,6 +333,7 @@ def _persist_analysis_result(conn: Any, payload: dict[str, Any]) -> None:
     run_id = str(payload.get("analysis_run_id") or "")
     created_at = payload.get("created_at_utc") or _utc_now()
     output_summary = {
+        "result": payload.get("result") or {},
         "metrics": payload.get("metrics") or [],
         "tables": [
             {key: value for key, value in dict(table).items() if key != "rows"}
@@ -1262,7 +1263,7 @@ def run_analysis_python(
             _persist_best_effort(payload, conn=conn)
         return payload
 
-    if not frames:
+    if not frames and (dataset_refs or inline_datasets):
         payload = _base_result_payload(
             status="failed",
             run_id=run_id,

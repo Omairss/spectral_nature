@@ -334,21 +334,27 @@ def _llm_macro_release_is_market_moving(
     if llm_client is None:
         return None
     try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "You are a macro analyst. Assess whether a macro data release warrants immediate market attention. "
-                "Consider the release importance tier, surprise score relative to threshold, and the component data. "
-                "Return true if the release is likely to be market-moving and should be promoted to top events."
-            ),
-            user_prompt=(
-                f"Release: {release_name}\n"
-                f"Importance tier: {importance_tier}\n"
-                f"Surprise score: {surprise_score:.1f} (threshold: {surprise_threshold:.1f})\n"
-                f"Components: {component_text[:400] if component_text else 'N/A'}"
-            ),
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=f"Release: {release_name}\nImportance tier: {importance_tier}\nSurprise score: {surprise_score:.1f} (threshold: {surprise_threshold:.1f})\nComponents: {(component_text[:400] if component_text else 'N/A')}",
+            instructions="You are a macro analyst. Assess whether a macro data release warrants immediate market attention. Consider the release importance tier, surprise score relative to threshold, and the component data. Return true if the release is likely to be market-moving and should be promoted to top events.",
             schema_name="macro_market_moving",
             schema=_LLM_MACRO_ASSESSMENT_SCHEMA,
+            task="macro_market_moving", stage='synthesis',
+            surface="services.aql.macro",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        result = engine_operation["payload"]
         is_market_moving = bool(result.get("is_market_moving"))
     except (LLMAPIError, Exception):
         return None
@@ -792,12 +798,27 @@ def _llm_macro_evidence_verdicts(
         "Use only the provided text and return strict JSON."
     )
     try:
-        data = llm_client.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
+        from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=user_prompt,
+            instructions=system_prompt,
             schema_name="macro_hypothesis_evidence",
             schema=MACRO_HYPOTHESIS_EVIDENCE_SCHEMA,
+            task="macro_hypothesis_evidence", stage='synthesis',
+            surface="services.aql.macro",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
     except Exception:
         return verdict_map
     for item in list(data.get("verdicts") or []):

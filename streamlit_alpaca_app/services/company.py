@@ -407,17 +407,28 @@ def _extract_news_themes(payload: dict[str, object] | None) -> list[str]:
     if llm_client is None:
         return []
     try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "Identify up to 3 investment narrative themes present in these financial news headlines. "
-                "Examples: 'AI rollout', 'data center buildout', 'drug pipeline', 'travel demand', "
-                "'cloud and enterprise spend', 'consumer spending', 'commodity prices', 'regulation'. "
-                "Return only themes clearly present in the text. Return fewer if fewer apply."
-            ),
-            user_prompt=f"News text: {blob[:1200]}",
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=f"News text: {blob[:1200]}",
+            instructions="Identify up to 3 investment narrative themes present in these financial news headlines. Examples: 'AI rollout', 'data center buildout', 'drug pipeline', 'travel demand', 'cloud and enterprise spend', 'consumer spending', 'commodity prices', 'regulation'. Return only themes clearly present in the text. Return fewer if fewer apply.",
             schema_name="news_themes",
             schema=_NEWS_THEMES_SCHEMA,
+            task="news_themes", stage='relevance',
+            surface="services.company",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
+            run_timeout_seconds=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        result = engine_operation["payload"]
         themes = [str(t).strip() for t in result.get("themes") or [] if str(t).strip()][:3]
     except (LLMAPIError, Exception):
         themes = []

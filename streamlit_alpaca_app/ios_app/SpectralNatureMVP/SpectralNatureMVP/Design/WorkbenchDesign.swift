@@ -1,14 +1,28 @@
 import Charts
 import SwiftUI
+import UIKit
 
 enum Theme {
   static let background = Color(red: 0.035, green: 0.043, blue: 0.051)
   static let panel = Color(red: 0.065, green: 0.075, blue: 0.086)
+  static let text = Color(red: 0.79, green: 0.82, blue: 0.84)
+  static let secondaryText = Color(red: 0.57, green: 0.62, blue: 0.66)
   static let border = Color.white.opacity(0.10)
   static let teal = Color(red: 0.32, green: 0.84, blue: 0.78)
   static let violet = Color(red: 0.70, green: 0.62, blue: 0.96)
   static let coral = Color(red: 0.94, green: 0.55, blue: 0.45)
   static let blue = Color(red: 0.42, green: 0.72, blue: 1)
+  @MainActor static func configureAppearance() {
+    let appearance = UINavigationBarAppearance()
+    appearance.configureWithOpaqueBackground()
+    appearance.backgroundColor = UIColor(background)
+    appearance.shadowColor = .clear
+    appearance.titleTextAttributes = [.foregroundColor: UIColor(text)]
+    appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(text)]
+    UINavigationBar.appearance().standardAppearance = appearance
+    UINavigationBar.appearance().scrollEdgeAppearance = appearance
+    UINavigationBar.appearance().compactAppearance = appearance
+  }
   static func tone(_ value: Double?) -> Color {
     guard let value, value != 0 else { return .secondary }
     return value > 0 ? teal : coral
@@ -44,6 +58,10 @@ enum Format {
     return value.formatted(
       .currency(code: "USD").precision(.fractionLength(abs(value) >= 1000 ? 0 : 2)))
   }
+  static func price(_ value: Double?) -> String {
+    guard let value, value.isFinite else { return "—" }
+    return value.formatted(.currency(code: "USD").precision(.fractionLength(2)))
+  }
   static func percent(_ value: Double?, fraction: Bool = false) -> String {
     guard let value, value.isFinite else { return "—" }
     let percentage = value * (fraction ? 100 : 1)
@@ -61,6 +79,20 @@ enum Format {
     return formatter.string(from: date)
   }
   static func observationDay(_ date: Date) -> String { utcDay.string(from: date) }
+  static func marketTime(_ date: Date) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(identifier: "America/New_York")
+    formatter.dateFormat = "HH:mm"
+    return formatter.string(from: date)
+  }
+  static func historyDate(_ date: Date, years: Bool) -> String {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = years ? "MMM yyyy" : "MMM d"
+    return formatter.string(from: date)
+  }
 }
 
 extension Dictionary where Key == String, Value == JSONValue {
@@ -93,7 +125,7 @@ struct Panel<Content: View>: View {
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 14) {
-      if !title.isEmpty { Text(title).font(.headline).foregroundStyle(.primary) }
+      if !title.isEmpty { Text(title).font(.headline).foregroundStyle(Theme.text) }
       content()
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -122,6 +154,67 @@ struct Metrics: View {
   }
 }
 
+struct InstrumentHeading: View {
+  let symbol: String
+  var name = ""
+  let price: Double?
+  var change: Double? = nil
+  var priceLabel = "Last close"
+  var changeLabel = "1D"
+  var disclosure = false
+  var compact = false
+  var body: some View {
+    Group {
+      if compact {
+        HStack(alignment: .top, spacing: 12) {
+          identity
+          Spacer(minLength: 0)
+          quote.fixedSize(horizontal: true, vertical: false)
+          if disclosure { chevron }
+        }
+      } else {
+        ViewThatFits(in: .horizontal) {
+          HStack(alignment: .top, spacing: 16) {
+            identity
+            Spacer(minLength: 8)
+            quote.fixedSize(horizontal: true, vertical: false)
+            if disclosure { chevron }
+          }
+          VStack(alignment: .leading, spacing: 12) {
+            HStack {
+              identity
+              Spacer()
+              if disclosure { chevron }
+            }
+            quote
+          }
+        }
+      }
+    }.accessibilityElement(children: .combine)
+  }
+  private var identity: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      Text(symbol).font(.headline)
+      if !name.isEmpty, name != symbol {
+        Text(name).font(compact ? .caption2 : .caption).foregroundStyle(.secondary).lineLimit(2)
+      }
+    }.frame(minWidth: 80, maxWidth: .infinity, alignment: .leading)
+  }
+  private var quote: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      if !compact { Text(priceLabel).font(.caption2).foregroundStyle(.secondary) }
+      Text(Format.price(price)).font(compact ? .headline : .title3.weight(.semibold)).monospacedDigit()
+      if let change {
+        Text(compact ? Format.percent(change) : "\(changeLabel) \(Format.percent(change))").font(compact ? .caption2 : .caption).monospacedDigit()
+          .foregroundStyle(Theme.tone(change))
+      }
+    }
+  }
+  private var chevron: some View {
+    Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.secondary).padding(.top, 5)
+  }
+}
+
 struct Failure: View {
   let message: String
   var retry: (() -> Void)? = nil
@@ -142,10 +235,13 @@ final class Resource<Value>: ObservableObject {
   @Published var error = ""
   private var generation = 0
   private var currentKey = ""
-  func load(key: String = "", _ operation: () async throws -> Value) async {
+  func load(
+    key: String = "", clearBeforeLoad: Bool = false, clearOnFailure: Bool = false,
+    _ operation: () async throws -> Value
+  ) async {
     generation += 1
     let request = generation
-    if key != currentKey {
+    if key != currentKey || clearBeforeLoad {
       value = nil
       currentKey = key
     }
@@ -158,6 +254,7 @@ final class Resource<Value>: ObservableObject {
       value = result
     } catch {
       guard request == generation, !Task.isCancelled else { return }
+      if clearOnFailure { value = nil }
       self.error = error.localizedDescription
     }
   }
@@ -193,7 +290,7 @@ struct AccessGate<Content: View>: View {
 }
 
 struct WorkbookColumn {
-  enum Style { case text, number, money, percent, fraction, date }
+  enum Style { case text, number, money, price, percent, fraction, date }
   let key: String
   let title: String
   var style: Style = .text
@@ -204,6 +301,7 @@ struct WorkbookColumn {
       return row.text(key).isEmpty ? "—" : row.text(key)
     case .number: return Format.number(row.number(key))
     case .money: return Format.money(row.number(key))
+    case .price: return Format.price(row.number(key))
     case .percent: return Format.percent(row.number(key))
     case .fraction: return Format.percent(row.number(key), fraction: true)
     case .date:
@@ -300,11 +398,30 @@ struct TimeSeriesChart: View {
   }
   let points: [Point]
   var height: CGFloat = 200
+  var price = false
+  var intraday = false
+  private let seriesColors: [Color] = [Theme.teal, Theme.violet, Theme.blue, Theme.coral, .orange, .pink]
+  private var seriesNames: [String] {
+    points.reduce(into: []) { names, point in
+      if !names.contains(point.series) { names.append(point.series) }
+    }
+  }
   @State private var selectedDate: Date?
+  private var selectedPoints: [Point] {
+    guard let selectedDate else { return [] }
+    return Dictionary(grouping: points, by: \.series).values.compactMap { series in
+      series.min {
+        abs($0.date.timeIntervalSince(selectedDate)) < abs($1.date.timeIntervalSince(selectedDate))
+      }
+    }.sorted { $0.series < $1.series }
+  }
   init(
-    rows: [Record], date: String = "timestamp", series: [(String, String)], height: CGFloat = 200
+    rows: [Record], date: String = "timestamp", series: [(String, String)], height: CGFloat = 200,
+    price: Bool = false, intraday: Bool = false
   ) {
     self.height = height
+    self.price = price
+    self.intraday = intraday
     var output: [Point] = []
     let ordered = rows.sorted { $0.text(date) < $1.text(date) }
     for (key, label) in series {
@@ -320,24 +437,22 @@ struct TimeSeriesChart: View {
     }
     points = output
   }
-  init(trend: [TrendPoint], label: String, height: CGFloat = 150) {
+  init(
+    trend: [TrendPoint], label: String, height: CGFloat = 150, price: Bool = false,
+    intraday: Bool = false
+  ) {
     self.init(
       rows: trend.map { ["date": .string($0.date), "value": .number($0.value)] }, date: "date",
-      series: [("value", label)], height: height)
+      series: [("value", label)], height: height, price: price, intraday: intraday)
   }
   var body: some View {
     if points.isEmpty {
       Text("History unavailable").font(.caption).foregroundStyle(.secondary)
     } else {
       VStack(alignment: .leading, spacing: 8) {
-        if let selectedDate,
-          let point = points.min(by: {
-            abs($0.date.timeIntervalSince(selectedDate))
-              < abs($1.date.timeIntervalSince(selectedDate))
-          })
-        {
+        ForEach(selectedPoints, id: \.series) { point in
           Text(
-            "\(Format.observationDay(point.date)) · \(point.series) \(Format.number(point.value))"
+            "\(intraday ? Format.marketTime(point.date) + " ET" : Format.observationDay(point.date)) · \(point.series) \(price ? Format.price(point.value) : Format.number(point.value))"
           ).font(.caption).monospacedDigit()
         }
         Chart {
@@ -353,29 +468,48 @@ struct TimeSeriesChart: View {
             RuleMark(x: .value("Selected", selectedDate)).foregroundStyle(.secondary.opacity(0.3))
           }
         }
-        .chartForegroundStyleScale(range: [Theme.teal, Theme.violet, Theme.blue, Theme.coral])
+        .chartForegroundStyleScale(domain: seriesNames, range: seriesNames.indices.map { seriesColors[$0 % seriesColors.count] })
         .chartXSelection(value: $selectedDate)
         .chartYAxis {
           AxisMarks(position: .leading, values: .automatic(desiredCount: 4)) { value in
             AxisGridLine()
             AxisValueLabel {
               if let number = value.as(Double.self) {
-                Text(number.formatted(.number.notation(.compactName)))
+                Text(
+                  price ? Format.price(number) : number.formatted(.number.notation(.compactName)))
               }
             }
           }
         }
         .chartXAxis {
-          AxisMarks(values: .automatic(desiredCount: 3)) { _ in
+          AxisMarks(values: .automatic(desiredCount: 3)) { value in
             AxisGridLine()
-            AxisValueLabel(anchor: .top)
+            AxisValueLabel(anchor: .top) {
+              if let date = value.as(Date.self) {
+                Text(
+                  intraday
+                    ? Format.marketTime(date)
+                    : Format.historyDate(
+                      date,
+                      years: (points.map(\.date).max()?.timeIntervalSince(
+                        points.map(\.date).min() ?? date) ?? 0) > 365 * 86400))
+              }
+            }
           }
         }
         .chartXScale(range: .plotDimension(startPadding: 12, endPadding: 24))
         .chartYScale(domain: .automatic(includesZero: false))
-        .chartLegend(position: .bottom, alignment: .leading)
+        .chartLegend(.hidden)
         .frame(height: height)
         .accessibilityLabel("Time series, \(points.count) observations. Drag to inspect values.")
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 145), alignment: .leading)], alignment: .leading, spacing: 8) {
+          ForEach(Array(seriesNames.enumerated()), id: \.element) { index, name in
+            HStack(alignment: .top, spacing: 6) {
+              Circle().fill(seriesColors[index % seriesColors.count]).frame(width: 7, height: 7).padding(.top, 3)
+              Text(name).font(.caption2).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+          }
+        }
       }
     }
   }
@@ -416,7 +550,7 @@ struct CorrelationGrid: View {
 
 extension View {
   func workbench() -> some View {
-    self.background(Theme.background).toolbarBackground(Theme.background, for: .navigationBar)
+    self.foregroundStyle(Theme.text, Theme.secondaryText).background(Theme.background).toolbarBackground(Theme.background, for: .navigationBar)
       .toolbarBackground(.visible, for: .navigationBar)
   }
   func researchContext(_ context: String) -> some View {

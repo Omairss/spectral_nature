@@ -1,0 +1,675 @@
+{
+  "recorded_at_utc": "2026-10-08T20:26:35.242962+00:00",
+  "scope": "Read-only production diagnostic; local routing replay and documentation only. No application changes, manual research runs, knowledge writes or deployment by this audit.",
+  "public_home": {
+    "endpoint": "https://spectral-nature.com/api/home",
+    "run_id": "584a033a-d455-4c43-8232-86e29f9dee42",
+    "as_of": "2026-10-08T18:20:30.972175+00:00",
+    "status": "available",
+    "summary": null,
+    "beat_count": 7,
+    "beat_titles": [
+      "Bitcoin weakness compresses miner margins and drags AI and data-center suppliers lower",
+      "Bitcoin Mining, Bitcoin, and Cryptocurrency Mining Infrastructure stocks fell together",
+      "AI Infrastructure, Broadband Infrastructure, and Space Economy stocks fell together",
+      "Nuclear Energy, Clean Energy, and Electric Power stocks fell together",
+      "Space Economy stocks fell together",
+      "NIB completes a AUD 97.6 million travel sale as its shares move 22.61%",
+      "The company is absorbing an estimated $300 million restructuring charge tied to closing roughly 250 North American locations."
+    ]
+  },
+  "home_job": {
+    "job_name": "attention-home-build",
+    "run_id": "584a033a-d455-4c43-8232-86e29f9dee42",
+    "status": "Succeeded",
+    "start_time_utc": "2026-10-08 18:20:32.186202+00:00",
+    "end_time_utc": "2026-10-08 18:53:57.270061+00:00",
+    "error_summary": null,
+    "progress_stage": "completed",
+    "progress_message": "Completed successfully."
+  },
+  "source_routing": {
+    "news_version": {
+      "dataset_name": "news_articles",
+      "dataset_version_id": "news_articles__20261008T181916Z__741361d5",
+      "blob_path": "datasets/news_articles/dt=2026-10-08/asof=2026-10-08T18-19-16Z/universe=20260919/part-741361d5.parquet",
+      "asof_time_utc": "2026-10-08 18:19:16.814715+00:00",
+      "ingested_at_utc": "2026-10-08 18:19:18.867541+00:00",
+      "row_count": 50
+    },
+    "openai_articles_at_home_start": [
+      {
+        "headline": "'OpenAI annualised revenues $20bn less than previously signalled' - Financial Times",
+        "summary": "",
+        "url": "https://www.benzinga.com/news/26/10/62253618/openai-annualised-revenues-20bn-less-than-previously-signalled-financial-times",
+        "symbols": "[\"MSFT\", \"NVDA\", \"ORCL\", \"SPY\"]",
+        "published_at": "2026-10-08 16:45:03+00:00"
+      }
+    ],
+    "research_symbols": [
+      "NIB",
+      "CMG",
+      "BNO",
+      "HUT",
+      "BSP",
+      "UGA",
+      "AAOI",
+      "MXL",
+      "PM",
+      "CLSK",
+      "SBUX",
+      "AXTI"
+    ],
+    "routing": [
+      {
+        "symbol": "NIB",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "CMG",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "BNO",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "HUT",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "BSP",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "UGA",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "AAOI",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "MXL",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "PM",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "CLSK",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "SBUX",
+        "article_count": 0,
+        "openai_articles": 0
+      },
+      {
+        "symbol": "AXTI",
+        "article_count": 0,
+        "openai_articles": 0
+      }
+    ]
+  },
+  "research": {
+    "search_request_count": 48,
+    "search_result_count": 105,
+    "openai_query_matches": 0,
+    "openai_result_matches": 0,
+    "enrichment_rows": [
+      {
+        "symbol": "__MARKET_SUMMARY__",
+        "status": "failed",
+        "failure_categories_json": "",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "HUT",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "AAOI",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "MXL",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "CLSK",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "CIFR",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "TSEM",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "IREN",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "AXTI",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "CRWV",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "BTDR",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "COHR",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      },
+      {
+        "symbol": "VICR",
+        "status": "failed",
+        "failure_categories_json": "[\"timeout\"]",
+        "limitations_json": "[]",
+        "model": ""
+      }
+    ],
+    "group_synthesis": {
+      "group_synthesis_status": "skipped",
+      "group_synthesis_changed_count": 0,
+      "group_synthesis_source_item_count": 0
+    },
+    "public_review": {
+      "public_surface_quality_reviewed_count": 16,
+      "public_surface_quality_changed_count": 9,
+      "public_surface_quality_dropped_count": 7
+    }
+  },
+  "input_versions": [
+    {
+      "dataset_name": "daily_movers",
+      "dataset_version_id": "daily_movers__20261008T183530Z__fd9bacbb",
+      "blob_path": "datasets/daily_movers/dt=2026-10-08/asof=2026-10-08T18-35-30Z/universe=20260919/part-fd9bacbb.parquet",
+      "asof_time_utc": "2026-10-08 18:35:30.935789+00:00",
+      "ingested_at_utc": "2026-10-08 18:35:35.976218+00:00",
+      "row_count": 999
+    },
+    {
+      "dataset_name": "daily_movers",
+      "dataset_version_id": "daily_movers__20261008T163528Z__038c7aef",
+      "blob_path": "datasets/daily_movers/dt=2026-10-08/asof=2026-10-08T16-35-28Z/universe=20260919/part-038c7aef.parquet",
+      "asof_time_utc": "2026-10-08 16:35:28.477446+00:00",
+      "ingested_at_utc": "2026-10-08 16:35:33.597339+00:00",
+      "row_count": 999
+    }
+  ],
+  "recent_enrichment_history": [
+    {
+      "dataset_version": "attention_ticker_zopedia_enrichments__20261007T182031Z__958d1c36",
+      "ticker_count": 12,
+      "failed_tickers": 12,
+      "market_summary_status": "failed"
+    },
+    {
+      "dataset_version": "attention_ticker_zopedia_enrichments__20261007T205102Z__44e2c934",
+      "ticker_count": 12,
+      "failed_tickers": 12,
+      "market_summary_status": "failed"
+    },
+    {
+      "dataset_version": "attention_ticker_zopedia_enrichments__20261008T142035Z__1d280e6d",
+      "ticker_count": 12,
+      "failed_tickers": 12,
+      "market_summary_status": "completed"
+    },
+    {
+      "dataset_version": "attention_ticker_zopedia_enrichments__20261008T162029Z__907953db",
+      "ticker_count": 12,
+      "failed_tickers": 12,
+      "market_summary_status": "completed"
+    },
+    {
+      "dataset_version": "attention_ticker_zopedia_enrichments__20261008T182030Z__584a033a",
+      "ticker_count": 12,
+      "failed_tickers": 12,
+      "market_summary_status": "failed"
+    }
+  ],
+  "agent_model_call_spans": [
+    {
+      "run_id": "agrun_ec71d43e3a",
+      "first_call": "2026-10-08 18:30:52.005872+00:00",
+      "last_return": "2026-10-08 18:32:55.707014+00:00",
+      "calls": 12,
+      "successful_calls": 12,
+      "model_call_span_seconds": 123.701142
+    },
+    {
+      "run_id": "agrun_704b0c7feb",
+      "first_call": "2026-10-08 18:30:52.225928+00:00",
+      "last_return": "2026-10-08 18:32:28.259000+00:00",
+      "calls": 10,
+      "successful_calls": 10,
+      "model_call_span_seconds": 96.033072
+    },
+    {
+      "run_id": "agrun_8f5e68e71e",
+      "first_call": "2026-10-08 18:30:57.531801+00:00",
+      "last_return": "2026-10-08 18:32:55.356799+00:00",
+      "calls": 13,
+      "successful_calls": 13,
+      "model_call_span_seconds": 117.824998
+    },
+    {
+      "run_id": "agrun_c6665ffce5",
+      "first_call": "2026-10-08 18:30:58.360189+00:00",
+      "last_return": "2026-10-08 18:33:29.912599+00:00",
+      "calls": 14,
+      "successful_calls": 14,
+      "model_call_span_seconds": 151.55241
+    },
+    {
+      "run_id": "agrun_9b7d82157f",
+      "first_call": "2026-10-08 18:32:13.620586+00:00",
+      "last_return": "2026-10-08 18:34:03.930995+00:00",
+      "calls": 14,
+      "successful_calls": 14,
+      "model_call_span_seconds": 110.310409
+    },
+    {
+      "run_id": "agrun_02a63533bd",
+      "first_call": "2026-10-08 18:32:25.888537+00:00",
+      "last_return": "2026-10-08 18:33:57.032451+00:00",
+      "calls": 11,
+      "successful_calls": 11,
+      "model_call_span_seconds": 91.143914
+    },
+    {
+      "run_id": "agrun_e0efda9a3d",
+      "first_call": "2026-10-08 18:32:31.729179+00:00",
+      "last_return": "2026-10-08 18:38:36.966145+00:00",
+      "calls": 12,
+      "successful_calls": 10,
+      "model_call_span_seconds": 365.236966
+    },
+    {
+      "run_id": "agrun_78dfba6472",
+      "first_call": "2026-10-08 18:32:33.099090+00:00",
+      "last_return": "2026-10-08 18:36:17.207308+00:00",
+      "calls": 7,
+      "successful_calls": 6,
+      "model_call_span_seconds": 224.108218
+    },
+    {
+      "run_id": "agrun_a5bde58991",
+      "first_call": "2026-10-08 18:33:45.084210+00:00",
+      "last_return": "2026-10-08 18:39:36.740494+00:00",
+      "calls": 10,
+      "successful_calls": 10,
+      "model_call_span_seconds": 351.656284
+    },
+    {
+      "run_id": "agrun_22b425f6d4",
+      "first_call": "2026-10-08 18:33:47.214846+00:00",
+      "last_return": "2026-10-08 18:38:44.173950+00:00",
+      "calls": 9,
+      "successful_calls": 8,
+      "model_call_span_seconds": 296.959104
+    },
+    {
+      "run_id": "agrun_5f7636a894",
+      "first_call": "2026-10-08 18:33:47.333940+00:00",
+      "last_return": "2026-10-08 18:39:46.373430+00:00",
+      "calls": 11,
+      "successful_calls": 11,
+      "model_call_span_seconds": 359.03949
+    },
+    {
+      "run_id": "agrun_4efd3691c6",
+      "first_call": "2026-10-08 18:33:53.473643+00:00",
+      "last_return": "2026-10-08 18:38:45.702893+00:00",
+      "calls": 7,
+      "successful_calls": 6,
+      "model_call_span_seconds": 292.22925
+    }
+  ],
+  "model_call_stats": [
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.research_step",
+      "status": "success",
+      "calls": 54,
+      "avg_ms": "3758",
+      "max_ms": 12001.845481980126
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.trajectory_monitor",
+      "status": "success",
+      "calls": 52,
+      "avg_ms": "6998",
+      "max_ms": 19529.220336989965
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "page_agentic_summary",
+      "purpose": "agent.research_step",
+      "status": "success",
+      "calls": 50,
+      "avg_ms": "4418",
+      "max_ms": 12591.975196031854
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "page_agentic_summary",
+      "purpose": "agent.trajectory_monitor",
+      "status": "success",
+      "calls": 47,
+      "avg_ms": "7222",
+      "max_ms": 19692.95845000306
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "aql.search_relevance",
+      "purpose": "attention_search_relevance",
+      "status": "success",
+      "calls": 34,
+      "avg_ms": "4609",
+      "max_ms": 43666.00867500529
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "zopedia.memory",
+      "purpose": "agent.memory_reflection",
+      "status": "success",
+      "calls": 14,
+      "avg_ms": "19008",
+      "max_ms": 33649.504307017196
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "aql.candidate_research_plan",
+      "purpose": "attention_candidate_research_plan",
+      "status": "success",
+      "calls": 12,
+      "avg_ms": "19462",
+      "max_ms": 26466.90323902294
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.answer_judge",
+      "status": "success",
+      "calls": 11,
+      "avg_ms": "11903",
+      "max_ms": 31022.603460005485
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "Stock Investigator.page_agentic_summary_review",
+      "purpose": "page_agentic_summary_review.direct",
+      "status": "success",
+      "calls": 11,
+      "avg_ms": "10630",
+      "max_ms": 26181.35486304527
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.final_synthesis",
+      "status": "success",
+      "calls": 8,
+      "avg_ms": "7765",
+      "max_ms": 13788.924896973185
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "Stock Investigator.page_agentic_summary_quality",
+      "purpose": "page_agentic_summary_quality.direct",
+      "status": "success",
+      "calls": 7,
+      "avg_ms": "15508",
+      "max_ms": 24136.179798981175
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "page_agentic_summary",
+      "purpose": "agent.final_synthesis",
+      "status": "success",
+      "calls": 5,
+      "avg_ms": "15578",
+      "max_ms": 25981.857653998304
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "page_agentic_summary",
+      "purpose": "agent.answer_judge",
+      "status": "success",
+      "calls": 4,
+      "avg_ms": "14194",
+      "max_ms": 19319.285431993194
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "Stock Investigator.page_agentic_summary",
+      "purpose": "page_summary_format.direct",
+      "status": "success",
+      "calls": 4,
+      "avg_ms": "12855",
+      "max_ms": 22136.720687965862
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.trajectory_monitor",
+      "status": "failure",
+      "calls": 3,
+      "avg_ms": "26573",
+      "max_ms": 79666.8198099942
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.daily_datapoints.review",
+      "purpose": "daily_market_datapoints_review.direct",
+      "status": "success",
+      "calls": 2,
+      "avg_ms": "49894",
+      "max_ms": 59079.38065601047
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.daily_datapoints",
+      "purpose": "daily_market_datapoints.direct",
+      "status": "success",
+      "calls": 2,
+      "avg_ms": "25765",
+      "max_ms": 42514.78614995722
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "Market Explorer.page_agentic_summary_review",
+      "purpose": "page_agentic_summary_review.direct",
+      "status": "success",
+      "calls": 2,
+      "avg_ms": "29910",
+      "max_ms": 31162.881488970015
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "Market Explorer.page_agentic_summary_quality",
+      "purpose": "page_agentic_summary_quality.direct",
+      "status": "success",
+      "calls": 1,
+      "avg_ms": "23142",
+      "max_ms": 23142.425625002943
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.final_synthesis",
+      "status": "failure",
+      "calls": 1,
+      "avg_ms": "35523",
+      "max_ms": 35522.57723500952
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "zopedia.memory",
+      "purpose": "agent.memory_reflection",
+      "status": "failure",
+      "calls": 1,
+      "avg_ms": "45607",
+      "max_ms": 45607.146692986134
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "Market Explorer.page_agentic_summary",
+      "purpose": "page_summary_format.direct",
+      "status": "success",
+      "calls": 1,
+      "avg_ms": "11281",
+      "max_ms": 11281.139225000516
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.research_step",
+      "status": "failure",
+      "calls": 1,
+      "avg_ms": "58267",
+      "max_ms": 58267.41857704474
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "page_agentic_summary",
+      "purpose": "agent.answer_judge",
+      "status": "failure",
+      "calls": 1,
+      "avg_ms": "45135",
+      "max_ms": 45134.990212041885
+    },
+    {
+      "job_name": "attention-home-build",
+      "surface": "attention_home.public_surface_quality",
+      "purpose": "attention_home_public_surface_quality.direct",
+      "status": "success",
+      "calls": 1,
+      "avg_ms": "127166",
+      "max_ms": 127165.82875803579
+    }
+  ],
+  "model_failures": [
+    {
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.final_synthesis",
+      "status": "failure",
+      "started_at_utc": "2026-10-08 18:35:41.684731+00:00",
+      "duration_ms": 35522.57723500952,
+      "error_type": "LLMDeadlineExceeded",
+      "error_summary": "LLM request deadline expired."
+    },
+    {
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.trajectory_monitor",
+      "status": "failure",
+      "started_at_utc": "2026-10-08 18:36:17.183178+00:00",
+      "duration_ms": 22.139311011414975,
+      "error_type": "LLMDeadlineExceeded",
+      "error_summary": "LLM request deadline expired."
+    },
+    {
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.trajectory_monitor",
+      "status": "failure",
+      "started_at_utc": "2026-10-08 18:36:17.184465+00:00",
+      "duration_ms": 30.065313971135765,
+      "error_type": "LLMDeadlineExceeded",
+      "error_summary": "LLM request deadline expired."
+    },
+    {
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.trajectory_monitor",
+      "status": "failure",
+      "started_at_utc": "2026-10-08 18:36:40.762689+00:00",
+      "duration_ms": 79666.8198099942,
+      "error_type": "LLMDeadlineExceeded",
+      "error_summary": "LLM request deadline expired."
+    },
+    {
+      "surface": "attention_home.zopedia_ticker_enrichment",
+      "purpose": "agent.research_step",
+      "status": "failure",
+      "started_at_utc": "2026-10-08 18:37:23.061261+00:00",
+      "duration_ms": 58267.41857704474,
+      "error_type": "LLMDeadlineExceeded",
+      "error_summary": "LLM request deadline expired."
+    },
+    {
+      "surface": "page_agentic_summary",
+      "purpose": "agent.answer_judge",
+      "status": "failure",
+      "started_at_utc": "2026-10-08 18:48:18.968122+00:00",
+      "duration_ms": 45134.990212041885,
+      "error_type": "LLMDeadlineExceeded",
+      "error_summary": "LLM request deadline expired."
+    },
+    {
+      "surface": "zopedia.memory",
+      "purpose": "agent.memory_reflection",
+      "status": "failure",
+      "started_at_utc": "2026-10-08 18:49:23.434999+00:00",
+      "duration_ms": 45607.146692986134,
+      "error_type": "LLMDeadlineExceeded",
+      "error_summary": "LLM request deadline expired."
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+{
+  "rates_usd_per_million": {
+    "deepseek-flash": {
+      "input": 0.15,
+      "output": 0.6
+    },
+    "deepseek-v4-pro": {
+      "input": 0.66,
+      "output": 1.98
+    }
+  },
+  "normalization": "Reported prompt/completion tokens at common cold-cache off-peak rates. Reasoning is included in completion_tokens. Cache savings are not assumed.",
+  "ordinary_projection": {
+    "scope": "Measured baseline researcher + first synthesis; replace remaining measured stages with prepared-review tail from another draft. Not a matched end-to-end candidate run.",
+    "baseline_run": 0.03395496,
+    "retained_upstream": 0.0219846,
+    "candidate_tail": 0.01083243,
+    "projected_candidate": 0.03281703,
+    "change_percent": -3.351292417956031
+  },
+  "retained_direct_replay": {
+    "scope": "Same retained initial Pro analysis and draft, then measured baseline/candidate tails. Initial analysis used 180-second step ceiling in earlier experiment. Not a fresh whole-run comparison at default timeouts.",
+    "common_initial_analysis": 0.017169240000000002,
+    "initial_analysis_receipt": {
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "status": "success",
+      "seconds": 151.526,
+      "usage": {
+        "total_tokens": 11906,
+        "prompt_tokens": 4852,
+        "completion_tokens": 7054,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 4852,
+        "completion_tokens_details": {
+          "reasoning_tokens": 6627
+        }
+      },
+      "stage": "synthesis",
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.034338480000000005,
+        "usd_min": 0.017169240000000002,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      }
+    },
+    "baseline_tail": 0.0020534999999999998,
+    "candidate_tail": 0.01083243,
+    "baseline_total": 0.019222740000000002,
+    "candidate_total": 0.028001670000000003,
+    "change_percent": 45.6695039312814
+  },
+  "quality": "Prepared review fixed original two errors but changed an explicit user premise into uncertainty and retained a telemetry overclaim. Rejected overall.",
+  "coverage": "One technical question; no financial/event holdouts run in this investigation.",
+  "investigation_measured_phases_only": {
+    "cold_offpeak_usd": 0.20985534,
+    "attempts": 37,
+    "scope": "These experiment phases only; excludes reused prior paid upstream work. Not the application baseline."
+  },
+  "budget_policy": {
+    "scope": "combined_workload",
+    "maximum_cost_ratio": 1.2,
+    "individual_run_or_category_cap": null,
+    "evaluation": "Same representative task mix and frequency weights for baseline and candidate; divide total weighted candidate cost by total weighted baseline cost. Higher individual increases are permitted.",
+    "current_status": "Individual +45.7% replay does not establish a budget breach. Candidate quality failed; weighted workload impact remains unmeasured."
+  },
+  "offline_planning_estimate": {
+    "method": "Arithmetic only; no new provider calls or pipeline executions. Uses recorded cold-cache off-peak costs as unit-cost proxies, not workload averages.",
+    "scope": "LLM spend only; excludes external search, storage and infrastructure.",
+    "assumed_workload": {
+      "direct_count_share": 0.5,
+      "short_research_count_share": 0.5,
+      "runs": 1000,
+      "baseline_usd": 26.58885
+    },
+    "assumed_net_added_tokens_per_run_across_existing_calls": {
+      "pro_input": 500,
+      "pro_completion_including_reasoning": 500,
+      "flash_input": 500,
+      "flash_completion_including_reasoning": 200
+    },
+    "handoff_cost_per_run_usd": 0.001515,
+    "extra_correction_unit_cost_usd": 0.009696060000000001,
+    "correction_sensitivity": [
+      {
+        "additional_fraction_of_runs_corrected": 0,
+        "candidate_per_1000_usd": 28.10385,
+        "increase_percent": 5.6978771176639835
+      },
+      {
+        "additional_fraction_of_runs_corrected": 0.1,
+        "candidate_per_1000_usd": 29.073456,
+        "increase_percent": 9.344541038818905
+      },
+      {
+        "additional_fraction_of_runs_corrected": 0.2,
+        "candidate_per_1000_usd": 30.043062,
+        "increase_percent": 12.991204959973823
+      },
+      {
+        "additional_fraction_of_runs_corrected": 0.4,
+        "candidate_per_1000_usd": 31.982273999999997,
+        "increase_percent": 20.284532802283668
+      }
+    ],
+    "twice_assumed_token_growth_plus_20_point_correction_increase_percent": 18.68908207763781,
+    "max_extra_correction_fraction_before_20_percent_at_lean_growth": 0.39219744927320993,
+    "prototype_mixed_workload_scenarios": [
+      {
+        "direct_count_share": 0.25,
+        "baseline_per_1000_usd": 30.271904999999997,
+        "prototype_per_1000_usd": 31.61319,
+        "increase_percent": 4.430791521048971
+      },
+      {
+        "direct_count_share": 0.5,
+        "baseline_per_1000_usd": 26.58885,
+        "prototype_per_1000_usd": 30.409350000000003,
+        "increase_percent": 14.36880496900017
+      },
+      {
+        "direct_count_share": 0.75,
+        "baseline_per_1000_usd": 22.905795,
+        "prototype_per_1000_usd": 29.20551,
+        "increase_percent": 27.502712741470003
+      }
+    ],
+    "prototype_direct_count_share_at_20_percent": 0.6163985551457072,
+    "limitations": "Assumed net token growth and correction depth; no deduplication saving credited separately. Baseline research proxy already includes one correction. Prototype research cost combines phases from different drafts; quality remains rejected. Actual workload frequencies unknown. Excludes full Home generation; its 5.7–13.0% scenarios are not an overall application cost forecast."
+  },
+  "home_historical_reference": {
+    "source": "documents/architecture/overall/audits/evidence/LLM_COST_RESTRUCTURE_2026-10-13.json",
+    "run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+    "scope": "Recorded full development Home execution on October 14 UTC, before the unreleased role-routing changes. Historical usage reference, not a new run or current-routing forecast.",
+    "acceptance": {
+      "recorded_at_utc": "2026-10-14T06:45:00.971401+00:00",
+      "run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+      "execution": "attention-home-next-dev-jvwbbok",
+      "database_status": "Succeeded",
+      "platform_status": "Succeeded",
+      "primary_ticker_investigations_completed": 12,
+      "source_event_investigations_completed": 4,
+      "public_stories_personally_read": 8,
+      "optional_page_summaries_completed_and_personally_read": 5,
+      "summary_completed_and_personally_read": true,
+      "all_five_chart_contexts_personally_read": true,
+      "audio_http_verified_against_current_saved_bytes": true,
+      "accepted": true,
+      "production_images_changed": false,
+      "runtime_seconds": 2658.0
+    },
+    "aggregate": {
+      "http_attempts": 821,
+      "priced_attempts": 519,
+      "unpriced_attempts": 302,
+      "missing_usage_attempts": 8,
+      "input_tokens": 16036187,
+      "cached_input_tokens": 6747026,
+      "chat_input_tokens": 15996387,
+      "chat_cached_input_tokens": 6747026,
+      "output_tokens": 772106,
+      "reasoning_tokens": 481866,
+      "estimated_usd_min": 1.8709088279999995,
+      "estimated_usd_max": 3.448423746000001,
+      "uncached_same_usage_usd_min": 2.862721650000001,
+      "purposes": {
+        "source_event_nomination.direct": 1,
+        "agent.research_step": 91,
+        "retrieval.plan": 17,
+        "direct.embedding": 294,
+        "agent.final_synthesis": 23,
+        "agent.answer_judge": 22,
+        "attention_candidate_research_plan": 12,
+        "attention_search_relevance": 30,
+        "direct.chat": 301,
+        "attention_symbol_writer": 12,
+        "direct.audio": 1,
+        "daily_market_datapoints.direct": 2,
+        "daily_market_datapoints_review.direct": 2,
+        "page_summary_format.direct": 5,
+        "page_agentic_summary_review.direct": 5,
+        "agent.memory_reflection": 3
+      },
+      "operations": {
+        "chat": 522,
+        "embedding": 294,
+        "json_repair": 4,
+        "audio": 1
+      },
+      "statuses": {
+        "success": 814,
+        "failure": 7
+      },
+      "cached_input_fraction": 0.42073754814657627,
+      "chat_cached_input_fraction": 0.4217843691828661,
+      "cache_cost_reduction_vs_same_usage_uncached": 0.34645800160137863
+    },
+    "known_generation_tokens": 16768493,
+    "all_recorded_input_and_output_tokens_including_embeddings": 16808293,
+    "chat_and_json_repair_attempts": 526,
+    "recorded_cache_common_offpeak_cost_usd": 1.8709088279999995,
+    "same_usage_cold_cache_common_offpeak_cost_usd": 2.862721650000001,
+    "accounting_gaps": "Eight attempt records lack usage; embedding/audio prices remain unknown. Known token/cost totals are not a complete invoice.",
+    "model_mix_limit": "Aggregate has no per-model/per-purpose token breakdown. Same-usage cold cost numerically equals Flash-only repricing; do not assert exact routing from that alone or assume this historical bill already includes the new Pro/Flash split.",
+    "previous_estimate_coverage": "The 50/50 small-query scenario excludes Home and cannot establish the overall workload increase.",
+    "illustrative_twenty_percent_increase_not_per_run_cap": {
+      "recorded_cache_extra_usd": 0.37418176559999994,
+      "recorded_cache_total_usd": 2.245090593599999,
+      "cold_cache_extra_usd": 0.5725443300000003,
+      "cold_cache_total_usd": 3.435265980000001
+    }
+  }
+}

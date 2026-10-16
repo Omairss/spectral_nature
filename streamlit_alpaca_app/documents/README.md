@@ -10,6 +10,7 @@ When a doc below mentions `documents/...`, treat that as a path relative to `str
 
 Keep docs here:
 
+- [research/](research/README.md): master research index, open questions, failure cases and retained experiments
 - `architecture/`: durable architecture, system design, and cross-service contracts
 - `plans/`: active implementation notes, recovery plans, and short design docs
 - `operations/`: setup, deploy, and operator runbooks
@@ -108,6 +109,7 @@ Run the API or Streamlit UI with container ports exposed:
 
 ## Documentation map
 
+- [Master research index](research/README.md): hierarchy/context experiments, reasoning failures and production reliability findings
 - `documents/README.md`: doc hub and runtime overview
 - `documents/architecture/README.md`: durable architecture map, grouped by system area
 - `documents/learnings.md`: reusable takeaways across sessions

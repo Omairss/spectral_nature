@@ -16,7 +16,7 @@ from .common.news_freshness import (
 from .aql import search_symbol_news_payload
 from .attention_agentic import build_bottom_up_attention_bundle
 from .attention_home_1d import build_attention_research_bundle
-from .llm import JSONLLMClient, NARRATIVE_STYLE_RULE, LLMAPIError, get_prompt, register_narrative_prompt
+from .llm import JSONLLMClient, LLMAPIError, get_prompt, register_narrative_prompt
 from .runtime_policy import source_authority_policy
 from .web_research import (
     SerperSearchClient,
@@ -122,9 +122,8 @@ _event_market_activity_why_cache: dict[tuple[str, str], str] = {}
 _MARKET_ACTIVITY_NARRATIVE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Market Activity Narrative Sentence (live research event)",
     file="services/attention_live_research.py",
-    group="Attention Pipeline",
+    group="Attention Pipeline", stage='synthesis',
     prompt=(
-        f"{NARRATIVE_STYLE_RULE} "
         "Write one sentence (under 25 words) explaining what this market theme move "
         "signals for broader market activity. Be specific about the directional implication."
     ),
@@ -235,19 +234,27 @@ def _source_authority_bucket(source: object) -> tuple[str, int]:
     if llm_client is None:
         return "web", 3
     try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "Classify a financial news source into one authority bucket: "
-                "'official' (SEC/EDGAR, government, central bank, exchange filings), "
-                "'wire' (Reuters, Bloomberg, AP, Dow Jones, PR Newswire, Business Wire), "
-                "'press' (major newspapers, magazines, established financial news sites), "
-                "'web' (blogs, social media, unknown, miscellaneous). "
-                "Return the single most appropriate bucket."
-            ),
-            user_prompt=f"Source name: {text[:120]}",
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=f"Source name: {text[:120]}",
+            instructions="Classify a financial news source into one authority bucket: 'official' (SEC/EDGAR, government, central bank, exchange filings), 'wire' (Reuters, Bloomberg, AP, Dow Jones, PR Newswire, Business Wire), 'press' (major newspapers, magazines, established financial news sites), 'web' (blogs, social media, unknown, miscellaneous). Return the single most appropriate bucket.",
             schema_name="source_bucket",
             schema=_SOURCE_BUCKET_SCHEMA,
+            task="source_bucket", stage='relevance',
+            surface="services.attention_live_research",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        result = engine_operation["payload"]
         bucket = str(result.get("bucket") or "").strip().lower()
         if bucket not in _BUCKET_RANK:
             bucket = "web"
@@ -286,21 +293,34 @@ def _llm_event_theme_keywords(theme: str) -> list[str]:
         _event_theme_keywords_cache[theme] = []
         return []
     try:
-        result = llm_client.generate_json(
-            system_prompt=(
-                "You generate keyword lists for financial market theme classification. "
-                "Return 8-12 short lowercase keywords or phrases that commonly appear in financial "
-                "news when this market theme is active."
-            ),
-            user_prompt=f"Generate keywords for the '{theme}' market theme.",
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=f"Generate keywords for the '{theme}' market theme.",
+            instructions="You generate keyword lists for financial market theme classification. Return 8-12 short lowercase keywords or phrases that commonly appear in financial news when this market theme is active.",
             schema_name="event_theme_keywords",
             schema={
                 "type": "object",
                 "additionalProperties": False,
-                "properties": {"keywords": {"type": "array", "items": {"type": "string"}}},
+                "properties": {
+                    "keywords": {"type": "array", "items": {"type": "string"}}
+                },
                 "required": ["keywords"],
             },
+            task="event_theme_keywords", stage='search',
+            surface="services.attention_live_research",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        result = engine_operation["payload"]
         keywords = [str(k).strip().lower() for k in result.get("keywords") or [] if str(k).strip()]
     except (LLMAPIError, Exception):
         keywords = []
@@ -817,26 +837,27 @@ def _event_search_query(event: dict[str, Any]) -> str:
     if llm_client is not None:
         try:
             symbol_context = ", ".join(([anchor_symbol] if anchor_symbol else []) + supporting_symbols[:4])
-            result = llm_client.generate_json(
-                system_prompt=(
-                    "You generate concise financial news search queries. "
-                    "Return one search query that can explain a market move. "
-                    "Use wider-circle market reasoning: exact companies first, then close peers, "
-                    "customers, suppliers, private leaders, IPO rumors, policy, rates, commodities, "
-                    "or sector themes when those are likely to explain the move."
-                ),
-                user_prompt=(
-                    f"User's original question: {event_title}\n"
-                    f"Market event: {event_title or theme} ({direction})\n"
-                    f"Theme: {theme}, Direction: {direction}\n"
-                    f"Key symbols: {symbol_context}\n"
-                    "Generate a targeted search query to find relevant financial news. "
-                    "Preserve the important event terms, but do not require every result to name the listed tickers "
-                    "if a private-company, macro, policy, or sector event plausibly explains the move."
-                ),
+            from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+            engine_operation = run_aql_zopedia_structured_agent(
+                query=f"User's original question: {event_title}\nMarket event: {event_title or theme} ({direction})\nTheme: {theme}, Direction: {direction}\nKey symbols: {symbol_context}\nGenerate a targeted search query to find relevant financial news. Preserve the important event terms, but do not require every result to name the listed tickers if a private-company, macro, policy, or sector event plausibly explains the move.",
+                instructions="You generate concise financial news search queries. Return one search query that can explain a market move. Use wider-circle market reasoning: exact companies first, then close peers, customers, suppliers, private leaders, IPO rumors, policy, rates, commodities, or sector themes when those are likely to explain the move.",
                 schema_name="event_search_query",
                 schema=_EVENT_SEARCH_QUERY_SCHEMA,
+                task="event_search_query", stage='search',
+                surface="services.attention_live_research",
+                llm_client=llm_client,
+                max_tool_calls=0,
+                persist_findings=False,
+                write_policy="none",
+                call_type="formatter_over_aql",
+                operation_metadata=None,
             )
+            if engine_operation.get("status") != "completed":
+                raise RuntimeError(
+                    engine_operation.get("error") or "Shared AI operation failed"
+                )
+            result = engine_operation["payload"]
             query = str(result.get("search_query") or "").strip()
             if query:
                 return query
@@ -872,113 +893,54 @@ def search_market_event_news_payload(
     search_query: str = "",
     allow_llm_query: bool = True,
 ) -> dict[str, Any]:
+    """Collect news and general-web leads; the shared agent judges relevance."""
     if not isinstance(event, dict) or not event:
         return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None, "messages": []}
-
     if serper_client is None and serp_client is None:
         try:
             from .aql.config import _load_search_clients
-
-            primary_client, _ = _load_search_clients()
+            primary, secondary = _load_search_clients()
+            if search_client_provider(primary) == "serper":
+                serper_client = primary
+            else:
+                serp_client = primary
+            tavily_client = tavily_client or secondary
         except Exception:
-            primary_client = None
-        if primary_client is not None and search_client_provider(primary_client) == "serper":
-            serper_client = primary_client
-
-    theme = _coerce_text(event.get("event_type")).lower() or "generic"
-    event_title = _coerce_text(event.get("event_title"))
-    symbols = [
-        _normalize_symbol(symbol)
-        for symbol in list(event.get("supporting_symbols") or [])
-        if _normalize_symbol(symbol)
-    ]
-    query_base = _coerce_text(search_query)
-    if not query_base:
-        query_base = _event_search_query(event) if allow_llm_query else _minimal_event_search_query(event)
-    article_rows: list[dict[str, Any]] = []
-    sources: list[str] = []
+            pass
+    query = _coerce_text(search_query) or (_event_search_query(event) if allow_llm_query else _minimal_event_search_query(event))
+    rows: list[dict[str, Any]] = []
+    providers: list[str] = []
     errors: list[str] = []
-
-    if serp_client is not None:
-        try:
-            for item in serp_client.search(query_base, news=True, num=max(max_results, 3)):
-                title = _coerce_text(item.title)
-                snippet = _coerce_text(item.snippet)
-                if not title:
-                    continue
-                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=f"{event_title} {query_base}"):
-                    continue
-                article_rows.append(
-                    {
-                        "headline": title,
-                        "summary": snippet,
-                        "description": snippet,
-                        "source": _coerce_text(item.source) or "SerpApi",
-                        "published_at": coerce_article_published_at(item.published_at, url=item.url),
-                        "url": _coerce_text(item.url),
-                    }
-                )
-            sources.append("serpapi")
-        except Exception as exc:
-            errors.append(f"SerpApi failed: {type(exc).__name__}")
-
-    if serper_client is not None:
-        try:
-            for item in serper_client.search(query_base, news=True, num=max(max_results, 3)):
-                title = _coerce_text(item.title)
-                snippet = _coerce_text(item.snippet)
-                if not title:
-                    continue
-                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=f"{event_title} {query_base}"):
-                    continue
-                article_rows.append(
-                    {
-                        "headline": title,
-                        "summary": snippet,
-                        "description": snippet,
-                        "source": _coerce_text(item.source) or "Serper",
-                        "published_at": coerce_article_published_at(item.published_at, url=item.url),
-                        "url": _coerce_text(item.url),
-                    }
-                )
-            sources.append("serper")
-        except Exception as exc:
-            errors.append(f"Serper failed: {type(exc).__name__}")
-
+    requests_to_make = [(provider, client, news) for provider, client in [("serpapi", serp_client), ("serper", serper_client)] if client is not None for news in (True, False)]
     if tavily_client is not None:
-        try:
-            for item in tavily_client.search(query_base, max_results=max(max_results // 2, 3), topic="news"):
-                title = _coerce_text(item.title)
-                snippet = _coerce_text(item.snippet)
-                if not title and not snippet:
-                    continue
-                if not _passes_event_relevance_gate(title, snippet, theme, symbols, query_text=f"{event_title} {query_base}"):
-                    continue
-                article_rows.append(
-                    {
-                        "headline": title or f"{theme.title()} market event result",
-                        "summary": snippet,
-                        "description": snippet,
-                        "source": _coerce_text(item.source) or "Tavily",
-                        "published_at": coerce_article_published_at(item.published_at, url=item.url),
-                        "url": _coerce_text(item.url),
-                    }
-                )
-            sources.append("tavily")
-        except Exception as exc:
-            errors.append(f"Tavily failed: {type(exc).__name__}")
-
-    frame = _to_article_frame(article_rows).head(max(int(max_results), 1))
-    fallback_summary = None
-    if errors and frame.empty:
-        fallback_summary = errors[0]
-    return {
-        "articles": frame,
-        "fallback_summary": fallback_summary,
-        "source": "+".join(sources) if sources else None,
-        "messages": errors,
-        "search_query": query_base,
-    }
+        requests_to_make.extend(("tavily", tavily_client, news) for news in (True, False))
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from contextvars import copy_context
+    def collect(provider: str, client: Any, news: bool) -> list[Any]:
+        if provider == "tavily":
+            return client.search(query, max_results=max(max_results, 3), topic="news" if news else "general")
+        return client.search(query, news=news, num=max(max_results, 3))
+    with ThreadPoolExecutor(max_workers=min(len(requests_to_make), 4) or 1, thread_name_prefix="event-source-search") as pool:
+        futures = {pool.submit(copy_context().run, collect, provider, client, news): (provider, news) for provider, client, news in requests_to_make}
+        for future in as_completed(futures):
+            provider, news = futures[future]
+            try:
+                for item in future.result():
+                    title = _coerce_text(item.title)
+                    if not title:
+                        continue
+                    rows.append({"headline": title, "summary": _coerce_text(item.snippet), "description": _coerce_text(item.snippet), "source": _coerce_text(item.source) or provider, "published_at": coerce_article_published_at(item.published_at, url=item.url), "url": _coerce_text(item.url), "search_kind": "news" if news else "web"})
+                providers.append(provider)
+            except Exception as exc:
+                errors.append(f"{provider} {'news' if news else 'web'} search failed: {type(exc).__name__}")
+    # Interleave both source types so undated web leads survive alongside news.
+    frame = _to_article_frame(rows)
+    if not frame.empty:
+        news_rows = frame[frame['search_kind'].eq('news')].to_dict('records')
+        web_rows = frame[frame['search_kind'].eq('web')].to_dict('records')
+        ordered = [row for index in range(max(len(news_rows), len(web_rows))) for group in (news_rows, web_rows) if index < len(group) for row in [group[index]]]
+        frame = pd.DataFrame(ordered).drop_duplicates('url').head(max(int(max_results), 1))
+    return {"articles": frame, "fallback_summary": errors[0] if errors and frame.empty else None, "source": "+".join(dict.fromkeys(providers)) or None, "messages": errors, "search_query": query}
 
 
 def _normalize_news_evidence(
@@ -1260,12 +1222,27 @@ def _event_market_activity_why_text(theme: str, direction: str) -> str:
     llm_client = load_aql_zopedia_llm_client(surface="attention.live_research.market_activity")
     if llm_client is not None:
         try:
-            result = llm_client.generate_json(
-                system_prompt=get_prompt(_MARKET_ACTIVITY_NARRATIVE_SYSTEM_PROMPT),
-                user_prompt=f"Theme: {theme}\nDirection: {direction}\nWrite the market activity narrative sentence.",
+            from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+            engine_operation = run_aql_zopedia_structured_agent(
+                query=f"Theme: {theme}\nDirection: {direction}\nWrite the market activity narrative sentence.",
+                instructions=get_prompt(_MARKET_ACTIVITY_NARRATIVE_SYSTEM_PROMPT),
                 schema_name="event_market_activity_narrative",
                 schema=_EVENT_MARKET_ACTIVITY_WHY_SCHEMA,
+                task="event_market_activity_narrative", stage='synthesis',
+                surface="services.attention_live_research",
+                llm_client=llm_client,
+                max_tool_calls=0,
+                persist_findings=False,
+                write_policy="none",
+                call_type="formatter_over_aql",
+                operation_metadata=None,
             )
+            if engine_operation.get("status") != "completed":
+                raise RuntimeError(
+                    engine_operation.get("error") or "Shared AI operation failed"
+                )
+            result = engine_operation["payload"]
             narrative = str(result.get("narrative") or "").strip()
         except (LLMAPIError, Exception):
             narrative = ""
@@ -1506,12 +1483,27 @@ def _synthesize_with_llm(
         indent=2,
     )
     try:
-        data = llm_client.generate_json(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
+        from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+        engine_operation = run_aql_zopedia_structured_agent(
+            query=user_prompt,
+            instructions=system_prompt,
             schema_name="attention_symbol_research_bundle",
             schema=RESEARCH_SYNTHESIS_SCHEMA,
+            task="attention_symbol_research_bundle", stage='synthesis',
+            surface="services.attention_live_research",
+            llm_client=llm_client,
+            max_tool_calls=0,
+            persist_findings=False,
+            write_policy="none",
+            call_type="formatter_over_aql",
+            operation_metadata=None,
         )
+        if engine_operation.get("status") != "completed":
+            raise RuntimeError(
+                engine_operation.get("error") or "Shared AI operation failed"
+            )
+        data = engine_operation["payload"]
     except Exception:
         return {
             "why_now_text": evidence_why_text,

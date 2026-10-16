@@ -1,0 +1,35 @@
+{
+  "offline": {
+    "passed": 52,
+    "deselected_unrelated_pipeline_checks": 53,
+    "seconds": 6.65,
+    "network_io": "disabled"
+  },
+  "postgresql_lifecycle": {
+    "passed": 6,
+    "seconds": 48.41,
+    "relations": "owned temporary tables",
+    "checks": [
+      "active SQL cancellation",
+      "expired transaction rollback",
+      "savepoint behavior",
+      "stale callback cannot cancel next operation",
+      "cross-process background cap",
+      "interactive capacity during background work"
+    ]
+  },
+  "projection": {
+    "passed": 4,
+    "seconds": 55.7,
+    "relations": "temporary tables shadow public relations",
+    "checks": [
+      "changed/unchanged/archived knowledge pages",
+      "interrupted checkpoint replay",
+      "unchanged news versions skipped",
+      "failed Blob read remains pending until successful retry"
+    ]
+  },
+  "model_calls_for_controlled_checks": 0,
+  "engine_revision": "52d929f1cad3d4aa3e08",
+  "earlier_failed_probes": "Retained in documents/mistakes.md; final cancellation acceptance follows realistic bounded control-connection acquisition."
+}

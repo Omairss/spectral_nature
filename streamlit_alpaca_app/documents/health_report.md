@@ -1,6 +1,14 @@
 # Spectral Nature Health Report
 
-## Current Monitoring Update
+## Current assessment — October 15, 2026
+
+Checked approximately 19:44–19:51 PDT. The application is available but research is degraded. All eight application revisions are ready; production Home returns HTTP 200 with eight story groups. Latest numerical ingestion, news and brokerage sync executions succeeded. No health incidents are currently open.
+
+All four Home chart-selection calls exceeded the model context limit, leaving zero daily charts. Learning critics also exceeded the limit while their jobs reported success. Latest Trading Agent output has four successful horizons and a failed three-month horizon; two earlier executions exited 137 with memory above their 2 GiB allocation. Afternoon PostgreSQL connection exhaustion interrupted several consumers, including monitoring, and left final Home publication missing from database metadata despite successful Blob publication.
+
+See the [current investigation](architecture/overall/audits/SYSTEM_HEALTH_2026-10-15.md) for exact errors, recovery, retained output and repair priorities. Assessments below are historical context, not current health declarations.
+
+## Historical monitoring update — September 19, 2026
 
 Updated: 2026-09-19 16:07 PDT
 

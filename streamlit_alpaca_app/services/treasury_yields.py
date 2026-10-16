@@ -38,7 +38,12 @@ def _treasury_request(params: dict[str, str]) -> str:
     return response.text
 
 
-def _parse_treasury_yield_feed(xml_text: str) -> pd.DataFrame:
+def parse_treasury_rate_feed(xml_text: str, *, date_field: str = "NEW_DATE") -> pd.DataFrame:
+    """Retain all Treasury fields, using the feed's declared EDM data types.
+
+    Curves use NEW_DATE; the daily bill feed uses INDEX_DATE. QUOTE_DATE,
+    maturity dates and CUSIPs remain distinct source fields.
+    """
     try:
         root = ET.fromstring(xml_text)
     except Exception as exc:
@@ -56,17 +61,35 @@ def _parse_treasury_yield_feed(xml_text: str) -> pd.DataFrame:
                 errors="coerce",
             )
         }
-        date_text = props.findtext("d:NEW_DATE", default="", namespaces=TREASURY_XML_NAMESPACES)
-        row["date"] = pd.to_datetime(date_text, errors="coerce")
-        for spec in TREASURY_YIELD_FIELD_SPECS:
-            raw = props.findtext(f"d:{spec.xml_field}", default="", namespaces=TREASURY_XML_NAMESPACES)
-            row[spec.xml_field] = pd.to_numeric(raw, errors="coerce")
+        for prop in props:
+            name = prop.tag.rsplit("}", 1)[-1]
+            data_type = prop.get(f"{{{TREASURY_XML_NAMESPACES['m']}}}type", "Edm.String")
+            raw = prop.text
+            if data_type in {"Edm.Double", "Edm.Single", "Edm.Decimal", "Edm.Int16", "Edm.Int32", "Edm.Int64", "Edm.Byte"}:
+                row[name] = pd.to_numeric(raw, errors="coerce")
+            elif data_type in {"Edm.DateTime", "Edm.DateTimeOffset"}:
+                row[name] = pd.to_datetime(raw, errors="coerce")
+            else:
+                row[name] = raw
+        if date_field not in row:
+            raise TreasuryYieldError(f"Treasury feed missing observation date field {date_field}")
+        row["date"] = pd.to_datetime(row[date_field], errors="coerce")
         rows.append(row)
 
     frame = pd.DataFrame(rows)
     if frame.empty:
         return frame
+    if frame["date"].isna().any():
+        raise TreasuryYieldError(f"Treasury feed contains invalid {date_field} values")
     frame = frame.dropna(subset=["date"]).sort_values("date").drop_duplicates(subset=["date"], keep="last").reset_index(drop=True)
+    return frame
+
+
+def _parse_treasury_yield_feed(xml_text: str) -> pd.DataFrame:
+    frame = parse_treasury_rate_feed(xml_text)
+    for spec in TREASURY_YIELD_FIELD_SPECS:
+        if not frame.empty and spec.xml_field not in frame:
+            frame[spec.xml_field] = float("nan")
     return frame
 
 
@@ -112,6 +135,7 @@ __all__ = [
     "TREASURY_YIELD_DATA_KEY",
     "TREASURY_XML_NAMESPACES",
     "TreasuryYieldError",
+    "parse_treasury_rate_feed",
     "load_treasury_yield_curve",
     "load_treasury_yield_datasets",
 ]

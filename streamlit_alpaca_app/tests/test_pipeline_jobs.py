@@ -89,33 +89,16 @@ def test_upload_frame_persists_empty_frames(monkeypatch):
     assert uploaded[0][2] == "application/octet-stream"
 
 
-def test_upload_manifest_writes_stable_latest_pointer(monkeypatch):
-    uploaded: dict[str, dict[str, object]] = {}
-
-    def _capture(path: str, payload: bytes, content_type: str) -> None:
-        uploaded[path] = {
-            "payload": json.loads(payload.decode("utf-8")),
-            "content_type": content_type,
-        }
-
-    monkeypatch.setattr("pipeline.jobs.main._upload_bytes", _capture)
-
-    ctx = JobContext(
-        name="attention-home-build",
-        run_id="abcdef12-test-run",
-        asof=datetime(2026, 5, 27, 19, 55, tzinfo=timezone.utc),
-        universe_version="20260527",
-    )
-
+def test_upload_manifest_delegates_complete_receipt_to_publication_owner(monkeypatch):
+    published = []
+    monkeypatch.setattr("services.pipeline_store.publish_dataset_manifest", published.append)
+    ctx = JobContext(name="attention-home-build", run_id="abcdef12-test-run",
+        asof=datetime(2026, 5, 27, 19, 55, tzinfo=timezone.utc), universe_version="20260527")
     manifest = _upload_manifest("attention_home_snapshots_1d", "datasets/home.parquet", pd.DataFrame([{"x": 1}]), ctx)
-
-    assert manifest is not None
-    version_path = f"manifests/attention_home_snapshots_1d/{manifest['dataset_version_id']}.json"
-    latest_path = "manifests/attention_home_snapshots_1d/latest.json"
-    assert version_path in uploaded
-    assert latest_path in uploaded
-    assert uploaded[latest_path]["payload"]["blob_path"] == "datasets/home.parquet"
-    assert uploaded[latest_path]["content_type"] == "application/json"
+    assert published == [manifest]
+    assert manifest["dataset_name"] == "attention_home_snapshots_1d"
+    assert manifest["row_count"] == 1 and manifest["blob_path"] == "datasets/home.parquet"
+    assert manifest["asof_time_utc"] == ctx.asof.isoformat()
 
 
 def test_symbol_partition_uploads_publish_a_bounded_manifest_index(monkeypatch):
@@ -181,6 +164,8 @@ def test_uploads_are_isolated_in_configured_dataset_namespace(monkeypatch):
             "content_type": content_type,
         }
 
+    published = []
+    monkeypatch.setattr("services.pipeline_store.publish_dataset_manifest", published.append)
     monkeypatch.setenv("PIPELINE_DATASET_NAMESPACE", "development")
     monkeypatch.setattr("pipeline.jobs.main._upload_bytes", _capture)
     ctx = JobContext(
@@ -197,8 +182,8 @@ def test_uploads_are_isolated_in_configured_dataset_namespace(monkeypatch):
     assert manifest is not None
     assert manifest["dataset_namespace"] == "development"
     assert str(manifest["dataset_version_id"]).startswith("development__trading_agent_runs__")
-    latest_path = "namespaces/development/manifests/trading_agent_runs/latest.json"
-    assert uploaded[latest_path]["payload"]["blob_path"] == path
+    assert published == [manifest]
+    assert manifest["blob_path"] == path
 
 
 def test_commit_zopedia_memory_pages_uses_audited_typed_mutation(monkeypatch):

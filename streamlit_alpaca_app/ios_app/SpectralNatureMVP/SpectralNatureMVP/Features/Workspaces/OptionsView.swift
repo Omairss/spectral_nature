@@ -34,11 +34,7 @@ struct OptionsView: View {
         ResourceStatus(resource: prices) { Task { await loadUnderlying() } }
         ResourceStatus(resource: chain) { Task { await loadChain() } }
         if !ticker.isEmpty, chain.value != nil {
-          HStack {
-            Text(ticker).font(.headline)
-            Spacer()
-            Text(Format.money(underlying)).monospacedDigit()
-          }
+          InstrumentHeading(symbol: ticker, price: underlying, priceLabel: "Underlying price")
           Picker("Expiration", selection: $expiration) {
             ForEach(expirations, id: \.self) { Text($0) }
           }
@@ -55,12 +51,12 @@ struct OptionsView: View {
                 rows: contracts,
                 columns: [
                   .init(key: "contractSymbol", title: "Contract"),
-                  .init(key: "strike", title: "Strike", style: .money),
-                  .init(key: "bid", title: "Bid", style: .money),
-                  .init(key: "ask", title: "Ask", style: .money),
+                  .init(key: "strike", title: "Strike", style: .price),
+                  .init(key: "bid", title: "Bid", style: .price),
+                  .init(key: "ask", title: "Ask", style: .price),
                   .init(key: "impliedVolatility", title: "IV", style: .fraction),
                   .init(key: "openInterest", title: "Open interest", style: .number),
-                  .init(key: "lastPrice", title: "Last", style: .money),
+                  .init(key: "lastPrice", title: "Last", style: .price),
                   .init(key: "volume", title: "Volume", style: .number),
                   .init(key: "delta", title: "Delta", style: .number),
                   .init(key: "theta", title: "Theta", style: .number),
@@ -104,7 +100,7 @@ struct OptionsView: View {
                     ("Contract cost", Format.money(best.number("contracts_cost"))),
                     ("Projected P/L", Format.money(best.number("projected_pnl"))),
                     ("Projected return", Format.percent(best.number("projected_return_pct"))),
-                    ("Breakeven", Format.money(best.number("breakeven"))),
+                    ("Breakeven", Format.price(best.number("breakeven"))),
                     ("Selection score", Format.number(best.number("selection_score"))),
                   ])
                   ScatterPlot(
@@ -118,8 +114,8 @@ struct OptionsView: View {
                     .init(key: "contractSymbol", title: "Contract"),
                     .init(key: "type", title: "Type"),
                     .init(key: "expiration", title: "Expiration"),
-                    .init(key: "strike", title: "Strike", style: .money),
-                    .init(key: "premium", title: "Premium", style: .money),
+                    .init(key: "strike", title: "Strike", style: .price),
+                    .init(key: "premium", title: "Premium", style: .price),
                     .init(key: "projected_return_pct", title: "Projected return", style: .percent),
                     .init(key: "delta", title: "Delta", style: .number),
                     .init(key: "theta", title: "Theta", style: .number),
@@ -211,7 +207,7 @@ struct OptionsView: View {
   }
   private func evaluate() async {
     guard let current = underlying, let price = Double(expected), price > 0 else { return }
-    evaluatedLabel = "\(ticker) · Expected \(Format.money(price)) · \(horizon) days"
+    evaluatedLabel = "\(ticker) · Expected \(Format.price(price)) · \(horizon) days"
     let params: Record = [
       "ticker": .string(ticker), "expected_price": .number(price),
       "underlying_price": .number(current), "horizon_days": .number(Double(horizon)),

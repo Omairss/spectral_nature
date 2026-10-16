@@ -1,0 +1,14 @@
+[
+  {
+    "viewport": "desktop",
+    "overflow": false,
+    "plot_count": 3,
+    "page_errors": []
+  },
+  {
+    "viewport": "phone",
+    "overflow": false,
+    "plot_count": 1,
+    "page_errors": []
+  }
+]

@@ -1,0 +1,72 @@
+
+> spectral-nature-web@0.1.0 build
+> next build
+
+▲ Next.js 16.3.8 (Turbopack)
+✓ Running next.config.ts took 1833ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 44s
+  Running TypeScript ...
+  Finished TypeScript in 15.3s ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/34) ...
+  Generating static pages using 7 workers (8/34) 
+  Generating static pages using 7 workers (16/34) 
+  Generating static pages using 7 workers (25/34) 
+✓ Generating static pages using 7 workers (34/34) in 1955ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin
+├ ƒ /api/admin
+├ ƒ /api/admin/invites
+├ ƒ /api/admin/llm
+├ ƒ /api/admin/password-resets
+├ ƒ /api/auth/account/[action]
+├ ƒ /api/auth/csrf
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/session
+├ ƒ /api/datasets/[name]
+├ ƒ /api/feature-requests
+├ ƒ /api/feature-requests/[requestId]
+├ ƒ /api/feature-requests/[requestId]/messages
+├ ƒ /api/home
+├ ƒ /api/home/audio
+├ ƒ /api/investigator/[ticker]
+├ ƒ /api/market-lenses
+├ ƒ /api/portfolio
+├ ƒ /api/portfolio/opportunities
+├ ƒ /api/research-conversations
+├ ƒ /api/research-conversations/[conversationId]
+├ ƒ /api/research-runs
+├ ƒ /api/research-runs/[runId]
+├ ƒ /api/research-runs/[runId]/cancel
+├ ƒ /api/research-runs/[runId]/events
+├ ƒ /api/trading-agent
+├ ƒ /api/trading-agent/decisions
+├ ƒ /api/visualizations/[name]
+├ ƒ /api/zopedia/pages
+├ ƒ /api/zopedia/sources/upload
+├ ƒ /api/zopedia/workspace
+├ ƒ /broad-economy
+├ ƒ /health
+├ ƒ /login
+├ ƒ /market-explorer
+├ ƒ /options
+├ ƒ /portfolio
+├ ƒ /portfolio-performance
+├ ƒ /stock-investigator
+├ ƒ /trading-agent
+├ ƒ /zopedia
+├ ƒ /zopedia/conversations/[conversationId]
+└ ƒ /zopedia/runs/[runId]
+
+
+ƒ Proxy (Middleware)
+
+ƒ  (Dynamic)  server-rendered on demand
+
