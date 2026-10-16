@@ -5,10 +5,24 @@ FROM ${DEPENDENCY_IMAGE}
 
 ARG SOURCE_REVISION
 ARG SOURCE_INVENTORY_SHA256
+ARG RUNTIME_INVENTORY_SHA256
 LABEL org.opencontainers.image.revision=$SOURCE_REVISION \
-      com.spectral-nature.source-inventory=$SOURCE_INVENTORY_SHA256
+      com.spectral-nature.source-inventory=$SOURCE_INVENTORY_SHA256 \
+      com.spectral-nature.runtime-inventory=$RUNTIME_INVENTORY_SHA256
 ENV GIT_SHA=$SOURCE_REVISION PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/app
 
 RUN rm -rf /app && mkdir /app
 WORKDIR /app
-COPY . .
+COPY api ./api
+COPY compute ./compute
+COPY config ./config
+COPY data ./data
+COPY data_access ./data_access
+COPY pipeline ./pipeline
+COPY presentation ./presentation
+COPY services ./services
+COPY views ./views
+COPY branding ./branding
+COPY app.py ./app.py
+COPY cache/cache_policy.json ./cache/cache_policy.json
+COPY scripts/sync_robinhood_main.py ./scripts/sync_robinhood_main.py

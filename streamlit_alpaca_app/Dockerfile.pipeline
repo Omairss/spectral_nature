@@ -12,11 +12,19 @@ ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken-cache
 RUN python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 RUN python -m playwright install --with-deps chromium
 
+COPY api ./api
 COPY compute ./compute
-COPY data_access ./data_access
-COPY services ./services
-COPY pipeline ./pipeline
+COPY config ./config
 COPY data ./data
+COPY data_access ./data_access
+COPY pipeline ./pipeline
+COPY presentation ./presentation
+COPY services ./services
+COPY views ./views
+COPY branding ./branding
+COPY app.py ./app.py
+COPY cache/cache_policy.json ./cache/cache_policy.json
+COPY scripts/sync_robinhood_main.py ./scripts/sync_robinhood_main.py
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app

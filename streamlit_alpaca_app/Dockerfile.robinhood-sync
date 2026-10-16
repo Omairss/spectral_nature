@@ -6,7 +6,19 @@ LABEL org.opencontainers.image.revision=$SOURCE_REVISION
 ENV GIT_SHA=$SOURCE_REVISION PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/app
 RUN rm -rf /app && mkdir /app
 WORKDIR /app
-COPY . .
+COPY api ./api
+COPY compute ./compute
+COPY config ./config
+COPY data ./data
+COPY data_access ./data_access
+COPY pipeline ./pipeline
+COPY presentation ./presentation
+COPY services ./services
+COPY views ./views
+COPY branding ./branding
+COPY app.py ./app.py
+COPY cache/cache_policy.json ./cache/cache_policy.json
+COPY scripts/sync_robinhood_main.py ./scripts/sync_robinhood_main.py
 
 ENTRYPOINT []
 CMD ["python", "/app/scripts/sync_robinhood_main.py", "--schedule-due", "--limit", "1"]

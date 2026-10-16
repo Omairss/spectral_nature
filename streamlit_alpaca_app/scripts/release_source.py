@@ -13,6 +13,9 @@ APP = Path(__file__).resolve().parents[1]
 MANIFEST = APP / "infra/release_acceptance.json"
 # These trees are excluded by .dockerignore and cannot supply runtime code.
 EXCLUDED = ("documents/", "infra/", "ios_app/", "tests/", "output/", "notebooks/")
+RUNTIME_ROOTS = ("api/", "compute/", "config/", "data/", "data_access/", "pipeline/",
+                 "presentation/", "services/", "views/", "branding/")
+RUNTIME_FILES = {"app.py", "cache/cache_policy.json", "scripts/sync_robinhood_main.py"}
 
 
 def git(*args: str) -> bytes:
@@ -36,6 +39,10 @@ def acceptance() -> dict:
     return json.loads(git("show", "HEAD:streamlit_alpaca_app/infra/release_acceptance.json"))
 
 
+def runtime_inventory(files: dict[str, str]) -> dict[str, str]:
+    return {name: digest for name, digest in files.items() if name.startswith(RUNTIME_ROOTS) or name in RUNTIME_FILES}
+
+
 def verify_target(role: str, target: str) -> dict:
     accepted = acceptance()
     contract = accepted.get("roles", {}).get(role)
@@ -51,7 +58,8 @@ def verify_image(role: str, image: str) -> dict:
     accepted = acceptance()
     record = accepted.get("roles", {}).get(role, {}).get("accepted_images", {}).get(image)
     fingerprint = hashlib.sha256(json.dumps(accepted["files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    if not record or record.get("source_inventory_sha256") != fingerprint:
+    runtime = hashlib.sha256(json.dumps(accepted["runtime_files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    if not record or record.get("source_inventory_sha256") != fingerprint or record.get("runtime_inventory_sha256") != runtime:
         raise ValueError("Image is not verified for this accepted source and role. Historical rollback requires its separate explicit procedure.")
     return {"role": role, "image": image, **record}
 
@@ -76,6 +84,9 @@ def verify(role: str) -> dict:
         raise ValueError("Unreviewed source changes: " + ", ".join(differences[:20]))
     if inventory(accepted["source_revision"]) != selected:
         raise ValueError("Accepted source revision does not match the selected application files.")
+    runtime = runtime_inventory(selected)
+    if not runtime or accepted.get("runtime_files") != runtime:
+        raise ValueError("Declared runtime files do not match the accepted source.")
     changed = git("diff", "--name-only", accepted["review_base_revision"], accepted["source_revision"],
                   "--", "streamlit_alpaca_app").decode().splitlines()
     changed = {name.removeprefix("streamlit_alpaca_app/") for name in changed
@@ -102,6 +113,8 @@ def verify(role: str) -> dict:
     return {"source_revision": git("rev-parse", "HEAD").decode().strip(),
             "accepted_source_revision": accepted["source_revision"], "role": role,
             "source_inventory_sha256": fingerprint, "files": len(selected),
+            "runtime_inventory_sha256": hashlib.sha256(json.dumps(runtime, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+            "runtime_files": len(runtime),
             "dependency_image": accepted["roles"][role]["dependency_image"]}
 
 

@@ -19,8 +19,19 @@ COPY requirements-ui.lock ./requirements-ui.lock
 RUN pip install --require-hashes -r requirements-ui.lock
 RUN python -m playwright install --with-deps chromium
 
-COPY . .
-COPY data/stock_fundamental /app/data/stock_fundamental
+COPY api ./api
+COPY compute ./compute
+COPY config ./config
+COPY data ./data
+COPY data_access ./data_access
+COPY pipeline ./pipeline
+COPY presentation ./presentation
+COPY services ./services
+COPY views ./views
+COPY branding ./branding
+COPY app.py ./app.py
+COPY cache/cache_policy.json ./cache/cache_policy.json
+COPY scripts/sync_robinhood_main.py ./scripts/sync_robinhood_main.py
 
 EXPOSE 8501
 

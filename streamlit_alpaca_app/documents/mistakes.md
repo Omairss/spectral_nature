@@ -9,6 +9,7 @@
 - Recovery now separates the mixed checkpoint in a held Git branch, reconciles the eight affected areas against each consumer's actual accepted implementation, and retains the scoped accepted database repair. The image-backport utility and broker's two-file image overlay were still active packaging remnants; archived the originals and removed that reuse path. Full-source acceptance and per-file review are required before packaging.
 - Removing held flow parameters by direct call names initially missed an injected `runner` alias in news interpretation. The complete source-difference review caught it before any build or deployment; removed the remaining argument. Import success alone would have missed this execution-time incompatibility too.
 - Build-source checks alone left the older existing-image promotion commands able to select an arbitrary historical digest. Closed that route with committed, role-specific image verification before any runtime update. Superseded the initial packaging batch so the registered images include the completed enforcement code.
+- The first physical image comparison exposed a source/runtime inventory mismatch: tracked cache files were excluded, nested compiled files were copied, and ACR injected a generated Dockerfile into broad COPY contexts. Replaced broad runtime copies with declared application directories/configuration, made cache exclusions recursive and separated source from runtime inventories. None of those initial images was deployed.
 
 ## Generated files in unpublished history — 2026-10-16
 

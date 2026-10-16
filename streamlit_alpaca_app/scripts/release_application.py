@@ -55,6 +55,7 @@ def build(args) -> None:
                 "--build-arg", f"DEPENDENCY_IMAGE={release['dependency_image']}",
                 "--build-arg", f"SOURCE_REVISION={release['source_revision']}",
                 "--build-arg", f"SOURCE_INVENTORY_SHA256={release['source_inventory_sha256']}",
+                "--build-arg", f"RUNTIME_INVENTORY_SHA256={release['runtime_inventory_sha256']}",
                 "--no-wait", "--no-logs", str(APP))
     save(args.output / "build.json", {**release, "tag": tag, "run": run})
     print(json.dumps({"role": args.role, "tag": tag,

@@ -15,7 +15,7 @@ def checkout(tmp_path, monkeypatch):
     app = tmp_path / "streamlit_alpaca_app"
     (app / "infra").mkdir(parents=True)
     (app / "documents").mkdir()
-    (app / "main.py").write_text("accepted = True\n")
+    (app / "app.py").write_text("accepted = True\n")
     (app / "documents/verification.md").write_text("Reviewed complete behavior.\n")
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     monkeypatch.setattr(release, "APP", app)
@@ -30,9 +30,10 @@ def checkout(tmp_path, monkeypatch):
     image = "registry.example/runtime@sha256:" + "a" * 64
     record = {"status": "accepted_locally", "source_revision": revision,
               "review_base_revision": revision, "reviewed_changes": {},
-              "files": release.inventory(), "roles": {"worker": {"dependency_image": image, "baseline_images": [image],
+              "files": release.inventory(), "runtime_files": release.runtime_inventory(release.inventory()),
+              "roles": {"worker": {"dependency_image": image, "baseline_images": [image],
                   "development_targets": [{"name": "worker-dev"}]}},
-              "components": [{"status": "accepted", "files": ["main.py"], "evidence": "documents/verification.md"}]}
+              "components": [{"status": "accepted", "files": ["app.py"], "evidence": "documents/verification.md"}]}
 
     def save():
         release.MANIFEST.write_text(json.dumps(record))
@@ -65,9 +66,10 @@ def test_committed_unreviewed_source_cannot_build(checkout):
 def test_updating_hashes_alone_does_not_accept_a_changed_file(checkout):
     release, record, commit, save = checkout
     save()
-    (release.APP / "main.py").write_text("accepted = False\n")
+    (release.APP / "app.py").write_text("accepted = False\n")
     record["source_revision"] = commit()
     record["files"] = release.inventory()
+    record["runtime_files"] = release.runtime_inventory(record["files"])
     save()
     with pytest.raises(ValueError, match="Every changed application file"):
         release.verify("worker")
