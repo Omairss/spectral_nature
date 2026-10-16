@@ -1,11 +1,11 @@
 # Claude Instructions
-Refer philosophy.md. Update this file if it seems stale or conflicts with a user request.
+Read `AGENTS.md` and `streamlit_alpaca_app/documents/philosophy.md`. Next.js is the current web frontend; Streamlit and Dash are retired. The directory name `streamlit_alpaca_app` and production resource name `sn-streamlit-ui` are historical names, not framework or deployment instructions.
 
 The job vs UI distinction is key. UI should only render pre-loaded content whenever possible. The jobs should be doing the compute and db heavylifting.
 
 Don't add random filler text in the UI. Ask and remove these filler texts as you come across it.
 
-Log and update mistakes and learnings to learnings.md and mistakes.md. Maintain these files - cleaup, compact, summarize each file as needed. Also maintain a depricated.md to keep track of stale paths.
+Log mistakes and learnings in `streamlit_alpaca_app/documents/mistakes.md` and `learnings.md`. Maintain the retired-path inventory linked from the documentation home. Archive superseded material outside the checkout for 30 days; do not retain executable compatibility copies.
 
 Read, think, check relevant documentation before implementing anything.
 Prefer fixing things at source. If your solution seems surface level, reevaluate if it really is a surface level task or a deep task.

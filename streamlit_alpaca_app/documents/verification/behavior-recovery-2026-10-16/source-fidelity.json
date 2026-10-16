@@ -194,9 +194,9 @@
   {
     "component": "retained-trading",
     "path": "services/trading_agent.py",
-    "matches": true,
+    "matches": false,
     "accepted_reference": "actual immediate prior Trading image",
-    "comparison": "byte-identical"
+    "reviewed_difference": "Owner-directed retirement removes three inactive rollback functions and simplifies three shared functions by removing always-false timeout flags/branches. No new producer, prompt, research algorithm or inference route is added. All other 69 functions match exactly."
   },
   {
     "component": "retained-database",

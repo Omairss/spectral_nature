@@ -310,8 +310,8 @@ def _run_environment_checks(run: EvalRun, *, check_urls: bool) -> Any:
 
     if check_urls:
         started = time.monotonic()
-        api_status = _http_status("https://sn-api-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io/health")
-        ui_status = _http_status("https://sn-streamlit-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io", method="HEAD")
+        api_status = _http_status("https://sn-api-next-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io/health")
+        ui_status = _http_status("https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io", method="HEAD")
         run.add(
             "dev_deployed_endpoints",
             _status_for(api_status == 200 and ui_status == 200, warn=True),

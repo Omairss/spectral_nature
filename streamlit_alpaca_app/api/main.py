@@ -129,8 +129,6 @@ def _resolve_principal(
     if bearer:
         principal = api_auth.principal_from_access_token(bearer)
         if principal is None:
-            principal = api_auth.principal_from_legacy_session_token(bearer)
-        if principal is None:
             raise _error("Invalid or expired bearer token.", status.HTTP_401_UNAUTHORIZED)
         return principal
 

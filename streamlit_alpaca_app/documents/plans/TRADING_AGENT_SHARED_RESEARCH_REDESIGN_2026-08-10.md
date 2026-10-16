@@ -1,5 +1,7 @@
 # Trading Agent Shared Research Redesign
 
+**October 16 retirement:** the inactive per-horizon rollback entrypoints, mode and timeout branches have been removed. Only the accepted shared-research producer is supported. Earlier rollback instructions below are historical evidence and must not be implemented.
+
 Date: 2026-08-10
 
 ## Decision

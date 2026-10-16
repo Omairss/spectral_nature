@@ -875,25 +875,6 @@ def normalize_trading_agent_candidate(candidate: dict[str, Any]) -> dict[str, An
     return normalized
 
 
-def _fallback_trading_agent_suggestions(
-    _context: dict[str, Any],
-    *,
-    reason: str,
-    aql_context: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Fail closed when research cannot support a generated candidate."""
-    return {
-        "status": "unavailable",
-        "narrative_contract_version": TRADING_AGENT_NARRATIVE_CONTRACT_VERSION,
-        "regime_read": "",
-        "portfolio_posture": "",
-        "candidates": [],
-        "data_gaps": [],
-        "error": _clean(reason),
-        "aql_agent": aql_context or {},
-    }
-
-
 def empty_trading_agent_run_frame() -> pd.DataFrame:
     return pd.DataFrame(columns=TRADING_AGENT_RUN_COLUMNS)
 
@@ -1124,7 +1105,6 @@ def _materialize_trading_agent_results(
     asof_time_utc: object,
     business_filter: str,
     max_candidates: int,
-    fallback_on_timeout: bool,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     run_rows: list[dict[str, Any]] = []
     candidate_rows: list[dict[str, Any]] = []
@@ -1141,18 +1121,14 @@ def _materialize_trading_agent_results(
         try:
             result = result_builder(context)
         except Exception as exc:
-            error_text = f"Trading Agent materialization failed: {type(exc).__name__}: {exc}"
-            if fallback_on_timeout and _looks_like_timeout_error(error_text):
-                result = _fallback_trading_agent_suggestions(context, reason=error_text)
-            else:
-                result = {
-                    "status": "error",
-                    "regime_read": "",
-                    "portfolio_posture": "",
-                    "candidates": [],
-                    "data_gaps": [],
-                    "error": f"{type(exc).__name__}: {exc}",
-                }
+            result = {
+                "status": "error",
+                "regime_read": "",
+                "portfolio_posture": "",
+                "candidates": [],
+                "data_gaps": [],
+                "error": f"{type(exc).__name__}: {exc}",
+            }
         if not isinstance(result, dict):
             result = {
                 "status": "error",
@@ -1242,48 +1218,6 @@ def _materialize_trading_agent_results(
     if candidates.empty:
         candidates = empty_trading_agent_candidate_frame()
     return runs, candidates
-
-
-def build_trading_agent_materialized_frames(
-    *,
-    opportunity_feed: pd.DataFrame,
-    page_summaries: pd.DataFrame,
-    llm_client: Any | None,
-    run_id: str,
-    asof_time_utc: object,
-    quarterly_fundamentals: pd.DataFrame | None = None,
-    business_filter: str = "All Market",
-    max_candidates: int = 4,
-    horizon_specs: tuple[dict[str, str], ...] = TRADING_AGENT_HORIZON_SPECS,
-    suggestion_builder: Callable[..., dict[str, Any]] | None = None,
-    aql_agent_runner: AgentRunner | None = None,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Run the legacy per-horizon Trading Agent for operational rollback."""
-    candidate_limit = max(int(max_candidates), 1)
-    contexts = _build_trading_agent_horizon_contexts(
-        opportunity_feed=opportunity_feed,
-        page_summaries=page_summaries,
-        business_filter=business_filter,
-        max_candidates=candidate_limit,
-        research_candidate_limit=candidate_limit,
-        horizon_specs=horizon_specs,
-        generation_mode="legacy_per_horizon_v1",
-        quarterly_fundamentals=quarterly_fundamentals, asof_time_utc=asof_time_utc,
-    )
-    builder = suggestion_builder or build_trading_agent_suggestions
-    return _materialize_trading_agent_results(
-        horizon_contexts=contexts,
-        result_builder=lambda context: builder(
-            context=context,
-            llm_client=llm_client,
-            aql_agent_runner=aql_agent_runner,
-        ),
-        run_id=run_id,
-        asof_time_utc=asof_time_utc,
-        business_filter=business_filter,
-        max_candidates=candidate_limit,
-        fallback_on_timeout=True,
-    )
 
 
 def _prepare_trading_agent_price_history(frame: pd.DataFrame) -> pd.DataFrame:
@@ -2389,7 +2323,6 @@ def _synthesize_trading_agent_suggestions(
     ticker_contexts: list[dict[str, Any]],
     ticker_packages: list[dict[str, Any]],
     llm_client: Any | None,
-    allow_timeout_fallback: bool,
 ) -> dict[str, Any]:
     if llm_client is None:
         return {
@@ -2422,12 +2355,6 @@ def _synthesize_trading_agent_suggestions(
             for item in to_list(aql_context.get("limitations"))
             if _clean(item)
         ]
-        if allow_timeout_fallback and any(_looks_like_timeout_error(item) for item in limitations):
-            return _fallback_trading_agent_suggestions(
-                normalized_context,
-                reason=limitations[0] if limitations else "AQL agent timed out before producing grounded trading synthesis.",
-                aql_context=aql_context,
-            )
         error_text = limitations[0] if limitations else "AQL agent did not produce grounded trading synthesis."
         return {
             "status": "error" if aql_context["status"] != "unavailable" else "unavailable",
@@ -2587,34 +2514,6 @@ def _synthesize_trading_agent_suggestions(
     }
 
 
-def build_trading_agent_suggestions(
-    *,
-    context: dict[str, Any],
-    llm_client: Any | None,
-    aql_agent_runner: AgentRunner | None = None,
-) -> dict[str, Any]:
-    """Legacy per-horizon research and synthesis path kept for rollback."""
-    normalized_context = dict(context or {})
-    legacy_controls = dict(normalized_context.get("controls") or {})
-    legacy_controls.setdefault("ticker_aql_attempts", 2)
-    normalized_context["controls"] = legacy_controls
-    ticker_contexts = _ticker_contexts_from_context(normalized_context)
-    runner = aql_agent_runner or _default_aql_agent_runner
-    ticker_packages = _run_ticker_aql_packages(
-        runner,
-        context=normalized_context,
-        ticker_contexts=ticker_contexts,
-        llm_client=llm_client,
-    ) if llm_client is not None and ticker_contexts else []
-    return _synthesize_trading_agent_suggestions(
-        context=normalized_context,
-        ticker_contexts=ticker_contexts,
-        ticker_packages=ticker_packages,
-        llm_client=llm_client,
-        allow_timeout_fallback=True,
-    )
-
-
 def build_trading_agent_shared_research_frames(
     *,
     opportunity_feed: pd.DataFrame,
@@ -2700,7 +2599,6 @@ def build_trading_agent_shared_research_frames(
             ticker_contexts=selected_contexts,
             ticker_packages=selected_packages,
             llm_client=llm_client,
-            allow_timeout_fallback=False,
         )
 
     runs, candidates = _materialize_trading_agent_results(
@@ -2710,7 +2608,6 @@ def build_trading_agent_shared_research_frames(
         asof_time_utc=asof_time_utc,
         business_filter=business_filter,
         max_candidates=candidate_limit,
-        fallback_on_timeout=False,
     )
     return runs, candidates, package_frame
 
@@ -2722,9 +2619,7 @@ __all__ = [
     "TRADING_AGENT_RESEARCH_PACKAGE_COLUMNS",
     "TRADING_AGENT_RUN_COLUMNS",
     "build_trading_agent_context",
-    "build_trading_agent_materialized_frames",
     "build_trading_agent_shared_research_frames",
-    "build_trading_agent_suggestions",
     "empty_trading_agent_candidate_frame",
     "empty_trading_agent_research_package_frame",
     "empty_trading_agent_run_frame",

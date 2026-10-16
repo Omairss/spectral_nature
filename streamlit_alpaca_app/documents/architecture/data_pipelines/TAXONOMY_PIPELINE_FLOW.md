@@ -17,12 +17,12 @@ The pipeline is dynamic-only. It does not depend on the old curated override dic
 
 ```mermaid
 flowchart TD
-    A[Engineer runs deploy script] --> B[scripts/deploy_pipeline_azure.sh]
+    A[Reviewed accepted Git source] --> B[scripts/release_application.py]
     B --> C[Build pipeline-jobs container image]
     C --> D[Push image to Azure Container Registry]
-    D --> E[Create or update Container App Job]
+    D --> E[Update reviewed existing job image]
     E --> F[entity-taxonomy-refresh job]
-    B --> G[Load cron values from infra/job_schedules.env]
+    B --> G[Preserve the existing job schedule]
     G --> F
     F --> H[Monthly schedule: 0 9 1 * * UTC]
 ```
@@ -79,7 +79,7 @@ This is expected during the first full bootstrap because the current job writes 
 | Stage | Source of truth |
 | --- | --- |
 | Job schedule | `infra/job_schedules.env` |
-| Azure deployment wiring | `scripts/deploy_pipeline_azure.sh` |
+| Azure deployment wiring | `scripts/release_application.py` |
 | Job dispatch | `pipeline/jobs/main.py` |
 | Taxonomy build logic | `services/entity_taxonomy.py` |
 | Dataset-to-job mapping | `services/pipeline_store.py` |

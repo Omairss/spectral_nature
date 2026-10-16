@@ -1,5 +1,7 @@
 # Trading calls and approval tracking
 
+**Held implementation:** runtime code is isolated in `held/pre-recovery-20261016` and verified stopped-task archives. This plan and retained research are not release source or permission to restore that code. Reconcile scoped work against the current accepted Git source before resuming.
+
 Status: implementation in progress. Owner request: production iOS request `86043829-96ea-458e-b9ba-81dcfbac7030`, followed by explicit instruction to implement it in chat. [Research index](../research/README.md).
 
 **October 16 source-retirement update:** the owner stopped this task while historical source trees were isolated. Complete outputs, provider records, source variants and eight candidate diffs are retained in the [retirement and resume record](../verification/release-source-retirement-2026-10-16/README.md). Resume the selected task changes in Git and reuse completed research. No old baseline or complete candidate source tree may seed a new release.

@@ -8,7 +8,6 @@ services:
     environment:
       PYTHONPATH: /workspace/streamlit_alpaca_app
     ports:
-      - "8501:8501"
       - "8080:8080"
     stdin_open: true
     tty: true

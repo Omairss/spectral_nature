@@ -21,11 +21,7 @@ COPY data_access ./data_access
 COPY pipeline ./pipeline
 COPY presentation ./presentation
 COPY services ./services
-COPY views ./views
 COPY branding ./branding
-COPY app.py ./app.py
-COPY .streamlit/config.toml ./.streamlit/config.toml
-COPY requirements.txt requirements-ui.lock ./
 COPY scripts/collect_historical_corpus.py ./scripts/collect_historical_corpus.py
 COPY cache/cache_policy.json ./cache/cache_policy.json
 COPY scripts/sync_robinhood_main.py ./scripts/sync_robinhood_main.py

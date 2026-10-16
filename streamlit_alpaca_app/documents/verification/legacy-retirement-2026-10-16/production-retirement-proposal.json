@@ -1,0 +1,22 @@
+{
+  "status": "prepared_not_authorized",
+  "operation": "DELETE Microsoft.App/containerApps/sn-api",
+  "resource_group": "sn-pipeline-rg-03130136",
+  "target": "sn-api",
+  "environment": "production",
+  "expected_image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
+  "saved_definition": "Private legacy-cloud-retirement/apps-after.private.json",
+  "custom_domains": [],
+  "configured_app_or_job_consumers": [],
+  "current_frontend_backend": "sn-api-next",
+  "remaining_external_client_usage": "Not independently measured; the legacy public API endpoint will stop responding if deleted.",
+  "protected_resources": [
+    "sn-streamlit-ui",
+    "sn-next-ui",
+    "sn-next-ui-dev",
+    "sn-api-next",
+    "sn-api-next-dev",
+    "all workers and data stores"
+  ],
+  "production_authorized": false
+}

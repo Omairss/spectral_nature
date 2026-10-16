@@ -1,5 +1,7 @@
 # Improve reasoning within the LLM cost allowance
 
+**Held implementation:** runtime code is isolated in `held/pre-recovery-20261016` and verified stopped-task archives. This plan and retained research are not release source or permission to restore that code. Reconcile scoped work against the current accepted Git source before resuming.
+
 [Current SOTA position and gap-closure sequence](OCTOBER_APPLIED_RESEARCH_FALL_2026_MASTER_PLAN.md): establish trustworthy measurement while improving reasoning/review; add feedback-driven improvement and allocation; compare retrieval/ranking; calibrate forecasts; then evaluate strategy, sizing and optionality under the same forecasts. This is the ordered proposal, not evidence these capabilities are already validated or permission for unspecified experiment spend.
 
 **Owner clarification, October 16:** cheap open-source models are non-negotiable. Focus on the [complete prediction system around them](../research/frontier-agentic-research/PREDICTION_MACHINE_SCOPE_2026-10-16.md), retaining learning from failures, model allocation, reasoning/correction and evaluation as priorities. [Ling 3.0 Flash Fin and GLM-5.2 are marked candidates](../research/frontier-agentic-research/OPEN_MODEL_CANDIDATES_2026-10-16.md) for a separate frozen comparison. This supersedes any interpretation of earlier premium-model proposals as permission for proprietary escalation. The +20% overall-workload allowance and current workload knobs remain unchanged; no runtime route is changed by this clarification.

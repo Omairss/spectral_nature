@@ -36,19 +36,15 @@ case "${action}" in
   api)
     exec "${COMPOSE_CMD[@]}" run --rm --service-ports dev ./scripts/run_api_local.sh
     ;;
-  ui)
-    exec "${COMPOSE_CMD[@]}" run --rm --service-ports dev ./scripts/run_ui_local.sh
-    ;;
   *)
     cat >&2 <<'EOF'
-Usage: ./scripts/docker_dev.sh [build|up|down|shell|test|api|ui] [args...]
+Usage: ./scripts/docker_dev.sh [build|up|down|shell|test|api] [args...]
 
 Examples:
   ./scripts/docker_dev.sh build
   ./scripts/docker_dev.sh shell
   ./scripts/docker_dev.sh test tests/test_api_v1.py
   ./scripts/docker_dev.sh api
-  ./scripts/docker_dev.sh ui
 EOF
     exit 1
     ;;

@@ -13,10 +13,10 @@ APP = Path(__file__).resolve().parents[1]
 MANIFEST = APP / "infra/release_acceptance.json"
 # These trees are excluded by .dockerignore and cannot supply runtime code.
 EXCLUDED = ("documents/", "infra/", "ios_app/", "tests/", "output/", "notebooks/")
+SUPPORTED_ROLES = ("worker", "api-next", "broker", "web")
 RUNTIME_ROOTS = ("api/", "compute/", "config/", "data/", "data_access/", "pipeline/",
-                 "presentation/", "services/", "views/", "branding/")
-RUNTIME_FILES = {"app.py", ".streamlit/config.toml", "cache/cache_policy.json",
-                 "requirements.txt", "requirements-ui.lock", "scripts/sync_robinhood_main.py",
+                 "presentation/", "services/", "branding/")
+RUNTIME_FILES = {"cache/cache_policy.json", "scripts/sync_robinhood_main.py",
                  "scripts/collect_historical_corpus.py"}
 
 
@@ -35,6 +35,16 @@ def inventory(revision: str = "HEAD") -> dict[str, str]:
     return result
 
 
+def check_retirement(role: str) -> None:
+    if role not in SUPPORTED_ROLES:
+        raise ValueError(f"Retired or unsupported application role: {role}.")
+    policy = json.loads(git("show", "HEAD:streamlit_alpaca_app/infra/retired_paths.json"))
+    root = APP.parent
+    restored = [name for name in policy["paths"] if (root / name).exists() or (root / name).is_symlink()]
+    if restored:
+        raise ValueError("Retired paths restored in active checkout: " + ", ".join(restored[:10]))
+
+
 def acceptance() -> dict:
     if not MANIFEST.is_file():
         raise FileNotFoundError("Missing committed release acceptance record.")
@@ -46,6 +56,7 @@ def runtime_inventory(files: dict[str, str]) -> dict[str, str]:
 
 
 def verify_target(role: str, target: str) -> dict:
+    check_retirement(role)
     accepted = acceptance()
     contract = accepted.get("roles", {}).get(role)
     if accepted.get("status") != "accepted_locally" or contract is None:
@@ -57,6 +68,7 @@ def verify_target(role: str, target: str) -> dict:
 
 
 def verify_image(role: str, image: str) -> dict:
+    check_retirement(role)
     accepted = acceptance()
     record = accepted.get("roles", {}).get(role, {}).get("accepted_images", {}).get(image)
     fingerprint = hashlib.sha256(json.dumps(accepted["files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -67,6 +79,7 @@ def verify_image(role: str, image: str) -> dict:
 
 
 def verify(role: str) -> dict:
+    check_retirement(role)
     root = Path(git("rev-parse", "--show-toplevel").decode().strip())
     if APP != root / "streamlit_alpaca_app":
         raise ValueError("Release source must be an actual Git application checkout.")
@@ -122,7 +135,7 @@ def verify(role: str) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--role", required=True, choices=("worker", "api", "api-next", "streamlit", "broker", "web"))
+    parser.add_argument("--role", required=True, choices=SUPPORTED_ROLES)
     parser.add_argument("--target")
     parser.add_argument("--image-ref")
     parser.add_argument("--target-only", action="store_true")

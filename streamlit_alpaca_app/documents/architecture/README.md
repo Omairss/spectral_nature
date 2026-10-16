@@ -14,7 +14,7 @@ Use `documents/plans/` for active implementation notes, recovery plans, and shor
 - `entity_extraction/`: shared entity extraction, canonical linking, and KG node linking boundaries
 - `data_pipelines/`: materialized pipeline architecture, FRED, taxonomy, cache, and identity/retry design
 - `agents/`: agentic research, dependency graph, open graph experiments, and research export design
-- `UI/`: Streamlit and presentation-layer boundaries
+- `UI/`: Next.js, SwiftUI and shared presentation boundaries
 
 ## Folder Rule
 

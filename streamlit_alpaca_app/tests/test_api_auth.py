@@ -117,38 +117,3 @@ def test_access_token_secret_can_use_ephemeral_fallback_when_explicitly_enabled(
     monkeypatch.setenv("API_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET", "1")
 
     assert api_auth._access_token_secret()
-
-
-def test_legacy_session_bearer_is_disabled_by_default(monkeypatch):
-    context = _context()
-    monkeypatch.delenv("API_ALLOW_LEGACY_SESSION_BEARER", raising=False)
-    monkeypatch.setattr(
-        api_auth.auth_store,
-        "get_user_context_for_session",
-        lambda token_hash: {
-            **context.to_dict(),
-            "expires_at": datetime.now(timezone.utc),
-        },
-    )
-
-    principal = api_auth.principal_from_legacy_session_token("refresh-token")
-
-    assert principal is None
-
-
-def test_legacy_session_bearer_requires_explicit_opt_in(monkeypatch):
-    context = _context()
-    monkeypatch.setenv("API_ALLOW_LEGACY_SESSION_BEARER", "1")
-    monkeypatch.setattr(
-        api_auth.auth_store,
-        "get_user_context_for_session",
-        lambda token_hash: {
-            **context.to_dict(),
-            "expires_at": datetime.now(timezone.utc),
-        },
-    )
-
-    principal = api_auth.principal_from_legacy_session_token("refresh-token")
-
-    assert principal is not None
-    assert principal.auth_source == "legacy_session_token"

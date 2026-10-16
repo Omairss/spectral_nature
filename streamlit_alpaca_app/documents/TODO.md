@@ -13,7 +13,6 @@
 
 ## Next.js Frontend Parity And Agentic Research Workbench
 
-- [ ] Treat feature parity with the active Streamlit product as the first frontend milestone. Inventory and migrate Home, Zopedia, Broad Economy, Market Explorer, Portfolio, Portfolio Performance, Stock Investigator, Option Strategizer, Trading Agent, and Admin without dropping actions, filters, replay, exports, source inspection, broker state, or failure behavior.
 
 - [ ] Preserve the Spectral Nature identity while rebuilding the interface as a clean, sophisticated responsive product. Do not reproduce Streamlit's layout constraints, DOM, or CSS overrides, and do not add filler copy.
 

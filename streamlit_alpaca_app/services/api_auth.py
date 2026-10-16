@@ -112,10 +112,6 @@ def _allow_ephemeral_access_token_secret() -> bool:
     return (os.getenv("API_ALLOW_EPHEMERAL_ACCESS_TOKEN_SECRET") or "").strip().lower() in _TRUE_VALUES
 
 
-def _allow_legacy_session_bearer_tokens() -> bool:
-    return (os.getenv("API_ALLOW_LEGACY_SESSION_BEARER") or "").strip().lower() in _TRUE_VALUES
-
-
 def _access_token_secret() -> str:
     configured = resolve_secret_value(
         ["API_ACCESS_TOKEN_SECRET"],
@@ -344,24 +340,6 @@ def principal_from_access_token(access_token: str) -> AuthPrincipal | None:
     )
 
 
-def principal_from_legacy_session_token(session_token: str) -> AuthPrincipal | None:
-    if not _allow_legacy_session_bearer_tokens():
-        return None
-    row = _session_row_from_refresh_token(session_token)
-    if not isinstance(row, dict):
-        return None
-    context = auth_service.UserContext.from_dict(row)
-    if context is None:
-        return None
-    return AuthPrincipal(
-        principal_type="user",
-        scopes=tuple(_scopes_for_user_context(context)),
-        auth_source="legacy_session_token",
-        user_context=context,
-        session_token_hash=auth_service.token_digest(session_token),
-    )
-
-
 def create_agent_api_key(
     *,
     name: str,
@@ -435,7 +413,6 @@ __all__ = [
     "normalize_agent_scopes",
     "principal_from_access_token",
     "principal_from_agent_api_key",
-    "principal_from_legacy_session_token",
     "refresh_user_tokens",
     "revoke_agent_api_key",
 ]

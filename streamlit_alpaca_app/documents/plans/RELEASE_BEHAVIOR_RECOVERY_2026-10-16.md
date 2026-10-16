@@ -12,6 +12,10 @@ Review changes in the checked-out source against the audit's immutable-image evi
 
 Historical source remains read-only evidence. No retired tree is extracted, no application overlay is built, and no image supplies application files to a new build. All recovery edits are reviewed and committed in Git before packaging.
 
+## Legacy retirement
+
+The owner explicitly directed removal of every obsolete frontend/release item. Streamlit and Dash code/tools/UI-only tests are archived, migration-only authentication/Trading rollback entrypoints are removed, and current documentation points to Next.js/FastAPI. See the [retirement inventory](../verification/legacy-retirement-2026-10-16/README.md). Recovery now targets only the modern API, workers and broker.
+
 ## Acceptance and release
 
 1. Record the complete source changes relative to every affected consumer's previous accepted implementation, including shared producers and adapters outside the research-engine fingerprint.

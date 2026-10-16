@@ -1,36 +1,21 @@
 # Active architecture
 
-Updated 2026-10-07. Ownership map; deployment revisions belong in `infra/UI_DEPLOYMENT_STATUS.md`.
+Updated October 16, 2026. Current ownership; historical source and migration plans do not define release scope.
 
 | Boundary | Owner | Role |
 |---|---|---|
-| Product clients | `web/`, `ios_app/SpectralNatureMVP/`, legacy `app.py` and `views/` | Render shared API/data contracts; native client uses the web `/api/` gateway. |
-| HTTP and account transport | `api/`, web API routes, `services/auth*` | Shared identity and authorization, browser/native transport. |
-| Dataset and chart reads | `data_access/layer.py`, `query_service.py`, `query_registry.py`, `contracts.py` | Retained research reads, local transforms, explicitly supported market/account provider reads. No construction of model, embedding, or search clients. |
-| Research and knowledge | `services/aql_zopedia_engine.py`, `aql_zopedia_gateway.py`, `services/aql/`, Zopedia services | Explicit research execution, model gateway, durable knowledge and progress. |
-| Research production | `pipeline/jobs/attention_home_build.py` (`attention-home-build`) | Acquires sources and produces retained attention/research artifacts through existing research services. |
-| Market snapshot production | `pipeline/jobs/attention_ticker_snapshot_build.py` | Independent deterministic price/fundamental materialization. |
-| Broker ingestion | `services/robinhood_main_sync.py`, `robinhood_main_store.py` | Provider-isolated durable ingestion; untouched by this cleanup. |
-| Presentation | `presentation/` | UI caching and rendering; further loader consolidation remains open. |
+| Product clients | `web/`, `ios_app/SpectralNatureMVP/` | Next.js web and SwiftUI native clients render shared contracts. |
+| HTTP/account transport | `api/`, web gateway routes, `services/auth*` | Shared identity, authorization, access/refresh tokens and agent keys. |
+| Dataset/chart reads | `data_access/`, `compute/`, shared view services | Retained research reads and explicitly supported data/account operations. No hidden research during rendering. |
+| Research/knowledge | Shared AQL/Zopedia engine, gateway and services | Planning, acquisition, synthesis/review, durable progress, knowledge and cost ownership. |
+| Home production | `pipeline/jobs/attention_home_build.py` | Full-intake accepted editor and shared review; retained output consumed by the API. |
+| Data production | `pipeline/jobs/` | Independent market, fundamental, news, index and maintenance producers. |
+| Broker ingestion | `services/robinhood_main_sync.py`, `robinhood_main_store.py` | Dedicated provider-isolated ingestion and last-good retention. |
+| Chart presentation | `presentation/plotly.py`, `visualization_artifacts.py`, client renderers | Canonical chart/data contracts and edge rendering; no Streamlit loaders. |
+| Release | `scripts/release_source.py`, `release_application.py`, committed acceptance record | Reviewed Git source and verified role-specific immutable images. |
 
-## Retired research paths
+Streamlit (`app.py`, `views/`, UI loaders/config/lock and its tools) and the earlier root Dash `src/` are retired. Their archive is outside the checkout; no importable tree or launcher remains. The production resource named `sn-streamlit-ui` hosts Next.js. The application directory name is also historical.
 
-The 2026-10-07 cleanup deletes the DAL's `_resolve_live_attention_artifacts`,
-`_resolve_symbol_agentic_bundle`, `_resolve_web_search_news`, and their private
-filing acquisition, mover-combination, and evidence-scoring machinery. These were
-a duplicate research runtime, not a separate supported product feature.
-`ATTENTION_SYMBOL_BUNDLE_PRECOMPUTED_ONLY` no longer controls behavior. Research
-bundle reads always return a retained artifact or structured unavailable state,
-even with `force_refresh=True`; explicit research is owned by AQL/Zopedia.
-Recent news retains the existing materialized sources and raw Alpaca news fallback
-where permitted, but never starts web search or synthesis.
+The DAL's former live attention research runtime remains removed. A retained artifact or structured unavailable result is returned on reads; explicit research stays in the shared engine. Current Home scoring and stored-artifact/data-shape compatibility still used by the accepted product remain current behavior, regardless of historical identifiers. Do not replace an active algorithm merely because a variable contains `legacy`.
 
-## Remaining cleanup
-
-The September cleanup score is historical and has not been recomputed. Its metric
-script was never implemented. Remaining work includes import-cycle measurement,
-legacy root/dependency retirement, presentation loader consolidation, Streamlit
-shell reduction, and pipeline dispatch consolidation. The root `src/` and root
-`requirements.txt` are legacy; the application Dockerfiles use the requirements
-within `streamlit_alpaca_app/` as their build context. Do not remove either root
-until all external launch/deployment references are accounted for.
+See the [retirement inventory](../verification/legacy-retirement-2026-10-16/README.md), [release policy](../infra/RELEASE_SOURCE_POLICY.md), [regression audit](../verification/release-source-regressions-2026-10-16/README.md) and [recovery state](../verification/behavior-recovery-2026-10-16/README.md).

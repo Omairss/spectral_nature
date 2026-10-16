@@ -1,6 +1,8 @@
 # Plans Index
 
-This directory is the single tracked home for working plans in this repo.
+Current working plans live here. Completed Streamlit/Dash and first-migration plans are archived outside the checkout; see the [retirement inventory](../verification/legacy-retirement-2026-10-16/README.md). Dated release/research evidence does not authorize restoring its runtime.
+
+Active recovery: [accepted behavior](RELEASE_BEHAVIOR_RECOVERY_2026-10-16.md). Held reasoning/model-routing and Trading-call implementations remain in `held/pre-recovery-20261016`; they are not accepted release source.
 
 Paths in this index use `streamlit_alpaca_app/` as the implicit root, so `documents/...` points into this tree.
 
@@ -16,27 +18,16 @@ Use the docs as follows:
 ## Product and UX
 
 - [Native Markets chart clarity](NATIVE_MARKETS_CHARTS_2026-10-14.md): interpretable return comparisons, numeric colors, point identities and named return bars.
-- `BRANDING_REFRESH_PLAN.md`: app-shell branding cleanup and presentation notes
-- `BRANDING_ASSET_INTEGRATION_2026-04-03.md`: branding asset rollout notes
-- `UI_SHELL_REFINEMENT_2026-04-02.md`: shell-level UI cleanup plan
 - `HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md`: homepage implied-open experiment notes
-- `EXPERIMENT_PAGE_RENAME_2026-04-11.md`: Daily Market Overview removal, admin-only Experiment page, and workspace renames
 - `EXPERIMENT_SUMMARY_CLARITY_ELEVENLABS_KEYVAULT_2026-04-11.md`: cleaner experiment summary text plus Key Vault-backed ElevenLabs setup notes
 - `DAILY_MARKET_OVERVIEW_SUMMARY_AUDIO_2026-04-10.md`: shared daily market overview summary plus on-demand ElevenLabs audio
-- `STOCK_INVESTIGATOR_SPLIT_2026-04-06.md`: market-vs-stock workspace split and ticker handoff
 - `YIELD_VIEW_PLAN_2026-04-06.md`: market-explorer fixed-income and yield view plan
 - `TRUE_BOND_VIEW_PLAN_2026-04-06.md`: bond-level view plan across Treasuries, corporates, and munis
 
 ## Access, Auth, and Email
 
 - `USER_ACCESS_MODEL_PLAN.md`: user and access model architecture
-- `ACCESS_ADMIN_USAGE_SECURITY_STATS_2026-04-11.md`: durable access-event tracking and admin usage/security dashboard notes
-- `UI_BROWSER_PERSISTENCE_ENV_ALIGNMENT_2026-04-12.md`: prod browser-persistence restore plus deploy-script and tracker alignment notes
-- `PENDING_INVITE_CARD_ACTIONS_2026-04-11.md`: pending-invite card UI and backend update path
 - `INVITE_EMAIL_BRANDING_REFRESH_2026-04-05.md`: branded invite email rollout notes
-- `INVITE_EMAIL_DESIGNER_ADMIN_2026-04-05.md`: admin invite template editor and template-library notes
-- `EMAIL_DELIVERY_SETUP_PLAN.md`: Azure email delivery design and rollout notes
-- `EMAIL_DELIVERY_KEYVAULT_REGRESSION_2026-04-10.md`: root-cause notes and source fixes for the invite/reset email regression after vault consolidation
 - `INBOUND_MAIL_SETUP_PLAN.md`: prerequisites and architecture for support and newsletter inbound mail
 
 ## Data, Analytics, and Research
@@ -60,7 +51,6 @@ Use the docs as follows:
 
 - [Database work lifecycle and refresh coordination](DATABASE_WORK_LIFECYCLE_2026-10-16.md): cancellation ownership, shared database admission, publication caching, incremental projection and bounded independent recovery.
 
-- `MISTAKE_PREVENTION_HARDENING_2026-04-21.md`: deploy guards, secret scanning, mandatory dataset validation, LLM readiness checks, and attention service package reorganization
 - `V0_5_ROADMAP_2026-06-22.md`: v0.5 priority consolidation across pipeline simplification, Zopedia retrieval, company memory, hardcode cleanup, attention scoring, and module boundaries
 - `V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`: v0.6 deepfix for enforceable AQL/Zopedia model-call governance, request telemetry, direct-call audits, and migration of Trading Agent, Attention/Home, Zopedia memory, KG, and page summary model calls
 
@@ -68,10 +58,6 @@ Use the docs as follows:
 
 - [Whole-stack production promotion — 2026-10-14](STACK_PARITY_PROMOTION_2026-10-14.md): accepted development frontend/API, Zopedia conversation/research and LLM cost changes across all active non-broker production workers; source guards, environment ownership, live verification and rollback.
 
-- `ALPACA_KEY_VAULT_HARDENING_2026-04-10.md`: repo and deploy hardening plan for removing tracked Alpaca secrets and enforcing Key Vault-only runtime resolution
-- `ALPACA_VAULT_CONSOLIDATION_2026-04-10.md`: migration plan for consolidating Alpaca secrets into one shared Key Vault across UI and pipeline
-- `DEPLOY_UI_REVISION_WAIT_FIX_2026-04-11.md`: deploy-script fix for waiting on the new Azure Container App revision instead of the old ready revision
-- `INFRA_INDEX_HARDENING_2026-04-10.md`: plan for replacing tracked live infra outputs with ignored local files plus a committed lookup index
 
 ## Security
 
@@ -93,7 +79,6 @@ Use the docs as follows:
 - `spectral_nature_2/AGENTIC_API_AUTH_MCP_2026-04-07.md`: production-grade auth model, scoped agent keys, and MCP-compatible gateway
 - `spectral_nature_2/AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`: concrete `/v1/agent/*` REST resource schemas and payload examples for homepage and iPhone reuse
 - `spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`: phased plan for a homepage agent workspace with tools, RAG, notes, and sandbox execution
-- `spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md`: source-first migration plan from Streamlit UI to native iPhone app
 - `spectral_nature_2/IPHONE_MVP_SCAFFOLD_2026-04-06.md`: delivered backend/API plus SwiftUI scaffold for the iPhone MVP
 - `spectral_nature_2/agent_omnibar/`: dedicated doc hub for the separate agent omnibar task
 - `spectral_nature_2/agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`: ready-to-send resolved response for the separate omnibar task

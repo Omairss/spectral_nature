@@ -245,38 +245,6 @@ def test_auth_initialization_reports_configured_but_unreachable_store_as_unavail
     assert status["bootstrapped"] is False
 
 
-def test_browser_session_cookie_is_disabled_by_default(monkeypatch):
-    monkeypatch.delenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", raising=False)
-    monkeypatch.delenv("UI_DISABLE_BROWSER_SESSION_COOKIE", raising=False)
-
-    assert auth_service.allow_insecure_browser_session_cookie() is False
-    assert auth_service.browser_session_persistence_mode() == "session_only"
-    assert "disabled" in auth_service.browser_session_persistence_message().lower()
-
-
-def test_browser_session_cookie_disabled_via_opt_out_flag(monkeypatch):
-    monkeypatch.setenv("UI_DISABLE_BROWSER_SESSION_COOKIE", "1")
-
-    assert auth_service.allow_insecure_browser_session_cookie() is False
-    assert auth_service.browser_session_persistence_mode() == "session_only"
-    assert "disabled" in auth_service.browser_session_persistence_message().lower()
-
-
-def test_browser_session_cookie_legacy_opt_in_still_works(monkeypatch):
-    monkeypatch.delenv("UI_DISABLE_BROWSER_SESSION_COOKIE", raising=False)
-    monkeypatch.setenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", "1")
-
-    assert auth_service.allow_insecure_browser_session_cookie() is True
-    assert auth_service.browser_session_persistence_mode() == "browser_cookie"
-
-
-def test_browser_session_cookie_legacy_explicit_zero_disables(monkeypatch):
-    monkeypatch.delenv("UI_DISABLE_BROWSER_SESSION_COOKIE", raising=False)
-    monkeypatch.setenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE", "0")
-
-    assert auth_service.allow_insecure_browser_session_cookie() is False
-
-
 def test_complete_password_reset_requires_token_before_store_call(monkeypatch):
     called = False
 

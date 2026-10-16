@@ -4,7 +4,7 @@ Agent scratchpad — persistent session-scoped store for research state.
 The agent writes anomaly events, search queries, evidence claims, and hypothesis
 drafts here.  Each entry is timestamped and keyed by run_id so multiple research
 sessions can coexist.  The backing store is a JSON file in /tmp (ephemeral per
-container) plus an optional session_state mirror for Streamlit UI access.
+container). Durable research runs and retained artifacts own cross-container state.
 """
 from __future__ import annotations
 

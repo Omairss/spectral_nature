@@ -1,5 +1,7 @@
 # Trading Agent Research Loop Plan
 
+**October 16 retirement:** the inactive per-horizon rollback entrypoints, mode and timeout branches have been removed. Only the accepted shared-research producer is supported. Earlier rollback instructions below are historical evidence and must not be implemented.
+
 Date: 2026-06-24
 
 Last updated: 2026-09-21

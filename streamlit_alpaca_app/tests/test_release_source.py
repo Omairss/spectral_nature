@@ -15,7 +15,9 @@ def checkout(tmp_path, monkeypatch):
     app = tmp_path / "streamlit_alpaca_app"
     (app / "infra").mkdir(parents=True)
     (app / "documents").mkdir()
-    (app / "app.py").write_text("accepted = True\n")
+    (app / "infra/retired_paths.json").write_text(json.dumps({"paths": ["src", "streamlit_alpaca_app/app.py"]}))
+    (app / "api").mkdir()
+    (app / "api/main.py").write_text("accepted = True\n")
     (app / "documents/verification.md").write_text("Reviewed complete behavior.\n")
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
     monkeypatch.setattr(release, "APP", app)
@@ -33,7 +35,7 @@ def checkout(tmp_path, monkeypatch):
               "files": release.inventory(), "runtime_files": release.runtime_inventory(release.inventory()),
               "roles": {"worker": {"dependency_image": image, "baseline_images": [image],
                   "development_targets": [{"name": "worker-dev"}]}},
-              "components": [{"status": "accepted", "files": ["app.py"], "evidence": "documents/verification.md"}]}
+              "components": [{"status": "accepted", "files": ["api/main.py"], "evidence": "documents/verification.md"}]}
 
     def save():
         release.MANIFEST.write_text(json.dumps(record))
@@ -66,7 +68,7 @@ def test_committed_unreviewed_source_cannot_build(checkout):
 def test_updating_hashes_alone_does_not_accept_a_changed_file(checkout):
     release, record, commit, save = checkout
     save()
-    (release.APP / "app.py").write_text("accepted = False\n")
+    (release.APP / "api/main.py").write_text("accepted = False\n")
     record["source_revision"] = commit()
     record["files"] = release.inventory()
     record["runtime_files"] = release.runtime_inventory(record["files"])
@@ -88,3 +90,19 @@ def test_old_or_unverified_images_cannot_be_promoted(checkout):
     save()
     with pytest.raises(ValueError, match="Image is not verified"):
         release.verify_image("worker", "registry.example/older@sha256:" + "b" * 64)
+
+
+def test_retired_source_is_rejected_even_outside_application_inventory(checkout):
+    release, _, _, save = checkout
+    save()
+    (release.APP.parent / "src").mkdir()
+    with pytest.raises(ValueError, match="Retired paths restored"):
+        release.verify("worker")
+
+
+def test_retired_role_cannot_be_authorized_by_a_manifest(checkout):
+    release, record, _, save = checkout
+    record["roles"]["streamlit"] = record["roles"]["worker"]
+    save()
+    with pytest.raises(ValueError, match="Retired or unsupported"):
+        release.verify("streamlit")

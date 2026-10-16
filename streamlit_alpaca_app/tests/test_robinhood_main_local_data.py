@@ -320,14 +320,6 @@ def test_refresh_appends_series_and_saves_current_snapshot(monkeypatch):
     assert "timeseries" not in saved
 
 
-def test_streamlit_robinhood_read_path_cannot_start_a_sync():
-    source = (Path(__file__).resolve().parents[1] / "views" / "portfolio.py").read_text(encoding="utf-8")
-
-    assert "refresh_portfolio(" not in source
-    assert "RobinhoodAppClient(" not in source
-    assert "request_portfolio_refresh(" in source
-
-
 def test_cached_detail_reads_still_enforce_portfolio_ownership(monkeypatch):
     checked: list[tuple[str, str]] = []
     monkeypatch.setattr(

@@ -8,7 +8,7 @@ import pandas as pd
 APP_ROOT = Path(__file__).resolve().parents[1]
 
 SCAN_ROOTS = [
-    APP_ROOT / "app.py",
+    APP_ROOT / "api",
     APP_ROOT / "services",
     APP_ROOT / "pipeline",
 ]

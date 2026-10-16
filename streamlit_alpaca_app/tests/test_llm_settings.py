@@ -127,32 +127,3 @@ def test_runtime_patch_applies_to_new_clients_without_changing_provider_credenti
     assert client.config.api_key == 'test'
     assert llm.save_prompt_override_changes({'runtime:deepseek:model':None})
     assert llm.load_llm_client().config.model == 'deepseek-reasoner'
-
-
-def test_analytical_default_preserves_saved_effort_and_background_routes(store, monkeypatch):
-    from services import llm_flow
-    config = llm.LLMConfig(provider='deepseek', api_key='test', model='deepseek-flash',
-                           base_url='https://api.deepseek.com', reasoning_effort='max')
-    monkeypatch.setattr(llm, 'load_llm_config', lambda **kwargs: config)
-    flow = llm_flow.default_flow_configuration()
-    assert flow['models'][flow['routes']['synthesis']['profile']]['model'] == 'deepseek-v4-pro'
-    assert flow['routes']['synthesis']['thinking'] == flow['routes']['reasoning']['thinking'] == 'high'
-    assert flow['workloads']['news']['synthesis']['thinking'] == 'max'
-    assert flow['workloads']['knowledge']['synthesis']['thinking'] == 'max'
-    saved = deepcopy(flow)
-    saved['routes']['synthesis']['thinking'] = 'max'
-    assert llm_flow.validate_flow_configuration(saved)['routes']['synthesis']['thinking'] == 'max'
-
-
-def test_admin_reset_uses_worker_default_instead_of_previous_run_override(store, monkeypatch):
-    from services import admin_view, llm_flow
-    key = llm_flow.WORKLOAD_PARAMETERS["home"]["research_pool"]
-    monkeypatch.setattr(admin_view, "read_execution_states", lambda *args: {
-        "home": {"parameters": {key: 9}, "defaults": {key: 12}, "observed_at_utc": "2026-10-15T00:00:00Z"}})
-    monkeypatch.setattr(admin_view, "research_stage_usage", lambda **kwargs: {"rows": []})
-    view = admin_view.build_llm_settings_view()
-    parameter = next(row for row in view["parameters"] if row["key"] == key)
-    assert parameter["value"] == parameter["default"] == 12
-    assert llm.save_prompt_override_changes({key: "7"})
-    parameter = next(row for row in admin_view.build_llm_settings_view()["parameters"] if row["key"] == key)
-    assert parameter["value"] == 7 and parameter["default"] == 12

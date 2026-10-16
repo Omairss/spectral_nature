@@ -35,3 +35,7 @@ All three deployment scripts passed shell syntax checks and refused execution fr
 `com.spectral-nature.retired-release-cleanup` is installed as a user LaunchAgent, running at login and daily at 03:15 local time. It runs the identical installed copy of [cleanup_retired_releases.py](../../../scripts/cleanup_retired_releases.py) from `~/Library/Application Support/SpectralNature/archive-maintenance/`. Only completed batches past the full 30-day retention can be discarded. Recent, incomplete, malformed and symlink entries are preserved; shortened expiry metadata cannot shorten retention.
 
 The first scheduled run could not open the repository script under macOS-protected Documents. Moved maintenance and the archives into Application Support and verified the actual scheduled job afterward. The initial error remains in its local log. Fixture checks verified expired removal and preservation of recent, incomplete, shortened-expiry and symlink cases.
+
+## Current frontend and resume targets
+
+The later owner-directed [legacy retirement](../legacy-retirement-2026-10-16/README.md) archives Streamlit/Dash and their tools and retires the old development UI/API. Resume scoped database and Trading work against the accepted Git source and modern Next.js/FastAPI consumers. Held code and completed paid research remain available; do not rebuild the obsolete Home/UI tree or repeat completed acquisition.

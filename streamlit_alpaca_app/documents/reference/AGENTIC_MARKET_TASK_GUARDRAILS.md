@@ -7,9 +7,9 @@ For v0.6 gateway work, also read:
 
 ## Required Pattern
 
-- Fixed market feeds are attention-job outputs. Streamlit selects `market_opportunity_feed`; it does not rebuild the feed from movers or momentum during render.
-- Page agentic summaries are attention-job outputs. Streamlit reads `page_agentic_summaries`; AQL does not run from a panel constructor.
-- Trading Agent is a materialized admin experiment. AQL runs in `trading-agent-build`; Streamlit reads `trading_agent_runs` and `trading_agent_candidates`.
+- Fixed market feeds are attention-job outputs. The product reads `market_opportunity_feed`; it does not rebuild the feed from movers or momentum during render.
+- Page agentic summaries are attention-job outputs. The product reads `page_agentic_summaries`; AQL does not run from a panel constructor.
+- Trading Agent is a materialized admin experiment. AQL runs in `trading-agent-build`; The product reads `trading_agent_runs` and `trading_agent_candidates`.
 - Trading Agent Place / Reject actions are durable audit events. Place stays `log_only` until Alpaca order submission is explicitly enabled, but the audit record must keep broker handoff fields.
 - Feature pages do not show job trigger controls. Job starts, retries, connector call health, and refresh controls live in Admin > System Health.
 - Shared AQL/Zopedia owns evidence and model-call governance. Do not add a parallel research agent or raw `generate_json` synthesis path for page summaries, trading synthesis, or reviews.

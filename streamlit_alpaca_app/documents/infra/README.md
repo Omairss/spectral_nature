@@ -1,108 +1,15 @@
-# Azure Deployment (Pipeline Jobs)
+# Infrastructure and releases
 
-Read the [application release-source policy](RELEASE_SOURCE_POLICY.md) before preparing a build. Historical images, extracted trees and retired overlays are not inputs to new application releases.
+Read the [release-source policy](RELEASE_SOURCE_POLICY.md) before building or changing a runtime. The product frontend is Next.js. The [resource index](RESOURCE_INDEX.md) identifies the actual frontend, API and worker owners; Azure names inherited from Streamlit do not identify their current framework.
 
-## Prerequisites
+`scripts/release_source.py` checks the committed acceptance record. `scripts/release_application.py build --role worker|api-next|broker --output PATH` packages the accepted Python source. Its `deploy-development` command accepts verified immutable images and changes only the reviewed development image templates, preserving settings, secrets, allocation and schedules. It does not start jobs or deploy to production. See `--help` for required arguments.
 
-- Azure CLI authenticated (`az login --use-device-code`)
-- Access to a subscription with permission to create:
-  - Resource group
-  - Storage account
-  - Container Apps environment and jobs
-  - Azure Container Registry
-  - Azure Database for PostgreSQL Flexible Server
+`Dockerfile.web` packages the existing Next.js frontend when an accepted frontend change requires it. Backend recovery does not require a frontend rebuild. Source acceptance and image registration must cover that role before any web promotion.
 
-## Deploy
+The old Streamlit launcher/Dockerfile/deployer, filename deployment classifier, API/pipeline bootstrap deployers and completed first-migration/cutover generators are archived. They are not alternate deployment routes. Historical rollout receipts remain evidence only; do not execute their commands or reuse their source trees.
 
-From repo root:
+Local operator context lives in ignored `infra/.generated/*.local.env` files. Refresh it with `scripts/show_infra_inventory.sh --write-local`, which now reads modern API targets. Old tracked-output fallbacks are removed.
 
-```bash
-chmod +x scripts/deploy_pipeline_azure.sh
-./scripts/deploy_pipeline_azure.sh
-```
+Email belongs to the API: `scripts/setup_email_delivery_azure.sh` is an explicitly invoked provisioning tool, not part of ordinary deployments. It defaults to `sn-api-next-dev`; production invocation requires owner permission. Do not use its test-mail option without an instruction to send email.
 
-Optional environment overrides:
-
-- `LOCATION` (default: `eastus`)
-- `RESOURCE_GROUP`
-- `SUFFIX`
-- `APCA_API_KEY_SECRET_NAME`
-- `APCA_API_SECRET_KEY_SECRET_NAME`
-- `APCA_API_BASE_URL`
-- `ALPACA_DATA_BASE_URL`
-- `FRED_API_KEY`
-
-Alpaca credentials are now expected to already exist in Key Vault. The deploy script validates the named secrets instead of writing raw Alpaca values from the local shell.
-
-Cron schedules live in:
-
-- `infra/job_schedules.env`
-
-The taxonomy refresh job is deployed as:
-
-- `entity-taxonomy-refresh`
-
-Attention homepage materialization is deployed as:
-
-- `attention-home-build`
-
-Default cadence:
-
-- once per month at `0 9 1 * *` UTC
-
-Pipeline architecture and taxonomy flow charts live in:
-
-- `documents/architecture/data_pipelines/PIPELINE_ARCHITECTURE.md`
-- `documents/architecture/data_pipelines/TAXONOMY_PIPELINE_FLOW.md`
-
-## Output
-
-Local deployment details are written to:
-
-- `infra/.generated/deployment.local.env`
-- `infra/.generated/email_delivery.local.env`
-
-These files are intentionally ignored by git. They keep local operator context out of the tracked repo while still giving scripts a stable place to read from.
-
-The committed infra index lives in:
-
-- `documents/infra/RESOURCE_INDEX.md`
-
-Refresh the local generated files or print the current inventory with:
-
-```bash
-bash ./scripts/show_infra_inventory.sh
-bash ./scripts/show_infra_inventory.sh --write-local
-```
-
-## UI App Deployment
-
-The Spectral Nature UI app uses a separate deployment entrypoint:
-
-```bash
-./scripts/deploy_ui_azure.sh
-```
-
-Typical usage:
-
-```bash
-# Build current repo state and deploy to Development.
-./scripts/deploy_ui_azure.sh
-
-# Promote the currently running Development image to Production.
-./scripts/deploy_ui_azure.sh --target prod --promote-from dev
-```
-
-The UI deploy script:
-
-- builds `Dockerfile.app` into ACR when deploying to Development
-- pins the deployed image by digest
-- waits for the latest revision to become ready
-- smoke-checks the UI endpoint
-- rewrites `documents/infra/UI_DEPLOYMENT_STATUS.md` from live Azure state
-
-Email delivery for password resets and invites is provisioned separately:
-
-```bash
-./scripts/setup_ui_email_delivery_azure.sh --target dev --test-to you@example.com
-```
+Historical sources and completed migration instructions are retained outside the checkout for 30 days. The [retirement inventory](../verification/legacy-retirement-2026-10-16/README.md) records paths and archive batches. Production promotion remains pending explicit approval.

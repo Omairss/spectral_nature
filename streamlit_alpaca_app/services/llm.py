@@ -154,8 +154,6 @@ _OVERRIDES_LOADED = False
 _OVERRIDES_SCOPE = ""
 _OVERRIDES_CHECKED_AT = 0.0
 _OVERRIDES_LOCK = threading.RLock()
-_PENDING_OVERRIDES: dict[str, str | None] = {}
-
 
 
 def _prompt_key(name: str) -> str:
@@ -196,15 +194,6 @@ def list_narrative_prompts() -> list[dict[str, str]]:
             "group": info.get("group", ""),
         })
     return entries
-
-
-def set_narrative_prompt_override(key: str, value: str | None) -> None:
-    """Set or clear a prompt override in memory. Call save_prompt_overrides() to persist."""
-    _PENDING_OVERRIDES[key] = value
-    if value is None or value.strip() == _PROMPT_REGISTRY.get(key, {}).get("default", "").strip():
-        _PROMPT_OVERRIDES.pop(key, None)
-    else:
-        _PROMPT_OVERRIDES[key] = value.strip()
 
 
 # --- Config parameter registry (numeric limits, grouped with prompts) ---
@@ -261,16 +250,6 @@ def list_config_params() -> list[dict[str, Any]]:
     return entries
 
 
-def set_config_param_override(key: str, value: int | float | None) -> None:
-    """Set or clear a config parameter override. Call save_prompt_overrides() to persist."""
-    _PENDING_OVERRIDES[key] = None if value is None else str(value)
-    info = _PARAM_REGISTRY.get(key)
-    if info and (value is None or value == info["default"]):
-        _PROMPT_OVERRIDES.pop(key, None)
-    elif value is not None:
-        _PROMPT_OVERRIDES[key] = str(value)
-
-
 def _narrative_style_rule_key() -> str:
     return "__narrative_style_rule__"
 
@@ -279,15 +258,6 @@ def get_active_narrative_style_rule() -> str:
     """Return the active narrative style rule (override or default)."""
     load_prompt_overrides()
     return _PROMPT_OVERRIDES.get(_narrative_style_rule_key(), NARRATIVE_STYLE_RULE)
-
-
-def set_narrative_style_rule_override(value: str | None) -> None:
-    key = _narrative_style_rule_key()
-    _PENDING_OVERRIDES[key] = value
-    if value is None or value.strip() == NARRATIVE_STYLE_RULE.strip():
-        _PROMPT_OVERRIDES.pop(key, None)
-    else:
-        _PROMPT_OVERRIDES[key] = value.strip()
 
 
 def llm_settings_scope() -> str:
@@ -322,17 +292,6 @@ def save_prompt_override_changes(changes: dict[str, str | None]) -> bool:
         return False
     finally:
         conn.close()
-
-
-def save_prompt_overrides() -> bool:
-    """Compatibility entry point for the Streamlit editor; never replace the table."""
-    changes = dict(_PENDING_OVERRIDES)
-    saved = save_prompt_override_changes(changes)
-    if saved:
-        _PENDING_OVERRIDES.clear()
-    else:
-        load_prompt_overrides(force=True)
-    return saved
 
 
 def load_prompt_overrides(*, force: bool = False) -> bool:

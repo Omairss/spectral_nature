@@ -190,7 +190,7 @@ def resource_url() -> str:
 
 
 def public_base_url() -> str:
-    value = (os.getenv("APP_PUBLIC_BASE_URL") or "http://localhost:8501").strip().rstrip("/")
+    value = (os.getenv("APP_PUBLIC_BASE_URL") or "http://localhost:3000").strip().rstrip("/")
     parsed = urlparse(value)
     is_local = parsed.hostname in {"localhost", "127.0.0.1"}
     if parsed.scheme not in ({"http", "https"} if is_local else {"https"}) or not parsed.netloc:

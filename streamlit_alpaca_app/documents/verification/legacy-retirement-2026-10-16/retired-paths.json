@@ -1,0 +1,1848 @@
+{
+  "status": "source_retired",
+  "retired_roots": [
+    "metadata",
+    "requirements.txt",
+    "src",
+    "streamlit_alpaca_app/.streamlit",
+    "streamlit_alpaca_app/Dockerfile.app",
+    "streamlit_alpaca_app/app.py",
+    "streamlit_alpaca_app/documents/agent-logs",
+    "streamlit_alpaca_app/documents/architecture/AQL/AQL_LLM_UNIFICATION_PLAN_2026-05-15.md",
+    "streamlit_alpaca_app/documents/architecture/SAA/AQL_SAA_PHASE0_RETENTION_RETRIEVAL_2026-04-14.md",
+    "streamlit_alpaca_app/documents/architecture/UI/FRONTEND_FRAMEWORK_EVALUATION_2026-09-20.md",
+    "streamlit_alpaca_app/documents/architecture/UI/FRONTEND_WORKBENCH_PARITY_2026-10-02.md",
+    "streamlit_alpaca_app/documents/architecture/agents/RESEARCH_EXPORT_API_2026-04-18.md",
+    "streamlit_alpaca_app/documents/architecture/data_pipelines/PIPELINE_IDENTITY_AND_FRED_RETRY_FIX_2026-04-13.md",
+    "streamlit_alpaca_app/documents/architecture/overall/APP_SIMPLIFICATION_TRACK.md",
+    "streamlit_alpaca_app/documents/architecture/overall/GLOBAL_OPTIMIZATION_AUDIT_2026-09-21.md",
+    "streamlit_alpaca_app/documents/debug",
+    "streamlit_alpaca_app/documents/depricated.md",
+    "streamlit_alpaca_app/documents/health_report.md",
+    "streamlit_alpaca_app/documents/infra/NEXT_AGENT_DEV_DEPLOYMENT_2026-10-02.md",
+    "streamlit_alpaca_app/documents/learnings/2026-04-02-homepage-runtime-contract.md",
+    "streamlit_alpaca_app/documents/operations/CUSTOM_DOMAIN_CUTOVER_2026-04-05.md",
+    "streamlit_alpaca_app/documents/past_learnings.md",
+    "streamlit_alpaca_app/documents/past_mistakes.md",
+    "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_CLOUD_STATUS_AND_SANKEY_2026-04-11.md",
+    "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_USAGE_SECURITY_SPLIT_2026-04-12.md",
+    "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_USAGE_SECURITY_STATS_2026-04-11.md",
+    "streamlit_alpaca_app/documents/plans/ALPACA_KEY_VAULT_HARDENING_2026-04-10.md",
+    "streamlit_alpaca_app/documents/plans/ALPACA_VAULT_CONSOLIDATION_2026-04-10.md",
+    "streamlit_alpaca_app/documents/plans/BRANDING_ASSET_INTEGRATION_2026-04-03.md",
+    "streamlit_alpaca_app/documents/plans/BRANDING_REFRESH_PLAN.md",
+    "streamlit_alpaca_app/documents/plans/CHAT_SEARCH_DEBUG_PANEL_SIMPLIFICATION_2026-04-12.md",
+    "streamlit_alpaca_app/documents/plans/CHAT_SEARCH_THINKING_STREAM_2026-04-12.md",
+    "streamlit_alpaca_app/documents/plans/DEPLOY_UI_REVISION_WAIT_FIX_2026-04-11.md",
+    "streamlit_alpaca_app/documents/plans/EMAIL_DELIVERY_KEYVAULT_REGRESSION_2026-04-10.md",
+    "streamlit_alpaca_app/documents/plans/EMAIL_DELIVERY_SETUP_PLAN.md",
+    "streamlit_alpaca_app/documents/plans/EXPERIMENT_PAGE_RENAME_2026-04-11.md",
+    "streamlit_alpaca_app/documents/plans/GLOBAL_CLEANUP_PLAN_2026-09-21.md",
+    "streamlit_alpaca_app/documents/plans/HOMEPAGE_SUMMARY_CHAT_CLEANUP_2026-04-11.md",
+    "streamlit_alpaca_app/documents/plans/INFRA_INDEX_HARDENING_2026-04-10.md",
+    "streamlit_alpaca_app/documents/plans/INVITE_EMAIL_DESIGNER_ADMIN_2026-04-05.md",
+    "streamlit_alpaca_app/documents/plans/MARKET_AGENTIC_TRADING_PLAN_2026-04-27.md",
+    "streamlit_alpaca_app/documents/plans/MISTAKE_PREVENTION_HARDENING_2026-04-21.md",
+    "streamlit_alpaca_app/documents/plans/NEXT_AGENT_HARNESS_VERTICAL_SLICE_2026-10-02.md",
+    "streamlit_alpaca_app/documents/plans/PENDING_INVITE_CARD_ACTIONS_2026-04-11.md",
+    "streamlit_alpaca_app/documents/plans/PIPELINE_SIMPLIFICATION_PLAN_2026-05-23.md",
+    "streamlit_alpaca_app/documents/plans/PRODUCTION_PROMOTION_2026-10-01.md",
+    "streamlit_alpaca_app/documents/plans/SOCIAL_INTERACTION_LAYER_PLAN_2026-05-05.md",
+    "streamlit_alpaca_app/documents/plans/STOCK_INVESTIGATOR_SPLIT_2026-04-06.md",
+    "streamlit_alpaca_app/documents/plans/STREAMLIT_INDEPENDENT_MOBILE_UI_FEASIBILITY_2026-05-15.md",
+    "streamlit_alpaca_app/documents/plans/STREAMLIT_MOBILE_REMEDIATION_2026-05-05.md",
+    "streamlit_alpaca_app/documents/plans/UI_BROWSER_PERSISTENCE_ENV_ALIGNMENT_2026-04-12.md",
+    "streamlit_alpaca_app/documents/plans/UI_LLM_PROMOTION_ENV_FIX_2026-04-11.md",
+    "streamlit_alpaca_app/documents/plans/UI_SHELL_REFINEMENT_2026-04-02.md",
+    "streamlit_alpaca_app/documents/plans/UI_UX_PRODUCT_AUDIT_2026-05-23.md",
+    "streamlit_alpaca_app/documents/plans/spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md",
+    "streamlit_alpaca_app/documents/reference/HARDCODE_CLEANUP_MATRIX.md",
+    "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23",
+    "streamlit_alpaca_app/presentation/attention_content.py",
+    "streamlit_alpaca_app/presentation/dashboard_loaders.py",
+    "streamlit_alpaca_app/requirements-ui.lock",
+    "streamlit_alpaca_app/scripts/backport_pipeline_lock_fix.py",
+    "streamlit_alpaca_app/scripts/deploy_api_azure.sh",
+    "streamlit_alpaca_app/scripts/deploy_pipeline_azure.sh",
+    "streamlit_alpaca_app/scripts/deploy_ui_azure.sh",
+    "streamlit_alpaca_app/scripts/mobile_render_check.mjs",
+    "streamlit_alpaca_app/scripts/prepare_workbench_cutover.py",
+    "streamlit_alpaca_app/scripts/prepare_workbench_release.py",
+    "streamlit_alpaca_app/scripts/run_ui_local.sh",
+    "streamlit_alpaca_app/scripts/setup_ui_email_delivery_azure.sh",
+    "streamlit_alpaca_app/scripts/which_deploy.sh",
+    "streamlit_alpaca_app/tests/test_app_job_trigger_inventory.py",
+    "streamlit_alpaca_app/tests/test_auth_routing_guards.py",
+    "streamlit_alpaca_app/tests/test_dashboard_loaders.py",
+    "streamlit_alpaca_app/tests/test_mobile_layout_routing.py",
+    "streamlit_alpaca_app/tests/test_portfolio_robinhood_main_view.py",
+    "streamlit_alpaca_app/tests/test_presentation_attention_content.py",
+    "streamlit_alpaca_app/tests/test_trading_agent_view.py",
+    "streamlit_alpaca_app/views",
+    "streamlit_alpaca_app/web/app/api/trading-agent/calls/[trackingId]/route.ts"
+  ],
+  "verified_deleted_files": [
+    {
+      "path": "metadata/fred_series_ids.txt",
+      "sha256": "64da132473a3988d79ead037be03ca55b1f0bb145cb0db684cfa4b2eaa95f7bc",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/metadata/fred_series_ids.txt",
+        "sha256": "64da132473a3988d79ead037be03ca55b1f0bb145cb0db684cfa4b2eaa95f7bc"
+      }
+    },
+    {
+      "path": "metadata/index_list.txt",
+      "sha256": "6ea119c4536b533501bf34d7f8b0f4a7ab49615e0ca8f422574e9470003999a5",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/metadata/index_list.txt",
+        "sha256": "6ea119c4536b533501bf34d7f8b0f4a7ab49615e0ca8f422574e9470003999a5"
+      }
+    },
+    {
+      "path": "metadata/specialty_etfs.txt",
+      "sha256": "19257e5388c6a2759d767c7e6776692373f849b08fa64523e91f30d5e9d62abb",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/metadata/specialty_etfs.txt",
+        "sha256": "19257e5388c6a2759d767c7e6776692373f849b08fa64523e91f30d5e9d62abb"
+      }
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "3ec2dfdc322bd1c3cb4c50f61539e07f717db1fdb767c8fa1a7b6dc2019b8a2b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/requirements.txt",
+        "sha256": "3ec2dfdc322bd1c3cb4c50f61539e07f717db1fdb767c8fa1a7b6dc2019b8a2b"
+      }
+    },
+    {
+      "path": "src/CurrentStatus.ipynb",
+      "sha256": "2e91e97408a1bb0a51847d25c92a2c3536e322356c243859d01cf4b43b7b40b0",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/CurrentStatus.ipynb",
+        "sha256": "2e91e97408a1bb0a51847d25c92a2c3536e322356c243859d01cf4b43b7b40b0"
+      }
+    },
+    {
+      "path": "src/CurrentStatus.py",
+      "sha256": "9a514d6d7948541bf6f9c87b4a17956846c9789460bea4ee8220ef33f7b9634d",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/CurrentStatus.py",
+        "sha256": "9a514d6d7948541bf6f9c87b4a17956846c9789460bea4ee8220ef33f7b9634d"
+      }
+    },
+    {
+      "path": "src/FundamentalAnalyzer.ipynb",
+      "sha256": "acacf6860ff6851fa61a6ddbaf2207184c15989a8c53fccfcffb4a1da9e81e3e",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/FundamentalAnalyzer.ipynb",
+        "sha256": "acacf6860ff6851fa61a6ddbaf2207184c15989a8c53fccfcffb4a1da9e81e3e"
+      }
+    },
+    {
+      "path": "src/FundamentalAnalyzer.py",
+      "sha256": "8313d3ca4e2098a2bae0bc17df2b9c84325541c47ae1b12151eca23d95d38ced",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/FundamentalAnalyzer.py",
+        "sha256": "8313d3ca4e2098a2bae0bc17df2b9c84325541c47ae1b12151eca23d95d38ced"
+      }
+    },
+    {
+      "path": "src/GT_geopolitics.py",
+      "sha256": "7a749301a1593dfc41e8a2525e2c3011fde581bec7318fa1396452422fbc45d9",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/GT_geopolitics.py",
+        "sha256": "7a749301a1593dfc41e8a2525e2c3011fde581bec7318fa1396452422fbc45d9"
+      }
+    },
+    {
+      "path": "src/GT_tradewar.py",
+      "sha256": "8b6d1ad1b15b7afc76e846fca544c3b90f1eed7b4634f1743fbad5090509fb3d",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/GT_tradewar.py",
+        "sha256": "8b6d1ad1b15b7afc76e846fca544c3b90f1eed7b4634f1743fbad5090509fb3d"
+      }
+    },
+    {
+      "path": "src/GetPortfolioTest.ipynb",
+      "sha256": "ac9248288eb194a989b651fe7901ad82194367eecca553aafdbdca719ca59fcc",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/GetPortfolioTest.ipynb",
+        "sha256": "ac9248288eb194a989b651fe7901ad82194367eecca553aafdbdca719ca59fcc"
+      }
+    },
+    {
+      "path": "src/Holdings.ipynb",
+      "sha256": "a35d3d613aa43147527beba7e30600ad4232b363677de22dd8ba2c46f19e7093",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/Holdings.ipynb",
+        "sha256": "a35d3d613aa43147527beba7e30600ad4232b363677de22dd8ba2c46f19e7093"
+      }
+    },
+    {
+      "path": "src/LinkedAuth.py",
+      "sha256": "9ea270e5b6cf4545c154e71886d12aa7556c67b3337ce87d308101a783be62bf",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/LinkedAuth.py",
+        "sha256": "9ea270e5b6cf4545c154e71886d12aa7556c67b3337ce87d308101a783be62bf"
+      }
+    },
+    {
+      "path": "src/MarketExplorer.ipynb",
+      "sha256": "b80ed26e3fb43f66f0a9cc789807a75edee754880597050c9e7b84ce6ca5c28c",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/MarketExplorer.ipynb",
+        "sha256": "b80ed26e3fb43f66f0a9cc789807a75edee754880597050c9e7b84ce6ca5c28c"
+      }
+    },
+    {
+      "path": "src/MarketExplorer.py",
+      "sha256": "7fff6c578e7a7909c382892a9b6057309beb260ab173d7cfbe53376fadc380a5",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/MarketExplorer.py",
+        "sha256": "7fff6c578e7a7909c382892a9b6057309beb260ab173d7cfbe53376fadc380a5"
+      }
+    },
+    {
+      "path": "src/MarketExplorerDataCruncher.py",
+      "sha256": "7df0f009b3e741114e88fa1fca6d15e895a83b982759972ad462d889e5bf60f6",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/MarketExplorerDataCruncher.py",
+        "sha256": "7df0f009b3e741114e88fa1fca6d15e895a83b982759972ad462d889e5bf60f6"
+      }
+    },
+    {
+      "path": "src/OptionFinder.ipynb",
+      "sha256": "a67a3f2fdc0db71b72202b287fa57928ef3f15cbf4d24128bdf31afc4d3d8908",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/OptionFinder.ipynb",
+        "sha256": "a67a3f2fdc0db71b72202b287fa57928ef3f15cbf4d24128bdf31afc4d3d8908"
+      }
+    },
+    {
+      "path": "src/OptionFinder.py",
+      "sha256": "d9463df6e4c1e84dd120fb2be3a7ab755387d52bac3ff1cf8f60e712a03b6fe8",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/OptionFinder.py",
+        "sha256": "d9463df6e4c1e84dd120fb2be3a7ab755387d52bac3ff1cf8f60e712a03b6fe8"
+      }
+    },
+    {
+      "path": "src/PortfolioPerf.ipynb",
+      "sha256": "5b44b97c2f2c6e79f08cf96f25b81a1e8f972b5288335a31f872436944371dda",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/PortfolioPerf.ipynb",
+        "sha256": "5b44b97c2f2c6e79f08cf96f25b81a1e8f972b5288335a31f872436944371dda"
+      }
+    },
+    {
+      "path": "src/TechnicalAnalyzer.ipynb",
+      "sha256": "f888e347e21426852bb7bdfaed1523ce772b5fae32fdb4df4410bcfdd303a30c",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/TechnicalAnalyzer.ipynb",
+        "sha256": "f888e347e21426852bb7bdfaed1523ce772b5fae32fdb4df4410bcfdd303a30c"
+      }
+    },
+    {
+      "path": "src/TechnicalAnalyzer.py",
+      "sha256": "5b505d440a276a76682ee05c749c8d66117f472c4f632b20f8a4fcc0a3fe7833",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/TechnicalAnalyzer.py",
+        "sha256": "5b505d440a276a76682ee05c749c8d66117f472c4f632b20f8a4fcc0a3fe7833"
+      }
+    },
+    {
+      "path": "src/__init__.py",
+      "sha256": "c30cc8d0758ccf4154a7857ae971917f379a2b781a4149c88c3b2d1bc654a452",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/__init__.py",
+        "sha256": "c30cc8d0758ccf4154a7857ae971917f379a2b781a4149c88c3b2d1bc654a452"
+      }
+    },
+    {
+      "path": "src/alpaca-test.ipynb",
+      "sha256": "6c7705c29224c809ea98f63cff848d836edcff4b281928acf897ed216ab593e0",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/alpaca-test.ipynb",
+        "sha256": "6c7705c29224c809ea98f63cff848d836edcff4b281928acf897ed216ab593e0"
+      }
+    },
+    {
+      "path": "src/analysis_modules/__init__.py",
+      "sha256": "c30cc8d0758ccf4154a7857ae971917f379a2b781a4149c88c3b2d1bc654a452",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/analysis_modules/__init__.py",
+        "sha256": "c30cc8d0758ccf4154a7857ae971917f379a2b781a4149c88c3b2d1bc654a452"
+      }
+    },
+    {
+      "path": "src/analysis_modules/comparison.py",
+      "sha256": "c7147796645b35267bcdb31391832e7207707e44a475c0e2ca407bdcb418a1cf",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/analysis_modules/comparison.py",
+        "sha256": "c7147796645b35267bcdb31391832e7207707e44a475c0e2ca407bdcb418a1cf"
+      }
+    },
+    {
+      "path": "src/analysis_modules/markets.py",
+      "sha256": "a79207bfc0debe72a541b849bacc5d616c7f35bcc1b7bb9e7e8caf92a807334b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/analysis_modules/markets.py",
+        "sha256": "a79207bfc0debe72a541b849bacc5d616c7f35bcc1b7bb9e7e8caf92a807334b"
+      }
+    },
+    {
+      "path": "src/analysis_modules/performance_metrics.py",
+      "sha256": "ab0d2eab260c4a18f9b2473fc9642f6c6021817e48e3f40585b083dee0e3e61e",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/analysis_modules/performance_metrics.py",
+        "sha256": "ab0d2eab260c4a18f9b2473fc9642f6c6021817e48e3f40585b083dee0e3e61e"
+      }
+    },
+    {
+      "path": "src/data_modules/__init__.py",
+      "sha256": "c30cc8d0758ccf4154a7857ae971917f379a2b781a4149c88c3b2d1bc654a452",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/data_modules/__init__.py",
+        "sha256": "c30cc8d0758ccf4154a7857ae971917f379a2b781a4149c88c3b2d1bc654a452"
+      }
+    },
+    {
+      "path": "src/data_modules/data_loader.py",
+      "sha256": "2cd118251c8f2c52c538e39cba76857957f7c4466f32ccc6c99204e5adca37a1",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/data_modules/data_loader.py",
+        "sha256": "2cd118251c8f2c52c538e39cba76857957f7c4466f32ccc6c99204e5adca37a1"
+      }
+    },
+    {
+      "path": "src/fred/data_index_and_download.py",
+      "sha256": "205667fbba24a7c70022b853b7508f000f3c6cb2ee2d5d09892f11953687379a",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/fred/data_index_and_download.py",
+        "sha256": "205667fbba24a7c70022b853b7508f000f3c6cb2ee2d5d09892f11953687379a"
+      }
+    },
+    {
+      "path": "src/fred/db_connect.py",
+      "sha256": "43d663693466d93ce2f9714334f8e283a2dfc92a34c30f18663692a1562e9d0a",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/fred/db_connect.py",
+        "sha256": "43d663693466d93ce2f9714334f8e283a2dfc92a34c30f18663692a1562e9d0a"
+      }
+    },
+    {
+      "path": "src/fred/fred_config.py",
+      "sha256": "d90ed83c11bfdbf722bb1c11ea53d90685c08a61aee1f39ef9a93e3d66a7aa2f",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/fred/fred_config.py",
+        "sha256": "d90ed83c11bfdbf722bb1c11ea53d90685c08a61aee1f39ef9a93e3d66a7aa2f"
+      }
+    },
+    {
+      "path": "src/fred/get_series_id.py",
+      "sha256": "c60601d2a0921b012843a5976ad482cf8455cf2e1e56eeaf4de2e99200fefc29",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/fred/get_series_id.py",
+        "sha256": "c60601d2a0921b012843a5976ad482cf8455cf2e1e56eeaf4de2e99200fefc29"
+      }
+    },
+    {
+      "path": "src/fred/get_series_id_data.py",
+      "sha256": "bd3c551d442b2d18d184dc14b534be3e66d9f9cb2c7d8b896b391deb32a51b26",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/fred/get_series_id_data.py",
+        "sha256": "bd3c551d442b2d18d184dc14b534be3e66d9f9cb2c7d8b896b391deb32a51b26"
+      }
+    },
+    {
+      "path": "src/fred/main_fredid_daily.py",
+      "sha256": "405177ade570da7e344752f14362dc52368c2ee7656a9e0e9088a852bcd3ee54",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/fred/main_fredid_daily.py",
+        "sha256": "405177ade570da7e344752f14362dc52368c2ee7656a9e0e9088a852bcd3ee54"
+      }
+    },
+    {
+      "path": "src/fred/releases.py",
+      "sha256": "43be2eaff9435f25e6ac40f88e381f688437e52172fd32d1bfbdd9493aaac8fe",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/fred/releases.py",
+        "sha256": "43be2eaff9435f25e6ac40f88e381f688437e52172fd32d1bfbdd9493aaac8fe"
+      }
+    },
+    {
+      "path": "src/fred/source.py",
+      "sha256": "9033800b157cb98305bb44dff02a1bd8a173c6cb441981ae0c8ce42a181f376a",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/fred/source.py",
+        "sha256": "9033800b157cb98305bb44dff02a1bd8a173c6cb441981ae0c8ce42a181f376a"
+      }
+    },
+    {
+      "path": "src/front_end_app/app.py",
+      "sha256": "e57a7a3151be79fd85fed2870498d185e61f4e4bc0d4bfb43f0673b7fb842686",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/app.py",
+        "sha256": "e57a7a3151be79fd85fed2870498d185e61f4e4bc0d4bfb43f0673b7fb842686"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/background/Black logo - no background.svg",
+      "sha256": "1eed06b0154a1d7a0fcd8c6ac80abeb0b5f8bebef60e9dc4c47a116493eae9f3",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/background/Black logo - no background.svg",
+        "sha256": "1eed06b0154a1d7a0fcd8c6ac80abeb0b5f8bebef60e9dc4c47a116493eae9f3"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/background/Color logo - no background.svg",
+      "sha256": "cd7f53875bbf57dad6b04ec9439e5e2e41316ae162c55b67cd483c24b32277cf",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/background/Color logo - no background.svg",
+        "sha256": "cd7f53875bbf57dad6b04ec9439e5e2e41316ae162c55b67cd483c24b32277cf"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/background/Colorlogowithbackground.svg",
+      "sha256": "97f43b18d4edb7625c24aa566c47bc3525fbce954231d6defbcfde8b33ed5f70",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/background/Colorlogowithbackground.svg",
+        "sha256": "97f43b18d4edb7625c24aa566c47bc3525fbce954231d6defbcfde8b33ed5f70"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/background/White logo - no background.svg",
+      "sha256": "4241d3d39d070af5a779400bc7792a652260e55ef19a58a79e6eba2689a01ec6",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/background/White logo - no background.svg",
+        "sha256": "4241d3d39d070af5a779400bc7792a652260e55ef19a58a79e6eba2689a01ec6"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/circle/noBgBlack.svg",
+      "sha256": "156a36c7344b4b60f11591dac1dfa757eab770d47024c7100e866704f0194f8a",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/circle/noBgBlack.svg",
+        "sha256": "156a36c7344b4b60f11591dac1dfa757eab770d47024c7100e866704f0194f8a"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/circle/noBgColor.svg",
+      "sha256": "ab1f2b5fcb41f504dfafad694c609921085796ca0f43a8c27cf4a4020d1e2dc5",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/circle/noBgColor.svg",
+        "sha256": "ab1f2b5fcb41f504dfafad694c609921085796ca0f43a8c27cf4a4020d1e2dc5"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/circle/noBgWhite.svg",
+      "sha256": "1898c38a0636798e7737e7db7abdc4b5de0e3f5f476c46f53b92bbbfc36f8f99",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/circle/noBgWhite.svg",
+        "sha256": "1898c38a0636798e7737e7db7abdc4b5de0e3f5f476c46f53b92bbbfc36f8f99"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/circle/no_padding.png",
+      "sha256": "b868c5359833a0b82ed3397e3d4d2393b387be1e36407d0542cdfce001453863",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/circle/no_padding.png",
+        "sha256": "b868c5359833a0b82ed3397e3d4d2393b387be1e36407d0542cdfce001453863"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/circle/withBg.svg",
+      "sha256": "ee54fa43b6663e8e53a2153fe305f2ff04527e4f263db4c5c56ca4997dceb11b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/circle/withBg.svg",
+        "sha256": "ee54fa43b6663e8e53a2153fe305f2ff04527e4f263db4c5c56ca4997dceb11b"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/rectangle/Black logo - no background 2.svg",
+      "sha256": "1cfeba38adaaf88ce93d12fa489c666714097495ffb6a8ad9b3826a28947fd1a",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/rectangle/Black logo - no background 2.svg",
+        "sha256": "1cfeba38adaaf88ce93d12fa489c666714097495ffb6a8ad9b3826a28947fd1a"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/rectangle/Black logo - no background.svg",
+      "sha256": "a172e687c6e2adabd98187e5035ae1ed2cc0d2d09d0f45d144a811565f6d8ffc",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/rectangle/Black logo - no background.svg",
+        "sha256": "a172e687c6e2adabd98187e5035ae1ed2cc0d2d09d0f45d144a811565f6d8ffc"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/rectangle/Color logo - no background 2.svg",
+      "sha256": "1f73f91ac2c690d37e11f2c5d39ad45e2460a325efb7ea47bb8b25c1cf2a0f71",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/rectangle/Color logo - no background 2.svg",
+        "sha256": "1f73f91ac2c690d37e11f2c5d39ad45e2460a325efb7ea47bb8b25c1cf2a0f71"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/rectangle/Color logo - no background.svg",
+      "sha256": "5fb53f68dc64dfb0ee134bf961418069ecc818f007795fe4376ee78106db8592",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/rectangle/Color logo - no background.svg",
+        "sha256": "5fb53f68dc64dfb0ee134bf961418069ecc818f007795fe4376ee78106db8592"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/rectangle/Color logo with background 2.svg",
+      "sha256": "c65e195be8be7b903bc64821ceb2c21b8997afef27184585b59fdd72c02d219f",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/rectangle/Color logo with background 2.svg",
+        "sha256": "c65e195be8be7b903bc64821ceb2c21b8997afef27184585b59fdd72c02d219f"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/rectangle/Color logo with background.svg",
+      "sha256": "3e156ab7602284191c96ecc787c8ee9b6bf6a89fd300bfef72590ac3d0c9e30f",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/rectangle/Color logo with background.svg",
+        "sha256": "3e156ab7602284191c96ecc787c8ee9b6bf6a89fd300bfef72590ac3d0c9e30f"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/rectangle/White logo - no background 2.svg",
+      "sha256": "bf3b4514781484824f6a6e40e1cf9ff1d6e2c6a63f5818b2ff5ff206baf23461",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/rectangle/White logo - no background 2.svg",
+        "sha256": "bf3b4514781484824f6a6e40e1cf9ff1d6e2c6a63f5818b2ff5ff206baf23461"
+      }
+    },
+    {
+      "path": "src/front_end_app/assets/logo/rectangle/White logo - no background.svg",
+      "sha256": "9d2488c6f6a56d47fe3d451e2e0f392028c3280c317e90a8751f63b71b3a6dcf",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/assets/logo/rectangle/White logo - no background.svg",
+        "sha256": "9d2488c6f6a56d47fe3d451e2e0f392028c3280c317e90a8751f63b71b3a6dcf"
+      }
+    },
+    {
+      "path": "src/front_end_app/test_app.py",
+      "sha256": "f72be5a0f2bb5d174235dda8b944b306a33028d9f40cf363f4e1ec7a2e04c7e4",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/front_end_app/test_app.py",
+        "sha256": "f72be5a0f2bb5d174235dda8b944b306a33028d9f40cf363f4e1ec7a2e04c7e4"
+      }
+    },
+    {
+      "path": "src/trigger.sh",
+      "sha256": "d900ce91cf753df03bba53a143beb0b40f12fed8b1944c3ca2ef4e077c73c7e2",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/trigger.sh",
+        "sha256": "d900ce91cf753df03bba53a143beb0b40f12fed8b1944c3ca2ef4e077c73c7e2"
+      }
+    },
+    {
+      "path": "src/utils/__init__.py",
+      "sha256": "c30cc8d0758ccf4154a7857ae971917f379a2b781a4149c88c3b2d1bc654a452",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/utils/__init__.py",
+        "sha256": "c30cc8d0758ccf4154a7857ae971917f379a2b781a4149c88c3b2d1bc654a452"
+      }
+    },
+    {
+      "path": "src/utils/alpaca_utils.py",
+      "sha256": "e8141a60a14618b2d49ad299e5bff887e80e7d52fd5bef906c5a2b677482c342",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/utils/alpaca_utils.py",
+        "sha256": "e8141a60a14618b2d49ad299e5bff887e80e7d52fd5bef906c5a2b677482c342"
+      }
+    },
+    {
+      "path": "src/utils/analyze_portfolio.py",
+      "sha256": "fff719c41417bb0ecb77259f010dadeaff0cd001ef4996ba11abd9909918c06e",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/utils/analyze_portfolio.py",
+        "sha256": "fff719c41417bb0ecb77259f010dadeaff0cd001ef4996ba11abd9909918c06e"
+      }
+    },
+    {
+      "path": "src/utils/helpers.py",
+      "sha256": "f0c2b3b3e98ec71a9f7ecb60ee80ff2ae04f8cd14d6bbb1636fa72599699dc1a",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/utils/helpers.py",
+        "sha256": "f0c2b3b3e98ec71a9f7ecb60ee80ff2ae04f8cd14d6bbb1636fa72599699dc1a"
+      }
+    },
+    {
+      "path": "src/utils/helpers_MarketExplorer.py",
+      "sha256": "7d49c73df04599e35c1f6256bd09362b2baeb6514708f8acf4760b4c5871de00",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/utils/helpers_MarketExplorer.py",
+        "sha256": "7d49c73df04599e35c1f6256bd09362b2baeb6514708f8acf4760b4c5871de00"
+      }
+    },
+    {
+      "path": "src/utils/perplexity_helper.py",
+      "sha256": "78e76150cb0fdc1ae55632ed58bc40d6a63102abaea566d1338892f575620b04",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/utils/perplexity_helper.py",
+        "sha256": "78e76150cb0fdc1ae55632ed58bc40d6a63102abaea566d1338892f575620b04"
+      }
+    },
+    {
+      "path": "src/utils/rh_fixes.py",
+      "sha256": "435c44cd827b15accd745707fb5f75e39ca9caf0a3c3bfa5d8130419a3c1a0e2",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/utils/rh_fixes.py",
+        "sha256": "435c44cd827b15accd745707fb5f75e39ca9caf0a3c3bfa5d8130419a3c1a0e2"
+      }
+    },
+    {
+      "path": "src/utils/seeking_alpha_browser.py",
+      "sha256": "79883d0dc08a6bf7c05165faed41153cc2f9239e33b3a03ad6d63ee3a96b1289",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/src/utils/seeking_alpha_browser.py",
+        "sha256": "79883d0dc08a6bf7c05165faed41153cc2f9239e33b3a03ad6d63ee3a96b1289"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/.streamlit/config.toml",
+      "sha256": "10bacbe33844a518f392aa8f2d89d79b4050cd88d184166e768f9fb0d3dbe23d",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/.streamlit/config.toml",
+        "sha256": "10bacbe33844a518f392aa8f2d89d79b4050cd88d184166e768f9fb0d3dbe23d"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/Dockerfile.app",
+      "sha256": "65e13ba40e6647b2bb28a1a2fb20d74eb937e6d228418edf6b7076f256594808",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/Dockerfile.app",
+        "sha256": "65e13ba40e6647b2bb28a1a2fb20d74eb937e6d228418edf6b7076f256594808"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/app.py",
+      "sha256": "09c16e7e05230fb6da5eb706b96a453e6ca9f8aba879cd2629a9936255dfba12",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/app.py",
+        "sha256": "09c16e7e05230fb6da5eb706b96a453e6ca9f8aba879cd2629a9936255dfba12"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/agent-logs/MISTAKES_2026-04-03.md",
+      "sha256": "936b55aec10533be0e5eda0a2556c748fcc655f460388f11bb24096b37b0699d",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/agent-logs/MISTAKES_2026-04-03.md",
+        "sha256": "936b55aec10533be0e5eda0a2556c748fcc655f460388f11bb24096b37b0699d"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/architecture/AQL/AQL_LLM_UNIFICATION_PLAN_2026-05-15.md",
+      "sha256": "bd70a1a7d63a8aef77e2ebbb255cd6d9a989714726434912cd97fdbac6d12e00",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/architecture/AQL/AQL_LLM_UNIFICATION_PLAN_2026-05-15.md",
+        "sha256": "bd70a1a7d63a8aef77e2ebbb255cd6d9a989714726434912cd97fdbac6d12e00"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/architecture/SAA/AQL_SAA_PHASE0_RETENTION_RETRIEVAL_2026-04-14.md",
+      "sha256": "75806df9c25599d5e7508a8715bbf9d27eb9a3372f75b246be4c803607a38380",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/architecture/SAA/AQL_SAA_PHASE0_RETENTION_RETRIEVAL_2026-04-14.md",
+        "sha256": "75806df9c25599d5e7508a8715bbf9d27eb9a3372f75b246be4c803607a38380"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/architecture/UI/FRONTEND_FRAMEWORK_EVALUATION_2026-09-20.md",
+      "sha256": "0f4dc51ac1fcf748a224a147a47942a24f63f95fe6bc1484858ce6d203bb951f",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/architecture/UI/FRONTEND_FRAMEWORK_EVALUATION_2026-09-20.md",
+        "sha256": "0f4dc51ac1fcf748a224a147a47942a24f63f95fe6bc1484858ce6d203bb951f"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/architecture/UI/FRONTEND_WORKBENCH_PARITY_2026-10-02.md",
+      "sha256": "c5f75d6ab8fa2ff31dd70a5e2a4c1f57b1b668888dcc3a2e6bf1cba87b991a28",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/architecture/UI/FRONTEND_WORKBENCH_PARITY_2026-10-02.md",
+        "sha256": "c5f75d6ab8fa2ff31dd70a5e2a4c1f57b1b668888dcc3a2e6bf1cba87b991a28"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/architecture/agents/RESEARCH_EXPORT_API_2026-04-18.md",
+      "sha256": "524318412e366f56270fc9d4eeb435e64592e74a8da944fe1e05e0584165a3ef",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/architecture/agents/RESEARCH_EXPORT_API_2026-04-18.md",
+        "sha256": "524318412e366f56270fc9d4eeb435e64592e74a8da944fe1e05e0584165a3ef"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/architecture/data_pipelines/PIPELINE_IDENTITY_AND_FRED_RETRY_FIX_2026-04-13.md",
+      "sha256": "19449ecfc30c20a16616072209de657833d24be1b327d1b21c5b0c48433af501",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/architecture/data_pipelines/PIPELINE_IDENTITY_AND_FRED_RETRY_FIX_2026-04-13.md",
+        "sha256": "19449ecfc30c20a16616072209de657833d24be1b327d1b21c5b0c48433af501"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/architecture/overall/APP_SIMPLIFICATION_TRACK.md",
+      "sha256": "dac4563c9b3ac11c9c58d42aaf5a7c249df27fb254dafe5ebf94084f3676bf3e",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/architecture/overall/APP_SIMPLIFICATION_TRACK.md",
+        "sha256": "dac4563c9b3ac11c9c58d42aaf5a7c249df27fb254dafe5ebf94084f3676bf3e"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/architecture/overall/GLOBAL_OPTIMIZATION_AUDIT_2026-09-21.md",
+      "sha256": "359261e21a95d4291932a23928f9bc50c48c6feef3a0046353d6576f291e4d81",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/architecture/overall/GLOBAL_OPTIMIZATION_AUDIT_2026-09-21.md",
+        "sha256": "359261e21a95d4291932a23928f9bc50c48c6feef3a0046353d6576f291e4d81"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03.html",
+      "sha256": "d10b44c47b533e12f1956e1f1b319582aa1b0451e5431446cce62b6cedb2b50e",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03.html",
+        "sha256": "d10b44c47b533e12f1956e1f1b319582aa1b0451e5431446cce62b6cedb2b50e"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03.png",
+      "sha256": "6d4629fb249821c60369ff61197fb282a114209da6ac211fc3b7ca09da0dcc5f",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03.png",
+        "sha256": "6d4629fb249821c60369ff61197fb282a114209da6ac211fc3b7ca09da0dcc5f"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03_v2.png",
+      "sha256": "70d1d886b23369f7a9153b1ea87edbec3f02e092508b5fa3c0e2a2d506fae8d5",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03_v2.png",
+        "sha256": "70d1d886b23369f7a9153b1ea87edbec3f02e092508b5fa3c0e2a2d506fae8d5"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03_v3.png",
+      "sha256": "e751b2f2a50afa59bb9abf1c2221ed23549c6e245c8de2b1039607ae3de06265",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03_v3.png",
+        "sha256": "e751b2f2a50afa59bb9abf1c2221ed23549c6e245c8de2b1039607ae3de06265"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03_v4.png",
+      "sha256": "ec4e58d5b8942e93f18c3d2c4f1fb482b34ba092c1028eff98d64c276995b46f",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/attention_graph_explorer_notebook_cell21_2026-04-03_v4.png",
+        "sha256": "ec4e58d5b8942e93f18c3d2c4f1fb482b34ba092c1028eff98d64c276995b46f"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/attention_live_graph_check_2026-04-03.html",
+      "sha256": "0465f1fb0b555819a3245e27de3384a3bec8530561ce573b76f9c4b6cb325fc4",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/attention_live_graph_check_2026-04-03.html",
+        "sha256": "0465f1fb0b555819a3245e27de3384a3bec8530561ce573b76f9c4b6cb325fc4"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/attention_live_graph_check_2026-04-03.png",
+      "sha256": "8de647c136b4fd082f5e7e7ba4207c9e6ae534a0e331c5fbe600bf6444eb8b71",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/attention_live_graph_check_2026-04-03.png",
+        "sha256": "8de647c136b4fd082f5e7e7ba4207c9e6ae534a0e331c5fbe600bf6444eb8b71"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/network_visual_check_2026-04-03.html",
+      "sha256": "819c32a3a210aa7e11a148af49926476ae21bae6b95ba5a493f4188e38dff426",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/network_visual_check_2026-04-03.html",
+        "sha256": "819c32a3a210aa7e11a148af49926476ae21bae6b95ba5a493f4188e38dff426"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/debug/network_visual_check_2026-04-03.png",
+      "sha256": "070a7e7affb03a5eed8b26201f683bddd02453ef8217d4696c0b4f663a28c5b7",
+      "archive": {
+        "batch": "20261016T235149Z",
+        "archive": "obsolete-frontend-operating-history.tar.gz",
+        "member": "documents/debug/network_visual_check_2026-04-03.png",
+        "sha256": "070a7e7affb03a5eed8b26201f683bddd02453ef8217d4696c0b4f663a28c5b7"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/depricated.md",
+      "sha256": "830743956606e0908c31366ba02fc88a7a40e7ab2e10a22596bc0ba0b0a4d1c8",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/depricated.md",
+        "sha256": "830743956606e0908c31366ba02fc88a7a40e7ab2e10a22596bc0ba0b0a4d1c8"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/health_report.md",
+      "sha256": "2f360662f488e7aced71090b063b0f5b5636681159e2c2faa2ca844def1e279f",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/health_report.md",
+        "sha256": "2f360662f488e7aced71090b063b0f5b5636681159e2c2faa2ca844def1e279f"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/infra/NEXT_AGENT_DEV_DEPLOYMENT_2026-10-02.md",
+      "sha256": "7a9b7d9d12d811901f382f768401b107f959d1c01e9bb095f9339349b8997bbb",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/infra/NEXT_AGENT_DEV_DEPLOYMENT_2026-10-02.md",
+        "sha256": "7a9b7d9d12d811901f382f768401b107f959d1c01e9bb095f9339349b8997bbb"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/learnings/2026-04-02-homepage-runtime-contract.md",
+      "sha256": "7b0f4cfc9c4b75fc5cb07bfc7b754c7bed918e5769659859d882263a9d3b50bd",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/learnings/2026-04-02-homepage-runtime-contract.md",
+        "sha256": "7b0f4cfc9c4b75fc5cb07bfc7b754c7bed918e5769659859d882263a9d3b50bd"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/operations/CUSTOM_DOMAIN_CUTOVER_2026-04-05.md",
+      "sha256": "e8abdbc7319adc479d623e681c52c4b41ffc82a945e91ed2ac79692fa603007c",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/operations/CUSTOM_DOMAIN_CUTOVER_2026-04-05.md",
+        "sha256": "e8abdbc7319adc479d623e681c52c4b41ffc82a945e91ed2ac79692fa603007c"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/past_learnings.md",
+      "sha256": "69588e3acbcaac4452c69933686e7658895c6275e19371c133a716ac139a3284",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/past_learnings.md",
+        "sha256": "69588e3acbcaac4452c69933686e7658895c6275e19371c133a716ac139a3284"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/past_mistakes.md",
+      "sha256": "360fb64f0c8cf1029be857ebc5f76b8ef810300788846faa9b650c10bd054344",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/past_mistakes.md",
+        "sha256": "360fb64f0c8cf1029be857ebc5f76b8ef810300788846faa9b650c10bd054344"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_CLOUD_STATUS_AND_SANKEY_2026-04-11.md",
+      "sha256": "e8d5e524d51031d53682a1408f08998e82bd0fc57190429731cbdf8c02a724df",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_CLOUD_STATUS_AND_SANKEY_2026-04-11.md",
+        "sha256": "e8d5e524d51031d53682a1408f08998e82bd0fc57190429731cbdf8c02a724df"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_USAGE_SECURITY_SPLIT_2026-04-12.md",
+      "sha256": "22b47d0bb4c7c9068fa011f4b2528801daefd6da75e1390df25e30b20d3fd43e",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_USAGE_SECURITY_SPLIT_2026-04-12.md",
+        "sha256": "22b47d0bb4c7c9068fa011f4b2528801daefd6da75e1390df25e30b20d3fd43e"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_USAGE_SECURITY_STATS_2026-04-11.md",
+      "sha256": "893ecab35bc7796dc721ae7a61e9dd39f60b21ef540d3ac5c5977e42d6a79385",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/ACCESS_ADMIN_USAGE_SECURITY_STATS_2026-04-11.md",
+        "sha256": "893ecab35bc7796dc721ae7a61e9dd39f60b21ef540d3ac5c5977e42d6a79385"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/ALPACA_KEY_VAULT_HARDENING_2026-04-10.md",
+      "sha256": "a97c608447186630b4c72349308500a85db7438df6a287613bc4660414ceea47",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/ALPACA_KEY_VAULT_HARDENING_2026-04-10.md",
+        "sha256": "a97c608447186630b4c72349308500a85db7438df6a287613bc4660414ceea47"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/ALPACA_VAULT_CONSOLIDATION_2026-04-10.md",
+      "sha256": "003ee8f3ed15e546d896cffc8f758a51d5858fdaffcc9028dd19327ed6cfa969",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/ALPACA_VAULT_CONSOLIDATION_2026-04-10.md",
+        "sha256": "003ee8f3ed15e546d896cffc8f758a51d5858fdaffcc9028dd19327ed6cfa969"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/BRANDING_ASSET_INTEGRATION_2026-04-03.md",
+      "sha256": "ebe27da5758f49e664f749bca2cc53e36dcecfe8a7652c08ee2c47b592f7456b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/BRANDING_ASSET_INTEGRATION_2026-04-03.md",
+        "sha256": "ebe27da5758f49e664f749bca2cc53e36dcecfe8a7652c08ee2c47b592f7456b"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/BRANDING_REFRESH_PLAN.md",
+      "sha256": "4f80fc4fa06adf57c69761e0ed6e8230622231f9c92965978165aa4a03c13fbe",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/BRANDING_REFRESH_PLAN.md",
+        "sha256": "4f80fc4fa06adf57c69761e0ed6e8230622231f9c92965978165aa4a03c13fbe"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/CHAT_SEARCH_DEBUG_PANEL_SIMPLIFICATION_2026-04-12.md",
+      "sha256": "dd2b31ef1b0cd59b10550671d79452e500aee808aa91e9d241496d7aeafcd446",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/CHAT_SEARCH_DEBUG_PANEL_SIMPLIFICATION_2026-04-12.md",
+        "sha256": "dd2b31ef1b0cd59b10550671d79452e500aee808aa91e9d241496d7aeafcd446"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/CHAT_SEARCH_THINKING_STREAM_2026-04-12.md",
+      "sha256": "932c5ae2ab6534c6d2246d4cda691450a9d388a3225987d86e6a8b44231acbe2",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/CHAT_SEARCH_THINKING_STREAM_2026-04-12.md",
+        "sha256": "932c5ae2ab6534c6d2246d4cda691450a9d388a3225987d86e6a8b44231acbe2"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/DEPLOY_UI_REVISION_WAIT_FIX_2026-04-11.md",
+      "sha256": "29579616e40c5b9ea1d95416f78ebef6f253b10cd28cc55077fec1b311f6b206",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/DEPLOY_UI_REVISION_WAIT_FIX_2026-04-11.md",
+        "sha256": "29579616e40c5b9ea1d95416f78ebef6f253b10cd28cc55077fec1b311f6b206"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/EMAIL_DELIVERY_KEYVAULT_REGRESSION_2026-04-10.md",
+      "sha256": "f619295da32e95d996297184b89aa1e49b59c04e47700427e79a370aeacd3737",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/EMAIL_DELIVERY_KEYVAULT_REGRESSION_2026-04-10.md",
+        "sha256": "f619295da32e95d996297184b89aa1e49b59c04e47700427e79a370aeacd3737"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/EMAIL_DELIVERY_SETUP_PLAN.md",
+      "sha256": "6b1eafceb847baaab50af4ff941d1e2c04d83bbe8683db3f748489823b2ddbe8",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/EMAIL_DELIVERY_SETUP_PLAN.md",
+        "sha256": "6b1eafceb847baaab50af4ff941d1e2c04d83bbe8683db3f748489823b2ddbe8"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/EXPERIMENT_PAGE_RENAME_2026-04-11.md",
+      "sha256": "3b37db888c7a1ebace87a80410e3e6807a01f3a6d03e95fd4b551bc06067c379",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/EXPERIMENT_PAGE_RENAME_2026-04-11.md",
+        "sha256": "3b37db888c7a1ebace87a80410e3e6807a01f3a6d03e95fd4b551bc06067c379"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/GLOBAL_CLEANUP_PLAN_2026-09-21.md",
+      "sha256": "11c8b05887daf93c36aea99c8060e198134101c91d6d77c1ecb4dd227de031b4",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/GLOBAL_CLEANUP_PLAN_2026-09-21.md",
+        "sha256": "11c8b05887daf93c36aea99c8060e198134101c91d6d77c1ecb4dd227de031b4"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/HOMEPAGE_SUMMARY_CHAT_CLEANUP_2026-04-11.md",
+      "sha256": "103e2a31c9982c8129f3068115c02583c281d65c3fae922f3953477df4f79eb9",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/HOMEPAGE_SUMMARY_CHAT_CLEANUP_2026-04-11.md",
+        "sha256": "103e2a31c9982c8129f3068115c02583c281d65c3fae922f3953477df4f79eb9"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/INFRA_INDEX_HARDENING_2026-04-10.md",
+      "sha256": "a32d31608150d456f7d38fedcb19e48a70dfb6d4b4f5e46271d82d8a6b34ffa4",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/INFRA_INDEX_HARDENING_2026-04-10.md",
+        "sha256": "a32d31608150d456f7d38fedcb19e48a70dfb6d4b4f5e46271d82d8a6b34ffa4"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/INVITE_EMAIL_DESIGNER_ADMIN_2026-04-05.md",
+      "sha256": "baef3b141566e203365f6614da9034800575216b320b59117ce680430817a7b0",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/INVITE_EMAIL_DESIGNER_ADMIN_2026-04-05.md",
+        "sha256": "baef3b141566e203365f6614da9034800575216b320b59117ce680430817a7b0"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/MARKET_AGENTIC_TRADING_PLAN_2026-04-27.md",
+      "sha256": "2545c4e67dff1b729a9342ac33e068256ece07af06c17d094058e184aabe4320",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/MARKET_AGENTIC_TRADING_PLAN_2026-04-27.md",
+        "sha256": "2545c4e67dff1b729a9342ac33e068256ece07af06c17d094058e184aabe4320"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/MISTAKE_PREVENTION_HARDENING_2026-04-21.md",
+      "sha256": "d115efc2a90a4b95511965ed8f32e1dba2a29de8a189850b5c5ee7c95f4f9bf5",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/MISTAKE_PREVENTION_HARDENING_2026-04-21.md",
+        "sha256": "d115efc2a90a4b95511965ed8f32e1dba2a29de8a189850b5c5ee7c95f4f9bf5"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/NEXT_AGENT_HARNESS_VERTICAL_SLICE_2026-10-02.md",
+      "sha256": "470088870d2794cac16e7d302c37ca2982eed9cd7ad794eac8c83c0f838a522b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/NEXT_AGENT_HARNESS_VERTICAL_SLICE_2026-10-02.md",
+        "sha256": "470088870d2794cac16e7d302c37ca2982eed9cd7ad794eac8c83c0f838a522b"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/PENDING_INVITE_CARD_ACTIONS_2026-04-11.md",
+      "sha256": "07d3315c92b31958fb3a0fd53cff10010c58536b62f1150224bbbc1ea25718e6",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/PENDING_INVITE_CARD_ACTIONS_2026-04-11.md",
+        "sha256": "07d3315c92b31958fb3a0fd53cff10010c58536b62f1150224bbbc1ea25718e6"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/PIPELINE_SIMPLIFICATION_PLAN_2026-05-23.md",
+      "sha256": "0ad161fa79bfd61e5f60915885e8a775284831467f9bec204016e93fe9fcc87a",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/PIPELINE_SIMPLIFICATION_PLAN_2026-05-23.md",
+        "sha256": "0ad161fa79bfd61e5f60915885e8a775284831467f9bec204016e93fe9fcc87a"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/PRODUCTION_PROMOTION_2026-10-01.md",
+      "sha256": "7141991cfe66c435864cc534e4a2e05efaa04c8d8850a79951d2b582cc32871b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/PRODUCTION_PROMOTION_2026-10-01.md",
+        "sha256": "7141991cfe66c435864cc534e4a2e05efaa04c8d8850a79951d2b582cc32871b"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/SOCIAL_INTERACTION_LAYER_PLAN_2026-05-05.md",
+      "sha256": "10ae2b764dd752be0b5c5c1dd48c6e0b7e0284b87d05921e436bea5662a81776",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/SOCIAL_INTERACTION_LAYER_PLAN_2026-05-05.md",
+        "sha256": "10ae2b764dd752be0b5c5c1dd48c6e0b7e0284b87d05921e436bea5662a81776"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/STOCK_INVESTIGATOR_SPLIT_2026-04-06.md",
+      "sha256": "ff9d80e742b2c33ee041b7754a81ef21e93467e3928cb31808cabc21e5b78fae",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/STOCK_INVESTIGATOR_SPLIT_2026-04-06.md",
+        "sha256": "ff9d80e742b2c33ee041b7754a81ef21e93467e3928cb31808cabc21e5b78fae"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/STREAMLIT_INDEPENDENT_MOBILE_UI_FEASIBILITY_2026-05-15.md",
+      "sha256": "69258a93d4335a2d9bcbb6839bafa39f8b5f01f786546ce8fc722f904222e6c3",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/STREAMLIT_INDEPENDENT_MOBILE_UI_FEASIBILITY_2026-05-15.md",
+        "sha256": "69258a93d4335a2d9bcbb6839bafa39f8b5f01f786546ce8fc722f904222e6c3"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/STREAMLIT_MOBILE_REMEDIATION_2026-05-05.md",
+      "sha256": "445c7c24f7fb781c76eaa8c5d061aa3090e591f881916de7838a397681317169",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/STREAMLIT_MOBILE_REMEDIATION_2026-05-05.md",
+        "sha256": "445c7c24f7fb781c76eaa8c5d061aa3090e591f881916de7838a397681317169"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/UI_BROWSER_PERSISTENCE_ENV_ALIGNMENT_2026-04-12.md",
+      "sha256": "2a7d09a7deb6beb4a77c23752a34d009d48007e0c2c85fbccd3b09fc0d125456",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/UI_BROWSER_PERSISTENCE_ENV_ALIGNMENT_2026-04-12.md",
+        "sha256": "2a7d09a7deb6beb4a77c23752a34d009d48007e0c2c85fbccd3b09fc0d125456"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/UI_LLM_PROMOTION_ENV_FIX_2026-04-11.md",
+      "sha256": "adf446ec25c5f7480585cb214b1099d7d7892ac3b75b101d36b70c89b1498673",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/UI_LLM_PROMOTION_ENV_FIX_2026-04-11.md",
+        "sha256": "adf446ec25c5f7480585cb214b1099d7d7892ac3b75b101d36b70c89b1498673"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/UI_SHELL_REFINEMENT_2026-04-02.md",
+      "sha256": "5355f6b2c89f79a138b696e57fa674fbf55ac3dd6b2b1fc273f5a1ba7532e09b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/UI_SHELL_REFINEMENT_2026-04-02.md",
+        "sha256": "5355f6b2c89f79a138b696e57fa674fbf55ac3dd6b2b1fc273f5a1ba7532e09b"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/UI_UX_PRODUCT_AUDIT_2026-05-23.md",
+      "sha256": "a509d867b6a755f267bd75916efc85cca6d0f477774c44c2dc5e0d788c0e14ad",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/UI_UX_PRODUCT_AUDIT_2026-05-23.md",
+        "sha256": "a509d867b6a755f267bd75916efc85cca6d0f477774c44c2dc5e0d788c0e14ad"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md",
+      "sha256": "56a014a427b0a8ea336a27730ecdc566b35567d148e5c4829b813f1d5cbc9933",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/plans/spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md",
+        "sha256": "56a014a427b0a8ea336a27730ecdc566b35567d148e5c4829b813f1d5cbc9933"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/reference/HARDCODE_CLEANUP_MATRIX.md",
+      "sha256": "e65659e7d6c6b2596b5581527ea79e559f303c027cf34bd3a150f9a1f345a75b",
+      "archive": {
+        "batch": "20261016T234544Z",
+        "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+        "member": "streamlit_alpaca_app/documents/reference/HARDCODE_CLEANUP_MATRIX.md",
+        "sha256": "e65659e7d6c6b2596b5581527ea79e559f303c027cf34bd3a150f9a1f345a75b"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_broad_economy.png",
+      "sha256": "f2fb049406158f47996364e9bf6d16fa3956bf58cb6d0c6e0766d58159de1ed0",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_broad_economy.png",
+        "sha256": "f2fb049406158f47996364e9bf6d16fa3956bf58cb6d0c6e0766d58159de1ed0"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_home.png",
+      "sha256": "5474ad1a0b657c12186974bc73008df4c1c91b7f2f4d402ce2c4a62c8c586cee",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_home.png",
+        "sha256": "5474ad1a0b657c12186974bc73008df4c1c91b7f2f4d402ce2c4a62c8c586cee"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_market_explorer.png",
+      "sha256": "125ccb12cdbb05acc4f437c5eae56d1ad63dd9b0680b8de8083613bbeec4204c",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_market_explorer.png",
+        "sha256": "125ccb12cdbb05acc4f437c5eae56d1ad63dd9b0680b8de8083613bbeec4204c"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_option_strategizer.png",
+      "sha256": "0359cada3edc41b84e1888a886c5c7443a43145c81f90f670e5d386a73a92dd0",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_option_strategizer.png",
+        "sha256": "0359cada3edc41b84e1888a886c5c7443a43145c81f90f670e5d386a73a92dd0"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_portfolio.png",
+      "sha256": "4301704ebdb4ae6c1456d89ff843b39cd5f7de9fe4405fe1d15270e7b41f8c40",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_portfolio.png",
+        "sha256": "4301704ebdb4ae6c1456d89ff843b39cd5f7de9fe4405fe1d15270e7b41f8c40"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_portfolio_performance.png",
+      "sha256": "6c574c90dc2ffcf464e2260b8be7cd7533fb9a2e3b1477d066add77c8ae208f0",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_portfolio_performance.png",
+        "sha256": "6c574c90dc2ffcf464e2260b8be7cd7533fb9a2e3b1477d066add77c8ae208f0"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_stock_investigator.png",
+      "sha256": "fbf727da57bc413bf162c145a183c7d487a1d64ad0d9853e369e7d590f0c80c7",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_stock_investigator.png",
+        "sha256": "fbf727da57bc413bf162c145a183c7d487a1d64ad0d9853e369e7d590f0c80c7"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_zopedia.png",
+      "sha256": "5ea4484f79c977161ca72b5e75ffaa65a1790dac32330374bbc0435741294d11",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_zopedia.png",
+        "sha256": "5ea4484f79c977161ca72b5e75ffaa65a1790dac32330374bbc0435741294d11"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_zopedia_after_question.png",
+      "sha256": "5cfbdc2e7e64a7bd936eda73c0f1eb377a343aeab406f8ef2ecc101bb5b186f1",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/desktop_zopedia_after_question.png",
+        "sha256": "5cfbdc2e7e64a7bd936eda73c0f1eb377a343aeab406f8ef2ecc101bb5b186f1"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_broad_economy.png",
+      "sha256": "ef5122acd2f0e6dda6f23f65e45872749730eff88d82fc07ebfb81bb2852cdd7",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_broad_economy.png",
+        "sha256": "ef5122acd2f0e6dda6f23f65e45872749730eff88d82fc07ebfb81bb2852cdd7"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_home.png",
+      "sha256": "3a7c4704889f09f8a81a5405f80c78fd29b6f99ca9a7656e6a224431257bf407",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_home.png",
+        "sha256": "3a7c4704889f09f8a81a5405f80c78fd29b6f99ca9a7656e6a224431257bf407"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_market_explorer.png",
+      "sha256": "28cd9f2ac0af74f21de37f2ee783f63d91b65289e39a918734fa5d0ad6bed48a",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_market_explorer.png",
+        "sha256": "28cd9f2ac0af74f21de37f2ee783f63d91b65289e39a918734fa5d0ad6bed48a"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_stock_investigator.png",
+      "sha256": "5912dfe4b93f4eb803f49eb9b21dc02e55fe988e8c1564e3969551993d370bcd",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_stock_investigator.png",
+        "sha256": "5912dfe4b93f4eb803f49eb9b21dc02e55fe988e8c1564e3969551993d370bcd"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_stock_rgti.png",
+      "sha256": "fe372707a382ba11d0aaa16a1c456108d251b0ed535e8756f385c4d7eed531be",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_stock_rgti.png",
+        "sha256": "fe372707a382ba11d0aaa16a1c456108d251b0ed535e8756f385c4d7eed531be"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_zopedia.png",
+      "sha256": "34eaef49ce5d0c6861bc24c758f35fea298a8f49fa8e78db6a9911986c4233e3",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_zopedia.png",
+        "sha256": "34eaef49ce5d0c6861bc24c758f35fea298a8f49fa8e78db6a9911986c4233e3"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_zopedia_quantum_answer.png",
+      "sha256": "382619a2f1638c2d89a981a3048470abb94d501353c5745ca7b9a77c25f8bb05",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/kv_zopedia_quantum_answer.png",
+        "sha256": "382619a2f1638c2d89a981a3048470abb94d501353c5745ca7b9a77c25f8bb05"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/mobile_home_first_view.png",
+      "sha256": "80074db9d25bb71baad8bbe16f40422e29e531124af173b74661416941d7a944",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23/mobile_home_first_view.png",
+        "sha256": "80074db9d25bb71baad8bbe16f40422e29e531124af173b74661416941d7a944"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/presentation/attention_content.py",
+      "sha256": "25e52238d1b24d22381e5c22a820c021037e9e31fc8f17f592756756b2b26d6a",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/presentation/attention_content.py",
+        "sha256": "25e52238d1b24d22381e5c22a820c021037e9e31fc8f17f592756756b2b26d6a"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/presentation/dashboard_loaders.py",
+      "sha256": "2af4ae587a446e898f43003195e1050200259c1adf2fe5aee1aac6732951702d",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/presentation/dashboard_loaders.py",
+        "sha256": "2af4ae587a446e898f43003195e1050200259c1adf2fe5aee1aac6732951702d"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/requirements-ui.lock",
+      "sha256": "1ad58558c599a37b705719b311d8fb45ccab4b15e207c8303ff4cd914e779be5",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/requirements-ui.lock",
+        "sha256": "1ad58558c599a37b705719b311d8fb45ccab4b15e207c8303ff4cd914e779be5"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/deploy_api_azure.sh",
+      "sha256": "7dde53ba8766662f1d49c00ad99bf31585ee9aee83872d49701283c63d91920b",
+      "archive": {
+        "batch": "20261016T234428Z",
+        "archive": "pre-retirement-tools-and-modules.tar.gz",
+        "member": "streamlit_alpaca_app/scripts/deploy_api_azure.sh",
+        "sha256": "7dde53ba8766662f1d49c00ad99bf31585ee9aee83872d49701283c63d91920b"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/deploy_pipeline_azure.sh",
+      "sha256": "f3affabe0b05c5be435f54f2076746cdbe8713c0a4c95318535449a585b9753e",
+      "archive": {
+        "batch": "20261016T234428Z",
+        "archive": "pre-retirement-tools-and-modules.tar.gz",
+        "member": "streamlit_alpaca_app/scripts/deploy_pipeline_azure.sh",
+        "sha256": "f3affabe0b05c5be435f54f2076746cdbe8713c0a4c95318535449a585b9753e"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/deploy_ui_azure.sh",
+      "sha256": "76f6b809e7b9a3aa1bd8be47204f8e877da2be73489c775dc9907af80c59f01b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/scripts/deploy_ui_azure.sh",
+        "sha256": "76f6b809e7b9a3aa1bd8be47204f8e877da2be73489c775dc9907af80c59f01b"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/mobile_render_check.mjs",
+      "sha256": "3f762fcaea3410a4715105b72859f9b721de3d13bd1bc91168e3a8306711a4f5",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/scripts/mobile_render_check.mjs",
+        "sha256": "3f762fcaea3410a4715105b72859f9b721de3d13bd1bc91168e3a8306711a4f5"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/prepare_workbench_cutover.py",
+      "sha256": "235c29dc0e4d94cc7372f3837c53d62973ce3513fad88d84afe2dc028bc7d30d",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/scripts/prepare_workbench_cutover.py",
+        "sha256": "235c29dc0e4d94cc7372f3837c53d62973ce3513fad88d84afe2dc028bc7d30d"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/prepare_workbench_release.py",
+      "sha256": "e573d611628b5538b4bf01f9ec8516212119e057f06e236f2a4b8b5f93bc76d6",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/scripts/prepare_workbench_release.py",
+        "sha256": "e573d611628b5538b4bf01f9ec8516212119e057f06e236f2a4b8b5f93bc76d6"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/run_ui_local.sh",
+      "sha256": "4fce557887c46a2ce0e74e97a0c5465c1a9525f7ee91e30e9e82f118e15b2f7e",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/scripts/run_ui_local.sh",
+        "sha256": "4fce557887c46a2ce0e74e97a0c5465c1a9525f7ee91e30e9e82f118e15b2f7e"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/setup_ui_email_delivery_azure.sh",
+      "sha256": "83371975edb57586404eb544761ad9a2a8a99315b63bb51f21d00cbbb6037335",
+      "archive": {
+        "batch": "20261016T234428Z",
+        "archive": "pre-retirement-tools-and-modules.tar.gz",
+        "member": "streamlit_alpaca_app/scripts/setup_ui_email_delivery_azure.sh",
+        "sha256": "83371975edb57586404eb544761ad9a2a8a99315b63bb51f21d00cbbb6037335"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/which_deploy.sh",
+      "sha256": "b280f78e10ceed6402500d16fc4469f1944dfae00bdaa7fe25d0586f99af0fe6",
+      "archive": {
+        "batch": "20261016T234428Z",
+        "archive": "pre-retirement-tools-and-modules.tar.gz",
+        "member": "streamlit_alpaca_app/scripts/which_deploy.sh",
+        "sha256": "b280f78e10ceed6402500d16fc4469f1944dfae00bdaa7fe25d0586f99af0fe6"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_app_job_trigger_inventory.py",
+      "sha256": "b92b23b2a2f2b0c027cc11bad0c378dd1c81ae38fd22160f2df34c107cae6826",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/tests/test_app_job_trigger_inventory.py",
+        "sha256": "b92b23b2a2f2b0c027cc11bad0c378dd1c81ae38fd22160f2df34c107cae6826"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_auth_routing_guards.py",
+      "sha256": "6a22345abbaf26c0082c61726d19424c99da3674db6be433fdd66304746e7195",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/tests/test_auth_routing_guards.py",
+        "sha256": "6a22345abbaf26c0082c61726d19424c99da3674db6be433fdd66304746e7195"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_dashboard_loaders.py",
+      "sha256": "96c195625e58e3f513ee5ae2a80e5da8bca2ba877aa03f0b03f961ca3202d426",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/tests/test_dashboard_loaders.py",
+        "sha256": "96c195625e58e3f513ee5ae2a80e5da8bca2ba877aa03f0b03f961ca3202d426"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_mobile_layout_routing.py",
+      "sha256": "33a6a2a36ade986829c56ab0e95a26024ca68e611501e4a6bc8bbbef7415fb28",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/tests/test_mobile_layout_routing.py",
+        "sha256": "33a6a2a36ade986829c56ab0e95a26024ca68e611501e4a6bc8bbbef7415fb28"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_portfolio_robinhood_main_view.py",
+      "sha256": "8a073c5595f5db6f01cade0f05a34420dcaaff296190192acb0d60894a44beb7",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/tests/test_portfolio_robinhood_main_view.py",
+        "sha256": "8a073c5595f5db6f01cade0f05a34420dcaaff296190192acb0d60894a44beb7"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_presentation_attention_content.py",
+      "sha256": "715729924f66d15a701c6eba505904f02dc39d913ebd725c6907a2c51f28aa7b",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/tests/test_presentation_attention_content.py",
+        "sha256": "715729924f66d15a701c6eba505904f02dc39d913ebd725c6907a2c51f28aa7b"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_trading_agent_view.py",
+      "sha256": "b94e4e5d18422884ae010577df48bdffe6e7abeeecc2ab0fdaa0a16fa61f90ba",
+      "archive": {
+        "batch": "20261016T234428Z",
+        "archive": "pre-retirement-tools-and-modules.tar.gz",
+        "member": "streamlit_alpaca_app/tests/test_trading_agent_view.py",
+        "sha256": "b94e4e5d18422884ae010577df48bdffe6e7abeeecc2ab0fdaa0a16fa61f90ba"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/__init__.py",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/_shared.py",
+      "sha256": "0cbe8ab06f16ee19e45c017bea2c4f0e6dccae42b1ecae071fa06e5cc061792f",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/_shared.py",
+        "sha256": "0cbe8ab06f16ee19e45c017bea2c4f0e6dccae42b1ecae071fa06e5cc061792f"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/access_admin.py",
+      "sha256": "0aacd74a45db849c9e685cf7a104b37558c7e2cf8525fe58812c2744647a6817",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/access_admin.py",
+        "sha256": "0aacd74a45db849c9e685cf7a104b37558c7e2cf8525fe58812c2744647a6817"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/broad_economy.py",
+      "sha256": "4510f0ee35f4286a150a0e503c74e4a8641ddb87cb8143f114b3371b744a6f02",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/broad_economy.py",
+        "sha256": "4510f0ee35f4286a150a0e503c74e4a8641ddb87cb8143f114b3371b744a6f02"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/experiments.py",
+      "sha256": "e75ead6356d0508262dc72b500370030b301cb9cfb3de002742190a1f5e17753",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/experiments.py",
+        "sha256": "e75ead6356d0508262dc72b500370030b301cb9cfb3de002742190a1f5e17753"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/market_explorer.py",
+      "sha256": "ea3365b0244dcee94339a82982587d497f7af4b0a7397fe074a217ed8d494db7",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/market_explorer.py",
+        "sha256": "ea3365b0244dcee94339a82982587d497f7af4b0a7397fe074a217ed8d494db7"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/option_strategizer.py",
+      "sha256": "495ecd9d14f0e1766d5425e5292e55b4ab6a1d0566ac0bce0f1278ee3d7ff36f",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/option_strategizer.py",
+        "sha256": "495ecd9d14f0e1766d5425e5292e55b4ab6a1d0566ac0bce0f1278ee3d7ff36f"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/portfolio.py",
+      "sha256": "650cad5e8bff899bad3faa168db44b421b28622a454cf10b9473a0cfeb23f35f",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/portfolio.py",
+        "sha256": "650cad5e8bff899bad3faa168db44b421b28622a454cf10b9473a0cfeb23f35f"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/stock_investigator.py",
+      "sha256": "abc46270450ece1c75366134d6da18142e2d635ac78c84c54e06b12c6ecf0f41",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/stock_investigator.py",
+        "sha256": "abc46270450ece1c75366134d6da18142e2d635ac78c84c54e06b12c6ecf0f41"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/views/trading_agent.py",
+      "sha256": "5891d5b2c21f9cfc9056b0cdfe574879455c0f0bfe370287a2eab9050b011fb4",
+      "archive": {
+        "batch": "20261016T234347Z",
+        "archive": "retired-product-surfaces.tar.gz",
+        "member": "recovery/streamlit_alpaca_app/views/trading_agent.py",
+        "sha256": "5891d5b2c21f9cfc9056b0cdfe574879455c0f0bfe370287a2eab9050b011fb4"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/trading-agent/calls/[trackingId]/route.ts",
+      "sha256": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e",
+      "archive": {
+        "batch": "20261016T235441Z",
+        "archive": "held-call-tracking-route.tar.gz",
+        "member": "web/app/api/trading-agent/calls/[trackingId]/route.ts",
+        "sha256": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e"
+      }
+    }
+  ],
+  "archives": [
+    {
+      "batch": "20261016T234347Z",
+      "archive": "retired-product-surfaces.tar.gz",
+      "sha256": "86a3944e6c7bf95b8051c14ebe38f7a3f89dfe543f70eb53af57cf1aa8a7b313",
+      "expires_at": "2026-11-15T23:43:56.322926+00:00"
+    },
+    {
+      "batch": "20261016T234428Z",
+      "archive": "pre-retirement-tools-and-modules.tar.gz",
+      "sha256": "3bc4a1f4926ed0ffcde65c0efba28bf2f8a8d934d8b8ae3587ce38fc5dc5c34b",
+      "expires_at": "2026-11-15T23:44:28.700327+00:00"
+    },
+    {
+      "batch": "20261016T234544Z",
+      "archive": "pre-cleanup-instructions-and-auth.tar.gz",
+      "sha256": "0315a0738ab188203eacf2463b7f8c0c43707678c75bbfcd4994e4f76ed6b2fe",
+      "expires_at": "2026-11-15T23:45:44.363500+00:00"
+    },
+    {
+      "batch": "20261016T235149Z",
+      "archive": "obsolete-frontend-operating-history.tar.gz",
+      "sha256": "515ec44ab9ab769a9b110b51e4c85064343572c9ef01e3ec46ff3215e6275da8",
+      "expires_at": "2026-11-15T23:51:50.047751+00:00"
+    },
+    {
+      "batch": "20261016T235441Z",
+      "archive": "held-call-tracking-route.tar.gz",
+      "sha256": "8c678d9e3570048ff3020f8fb4c9f6dad10d9fa7c2783e4f4d4991fd28ccc651",
+      "expires_at": "2026-11-15T23:54:41.240150+00:00"
+    }
+  ]
+}

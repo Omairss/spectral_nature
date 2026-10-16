@@ -108,7 +108,6 @@ from services.simfin_refresh import build_quarterly_fundamentals_frame, simfin_r
 from services.system_health import run_system_health_check
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_datasets
 from services.trading_agent import (
-    build_trading_agent_materialized_frames,
     build_trading_agent_outcomes,
     build_trading_agent_research_reviews,
     build_trading_agent_shared_research_frames,
@@ -2724,9 +2723,9 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
 
     candidate_limit = _parse_int_env("TRADING_AGENT_CANDIDATE_LIMIT", 4, minimum=1)
     generation_mode = str(os.getenv("TRADING_AGENT_GENERATION_MODE") or "shared_research_v2").strip().lower()
-    if generation_mode not in {"shared_research_v2", "legacy_per_horizon_v1"}:
+    if generation_mode != "shared_research_v2":
         raise ValueError(
-            "TRADING_AGENT_GENERATION_MODE must be shared_research_v2 or legacy_per_horizon_v1."
+            "Only the shared_research_v2 Trading producer is supported."
         )
 
     _job_progress(
@@ -2736,72 +2735,57 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         message=(
             "Building Trading Agent company research once, then evaluating it across "
             "1 week, 1 month, 3 month, 1 year, and 5 year horizons."
-            if generation_mode == "shared_research_v2"
-            else "Building Trading Agent candidates with the legacy per-horizon research path."
         ),
         progress_pct=15.0,
     )
 
-    research_packages = pd.DataFrame()
-    if generation_mode == "shared_research_v2":
-        def _research_progress(completed: int, total: int, package: dict[str, Any]) -> None:
-            ticker = str(package.get("ticker") or "company").strip().upper()
-            status = str(package.get("status") or "unknown").strip().lower()
-            progress_pct = 15.0 + (55.0 * completed / max(total, 1))
-            _job_progress(
-                ctx,
-                conn,
-                stage="research_companies",
-                message=f"Company research {completed}/{total}: {ticker} {status}.",
-                progress_pct=progress_pct,
-            )
+    def _research_progress(completed: int, total: int, package: dict[str, Any]) -> None:
+        ticker = str(package.get("ticker") or "company").strip().upper()
+        status = str(package.get("status") or "unknown").strip().lower()
+        progress_pct = 15.0 + (55.0 * completed / max(total, 1))
+        _job_progress(
+            ctx,
+            conn,
+            stage="research_companies",
+            message=f"Company research {completed}/{total}: {ticker} {status}.",
+            progress_pct=progress_pct,
+        )
 
-        runs, candidates, research_packages = build_trading_agent_shared_research_frames(
-            opportunity_feed=opportunity_feed,
-            page_summaries=page_summaries,
-            quarterly_fundamentals=quarterly_fundamentals,
-            llm_client=llm_client,
-            run_id=ctx.run_id,
-            asof_time_utc=ctx.asof,
-            business_filter="All Market",
-            max_candidates=candidate_limit,
-            research_candidate_limit=_parse_int_env(
-                "TRADING_AGENT_SCOUT_LIMIT_PER_HORIZON",
-                6,
-                minimum=candidate_limit,
-            ),
-            research_pool_limit=_parse_int_env("TRADING_AGENT_RESEARCH_POOL_LIMIT", 8, minimum=1),
-            research_parallelism=_parse_int_env("TRADING_AGENT_RESEARCH_PARALLELISM", 2, minimum=1),
-            research_max_tool_calls=_parse_int_env("TRADING_AGENT_RESEARCH_MAX_TOOL_CALLS", 4, minimum=1),
-            research_attempts=_parse_int_env("TRADING_AGENT_RESEARCH_ATTEMPTS", 2, minimum=1),
-            research_tool_timeout_seconds=_parse_int_env(
-                "TRADING_AGENT_RESEARCH_TOOL_TIMEOUT_SECONDS",
-                45,
-                minimum=5,
-            ),
-            research_llm_step_timeout_seconds=_parse_int_env(
-                "TRADING_AGENT_RESEARCH_LLM_STEP_TIMEOUT_SECONDS",
-                90,
-                minimum=10,
-            ),
-            research_prefetch_timeout_seconds=_parse_int_env(
-                "TRADING_AGENT_RESEARCH_PREFETCH_TIMEOUT_SECONDS",
-                15,
-                minimum=5,
-            ),
-            research_progress_callback=_research_progress,
-        )
-    else:
-        runs, candidates = build_trading_agent_materialized_frames(
-            opportunity_feed=opportunity_feed,
-            page_summaries=page_summaries,
-            quarterly_fundamentals=quarterly_fundamentals,
-            llm_client=llm_client,
-            run_id=ctx.run_id,
-            asof_time_utc=ctx.asof,
-            business_filter="All Market",
-            max_candidates=candidate_limit,
-        )
+    runs, candidates, research_packages = build_trading_agent_shared_research_frames(
+        opportunity_feed=opportunity_feed,
+        page_summaries=page_summaries,
+        quarterly_fundamentals=quarterly_fundamentals,
+        llm_client=llm_client,
+        run_id=ctx.run_id,
+        asof_time_utc=ctx.asof,
+        business_filter="All Market",
+        max_candidates=candidate_limit,
+        research_candidate_limit=_parse_int_env(
+            "TRADING_AGENT_SCOUT_LIMIT_PER_HORIZON",
+            6,
+            minimum=candidate_limit,
+        ),
+        research_pool_limit=_parse_int_env("TRADING_AGENT_RESEARCH_POOL_LIMIT", 8, minimum=1),
+        research_parallelism=_parse_int_env("TRADING_AGENT_RESEARCH_PARALLELISM", 2, minimum=1),
+        research_max_tool_calls=_parse_int_env("TRADING_AGENT_RESEARCH_MAX_TOOL_CALLS", 4, minimum=1),
+        research_attempts=_parse_int_env("TRADING_AGENT_RESEARCH_ATTEMPTS", 2, minimum=1),
+        research_tool_timeout_seconds=_parse_int_env(
+            "TRADING_AGENT_RESEARCH_TOOL_TIMEOUT_SECONDS",
+            45,
+            minimum=5,
+        ),
+        research_llm_step_timeout_seconds=_parse_int_env(
+            "TRADING_AGENT_RESEARCH_LLM_STEP_TIMEOUT_SECONDS",
+            90,
+            minimum=10,
+        ),
+        research_prefetch_timeout_seconds=_parse_int_env(
+            "TRADING_AGENT_RESEARCH_PREFETCH_TIMEOUT_SECONDS",
+            15,
+            minimum=5,
+        ),
+        research_progress_callback=_research_progress,
+    )
 
     _job_progress(
         ctx,
@@ -2813,8 +2797,7 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
         ),
         progress_pct=85.0,
     )
-    if generation_mode == "shared_research_v2":
-        _persist_dataset("trading_agent_research_packages", research_packages, ctx, conn)
+    _persist_dataset("trading_agent_research_packages", research_packages, ctx, conn)
     _persist_dataset("trading_agent_ranked_opportunities", opportunity_feed, ctx, conn)
     _persist_dataset("trading_agent_runs", runs, ctx, conn)
     _persist_dataset("trading_agent_candidates", candidates, ctx, conn)

@@ -6,11 +6,9 @@ cd "$ROOT_DIR"
 
 DEFAULT_DEPLOYMENT_ENV_FILE="infra/.generated/deployment.local.env"
 DEFAULT_EMAIL_OUTPUTS_FILE="infra/.generated/email_delivery.local.env"
-LEGACY_DEPLOYMENT_ENV_FILE="infra/deployment.outputs.env"
-LEGACY_EMAIL_OUTPUTS_FILE="infra/email_delivery.outputs.env"
 CONTAINERAPP_API_VERSION="${CONTAINERAPP_API_VERSION:-2025-07-01}"
-DEV_CONTAINER_APP="${DEV_CONTAINER_APP:-sn-streamlit-ui-dev}"
-PROD_CONTAINER_APP="${PROD_CONTAINER_APP:-sn-streamlit-ui}"
+DEV_CONTAINER_APP="${DEV_CONTAINER_APP:-sn-api-next-dev}"
+PROD_CONTAINER_APP="${PROD_CONTAINER_APP:-sn-api-next}"
 PIPELINE_ENV_SOURCE_JOBS="${PIPELINE_ENV_SOURCE_JOBS:-equities-intraday-preload attention-home-build news-ingest-and-features}"
 TARGET="${TARGET:-dev}"
 WRITE_LOCAL=false
@@ -62,14 +60,10 @@ load_local_context() {
 
   if [[ -f "$deployment_file" ]]; then
     load_env_file "$deployment_file"
-  elif [[ "$DEPLOYMENT_ENV_FILE" == "$DEFAULT_DEPLOYMENT_ENV_FILE" && -f "$(resolve_path "$LEGACY_DEPLOYMENT_ENV_FILE")" ]]; then
-    load_env_file "$(resolve_path "$LEGACY_DEPLOYMENT_ENV_FILE")"
   fi
 
   if [[ -f "$email_file" ]]; then
     load_env_file "$email_file"
-  elif [[ "$EMAIL_OUTPUTS_FILE" == "$DEFAULT_EMAIL_OUTPUTS_FILE" && -f "$(resolve_path "$LEGACY_EMAIL_OUTPUTS_FILE")" ]]; then
-    load_env_file "$(resolve_path "$LEGACY_EMAIL_OUTPUTS_FILE")"
   fi
 
   RESOURCE_GROUP="${RESOURCE_GROUP:-${PIPELINE_RESOURCE_GROUP:-}}"

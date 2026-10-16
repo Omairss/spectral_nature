@@ -1,0 +1,15 @@
+{
+  "removed": [
+    "_fallback_trading_agent_suggestions",
+    "build_trading_agent_materialized_frames",
+    "build_trading_agent_suggestions"
+  ],
+  "added": [],
+  "changed": [
+    "_materialize_trading_agent_results",
+    "_synthesize_trading_agent_suggestions",
+    "build_trading_agent_shared_research_frames"
+  ],
+  "unchanged": 69,
+  "whole_module_matches_after_removing_inactive_rollback": true
+}

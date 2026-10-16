@@ -1,1 +1,1 @@
-# Service package for Streamlit + Alpaca app.
+# Shared application services for API, workers and product clients.

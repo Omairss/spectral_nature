@@ -143,30 +143,7 @@ def _coerce_share_fraction(value: object) -> float:
 
 
 def auth_mode() -> str:
-    raw = (os.getenv("DASHBOARD_AUTH_MODE") or "auto").strip().lower()
-    if raw in {"database", "legacy", "auto"}:
-        return raw
-    return "auto"
-
-
-def allow_insecure_browser_session_cookie() -> bool:
-    if (os.getenv("UI_DISABLE_BROWSER_SESSION_COOKIE") or "").strip().lower() in _TRUE_VALUES:
-        return False
-    explicit_opt_in = (os.getenv("UI_ALLOW_INSECURE_BROWSER_SESSION_COOKIE") or "").strip().lower()
-    return explicit_opt_in in _TRUE_VALUES
-
-
-def browser_session_persistence_mode() -> str:
-    return "browser_cookie" if allow_insecure_browser_session_cookie() else "session_only"
-
-
-def browser_session_persistence_message() -> str:
-    if not allow_insecure_browser_session_cookie():
-        return (
-            "Browser-persistent login is disabled in this environment. "
-            "Reloading or reopening the page requires signing in again."
-        )
-    return ""
+    return "database"
 
 
 def database_auth_bootstrap_configured() -> bool:
@@ -1018,18 +995,7 @@ def verify_password(password: str, encoded_hash: str) -> bool:
 
 
 def database_auth_enabled() -> bool:
-    if not auth_store.auth_store_configured():
-        return False
-    mode = auth_mode()
-    if mode == "database":
-        return True
-    if mode == "legacy":
-        return False
-    if auth_store.has_users() or database_auth_bootstrap_configured():
-        return True
-    legacy_username = (os.getenv("DASHBOARD_AUTH_USERNAME") or "").strip()
-    legacy_password = (os.getenv("DASHBOARD_AUTH_PASSWORD") or "").strip()
-    return not (legacy_username and legacy_password)
+    return auth_store.auth_store_configured()
 
 
 def initialize_auth_system(*, include_email_delivery: bool = False) -> dict[str, Any]:
@@ -1726,10 +1692,7 @@ __all__ = [
     "UserContext",
     "accept_invite",
     "admin_issue_password_reset",
-    "allow_insecure_browser_session_cookie",
     "authenticate_user",
-    "browser_session_persistence_message",
-    "browser_session_persistence_mode",
     "build_invite_email_preview",
     "build_action_link",
     "complete_password_reset",
