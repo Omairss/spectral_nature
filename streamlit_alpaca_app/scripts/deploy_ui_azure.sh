@@ -766,6 +766,9 @@ elif [[ -n "$IMAGE_REF" ]]; then
 else
   build_ui_image
 fi
+if [[ -n "$PROMOTE_FROM" || -n "$IMAGE_REF" ]]; then
+  python3 scripts/release_source.py --role streamlit --target "$TARGET_APP" --image-ref "$IMAGE_TO_DEPLOY" --target-only
+fi
 
 log "[2/5] Updating ${TARGET_APP}"
 UPDATE_ENV_VARS=(

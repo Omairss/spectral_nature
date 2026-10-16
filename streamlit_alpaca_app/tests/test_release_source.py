@@ -79,3 +79,10 @@ def test_an_accepted_role_cannot_replace_a_different_application(checkout):
     assert release.verify_target("worker", "worker-dev")["target"] == "worker-dev"
     with pytest.raises(ValueError, match="not an accepted target"):
         release.verify_target("worker", "sn-streamlit-ui")
+
+
+def test_old_or_unverified_images_cannot_be_promoted(checkout):
+    release, _, _, save = checkout
+    save()
+    with pytest.raises(ValueError, match="Image is not verified"):
+        release.verify_image("worker", "registry.example/older@sha256:" + "b" * 64)

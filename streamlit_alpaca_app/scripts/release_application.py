@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 import subprocess
 
-from release_source import APP, MANIFEST, verify
+from release_source import APP, acceptance, verify, verify_image
 
 API_VERSION = "2025-07-01"
 
@@ -63,15 +63,16 @@ def build(args) -> None:
 
 def deploy(args) -> None:
     record = json.loads(args.images.read_text())
-    accepted = json.loads(MANIFEST.read_text())
+    accepted = acceptance()
     receipts = []
     # Recheck the complete source and each role before making the first change.
     for role in record["images"]:
         source = verify(role)
-        if source["source_revision"] != record["source_revision"]:
+        if source["source_inventory_sha256"] != record["source_inventory_sha256"]:
             raise ValueError("Images do not belong to the selected accepted revision.")
         if "@sha256:" not in record["images"][role]:
             raise ValueError("Image templates require immutable digests.")
+        verify_image(role, record["images"][role])
     for role, image in record["images"].items():
         for target in accepted["roles"][role].get("development_targets", []):
             kind, name = target["kind"], target["name"]

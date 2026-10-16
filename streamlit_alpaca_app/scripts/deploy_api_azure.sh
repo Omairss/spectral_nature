@@ -414,6 +414,9 @@ elif [[ -n "$IMAGE_REF" ]]; then
 else
   build_api_image
 fi
+if [[ -n "$PROMOTE_FROM" || -n "$IMAGE_REF" ]]; then
+  python3 scripts/release_source.py --role "$SOURCE_ROLE" --target "$TARGET_APP" --image-ref "$IMAGE_TO_DEPLOY" --target-only
+fi
 
 # ---------- env vars (carried from UI app on first deploy, then self-maintained) ----------
 TARGET_TRACK_VALUE="development"

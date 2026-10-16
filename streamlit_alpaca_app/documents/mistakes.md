@@ -8,6 +8,7 @@
 - The first cleanup LaunchAgent could not open its script under macOS-protected Documents. Moved the archive and matching maintenance script to Application Support, then verified the actual scheduled run exited successfully. Installing a schedule alone does not establish that it can perform its work.
 - Recovery now separates the mixed checkpoint in a held Git branch, reconciles the eight affected areas against each consumer's actual accepted implementation, and retains the scoped accepted database repair. The image-backport utility and broker's two-file image overlay were still active packaging remnants; archived the originals and removed that reuse path. Full-source acceptance and per-file review are required before packaging.
 - Removing held flow parameters by direct call names initially missed an injected `runner` alias in news interpretation. The complete source-difference review caught it before any build or deployment; removed the remaining argument. Import success alone would have missed this execution-time incompatibility too.
+- Build-source checks alone left the older existing-image promotion commands able to select an arbitrary historical digest. Closed that route with committed, role-specific image verification before any runtime update. Superseded the initial packaging batch so the registered images include the completed enforcement code.
 
 ## Generated files in unpublished history — 2026-10-16
 

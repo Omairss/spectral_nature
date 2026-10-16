@@ -30,8 +30,14 @@ def inventory(revision: str = "HEAD") -> dict[str, str]:
     return result
 
 
+def acceptance() -> dict:
+    if not MANIFEST.is_file():
+        raise FileNotFoundError("Missing committed release acceptance record.")
+    return json.loads(git("show", "HEAD:streamlit_alpaca_app/infra/release_acceptance.json"))
+
+
 def verify_target(role: str, target: str) -> dict:
-    accepted = json.loads(MANIFEST.read_text())
+    accepted = acceptance()
     contract = accepted.get("roles", {}).get(role)
     if accepted.get("status") != "accepted_locally" or contract is None:
         raise ValueError(f"No accepted consumer contract for {role}.")
@@ -41,13 +47,22 @@ def verify_target(role: str, target: str) -> dict:
     return {"role": role, "target": target}
 
 
+def verify_image(role: str, image: str) -> dict:
+    accepted = acceptance()
+    record = accepted.get("roles", {}).get(role, {}).get("accepted_images", {}).get(image)
+    fingerprint = hashlib.sha256(json.dumps(accepted["files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    if not record or record.get("source_inventory_sha256") != fingerprint:
+        raise ValueError("Image is not verified for this accepted source and role. Historical rollback requires its separate explicit procedure.")
+    return {"role": role, "image": image, **record}
+
+
 def verify(role: str) -> dict:
     root = Path(git("rev-parse", "--show-toplevel").decode().strip())
     if APP != root / "streamlit_alpaca_app":
         raise ValueError("Release source must be an actual Git application checkout.")
     if git("status", "--porcelain", "--untracked-files=all", "--", "streamlit_alpaca_app").strip():
         raise ValueError("Commit the reviewed application source and its acceptance record before packaging.")
-    accepted = json.loads(MANIFEST.read_text())
+    accepted = acceptance()
     if accepted.get("status") != "accepted_locally":
         raise ValueError("Application source has no local acceptance.")
     if role not in accepted.get("roles", {}):
@@ -94,6 +109,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--role", required=True, choices=("worker", "api", "api-next", "streamlit", "broker", "web"))
     parser.add_argument("--target")
+    parser.add_argument("--image-ref")
     parser.add_argument("--target-only", action="store_true")
     args = parser.parse_args()
     try:
@@ -101,6 +117,8 @@ def main() -> None:
             raise ValueError("Target-only checks require a target name.")
         if args.target:
             verify_target(args.role, args.target)
+        if args.image_ref:
+            verify_image(args.role, args.image_ref)
         print(json.dumps(verify_target(args.role, args.target) if args.target_only else verify(args.role), sort_keys=True))
     except (ValueError, KeyError, FileNotFoundError, subprocess.CalledProcessError) as exc:
         parser.exit(1, f"Release source rejected: {exc}\n")

@@ -35,6 +35,8 @@ Private complete replay inputs/output, attempts, source comparisons and operator
 
 `scripts/release_source.py` requires the committed acceptance record, complete application inventory, reviewed changed files, component evidence and each role's actual consumer baselines. A clean checkpoint without acceptance, an added producer, changed source and hashes updated without changed-file review are rejected. Target-role checks also prevent a Streamlit image replacing a resource that now hosts the modern web frontend. These are packaging/operational contracts, not language rules.
 
+Existing-image promotion requires a verified digest recorded for that role and the exact accepted source inventory, including through the older API/UI entrypoints. Historical tags or digests do not become eligible because their name sounds accepted. The initial packaging batch preceded this final promotion-path check and is superseded before any deployment; only the completed, verified batch will be registered for release.
+
 `Dockerfile.runtime` retains pinned installed dependencies, removes the inherited `/app` and copies the complete accepted checkout. Broker packaging now does the same. The obsolete image-backport utility and previous broker overlay were verified into the 30-day archive batch `20261016T230849Z`. No application source is copied from an older image during the build.
 
 `scripts/release_application.py` builds accepted source and performs development image-template updates only. It checks the reviewed prior target image/configuration, saves before/after definitions and verifies that only the image changed. It does not start jobs, change settings or expose a production-deployment command. Immutable-image production promotion remains a separately authorized action.
