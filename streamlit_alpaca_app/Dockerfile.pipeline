@@ -1,5 +1,9 @@
 FROM python:3.11-slim
 
+ARG SOURCE_REVISION
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION
+ENV GIT_SHA=$SOURCE_REVISION
+
 WORKDIR /app
 
 COPY requirements.txt ./requirements.txt

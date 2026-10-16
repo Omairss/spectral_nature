@@ -1,5 +1,12 @@
 # Mistakes — Active Guidelines
 
+## Unintended Home rollback and source retirement — 2026-10-16
+
+- The combined reliability release started from an Admin/API tree and copied 157 files over workers. It restored the obsolete Home editor and the previously removed sentence-deleting attention cleaner. The source verification compared the image with the selected tree, without reconciling the newer accepted Home producer.
+- The final Home caller also lost its answer-review request. Component acceptance for Admin, charts and conversations did not establish Home quality from that combined source. Do not infer application acceptance from a task-specific label or a shared engine fingerprint.
+- Historical copies remained usable as release sources, allowing a fixed failure to return from another consumer. The owner stopped database and Trading work to isolate this history. Retire those copies and scripts outside the checkout, preserve scoped resume material, and apply the [release-source policy](infra/RELEASE_SOURCE_POLICY.md). No further whole-tree overlay from an old consumer is permitted.
+- The first cleanup LaunchAgent could not open its script under macOS-protected Documents. Moved the archive and matching maintenance script to Application Support, then verified the actual scheduled run exited successfully. Installing a schedule alone does not establish that it can perform its work.
+
 ## Generated files in unpublished history — 2026-10-16
 
 - Earlier local commits included Next.js build caches and `node_modules`, including a 260 MB cache blob. Current ignore rules do not remove artifacts from earlier commits, so pushing the unpublished range would still include them. Retain a local archive, clean only unpublished generated-file history, verify the final source tree, and push without rewriting the existing remote history.

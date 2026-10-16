@@ -16,5 +16,8 @@ notebooks/
 documents/
 ios_app/
 infra/
+tmp/
+archive/
+archives/
 web/node_modules/
 web/.next/

@@ -1,5 +1,11 @@
 # Learnings — Active Guidelines
 
+## Release-source retirement — 2026-10-16
+
+- A source tree accepted for Admin or Trading does not certify unrelated Home files. Preserve the accepted application in Git; never reconstruct current behavior from several historical consumers. Candidate hashes cannot establish that newer accepted changes survived.
+- Retire executable copies and their assembly scripts together. Compressed archives outside the checkout preserve evidence without leaving importable trees or compatibility symlinks at old source paths. Docker contexts also exclude temporary and archive directories.
+- Preserve stopped work as scoped diffs, complete outputs and execution records. Resuming an integration does not require repeating completed acquisition or rewriting the implementation. Reconcile task changes in Git and repeat only affected checks or genuinely changed inference. See the [retirement and resume record](verification/release-source-retirement-2026-10-16/README.md).
+
 ## Frontier research evaluation — 2026-10-16
 
 - The owner updated cleanup policy: archive superseded material before removal, retain it for 30 days, and discard expired archives during routine cleanup. The October 16 original-history archive reaches 30 days on November 15, 2026.

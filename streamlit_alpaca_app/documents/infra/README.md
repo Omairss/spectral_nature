@@ -1,5 +1,7 @@
 # Azure Deployment (Pipeline Jobs)
 
+Read the [application release-source policy](RELEASE_SOURCE_POLICY.md) before preparing a build. Historical images, extracted trees and retired overlays are not inputs to new application releases.
+
 ## Prerequisites
 
 - Azure CLI authenticated (`az login --use-device-code`)

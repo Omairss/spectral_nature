@@ -18,6 +18,12 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+RELEASE_REPOSITORY_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$RELEASE_REPOSITORY_ROOT" || "$ROOT_DIR" != "$RELEASE_REPOSITORY_ROOT/streamlit_alpaca_app" ]]; then
+  echo "Prepare releases from the Git application checkout. Extracted snapshots and retired trees are not release sources." >&2
+  exit 1
+fi
+
 DEFAULT_DEPLOYMENT_ENV_FILE="infra/.generated/deployment.local.env"
 LEGACY_DEPLOYMENT_ENV_FILE="infra/deployment.outputs.env"
 DEPLOYMENT_ENV_FILE="${DEPLOYMENT_ENV_FILE:-$DEFAULT_DEPLOYMENT_ENV_FILE}"
@@ -216,10 +222,15 @@ resolve_image_ref() {
 }
 
 build_api_image() {
+  local source_status
+  source_status="$(git status --porcelain --untracked-files=all -- .)" || die "Cannot verify release source in Git."
+  if [[ -n "$source_status" ]]; then
+    die "Commit the selected, accepted application source before building a release. See documents/infra/RELEASE_SOURCE_POLICY.md."
+  fi
   ensure_registry_context
   local tag="${IMAGE_TAG:-${IMAGE_REPOSITORY}:${TARGET}-${RELEASE_TAG_TS}}"
   log "[1/5] Building API image $tag in ACR"
-  az acr build -g "$RESOURCE_GROUP" -r "$ACR_NAME" -t "$tag" -f "$DOCKERFILE" .
+  az acr build -g "$RESOURCE_GROUP" -r "$ACR_NAME" -t "$tag" -f "$DOCKERFILE" --build-arg "SOURCE_REVISION=$(git rev-parse HEAD)" .
   IMAGE_TO_DEPLOY="$(resolve_image_ref "$tag")"
 }
 

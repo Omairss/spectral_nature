@@ -155,35 +155,27 @@ def register_llm_surfaces() -> None:
 
 def default_flow_configuration() -> dict:
     config = llm.load_llm_config(require_api_key=False)
-    deepseek = config is not None and config.provider == "deepseek"
     model = (config.deployment if config.provider == "azure_openai" else config.model) if config else ""
     routes = {}
     analytical = {"reasoning", "synthesis"}
-    nonthinking = {"read", "summary", "answer", "repair"}
+    thinking = config.reasoning_effort if config and config.reasoning_effort in {"none", "low", "high", "max"} else "high" if config and config.thinking_mode == "enabled" else "none"
     for stage in STAGES:
         name = stage["id"]
-        thinking = config.reasoning_effort if config and config.reasoning_effort in {"none", "low", "high", "max"} else "none"
-        if deepseek:
-            thinking = "high" if name in analytical else "none" if name in nonthinking else "low"
         routes[name] = {
             "profile": "analysis" if name in analytical else "economy",
             "thinking": thinking,
-            "timeout_seconds": {"search": 20, "relevance": 30, "summary": 30}.get(name, 0),
+            "timeout_seconds": 0,
             "max_output_tokens": 0,
         }
     flow = {
         "version": 1,
         "models": {
-            "analysis": {"name": "DeepSeek Pro" if deepseek else "Analysis", "model": "deepseek-v4-pro" if deepseek else model},
-            "economy": {"name": "DeepSeek Flash" if deepseek else "Economy", "model": "deepseek-flash" if deepseek else model},
+            "analysis": {"name": "Analysis", "model": model},
+            "economy": {"name": "Economy", "model": model},
         },
         "routes": routes,
-        "workloads": {workload: {"synthesis": {
-                          **routes["synthesis"], "profile": "economy",
-                          "thinking": "max" if deepseek else routes["synthesis"]["thinking"],
-                      }}
-                      for workload in ("news", "knowledge")},
-        "reviewers": [{"id": "reviewer_1", "name": "Reviewer 1", "profile": "economy", "thinking": "low", "focus": "Evidence, reasoning and clarity"}],
+        "workloads": {},
+        "reviewers": [{"id": "reviewer_1", "name": "Reviewer 1", "profile": "economy", "thinking": thinking, "focus": "Evidence, reasoning and clarity"}],
     }
     legacy_monitor_effort = llm.active_llm_overrides().get("param:trajectory_monitor_reasoning_effort")
     if legacy_monitor_effort in {"none", "low", "high", "max"}:
@@ -357,9 +349,14 @@ def stage_client(client: Any, stage: str) -> tuple[Any, dict]:
     frozen_runtime = (_SNAPSHOT.get() or {}).get("runtime") or {}
     if frozen_runtime.get("provider") == config.provider:
         config = replace(config, **{k: v for k, v in frozen_runtime.items() if k != "provider"})
-    config = replace(config, model=profile["model"], deployment=profile["model"] if config.provider == "azure_openai" else config.deployment,
-                     reasoning_effort=route["thinking"], thinking_mode="disabled" if route["thinking"] == "none" else "enabled",
-                     timeout_seconds=route.get("timeout_seconds") or config.timeout_seconds)
+    # Stage routing is an explicit saved policy. Without one, preserve the
+    # configured transport exactly, including provider-default thinking effort.
+    if llm.active_llm_overrides().get(FLOW_KEY) or flow != default_flow_configuration():
+        config = replace(config, model=profile["model"], deployment=profile["model"] if config.provider == "azure_openai" else config.deployment,
+                         reasoning_effort=route["thinking"], thinking_mode="disabled" if route["thinking"] == "none" else "enabled",
+                         timeout_seconds=route.get("timeout_seconds") or config.timeout_seconds)
+    else:
+        metadata.update(thinking=config.reasoning_effort, thinking_mode=config.thinking_mode)
     routed = llm.client_from_config(config, session=getattr(client, "session", None))
     setattr(routed, "_zopedia_surface", getattr(client, "_zopedia_surface", ""))
     return routed, metadata

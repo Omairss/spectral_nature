@@ -2,6 +2,8 @@
 
 Status: implementation authorized October 16; local work in progress. Development deployment follows local acceptance. Production is outside this release authorization.
 
+**October 16 source-retirement update:** the owner stopped this task while obsolete release trees were isolated. The complete task directory, eleven-file scoped patch, function ownership, deployment receipts and verification evidence are preserved in the [retirement and resume record](../verification/release-source-retirement-2026-10-16/README.md). Resume the existing implementation by reconciling its scoped changes in Git. Earlier temporary source paths below are historical; do not recreate them or restore a complete old application tree. Existing work and paid research do not need to be restarted for this filesystem change.
+
 [Research index](../research/README.md) · [Past production failures](../research/system-reliability/PRODUCTION_FAILURES_2026-10-16.md)
 
 ## Evidence and scope
@@ -26,7 +28,7 @@ This repair covers shared execution cancellation, global database admission, pub
 1. Verify real PostgreSQL cancellation, rollback, connection reuse, process-wide admission, protected interactive access and release after disconnect. Use owned temporary records and short sleeps, not paid model runs.
 2. Verify manifest-only serving with SQL blocked, concurrent publication ordering, cache reuse, unchanged-source skips, changed/deleted page handling and bounded recovery with retained pending receipts.
 3. Measure representative retained-evidence queries under low concurrency, preserving originals and actual filters. A remaining slow query requires source/query investigation; fewer connections alone is not acceptance.
-4. Build from immutable accepted development baselines plus guarded lifecycle deltas. Preserve existing allocations, commands, credentials, schedules and namespaces. Verify complete source identities before deploying APIs and workers to development.
+4. Reconcile lifecycle changes into the accepted Git application source, preserving newer accepted consumer behavior. Build APIs and workers from that identified revision under the [release-source policy](../infra/RELEASE_SOURCE_POLICY.md). Preserve allocations, commands, credentials, schedules and namespaces. Do not import application code from an older image or temporary overlay.
 5. Exercise the deployed user paths and an isolated background/recovery overlap. Record Home/ad-hoc completion, SQL queue/execution times, unfinished work and known limits. Ordinary scheduled production work is not started or changed by this development release.
 
 Scoped entry source hashes are retained in `/tmp/sn-db-repair-20261016/baseline.json`. Current workspace files include concurrent/unreleased work; deployment must not copy them wholesale.

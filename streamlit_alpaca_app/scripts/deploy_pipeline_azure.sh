@@ -17,6 +17,17 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+RELEASE_REPOSITORY_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$RELEASE_REPOSITORY_ROOT" || "$ROOT_DIR" != "$RELEASE_REPOSITORY_ROOT/streamlit_alpaca_app" ]]; then
+  echo "Prepare releases from the Git application checkout. Extracted snapshots and retired trees are not release sources." >&2
+  exit 1
+fi
+RELEASE_SOURCE_STATUS="$(git status --porcelain --untracked-files=all -- .)"
+if [[ -n "$RELEASE_SOURCE_STATUS" ]]; then
+  echo "Commit the selected, accepted application source before building a release. See documents/infra/RELEASE_SOURCE_POLICY.md." >&2
+  exit 1
+fi
+
 DEFAULT_DEPLOY_OUTPUTS_FILE="${ROOT_DIR}/infra/.generated/deployment.local.env"
 LEGACY_DEPLOY_OUTPUTS_FILE="${ROOT_DIR}/infra/deployment.outputs.env"
 DEPLOY_OUTPUTS_FILE="${DEPLOY_OUTPUTS_FILE:-$DEFAULT_DEPLOY_OUTPUTS_FILE}"
@@ -515,7 +526,7 @@ if ! az acr show --resource-group "$RESOURCE_GROUP" --name "$ACR_NAME" --output 
     --output none
 fi
 
-az acr build --resource-group "$RESOURCE_GROUP" --registry "$ACR_NAME" --image "$CONTAINER_IMAGE_TAG" --file Dockerfile.pipeline .
+az acr build --resource-group "$RESOURCE_GROUP" --registry "$ACR_NAME" --image "$CONTAINER_IMAGE_TAG" --file Dockerfile.pipeline --build-arg "SOURCE_REVISION=$(git rev-parse HEAD)" .
 
 REGISTRY_SERVER="$(az acr show -n "$ACR_NAME" -g "$RESOURCE_GROUP" --query loginServer -o tsv)"
 IMAGE="${REGISTRY_SERVER}/${CONTAINER_IMAGE_TAG}"

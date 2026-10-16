@@ -2,6 +2,8 @@
 
 Status: implementation in progress. Owner request: production iOS request `86043829-96ea-458e-b9ba-81dcfbac7030`, followed by explicit instruction to implement it in chat. [Research index](../research/README.md).
 
+**October 16 source-retirement update:** the owner stopped this task while historical source trees were isolated. Complete outputs, provider records, source variants and eight candidate diffs are retained in the [retirement and resume record](../verification/release-source-retirement-2026-10-16/README.md). Resume the selected task changes in Git and reuse completed research. No old baseline or complete candidate source tree may seed a new release.
+
 ## Scope and evidence
 
 The October 16 production run completed eight company reports/five horizons but produced nine non-directional cards out of twenty. Full-output review also found reversed invalidations, confused valuation logic, and long-horizon extrapolation. This request requires better reasoning followed by an explicit probabilistic call, then observation of approved calls.
@@ -21,7 +23,7 @@ Approval currently writes `place_requested` with `log_only` and stores the candi
 
 ## Deployment boundaries
 
-Current production/development baselines changed after native build8: accepted system-reliability engine is `7281e3631a1764cf48c9`. Current root also contains unrelated/unaccepted reasoning and database-lifecycle work. Isolated builds must inherit the actual accepted role-specific image and apply owned changes only. Do not replace queued Research entrypoints or deploy the dirty workspace. Preserve allocations, schedules, credentials and existing data namespaces.
+The historical system-reliability engine fingerprint was `7281e3631a1764cf48c9`; its image also contained the retired Home source and cannot define current application behavior. Reconcile accepted Trading, database and Home changes in Git before packaging a release. Keep the held reasoning candidate separate. Follow the [release-source policy](../infra/RELEASE_SOURCE_POLICY.md), preserve queued Research entrypoints, allocations, schedules, credentials and existing data namespaces, and record the selected source revision with each new image.
 
 Local acceptance precedes builds. Auto-deploy verified changes to dev; production requires new explicit approval for this release. No trade or broker order is authorized by this task. Existing paid model/depth/research settings and the +20% complete-workload allowance remain constraints. Temporary before-edit hashes are at `/tmp/sn-trading-calls-20261016/baseline/manifest.json`.
 

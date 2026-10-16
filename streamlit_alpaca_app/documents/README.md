@@ -6,6 +6,8 @@ Spectral Nature is a market intelligence workspace for portfolio context, macro 
 
 `streamlit_alpaca_app/documents/` is the single tracked documentation home for this repo.
 
+Release preparation follows the [application release-source policy](infra/RELEASE_SOURCE_POLICY.md). Historical local paths under the former repository `tmp/` directory and retired `/tmp/sn-*` tasks now resolve through the [archive inventory and work-resume record](verification/release-source-retirement-2026-10-16/README.md); they are no longer executable source directories.
+
 When a doc below mentions `documents/...`, treat that as a path relative to `streamlit_alpaca_app/`.
 
 Keep docs here:
