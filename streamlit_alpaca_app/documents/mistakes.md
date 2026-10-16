@@ -970,3 +970,9 @@ The projection review also found that the existing Blob frame loader represents 
 ## Restoration scope drift — 2026-10-16
 
 When asked to finish restoring Home, I evaluated the current mixed checkpoint rather than the exact last accepted release, then began changing editorial behavior in response to that output. The owner wanted the working functionality restored. Reverted the unrequested editorial and routing changes; no build or deployment used them. Preserve the failed replay as evidence of that experiment, not as a verdict on the accepted release. Use an identified accepted immutable rollback target for restoration, and keep exploratory improvements separate.
+
+## Incomplete regression scope — 2026-10-16
+
+I proposed a Home-only production restoration before comparing the broad release with each consumer's actual predecessor. The owner's blast-radius question led to eight confirmed affected areas, including key/intraday charts, market-data memory/dates, Zopedia maintenance, Robinhood cadence and monitoring. Production was not changed by that proposal. Identical shared hashes and successful imports had established consistency with one selected source, while consumer-specific working behavior was overwritten. The release's blanket source-preservation acceptance is now explicitly superseded by the [audit](verification/release-source-regressions-2026-10-16/README.md).
+
+The audit initially compared COPY layers only, missing an application update written by a RUN step and producing false portfolio-helper differences. Reconstructed every application layer after the first source copy, including RUN changes and whiteouts, and corrected those findings before the report. Compare role-specific overlays against the actual role-specific image; a file absent from a common worker is not necessarily absent from a broker image that inherits it.

@@ -1,5 +1,7 @@
 # Operational reliability promotion — October 16, 2026
 
+**Source-preservation acceptance superseded.** The subsequent [release regression audit](../release-source-regressions-2026-10-16/README.md) confirmed eight affected areas, including Home, key/intraday charts, market-data safeguards, Zopedia maintenance, Robinhood refresh pacing and scheduled monitoring. The image/configuration checks below did not establish preservation of each consumer's accepted functionality. This remains a historical deployment record, not approval to reuse these images as an accepted application baseline.
+
 [Why the repair did not restore overall service](../../research/system-reliability/PRODUCTION_FAILURES_2026-10-16.md) · [Master research index](../../research/README.md)
 
 Status: **deployed; operational health remains degraded**. The owner explicitly authorized production promotion. Four production apps and sixteen job templates now use the accepted reliability release. The shared research engine revision remains `7281e3631a1764cf48c9`. The unaccepted LLM reasoning/cost candidate and hierarchical summarization defaults remain excluded.

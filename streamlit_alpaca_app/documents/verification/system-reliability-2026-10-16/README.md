@@ -1,5 +1,7 @@
 # Combined development reliability release — October 16, 2026
 
+**Source-preservation acceptance superseded.** The [subsequent regression audit](../release-source-regressions-2026-10-16/README.md) found that the combined source replaced accepted consumer-specific behavior. The component checks below remain evidence of their stated scope; the claims that the complete accepted source union preserved application functionality are withdrawn. Do not use this receipt as blanket release acceptance.
+
 Accepted operational repairs are deployed to all four development apps and eleven development job templates. The shared research engine revision is `7281e3631a1764cf48c9`. The unaccepted reasoning/cost flow and hierarchical summarization defaults are excluded. This release used complete accepted source snapshots and role-specific immutable images, preserving the separately accepted native/Trading work.
 
 [Live Admin](https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io/admin) → Health. [Immutable images, source hashes and validation receipts](release.json).

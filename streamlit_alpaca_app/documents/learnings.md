@@ -1088,3 +1088,7 @@ Publication identity is sufficient to serve a completed immutable dataset. Stabl
 ## Restore the accepted release before proposing improvements — 2026-10-16
 
 A source-selection regression calls for restoring the identified working implementation. A mixed checkpoint with held research changes is not a faithful replay of that implementation. Archive and source controls prevent recurrence; they do not repair a running job or its published data. Track runtime restoration and artifact regeneration separately, preserving unrelated paused work.
+
+## Release scope follows each consumer's prior behavior — 2026-10-16
+
+A common research-engine fingerprint does not cover Home selection, provider-wrapper compatibility, market-data memory handling, broker cadence or scheduled monitoring. Audit each replaced consumer against its actual prior image and preserve its owned behavior before promotion. Import success misses calls executed later, such as a prefetch passing a keyword its copied provider wrapper no longer accepts. Keep visible runtime losses separate from source-level risks, and distinguish the scheduled health job's coverage from its latest execution status. See the [twenty-target regression audit](verification/release-source-regressions-2026-10-16/README.md).

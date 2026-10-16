@@ -1,0 +1,16 @@
+{
+  "status": 200,
+  "seconds": 1.32,
+  "asof": "2026-10-16T20:50:29.361447+00:00",
+  "run_id": "46b3d391-91eb-4ae5-bd81-58ff09a66067",
+  "stories": 8,
+  "market_summary_present": false,
+  "daily_datapoints": 0,
+  "rendered_ticker_entries": 21,
+  "intraday_entries_with_points": 0,
+  "entries_with_daily_history": 18,
+  "production_targets": 20,
+  "application_changes_during_audit": false,
+  "inference_calls_during_audit": 0,
+  "broker_source_hashes_match_release": true
+}

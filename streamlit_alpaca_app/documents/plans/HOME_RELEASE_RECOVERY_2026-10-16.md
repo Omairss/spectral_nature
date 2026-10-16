@@ -1,5 +1,7 @@
 # Restore the last accepted Home release
 
+**Production restoration proposal is on hold following the owner's blast-radius question.** The [read-only release audit](../verification/release-source-regressions-2026-10-16/README.md) confirmed regressions beyond Home. Restoring its worker alone would leave the API's key-chart regression, market-data safeguards, scheduled monitoring and Robinhood pacing unresolved. The owner has not approved a production change. The development restoration below is accurately scoped to one manual Home job; it is not a complete stack repair.
+
 ## Owner direction
 
 Restore the previously working functionality. Do not redesign the editor, invent a new quality process or release the held reasoning/cost work. The last accepted Home worker is the October 14 release, not the obsolete Home baseline accidentally included in the October 16 reliability release.

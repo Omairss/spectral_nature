@@ -1,5 +1,7 @@
 # System reliability repair proposal — October 15, 2026
 
+**October 16 correction:** the later [source-regression audit](../verification/release-source-regressions-2026-10-16/README.md) supersedes the blanket source-preservation acceptance below. Eight feature areas lost accepted behavior. Preserve the useful operational repairs, but do not promote this combined source or perform a Home-only restoration as a complete repair.
+
 Status: repairs released to development and promoted to production on October 16. Development acceptance passed; production remains operationally degraded as recorded in the production verification. The owner clarified that the supposed backend handoff was an incorrectly named LLM-only coordination file. This thread now owns Admin/Health, chart context, learning, database lifecycle/index recovery and the combined development release. The separate Trading-memory thread owns its memory/source-reference projection and research-checkpoint changes, which are preserved through scoped integration. Production was explicitly authorized and promoted on October 16. The [production verification](../verification/system-reliability-production-2026-10-16/README.md) records remaining database load, failed research verification and the health-worker recovery timeout. The [reasoning and cost candidate](ZOPEDIA_REASONING_QUALITY_COST_2026-10-15.md) remains unaccepted and excluded.
 
 ## Implementation coordination

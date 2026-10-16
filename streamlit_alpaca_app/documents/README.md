@@ -275,3 +275,5 @@ The setup script writes local-only outputs to `infra/.generated/email_delivery.l
 - Use the sidebar `Update Cached Data` button to force a refresh before the configured stale window.
 
 The [Home restoration record](plans/HOME_RELEASE_RECOVERY_2026-10-16.md) tracks the exact accepted October 14 image, development restoration and production approval boundary.
+
+The [October 16 release regression audit](verification/release-source-regressions-2026-10-16/README.md) records the twenty-target production scope, eight confirmed affected areas, current output evidence and preserved features. It supersedes blanket source-preservation acceptance for the combined reliability release.
