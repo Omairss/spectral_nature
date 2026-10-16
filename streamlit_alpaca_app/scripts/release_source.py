@@ -15,7 +15,9 @@ MANIFEST = APP / "infra/release_acceptance.json"
 EXCLUDED = ("documents/", "infra/", "ios_app/", "tests/", "output/", "notebooks/")
 RUNTIME_ROOTS = ("api/", "compute/", "config/", "data/", "data_access/", "pipeline/",
                  "presentation/", "services/", "views/", "branding/")
-RUNTIME_FILES = {"app.py", "cache/cache_policy.json", "scripts/sync_robinhood_main.py"}
+RUNTIME_FILES = {"app.py", ".streamlit/config.toml", "cache/cache_policy.json",
+                 "requirements.txt", "requirements-ui.lock", "scripts/sync_robinhood_main.py",
+                 "scripts/collect_historical_corpus.py"}
 
 
 def git(*args: str) -> bytes:
