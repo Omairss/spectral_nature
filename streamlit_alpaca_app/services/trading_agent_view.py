@@ -14,8 +14,7 @@ from services.pipeline_store import (
     record_trading_agent_action,
     trading_agent_actions_table,
 )
-from services.trading_agent import TRADING_AGENT_NARRATIVE_CONTRACT_VERSION, TRADING_AGENT_LEGACY_NARRATIVE_CONTRACTS, normalize_trading_agent_candidate
-from services.trading_call_tracking import tracking_view
+from services.trading_agent import TRADING_AGENT_NARRATIVE_CONTRACT_VERSION, normalize_trading_agent_candidate
 
 
 def _text(value: object, limit: int = 4000) -> str:
@@ -117,19 +116,10 @@ def _actions_by_candidate(actions: pd.DataFrame) -> dict[str, dict[str, Any]]:
     return result
 
 
-def build_trading_agent_view(context: UserContext | None = None) -> dict[str, Any]:
-    tracking: dict[str, Any] = {"status": "available", "calls": [], "as_of": ""}
-    if context is not None:
-        try:
-            tracking = tracking_view(owner_id=context.user_id)
-        except Exception:
-            tracking = {"status": "unavailable", "calls": [], "as_of": ""}
-    tracking_fields = {"tracking_status": tracking["status"], "tracked_calls": tracking["calls"], "tracking_as_of": tracking["as_of"]}
+def build_trading_agent_view() -> dict[str, Any]:
     runs, candidates, actions, metadata = _latest_output()
     if runs.empty or candidates.empty:
-        return {"status": "unavailable", "as_of": "", "horizons": [], "decisions": [], **tracking_fields}
-    if context is not None and not actions.empty:
-        actions = actions[actions["requested_by"].astype(str).eq(context.user_id)].copy()
+        return {"status": "unavailable", "as_of": "", "horizons": [], "decisions": []}
     if "generated_at_utc" in runs.columns:
         generated = pd.to_datetime(runs["generated_at_utc"], utc=True, errors="coerce")
         if generated.notna().any():
@@ -167,7 +157,7 @@ def build_trading_agent_view(context: UserContext | None = None) -> dict[str, An
             item["market"] = opportunity_by_ticker.get(ticker, {})
             item["decision"] = action_map.get(_text(item.get("candidate_id"), 160), {})
             candidate_views.append(item)
-        if _text(result.get("narrative_contract_version"), 120) not in {"", TRADING_AGENT_NARRATIVE_CONTRACT_VERSION, *TRADING_AGENT_LEGACY_NARRATIVE_CONTRACTS}:
+        if _text(result.get("narrative_contract_version"), 120) not in {"", TRADING_AGENT_NARRATIVE_CONTRACT_VERSION}:
             candidate_views = []
         horizons.append(
             {
@@ -190,7 +180,6 @@ def build_trading_agent_view(context: UserContext | None = None) -> dict[str, An
         "run_id": latest_run_id,
         "horizons": horizons,
         "decisions": frame_to_records(actions.head(100)) if not actions.empty else [],
-        **tracking_fields,
     }
 
 
@@ -204,7 +193,7 @@ def record_trading_agent_decision(
     if normalized_action not in {"approve", "reject"}:
         raise ValueError("Decision must be approve or reject.")
     target = str(candidate_id or "").strip()
-    view = build_trading_agent_view(context)
+    view = build_trading_agent_view()
     candidate = next(
         (
             item
@@ -215,8 +204,6 @@ def record_trading_agent_decision(
         None,
     )
     if candidate is None:
-        if normalized_action == "approve" and any(str(item.get("candidate_id") or "") == target for item in view.get("tracked_calls", [])):
-            return {"status": "recorded", "candidate_id": target, "action": normalized_action, "message": "Candidate approved."}
         raise ValueError("Trading Agent candidate is no longer current.")
     ok, message = record_trading_agent_action(
         candidate=candidate,

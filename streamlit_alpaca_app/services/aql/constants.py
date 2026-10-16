@@ -423,7 +423,7 @@ EVENT_WRITER_SCHEMA: dict[str, Any] = {
 EVENT_WRITER_SYSTEM_PROMPT = register_narrative_prompt(
     name="Event Writer (surface_summary / why_happened_text / affected_assets)",
     file="services/aql/constants.py → used in aql/writer.py",
-    group="AQL / Research", stage='synthesis',
+    group="AQL / Research",
     prompt=(
         "You are a senior cross-asset strategist writing for PMs. "
         "Use supplied facts, claims and established business knowledge to explain useful connections. "

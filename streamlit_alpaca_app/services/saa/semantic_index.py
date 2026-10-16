@@ -140,15 +140,10 @@ def semantic_candidates(
     params: list[Any],
     limit: int,
     client: Any | None = None,
-    status: dict[str, Any] | None = None,
 ) -> list[str]:
     client = client or load_embedding_client()
     if client is None:
-        if status is not None:
-            status.update(status="unavailable", reason="embedding_client_unavailable")
         return []
-    if status is not None:
-        status.update(status="available", embedding_space=embedding_space(client))
     vector = client.generate_embeddings([query])[0]
     # Exact nearest neighbours over the full corpus. At this corpus size this
     # preserves recall and avoids ANN filtering losses. Only IDs cross the wire.

@@ -58,7 +58,7 @@ def _clean(value: object) -> str:
 
 
 def _trim(text: object, *, limit: int) -> str:
-    clean = str(text or "").strip()
+    clean = _clean(text)
     if len(clean) <= limit:
         return clean
     return clean[: limit - 3].rstrip() + "..."
@@ -173,11 +173,6 @@ class _HTMLTextExtractor(HTMLParser):
         if normalized == "title":
             self._in_title = True
             return
-        if self._ignore_depth == 0:
-            if normalized in {"article", "main", "section", "div", "p", "h1", "h2", "h3", "h4", "li", "blockquote", "pre", "tr", "br"}:
-                self._text_parts.append("\n")
-            elif normalized in {"td", "th"}:
-                self._text_parts.append("\t")
         if normalized == "meta":
             attrs_map = {str(key).lower(): str(value or "") for key, value in attrs}
             name = attrs_map.get("name", "").lower()
@@ -197,8 +192,6 @@ class _HTMLTextExtractor(HTMLParser):
             return
         if normalized == "title":
             self._in_title = False
-        elif self._ignore_depth == 0 and normalized in {"article", "main", "section", "div", "p", "h1", "h2", "h3", "h4", "li", "blockquote", "pre", "tr"}:
-            self._text_parts.append("\n")
 
     def handle_data(self, data: str) -> None:
         clean = _clean(data)
@@ -207,7 +200,7 @@ class _HTMLTextExtractor(HTMLParser):
         if self._in_title:
             self._title_parts.append(clean)
         else:
-            self._text_parts.append(data)
+            self._text_parts.append(clean)
 
     @property
     def title(self) -> str:
@@ -215,7 +208,7 @@ class _HTMLTextExtractor(HTMLParser):
 
     @property
     def text(self) -> str:
-        return "".join(self._text_parts).strip()
+        return _clean(" ".join(self._text_parts))
 
 
 def _parse_html_document(html: str) -> dict[str, str]:
@@ -300,19 +293,43 @@ def page_quality_issue(payload: dict[str, Any] | None, *, min_text_chars: int = 
     return ""
 
 
-async def _extract_page_text(page: Any) -> str:
-    """Preserve visible source text, including short observations, tables and code."""
+async def _extract_readable_text_blocks(page: Any, *, max_blocks: int = 90) -> list[str]:
     try:
-        text = await page.evaluate(
-            """() => {
-                const root = document.querySelector('article') || document.querySelector('main')
-                    || document.querySelector('[role="main"]') || document.body;
-                return root ? (root.innerText || root.textContent || '') : '';
-            }"""
+        blocks = await page.evaluate(
+            """
+            ({ maxBlocks }) => {
+              const roots = [
+                document.querySelector('article'),
+                document.querySelector('main'),
+                document.querySelector('[role="main"]'),
+                document.body
+              ].filter(Boolean);
+              const root = roots[0];
+              const selectors = ['h1', 'h2', 'h3', 'p', 'li', 'blockquote', 'td', 'th'];
+              const reject = /cookie|privacy|terms of use|skip to|navigation|subscribe|sign in|accept all|browser vulnerability/i;
+              const isVisible = (node) => {
+                const style = window.getComputedStyle(node);
+                const rect = node.getBoundingClientRect();
+                return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+              };
+              const output = [];
+              for (const node of root.querySelectorAll(selectors.join(','))) {
+                if (!isVisible(node)) continue;
+                const tag = node.tagName.toLowerCase();
+                const text = (node.innerText || node.textContent || '').replace(/\\s+/g, ' ').trim();
+                const minLength = tag.startsWith('h') ? 8 : 35;
+                if (!text || text.length < minLength || reject.test(text)) continue;
+                output.push(text);
+                if (output.length >= maxBlocks) break;
+              }
+              return output;
+            }
+            """,
+            {"maxBlocks": max_blocks},
         )
     except Exception:
-        return ""
-    return str(text or "").strip()
+        blocks = []
+    return [_clean(item) for item in list(blocks or []) if _clean(item)]
 
 
 async def _browse_with_playwright(
@@ -347,9 +364,10 @@ async def _browse_with_playwright(
                     ))
                 except Exception:
                     description = ""
-                text = await _extract_page_text(page)
+                blocks = await _extract_readable_text_blocks(page)
+                text = _clean("\n".join(blocks))
                 if not text:
-                    text = (await page.locator("body").inner_text(timeout=min(timeout_ms, 2000))).strip()
+                    text = _clean(await page.locator("body").inner_text(timeout=min(timeout_ms, 2000)))
             finally:
                 await browser.close()
     except (PlaywrightTimeoutError, PlaywrightError) as exc:
@@ -399,13 +417,13 @@ def _scrapling_response_text(response: Any) -> str:
         if node is None:
             continue
         try:
-            text = str(node.get_all_text(strip=False)).strip()
+            text = _clean(node.get_all_text(strip=True))
         except Exception:
             text = ""
         if len(text) >= minimum_length:
             return text
     try:
-        return str(response.get_all_text(strip=False)).strip()
+        return _clean(response.get_all_text(strip=True))
     except Exception:
         return ""
 
@@ -508,7 +526,7 @@ def _browse_with_firecrawl(
     if not isinstance(data, dict):
         raise PageBrowsingError("Firecrawl returned no data object.")
     metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
-    text = str(data.get("markdown") or data.get("summary") or data.get("html") or data.get("rawHtml") or "").strip()
+    text = _clean(data.get("markdown") or data.get("summary") or data.get("html") or data.get("rawHtml"))
     if not text:
         raise PageBrowsingError("Firecrawl returned no markdown or text content.")
     final_url = _clean(metadata.get("sourceURL") or metadata.get("url") or url)
@@ -562,7 +580,7 @@ def _browse_with_http(
     raw_text = response.text
     title = ""
     description = ""
-    text = raw_text.strip()
+    text = _clean(raw_text)
     if "html" in content_type.lower() or "<html" in raw_text.lower():
         parsed = _parse_html_document(raw_text)
         title = parsed["title"]

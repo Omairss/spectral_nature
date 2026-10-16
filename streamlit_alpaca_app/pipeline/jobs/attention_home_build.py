@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from services.work_scope import WorkScope
-from services.llm import llm_request_deadline
 
 import hashlib
 import json
@@ -44,7 +43,6 @@ from services.elevenlabs_tts import ElevenLabsTTSAPIError
 from services.knowledge_graph_proposals import build_attention_knowledge_graph_proposals
 from services.json_utils import to_list
 from services.llm import LLMAPIError, load_embedding_client, llm_request_deadline
-from services.llm_flow import configured_research, workload_value
 from services.entity_taxonomy import business_focus_label_from_taxonomy_row
 from services.market_opportunity import build_market_opportunity_feed, build_materialized_market_opportunity_feeds
 from services.page_agentic_summary import (
@@ -108,7 +106,12 @@ def _zopedia_write_policy(default: str = "safe_auto") -> str:
 
 
 def _attention_home_research_limit() -> int:
-    return workload_value("home", "research_pool")
+    raw = (os.getenv("ATTENTION_HOME_RESEARCH_LIMIT") or "40").strip()
+    try:
+        parsed = int(raw)
+    except Exception:
+        parsed = 40
+    return max(parsed, 1)
 
 
 def _attention_home_search_backfill_limit() -> int:
@@ -133,19 +136,22 @@ def _attention_home_search_backfill_lookback_days() -> int:
 
 
 def _attention_home_top_events_display_limit() -> int:
-    return workload_value("home", "events_displayed")
+    return _env_positive_int("ATTENTION_HOME_TOP_EVENTS_DISPLAY_LIMIT", 5)
 
 
 def _attention_home_must_read_display_limit() -> int:
-    return workload_value("home", "must_read_displayed")
+    return _env_positive_int("ATTENTION_HOME_MUST_READ_DISPLAY_LIMIT", 10)
 
 
 def _attention_home_unresolved_display_limit() -> int:
-    return workload_value("home", "unresolved_displayed")
+    return _env_positive_int("ATTENTION_HOME_UNRESOLVED_DISPLAY_LIMIT", 5)
 
 
 def _attention_home_top_events_review_limit() -> int:
-    return workload_value("home", "events_reviewed")
+    return _env_positive_int(
+        "ATTENTION_HOME_TOP_EVENTS_REVIEW_LIMIT",
+        max(_attention_home_top_events_display_limit() * 3, 12),
+    )
 
 
 def _attention_home_must_read_review_limit() -> int:
@@ -488,7 +494,7 @@ def _build_page_agentic_summary_frame(
 
 
 def _zopedia_enrichment_limit() -> int:
-    return workload_value("home", "enrichment_pool")
+    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LIMIT", 12)
 
 
 def _zopedia_enrichment_timeout_seconds() -> int:
@@ -506,7 +512,7 @@ def _zopedia_agent_llm_timeout_seconds(total_timeout_seconds: int) -> int:
 
 
 def _zopedia_enrichment_max_workers() -> int:
-    return workload_value("home", "parallelism")
+    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_MAX_WORKERS", 4)
 
 
 def _zopedia_market_summary_quality_revisions() -> int:
@@ -514,11 +520,11 @@ def _zopedia_market_summary_quality_revisions() -> int:
 
 
 def _zopedia_enrichment_quality_revisions() -> int:
-    return min(workload_value("home", "revisions"), 4)
+    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_QUALITY_REVISIONS", 1), 4)
 
 
 def _zopedia_enrichment_llm_retries() -> int:
-    return min(workload_value("home", "retries"), 5)
+    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LLM_RETRIES", 1), 5)
 
 
 def _zopedia_agent_max_tool_calls() -> int:
@@ -3670,7 +3676,6 @@ def build_attention_home_output_frames(
     }
 
 
-@configured_research(workload="home")
 def run_attention_home_build(
     ctx: Any,
     conn: Any | None,

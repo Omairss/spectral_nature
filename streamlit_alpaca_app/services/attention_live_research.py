@@ -122,7 +122,7 @@ _event_market_activity_why_cache: dict[tuple[str, str], str] = {}
 _MARKET_ACTIVITY_NARRATIVE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Market Activity Narrative Sentence (live research event)",
     file="services/attention_live_research.py",
-    group="Attention Pipeline", stage='synthesis',
+    group="Attention Pipeline",
     prompt=(
         "Write one sentence (under 25 words) explaining what this market theme move "
         "signals for broader market activity. Be specific about the directional implication."
@@ -241,7 +241,7 @@ def _source_authority_bucket(source: object) -> tuple[str, int]:
             instructions="Classify a financial news source into one authority bucket: 'official' (SEC/EDGAR, government, central bank, exchange filings), 'wire' (Reuters, Bloomberg, AP, Dow Jones, PR Newswire, Business Wire), 'press' (major newspapers, magazines, established financial news sites), 'web' (blogs, social media, unknown, miscellaneous). Return the single most appropriate bucket.",
             schema_name="source_bucket",
             schema=_SOURCE_BUCKET_SCHEMA,
-            task="source_bucket", stage='relevance',
+            task="source_bucket",
             surface="services.attention_live_research",
             llm_client=llm_client,
             max_tool_calls=0,
@@ -307,7 +307,7 @@ def _llm_event_theme_keywords(theme: str) -> list[str]:
                 },
                 "required": ["keywords"],
             },
-            task="event_theme_keywords", stage='search',
+            task="event_theme_keywords",
             surface="services.attention_live_research",
             llm_client=llm_client,
             max_tool_calls=0,
@@ -844,7 +844,7 @@ def _event_search_query(event: dict[str, Any]) -> str:
                 instructions="You generate concise financial news search queries. Return one search query that can explain a market move. Use wider-circle market reasoning: exact companies first, then close peers, customers, suppliers, private leaders, IPO rumors, policy, rates, commodities, or sector themes when those are likely to explain the move.",
                 schema_name="event_search_query",
                 schema=_EVENT_SEARCH_QUERY_SCHEMA,
-                task="event_search_query", stage='search',
+                task="event_search_query",
                 surface="services.attention_live_research",
                 llm_client=llm_client,
                 max_tool_calls=0,
@@ -1229,7 +1229,7 @@ def _event_market_activity_why_text(theme: str, direction: str) -> str:
                 instructions=get_prompt(_MARKET_ACTIVITY_NARRATIVE_SYSTEM_PROMPT),
                 schema_name="event_market_activity_narrative",
                 schema=_EVENT_MARKET_ACTIVITY_WHY_SCHEMA,
-                task="event_market_activity_narrative", stage='synthesis',
+                task="event_market_activity_narrative",
                 surface="services.attention_live_research",
                 llm_client=llm_client,
                 max_tool_calls=0,
@@ -1490,7 +1490,7 @@ def _synthesize_with_llm(
             instructions=system_prompt,
             schema_name="attention_symbol_research_bundle",
             schema=RESEARCH_SYNTHESIS_SCHEMA,
-            task="attention_symbol_research_bundle", stage='synthesis',
+            task="attention_symbol_research_bundle",
             surface="services.attention_live_research",
             llm_client=llm_client,
             max_tool_calls=0,

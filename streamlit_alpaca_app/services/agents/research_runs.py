@@ -342,12 +342,7 @@ class ResearchRunRepository:
         )
         self.migrate_conversations(owner_id=owner)
         now = _now_utc()
-        from services.llm_flow import capture_research_configuration, research_configuration, CHAT_KNOWLEDGE
-        from services.llm import get_config_param
-        configuration_snapshot = capture_research_configuration()
-        with research_configuration(configuration_snapshot):
-            budget = resolve_research_budget()
-            write_policy = str(get_config_param(CHAT_KNOWLEDGE))
+        budget = resolve_research_budget()
         supplied_context = {
             k: v
             for k, v in (request_context or {}).items()
@@ -432,12 +427,10 @@ class ResearchRunRepository:
                     if k in inherited
                 }
                 context.update(supplied_context)
-                context = research_request_context(query, context, write_policy=write_policy)
-                write_policy = context["write_policy"]
+                context = research_request_context(query, context, write_policy="none")
                 metadata = {
                     "request_context": context,
                     "engine_revision": research_engine_revision(),
-                    "configuration_snapshot": configuration_snapshot,
                 }
                 if parent_id:
                     metadata["parent_run_id"] = parent_id
@@ -449,7 +442,7 @@ class ResearchRunRepository:
                         run_id,surface,task,query,query_sha256,status,metadata_json,
                         last_event_sequence,started_at,updated_at,owner_type,owner_id,owner_email,
                         idempotency_key,environment,write_policy,budget_json,attempt_count,conversation_id,turn_id
-                    ) VALUES (%s,'zopedia.chat','agent_answer',%s,%s,'queued',%s::jsonb,0,%s,%s,'user',%s,%s,%s,%s,%s,%s::jsonb,0,%s,%s)
+                    ) VALUES (%s,'zopedia.chat','agent_answer',%s,%s,'queued',%s::jsonb,0,%s,%s,'user',%s,%s,%s,%s,'none',%s::jsonb,0,%s,%s)
                 """,
                     (
                         run_id,
@@ -462,7 +455,6 @@ class ResearchRunRepository:
                         _clean(owner_email, limit=320).lower(),
                         key,
                         _environment(),
-                        write_policy,
                         json.dumps(budget),
                         conversation_id,
                         turn_id,
@@ -1173,8 +1165,7 @@ def execute_next_queued_run(*, executor_id: str = "") -> dict[str, Any]:
                 run_timeout_seconds=float(budget["run_timeout_seconds"]),
                 progress_callback=_check_cancel,
                 persist_findings=True,
-                write_policy=run.get("write_policy") or "none",
-                configuration_snapshot=metadata.get("configuration_snapshot"),
+                write_policy="none",
                 tool_call_timeout_seconds=int(budget["tool_call_timeout_seconds"]),
                 llm_step_timeout_seconds=int(budget["llm_step_timeout_seconds"]),
                 prefetch_timeout_seconds=int(budget["prefetch_timeout_seconds"]),

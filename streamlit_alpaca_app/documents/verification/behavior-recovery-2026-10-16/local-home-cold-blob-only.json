@@ -1,0 +1,11 @@
+{
+  "seconds": 15.289,
+  "status": "available",
+  "asof": "2026-10-14T05:55:36.031874+00:00",
+  "run_id": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+  "charts": 5,
+  "charts_asof": "2026-10-14T05:55:36.031874+00:00",
+  "beats": 8,
+  "summary_present": true,
+  "sql_attempts": 0
+}

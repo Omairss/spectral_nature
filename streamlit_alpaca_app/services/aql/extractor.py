@@ -559,7 +559,7 @@ def _extract_claims(
             instructions=system_prompt,
             schema_name="attention_claims",
             schema=CLAIM_SCHEMA,
-            task="attention_claims", stage='summary',
+            task="attention_claims",
             surface="services.aql.extractor",
             llm_client=llm_client,
             max_tool_calls=0,

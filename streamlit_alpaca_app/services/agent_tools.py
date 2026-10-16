@@ -291,14 +291,6 @@ def _hypothesis_tools() -> list[dict[str, Any]]:
 def _research_tools() -> list[dict[str, Any]]:
     return [
         {
-            "name": "research.read_context",
-            "description": "Read original evidence already acquired in this investigation by tool_call_id. Use offset to continue; this does not search or fetch again.",
-            "inputSchema": {"type": "object", "additionalProperties": False,
-                "properties": {"tool_call_id": {"type": "string"}, "offset": {"type": "integer", "minimum": 0},
-                               "max_characters": {"type": "integer", "minimum": 1}},
-                "required": ["tool_call_id"]},
-        },
-        {
             "name": "research.completed_investigations",
             "description": (
                 "Read completed shared company investigations from the current environment. "
@@ -371,9 +363,7 @@ def _research_tools() -> list[dict[str, Any]]:
             "description": (
                 "Search all retained sources and knowledge by meaning and words. Supply varied queries for different explanations, "
                 "entities or concepts. Results distinguish original sources, knowledge and generated analysis with dependencies. "
-                "Use resolved_plan when you have already chosen the complete query list and reporting dates (null dates mean unrestricted); "
-                "it executes directly. Otherwise the tool interprets time context and query hints. "
-                "Dated searches add broad reporting from that period alongside unrestricted context searches. "
+                "The tool interprets time context and adds broad reporting from the relevant period alongside unrestricted context searches. "
                 "Useful current sources may already be retained. Interpret the catalog by meaning and read useful sources in full with research.read_evidence or zopedia.read_page."
             ),
             "inputSchema": {
@@ -387,15 +377,6 @@ def _research_tools() -> list[dict[str, Any]]:
                         "type": "array",
                         "items": {"type": "string"},
                         "description": "Independent search formulations; include related concepts and alternatives.",
-                    },
-                    "resolved_plan": {
-                        "type": "object", "additionalProperties": False,
-                        "properties": {
-                            "queries": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-                            "reporting_start": {"type": ["string", "null"]},
-                            "reporting_end": {"type": ["string", "null"]},
-                        },
-                        "required": ["queries", "reporting_start", "reporting_end"],
                     },
                     "start_date": {"type": "string"},
                     "end_date": {"type": "string"},
@@ -435,8 +416,6 @@ def _research_tools() -> list[dict[str, Any]]:
                 "properties": {
                     "url": {"type": "string"},
                     "max_chars": {"type": "integer"},
-                    "capture_id": {"type": "string", "description": "Reuse a retained capture without fetching a changed page."},
-                    "offset": {"type": "integer", "minimum": 0},
                     "require_main_content": {
                         "type": "boolean",
                         "description": "Use true when snippets/previews are too shallow and page body evidence is required.",
@@ -850,19 +829,16 @@ def _analysis_tools() -> list[dict[str, Any]]:
         {
             "name": "analysis.run_python",
             "description": (
-                "Run bounded pandas/numpy/scipy/scikit-learn analysis over supplied quantities, approved Spectral Nature "
-                "datasets or small inline tables. Pure computation does not require a dataset. "
-                "Use it to verify arithmetic, units, bounds and numerical hypotheses, "
-                "as well as EDA, statistical checks, regressions, "
+                "Run bounded pandas/numpy/scipy/scikit-learn analysis over approved Spectral Nature "
+                "datasets or small inline tables. Use this for EDA, statistical checks, regressions, "
                 "clustering, classification, feature importance, or other quantitative analysis that "
                 "needs computation beyond direct dataset lookup. Provide dataset_refs that name QueryService "
                 "datasets plus typed params, or inline_datasets for user-uploaded tabular data. "
                 "Code must be valid multiline Python. Inputs are preloaded as pandas DataFrames in "
                 "`datasets` and as variables named by each dataset alias. Do not call load_dataset, "
                 "get_dataset, context, globals, open, or filesystem/network APIs from the code. "
-                "Return useful numerical outputs in result or through add_metric. "
-                "The index summarizes logs; original evidence includes the bounded computation output. "
-                "Use analysis.read_raw_output with the returned analysis_run_id to read logs from a retained run."
+                "Normal results summarize stdout/stderr by statistics only; call analysis.read_raw_output "
+                "with the returned analysis_run_id only when exact logs are required."
             ),
             "inputSchema": {
                 "type": "object",
@@ -1010,9 +986,7 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
         )
     for tool in tools:
         tool["source_access"] = (
-            "supplied"
-            if tool["name"] in {"research.list_supplied_evidence", "research.read_supplied_evidence"}
-            else
+            "supplied" if tool["name"] in {"research.list_supplied_evidence", "research.read_supplied_evidence"} else
             "web"
             if tool["name"]
             in {"research.live_event_evidence", "research.open_page", "zopedia.ingest_youtube"}
@@ -1122,7 +1096,6 @@ def _invoke_research_tool(
             query=str(args.get("query", (request_context or {}).get("original_query", ""))),
             tickers=args.get("tickers"),
             queries=args.get("queries"),
-            resolved_plan=args.get("resolved_plan"),
             start_date=args.get("start_date"),
             end_date=args.get("end_date"),
             strict_tickers=bool(args.get("strict_tickers")),
@@ -1144,9 +1117,7 @@ def _invoke_research_tool(
     elif tool_name == "research.open_page":
         payload = zopedia_research.open_page(
             url=str(args.get("url") or ""),
-            max_chars=int(args["max_chars"]) if args.get("max_chars") else None,
-            capture_id=str(args.get("capture_id") or ""),
-            offset=int(args.get("offset") or 0),
+            max_chars=int(args.get("max_chars") or 5000),
             require_main_content=bool(args.get("require_main_content")),
             min_text_chars=int(args.get("min_text_chars") or 500),
         )

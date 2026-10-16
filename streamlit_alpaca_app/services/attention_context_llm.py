@@ -12,7 +12,7 @@ from .llm import LLMAPIError, OpenAIChatJSONClient, get_prompt, register_narrati
 _FILING_ANALYST_SYSTEM_PROMPT = register_narrative_prompt(
     name="SEC Filing Analyst (evidence extraction)",
     file="services/attention_context_llm.py",
-    group="Attention Pipeline", stage='summary',
+    group="Attention Pipeline",
     prompt=(
         "You are an SEC filing analyst. Use only the provided filing metadata and filing text. "
         "Do not invent facts, numbers, or motives. Summaries should be concise and readable."
@@ -22,7 +22,7 @@ _FILING_ANALYST_SYSTEM_PROMPT = register_narrative_prompt(
 _ATTENTION_NARRATIVE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Attention Feed Narrative (anomaly + EDGAR context)",
     file="services/attention_context_llm.py",
-    group="Attention Pipeline", stage='synthesis',
+    group="Attention Pipeline",
     prompt=(
         "You write short, human-readable market narratives for an attention feed. "
         "Use only the supplied anomaly metadata and EDGAR-derived evidence. "
@@ -263,7 +263,7 @@ def build_edgar_evidence(
             instructions=system_prompt,
             schema_name="edgar_evidence",
             schema=EVIDENCE_SCHEMA,
-            task="edgar_evidence", stage='summary',
+            task="edgar_evidence",
             surface="services.attention_context_llm",
             llm_client=llm_client,
             max_tool_calls=0,
@@ -392,7 +392,7 @@ def build_attention_context_narratives(
             instructions=system_prompt,
             schema_name="attention_context_narrative",
             schema=NARRATIVE_SCHEMA,
-            task="attention_context_narrative", stage='synthesis',
+            task="attention_context_narrative",
             surface="services.attention_context_llm",
             llm_client=llm_client,
             max_tool_calls=0,

@@ -17,7 +17,6 @@ from urllib.parse import urlparse
 import pandas as pd
 
 from ..llm_context import serialize_llm_context, render_research_prompt, organize_source_captures
-from ..llm_flow import workload_value
 from ..llm_execution import latest_research_artifact, current_research_access_scope, retain_research_artifact, research_artifact_key
 
 from ..saa import build_zopedia_change_proposal, prepare_zopedia_pages
@@ -223,7 +222,7 @@ def _env_nonnegative_float(name: str, default: float) -> float:
 
 
 def _business_research_budget_seconds() -> int:
-    return workload_value("news", "research_seconds")
+    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_RESEARCH_BUDGET_SECONDS", 3600, minimum=60)
 
 
 def _business_agent_tool_timeout_seconds() -> int:
@@ -265,15 +264,15 @@ def _business_slot_max_workers() -> int:
 
 
 def _business_research_open_pages_per_query() -> int:
-    return workload_value("news", "page_opens")
+    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_OPEN_PAGES_PER_QUERY", 2, minimum=1)
 
 
 def _business_research_open_attempts_per_query() -> int:
-    return workload_value("news", "open_attempts")
+    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_OPEN_ATTEMPTS_PER_QUERY", 4, minimum=1)
 
 
 def _business_research_open_page_chars() -> int:
-    return workload_value("news", "page_characters")
+    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_OPEN_PAGE_CHARS", 8000, minimum=1200)
 
 
 def _business_research_seeking_alpha_pages_per_query() -> int:

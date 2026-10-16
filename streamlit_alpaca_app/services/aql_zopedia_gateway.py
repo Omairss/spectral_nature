@@ -163,7 +163,6 @@ def generate_json_via_aql_zopedia_gateway(
     deadline_monotonic: float | None = None,
     inference_effort: str = "",
     literal_output: bool = False,
-    stage: str = "",
 ) -> dict[str, Any]:
     """Run a JSON model call through the enforceable AQL/Zopedia boundary.
 
@@ -184,13 +183,6 @@ def generate_json_via_aql_zopedia_gateway(
     if llm_client is None or not hasattr(llm_client, "generate_json"):
         raise ValueError("AQL/Zopedia model call requires an LLM client with generate_json")
 
-    from .llm_flow import stage_client, DEEP_REASONING_PROMPT
-    resolved_stage = stage or {"utility": "summary", "schema_repair": "repair"}.get(clean_call_type, "synthesis")
-    llm_client, route = stage_client(llm_client, resolved_stage)
-    if resolved_stage == "reasoning":
-        from .llm import get_prompt
-        system_prompt += "\n\n" + get_prompt(DEEP_REASONING_PROMPT)
-    inference_effort = route["thinking"]
     model_call_id = f"aqlzmc_{uuid.uuid4().hex}"
     started_at = datetime.now(timezone.utc)
     t0 = time.perf_counter()
@@ -206,7 +198,6 @@ def generate_json_via_aql_zopedia_gateway(
             "schema_name": clean_schema_name,
             "language_policy_hash": _hash_text(get_active_narrative_style_rule()),
             "settings_scope": llm_settings_scope(),
-            **route,
         }
     )
 

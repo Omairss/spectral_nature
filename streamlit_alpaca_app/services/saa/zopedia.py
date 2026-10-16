@@ -4029,7 +4029,7 @@ def extract_zopedia_pages_from_source(
             instructions="You convert source material into concise Zopedia wiki pages for a financial research product. Extract durable concepts, entities, tickers, macro themes, market events, and source notes. Use only facts in the supplied source. Do not invent market conclusions. Each page must be useful on its own and include links by page title when another extracted page is relevant.",
             schema_name="zopedia_source_pages",
             schema=_ZOPEDIA_SOURCE_SCHEMA,
-            task="zopedia_source_pages", stage='knowledge',
+            task="zopedia_source_pages",
             surface="services.saa.zopedia",
             llm_client=llm_client,
             max_tool_calls=0,

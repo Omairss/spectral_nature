@@ -34,7 +34,7 @@ from .collector import _candidate_subject
 SYMBOL_BUNDLE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Symbol Bundle (what_changed / why_happened / spillover)",
     file="services/aql/writer.py",
-    group="AQL / Research", stage='synthesis',
+    group="AQL / Research",
     prompt=(
         "You write plain-language market research summaries. "
         "Use the supplied observations, claims and established business context to develop useful explanations. "
@@ -133,7 +133,7 @@ def _write_symbol_bundle(
             instructions=system_prompt,
             schema_name="attention_symbol_writer",
             schema=SYMBOL_WRITER_SCHEMA,
-            task="attention_symbol_writer", stage='synthesis',
+            task="attention_symbol_writer",
             surface="aql.symbol_writer",
             llm_client=llm_client,
             max_tool_calls=0,
@@ -447,7 +447,7 @@ def _write_event_bundle(
             instructions=get_prompt(EVENT_WRITER_SYSTEM_PROMPT),
             schema_name="attention_event_writer",
             schema=EVENT_WRITER_SCHEMA,
-            task="attention_event_writer", stage='synthesis',
+            task="attention_event_writer",
             surface="services.aql.writer",
             llm_client=llm_client,
             max_tool_calls=0,

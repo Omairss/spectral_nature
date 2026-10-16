@@ -341,7 +341,7 @@ def build_attention_home_summary(
 _HOME_SUMMARY_SYSTEM_PROMPT = register_narrative_prompt(
     name="Homepage Summary (overview / sections / audio_text)",
     file="services/aql/summarizer.py",
-    group="AQL / Research", stage='synthesis',
+    group="AQL / Research",
     prompt=(
         "You are writing the homepage summary for a professional financial markets dashboard. "
         "Given today's market events, movers, and structural signals, write:\n"
@@ -451,7 +451,7 @@ def _llm_home_summary(
             instructions=get_prompt(_HOME_SUMMARY_SYSTEM_PROMPT),
             schema_name="home_summary",
             schema=_HOME_SUMMARY_SCHEMA,
-            task="home_summary", stage='synthesis',
+            task="home_summary",
             surface="services.aql.summarizer",
             llm_client=llm_client,
             max_tool_calls=0,
@@ -798,7 +798,7 @@ def build_attention_agentic_summary_with_trace(
         ),
         schema_name="attention_home_research",
         schema=schema,
-        task="attention_home_summary", stage='synthesis',
+        task="attention_home_summary",
         surface="attention.home_summary",
         llm_client=llm_client,
         service=query_service,

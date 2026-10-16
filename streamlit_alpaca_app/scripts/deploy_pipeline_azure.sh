@@ -27,6 +27,7 @@ if [[ -n "$RELEASE_SOURCE_STATUS" ]]; then
   echo "Commit the selected, accepted application source before building a release. See documents/infra/RELEASE_SOURCE_POLICY.md." >&2
   exit 1
 fi
+python3 scripts/release_source.py --role worker
 
 DEFAULT_DEPLOY_OUTPUTS_FILE="${ROOT_DIR}/infra/.generated/deployment.local.env"
 LEGACY_DEPLOY_OUTPUTS_FILE="${ROOT_DIR}/infra/deployment.outputs.env"

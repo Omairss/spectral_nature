@@ -253,7 +253,7 @@ def _llm_extract_tags(
             instructions=f"Extract financial event and commodity tags from news text. Valid event tags: {', '.join(sorted(_KNOWN_EVENT_TAGS))}. Valid commodity tags: {', '.join(sorted(_KNOWN_COMMODITY_TAGS))}. Return only tags clearly present in the text. Return empty arrays if nothing applies.",
             schema_name="tag_extraction",
             schema=_TAG_EXTRACTION_SCHEMA,
-            task="tag_extraction", stage="summary",
+            task="tag_extraction",
             surface="services.aql.evidence_index",
             llm_client=llm_client,
             max_tool_calls=0,

@@ -1576,7 +1576,7 @@ def _bootstrap_trading_agent_actions(conn: Any) -> None:
 def _normalize_trading_agent_action(action: object) -> tuple[str, str]:
     text = str(action or "").strip().lower()
     if text in {"approve", "approved", "place", "placed", "place_requested", "request_place"}:
-        return "approved", "pending_entry"
+        return "place_requested", "logged"
     if text in {"reject", "rejected"}:
         return "rejected", "logged"
     return text or "unknown", "logged"
@@ -1594,13 +1594,8 @@ def record_trading_agent_action(
     if not isinstance(candidate, dict) or not str(candidate.get("candidate_id") or "").strip():
         return False, "Missing Trading Agent candidate id."
     action_value, status_value = _normalize_trading_agent_action(action)
-    if action_value not in {"approved", "rejected"}:
+    if action_value not in {"place_requested", "rejected"}:
         return False, f"Unsupported Trading Agent action: {action}"
-    owner_id = str(requested_by or "").strip()
-    if not owner_id:
-        return False, "A signed-in owner is required."
-    if action_value == "approved" and str(candidate.get("stance") or "").lower() not in {"long", "short"}:
-        return False, "Only a directional call can be approved for tracking."
     conn = _db_connect()
     if conn is None:
         return False, "Postgres is unavailable, so the Trading Agent action was not logged."
@@ -1608,29 +1603,7 @@ def record_trading_agent_action(
     action_id = str(uuid.uuid4())
     try:
         _bootstrap_trading_agent_actions(conn)
-        from .trading_call_tracking import ensure_schema, record_approval
-        ensure_schema(conn)
-        conn.commit()
         with conn.cursor() as cur:
-            identity = json.dumps([dataset_namespace(), owner_id, candidate["candidate_id"]])
-            cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (identity,))
-            cur.execute("""SELECT action,action_id,created_at_utc,candidate_payload,execution_mode
-                FROM trading_agent_actions WHERE dataset_namespace=%s AND requested_by=%s AND candidate_id=%s
-                ORDER BY created_at_utc DESC,action_id DESC LIMIT 1""",
-                (dataset_namespace(), owner_id, candidate["candidate_id"]))
-            previous = cur.fetchone()
-            if previous and previous[0] in {"approved", "place_requested"}:
-                if action_value != "approved":
-                    return False, "This call is already approved and tracked."
-                if previous[4] in {"log_only", "paper_tracking"}:
-                    snapshot = previous[3] if isinstance(previous[3], dict) else json.loads(previous[3])
-                    record_approval(cur, candidate=snapshot, owner_id=owner_id, action_id=previous[1],
-                                    approved_at=previous[2], namespace=dataset_namespace(), source="retained_log_approval")
-                conn.commit()
-                return True, "Candidate approved."
-            if previous and previous[0] == "rejected" and action_value == "rejected":
-                conn.commit()
-                return True, "Candidate rejected."
             cur.execute(
                 """
                 INSERT INTO trading_agent_actions (
@@ -1654,9 +1627,9 @@ def record_trading_agent_action(
                     str(candidate.get("horizon_key") or "").strip() or None,
                     str(candidate.get("ticker") or "").upper().strip() or None,
                     action_value,
-                    "paper_tracking" if action_value == "approved" else "log_only",
+                    "log_only",
                     status_value,
-                    None,
+                    "alpaca",
                     None,
                     json.dumps({}, ensure_ascii=True, sort_keys=True),
                     created_at,
@@ -1667,9 +1640,6 @@ def record_trading_agent_action(
                     dataset_namespace(),
                 ),
             )
-            if action_value == "approved":
-                record_approval(cur, candidate=candidate, owner_id=owner_id, action_id=action_id,
-                                approved_at=created_at, namespace=dataset_namespace())
         conn.commit()
     except Exception as exc:
         try:
@@ -1683,7 +1653,7 @@ def record_trading_agent_action(
         except Exception:
             pass
 
-    if action_value == "approved":
+    if action_value == "place_requested":
         return True, "Candidate approved."
     return True, "Candidate rejected."
 
@@ -2812,33 +2782,6 @@ def provider_usage_rollup(*, days: int = 7) -> pd.DataFrame:
         conn.close()
 
 
-def research_stage_usage(*, scope: str, days: int = 7) -> dict[str, Any]:
-    """Read observed stage attempts without schema changes or archive scans."""
-    conn = _db_connect()
-    if conn is None:
-        return {"available": False, "rows": []}
-    try:
-        with conn.cursor() as cur:
-            cur.execute("""SELECT metadata_json->>'stage' AS stage, metadata_json->>'workload' AS workload, requested_model, reported_model,
-                count(*) AS attempts, count(*) FILTER (WHERE status='failure') AS failures,
-                count(*) FILTER (WHERE status='started') AS unfinished_attempts,
-                sum(duration_ms)/1000.0 AS seconds,
-                sum((usage_json->>'prompt_tokens')::bigint) AS input_tokens,
-                sum((usage_json->>'completion_tokens')::bigint) AS output_tokens,
-                count(*) FILTER (WHERE coalesce(metadata_json->'estimated_charge'->>'status','') != 'estimated') AS unpriced_attempts,
-                sum((metadata_json->'estimated_charge'->>'usd_min')::numeric) AS estimated_usd_min,
-                sum((metadata_json->'estimated_charge'->>'usd_max')::numeric) AS estimated_usd_max
-                FROM aql_zopedia_provider_attempts
-                WHERE settings_scope=%s AND started_at_utc >= now() - (%s * interval '1 day')
-                  AND metadata_json->>'stage' IS NOT NULL
-                GROUP BY metadata_json->>'stage', metadata_json->>'workload', requested_model, reported_model
-                ORDER BY metadata_json->>'stage', count(*) DESC""", (scope, days))
-            keys = [column.name for column in cur.description]
-            return {"available": True, "days": days, "rows": [dict(zip(keys, row)) for row in cur.fetchall()]}
-    except Exception:
-        return {"available": False, "rows": []}
-    finally:
-        conn.close()
 
 
 def _model_call_telemetry_enabled() -> bool:

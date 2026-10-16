@@ -9,7 +9,7 @@ import logging
 import requests
 
 from .secrets import resolve_secret_value
-from .llm_execution import ProviderHTTPSession, provider_post
+from .llm_execution import provider_post
 
 log = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ class ElevenLabsTTSClient:
         if not config.voice_id:
             raise ElevenLabsTTSAPIError("Missing ElevenLabs voice id.")
         self.config = config
-        self.session = session or ProviderHTTPSession()
+        self.session = session or requests.Session()
 
     def synthesize(self, text: str) -> bytes:
         normalized_text = " ".join(str(text or "").split()).strip()

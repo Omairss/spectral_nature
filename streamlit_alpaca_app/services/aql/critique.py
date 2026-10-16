@@ -139,7 +139,7 @@ _JUDGE_SCHEMA: dict[str, Any] = {
 _JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     name="Homepage Summary Judge (apply critique fixes)",
     file="services/aql/critique.py",
-    group="AQL / Research", stage='synthesis',
+    group="AQL / Research",
     prompt=(
         "You are the editor-in-chief deciding which critique flags to act on. "
         "You receive: (1) the original summary as overview/sections/audio_text and the original "
@@ -207,7 +207,7 @@ def critique_home_summary(
             "properties": {"issues": {"type": "array", "items": _ISSUE_SCHEMA}},
             "required": ["issues"],
         },
-        task="home_summary_review", stage="review",
+        task="home_summary_review",
         surface="attention.home_summary_review",
         llm_client=llm_client,
         service=query_service,
@@ -283,7 +283,7 @@ def judge_revise_summary(
             instructions=get_prompt(_JUDGE_SYSTEM_PROMPT),
             schema_name="aql_judge_revision",
             schema=_JUDGE_SCHEMA,
-            task="aql_judge_revision", stage='synthesis',
+            task="aql_judge_revision",
             surface="services.aql.critique",
             llm_client=llm_client,
             max_tool_calls=0,

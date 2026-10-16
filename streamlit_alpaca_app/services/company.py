@@ -414,7 +414,7 @@ def _extract_news_themes(payload: dict[str, object] | None) -> list[str]:
             instructions="Identify up to 3 investment narrative themes present in these financial news headlines. Examples: 'AI rollout', 'data center buildout', 'drug pipeline', 'travel demand', 'cloud and enterprise spend', 'consumer spending', 'commodity prices', 'regulation'. Return only themes clearly present in the text. Return fewer if fewer apply.",
             schema_name="news_themes",
             schema=_NEWS_THEMES_SCHEMA,
-            task="news_themes", stage='relevance',
+            task="news_themes",
             surface="services.company",
             llm_client=llm_client,
             max_tool_calls=0,

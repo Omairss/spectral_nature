@@ -14,7 +14,7 @@ from typing import Any, Protocol, runtime_checkable
 import requests
 
 from .secrets import resolve_secret_value, runtime_env_value
-from .llm_execution import execution_effort, provider_post, preserves_literal_output, ProviderHTTPSession
+from .llm_execution import execution_effort, provider_post, preserves_literal_output
 
 
 class LLMAPIError(RuntimeError):
@@ -155,32 +155,6 @@ _OVERRIDES_SCOPE = ""
 _OVERRIDES_CHECKED_AT = 0.0
 _OVERRIDES_LOCK = threading.RLock()
 _PENDING_OVERRIDES: dict[str, str | None] = {}
-_RUN_SETTINGS: ContextVar[dict[str, str] | None] = ContextVar("llm_run_settings", default=None)
-
-
-def snapshot_llm_settings(*, refresh: bool = False) -> dict[str, str]:
-    frozen = _RUN_SETTINGS.get()
-    if frozen is not None:
-        return dict(frozen)
-    load_prompt_overrides(force=refresh)
-    with _OVERRIDES_LOCK:
-        return {**{k: v["default"] for k, v in _PROMPT_REGISTRY.items()},
-                **{k: str(get_config_param(k)) for k in _PARAM_REGISTRY},
-                "__narrative_style_rule__": NARRATIVE_STYLE_RULE, **_PROMPT_OVERRIDES}
-
-
-@contextmanager
-def frozen_llm_settings(settings: dict[str, str]):
-    token = _RUN_SETTINGS.set(dict(settings))
-    try:
-        yield
-    finally:
-        _RUN_SETTINGS.reset(token)
-
-
-def active_llm_overrides() -> dict[str, str]:
-    frozen = _RUN_SETTINGS.get()
-    return frozen if frozen is not None else _PROMPT_OVERRIDES
 
 
 
@@ -188,17 +162,17 @@ def _prompt_key(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
-def register_narrative_prompt(name: str, file: str, prompt: str, *, group: str = "", stage: str = "") -> str:
+def register_narrative_prompt(name: str, file: str, prompt: str, *, group: str = "") -> str:
     """Register a user-facing system prompt. Returns the key for use with get_prompt()."""
     key = _prompt_key(name)
-    _PROMPT_REGISTRY[key] = {"name": name, "file": file, "default": prompt, "group": group, "stage": stage}
+    _PROMPT_REGISTRY[key] = {"name": name, "file": file, "default": prompt, "group": group}
     return key
 
 
 def get_prompt(key: str) -> str:
     """Resolve the active prompt for a registered key (override or default)."""
     load_prompt_overrides()
-    override = active_llm_overrides().get(key)
+    override = _PROMPT_OVERRIDES.get(key)
     if override is not None:
         return override
     info = _PROMPT_REGISTRY.get(key)
@@ -211,16 +185,15 @@ def list_narrative_prompts() -> list[dict[str, str]]:
     """Return all registered prompts with their active (override or default) values."""
     entries = []
     for key, info in _PROMPT_REGISTRY.items():
-        override = active_llm_overrides().get(key)
+        override = _PROMPT_OVERRIDES.get(key)
         entries.append({
             "key": key,
             "name": info["name"],
             "file": info["file"],
             "default": info["default"],
             "prompt": override if override is not None else info["default"],
-            "is_override": override is not None and override != info["default"],
+            "is_override": override is not None,
             "group": info.get("group", ""),
-            "stage": info.get("stage", ""),
         })
     return entries
 
@@ -239,33 +212,16 @@ def set_narrative_prompt_override(key: str, value: str | None) -> None:
 _PARAM_REGISTRY: dict[str, dict[str, Any]] = {}
 
 
-def register_config_param(name: str, group: str, default: int | float | str, description: str, *, choices: tuple[str, ...] = (), stage: str = "", minimum: float = 0, maximum: float | None = None, label: str = "", section: str = "", retired: bool = False, control: str = "", environment_variable: str | tuple[str, ...] = "", workload: str = "", default_resolver=None) -> str:
+def register_config_param(name: str, group: str, default: int | float | str, description: str, *, choices: tuple[str, ...] = ()) -> str:
     """Register a tunable config parameter. Returns the key for use with get_config_param()."""
     key = f"param:{_prompt_key(name)}"
-    _PARAM_REGISTRY[key] = {"name": name, "label": label or name, "group": group, "default": default, "description": description, "choices": choices, "stage": stage, "minimum": minimum, "maximum": maximum, "section": section, "retired": retired, "control": control, "environment_variable": environment_variable, "workload": workload, "default_resolver": default_resolver}
+    _PARAM_REGISTRY[key] = {"name": name, "group": group, "default": default, "description": description, "choices": choices}
     return key
-
-
-def _config_param_default(info: dict[str, Any]) -> int | float | str:
-    default = info["default_resolver"]() if info.get("default_resolver") else info["default"]
-    names = info.get("environment_variable") or ""
-    names = (names,) if isinstance(names, str) else names
-    raw = next((os.getenv(name) for name in names if os.getenv(name)), None)
-    if raw:
-        try:
-            value = type(default)(raw)
-            if isinstance(value, (int, float)) and (not math.isfinite(value) or value < info["minimum"] or (info["maximum"] is not None and value > info["maximum"])):
-                return default
-            return value
-        except (ValueError, TypeError):
-            pass
-    return default
 
 
 def get_config_param(key: str) -> int | float | str:
     """Resolve the active value for a registered config parameter."""
-    load_prompt_overrides()
-    override = active_llm_overrides().get(key)
+    override = _PROMPT_OVERRIDES.get(key)
     if override is not None:
         try:
             info = _PARAM_REGISTRY.get(key, {})
@@ -275,7 +231,7 @@ def get_config_param(key: str) -> int | float | str:
             pass
     info = _PARAM_REGISTRY.get(key)
     if info:
-        return _config_param_default(info)
+        return info["default"]
     return 0
 
 
@@ -283,34 +239,24 @@ def list_config_params() -> list[dict[str, Any]]:
     """Return all registered config parameters with active values, grouped."""
     entries = []
     for key, info in _PARAM_REGISTRY.items():
-        override = active_llm_overrides().get(key)
-        default = _config_param_default(info)
-        active = default
+        override = _PROMPT_OVERRIDES.get(key)
+        active = info["default"]
         is_override = False
         if override is not None:
             try:
                 active = type(info["default"])(override)
-                is_override = active != default
+                is_override = True
             except (ValueError, TypeError):
                 pass
         entries.append({
             "key": key,
             "name": info["name"],
             "group": info["group"],
-            "default": default,
+            "default": info["default"],
             "value": active,
             "description": info["description"],
             "is_override": is_override,
             "choices": list(info.get("choices", ())),
-            "stage": info.get("stage", ""),
-            "minimum": info.get("minimum", 0),
-            "maximum": info.get("maximum"),
-            "label": info.get("label", info["name"]),
-            "section": info.get("section", ""),
-            "retired": info.get("retired", False),
-            "control": info.get("control", ""),
-            "workload": info.get("workload", ""),
-            "source": "saved" if is_override else "environment" if any(os.getenv(name) for name in ([info["environment_variable"]] if isinstance(info.get("environment_variable"), str) else info.get("environment_variable", ()))) else "default",
         })
     return entries
 
@@ -319,7 +265,7 @@ def set_config_param_override(key: str, value: int | float | None) -> None:
     """Set or clear a config parameter override. Call save_prompt_overrides() to persist."""
     _PENDING_OVERRIDES[key] = None if value is None else str(value)
     info = _PARAM_REGISTRY.get(key)
-    if info and (value is None or value == _config_param_default(info)):
+    if info and (value is None or value == info["default"]):
         _PROMPT_OVERRIDES.pop(key, None)
     elif value is not None:
         _PROMPT_OVERRIDES[key] = str(value)
@@ -332,7 +278,7 @@ def _narrative_style_rule_key() -> str:
 def get_active_narrative_style_rule() -> str:
     """Return the active narrative style rule (override or default)."""
     load_prompt_overrides()
-    return active_llm_overrides().get(_narrative_style_rule_key(), NARRATIVE_STYLE_RULE)
+    return _PROMPT_OVERRIDES.get(_narrative_style_rule_key(), NARRATIVE_STYLE_RULE)
 
 
 def set_narrative_style_rule_override(value: str | None) -> None:
@@ -392,8 +338,6 @@ def save_prompt_overrides() -> bool:
 def load_prompt_overrides(*, force: bool = False) -> bool:
     """Refresh a process snapshot at most every 30 seconds; retry failed loads."""
     global _OVERRIDES_LOADED, _OVERRIDES_SCOPE, _OVERRIDES_CHECKED_AT
-    if _RUN_SETTINGS.get() is not None and not force:
-        return True
     scope = llm_settings_scope()
     with _OVERRIDES_LOCK:
         now = time.monotonic()
@@ -450,10 +394,7 @@ def validate_llm_setting_changes(changes: dict[str, Any]) -> dict[str, str | Non
     """Validate the admin patch before any database mutation."""
     result: dict[str, str | None] = {}
     for key, value in changes.items():
-        if key == "flow:configuration":
-            from .llm_flow import validate_flow_configuration
-            value = None if value is None else json.dumps(validate_flow_configuration(json.loads(value) if isinstance(value, str) else value))
-        elif key in _PARAM_REGISTRY:
+        if key in _PARAM_REGISTRY:
             default = _PARAM_REGISTRY[key]["default"]
             choices = _PARAM_REGISTRY[key].get("choices", ())
             if isinstance(default, str) and value is not None:
@@ -461,8 +402,7 @@ def validate_llm_setting_changes(changes: dict[str, Any]) -> dict[str, str | Non
                     raise ValueError(f"Invalid value for {_PARAM_REGISTRY[key]['name']}.")
             elif value is not None:
                 number = float(value)
-                info = _PARAM_REGISTRY[key]
-                if not math.isfinite(number) or number < info.get("minimum", 0) or (info.get("maximum") is not None and number > info["maximum"]) or (isinstance(default, int) and not number.is_integer()):
+                if not math.isfinite(number) or number < 0 or (isinstance(default, int) and not number.is_integer()):
                     raise ValueError(f"Invalid value for {_PARAM_REGISTRY[key]['name']}.")
                 value = str(type(default)(number))
         elif key in _PROMPT_REGISTRY or key == _narrative_style_rule_key():
@@ -725,12 +665,12 @@ def load_llm_config(env_prefix: str = "", *, require_api_key: bool = True) -> LL
         return None
 
     default_models = {
-        "deepseek": "deepseek-v4-pro",
+        "deepseek": "deepseek-chat",
         "local": "local-model",
     }
     default_model = default_models.get(provider, "gpt-4.1-mini")
     model = config_value(env_prefix, "LLM_MODEL", "OPENAI_MODEL") or default_model
-    model = active_llm_overrides().get(f"runtime:{provider}:model", model)
+    model = _PROMPT_OVERRIDES.get(f"runtime:{provider}:model", model)
     deployment = config_value(env_prefix, "LLM_DEPLOYMENT", "AZURE_OPENAI_DEPLOYMENT") or model
     if provider == "azure_openai":
         base_url = _normalize_azure_base_url(
@@ -756,10 +696,10 @@ def load_llm_config(env_prefix: str = "", *, require_api_key: bool = True) -> LL
     )
     if provider == "local":
         reasoning_effort = ""
-    timeout_seconds = int(active_llm_overrides().get(f"runtime:{provider}:timeout_seconds", timeout_seconds))
-    temperature = float(active_llm_overrides().get(f"runtime:{provider}:temperature", temperature))
-    reasoning_effort = active_llm_overrides().get(f"runtime:{provider}:reasoning_effort", reasoning_effort)
-    thinking_mode = active_llm_overrides().get(
+    timeout_seconds = int(_PROMPT_OVERRIDES.get(f"runtime:{provider}:timeout_seconds", timeout_seconds))
+    temperature = float(_PROMPT_OVERRIDES.get(f"runtime:{provider}:temperature", temperature))
+    reasoning_effort = _PROMPT_OVERRIDES.get(f"runtime:{provider}:reasoning_effort", reasoning_effort)
+    thinking_mode = _PROMPT_OVERRIDES.get(
         f"runtime:{provider}:thinking_mode", config_value(env_prefix, "LLM_THINKING_MODE")
     )
     if provider == "deepseek" and not thinking_mode:
@@ -788,7 +728,7 @@ class OpenAIChatJSONClient:
         if not config.api_key:
             raise LLMAPIError("Missing LLM API key.")
         self.config = config
-        self.session = session or ProviderHTTPSession()
+        self.session = session or requests.Session()
 
     def generate_json(
         self,
@@ -874,26 +814,19 @@ class OpenAIChatJSONClient:
             parsed_object = _extract_first_json_object(raw)
         except LLMJSONParseError as exc:
             repair_payload = dict(payload)
-            from .llm_flow import stage_client
-            repair_client, repair_route = stage_client(self, "repair")
-            repair_payload["model"] = repair_client.config.model
-            repair_payload.pop("reasoning_effort", None)
-            if repair_client.config.provider == "deepseek":
-                repair_payload["thinking"] = {"type": repair_client.config.thinking_mode}
-                if repair_client.config.thinking_mode == "enabled":
-                    repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
-            elif repair_client.config.reasoning_effort != "none":
-                repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
+            if self.config.provider == "deepseek":
+                repair_payload["thinking"] = {"type": "disabled"}
+                repair_payload.pop("reasoning_effort", None)
             repair_payload["messages"] = _json_repair_messages(
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
             )
-            repair_response = provider_post(repair_client, operation="json_repair", url=
+            repair_response = provider_post(self, operation="json_repair", url=
                 request_url,
                 headers=request_headers,
                 json=repair_payload,
-                timeout=min(_remaining_request_timeout(deadline), repair_client.config.timeout_seconds),
+                timeout=_remaining_request_timeout(deadline),
             )
             if repair_response.status_code != 200:
                 raise LLMAPIError(
@@ -927,7 +860,7 @@ class AzureOpenAIChatJSONClient:
         if not config.deployment:
             raise LLMAPIError("Missing Azure OpenAI deployment.")
         self.config = config
-        self.session = session or ProviderHTTPSession()
+        self.session = session or requests.Session()
 
     def generate_json(
         self,
@@ -1015,27 +948,20 @@ class AzureOpenAIChatJSONClient:
             parsed_object = _extract_first_json_object(raw)
         except LLMJSONParseError as exc:
             repair_payload = dict(payload)
-            from .llm_flow import stage_client
-            repair_client, repair_route = stage_client(self, "repair")
-            repair_payload["model"] = repair_client.config.model
-            repair_payload.pop("reasoning_effort", None)
-            if repair_client.config.provider == "deepseek":
-                repair_payload["thinking"] = {"type": repair_client.config.thinking_mode}
-                if repair_client.config.thinking_mode == "enabled":
-                    repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
-            elif repair_client.config.reasoning_effort != "none":
-                repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
+            if self.config.provider == "deepseek":
+                repair_payload["thinking"] = {"type": "disabled"}
+                repair_payload.pop("reasoning_effort", None)
             repair_payload["messages"] = _json_repair_messages(
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
             )
-            repair_response = provider_post(repair_client, operation="json_repair", url=
-                request_url.replace(f"/deployments/{self.config.deployment}/", f"/deployments/{repair_client.config.deployment}/"),
+            repair_response = provider_post(self, operation="json_repair", url=
+                request_url,
                 headers=request_headers,
                 params=request_params,
                 json=repair_payload,
-                timeout=min(_remaining_request_timeout(deadline), repair_client.config.timeout_seconds),
+                timeout=_remaining_request_timeout(deadline),
             )
             if repair_response.status_code != 200:
                 raise LLMAPIError(
@@ -1067,7 +993,7 @@ class DeepSeekChatJSONClient:
         if not config.base_url:
             raise LLMAPIError("Missing DeepSeek base URL.")
         self.config = config
-        self.session = session or ProviderHTTPSession()
+        self.session = session or requests.Session()
 
     @property
     def provider_label(self) -> str:
@@ -1160,26 +1086,19 @@ class DeepSeekChatJSONClient:
             parsed_object = _extract_first_json_object(raw)
         except LLMJSONParseError as exc:
             repair_payload = dict(payload)
-            from .llm_flow import stage_client
-            repair_client, repair_route = stage_client(self, "repair")
-            repair_payload["model"] = repair_client.config.model
-            repair_payload.pop("reasoning_effort", None)
-            if repair_client.config.provider == "deepseek":
-                repair_payload["thinking"] = {"type": repair_client.config.thinking_mode}
-                if repair_client.config.thinking_mode == "enabled":
-                    repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
-            elif repair_client.config.reasoning_effort != "none":
-                repair_payload["reasoning_effort"] = repair_client.config.reasoning_effort
+            if self.config.provider == "deepseek":
+                repair_payload["thinking"] = {"type": "disabled"}
+                repair_payload.pop("reasoning_effort", None)
             repair_payload["messages"] = _json_repair_messages(
                 schema_name=schema_name,
                 schema=schema,
                 raw_content=exc.raw_content,
             )
-            repair_response = provider_post(repair_client, operation="json_repair", url=
+            repair_response = provider_post(self, operation="json_repair", url=
                 request_url,
                 headers=headers,
                 json=repair_payload,
-                timeout=min(_remaining_request_timeout(deadline), repair_client.config.timeout_seconds),
+                timeout=_remaining_request_timeout(deadline),
             )
             if repair_response.status_code != 200:
                 raise self._response_error(repair_response, operation="JSON repair") from exc
@@ -1214,7 +1133,7 @@ class LocalChatJSONClient(DeepSeekChatJSONClient):
         if not config.base_url:
             raise LLMAPIError("Missing local LLM base URL.")
         self.config = config
-        self.session = session or ProviderHTTPSession()
+        self.session = session or requests.Session()
 
     @property
     def provider_label(self) -> str:
@@ -1323,7 +1242,7 @@ class OpenAIEmbeddingClient:
         if not config.api_key:
             raise LLMAPIError("Missing LLM API key.")
         self.config = config
-        self.session = session or ProviderHTTPSession()
+        self.session = session or requests.Session()
 
     def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
         return _generate_openai_embedding_vectors(
@@ -1342,7 +1261,7 @@ class AzureOpenAIEmbeddingClient:
         if not (config.embedding_deployment or config.embedding_model):
             raise LLMAPIError("Missing Azure OpenAI embedding deployment.")
         self.config = config
-        self.session = session or ProviderHTTPSession()
+        self.session = session or requests.Session()
 
     def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
         return _generate_openai_embedding_vectors(
@@ -1372,18 +1291,14 @@ def load_llm_client(env_prefix: str = "") -> JSONLLMClient | None:
     config = load_llm_config(env_prefix=env_prefix)
     if config is None:
         return None
-    return client_from_config(config)
-
-
-def client_from_config(config: LLMConfig, *, session: Any | None = None) -> JSONLLMClient:
     if config.provider == "openai":
-        return OpenAIChatJSONClient(config, session=session)
+        return OpenAIChatJSONClient(config)
     if config.provider == "azure_openai":
-        return AzureOpenAIChatJSONClient(config, session=session)
+        return AzureOpenAIChatJSONClient(config)
     if config.provider == "deepseek":
-        return DeepSeekChatJSONClient(config, session=session)
+        return DeepSeekChatJSONClient(config)
     if config.provider == "local":
-        return LocalChatJSONClient(config, session=session)
+        return LocalChatJSONClient(config)
     raise LLMAPIError(f"Unsupported LLM provider: {config.provider}")
 
 

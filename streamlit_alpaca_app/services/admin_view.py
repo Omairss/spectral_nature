@@ -8,7 +8,6 @@ from services.llm import (
     NARRATIVE_STYLE_RULE, get_active_narrative_style_rule, llm_settings_scope,
     list_config_params, list_narrative_prompts, load_llm_config, load_prompt_overrides,
     save_prompt_override_changes, validate_llm_setting_changes,
-    active_llm_overrides,
 )
 from services.pipeline_store import (
     connector_call_rollup,
@@ -17,69 +16,52 @@ from services.pipeline_store import (
     latest_dataset_status_table,
     latest_job_status_table,
     model_call_rollup,
-    research_stage_usage,
-    read_execution_states,
 )
-from services.llm_flow import flow_contract, REVIEW_CYCLES, register_llm_surfaces, research_configuration
 
 
 def _register_llm_surfaces() -> None:
-    register_llm_surfaces()
+    import services.aql.constants  # noqa: F401
+    import services.aql.summarizer  # noqa: F401
+    import services.aql.writer  # noqa: F401
+    import services.aql_zopedia_engine  # noqa: F401
+    import services.attention_context_llm  # noqa: F401
+    import services.attention_home_1d  # noqa: F401
+    import services.attention_live_research  # noqa: F401
+    import services.attention_market_events  # noqa: F401
+    import services.zopedia_agent  # noqa: F401
+    import services.trading_agent  # noqa: F401
+    import services.page_agentic_summary  # noqa: F401
 
 
 def build_llm_settings_view() -> dict[str, Any]:
     _register_llm_surfaces()
     if not load_prompt_overrides(force=True):
         raise RuntimeError("Saved LLM settings could not be loaded.")
-    saved_keys = set(active_llm_overrides())
-    from services.llm_flow import WORKLOADS
-    workers = read_execution_states(f"research_workload_settings:{llm_settings_scope()}", list(WORKLOADS))
-    with research_configuration():
-        config = load_llm_config(require_api_key=False)
-        style = get_active_narrative_style_rule()
-        parameters = list_config_params()
-        for parameter in parameters:
-            worker = workers.get(parameter.get("workload"), {})
-            observed = worker.get("parameters", {})
-            if parameter["key"] in observed:
-                parameter["default"] = worker.get("defaults", observed).get(parameter["key"], parameter["default"])
-                parameter["observed_at_utc"] = worker.get("observed_at_utc")
-                if parameter["key"] not in saved_keys:
-                    parameter["value"] = parameter["default"]
-                    parameter["source"] = "worker"
-        if next((p["value"] for p in parameters if p["key"] == "param:agent_answer_judge_enabled"), 1) == 0:
-            for parameter in parameters:
-                if parameter["key"] == REVIEW_CYCLES:
-                    parameter["value"] = 0
-        return {
-            "scope": llm_settings_scope(),
-            "runtime": None if config is None else {
-                "provider": config.provider,
-                "model": config.deployment if config.provider == "azure_openai" else config.model,
-                "model_editable": config.provider != "azure_openai",
-                "temperature": config.temperature,
-                "reasoning_effort": config.reasoning_effort,
-                "thinking_mode": config.thinking_mode,
-                "timeout_seconds": config.timeout_seconds,
-                "embedding_model": config.embedding_model,
-            },
-            "style": {"key": "__narrative_style_rule__", "value": style,
-                      "default": NARRATIVE_STYLE_RULE, "is_override": style != NARRATIVE_STYLE_RULE},
-            "prompts": list_narrative_prompts(),
-            "parameters": to_jsonable(parameters),
-            "flow": flow_contract(),
-            "stage_usage": to_jsonable(research_stage_usage(scope=llm_settings_scope())),
-        }
+    config = load_llm_config(require_api_key=False)
+    style = get_active_narrative_style_rule()
+    return {
+        "scope": llm_settings_scope(),
+        "runtime": None if config is None else {
+            "provider": config.provider,
+            "model": config.deployment if config.provider == "azure_openai" else config.model,
+            "model_editable": config.provider != "azure_openai",
+            "temperature": config.temperature,
+            "reasoning_effort": config.reasoning_effort,
+            "thinking_mode": config.thinking_mode,
+            "timeout_seconds": config.timeout_seconds,
+            "embedding_model": config.embedding_model,
+        },
+        "style": {"key": "__narrative_style_rule__", "value": style,
+                  "default": NARRATIVE_STYLE_RULE, "is_override": style != NARRATIVE_STYLE_RULE},
+        "prompts": list_narrative_prompts(),
+        "parameters": to_jsonable(list_config_params()),
+    }
 
 
 def update_llm_settings(changes: dict[str, Any], *, context: auth_service.UserContext) -> dict[str, Any]:
     if not context.is_admin:
         raise PermissionError("Admin access is required.")
     _register_llm_surfaces()
-    changes = dict(changes)
-    if REVIEW_CYCLES in changes:
-        # The count replaces the old UI switch, while respecting old saves.
-        changes["param:agent_answer_judge_enabled"] = 1 if changes[REVIEW_CYCLES] is None or int(changes[REVIEW_CYCLES]) > 0 else 0
     validated = validate_llm_setting_changes(changes)
     if not save_prompt_override_changes(validated):
         raise RuntimeError("LLM settings could not be saved.")

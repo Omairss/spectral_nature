@@ -1,0 +1,14 @@
+# Only dependencies and operating-system packages are inherited. Every
+# application file comes from the accepted Git checkout, including the broker.
+ARG DEPENDENCY_IMAGE
+FROM ${DEPENDENCY_IMAGE}
+
+ARG SOURCE_REVISION
+ARG SOURCE_INVENTORY_SHA256
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION \
+      com.spectral-nature.source-inventory=$SOURCE_INVENTORY_SHA256
+ENV GIT_SHA=$SOURCE_REVISION PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/app
+
+RUN rm -rf /app && mkdir /app
+WORKDIR /app
+COPY . .

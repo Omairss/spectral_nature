@@ -7,10 +7,8 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from contextvars import ContextVar
-import asyncio
 from datetime import datetime, timezone
 import hashlib
-import inspect
 from functools import wraps
 from functools import lru_cache
 import json
@@ -23,43 +21,11 @@ import uuid
 from pathlib import Path
 
 import requests
-import httpx
 
 log = logging.getLogger(__name__)
 _CALL: ContextVar[dict[str, Any]] = ContextVar("llm_execution_call", default={})
 _ACCOUNTS: dict[str, tuple[float, bool]] = {}
 _ACCOUNT_LOCK = threading.RLock()
-
-
-class ProviderHTTPSession:
-    """Synchronous provider boundary with a cancellable total HTTP deadline.
-
-    Inference runs in the engine's synchronous workers. The async transport lets
-    the deadline close a response even while a provider keeps sending whitespace.
-    """
-
-    def post(self, *, timeout: float, **kwargs: Any) -> requests.Response:
-        async def request():
-            async with asyncio.timeout(timeout):
-                async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
-                    return await client.post(**kwargs)
-
-        try:
-            received = asyncio.run(request())
-        except (TimeoutError, httpx.TimeoutException) as exc:
-            raise requests.ReadTimeout("Provider HTTP deadline expired.") from exc
-        except httpx.TransportError as exc:
-            raise requests.ConnectionError(str(exc)) from exc
-        # Provider adapters retain their existing response contract.
-        response = requests.Response()
-        response.status_code = received.status_code
-        response._content = received.content
-        response.headers.update(received.headers)
-        response.url = str(received.url)
-        response.reason = received.reason_phrase
-        response.encoding = received.encoding
-        response.elapsed = received.elapsed
-        return response
 
 
 @contextmanager
@@ -207,14 +173,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     ensure_provider_available(config, timeout=timeout)
     kwargs["timeout"] = _remaining_request_timeout(deadline)
     context = dict(_CALL.get())
-    if operation == "json_repair":
-        from .llm_flow import flow_configuration
-        repair = flow_configuration()["routes"]["repair"]
-        context.update(stage="repair", profile=repair["profile"], max_output_tokens=repair.get("max_output_tokens", 0))
     payload = dict(kwargs.get("json") or {})
-    if context.get("max_output_tokens") and operation not in {"embedding", "audio"}:
-        payload["max_tokens"] = int(context["max_output_tokens"])
-        kwargs["json"] = payload
     if config.provider == "deepseek" and (operation == "json_repair" or context.get("literal_output")):
         # Non-thinking defaults to 8K while thinking defaults to 64K. A
         # mechanical conversion must not silently shorten an existing artifact.
@@ -224,8 +183,6 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     started = datetime.now(timezone.utc)
     t0 = time.monotonic()
     attempt_id = "llmhttp_" + uuid.uuid4().hex
-    # A worker can exit while a timed-out request is being closed. Retain that
-    # attempt as unfinished rather than reporting no call or invented zero usage.
     initial_event = {
         "attempt_id": attempt_id, "model_call_id": context.get("model_call_id"),
         "root_run_id": context.get("root_run_id") or os.getenv("PIPELINE_RUN_ID") or context.get("run_id"),
@@ -235,13 +192,13 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         "purpose": context.get("purpose") or "direct." + operation,
         "provider": config.provider, "requested_model": payload.get("model") or config.model,
         "operation": operation, "status": "started", "started_at_utc": started, "duration_ms": 0,
-        "metadata": {**{key: context.get(key) for key in ("stage", "workload", "profile", "configuration_revision", "reviewer_id")},
-                     "request_composition": composition},
+        "metadata": {"request_composition": composition, "job_name": os.getenv("PIPELINE_JOB_NAME")},
     }
     try:
-        record_provider_attempt(initial_event)
+        if not record_provider_attempt(initial_event):
+            log.warning("Provider attempt start could not be persisted: %s", attempt_id)
     except Exception:
-        log.warning("Provider attempt start could not be persisted: %s", attempt_id)
+        log.warning("Provider attempt start accounting unavailable: %s", attempt_id)
     response = None
     error_type = ""
     transport_attempted = False
@@ -291,11 +248,6 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                 "research_subject": context.get("research_subject"),
                 "artifact_input_id": context.get("artifact_input_id"),
                 "literal_output": bool(context.get("literal_output")),
-                "stage": "repair" if operation == "json_repair" else context.get("stage"),
-                "profile": context.get("profile"),
-                "configuration_revision": context.get("configuration_revision"),
-                "workload": context.get("workload"),
-                "reviewer_id": context.get("reviewer_id"),
                 "max_output_tokens": payload.get("max_tokens"),
                 "input_characters": len(str(payload.get("text") or "")) if operation == "audio" else None,
                 "estimated_charge": estimated_charge(provider=config.provider,
@@ -315,20 +267,16 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
 
 
 def research_artifact_key(*, access_scope: str, subject: str, query: str,
-                          schema: dict[str, Any], config: Any, producer: dict[str, Any] | None = None) -> tuple[str, str]:
+                          schema: dict[str, Any], config: Any) -> tuple[str, str]:
     from .llm import get_active_narrative_style_rule, llm_settings_scope
-    from .llm_flow import capture_research_configuration
     namespace = f"research_artifact:{llm_settings_scope()}:{access_scope}"
     from .aql_zopedia_engine import research_engine_revision
-    contract = {"producer": producer if producer is not None else {
-                    "engine_revision": research_engine_revision(),
-                    "configuration_revision": capture_research_configuration()["revision"],
-                }, "query": query, "schema": schema, "provider": config.provider,
+    contract = {"engine_revision": research_engine_revision(), "query": query, "schema": schema, "provider": config.provider,
                 "endpoint": config.base_url, "model": config.model,
                 "thinking": config.thinking_mode, "effort": execution_effort(config.reasoning_effort),
                 "temperature": config.temperature, "style": get_active_narrative_style_rule(),
                 "literal_output": preserves_literal_output(),
-                "subject": subject, "representation_version": 3}
+                "subject": subject, "representation_version": 1}
     key = hashlib.sha256(json.dumps(contract, sort_keys=True, ensure_ascii=False, default=str).encode()).hexdigest()
     return namespace, key
 
@@ -381,7 +329,6 @@ def checkpoint_structured_research(function):
     def run(**kwargs):
         from jsonschema import Draft202012Validator
         from .aql_zopedia_engine import load_aql_zopedia_llm_client
-        from .llm import get_prompt
 
         access = kwargs.get("reuse_scope") or ""
         effort = kwargs.get("inference_effort") or ""
@@ -405,9 +352,6 @@ def checkpoint_structured_research(function):
             )
             if client is None:
                 return execute()
-            from .llm_flow import stage_client, research_workload, DEEP_REASONING_PROMPT
-            client, route = stage_client(client, kwargs.get("stage") or "synthesis")
-            _, reasoning_route = stage_client(client, "reasoning")
             kwargs["llm_client"] = client
             query = (kwargs.get("reuse_identity") or kwargs["query"]) + json.dumps(kwargs.get("initial_evidence"), sort_keys=True, default=str)
             query += json.dumps({key: kwargs.get(key) for key in (
@@ -416,82 +360,51 @@ def checkpoint_structured_research(function):
             )}, sort_keys=True, default=str)
             if kwargs.get("artifact_context") is not None:
                 query += json.dumps(kwargs["artifact_context"], sort_keys=True, default=str)
-            query += json.dumps({"initial_answer": kwargs.get("initial_answer"), "review_instructions": kwargs.get("review_instructions")}, sort_keys=True, default=str)
             if live_acquisition:
                 # Acquisition resumes only within this execution. A future
                 # scheduled investigation must reassess fresh external inputs.
                 query += json.dumps({"run_instance": run_instance, "max_tool_calls": kwargs["max_tool_calls"]})
             namespace, key = research_artifact_key(access_scope=access, subject=subject,
-                                                  query=query, schema=kwargs["schema"], config=client.config,
-                                                  producer=None if live_acquisition else {
-                                                      "implementation": hashlib.sha256(inspect.getsource(function).encode()).hexdigest(),
-                                                      "stage": route["stage"], "max_output_tokens": route.get("max_output_tokens", 0),
-                                                      "reasoning": {field: reasoning_route[field] for field in ("model", "thinking", "max_output_tokens")}
-                                                          if route["stage"] == "synthesis" and research_workload() in {"news", "knowledge"} else None,
-                                                      "reasoning_policy": get_prompt(DEEP_REASONING_PROMPT)
-                                                          if route["stage"] == "reasoning" or route["stage"] == "synthesis" and research_workload() in {"news", "knowledge"} else None,
-                                                  })
-            from . import pipeline_store
-            from .llm import remaining_request_timeout
-            owner = uuid.uuid4().hex
-            lease_namespace = namespace + ":leases"
-            wait_seconds = remaining_request_timeout(float(kwargs.get("run_timeout_seconds") or client.config.timeout_seconds))
-            wait_deadline = time.monotonic() + wait_seconds
-            claimed = False
-            while not claimed:
-                artifact = None if kwargs.get("force_refresh") else read_research_artifact(namespace, key, strict=True)
-                if artifact:
-                    return {**artifact["result"], "artifact_reuse": {"artifact_id": artifact["artifact_id"], "input_id": key, "namespace": namespace}}
-                claimed = pipeline_store.claim_execution_state(lease_namespace, key, owner=owner, seconds=wait_seconds + 120)
-                if not claimed:
-                    if time.monotonic() >= wait_deadline:
-                        raise TimeoutError("Compatible research is still running in another worker.")
-                    time.sleep(min(1, max(wait_deadline - time.monotonic(), 0)))
-            try:
-                artifact = None if kwargs.get("force_refresh") else read_research_artifact(namespace, key, strict=True)
-                saved = (artifact or {}).get("result") or {}
-                payload = saved.get("payload")
-                if isinstance(payload, dict) and not list(Draft202012Validator(kwargs["schema"]).iter_errors(payload)):
-                    result = {**saved, "artifact_reuse": {"artifact_id": artifact["artifact_id"],
-                                                         "created_at_utc": artifact["created_at_utc"],
-                                                         "namespace": namespace, "input_id": key}}
-                    callback = kwargs.get("progress_callback")
-                    if callback:
-                        callback({"stage": "research_artifact_reused", "message": "Reusing completed research for unchanged evidence.",
-                                  "artifact_id": artifact["artifact_id"], "progress": .9})
-                    return result
-                incomplete = None if kwargs.get("force_refresh") else _read_state(namespace + ":incomplete", key)
-                retained_agent = ((incomplete or {}).get("result") or {}).get("agent_result")
-                if live_acquisition and isinstance(retained_agent, dict):
-                    kwargs["retained_agent_result"] = retained_agent
-                partial_payload = ((incomplete or {}).get("result") or {}).get("partial_payload")
-                if isinstance(partial_payload, dict):
-                    kwargs["retained_partial_payload"] = partial_payload
-                partial_text = ((incomplete or {}).get("result") or {}).get("partial_text")
-                if partial_text:
-                    kwargs["retained_partial_text"] = partial_text
-                with model_call_context(artifact_input_id=key):
-                    result = execute()
-                payload = result.get("payload")
-                if (result.get("status") == "completed" and isinstance(payload, dict)
-                        and not list(Draft202012Validator(kwargs["schema"]).iter_errors(payload))):
-                    reference = retain_research_artifact(namespace, key, subject=subject, task=kwargs["task"], result=result)
-                    if reference:
-                        result = {**result, "research_artifact": reference}
-                elif result.get("status") == "failed":
-                    # Keep paid work for bounded schema repair; never publish it as
-                    # a completed checkpoint or let it authorize knowledge writes.
-                    _write_state(namespace + ":incomplete", key, {
-                        "input_id": key, "subject": subject, "task": kwargs["task"],
-                        "created_at_utc": datetime.now(timezone.utc).isoformat(),
-                        "query": kwargs["query"], "schema": kwargs["schema"], "result": result,
-                    })
+                                                  query=query, schema=kwargs["schema"], config=client.config)
+            artifact = None if kwargs.get("force_refresh") else read_research_artifact(namespace, key)
+            saved = (artifact or {}).get("result") or {}
+            payload = saved.get("payload")
+            if isinstance(payload, dict) and not list(Draft202012Validator(kwargs["schema"]).iter_errors(payload)):
+                result = {**saved, "artifact_reuse": {"artifact_id": artifact["artifact_id"],
+                                                     "created_at_utc": artifact["created_at_utc"],
+                                                     "namespace": namespace, "input_id": key}}
+                callback = kwargs.get("progress_callback")
+                if callback:
+                    callback({"stage": "research_artifact_reused", "message": "Reusing completed research for unchanged evidence.",
+                              "artifact_id": artifact["artifact_id"], "progress": .9})
                 return result
-            finally:
-                try:
-                    pipeline_store.release_execution_state(lease_namespace, key, owner=owner)
-                except Exception:
-                    log.warning("Research execution lease release unavailable: %s", key)
+            incomplete = None if kwargs.get("force_refresh") else _read_state(namespace + ":incomplete", key)
+            retained_agent = ((incomplete or {}).get("result") or {}).get("agent_result")
+            if live_acquisition and isinstance(retained_agent, dict):
+                kwargs["retained_agent_result"] = retained_agent
+            partial_payload = ((incomplete or {}).get("result") or {}).get("partial_payload")
+            if isinstance(partial_payload, dict):
+                kwargs["retained_partial_payload"] = partial_payload
+            partial_text = ((incomplete or {}).get("result") or {}).get("partial_text")
+            if partial_text:
+                kwargs["retained_partial_text"] = partial_text
+            with model_call_context(artifact_input_id=key):
+                result = execute()
+            payload = result.get("payload")
+            if (result.get("status") == "completed" and isinstance(payload, dict)
+                    and not list(Draft202012Validator(kwargs["schema"]).iter_errors(payload))):
+                reference = retain_research_artifact(namespace, key, subject=subject, task=kwargs["task"], result=result)
+                if reference:
+                    result = {**result, "research_artifact": reference}
+            elif result.get("status") == "failed":
+                # Keep paid work for bounded schema repair; never publish it as
+                # a completed checkpoint or let it authorize knowledge writes.
+                _write_state(namespace + ":incomplete", key, {
+                    "input_id": key, "subject": subject, "task": kwargs["task"],
+                    "created_at_utc": datetime.now(timezone.utc).isoformat(),
+                    "query": kwargs["query"], "schema": kwargs["schema"], "result": result,
+                })
+            return result
     return run
 
 

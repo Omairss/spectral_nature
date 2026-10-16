@@ -24,7 +24,6 @@ from .json_utils import to_jsonable
 from .llm_context import serialize_llm_context
 from .llm_execution import checkpoint_agent_research, checkpoint_structured_research
 from .llm import get_config_param, register_config_param
-from .llm_flow import configured_research, CHAT_KNOWLEDGE, resolve_research_client
 from .zopedia_runtime import ZopediaLLMClient, load_zopedia_llm_client
 
 
@@ -36,40 +35,26 @@ _WRITE_POLICIES = {"none", "propose", "safe_auto"}
 _P_AGENT_MAX_TOOL_CALLS = register_config_param(
     "Engine agent max tool calls",
     group="AQL / Zopedia Engine",
-    stage="researcher",
     default=10,
     description="Default tool budget for direct AQL/Zopedia agent runs.",
-    label="Tool calls",
 )
 _P_AGENT_RUN_TIMEOUT = register_config_param(
     "Engine agent run timeout seconds",
     group="AQL / Zopedia Engine",
-    stage="researcher",
     default=300,
     description="Whole research budget, including preparation, synthesis and review.",
-    label="Whole run (seconds)",
-    environment_variable="AQL_ZOPEDIA_AGENT_RUN_TIMEOUT_SECONDS",
-    minimum=1,
 )
 _P_TOOL_CALL_TIMEOUT_SECONDS = register_config_param(
     "Agent tool call timeout seconds",
     group="Zopedia",
-    stage="researcher",
     default=45,
     description="Maximum seconds for one shared research tool call.",
-    label="Tool timeout (seconds)", section="Step budgets",
-    environment_variable="AQL_ZOPEDIA_AGENT_TOOL_TIMEOUT_SECONDS",
-    minimum=1,
 )
 _P_LLM_STEP_TIMEOUT_SECONDS = register_config_param(
     "Agent LLM step timeout seconds",
     group="Zopedia",
-    stage="researcher",
     default=90,
     description="Maximum seconds for one shared research model step.",
-    label="Model step timeout (seconds)", section="Step budgets",
-    environment_variable="AQL_ZOPEDIA_AGENT_LLM_STEP_TIMEOUT_SECONDS",
-    minimum=1,
 )
 
 
@@ -82,7 +67,6 @@ def research_engine_revision() -> str:
         "zopedia_agent.py",
         "zopedia_research.py",
         "agent_tools.py",
-        "zopedia_analysis.py",
         "page_browsing.py",
         "agents/research_session.py",
         "aql_zopedia_gateway.py",
@@ -91,12 +75,11 @@ def research_engine_revision() -> str:
         "llm_execution.py",
         "zopedia_runtime.py",
         "llm.py",
-        "llm_flow.py",
-        "aql/evidence_pack.py",
         "saa/storage.py",
         "saa/semantic_index.py",
         "pipeline_store.py",
-        "agents/research_runs.py",
+        "database.py",
+        "../data_access/query_service.py",
     ):
         digest.update(name.encode())
         digest.update((Path(__file__).parent / name).read_bytes())
@@ -107,9 +90,16 @@ def resolve_research_budget(**overrides: Any) -> dict[str, int | float]:
     """Resolve execution settings once for every caller, including queued chat."""
     settings = {
         "max_tool_calls": _int_param(_P_AGENT_MAX_TOOL_CALLS),
-        "run_timeout_seconds": _int_param(_P_AGENT_RUN_TIMEOUT, minimum=1),
-        "tool_call_timeout_seconds": _int_param(_P_TOOL_CALL_TIMEOUT_SECONDS, minimum=1),
-        "llm_step_timeout_seconds": _int_param(_P_LLM_STEP_TIMEOUT_SECONDS, minimum=1),
+        "run_timeout_seconds": _env_int_or_none("AQL_ZOPEDIA_AGENT_RUN_TIMEOUT_SECONDS")
+        or _int_param(_P_AGENT_RUN_TIMEOUT, minimum=1),
+        "tool_call_timeout_seconds": _env_int_or_none(
+            "AQL_ZOPEDIA_AGENT_TOOL_TIMEOUT_SECONDS"
+        )
+        or _int_param(_P_TOOL_CALL_TIMEOUT_SECONDS, minimum=1),
+        "llm_step_timeout_seconds": _env_int_or_none(
+            "AQL_ZOPEDIA_AGENT_LLM_STEP_TIMEOUT_SECONDS"
+        )
+        or _int_param(_P_LLM_STEP_TIMEOUT_SECONDS, minimum=1),
         "prefetch_timeout_seconds": _env_int_or_none(
             "AQL_ZOPEDIA_AGENT_PREFETCH_TIMEOUT_SECONDS"
         )
@@ -124,10 +114,8 @@ def resolve_research_budget(**overrides: Any) -> dict[str, int | float]:
 _P_PAGE_SUMMARY_MAX_TOOL_CALLS = register_config_param(
     "Engine page summary max tool calls",
     group="AQL / Zopedia Engine",
-    stage="researcher",
     default=10,
     description="Tool budget for page summary evidence collection.",
-    label="Tool calls", section="Page summaries",
 )
 
 
@@ -148,7 +136,7 @@ def _normalize_write_policy(value: object, *, persist_findings: bool = True) -> 
         return "safe_auto"
     if policy in _WRITE_POLICIES:
         return policy
-    raise ValueError(f"Invalid knowledge policy: {value}")
+    return "safe_auto" if persist_findings else "none"
 
 
 def _compact_json(value: Any, *, limit: int = 12000) -> str:
@@ -190,14 +178,13 @@ def load_aql_zopedia_llm_client(
     clean_surface = _clean(surface)
     if not clean_surface:
         raise ValueError("surface is required for AQL/Zopedia LLM access")
-    return resolve_research_client(lambda: load_zopedia_llm_client(
+    return load_zopedia_llm_client(
         surface=clean_surface,
         env_prefix=env_prefix,
         fallback_to_default=fallback_to_default,
-    ))
+    )
 
 
-@configured_research
 @checkpoint_agent_research
 def run_aql_zopedia_agent(
     *,
@@ -224,18 +211,11 @@ def run_aql_zopedia_agent(
     resume_state: dict[str, Any] | None = None,
     answer_review_owner: str = "agent",
     checkpoint_callback: ProgressCallback | None = None,
-    output_stage: str = "synthesis",
-    initial_answer: str = "",
-    review_instructions: str = "",
 ) -> dict[str, Any]:
     """Shared AQL/Zopedia orchestration entrypoint for tool-using research.
 
     The Zopedia agent implementation owns the planner/tool loop behind this AQL/Zopedia engine boundary.
     """
-    if initial_evidence is not None and (
-        not isinstance(initial_evidence, list) or any(not isinstance(item, dict) for item in initial_evidence)
-    ):
-        raise ValueError("initial_evidence must be a list of source objects.")
     from .zopedia_agent import _run_zopedia_agent_loop
 
     settings = resolve_research_budget(
@@ -250,8 +230,6 @@ def run_aql_zopedia_agent(
     tool_call_timeout_seconds = int(settings["tool_call_timeout_seconds"])
     llm_step_timeout_seconds = int(settings["llm_step_timeout_seconds"])
     prefetch_timeout_seconds = int(settings["prefetch_timeout_seconds"])
-    if write_policy is None and surface == "zopedia.chat":
-        write_policy = str(get_config_param(CHAT_KNOWLEDGE))
     resolved_write_policy = _normalize_write_policy(write_policy, persist_findings=persist_findings)
 
     result = _run_zopedia_agent_loop(
@@ -278,9 +256,6 @@ def run_aql_zopedia_agent(
         resume_state=resume_state,
         answer_review_owner=answer_review_owner,
         checkpoint_callback=checkpoint_callback,
-        output_stage=output_stage,
-        initial_answer=initial_answer,
-        review_instructions=review_instructions,
     )
     if not isinstance(result, dict):
         result = {
@@ -360,10 +335,7 @@ def _repair_structured_payload_from_agent_answer(
     deadline_monotonic: float,
 ) -> dict[str, Any] | None:
     answer = _clean(answer_markdown)
-    if not answer or time.monotonic() >= deadline_monotonic:
-        return None
-    llm_client = llm_client or load_aql_zopedia_llm_client(surface=surface)
-    if llm_client is None:
+    if not answer or llm_client is None or time.monotonic() >= deadline_monotonic:
         return None
     parsed_answer = parse_aql_zopedia_structured_answer(answer)
     violations = [
@@ -411,7 +383,6 @@ def _repair_structured_payload_from_agent_answer(
     return None
 
 
-@configured_research
 @checkpoint_structured_research
 def run_aql_zopedia_structured_agent(
     *,
@@ -448,24 +419,12 @@ def run_aql_zopedia_structured_agent(
     operation_metadata: dict[str, Any] | None = None,
     request_context: dict[str, Any] | None = None,
     resume_state: dict[str, Any] | None = None,
-    stage: str = "synthesis",
-    initial_answer: dict[str, Any] | None = None,
-    review_instructions: str = "",
 ) -> dict[str, Any]:
     """Run the shared Zopedia tool agent and require a structured JSON answer.
 
     This keeps product feature modules out of direct LLM calls while still
     giving them typed materialization contracts.
     """
-    if initial_evidence is not None and (
-        not isinstance(initial_evidence, list) or any(not isinstance(item, dict) for item in initial_evidence)
-    ):
-        raise ValueError("initial_evidence must be a list of source objects.")
-    if initial_answer is not None:
-        errors = list(Draft202012Validator(schema).iter_errors(initial_answer))
-        if errors:
-            raise ValueError("The supplied analysis does not match its artifact schema: " + errors[0].message)
-        review_answer = True
     budget = resolve_research_budget(llm_step_timeout_seconds=llm_step_timeout_seconds)
     timeout = run_timeout_seconds if run_timeout_seconds is not None else budget["run_timeout_seconds"]
     if run_timeout_seconds is None and max_tool_calls is not None and int(max_tool_calls) <= 0 and llm_step_timeout_seconds is not None:
@@ -485,9 +444,6 @@ def run_aql_zopedia_structured_agent(
         structured_query += "\nSupplied evidence:\n" + serialize_llm_context(initial_evidence)
     if max_tool_calls is not None and int(max_tool_calls) <= 0 and not review_answer:
         resolved_llm = llm_client or load_aql_zopedia_llm_client(surface=surface)
-        if resolved_llm is not None:
-            from .llm_flow import stage_client
-            resolved_llm, route = stage_client(resolved_llm, stage)
         if resolved_llm is None:
             return {
                 "status": "unavailable",
@@ -520,20 +476,6 @@ def run_aql_zopedia_structured_agent(
             )
         payload = retained_partial_payload
         partial_text = retained_partial_text
-        from .llm_flow import research_workload
-        _, reasoning_route = stage_client(resolved_llm, "reasoning")
-        allow_deep_analysis = stage == "synthesis" and research_workload() in {"news", "knowledge"} and schema.get("type") == "object" and any(route[key] != reasoning_route[key] for key in ("model", "thinking"))
-        generation_schema = schema
-        analysis_policy = ""
-        if allow_deep_analysis:
-            generation_schema = {**schema, "properties": {**schema.get("properties", {}), "__analysis_request": {"type": "string"}}}
-            analysis_policy = (
-                "\nRoutine preparation uses the economical model. Set __analysis_request to a concrete unresolved analytical question only "
-                "when a consequential inference, conflicting evidence or a difficult research direction warrants deeper reasoning. "
-                "Use an empty string for routine extraction, organization, summary or writing from resolved findings. "
-                "Do not request escalation merely because information is incomplete. Preserve useful hypotheses and task premises."
-            )
-        deep_analysis_used = False
         try:
             if payload is None and partial_text:
                 payload = parse_aql_zopedia_structured_answer(partial_text)
@@ -550,15 +492,15 @@ def run_aql_zopedia_structured_agent(
                     surface=surface,
                     purpose=f"{_clean(task) or 'structured_answer'}.direct",
                     call_type=call_type,
-                    stage=stage,
-                    system_prompt=(instructions or (
+                    system_prompt=instructions
+                    or (
                         "You are the Spectral Nature AQL/Zopedia structured synthesis engine. "
                         "Use the supplied prompt context as evidence. Do not call tools. "
                         "Return only the requested JSON object and do not invent facts."
-                    )) + analysis_policy,
+                    ),
                     user_prompt=structured_query,
                     schema_name=schema_name,
-                    schema=generation_schema,
+                    schema=schema,
                     deadline_monotonic=deadline,
                     metadata={
                         **(operation_metadata or {}),
@@ -572,22 +514,6 @@ def run_aql_zopedia_structured_agent(
                         ),
                     },
                 )
-            analysis_request = payload.get("__analysis_request") if allow_deep_analysis else ""
-            if analysis_request:
-                resolved_llm = stage_client(resolved_llm, "reasoning")[0]
-                resolved = generate_json_via_aql_zopedia_gateway(
-                    llm_client=resolved_llm, surface=surface, purpose=f"{_clean(task) or 'structured_answer'}.deep_reasoning",
-                    stage="reasoning", call_type="research_grade",
-                    system_prompt=(instructions or "Resolve the analytical question against the original evidence.")
-                        + "\nAssess the draft yourself. Preserve explicit task assumptions; distinguish them from external assertions. "
-                          "Resolve consequential claims against their actual basis and plausible alternatives. Return the requested artifact.",
-                    user_prompt=structured_query + "\n\nAnalytical question:\n" + str(analysis_request)
-                        + "\n\nExisting draft to assess:\n" + serialize_llm_context({key: value for key, value in payload.items() if not key.startswith("__")}),
-                    schema_name=schema_name, schema=schema, deadline_monotonic=deadline,
-                    metadata={**(operation_metadata or {}), "task": task, "max_tool_calls": 0},
-                )
-                payload = resolved
-                deep_analysis_used = True
             payload = {key: value for key, value in payload.items() if not key.startswith("__")}
             errors = list(Draft202012Validator(schema).iter_errors(payload))
             if errors:
@@ -661,7 +587,6 @@ def run_aql_zopedia_structured_agent(
                 "max_tool_calls": 0,
                 "structured_direct": True,
                 "structured_repair_used": structured_repair_used,
-                "deep_analysis_used": deep_analysis_used,
             },
         }
         if progress_callback is not None:
@@ -705,9 +630,6 @@ def run_aql_zopedia_structured_agent(
         response_schema=schema,
         response_schema_name=schema_name,
         answer_review_owner=answer_review_owner,
-        output_stage=stage,
-        initial_answer=json.dumps(initial_answer, ensure_ascii=False, default=str) if initial_answer is not None else "",
-        review_instructions=review_instructions,
         resume_state=(
             resume_state
             if resume_state is not None

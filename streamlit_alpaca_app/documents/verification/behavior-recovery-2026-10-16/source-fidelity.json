@@ -1,0 +1,430 @@
+[
+  {
+    "component": "home-editor",
+    "path": "pipeline/jobs/attention_home_build.py",
+    "function": "_review_home_public_surface",
+    "accepted_reference": "home",
+    "matches": true,
+    "sha256": "1f36aec25c74b1aa214605b4ddc3979f2388bf70539c541a9ff18a30b3d00833"
+  },
+  {
+    "component": "home-editor",
+    "path": "pipeline/jobs/attention_home_build.py",
+    "function": "_home_surface_quality_items",
+    "accepted_reference": "home",
+    "matches": true,
+    "sha256": "13d4867f82e39368cd4293c62d2391a73e7cdb14710c7cd979dc624d2d634185"
+  },
+  {
+    "component": "home-editor",
+    "path": "pipeline/jobs/attention_home_build.py",
+    "function": "_apply_home_surface_quality_items",
+    "accepted_reference": "home",
+    "matches": true,
+    "sha256": "971fbd87b76a05ea917af55e52552e5e5dea2b906d9c0a65a4068dba6966c67d"
+  },
+  {
+    "component": "home-editor",
+    "path": "pipeline/jobs/attention_home_build.py",
+    "function": "_build_market_summary_query",
+    "accepted_reference": "home",
+    "matches": true,
+    "sha256": "33d2bc4811d08ee3ca4b92e22c57fa7168594b150b118c4d5215432fce99494b"
+  },
+  {
+    "component": "home-editor",
+    "path": "pipeline/jobs/attention_home_build.py",
+    "function": "_run_zopedia_market_summary",
+    "accepted_reference": "home",
+    "matches": true,
+    "sha256": "ef661ee5c3ef79e11699e3930cd9fa69aafab4713023ad0d5ad5c813c4e65768"
+  },
+  {
+    "component": "lossless-text",
+    "path": "services/attention_surface.py",
+    "function": "clean_attention_text",
+    "accepted_reference": "home",
+    "matches": true,
+    "sha256": "6b368c9251f38bda5a3f4c93291b8be157791d2179d1176bc69ce5ab60a206e5"
+  },
+  {
+    "component": "intraday",
+    "path": "services/alpaca_api.py",
+    "function": "AlpacaAPI.get_stock_bars",
+    "accepted_reference": "home",
+    "matches": true,
+    "sha256": "cf29e5326e10e5b67be08c6fc16839e31ba179c7c76a6ae29f442c4f973e967b"
+  },
+  {
+    "component": "market-memory-dates",
+    "path": "pipeline/jobs/main.py",
+    "function": "_prepare_frame_for_parquet",
+    "accepted_reference": "equities",
+    "matches": true,
+    "sha256": "72c51a29ac2dfa744f166128182bfd32ff606736b9b9e1b1103eaa53e2379ead"
+  },
+  {
+    "component": "market-memory-dates",
+    "path": "pipeline/jobs/main.py",
+    "function": "_upload_symbol_partitions",
+    "accepted_reference": "equities",
+    "matches": true,
+    "sha256": "a34f4bb4e1d648694cbad27b8ce308cdef9b87f9734a6c1c16da884cfda6f93f"
+  },
+  {
+    "component": "market-memory-dates",
+    "path": "pipeline/jobs/main.py",
+    "function": "run_equities",
+    "accepted_reference": "equities",
+    "matches": true,
+    "sha256": "30edde11b7fd03b9bda310133a1446d448d4b798bb8833a784cd300f070f23fa"
+  },
+  {
+    "component": "market-memory-dates",
+    "path": "pipeline/jobs/main.py",
+    "function": "_load_latest_materialized_frame",
+    "accepted_reference": "equities",
+    "matches": true,
+    "sha256": "123ae64b4cae418475d5d1e6383fb2d8ae74ef7a4546605432ba0fb67972e88f"
+  },
+  {
+    "component": "chart-selection",
+    "path": "services/home_view.py",
+    "function": "_daily_datapoints_view",
+    "accepted_reference": "api-before",
+    "matches": true,
+    "sha256": "77939a71088f78214751f03c3ada81f276e85cf52cc22285aae972150be60dae"
+  },
+  {
+    "component": "chart-selection",
+    "path": "services/home_view.py",
+    "function": "build_public_home_view",
+    "accepted_reference": "api-before",
+    "matches": true,
+    "sha256": "72b721fc39f2de7d18105b55b4f9bc41c8df8ce9ad67f89c830219a92c493909"
+  },
+  {
+    "component": "source-index-maintenance",
+    "path": "services/saa/zopedia.py",
+    "function": "_build_source_page_index",
+    "accepted_reference": "general-before",
+    "matches": true,
+    "sha256": "086630bf36fc3529a36bda129e678bdfd7b7754b0f64d5b26a019713752b2593"
+  },
+  {
+    "component": "source-index-maintenance",
+    "path": "services/saa/zopedia.py",
+    "function": "_source_refs_for_page",
+    "accepted_reference": "general-before",
+    "matches": true,
+    "sha256": "93d981109fe280efaf556e20630bd4ac9ed6b43a343bf099538835165c9e63c6"
+  },
+  {
+    "component": "source-index-maintenance",
+    "path": "services/saa/zopedia.py",
+    "function": "run_zopedia_maintenance",
+    "accepted_reference": "general-before",
+    "matches": true,
+    "sha256": "0f49c0ec42c6639cc13a79ad2d88d3adb10b9b5b9f8c90a524e07f151a46b192"
+  },
+  {
+    "component": "health",
+    "path": "services/system_health.py",
+    "function": "reconcile_job_executions",
+    "accepted_reference": "health-before",
+    "matches": true,
+    "sha256": "58b98527030bac08327fff1102ae0b9a60be351fb70715b07975dfe2e0ecc4d2"
+  },
+  {
+    "component": "health",
+    "path": "services/system_health.py",
+    "function": "_latest_jobs",
+    "accepted_reference": "health-before",
+    "matches": true,
+    "sha256": "035819b85b0b77f1ff9d3c67c47919d0b500b4e1bc7c899397b1a7784feddeb5"
+  },
+  {
+    "component": "health",
+    "path": "services/system_health.py",
+    "function": "_recent_provider_failures",
+    "accepted_reference": "health-before",
+    "matches": true,
+    "sha256": "7fccac01fe97eee867b24d9b9df17846c090e78e1bb5f9875bd48f9ea5c25f1f"
+  },
+  {
+    "component": "health",
+    "path": "services/system_health.py",
+    "function": "evaluate_system_health",
+    "accepted_reference": "health-before",
+    "matches": true,
+    "sha256": "3d3f5061ab175dbd98433e796dbae24634d89edadc2d68139050a5231fc1f5dc"
+  },
+  {
+    "component": "broker-cadence",
+    "path": "services/robinhood_main_sync.py",
+    "function": "scheduled_interval",
+    "accepted_reference": "broker-before",
+    "matches": true,
+    "sha256": "3e909c67f376a3d5aa73f4b8b368a358732f346574513cbb9d38fa09b6c2548e"
+  },
+  {
+    "component": "broker-cadence",
+    "path": "services/robinhood_main_sync.py",
+    "function": "schedule_bucket_start",
+    "accepted_reference": "broker-before",
+    "matches": true,
+    "sha256": "c4fb619cb882104b1221047c9c20ffe05d4a9aceec9de9019f05fdcf31679a09"
+  },
+  {
+    "component": "broker-cadence",
+    "path": "services/robinhood_main_sync.py",
+    "function": "enqueue_due",
+    "accepted_reference": "broker-before",
+    "matches": true,
+    "sha256": "737f382beaa430cbdc9d8f7d865be9a21fcdc037c9c04148e631017a5b9715e3"
+  },
+  {
+    "component": "broker-dedup",
+    "path": "services/robinhood_main_store.py",
+    "function": "enqueue_due_refreshes",
+    "accepted_reference": "broker-before",
+    "matches": true,
+    "sha256": "19be2068a5b29f5a74d3b1d06fa4a9947f021d8c9b9129e43aebef03d30a3156"
+  },
+  {
+    "component": "retained-trading",
+    "path": "services/trading_agent.py",
+    "matches": true,
+    "accepted_reference": "actual immediate prior Trading image",
+    "comparison": "byte-identical"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/database.py",
+    "matches": true,
+    "comparison": "accepted lifecycle source digest"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/work_scope.py",
+    "matches": true,
+    "comparison": "accepted lifecycle source digest"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/zopedia_agent.py",
+    "function": "_invoke_tool_with_heartbeat",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/zopedia_agent.py",
+    "function": "_run_hidden_step_with_timeout",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "_write_cached_metadata",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "reconcile_dataset_manifests",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "_blob_io_options",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "ImmutableBlobArchive",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "_read_blob_json",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "_stable_latest_manifest_metadata",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "_publication_generation",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "publish_dataset_manifest",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "latest_dataset_metadata",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "_uncached_latest_dataset_metadata",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "load_recent_dataset_frames",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "reconcile_provider_attempt_receipts",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/pipeline_store.py",
+    "function": "provider_usage_rollup",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/saa/semantic_index.py",
+    "function": "_projection_store",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/saa/semantic_index.py",
+    "function": "_projected_batch",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/saa/semantic_index.py",
+    "function": "_projected",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/saa/semantic_index.py",
+    "function": "refresh_evidence_index",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/saa/semantic_index.py",
+    "function": "sync_zopedia_evidence",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/saa/semantic_index.py",
+    "function": "sync_recent_news_evidence",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "pipeline/jobs/main.py",
+    "function": "_db_connection",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "pipeline/jobs/main.py",
+    "function": "_upload_manifest",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "pipeline/jobs/main.py",
+    "function": "_call_with_timeout",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "pipeline/jobs/main.py",
+    "function": "run_system_recovery",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "pipeline/jobs/main.py",
+    "function": "run_evidence_index",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "pipeline/jobs/main.py",
+    "function": "main",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/operational_health.py",
+    "function": "_database",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "pipeline/jobs/attention_home_build.py",
+    "function": "_call_with_timeout",
+    "matches": false,
+    "reviewed_difference": "Preserves cancellation and context propagation; current Git also rejects a nonpositive budget instead of starting work. The two positive-deadline expressions are equivalent."
+  },
+  {
+    "component": "retained-database",
+    "path": "services/aql/pipeline.py",
+    "function": "_call_with_timeout",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  },
+  {
+    "component": "retained-database",
+    "path": "services/zopedia_research.py",
+    "function": "_run_with_timeout",
+    "matches": true,
+    "comparison": "accepted scoped database function"
+  }
+]

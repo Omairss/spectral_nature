@@ -89,7 +89,7 @@ def verify_hypothesis(
             instructions=get_prompt(_HYPOTHESIS_VERIFICATION_SYSTEM_PROMPT),
             schema_name="hypothesis_verification",
             schema=HYPOTHESIS_VERIFICATION_SCHEMA,
-            task="hypothesis_verification", stage='synthesis',
+            task="hypothesis_verification",
             surface="services.common.hypothesis",
             llm_client=llm_client,
             max_tool_calls=0,

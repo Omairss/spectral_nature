@@ -56,7 +56,6 @@ from services.entity_taxonomy import (
 )
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
 from services.llm import LLMAPIError
-from services.llm_flow import configured_research, workload_value
 from services.market_data import (
     build_correlation_phase_shifts_from_bars,
     build_momentum_profiles_from_bars,
@@ -1130,7 +1129,7 @@ def _setdefault_int_env(name: str, value: int) -> None:
 
 
 def _configure_news_business_research_budget_env() -> None:
-    budget = workload_value("news", "research_seconds")
+    budget = _parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_BUDGET_SECONDS", 3600, minimum=60)
     tool_timeout = _parse_int_env(
         "ZOPEDIA_TICKER_BUSINESS_AGENT_TOOL_TIMEOUT_SECONDS",
         min(max(budget // 2, 300), budget),
@@ -2029,13 +2028,6 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         except Exception as exc:
             print(f"[warn] anomaly layer skipped: {type(exc).__name__}: {exc}")
 
-        # Publish the core equity artifacts before optional paper-call valuation.
-        try:
-            run_trading_call_tracking(ctx, conn, api=api)
-        except Exception as exc:
-            ctx.degraded_components["trading_call_tracking"] = type(exc).__name__
-            print(f"[warn] approved-call tracking refresh failed: {type(exc).__name__}: {exc}", flush=True)
-
         # Fundamentals refresh moved to standalone job: fundamentals-quarterly-refresh
     except AlpacaAPIError as exc:
         print(f"[error] equities preload failed: {exc}")
@@ -2417,6 +2409,7 @@ def _iter_news_business_research_output_phases(
     zopedia_pages = _zopedia_pages_for_news_resolution(conn)
     write_policy = _normalize_zopedia_write_policy(os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "safe_auto"))
     execute_business_research = _parse_bool_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_ENABLED", True)
+    _configure_news_business_research_budget_env()
     serp_client = None
     tavily_client = None
     if execute_business_research:
@@ -2435,13 +2428,13 @@ def _iter_news_business_research_output_phases(
         serp_client=serp_client,
         tavily_client=tavily_client,
         execute_research=execute_business_research,
-        max_research_queries=workload_value("news", "queries"),
-        max_search_results_per_query=workload_value("news", "results"),
+        max_research_queries=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_QUERY_LIMIT", 24, minimum=1),
+        max_search_results_per_query=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_RESULTS_PER_QUERY", 4, minimum=1),
         llm_client=llm_client,
         run_id=ctx.run_id,
         asof_time_utc=ctx.asof,
         write_policy=write_policy,
-        limit=workload_value("news", "companies"),
+        limit=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_STACK_LIMIT", 25, minimum=1),
         progress_callback=_make_stdout_zopedia_progress_callback(scope="ticker_business_model_stack"),
     )
     stack_frame = business_stack_frames.get("zopedia_ticker_business_model_stacks", pd.DataFrame())
@@ -2465,7 +2458,7 @@ def _iter_news_business_research_output_phases(
         run_id=ctx.run_id,
         asof_time_utc=ctx.asof,
         write_policy=write_policy,
-        limit=workload_value("news", "stories"),
+        limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_LIMIT", 12, minimum=1),
     )
     memory_parts = [
         business_stack_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
@@ -2524,12 +2517,11 @@ def _iter_news_business_research_output_phases(
             if count:
                 missing_narratives[dataset_name] = count
     if missing_narratives:
-        # Valid research is already retained. Report missing units separately;
-        # one optional interpretation does not justify a blind whole-job retry.
+        # All research and completed narratives have already been checkpointed.
+        # A model execution/schema failure must not be reported as job success.
         ctx.degraded_components["news_narratives"] = json.dumps(missing_narratives, sort_keys=True)
 
 
-@configured_research(workload="news", prepare=_configure_news_business_research_budget_env)
 def run_news(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting news and attention preload.", progress_pct=1.0)
     cfg = _alpaca_config()
@@ -2685,53 +2677,6 @@ def run_daily_datapoints(ctx: JobContext, conn: Any | None = None) -> None:
     run_daily_market_datapoints_build(ctx, conn, persist_dataset_fn=_persist_dataset, job_progress_fn=_job_progress, load_materialized_frame_fn=_load_latest_materialized_frame)
 
 
-@configured_research(workload="trading")
-def run_trading_call_tracking(ctx: JobContext, conn: Any | None = None, *, api: AlpacaAPI | None = None) -> None:
-    """Price refresh for approved calls; never waits for or starts inference."""
-    from services import trading_call_tracking as tracking
-    tracking.initialize_tracking()
-    calls = tracking.approved_calls()
-    if not calls:
-        return
-    previous, _ = load_latest_dataset_frame(tracking.DATASET)
-    previous_ids = set(previous.get("tracking_id", pd.Series(dtype=str)).astype(str))
-    active = [item for item in calls if not item.get("completed_at_utc") or item["tracking_id"] not in previous_ids]
-    if not active:
-        return
-    if api is None:
-        config = _alpaca_config()
-        if config is None:
-            raise RuntimeError("Alpaca price data is unavailable for approved-call tracking.")
-        api = AlpacaAPI(config)
-    symbols = sorted({item["ticker"] for item in active} | {"SPY"})
-    start = min(pd.Timestamp(item["approved_at_utc"]) for item in active).to_pydatetime()
-    calendar = api.get_market_calendar(
-        start=pd.Timestamp(start).tz_convert("America/New_York").date().isoformat(),
-        end=(pd.Timestamp(ctx.asof).tz_convert("America/New_York") + pd.Timedelta(days=14)).date().isoformat(),
-    )
-    trading_days = [row["date"] for row in calendar]
-    # A fresh adjusted window keeps the entry and mark on the same corporate-
-    # action basis. The general incremental cache can contain older adjustments.
-    bars = api.get_stock_bars(symbols, start=start, end=ctx.asof, timeframe="1Day", feed="iex", adjustment="all")
-    prices = _bars_to_price_history_frame(bars)
-    version = ""
-    if not prices.empty:
-        _persist_dataset(tracking.PRICE_DATASET, prices, ctx, conn)
-        version = ctx.published_datasets[tracking.PRICE_DATASET]
-    outcomes, entries = tracking.build_approved_outcomes(
-        calls=calls, prices=prices, previous=previous, as_of=ctx.asof, price_version=version, trading_days=trading_days,
-    )
-    pinned = tracking.pin_entries(entries)
-    if pinned != entries:
-        for item in calls:
-            if item["tracking_id"] in pinned:
-                item["entry_payload"] = pinned[item["tracking_id"]]
-        outcomes, _ = tracking.build_approved_outcomes(
-            calls=calls, prices=prices, previous=previous, as_of=ctx.asof, price_version=version, trading_days=trading_days,
-        )
-    _persist_dataset(tracking.DATASET, outcomes, ctx, conn)
-    tracking.complete_calls(outcomes)
-    _job_progress(ctx, conn, stage="approved_call_tracking", message=f"Updated {len(outcomes)} approved paper calls.")
 
 
 def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
@@ -2777,7 +2722,7 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
     except LLMAPIError as exc:
         print(f"[warn] trading-agent LLM runtime unavailable: {exc}")
 
-    candidate_limit = workload_value("trading", "candidates")
+    candidate_limit = _parse_int_env("TRADING_AGENT_CANDIDATE_LIMIT", 4, minimum=1)
     generation_mode = str(os.getenv("TRADING_AGENT_GENERATION_MODE") or "shared_research_v2").strip().lower()
     if generation_mode not in {"shared_research_v2", "legacy_per_horizon_v1"}:
         raise ValueError(
@@ -2820,11 +2765,15 @@ def run_trading_agent(ctx: JobContext, conn: Any | None = None) -> None:
             asof_time_utc=ctx.asof,
             business_filter="All Market",
             max_candidates=candidate_limit,
-            research_candidate_limit=max(workload_value("trading", "shortlist"), candidate_limit),
-            research_pool_limit=workload_value("trading", "research_pool"),
-            research_parallelism=workload_value("trading", "parallelism"),
-            research_max_tool_calls=workload_value("trading", "tool_calls"),
-            research_attempts=workload_value("trading", "attempts"),
+            research_candidate_limit=_parse_int_env(
+                "TRADING_AGENT_SCOUT_LIMIT_PER_HORIZON",
+                6,
+                minimum=candidate_limit,
+            ),
+            research_pool_limit=_parse_int_env("TRADING_AGENT_RESEARCH_POOL_LIMIT", 8, minimum=1),
+            research_parallelism=_parse_int_env("TRADING_AGENT_RESEARCH_PARALLELISM", 2, minimum=1),
+            research_max_tool_calls=_parse_int_env("TRADING_AGENT_RESEARCH_MAX_TOOL_CALLS", 4, minimum=1),
+            research_attempts=_parse_int_env("TRADING_AGENT_RESEARCH_ATTEMPTS", 2, minimum=1),
             research_tool_timeout_seconds=_parse_int_env(
                 "TRADING_AGENT_RESEARCH_TOOL_TIMEOUT_SECONDS",
                 45,
@@ -3445,7 +3394,6 @@ def main() -> None:
         "attention-ticker-snapshot-build": run_attention_ticker_snapshots,
         "daily-market-datapoints-build": run_daily_datapoints,
         "trading-agent-build": run_trading_agent,
-        "trading-call-tracking": run_trading_call_tracking,
         "entity-taxonomy-refresh": run_entity_taxonomy,
         "company-baseline-prefetch": run_company_baselines,
         "fundamentals-quarterly-refresh": run_fundamentals,

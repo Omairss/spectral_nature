@@ -775,7 +775,6 @@ def _structured_agent_payload(
             schema_name=schema_name,
             schema=schema,
             task=task,
-            stage="knowledge",
             surface=surface,
             max_tool_calls=max_tool_calls,
             llm_client=llm_client,

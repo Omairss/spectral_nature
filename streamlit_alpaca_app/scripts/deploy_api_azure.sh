@@ -222,6 +222,7 @@ resolve_image_ref() {
 }
 
 build_api_image() {
+  python3 scripts/release_source.py --role "$SOURCE_ROLE" --target "$TARGET_APP"
   local source_status
   source_status="$(git status --porcelain --untracked-files=all -- .)" || die "Cannot verify release source in Git."
   if [[ -n "$source_status" ]]; then
@@ -395,6 +396,9 @@ if [[ -n "$PROMOTE_FROM" && "$PROMOTE_FROM" == "$TARGET" ]]; then
 fi
 
 TARGET_APP="$(target_app_name "$TARGET")"
+SOURCE_ROLE="api"
+[[ "$TARGET_APP" != sn-api-next* ]] || SOURCE_ROLE="api-next"
+python3 scripts/release_source.py --role "$SOURCE_ROLE" --target "$TARGET_APP" --target-only
 PROMOTION_SOURCE_APP=""
 [[ -z "$PROMOTE_FROM" ]] || PROMOTION_SOURCE_APP="$(target_app_name "$PROMOTE_FROM")"
 

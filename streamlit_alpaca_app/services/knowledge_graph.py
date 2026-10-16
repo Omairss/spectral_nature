@@ -1365,7 +1365,7 @@ def _agentic_graph_expansion(
             instructions=prompt,
             schema_name="knowledge_graph_expansion",
             schema=_GRAPH_EXPANSION_SCHEMA,
-            task="knowledge_graph_expansion", stage="knowledge",
+            task="knowledge_graph_expansion",
             surface="services.knowledge_graph",
             llm_client=llm_client,
             max_tool_calls=4,

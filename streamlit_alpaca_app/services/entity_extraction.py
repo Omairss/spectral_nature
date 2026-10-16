@@ -311,7 +311,7 @@ def _llm_entity_mentions(text: str, *, llm_client: Any | None) -> list[EntityMen
             instructions="Extract finance-relevant named entities from market text. Prefer companies, tickers, commodities, products, technologies, policies, infrastructure, macro concepts, supply-chain inputs, end markets, and durable themes. Do not return generic words such as stock, market, company, demand, supply, growth, risk, or sentiment.",
             schema_name="aql_entity_extraction",
             schema=_ENTITY_EXTRACTION_SCHEMA,
-            task="aql_entity_extraction", stage="summary",
+            task="aql_entity_extraction",
             surface="services.entity_extraction",
             llm_client=llm_client,
             max_tool_calls=0,

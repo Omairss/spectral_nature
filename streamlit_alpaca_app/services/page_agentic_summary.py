@@ -11,14 +11,12 @@ import pandas as pd
 from .attention_surface import clean_attention_text
 from .json_utils import to_jsonable, to_list
 from .llm_context import serialize_llm_context
-from .llm_flow import configured_research
 from .llm import (
+    LLMAPIError,
     get_prompt,
-    get_config_param,
     llm_request_deadline,
     remaining_request_timeout,
     register_narrative_prompt,
-    register_config_param,
 )
 
 
@@ -26,10 +24,9 @@ _PAGE_SUMMARY_SYSTEM_PROMPT = register_narrative_prompt(
     name="Page Agentic Summary",
     file="services/page_agentic_summary.py",
     group="Page Summaries",
-    stage="synthesis",
     prompt=(
         f"You are the Spectral Nature page summary agent. "
-        "Use the supplied page data and acquired original sources. Do not invent live prices, catalysts, or macro releases. "
+        "Write from the supplied page data only. Do not invent live prices, catalysts, or macro releases. "
         "Focus on updates, the supported analytical focus, and concrete next checks. "
         "Do not headline unknowns or narrate missing evidence. If evidence is thin, write the observable setup and move the open question "
         "into watch_items as a concrete evidence target. Data gaps must name evidence to go fetch, not complain about "
@@ -56,27 +53,20 @@ _PAGE_SUMMARY_SCHEMA: dict[str, Any] = {
     "required": ["headline", "summary_markdown", "watch_items", "data_gaps", "confidence"],
 }
 
-_PAGE_SUMMARY_REVIEW_PROMPT = register_narrative_prompt(
-    name="Page summary review", file="services/page_agentic_summary.py",
-    group="Page Summaries", stage="review",
-    prompt=(
-        "Review the page summary against its supplied evidence. Check that the headline names a supported "
-        "move, setup or focus; numeric comparisons and dates are literal; and technical levels are not presented "
-        "as causes. Encourage useful business connections and hypotheses at their actual evidence strength. "
-        "This is a short page summary, roughly 150 to 300 words. Put concrete follow-ups in watch_items and "
-        "evidence targets in data_gaps. Flag unsupported forecasts, raw tool failures, internal status inventories "
-        "and missing-evidence filler in public prose. Suggest substantive corrections without manufacturing objections."
-    ),
-)
+_PAGE_SUMMARY_REVIEW_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "accepted": {"type": "boolean"},
+        "issues": {"type": "array", "items": {"type": "string"}},
+        "revision_instruction": {"type": "string"},
+        "revised_summary": {"anyOf": [_PAGE_SUMMARY_SCHEMA, {"type": "null"}]},
+        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+    },
+    "required": ["accepted", "issues", "revision_instruction", "confidence", "revised_summary"],
+}
 
 AgentRunner = Callable[..., dict[str, Any]]
-
-_PAGE_SUMMARY_TIMEOUT = register_config_param(
-    "Page summary run timeout seconds", "Page Summaries", 300,
-    "Whole page-summary research and review budget.", stage="researcher",
-    label="Whole run (seconds)", section="Page summaries", minimum=1,
-    environment_variable=("PAGE_AGENTIC_SUMMARY_RESEARCH_TIMEOUT_SECONDS", "PAGE_AGENTIC_SUMMARY_TIMEOUT_SECONDS"),
-)
 
 
 def _page_summary_write_policy(default: str = "safe_auto") -> str:
@@ -110,8 +100,22 @@ def _compact_json(value: Any, *, limit: int = 12000) -> str:
     return serialize_llm_context(value)
 
 
+def _env_positive_int(name: str, default: int, *, maximum: int | None = None) -> int:
+    raw = _clean(os.getenv(name))
+    try:
+        value = int(raw) if raw else int(default)
+    except Exception:
+        value = int(default)
+    value = max(value, 0)
+    if maximum is not None:
+        value = min(value, int(maximum))
+    return value
+
+
 def page_summary_timeout_seconds() -> int:
-    return int(get_config_param(_PAGE_SUMMARY_TIMEOUT))
+    # Research has its own allowance; formatting and iterative review need time
+    # after it returns. Every caller shares this whole-operation deadline.
+    return max(_env_positive_int("PAGE_AGENTIC_SUMMARY_TIMEOUT_SECONDS", 900), 1)
 
 
 def page_summary_context_signature(context: dict[str, Any]) -> str:
@@ -278,18 +282,16 @@ def _aql_agent_query(*, surface: str, context: dict[str, Any]) -> str:
 
 
 def _default_aql_agent_runner(**kwargs: Any) -> dict[str, Any]:
-    from .aql_zopedia_engine import run_aql_zopedia_structured_agent, _P_PAGE_SUMMARY_MAX_TOOL_CALLS
+    from .aql_zopedia_engine import run_aql_zopedia_agent
 
     kwargs.setdefault("task", "page_summary")
     kwargs.setdefault("surface", "page_agentic_summary")
-    kwargs.setdefault("schema_name", "page_agentic_summary")
-    kwargs.setdefault("schema", _PAGE_SUMMARY_SCHEMA)
-    kwargs.setdefault("instructions", get_prompt(_PAGE_SUMMARY_SYSTEM_PROMPT))
-    kwargs.setdefault("review_instructions", get_prompt(_PAGE_SUMMARY_REVIEW_PROMPT))
-    kwargs.setdefault("review_answer", True)
-    kwargs.setdefault("max_tool_calls", int(get_config_param(_P_PAGE_SUMMARY_MAX_TOOL_CALLS)))
-    kwargs.setdefault("run_timeout_seconds", remaining_request_timeout(page_summary_timeout_seconds()))
-    return run_aql_zopedia_structured_agent(**kwargs)
+    remaining = remaining_request_timeout(page_summary_timeout_seconds())
+    kwargs.setdefault("run_timeout_seconds", min(
+        max(_env_positive_int("PAGE_AGENTIC_SUMMARY_RESEARCH_TIMEOUT_SECONDS", 300), 1),
+        remaining / 2,
+    ))
+    return run_aql_zopedia_agent(**kwargs)
 
 
 def _aql_agent_context(result: dict[str, Any]) -> dict[str, Any]:
@@ -521,7 +523,76 @@ def broad_economy_overview_from_fred_summary(fred_summary_frame: pd.DataFrame) -
     return overview
 
 
-@configured_research
+def _review_page_summary_payload(
+    *,
+    surface: str,
+    original_prompt: str,
+    draft_payload: dict[str, Any],
+    llm_client: Any,
+) -> dict[str, Any]:
+    from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+    review_query = (
+        "You are the Zopedia/AQL quality monitor for a page summary. "
+        "Review and improve the draft for the top of the page. Your verdict guides revision, not publication admission. "
+        "Use the supplied page evidence prompt and draft. Check that the headline names a supported move/setup/focus; the body "
+        "does not turn technical levels into a cause; numeric level comparisons are literal; data gaps are concrete "
+        "evidence targets; and the draft does not contain raw tool failures, missing-evidence prose, or unsupported "
+        "market claims. Encourage connections to business context and useful hypotheses at their actual evidence strength. "
+        "Sparse evidence and indirect connections are valid research leads. This is the short summary at the top of a page, not an exhaustive report: aim for roughly 150 to 300 words with the most consequential developments and useful connections. Put remaining evidence requests in data_gaps and concrete follow-ups in watch_items. Keep internal category/status inventories, confidence labels and workflow out of public prose. Do not derive numeric forecasts from loosely related summary metrics; use supplied computed analysis or an explicit empirical model. Return revised_summary=null when the original draft needs no changes. Otherwise return the complete improved public summary, preserving its schema. The accepted field describes the original draft; your revised_summary owns the corrected public fields. Correct the content in this pass and keep review commentary separate.\n\n"
+        f"Surface: {surface}\n\n"
+        "Page evidence prompt:\n"
+        f"{original_prompt}\n\n"
+        "Draft JSON:\n"
+        f"{json.dumps(draft_payload, ensure_ascii=True, sort_keys=True, default=str)}"
+    )
+    result = run_aql_zopedia_structured_agent(
+        query=review_query,
+        schema_name="page_agentic_summary_review",
+        schema=_PAGE_SUMMARY_REVIEW_SCHEMA,
+        task="page_agentic_summary_review",
+        surface=f"{surface}.page_agentic_summary_review",
+        max_tool_calls=0,
+        llm_client=llm_client,
+        persist_findings=False,
+        run_timeout_seconds=remaining_request_timeout(min(
+            page_summary_timeout_seconds(), float(getattr(llm_client.config, "timeout_seconds", 480))
+        )),
+    )
+    if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
+        return {
+            "accepted": False,
+            "issues": [str((result or {}).get("error") or "Zopedia page summary quality monitor did not complete.")],
+            "revision_instruction": "Revise the page summary to comply with the evidence contract.",
+            "confidence": "low",
+        }
+    payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
+    return {
+        "accepted": bool(payload.get("accepted")),
+        "revised_summary": payload.get("revised_summary"),
+        "issues": [str(item).strip() for item in to_list(payload.get("issues")) if str(item).strip()][:8],
+        "revision_instruction": _clean(payload.get("revision_instruction")),
+        "confidence": _clean(payload.get("confidence")) or "low",
+    }
+
+
+def _quality_review_page_summary_payload(
+    *, surface: str, original_prompt: str, payload: dict[str, Any], llm_client: Any,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    from jsonschema import Draft202012Validator
+    review = _review_page_summary_payload(
+        surface=surface, original_prompt=original_prompt, draft_payload=payload, llm_client=llm_client,
+    )
+    revised = review.pop("revised_summary", None)
+    if revised is None and review.get("accepted"):
+        return payload, {"status": "accepted", "verdict": "accept", "owner": "page_editor", "reviews": [review]}
+    if (not isinstance(revised, dict) or list(Draft202012Validator(_PAGE_SUMMARY_SCHEMA).iter_errors(revised))
+            or not str(revised.get("summary_markdown") or "").strip()):
+        return payload, {"status": "incomplete", "reviews": [review]}
+    return revised, {"status": "accepted", "verdict": "accept" if review.get("accepted") else "revise",
+                     "owner": "page_editor", "reviews": [review]}
+
+
 def build_page_agentic_summary(
     *,
     surface: str,
@@ -552,14 +623,94 @@ def build_page_agentic_summary(
                 reason=f"AQL summary failed: {type(exc).__name__}: {exc}",
             )
 
-        aql_context = _aql_agent_context(aql_result.get("agent_result") or {})
-        payload = aql_result.get("payload")
-        quality_review = (aql_result.get("agent_result") or {}).get("quality_review") or {"status": "not_run"}
-        if aql_result.get("status") != "completed" or not isinstance(payload, dict) or not _clean(payload.get("summary_markdown")):
+        aql_context = _aql_agent_context(aql_result if isinstance(aql_result, dict) else {})
+        if aql_context["status"] != "completed" or not aql_context["answer_markdown"]:
+            error_text = _clean((aql_result or {}).get("error")) if isinstance(aql_result, dict) else ""
+            reason = "; ".join(
+                item
+                for item in [
+                    "AQL agent did not produce a grounded page summary.",
+                    error_text,
+                    *to_list(aql_context.get("limitations")),
+                ]
+                if _clean(item)
+            )
             return _unavailable_page_summary(
                 surface=clean_surface,
-                reason=_clean(aql_result.get("error")) or "AQL agent did not produce a page summary.",
+                reason=reason or "AQL agent did not produce a grounded page summary.",
                 aql_context=aql_context,
+            )
+
+        user_prompt = (
+            f"Page: {clean_surface}\n\n"
+            "Page data JSON:\n"
+            f"{_compact_json(context)}\n\n"
+            "AQL agent result JSON:\n"
+            f"{_compact_json(aql_context, limit=9000)}\n\n"
+            "Write one short markdown summary followed by what is worth checking next. "
+            "Use only the supplied page data and AQL agent result. Headlines must name a supported move, setup, "
+            "or investigation focus. Do not use headlines that say the cause is unknown. Treat technical levels as context, "
+            "not as proof of why the move happened. Connect observations to business context when available and "
+            "retain useful research leads with concrete follow-ups when that context is still incomplete."
+        )
+        quality_review: dict[str, Any] = {"status": "not_run"}
+        try:
+            from .aql_zopedia_engine import run_aql_zopedia_structured_agent
+
+            formatting_prompt = f"{get_prompt(_PAGE_SUMMARY_SYSTEM_PROMPT)}\n\n{user_prompt}"
+            structured_result = run_aql_zopedia_structured_agent(
+                query=formatting_prompt,
+                schema_name="page_agentic_summary",
+                schema=_PAGE_SUMMARY_SCHEMA,
+                task="page_summary_format",
+                surface=f"{clean_surface}.page_agentic_summary",
+                max_tool_calls=0,
+                llm_client=llm_client,
+                persist_findings=False,
+            )
+            payload = structured_result.get("payload") if isinstance(structured_result, dict) else None
+            if not isinstance(payload, dict):
+                raise LLMAPIError(_clean((structured_result or {}).get("error")) or "AQL/Zopedia structured summary failed.")
+        except LLMAPIError as exc:
+            return _unavailable_page_summary(
+                surface=clean_surface,
+                reason=f"LLM summary formatting failed: {exc}",
+                aql_context=aql_context,
+            )
+        except Exception as exc:
+            return _unavailable_page_summary(
+                surface=clean_surface,
+                reason=f"LLM summary formatting failed: {type(exc).__name__}: {exc}",
+                aql_context=aql_context,
+            )
+
+        try:
+            payload, quality_review = _quality_review_page_summary_payload(
+                surface=clean_surface,
+                original_prompt=formatting_prompt,
+                payload=payload,
+                llm_client=llm_client,
+            )
+        except Exception as exc:
+            quality_review = {"status": "incomplete", "error": f"{type(exc).__name__}: {exc}"}
+
+        if quality_review.get("status") != "accepted":
+            print("[warn] page-agentic summary review " + json.dumps({
+                "surface": clean_surface,
+                "agent_run_id": aql_context.get("run_id"),
+                "status": quality_review.get("status"),
+                "draft_retained": bool(_clean(payload.get("summary_markdown"))),
+                "error": _clean(quality_review.get("error"))[:1500],
+            }), flush=True)
+
+        if not _clean(payload.get("summary_markdown")):
+            return _unavailable_page_summary(
+                surface=clean_surface,
+                reason="Zopedia page summary did not produce a narrative.",
+                aql_context={
+                    **aql_context,
+                    "quality_review": quality_review,
+                },
             )
 
         return {

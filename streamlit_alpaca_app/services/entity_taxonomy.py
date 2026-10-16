@@ -948,7 +948,7 @@ def classify_listings_with_llm(
                 instructions=system_prompt,
                 schema_name="entity_taxonomy_batch",
                 schema=schema,
-                task="entity_taxonomy_batch", stage='relevance',
+                task="entity_taxonomy_batch",
                 surface="services.entity_taxonomy",
                 llm_client=llm_client,
                 max_tool_calls=0,

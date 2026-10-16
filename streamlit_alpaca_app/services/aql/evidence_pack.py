@@ -8,51 +8,6 @@ from typing import Any
 EVIDENCE_PACK_SCHEMA_VERSION = "aql_evidence_pack_v1"
 
 
-def resolve_evidence_selection(tool_calls: list[dict[str, Any]], selected_source_ids: list[str] | None = None) -> dict[str, Any]:
-    """Resolve tool, capture, document, page and chunk IDs against one catalog.
-
-    None selects all sources; [] selects none. Numeric observations and execution
-    outcomes remain available independently. Unresolved IDs retain the available
-    evidence and are reported, rather than silently losing it.
-    """
-    identity_fields = ("tool_call_id", "source_id", "capture_id", "canonical_document_id", "document_id", "page_id", "chunk_record_id", "chunk_id", "ref", "url", "canonical_url")
-    requested = None if selected_source_ids is None else {str(x) for x in selected_source_ids}
-    resolved: set[str] = set()
-    records, catalog = [], []
-    for call in tool_calls:
-        summary = _summary(call)
-        call_ids = {str(call[k]) for k in identity_fields if call.get(k)}
-        candidates = summary.get("candidate_sources") or summary.get("evidence_refs") or summary.get("source_links") or []
-        selected = []
-        for source in candidates:
-            if not isinstance(source, dict):
-                continue
-            identities = call_ids | {str(source[k]) for k in identity_fields if source.get(k)}
-            matched = set() if requested is None else requested & identities
-            resolved.update(matched)
-            catalog.append({k: source[k] for k in (*identity_fields, "title", "published_at", "published_date", "source_kind", "evidence_type") if source.get(k)} | {"tool_call_id": call.get("tool_call_id")})
-            if requested is None or matched:
-                selected.append(source)
-        call_match = set() if requested is None else requested & call_ids
-        resolved.update(call_match)
-        if requested is None or selected or call_match or not candidates:
-            records.append({
-                "tool_call_id": call.get("tool_call_id"), "tool_name": call.get("tool_name"),
-                "origin_run_id": call.get("origin_run_id"), "origin_turn_id": call.get("origin_turn_id"),
-                "carried_forward": call.get("carried_forward", False), "status": call.get("status"),
-                "arguments": call.get("arguments") or {},
-                "evidence": selected if summary.get("candidate_sources") else summary,
-                "original_documents": summary.get("source_documents") or [],
-                "retrieval_context": summary.get("retrieval_context") or {},
-                "error": call.get("error"),
-            })
-    unresolved = sorted((requested or set()) - resolved)
-    if unresolved:
-        records = resolve_evidence_selection(tool_calls)["records"]
-    return {"selection": "all" if requested is None else "unresolved" if unresolved else "selected" if requested else "empty",
-            "unresolved_source_ids": unresolved, "records": records, "source_catalog": catalog}
-
-
 def _clean(value: object) -> str:
     text = str(value if value is not None else "").strip()
     return "" if text.lower() == "nan" else text

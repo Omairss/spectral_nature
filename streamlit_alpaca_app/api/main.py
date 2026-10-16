@@ -612,7 +612,7 @@ def trading_agent_view(
     _require_admin_user(principal)
     response.headers["Cache-Control"] = "private, no-store"
     try:
-        return build_trading_agent_view(_require_user_context(principal))
+        return build_trading_agent_view()
     except Exception:
         raise _error("Trading Agent data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -636,22 +636,6 @@ def trading_agent_decision(
         raise _error(str(exc), status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
-@app.get("/v1/trading-agent/calls/{tracking_id}")
-def trading_agent_tracked_call(
-    tracking_id: str,
-    response: Response,
-    principal: api_auth.AuthPrincipal = Depends(_require_principal),
-) -> dict[str, Any]:
-    _require_admin_user(principal)
-    context = _require_user_context(principal)
-    response.headers["Cache-Control"] = "private, no-store"
-    from services.trading_call_tracking import tracking_view
-    try:
-        return tracking_view(owner_id=context.user_id, tracking_id=tracking_id)["calls"][0]
-    except LookupError:
-        raise _error("Tracked call not found.", status.HTTP_404_NOT_FOUND)
-    except Exception:
-        raise _error("Call tracking is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 @app.get("/v1/admin")

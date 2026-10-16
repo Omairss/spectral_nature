@@ -119,6 +119,11 @@ export default function AdminPage() {
         <section className="workbook-panel"><header className="panel-header"><div><p className="section-label">Security</p><h2>Recent events</h2></div><span>{access?.recent_security_events?.length || 0}</span></header><DataTable columns={[{ key: "created_at", label: "Time", render: date }, { key: "email", label: "User" }, { key: "event_type", label: "Event" }, { key: "event_category", label: "Category" }, { key: "section_name", label: "Workspace" }, { key: "ip_address", label: "IP" }]} rowKey={(row, index) => String(row.id || index)} rows={(access?.recent_security_events || []).slice(0, 100)} /></section>
       </> : null}
       {view && tab === "llm" ? <>
+        <MetricStrip items={[
+          { label: "Provider", value: String(view.llm.runtime?.provider || "—") }, { label: "Model", value: String(view.llm.runtime?.model || "—") },
+          { label: "Temperature", value: String(view.llm.runtime?.temperature ?? "—") }, { label: "Prompts", value: view.llm.prompts.length },
+          { label: "Overrides", value: view.llm.prompts.filter((row) => row.is_override).length },
+        ]} />
         <LLMSettingsEditor settings={view.llm} onSaved={(llm) => setView((current) => current ? { ...current, llm } : current)} />
       </> : null}
       {view && tab === "keys" ? <section className="workbook-panel"><header className="panel-header"><div><p className="section-label">Agent access</p><h2>API keys</h2></div><span>{view.agent_keys.length}</span></header><DataTable columns={[{ key: "name", label: "Name" }, { key: "key_prefix", label: "Prefix" }, { key: "scopes", label: "Scopes", render: (value) => Array.isArray(value) ? value.join(", ") : String(value || "") }, { key: "status", label: "Status" }, { key: "created_at", label: "Created", render: date }, { key: "last_used_at", label: "Last used", render: date }, { key: "expires_at", label: "Expires", render: date }]} rowKey={(row, index) => String(row.id || index)} rows={view.agent_keys} /></section> : null}

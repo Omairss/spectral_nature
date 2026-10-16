@@ -8,6 +8,14 @@ Older images and extracted source snapshots are historical evidence and explicit
 
 The three normal deployment entrypoints reject execution outside the actual Git application checkout. New builds require a clean, committed application tree; status reads and immutable-image promotion remain separate operations. Docker contexts exclude temporary trees and archives. Keep current release preparation in tracked scripts. Historical deployment scripts are retired with their source trees; do not recreate missing historical paths or point symlinks at archives to make them run again.
 
+## Source acceptance before packaging
+
+`scripts/release_source.py` is mandatory before an application build. The committed `infra/release_acceptance.json` identifies the reviewed source revision, complete application-file inventory, every changed runtime file, component verification and the immutable previous images for each consumer. An edit outside the recorded inventory, a new file, a deletion or an unreviewed changed file rejects packaging. This inventory covers all application code and packaging, not only the shared research-engine fingerprint. Updating an inventory without reviewing preserved behavior is not acceptance.
+
+The recovery reconciles the checked-out Git implementation against read-only historical evidence and reverts held changes in Git. Historical evidence must never become an extracted application tree, an image overlay or a build context. `Dockerfile.runtime` may inherit a role's pinned installed dependencies, but first removes `/app` completely and copies the accepted checkout. Verify the resulting application-file inventory against Git; an OCI revision label alone does not establish the packaged content.
+
+The retired image-backport utility and broker's two-file overlay are archived. Broker packaging now replaces the complete application source too. Held reasoning and Trading-call implementations remain in their held Git checkpoint and retained task archives; they are excluded from the recovery branch.
+
 ## Retirement and retention
 
 Completed release trees are compressed outside the repository under `~/Library/Application Support/SpectralNature/retired-release-sources/`. Private batches have an original-path index, content verification and archive hashes. No extracted application tree remains at the old path. Read historical evidence directly from an archive; do not use it as a build context.
