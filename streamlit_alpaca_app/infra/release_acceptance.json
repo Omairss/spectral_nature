@@ -648,7 +648,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe": {
+          "source_revision": "18322b68411727234ab8b83f5571c55d5e49097b",
+          "source_inventory_sha256": "836e43377a76bb0a5a5d47acb17e24f483fade32ea59a1addc3a2dfa114e7eae",
+          "runtime_inventory_sha256": "4f3cd5fbcb4ffbc51f4735d21ec92eebeaca6822e57e7a1dae8f06874e6a5685",
+          "evidence": "documents/verification/daily-highlight-context-2026-10-17/packaged-image.json"
+        }
+      }
     }
   },
   "untouched_consumers": [

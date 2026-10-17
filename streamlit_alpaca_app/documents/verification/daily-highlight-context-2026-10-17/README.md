@@ -1,6 +1,8 @@
 # Daily highlight context recovery
 
-Status: local source accepted for a narrowly scoped development verification. Production promotion remains conditional on personally accepting a fresh complete development publication from the exact new image. No new image has been built or deployed yet. The historical rollback and its retained October 14 highlights remain the live baseline.
+Status: local source accepted for a narrowly scoped development verification. Production promotion remains conditional on personally accepting a fresh complete development publication from the exact new image. The worker image is built, pushed and verified against every declared runtime file and installed dependency. No deployment has occurred. The historical rollback and its retained October 14 highlights remain the live baseline.
+
+Source implementation: `6c428b3b`; scoped acceptance/build revision: `18322b68`; ACR build: `cj179`. Image: `accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe`. The complete application inventory has 312 files; the Python runtime inventory has 197. Only this verified digest is registered for scoped development deployment; production remains held.
 
 ## Context ownership and ML behavior
 
@@ -31,3 +33,5 @@ The complete source includes the separately accepted database lifecycle/cancella
 The fixed shared selector is called by both normal Home and the existing independent daily-datapoints job. After development acceptance, production can regenerate charts through an execution-only override of the existing Home resource while retaining its normal template and future automatic Home path. No new production resource, schedule or model setting is required.
 
 Protocol/storage checks are supporting evidence only: 48 focused transport/recovery checks pass; one pre-existing fake-Blob fixture lacks `walk_blobs` and was excluded. Real request decoding verifies that every resolved selected chart original is identical to the frozen source, including histories exceeding 1,200 observations. These checks do not grade prose. Packaging, fresh development output, public rendering and the exact authorized production digest still require their own receipts.
+
+The existing modern API displays at most 1,200 observations per highlight. This unchanged consumer window is separate from retaining complete originals for model context and stored selection data. Current candidate comparisons lie within that displayed window. This worker-only repair does not release an API/history-window change; do not describe model-input integrity as proof that every source observation is rendered.

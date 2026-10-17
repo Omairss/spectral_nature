@@ -1,0 +1,5 @@
+{
+  "api-next_not_in_this_release": true,
+  "broker_not_in_this_release": true,
+  "historical_worker_images_ineligible_for_normal_promotion": true
+}
