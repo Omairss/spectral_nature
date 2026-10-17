@@ -1,0 +1,125 @@
+{
+  "stage": "development-chart",
+  "selection_run_ids": [
+    "9dbd6307-918a-4efe-aae2-77fdc99be9e4"
+  ],
+  "home_run_ids": [
+    "5a9bdf2a-4050-46c7-bbd0-1488bfa33cbf"
+  ],
+  "asof": "2026-10-17T04:04:33.478265+00:00",
+  "checks": [
+    {
+      "id": "stock:MU:price",
+      "stored_observations": 1254,
+      "displayed_observations": 1200,
+      "stored_and_public_text_match": true,
+      "existing_display_window_matches_source": true
+    },
+    {
+      "id": "fred:DGS10",
+      "stored_observations": 747,
+      "displayed_observations": 747,
+      "stored_and_public_text_match": true,
+      "existing_display_window_matches_source": true
+    },
+    {
+      "id": "fred:BAMLC0A4CBBB",
+      "stored_observations": 784,
+      "displayed_observations": 784,
+      "stored_and_public_text_match": true,
+      "existing_display_window_matches_source": true
+    },
+    {
+      "id": "stock:MSTR:price",
+      "stored_observations": 1254,
+      "displayed_observations": 1200,
+      "stored_and_public_text_match": true,
+      "existing_display_window_matches_source": true
+    },
+    {
+      "id": "stock:HUM:price",
+      "stored_observations": 1252,
+      "displayed_observations": 1200,
+      "stored_and_public_text_match": true,
+      "existing_display_window_matches_source": true
+    }
+  ],
+  "execution": "daily-datapoints-next-dev-d286ox8",
+  "published_at_utc": "2026-10-17T23:06:39.8317267Z",
+  "execution_status": "Succeeded",
+  "public_api_seconds": 1.795,
+  "browser_fresh_charts_confirmed_after_cache_refresh": true,
+  "full_home_acceptance": "pending",
+  "charts": [
+    {
+      "id": "stock:MU:price",
+      "title": "Micron: AI-memory leader gives back gains",
+      "selected_at": "2026-10-17T04:04:33.478265+00:00",
+      "significance": "Micron closed at $878.78 on Oct 16, down 5.6% and 28% below its June 25 high; I read that as a valuation reset, not proof of weaker demand.",
+      "label": "MU \u00b7 Price",
+      "kind": "price",
+      "symbol": "MU",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 878.78,
+      "period": ""
+    },
+    {
+      "id": "fred:DGS10",
+      "title": "10-year Treasury yield stays near 5.1%",
+      "selected_at": "2026-10-17T04:04:33.478265+00:00",
+      "significance": "The 10-year yield was 5.10% on Oct 15, down from 5.31% on Oct 5 but near its three-year high; high long-term rates can pressure high-growth AI stocks.",
+      "label": "10Y Treasury Yield",
+      "kind": "macro",
+      "symbol": "",
+      "series_id": "DGS10",
+      "unit": "%",
+      "date": "2026-10-15",
+      "value": 5.1,
+      "period": "D"
+    },
+    {
+      "id": "fred:BAMLC0A4CBBB",
+      "title": "BBB corporate bond spreads near series lows",
+      "selected_at": "2026-10-17T04:04:33.478265+00:00",
+      "significance": "BBB corporate bond spreads were 1.05% on Oct 15, near the 0.92% series low, so credit does not yet confirm a broad AI-memory or financing crisis.",
+      "label": "BBB OAS",
+      "kind": "macro",
+      "symbol": "",
+      "series_id": "BAMLC0A4CBBB",
+      "unit": "%",
+      "date": "2026-10-15",
+      "value": 1.05,
+      "period": "D"
+    },
+    {
+      "id": "stock:MSTR:price",
+      "title": "Strategy shares drop 9.6% as Bitcoin sits near $81,300",
+      "selected_at": "2026-10-17T04:04:33.478265+00:00",
+      "significance": "Strategy fell 9.6% to $136.76 on Oct 16 while Bitcoin traded near $81,300; I read the drop as Bitcoin-treasury risk, but the supplied evidence does not establish the cause.",
+      "label": "MSTR \u00b7 Price",
+      "kind": "price",
+      "symbol": "MSTR",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 136.76,
+      "period": ""
+    },
+    {
+      "id": "stock:HUM:price",
+      "title": "Humana gives back Medicare star-rating rally",
+      "selected_at": "2026-10-17T04:04:33.478265+00:00",
+      "significance": "Humana closed at $413.06 on Oct 16, down 4.4% on the day, after a rally tied to higher 2027 Medicare quality scores; the stock still faces benefit cuts and enrollment risk.",
+      "label": "HUM \u00b7 Price",
+      "kind": "price",
+      "symbol": "HUM",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 413.06,
+      "period": ""
+    }
+  ]
+}

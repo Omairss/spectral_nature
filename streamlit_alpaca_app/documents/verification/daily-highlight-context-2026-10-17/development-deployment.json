@@ -1,0 +1,31 @@
+{
+  "environment": "development",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe"
+  },
+  "source_revision": "18322b68411727234ab8b83f5571c55d5e49097b",
+  "source_inventory_sha256": "836e43377a76bb0a5a5d47acb17e24f483fade32ea59a1addc3a2dfa114e7eae",
+  "runtime_inventory_sha256": "4f3cd5fbcb4ffbc51f4735d21ec92eebeaca6822e57e7a1dae8f06874e6a5685",
+  "targets": [
+    {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-10-17T23:01:31.323747+00:00",
+  "job_executions_started": 0
+}
