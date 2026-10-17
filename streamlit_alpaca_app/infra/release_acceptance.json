@@ -1047,7 +1047,15 @@
           "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
           "configuration_sha256": "c0a73c40098bdd29f917fa8f4f6f9b8a24594cc00467f24f67722000f3fd5efc"
         }
-      ]
+      ],
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e3be8f5359bc984c9c20f56ceb147e5141f6dc28a4ab725b84aa0c897e7ef4cc": {
+          "source_revision": "512e6c3e8e920ca56727af1e64e23b7dfba34309",
+          "source_inventory_sha256": "e53a0e3fb6e540f237003ea5856a5fe9ab3c9d3d7d6e2bf3d6c25beffded50b4",
+          "runtime_inventory_sha256": "201dff120a8ce17dcaa56b0b34ed4d1e201340abf1c8e1f0e945db1a15da40b0",
+          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -1069,7 +1077,15 @@
           "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
           "configuration_sha256": "9ddcfbcdc9429ee1fc557b47292dad01f810a280a34c284ae198e864fa7012e3"
         }
-      ]
+      ],
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f1120893f5f4dc7db79d438abfb002c8cea7a3a0d57b3774fca3e7bfdafce5ce": {
+          "source_revision": "512e6c3e8e920ca56727af1e64e23b7dfba34309",
+          "source_inventory_sha256": "e53a0e3fb6e540f237003ea5856a5fe9ab3c9d3d7d6e2bf3d6c25beffded50b4",
+          "runtime_inventory_sha256": "201dff120a8ce17dcaa56b0b34ed4d1e201340abf1c8e1f0e945db1a15da40b0",
+          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
+        }
+      }
     },
     "broker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-broker@sha256:94715ea21911b1441f67cde8dc03d640386adf14453c66df66ba225ea96e5941",
@@ -1091,7 +1107,15 @@
           "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-broker@sha256:741ef70b2d3e2e3eaea9947289faf9f8a20e1b012655baf37e9ca3b9ea7a910d",
           "configuration_sha256": "21f869dab05ed60b4f3035b8ad4420a62b725c0e684324e3c7864f2dcdd39cc3"
         }
-      ]
+      ],
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:e4522dd91311ecf50747ff46ed34b1d5cec4d32b47fbf414834fd6cd27fb61ad": {
+          "source_revision": "512e6c3e8e920ca56727af1e64e23b7dfba34309",
+          "source_inventory_sha256": "e53a0e3fb6e540f237003ea5856a5fe9ab3c9d3d7d6e2bf3d6c25beffded50b4",
+          "runtime_inventory_sha256": "201dff120a8ce17dcaa56b0b34ed4d1e201340abf1c8e1f0e945db1a15da40b0",
+          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
+        }
+      }
     }
   },
   "untouched_consumers": [

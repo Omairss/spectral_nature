@@ -46,3 +46,7 @@ The recovery targets the affected modern API, shared workers and broker: 13 deve
 The owner-directed [legacy retirement](../legacy-retirement-2026-10-16/README.md) removes obsolete frontend/deployment paths and records separate development service retirement. The worker build also hit the inherited base image layer-depth limit. No superseded image has been deployed; resolving packaging and accepting a fresh normal Home publication remain required.
 
 The layer-depth correction has been prepared in source; verify actual image filesystem content and installed package versions before registering any recovery digest. Production legacy API retirement was separately authorized and completed, with the iPhone/Next.js gateway unchanged; this does not authorize recovery-image promotion.
+
+## Verified current images
+
+The [current image audit](packaged-images.json) verifies all 197 application files against accepted Git inside each actual image. Installed distribution versions and METADATA hashes match each pinned dependency image after excluding retired Streamlit: 93 worker distributions and 99 each for API/broker. All three actual images also [import successfully](actual-image-imports.json) without Streamlit. Docker build roles/commands and the dependency-only staging recipe are reviewed; the worker layer-depth block is resolved. The earlier local registry download inspection was replaced by these complete read-only in-registry checks, avoiding duplicate large transfers. Only these verified digests are registered for development.

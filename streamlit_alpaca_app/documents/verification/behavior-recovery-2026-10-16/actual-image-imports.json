@@ -1,0 +1,41 @@
+[
+  {
+    "role": "worker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e3be8f5359bc984c9c20f56ceb147e5141f6dc28a4ab725b84aa0c897e7ef4cc",
+    "status": "passed",
+    "streamlit_absent": true,
+    "imports": [
+      "api.main",
+      "pipeline.jobs.main",
+      "services.robinhood_main_sync"
+    ],
+    "research_started": false,
+    "broker_calls_started": false
+  },
+  {
+    "role": "api-next",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f1120893f5f4dc7db79d438abfb002c8cea7a3a0d57b3774fca3e7bfdafce5ce",
+    "status": "passed",
+    "streamlit_absent": true,
+    "imports": [
+      "api.main",
+      "pipeline.jobs.main",
+      "services.robinhood_main_sync"
+    ],
+    "research_started": false,
+    "broker_calls_started": false
+  },
+  {
+    "role": "broker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:e4522dd91311ecf50747ff46ed34b1d5cec4d32b47fbf414834fd6cd27fb61ad",
+    "status": "passed",
+    "streamlit_absent": true,
+    "imports": [
+      "api.main",
+      "pipeline.jobs.main",
+      "services.robinhood_main_sync"
+    ],
+    "research_started": false,
+    "broker_calls_started": false
+  }
+]
