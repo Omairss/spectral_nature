@@ -447,10 +447,12 @@
     "causal_limit": "The accepted no-tool Home editorial request is unchanged. This run establishes surviving output defects, not that this chart-context repair introduced them or that another historical rollback would eliminate stochastic reasoning errors.",
     "next_investigation": "Compare complete first drafts and critic revisions with the original task/evidence at the shared editorial boundary. Preserve model ownership and retained sources; do not add phrase filters, finance rules, a new reviewer or manual publication edits."
   },
-  "production_changed": false,
   "execution_start": "2026-10-17T23:02:21+00:00",
   "execution_end": "2026-10-17T23:42:39+00:00",
   "execution_seconds": 2418.0,
   "terminal_public_api_seconds": 1.277,
-  "optional_page_summaries_completed": 5
+  "optional_page_summaries_completed": 5,
+  "production_home_or_highlights_changed": false,
+  "production_resource_configurations_changed": false,
+  "upstream_macro_refresh_note": "Existing macro jobs refreshed provider observations in both namespaces before candidate image validation, using unchanged runtimes. This candidate rollout changed only development worker images/publications."
 }

@@ -32,7 +32,7 @@ The normal Home execution `attention-home-next-dev-4js1f7n`, root `035fc67f-1315
 
 ## Failed quality condition and continuation
 
-Read the complete seven-story brief, overview, all five captions and both chart-review feedback rounds. The overview still exposes CPI bookkeeping, IREN excludes rates too broadly, and the Micron caption retains unsupported forecast-cut language despite final feedback. Chart generation success and exact data do not satisfy the owner's full subjective condition. `infra/release_acceptance.json` records development as not accepted and holds new builds/promotions. No production image or dataset changed in this repair.
+Read the complete seven-story brief, overview, all five captions and both chart-review feedback rounds. The overview still exposes CPI bookkeeping, IREN excludes rates too broadly, and the Micron caption retains unsupported forecast-cut language despite final feedback. Chart generation success and exact data do not satisfy the owner's full subjective condition. `infra/release_acceptance.json` records development as not accepted and holds new builds/promotions. This candidate changed no production image, Home publication or highlight selection. Existing macro jobs had refreshed upstream provider observations in both namespaces before image validation; that data refresh used their unchanged runtimes and is separate from promoting this candidate.
 
 Preserve the failed output. Next investigate the complete first-draft/critic request, retained evidence and resulting revision at the shared editorial boundary through paired full-output review. Keep interpretation probabilistic and LLM-owned. Do not stack instructions, hardcode a correction for these examples or manually edit published prose.
 
