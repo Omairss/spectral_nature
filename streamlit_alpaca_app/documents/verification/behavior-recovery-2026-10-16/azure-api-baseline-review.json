@@ -1,0 +1,187 @@
+{
+  "status": "reconciled",
+  "reason": "Azure CLI adds imageType=ContainerImage, empty targetLabel and null-only schema fields compared with fixed ARM API. Baselines now use exactly the deployment API. The deployment comparator remains exact; normalization was only used to review the representation transition.",
+  "targets": [
+    {
+      "name": "trading-agent-build-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad"
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97"
+    },
+    {
+      "name": "sn-research-run-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba"
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09"
+    },
+    {
+      "name": "attention-home-next-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6"
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b"
+    },
+    {
+      "name": "technical-history-next-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca"
+    },
+    {
+      "name": "equities-next-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5"
+    },
+    {
+      "name": "evidence-index-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc"
+    },
+    {
+      "name": "system-recovery-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "bf36607ced62d76af300cd6a7553094a183b46bd98d2c52297fb1fb994952ec2"
+    },
+    {
+      "name": "universe-builder",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505"
+    },
+    {
+      "name": "macro-fred-daily",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603"
+    },
+    {
+      "name": "commodities-regime",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b"
+    },
+    {
+      "name": "options-liquid-universe",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2"
+    },
+    {
+      "name": "attention-home-build",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de"
+    },
+    {
+      "name": "trading-agent-build",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb"
+    },
+    {
+      "name": "zopedia-learning",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d"
+    },
+    {
+      "name": "system-health",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68"
+    },
+    {
+      "name": "sn-research-run",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412"
+    },
+    {
+      "name": "sn-api-next",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0"
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "settings_and_image_unchanged": true,
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7"
+    }
+  ],
+  "mutations_performed": 0
+}

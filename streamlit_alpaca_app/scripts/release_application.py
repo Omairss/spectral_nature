@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Build accepted Git source and update existing development image templates.
+"""Build accepted Git source and update reviewed application image templates.
 
 No source extraction, application overlay, environment rewrite, job execution,
-schema migration or production mutation is performed by this entrypoint.
+or schema migration is performed. Production requires recorded owner permission
+and development acceptance for the exact images being promoted.
 """
 from __future__ import annotations
 
@@ -65,7 +66,18 @@ def build(args) -> None:
 def deploy(args) -> None:
     record = json.loads(args.images.read_text())
     accepted = acceptance()
+    environment = args.command.removeprefix("deploy-")
+    if environment == "production":
+        review = accepted.get("development_acceptance", {})
+        if (not accepted.get("production_authorized") or
+                not accepted.get("production_authorization", {}).get("owner_instruction") or
+                review.get("status") != "accepted" or
+                review.get("images") != record["images"] or
+                review.get("source_inventory_sha256") != record["source_inventory_sha256"] or
+                not review.get("evidence") or not (APP / review["evidence"]).is_file()):
+            raise ValueError("Production requires owner authorization and development acceptance of these exact images.")
     receipts = []
+    prepared = []
     # Recheck the complete source and each role before making the first change.
     for role in record["images"]:
         source = verify(role)
@@ -75,7 +87,7 @@ def deploy(args) -> None:
             raise ValueError("Image templates require immutable digests.")
         verify_image(role, record["images"][role])
     for role, image in record["images"].items():
-        for target in accepted["roles"][role].get("development_targets", []):
+        for target in accepted["roles"][role].get(environment + "_targets", []):
             kind, name = target["kind"], target["name"]
             path = f"/subscriptions/{args.subscription}/resourceGroups/{args.resource_group}/providers/Microsoft.App/{kind}/{name}"
             url = f"https://management.azure.com{path}?api-version={API_VERSION}"
@@ -89,28 +101,37 @@ def deploy(args) -> None:
                 raise ValueError(f"{name} no longer has its reviewed prior image; reconcile that consumer before release.")
             if fingerprint(configuration(before)) != target["configuration_sha256"]:
                 raise ValueError(f"{name} configuration changed after review; preserve and reconcile that change first.")
-            template["containers"][0]["image"] = image
-            body = args.output / f"{name}.patch.json"
-            save(body, {"properties": {"template": template}})
-            options = ["--headers", f"If-Match={before['etag']}"] if before.get("etag") else []
-            # Read again to avoid replacing a template changed during preparation.
-            fresh = azure("rest", "--method", "get", "--url", url)
-            if fresh["properties"]["template"] != before["properties"]["template"]:
-                raise ValueError(f"{name} changed during release preparation.")
-            azure("rest", "--method", "patch", "--url", url, "--body", "@" + str(body), *options)
-            after = azure("rest", "--method", "get", "--url", url)
-            save(args.output / f"{name}.after.json", after)
-            if configuration(before) != configuration(after):
-                raise ValueError(f"Configuration changed beyond the image on {name}; inspect the saved definitions.")
-            if after["properties"]["template"]["containers"][0]["image"] != image:
-                raise ValueError(f"Image update was not retained on {name}.")
-            receipt = {"name": name, "kind": kind, "role": role, "previous_image": previous_image,
-                       "image": image, "configuration_sha256": fingerprint(configuration(before)),
-                       "provisioning_state": after["properties"].get("provisioningState")}
-            receipts.append(receipt)
-            save(args.output / "deployment.json", {"environment": "development", **record, "targets": receipts,
-                 "recorded_at": datetime.now(timezone.utc).isoformat(), "job_executions_started": 0})
-            print(json.dumps(receipt), flush=True)
+            if target.get("configuration_api_version") != API_VERSION:
+                raise ValueError(f"{name} configuration baseline uses a different Azure API representation.")
+            prepared.append((role, image, target, url, before))
+    # Validate every consumer before changing any of them.
+    for role, image, target, url, before in prepared:
+        kind, name = target["kind"], target["name"]
+        template = deepcopy(before["properties"]["template"])
+        previous_image = template["containers"][0]["image"]
+        template["containers"][0]["image"] = image
+        body = args.output / f"{name}.patch.json"
+        save(body, {"properties": {"template": template}})
+        options = ["--headers", f"If-Match={before['etag']}"] if before.get("etag") else []
+        # Read again to avoid replacing a template changed during preparation.
+        fresh = azure("rest", "--method", "get", "--url", url)
+        if (configuration(fresh) != configuration(before) or
+                fresh["properties"]["template"] != before["properties"]["template"]):
+            raise ValueError(f"{name} changed during release preparation.")
+        azure("rest", "--method", "patch", "--url", url, "--body", "@" + str(body), *options)
+        after = azure("rest", "--method", "get", "--url", url)
+        save(args.output / f"{name}.after.json", after)
+        if configuration(before) != configuration(after):
+            raise ValueError(f"Configuration changed beyond the image on {name}; inspect the saved definitions.")
+        if after["properties"]["template"]["containers"][0]["image"] != image:
+            raise ValueError(f"Image update was not retained on {name}.")
+        receipt = {"name": name, "kind": kind, "role": role, "previous_image": previous_image,
+                   "image": image, "configuration_sha256": fingerprint(configuration(before)),
+                   "provisioning_state": after["properties"].get("provisioningState")}
+        receipts.append(receipt)
+        save(args.output / "deployment.json", {"environment": environment, **record, "targets": receipts,
+             "recorded_at": datetime.now(timezone.utc).isoformat(), "job_executions_started": 0})
+        print(json.dumps(receipt), flush=True)
 
 
 def main() -> None:
@@ -121,10 +142,11 @@ def main() -> None:
     package = commands.add_parser("build")
     package.add_argument("--role", required=True, choices=("worker", "api-next", "broker"))
     package.add_argument("--output", type=Path, required=True)
-    development = commands.add_parser("deploy-development")
-    development.add_argument("--subscription", required=True)
-    development.add_argument("--images", type=Path, required=True)
-    development.add_argument("--output", type=Path, required=True)
+    for environment in ("development", "production"):
+        deployment = commands.add_parser("deploy-" + environment)
+        deployment.add_argument("--subscription", required=True)
+        deployment.add_argument("--images", type=Path, required=True)
+        deployment.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     build(args) if args.command == "build" else deploy(args)
 

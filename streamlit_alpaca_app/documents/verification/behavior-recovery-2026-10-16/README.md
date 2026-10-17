@@ -1,6 +1,6 @@
 # Accepted-behavior recovery — October 16
 
-Status: source restoration accepted locally for development verification. A fresh normal Home publication, cloud packaging verification and development rollout are still pending. Production has not changed and requires explicit approval after that verification.
+Status: restored source and actual image contents verified. Development rollout and a fresh normal Home publication remain pending. The owner conditionally authorized production promotion if development passes complete qualitative and runtime review; after a development quality failure, fix the cause and obtain owner review before promotion.
 
 The [audit](../release-source-regressions-2026-10-16/README.md) owns the eight regressions. The [recovery plan](../../plans/RELEASE_BEHAVIOR_RECOVERY_2026-10-16.md) owns the work. This record does not accept the held reasoning/model-routing or Trading-call experiments.
 
@@ -39,13 +39,13 @@ Existing-image promotion requires a verified digest recorded for that role and t
 
 `Dockerfile.runtime` retains the pinned installed dependency filesystem, removes the inherited `/app` and retired Streamlit package before copying that filesystem into a fresh image stage, then copies the complete declared Git runtime. All three Python roles use this recipe. This removes the inherited worker layer-depth limit without upgrading runtime packages. Worker/API/broker stages preserve their launch commands; the obsolete broker UI port is dropped. Packaging tools/frontend source remain in the full source inventory; Python images have a separate explicit runtime file inventory. Inspection of the initial batches found that root-level cache exclusions did not remove nested compiled files, and ACR injected a generated Dockerfile into broad COPY contexts. Recursive exclusions and explicit runtime COPY paths correct those differences before deployment. The obsolete image-backport utility and previous broker overlay were verified into the 30-day archive batch `20261016T230849Z`. No application source is copied from an older image during the build.
 
-`scripts/release_application.py` builds accepted source and performs development image-template updates only. It checks the reviewed prior target image/configuration, saves before/after definitions and verifies that only the image changed. It does not start jobs, change settings or expose a production-deployment command. Immutable-image production promotion remains a separately authorized action.
+`scripts/release_application.py` builds accepted source and performs image-template updates. It preflights every consumer before the first update, preserves configuration, saves before/after definitions and verifies that only the image changed. Production requires recorded owner authorization and development acceptance for exactly the registered images. It does not execute jobs or change settings. Baseline capture and deployment use the same fixed ARM API version; the [representation review](azure-api-baseline-review.json) confirms the earlier guard rejection was schema representation, with no deployment mutation.
 
 The recovery targets the affected modern API, shared workers and broker: 13 development targets. Streamlit is retired and excluded. The legacy API and existing modern web frontends retain their current images; they do not need a blind application replacement to restore the eight audited paths. Their existing source and runtime records remain retained.
 
 The owner-directed [legacy retirement](../legacy-retirement-2026-10-16/README.md) removes obsolete frontend/deployment paths and records separate development service retirement. The worker build also hit the inherited base image layer-depth limit. No superseded image has been deployed; resolving packaging and accepting a fresh normal Home publication remain required.
 
-The layer-depth correction has been prepared in source; verify actual image filesystem content and installed package versions before registering any recovery digest. Production legacy API retirement was separately authorized and completed, with the iPhone/Next.js gateway unchanged; this does not authorize recovery-image promotion.
+The layer-depth correction has been prepared in source; verify actual image filesystem content and installed package versions before registering any recovery digest. Production legacy API retirement was separately authorized and completed, with the iPhone/Next.js gateway unchanged. The later owner instruction conditionally authorizes recovery-image promotion after development acceptance.
 
 ## Verified current images
 
