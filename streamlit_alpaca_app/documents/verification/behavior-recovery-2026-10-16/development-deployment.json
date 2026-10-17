@@ -1,0 +1,282 @@
+{
+  "environment": "development",
+  "source_revision": "bef8a9dfe4092836b9e95404fdae14e340405584",
+  "source_inventory_sha256": "e457d7cd49952456a47d5da1d358a264c4d64d3efd88b213259e14157817be21",
+  "runtime_inventory_sha256": "201dff120a8ce17dcaa56b0b34ed4d1e201340abf1c8e1f0e945db1a15da40b0",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:23f48aa5c543c218822acea8dd01c3f63b9ca0c7cc0c78c3d473a7aa11627e9c",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:0b30e3c2c38646cc1354603f6b8c0987302f60ab6bf155d75193cab8dd2283d5"
+  },
+  "targets_updated": 13,
+  "resources_compared": 33,
+  "production_and_frontends_unchanged": true,
+  "api_ready_revision": "sn-api-next-dev--0000038",
+  "resources": [
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:23f48aa5c543c218822acea8dd01c3f63b9ca0c7cc0c78c3d473a7aa11627e9c",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "universe-builder",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "macro-fred-daily",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "commodities-regime",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "options-liquid-universe",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "attention-home-build",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "trading-agent-build",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "zopedia-learning",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-health",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-research-run-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:0b30e3c2c38646cc1354603f6b8c0987302f60ab6bf155d75193cab8dd2283d5",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-broker@sha256:741ef70b2d3e2e3eaea9947289faf9f8a20e1b012655baf37e9ca3b9ea7a910d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "technical-history-next-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-research-run",
+      "kind": "jobs",
+      "image_changed": false,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "equities-next-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "evidence-index-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-recovery-dev",
+      "kind": "jobs",
+      "image_changed": true,
+      "effective_settings_unchanged": true,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "qualitative_acceptance": "pending fresh normal Home output review"
+}

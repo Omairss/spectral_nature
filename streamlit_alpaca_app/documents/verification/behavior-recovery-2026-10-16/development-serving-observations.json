@@ -1,0 +1,14 @@
+{
+  "api_revision": "sn-api-next-dev--0000037",
+  "local_http_seconds": 0.201,
+  "cloud_gateway_header_seconds": 0.16,
+  "cloud_gateway_total_seconds": 0.168,
+  "local_home_builder_profile_seconds": 0.422,
+  "local_fastapi_encoding_profile_seconds": 0.478,
+  "browser_home_visible_milliseconds": 1169,
+  "browser_charts_visible": 5,
+  "external_transfer_observation": "One sampled uncompressed 1.2 MB transfer took 8.302 seconds after headers arrived in 0.507; another completed in 1.095 seconds with headers in 0.432. The running API and in-cloud gateway are fast. No application performance edit was made from this preliminary external-transfer signal.",
+  "initial_preliminary_failure_reassessed": true,
+  "final_api_ready_revision": "sn-api-next-dev--0000038",
+  "signed_admin_and_operational_health": "verified in browser after final API deployment"
+}

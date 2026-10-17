@@ -1,6 +1,6 @@
 # Accepted-behavior recovery — October 16
 
-Status: restored source and actual image contents verified. Development rollout and a fresh normal Home publication remain pending. The owner conditionally authorized production promotion if development passes complete qualitative and runtime review; after a development quality failure, fix the cause and obtain owner review before promotion.
+Status: all 13 development targets deployed and provisioned successfully; all 33 remaining app/job definitions compared, with production and frontends unchanged. Fresh normal Home output still awaits complete personal review. The owner conditionally authorized production if development passes; after a development quality failure, fix the cause and obtain owner review before promotion.
 
 The [audit](../release-source-regressions-2026-10-16/README.md) owns the eight regressions. The [recovery plan](../../plans/RELEASE_BEHAVIOR_RECOVERY_2026-10-16.md) owns the work. This record does not accept the held reasoning/model-routing or Trading-call experiments.
 
@@ -51,10 +51,12 @@ The layer-depth correction is verified in the actual images, including complete 
 
 The [current image audit](packaged-images.json) verifies all 197 application files against accepted Git inside each actual image. Installed distribution versions and METADATA hashes match each pinned dependency image after excluding retired Streamlit: 93 worker distributions and 99 each for API/broker. All three actual images also [import successfully](actual-image-imports.json) without Streamlit. Docker build roles/commands and the dependency-only staging recipe are reviewed; the worker layer-depth block is resolved. The earlier local registry download inspection was replaced by these complete read-only in-registry checks, avoiding duplicate large transfers. Only these verified digests are registered for development.
 
-## Development rollout in progress
+## Development rollout and acceptance
 
-The first rollout updated eleven worker jobs and the modern API. Azure removed one empty optional storage field and the first API post-update read preceded its asynchronous template update. Both are recorded; no effective allocation or configuration change occurred. The release command now awaits the requested image and successful provisioning and skips already-current targets on resume. Its source and authorization checks pass eleven operational tests. The final release-tool revision is being packaged with the same 197 application files and unchanged runtime fingerprint.
+The first rollout updated eleven worker jobs and the modern API. Azure removed one empty optional storage field and the first API post-update read preceded its asynchronous template update. Both are recorded; no effective allocation or configuration change occurred. The release command now awaits the requested image and successful provisioning and skips already-current targets on resume. Its source and authorization checks pass eleven operational tests. The final release-tool revision is verified and [deployed to all thirteen development targets](development-deployment.json), with the same 197 application files and unchanged runtime fingerprint. API revision `sn-api-next-dev--0000038` is ready. All 33 app/job definitions preserve their effective settings; production and frontend images remain unchanged.
 
 A normal Home execution, `attention-home-next-dev-ua70qlu`, runs with the existing model, controls and development namespace. It uses the preceding verified recovery worker, whose complete application runtime is identical to the final packaging revision. Fresh output remains unaccepted until full personal review.
 
 The recovered API revision `sn-api-next-dev--0000037` is healthy. A direct HTTP Home read inside it took 0.201 seconds; the in-cloud Next.js gateway took 0.168 seconds; the browser displayed Home with all five charts in 1.169 seconds. One external uncompressed 1.2 MB transfer took 8.302 seconds after headers arrived in 0.507; another completed in 1.095 seconds. That preliminary external-transfer observation did not justify an application performance change. The normal Home builder/profile and actual API paths remain fast.
+
+[Serving observations](development-serving-observations.json) distinguish direct API/cloud timings, browser rendering and variable external transfer time. Signed Admin access and its development operational-health view also loaded successfully after the final API update.
