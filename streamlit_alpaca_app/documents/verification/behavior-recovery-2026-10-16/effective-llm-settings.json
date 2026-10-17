@@ -1,0 +1,78 @@
+[
+  {
+    "track": "development",
+    "runtime": {
+      "provider": "deepseek",
+      "model": "deepseek-reasoner",
+      "thinking_mode": "enabled",
+      "temperature": 0.2
+    },
+    "active_language_is_current_default": true,
+    "current_language_sha256": "601b55ec65bc2f26ada723e68b66e970a64150e3c2526c6f9d58025c75936303",
+    "active_custom_prompt_keys": [
+      "attention_feed_narrative_anomaly_edgar_context",
+      "event_writer_surface_summary_why_happened_text_affected_assets",
+      "homepage_summary_overview_sections_audio_text",
+      "sec_filing_analyst_evidence_extraction",
+      "symbol_bundle_what_changed_why_happened_spillover"
+    ],
+    "active_custom_parameter_keys": [
+      "param:audio_text_char_limit",
+      "param:beat_context_symbols",
+      "param:beat_highlight_max_sentences",
+      "param:hypothesis_char_limit",
+      "param:hypothesis_context_beats",
+      "param:hypothesis_context_claims",
+      "param:hypothesis_context_queries",
+      "param:live_event_max_symbols",
+      "param:retained_context_max_items",
+      "param:section_bullet_char_limit",
+      "param:sentence_fragment_max_sentences"
+    ],
+    "unused_stored_keys": [
+      "__copy_style_rule__",
+      "event_copy_title_what_happened_why_happened",
+      "mover_copy_one_sentence_move_description",
+      "tape_narrative_sentence_live_research_event"
+    ],
+    "changes_performed": 0
+  },
+  {
+    "track": "production",
+    "runtime": {
+      "provider": "deepseek",
+      "model": "deepseek-reasoner",
+      "thinking_mode": "enabled",
+      "temperature": 0.2
+    },
+    "active_language_is_current_default": true,
+    "current_language_sha256": "601b55ec65bc2f26ada723e68b66e970a64150e3c2526c6f9d58025c75936303",
+    "active_custom_prompt_keys": [
+      "attention_feed_narrative_anomaly_edgar_context",
+      "event_writer_surface_summary_why_happened_text_affected_assets",
+      "homepage_summary_overview_sections_audio_text",
+      "sec_filing_analyst_evidence_extraction",
+      "symbol_bundle_what_changed_why_happened_spillover"
+    ],
+    "active_custom_parameter_keys": [
+      "param:audio_text_char_limit",
+      "param:beat_context_symbols",
+      "param:beat_highlight_max_sentences",
+      "param:hypothesis_char_limit",
+      "param:hypothesis_context_beats",
+      "param:hypothesis_context_claims",
+      "param:hypothesis_context_queries",
+      "param:live_event_max_symbols",
+      "param:retained_context_max_items",
+      "param:section_bullet_char_limit",
+      "param:sentence_fragment_max_sentences"
+    ],
+    "unused_stored_keys": [
+      "__copy_style_rule__",
+      "event_copy_title_what_happened_why_happened",
+      "mover_copy_one_sentence_move_description",
+      "tape_narrative_sentence_live_research_event"
+    ],
+    "changes_performed": 0
+  }
+]

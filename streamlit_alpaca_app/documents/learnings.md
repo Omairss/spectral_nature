@@ -1083,3 +1083,5 @@ Require the complete committed application inventory and an explicit review for 
 Bind production promotion to the exact immutable digests personally accepted in development and the owner’s actual permission. Conditional authorization remains pending until the condition is met. Capture and compare Azure configurations through the same API version; null/default schema fields can otherwise cause false change reports.
 
 An accepted Azure PATCH is not a completed deployment. Wait for both the requested image and successful provisioning, then separately verify application revision readiness. Preserve before/after definitions and resume idempotently instead of issuing duplicate updates.
+
+A stored override row is not necessarily an active setting. Compare against every current prompt/parameter registry and the actual language-rule key, then verify the live Admin view before retiring configuration. Preserve active owner customization.

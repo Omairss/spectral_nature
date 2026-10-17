@@ -1,0 +1,14 @@
+{
+  "status": "archived_pending_conditional_production_retirement",
+  "batch": "20261017T005920Z",
+  "keys": [
+    "__copy_style_rule__",
+    "event_copy_title_what_happened_why_happened",
+    "mover_copy_one_sentence_move_description",
+    "tape_narrative_sentence_live_research_event"
+  ],
+  "records": 4,
+  "current_registry_references": 0,
+  "active_custom_prompts_and_parameters_preserved": true,
+  "database_mutations_performed": 0
+}
