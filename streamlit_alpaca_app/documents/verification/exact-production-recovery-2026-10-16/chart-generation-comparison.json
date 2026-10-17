@@ -1,0 +1,31 @@
+{
+  "actual_image_read_run": "cj178",
+  "actual_images": [
+    {
+      "reference": "production_predecessor",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+      "selector_ast_sha256": "6de7f4228ba6d3f72976dccfa91cba6a526564f98292139bda77a462e6a8503d",
+      "separate_chart_review": true,
+      "full_catalog_inline": true,
+      "max_tool_calls_parameter_supported": true
+    },
+    {
+      "reference": "original_successful_run",
+      "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+      "selector_ast_sha256": "6de7f4228ba6d3f72976dccfa91cba6a526564f98292139bda77a462e6a8503d",
+      "separate_chart_review": true,
+      "full_catalog_inline": true,
+      "max_tool_calls_parameter_supported": true
+    }
+  ],
+  "current_source_selector_ast_sha256": "a976ab6d3df5fb3650224d4521279378df42e7e0f1e519d048f6b7a6ca6581e5",
+  "current_source_uses_supplied_evidence_navigation": true,
+  "current_source_has_historical_separate_chart_review": false,
+  "production_failure": {
+    "input_tokens": 1887304,
+    "model_context_limit": 1048576,
+    "retained_asof": "2026-10-14T16:50:30.725170+00:00",
+    "exact_historical_selector_confirmed_in_both_images": true
+  },
+  "new_source_released": false
+}

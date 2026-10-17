@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Restored source and regression-compared structured recovery accepted locally for development verification; production conditionally authorized after complete development quality and runtime acceptance.",
+  "status": "held_after_development_quality_failure",
+  "scope": "Rejected rebuilt candidate: held for new builds and promotions. Production uses the separately authorized exact per-consumer historical rollback. Source inventory does not certify complete preservation of prior behavior.",
   "source_revision": "ac6fd89695fc7a979b47bf4ca30f4801353181e4",
   "review_base_revision": "9a7d1fd13fb21028e5d75caf7d0ffac5770602aa",
   "held_checkpoint": "held/pre-recovery-20261016",
@@ -1222,5 +1222,10 @@
     },
     "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
     "evidence": "documents/verification/behavior-recovery-2026-10-16/DEVELOPMENT_QUALITY_REVIEW.md"
+  },
+  "hold": {
+    "reason": "Fresh rebuilt Home failed subjective quality. Later actual-image inspection also found an unreviewed daily chart generation difference: current source navigates supplied evidence and omits the historical separate chart review; the prior scoped audit covered chart reading but not generation.",
+    "evidence": "documents/verification/exact-production-recovery-2026-10-16/PRODUCTION_RESTORATION.md",
+    "production_state": "Exact historical images restored; fresh Home published; automatic highlight refresh remains unresolved due to historical inline input exceeding model context."
   }
 }

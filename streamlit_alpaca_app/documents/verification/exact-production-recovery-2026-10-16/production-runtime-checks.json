@@ -1,0 +1,96 @@
+{
+  "production_apps_ready": [
+    {
+      "name": "sn-streamlit-ui",
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "latest": "sn-streamlit-ui--0000095",
+      "ready": "sn-streamlit-ui--0000095"
+    },
+    {
+      "name": "sn-next-ui",
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "latest": "sn-next-ui--0000011",
+      "ready": "sn-next-ui--0000011"
+    },
+    {
+      "name": "sn-api-next",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+      "latest": "sn-api-next--0000011",
+      "ready": "sn-api-next--0000011"
+    }
+  ],
+  "initial_public_http": [
+    {
+      "path": "/api/home",
+      "http_status": 200,
+      "seconds": 0.91,
+      "run_id": "46b3d391-91eb-4ae5-bd81-58ff09a66067",
+      "asof": "2026-10-16T20:50:29.361447+00:00",
+      "stories": 8,
+      "highlights": 5,
+      "overview": false
+    },
+    {
+      "path": "/",
+      "http_status": 200,
+      "seconds": 1.307
+    }
+  ],
+  "browser": {
+    "signed_in_session_restored": true,
+    "trading_horizons_loaded": [
+      "1 Week",
+      "1 Month",
+      "3 Month",
+      "1 Year",
+      "5 Year"
+    ],
+    "zopedia_workspace_loaded": true,
+    "retained_conversations": 9,
+    "knowledge_pages": 1919,
+    "existing_conversation_and_followup_accessible": true,
+    "orders_or_approvals_submitted": 0,
+    "new_research_turns_submitted": 0,
+    "public_summary_panel_pending_new_overview": false,
+    "fresh_overview_visible": true,
+    "narration_control_visible": true,
+    "intraday_charts_visible": 22,
+    "highlights_visible": 5,
+    "highlights_date": "2026-10-14",
+    "publication_verified_after_cache_refresh": true
+  },
+  "scheduled_health_execution": {
+    "name": "system-health-29870205",
+    "status": "Succeeded",
+    "start": "2026-10-17T04:45:00+00:00",
+    "end": "2026-10-17T04:45:49+00:00",
+    "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff"
+  },
+  "fresh_home_execution": "attention-home-build-4k1g09p",
+  "fresh_home_run": "fdb1ec77-d1f3-426a-bc4c-fa62f164e0a0",
+  "fresh_publication_status": "published",
+  "fresh_home_execution_status": "Succeeded",
+  "fresh_publication_http": {
+    "status": 200,
+    "seconds": 1.402,
+    "bytes": 1542358
+  },
+  "fresh_home_asof": "2026-10-17T04:44:41.577045+00:00",
+  "fresh_home_stories": 8,
+  "overview_available": true,
+  "audio": {
+    "http_status": 200,
+    "content_type": "audio/mpeg",
+    "bytes_read": 1024,
+    "seconds": 0.284
+  },
+  "rendered_ticker_entries": 22,
+  "fresh_highlights_status": "failed_context_limit_retained_previous",
+  "highlights_failure": {
+    "input_tokens": 1887304,
+    "model_context_limit": 1048576,
+    "retained_asof": "2026-10-14T16:50:30.725170+00:00",
+    "exact_historical_selector_confirmed_in_both_images": true
+  },
+  "overall_recovery_status": "exact_images_restored_fresh_home_live_chart_refresh_unresolved"
+}

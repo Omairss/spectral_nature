@@ -23,5 +23,8 @@
     }
   ],
   "custom_domains_preserved": 4,
-  "retired_services_stay_deleted": true
+  "retired_services_stay_deleted": true,
+  "reverified_at": "2026-10-17T05:22:52.161607+00:00",
+  "fresh_home_execution": "attention-home-build-4k1g09p",
+  "fresh_home_execution_status": "Succeeded"
 }
