@@ -3225,6 +3225,8 @@ def _execute_zopedia_agent_loop(
         )
         return state
 
+    artifact = None
+    structured_repair_attempted = False
     try:
         while int(max_tool_calls) > 0 and budget.remaining() > 0:
             if _budgeted_tool_count(tool_calls) >= int(max_tool_calls):
@@ -3687,9 +3689,11 @@ def _execute_zopedia_agent_loop(
                 parse_aql_zopedia_structured_answer,
                 _repair_structured_payload_from_agent_answer,
             )
-            artifact = parse_aql_zopedia_structured_answer(final_answer)
+            if artifact is None:
+                artifact = parse_aql_zopedia_structured_answer(final_answer)
             errors = list(Draft202012Validator(response_schema).iter_errors(artifact))
             if errors:
+                structured_repair_attempted = True
                 repaired = _repair_structured_payload_from_agent_answer(
                     answer_markdown=final_answer, schema_name=response_schema_name or "zopedia_agent_final",
                     schema=response_schema, llm_client=resolved_llm, surface=surface, task=task,
@@ -3737,6 +3741,7 @@ def _execute_zopedia_agent_loop(
             "request_context": request_context,
             "research_state": research_state,
             "continuation_state": checkpoint("research_interrupted"),
+            "structured_repair_attempted": structured_repair_attempted,
         }
         if persist_findings:
             _persist_agent_findings(

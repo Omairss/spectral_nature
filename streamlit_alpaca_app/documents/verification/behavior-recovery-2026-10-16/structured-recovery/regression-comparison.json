@@ -1,0 +1,88 @@
+{
+  "baseline_revision": "26e8bfab",
+  "candidate_source": "working Git correction",
+  "cases": [
+    {
+      "case": "valid fresh / agent review",
+      "same_full_selected_result": true,
+      "same_model_inputs_and_call_order": true,
+      "calls": [
+        "synthesis",
+        "review"
+      ],
+      "extra_model_calls": 0
+    },
+    {
+      "case": "valid fresh / downstream review",
+      "same_full_selected_result": true,
+      "same_model_inputs_and_call_order": true,
+      "calls": [
+        "synthesis"
+      ],
+      "extra_model_calls": 0
+    },
+    {
+      "case": "valid resumed / agent review",
+      "same_full_selected_result": true,
+      "same_model_inputs_and_call_order": true,
+      "calls": [
+        "review"
+      ],
+      "extra_model_calls": 0
+    },
+    {
+      "case": "valid resumed / downstream review",
+      "same_full_selected_result": true,
+      "same_model_inputs_and_call_order": true,
+      "calls": [],
+      "extra_model_calls": 0
+    },
+    {
+      "case": "actual omitted-field draft / fresh",
+      "baseline_status": "failed",
+      "baseline_calls": [
+        "synthesis"
+      ],
+      "candidate_status": "completed",
+      "candidate_calls": [
+        "synthesis",
+        "format_repair",
+        "review"
+      ],
+      "unrepairable_keeps_full_draft_and_fails": true
+    },
+    {
+      "case": "actual omitted-field draft / resumed",
+      "baseline_status": "completed",
+      "baseline_calls": [
+        "review"
+      ],
+      "candidate_status": "completed",
+      "candidate_calls": [
+        "format_repair",
+        "review"
+      ],
+      "unrepairable_keeps_full_draft_and_fails": true
+    }
+  ],
+  "valid_actual_home_frozen_transport_ms": {
+    "baseline": {
+      "median": 4.264,
+      "min": 4.104,
+      "max": 4.426,
+      "samples": 30
+    },
+    "candidate": {
+      "median": 4.293,
+      "min": 4.132,
+      "max": 4.56,
+      "samples": 30
+    }
+  },
+  "method": "Paired execution of real 19-item Home artifact through baseline and candidate functions with frozen synthesis and reviewer transport. Exact model-input hashes and selected complete result compared; no quality grading by strings. No provider calls or writes.",
+  "scope_limit": "Local orchestration timings exclude actual provider inference, acquisition and network variability. Live retained-draft recovery is separately recorded.",
+  "candidate_runtime_files": {
+    "services/aql_zopedia_engine.py": "cc3a740498507b19713703f03f996d4e926c746b964b5e0509f1917b74adb0b0",
+    "services/zopedia_agent.py": "194770bbe9cd02e42495237b98d767ea19fbea9a9f3a1d93270c79dfb139077a"
+  }
+}

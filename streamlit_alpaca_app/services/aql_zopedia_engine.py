@@ -430,10 +430,6 @@ def run_aql_zopedia_structured_agent(
     if run_timeout_seconds is None and max_tool_calls is not None and int(max_tool_calls) <= 0 and llm_step_timeout_seconds is not None:
         timeout = min(float(timeout), float(llm_step_timeout_seconds))
     deadline = time.monotonic() + float(timeout)
-    # The reviewed agent and its structured recovery must share the same
-    # resolved client. The agent's internal default is not returned to this
-    # owner, leaving schema repair unavailable when the caller omitted it.
-    llm_client = llm_client or load_aql_zopedia_llm_client(surface=surface)
     structured_query = (
         (f"Task instructions:\n{instructions}\n\n" if instructions else "")
         + f"{query}\n\n"
@@ -447,7 +443,7 @@ def run_aql_zopedia_structured_agent(
     if initial_evidence and max_tool_calls is not None and int(max_tool_calls) <= 0 and not review_answer:
         structured_query += "\nSupplied evidence:\n" + serialize_llm_context(initial_evidence)
     if max_tool_calls is not None and int(max_tool_calls) <= 0 and not review_answer:
-        resolved_llm = llm_client
+        resolved_llm = llm_client or load_aql_zopedia_llm_client(surface=surface)
         if resolved_llm is None:
             return {
                 "status": "unavailable",
@@ -607,12 +603,16 @@ def run_aql_zopedia_structured_agent(
     if retained_answer:
         payload = parse_aql_zopedia_structured_answer(retained_answer)
         if payload is None or list(Draft202012Validator(schema).iter_errors(payload)):
+            llm_client = llm_client or load_aql_zopedia_llm_client(surface="zopedia.agent")
             payload = _repair_structured_payload_from_agent_answer(
                 answer_markdown=retained_answer, schema_name=schema_name, schema=schema,
                 llm_client=llm_client, surface=surface, task=task, deadline_monotonic=deadline)
         if payload is not None:
             return {"status": "completed", "payload": payload,
                     "agent_result": retained_agent_result, "retained_draft_recovered": True}
+    # Preserve the agent's existing default client and share it with recovery.
+    # Valid retained answers above need no inference client.
+    llm_client = llm_client or load_aql_zopedia_llm_client(surface="zopedia.agent")
     agent_result = run_aql_zopedia_agent(
         query=structured_query,
         task=task,
@@ -647,7 +647,8 @@ def run_aql_zopedia_structured_agent(
     # Review refines research; its verdict is not an admission rule. Preserve a
     # valid answer and the actual review state, including incomplete review.
     repair_used = False
-    if payload is None and agent_result.get("answer_markdown"):
+    if (payload is None and agent_result.get("answer_markdown")
+            and not agent_result.get("structured_repair_attempted")):
         payload = _repair_structured_payload_from_agent_answer(
             answer_markdown=agent_result.get("answer_markdown"),
             schema_name=schema_name,

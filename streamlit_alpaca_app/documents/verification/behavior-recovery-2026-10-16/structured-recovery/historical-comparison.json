@@ -1,0 +1,72 @@
+{
+  "accepted_home_evidence": "October 14 accepted image filesystem 393a781bfcb9, read-only archived source evidence",
+  "pre_fix_revision": "26e8bfab",
+  "functions_and_schema": [
+    {
+      "file": "pipeline/jobs/attention_home_build.py",
+      "function": "_review_home_public_surface",
+      "accepted_image_has_function": true,
+      "pre_fix_matches_accepted_image": true,
+      "candidate_matches_pre_fix": true
+    },
+    {
+      "file": "pipeline/jobs/attention_home_build.py",
+      "function": "_apply_home_surface_quality_items",
+      "accepted_image_has_function": true,
+      "pre_fix_matches_accepted_image": true,
+      "candidate_matches_pre_fix": true
+    },
+    {
+      "file": "pipeline/jobs/attention_home_build.py",
+      "constant": "_HOME_SURFACE_QUALITY_SCHEMA",
+      "pre_fix_matches_accepted_image": true,
+      "candidate_matches_pre_fix": true
+    },
+    {
+      "file": "services/aql_zopedia_engine.py",
+      "function": "run_aql_zopedia_structured_agent",
+      "accepted_image_has_function": true,
+      "pre_fix_matches_accepted_image": false,
+      "candidate_matches_pre_fix": false
+    },
+    {
+      "file": "services/aql_zopedia_engine.py",
+      "function": "_repair_structured_payload_from_agent_answer",
+      "accepted_image_has_function": true,
+      "pre_fix_matches_accepted_image": true,
+      "candidate_matches_pre_fix": true
+    },
+    {
+      "file": "services/zopedia_agent.py",
+      "function": "_execute_zopedia_agent_loop",
+      "accepted_image_has_function": true,
+      "pre_fix_matches_accepted_image": false,
+      "candidate_matches_pre_fix": false
+    },
+    {
+      "file": "services/zopedia_agent.py",
+      "function": "_run_answer_judge",
+      "accepted_image_has_function": true,
+      "pre_fix_matches_accepted_image": true,
+      "candidate_matches_pre_fix": true
+    }
+  ],
+  "recovery_control_flow": [
+    {
+      "behavior": "same client passed into agent",
+      "matches": true,
+      "statements": 1
+    },
+    {
+      "behavior": "same outer recovery invocation",
+      "matches": true,
+      "statements": 4
+    },
+    {
+      "behavior": "same schema failure before semantic review",
+      "matches": true,
+      "statements": 1
+    }
+  ],
+  "whole_function_differences": "Structured wrapper budget resolution and agent source-access/supplied-evidence discovery changed outside the identical failure path. These are not presented as whole-engine identity."
+}
