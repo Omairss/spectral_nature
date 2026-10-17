@@ -1,9 +1,8 @@
 {
-  "status": "held_after_development_quality_failure",
-  "scope": "Rejected rebuilt candidate: held for new builds and promotions. Production uses the separately authorized exact per-consumer historical rollback. Source inventory does not certify complete preservation of prior behavior.",
-  "source_revision": "ac6fd89695fc7a979b47bf4ca30f4801353181e4",
-  "review_base_revision": "9a7d1fd13fb21028e5d75caf7d0ffac5770602aa",
-  "held_checkpoint": "held/pre-recovery-20261016",
+  "status": "accepted_locally",
+  "scope": "Locally reviewed chart/context repair; narrowly scoped worker development verification. Full fresh development quality and exact-image acceptance remain mandatory before the conditional production promotion.",
+  "source_revision": "6c428b3b3f2f7c35b0f350869d30556f4287ae16",
+  "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
     ".env.example": "411839b19dc8a7f9a5e4586766d414d9856e698b28a4d274a96363fc2dea9d1e",
@@ -135,7 +134,7 @@
     "services/aql/scratchpad.py": "031a699bfe459628c3aa4e415b3c2fdcbf2dc36e4b02d579d3e3deb68cc8788e",
     "services/aql/summarizer.py": "c2f2f031649fb99b32cfd8e34338935fa1ada49c2e59fa4f6a56c08bb5c2c4fe",
     "services/aql/writer.py": "cc0a8516917579a0069b4924a40a185b0929f75f8e58560fbe8d1a82eb1b5b59",
-    "services/aql_zopedia_engine.py": "cc3a740498507b19713703f03f996d4e926c746b964b5e0509f1917b74adb0b0",
+    "services/aql_zopedia_engine.py": "22eae7fe664dfe60bff0778c85c520776b44e14d1da9dc1b2f658dfc69880c35",
     "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
     "services/attention/__init__.py": "eaf23a3900301cf51f8537211ef174590fab02dacf9072017717bdb7e378e5d2",
     "services/attention_agentic.py": "b5ed770c653c02b62f5c14e9777668d79c50deca0c1ef22f6a34e129a9162f55",
@@ -164,7 +163,7 @@
     "services/company.py": "5aae2327e2e251715a6be856037efd40987061e82a7529874d1b24d4dec1711e",
     "services/company_baseline.py": "9ee3efc52a1bf86be1c972d43962685ea60308dc384b9d6b83dcf78ec5a579d7",
     "services/config.py": "90da8235542df4fac4e468afef9d8c844e5ad4e5b6f7c1d68b2834aa1d1beeda",
-    "services/daily_market_datapoints.py": "cb5de3ccaf70fb050fdff4002ed6b0d1b0da5eabfe8a79d64e998a5973372b09",
+    "services/daily_market_datapoints.py": "e4179304ee3c8453aca6169dacdc926c844d475a1a3cb19b377c1b039a744ca8",
     "services/data_cache.py": "c1013d8050df1a8c221810943fe06356a744027e22e3fe66f34a70da8547be31",
     "services/database.py": "79d55fa089a01fd2d67d76a388da77242f36c28407e9494b37023ecc88fab151",
     "services/dependency_graphs.py": "282f912d3795aba411bd005d80ab6b2458594a2d47e5ff3aa30f0ebcd635dc17",
@@ -183,7 +182,7 @@
     "services/json_utils.py": "6e1e75e8824b3d2d61b6677d27316b44a2671b456bf8e3a4aae9056655bd0ecb",
     "services/knowledge_graph.py": "1b3f0add7d6838153bf2fda2207bf262b436f4cefe233013e2946851d3acb9e6",
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
-    "services/llm.py": "a3032c4bad22a4e173b9c85c0f1b6b230bf354d2c1e298616ee2c6bc8b035b50",
+    "services/llm.py": "2dd6700b0b1266820b4c5e741b4bf6db8a344429422a23cc75116c7bd2144017",
     "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
     "services/llm_execution.py": "057ac18584aa3dba45cab7f4492dc134f6134a427c6f9551c19affa7e11fdcf0",
     "services/llm_prices.json": "e6e8a6a76ebce48d8d584ce9fba66b8794cc2a3ab8c7d946a407eab9e0861a5b",
@@ -224,7 +223,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "19f52cd6f8d073a9a609db197e2e4013b3156ccf4445700b0a308ed13d023bb3",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "194770bbe9cd02e42495237b98d767ea19fbea9a9f3a1d93270c79dfb139077a",
+    "services/zopedia_agent.py": "d499c0cebfeea311e39afdab0824a0e752ee47d62c8251cd4dcb948915563a1d",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
     "services/zopedia_learning.py": "a610b21df101afc02f7fddf4bdd6656d3622b3846da001fa78a59fdafab31776",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
@@ -419,7 +418,7 @@
     "services/aql/scratchpad.py": "031a699bfe459628c3aa4e415b3c2fdcbf2dc36e4b02d579d3e3deb68cc8788e",
     "services/aql/summarizer.py": "c2f2f031649fb99b32cfd8e34338935fa1ada49c2e59fa4f6a56c08bb5c2c4fe",
     "services/aql/writer.py": "cc0a8516917579a0069b4924a40a185b0929f75f8e58560fbe8d1a82eb1b5b59",
-    "services/aql_zopedia_engine.py": "cc3a740498507b19713703f03f996d4e926c746b964b5e0509f1917b74adb0b0",
+    "services/aql_zopedia_engine.py": "22eae7fe664dfe60bff0778c85c520776b44e14d1da9dc1b2f658dfc69880c35",
     "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
     "services/attention/__init__.py": "eaf23a3900301cf51f8537211ef174590fab02dacf9072017717bdb7e378e5d2",
     "services/attention_agentic.py": "b5ed770c653c02b62f5c14e9777668d79c50deca0c1ef22f6a34e129a9162f55",
@@ -448,7 +447,7 @@
     "services/company.py": "5aae2327e2e251715a6be856037efd40987061e82a7529874d1b24d4dec1711e",
     "services/company_baseline.py": "9ee3efc52a1bf86be1c972d43962685ea60308dc384b9d6b83dcf78ec5a579d7",
     "services/config.py": "90da8235542df4fac4e468afef9d8c844e5ad4e5b6f7c1d68b2834aa1d1beeda",
-    "services/daily_market_datapoints.py": "cb5de3ccaf70fb050fdff4002ed6b0d1b0da5eabfe8a79d64e998a5973372b09",
+    "services/daily_market_datapoints.py": "e4179304ee3c8453aca6169dacdc926c844d475a1a3cb19b377c1b039a744ca8",
     "services/data_cache.py": "c1013d8050df1a8c221810943fe06356a744027e22e3fe66f34a70da8547be31",
     "services/database.py": "79d55fa089a01fd2d67d76a388da77242f36c28407e9494b37023ecc88fab151",
     "services/dependency_graphs.py": "282f912d3795aba411bd005d80ab6b2458594a2d47e5ff3aa30f0ebcd635dc17",
@@ -467,7 +466,7 @@
     "services/json_utils.py": "6e1e75e8824b3d2d61b6677d27316b44a2671b456bf8e3a4aae9056655bd0ecb",
     "services/knowledge_graph.py": "1b3f0add7d6838153bf2fda2207bf262b436f4cefe233013e2946851d3acb9e6",
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
-    "services/llm.py": "a3032c4bad22a4e173b9c85c0f1b6b230bf354d2c1e298616ee2c6bc8b035b50",
+    "services/llm.py": "2dd6700b0b1266820b4c5e741b4bf6db8a344429422a23cc75116c7bd2144017",
     "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
     "services/llm_execution.py": "057ac18584aa3dba45cab7f4492dc134f6134a427c6f9551c19affa7e11fdcf0",
     "services/llm_prices.json": "e6e8a6a76ebce48d8d584ce9fba66b8794cc2a3ab8c7d946a407eab9e0861a5b",
@@ -508,7 +507,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "19f52cd6f8d073a9a609db197e2e4013b3156ccf4445700b0a308ed13d023bb3",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "194770bbe9cd02e42495237b98d767ea19fbea9a9f3a1d93270c79dfb139077a",
+    "services/zopedia_agent.py": "d499c0cebfeea311e39afdab0824a0e752ee47d62c8251cd4dcb948915563a1d",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
     "services/zopedia_learning.py": "a610b21df101afc02f7fddf4bdd6656d3622b3846da001fa78a59fdafab31776",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
@@ -518,102 +517,10 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    ".dockerignore": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    ".env.example": "Remove retired browser/session opt-ins, use Next.js local origin and restore the accepted Home configured model alias in setup instructions; no deployed inference setting changes.",
-    ".streamlit/config.toml": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "Dockerfile.api": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "Dockerfile.app": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "Dockerfile.pipeline": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "Dockerfile.robinhood-sync": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "Dockerfile.runtime": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "Dockerfile.web": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "api/main.py": "Retire Streamlit-only persistence/static-login and session-bearer migration paths; preserve current database identity, signed access/refresh and agent-key contracts.",
-    "app.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "docker-compose.dev.yml": "Remove the retired Streamlit port; preserve Python development and API configuration.",
-    "pipeline/jobs/attention_home_build.py": "Restore original Home workload controls and editor behavior; preserve accepted cancellation and context propagation.",
-    "pipeline/jobs/main.py": "Retain restored market-memory/date and Home-status behavior plus accepted database lifecycle; remove held workload routing/paper tracking and the inactive per-horizon Trading dispatch; preserve the accepted shared producer call.",
-    "presentation/attention_content.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "presentation/dashboard_loaders.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "requirements-ui.lock": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "requirements.txt": "Remove the retired Streamlit dependency; preserve every current backend dependency constraint.",
-    "scripts/backport_pipeline_lock_fix.py": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/deploy_api_azure.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/deploy_pipeline_azure.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/deploy_ui_azure.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/docker_dev.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/load_local_env.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/mobile_render_check.mjs": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/prepare_workbench_cutover.py": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/prepare_workbench_release.py": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/release_application.py": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/release_source.py": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/run_ui_local.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/setup_email_delivery_azure.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/show_infra_inventory.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/which_deploy.sh": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "scripts/zopedia_product_eval.py": "Review complete-source packaging and fail-closed provenance / consumer-role checks; retire historical overlay preparation.",
-    "services/__init__.py": "Correct stale Streamlit ownership comments; no executable behavior changes.",
-    "services/admin_view.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/agent_tools.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/agents/research_runs.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/agents/scratchpad.py": "Correct stale Streamlit ownership comments; no executable behavior changes.",
-    "services/api_auth.py": "Retire Streamlit-only persistence/static-login and session-bearer migration paths; preserve current database identity, signed access/refresh and agent-key contracts.",
-    "services/aql/business_model_stack.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/collector.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/constants.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/critique.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/events.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/evidence_index.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/evidence_pack.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/extractor.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/macro.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/news_business_resolution.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/summarizer.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql/writer.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/aql_zopedia_engine.py": "Preserve the accepted shared engine and repair structured response format with the existing resolved client before semantic answer review; preserve complete paid drafts and evidence, existing prompts/models/budgets and strict schema.",
-    "services/aql_zopedia_gateway.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/attention_context_llm.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/attention_live_research.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/auth_service.py": "Retire Streamlit-only persistence/static-login and session-bearer migration paths; preserve current database identity, signed access/refresh and agent-key contracts.",
-    "services/common/hypothesis.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/company.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/elevenlabs_tts.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/entity_extraction.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/entity_taxonomy.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/knowledge_graph.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/llm.py": "Restore the accepted transport/settings implementation and remove only the unused Streamlit in-process editor; the modern Admin transactional settings path remains.",
-    "services/llm_execution.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/llm_flow.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/page_agentic_summary.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/page_browsing.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/pipeline_store.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/robinhood_mcp.py": "Align the local default account-link origin with the current Next.js port; deployed explicit public origins are unchanged.",
-    "services/saa/semantic_index.py": "Remove held optional retrieval-status change; preserve all accepted projection/admission functions.",
-    "services/saa/storage.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/saa/zopedia.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/trading_agent.py": "Preserve the actual accepted shared-research Trading module; whole-module AST equality after removing only three inactive rollback functions, flags and branches. All 69 other functions unchanged.",
-    "services/trading_agent_view.py": "Remove held directional-call/paper-tracking behavior; retain actual accepted Trading and API contracts.",
-    "services/trading_call_tracking.py": "Remove held directional-call/paper-tracking behavior; retain actual accepted Trading and API contracts.",
-    "services/web_research.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/zopedia_agent.py": "Preserve the accepted shared engine and repair structured response format with the existing resolved client before semantic answer review; preserve complete paid drafts and evidence, existing prompts/models/budgets and strict schema.",
-    "services/zopedia_analysis.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "services/zopedia_research.py": "Revert held shared-flow routing, context/review experiments or stage-only call changes against accepted engine evidence; preserve separately accepted cancellation.",
-    "views/__init__.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/_shared.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/access_admin.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/broad_economy.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/experiments.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/market_explorer.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/option_strategizer.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/portfolio.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/stock_investigator.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "views/trading_agent.py": "Owner-directed retirement of the obsolete Streamlit frontend and its exclusive support code; exact originals archived and no current consumer imports remain.",
-    "web/app/admin/page.tsx": "Restore the actual deployed frontend source; exclude held flow and paper-call UI.",
-    "web/app/api/trading-agent/calls/[trackingId]/route.ts": "Restore the actual deployed frontend source; exclude held flow and paper-call UI.",
-    "web/app/trading-agent/page.tsx": "Restore the actual deployed frontend source; exclude held flow and paper-call UI.",
-    "web/components/admin/llm-flow-graph.tsx": "Restore the actual deployed frontend source; exclude held flow and paper-call UI.",
-    "web/components/admin/llm-flow-types.ts": "Restore the actual deployed frontend source; exclude held flow and paper-call UI.",
-    "web/components/admin/llm-settings.tsx": "Restore the actual deployed frontend source; exclude held flow and paper-call UI."
+    "services/daily_market_datapoints.py": "Complete original catalog is invocation-owned and navigable; preserve historical five-chart schema, distinct references, dedicated review/revision, exact plotted originals and 600-second operation budget. Remove accumulated metric preferences/prohibitions under the owner instruction to keep selection LLM-driven. Carry the original task into review. Personally reviewed both current-data replays; fresh development publication remains the production gate.",
+    "services/llm.py": "Keep valid provider requests and call counts; syntax recovery receives its original messages to retain task/evidence meaning. All three existing transports use the same recovery contract; no provider/model/settings change. Paired actual malformed responses and transport contract checks retained.",
+    "services/aql_zopedia_engine.py": "Retain original task/evidence in schema recovery; keep planner-step and artifact schemas separate instead of truncating/embedding the artifact contract in the planner question. Exact no-tool Home editor request is preserved; original retained-draft ownership and failure behavior checked.",
+    "services/zopedia_agent.py": "Keep the original planner prompt. Recover malformed step schemas with the existing LLM/schema owner, retain collected evidence on incomplete planning, and resolve the LLM-selected supplied source IDs through the existing permitted evidence history before synthesis. Preserve originals in checkpoints/review/provenance. No fixed subjects, semantic classifier, new role or admission rule."
   },
   "retired_files": [
     ".streamlit/config.toml",
@@ -652,76 +559,41 @@
   ],
   "components": [
     {
-      "name": "Shared structured recovery before existing answer review",
+      "name": "LLM-owned chart selection and shared context recovery",
       "status": "accepted",
       "files": [
+        "services/daily_market_datapoints.py",
+        "services/llm.py",
         "services/aql_zopedia_engine.py",
         "services/zopedia_agent.py"
       ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
     },
     {
-      "name": "Home editor and lossless publication",
+      "name": "Preserved Home editor, narration and intraday publication",
       "status": "accepted",
       "files": [
         "pipeline/jobs/attention_home_build.py",
-        "services/attention_surface.py"
+        "services/attention_surface.py",
+        "services/attention_materialized.py",
+        "services/attention_ticker_snapshots.py",
+        "services/alpaca_api.py"
       ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
     },
     {
-      "name": "Independent key charts",
+      "name": "Shared normal-Home and independent chart generation",
       "status": "accepted",
       "files": [
-        "services/home_view.py"
+        "pipeline/jobs/attention_home_build.py",
+        "pipeline/jobs/daily_market_datapoints_build.py",
+        "pipeline/jobs/main.py",
+        "services/daily_market_datapoints.py"
       ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
     },
     {
-      "name": "Intraday provider compatibility",
-      "status": "accepted",
-      "files": [
-        "services/alpaca_api.py",
-        "services/attention_ticker_snapshots.py"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Market memory and observation times",
-      "status": "accepted",
-      "files": [
-        "pipeline/jobs/main.py"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Zopedia source index and maintenance",
-      "status": "accepted",
-      "files": [
-        "services/saa/zopedia.py"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Broker cadence and duplicate protection",
-      "status": "accepted",
-      "files": [
-        "services/robinhood_main_sync.py",
-        "services/robinhood_main_store.py"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Monitoring and truthful Home completion",
-      "status": "accepted",
-      "files": [
-        "services/system_health.py",
-        "pipeline/jobs/main.py"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Preserved accepted database lifecycle",
+      "name": "Explicit integration of accepted database lifecycle and cancellation",
       "status": "accepted",
       "files": [
         "services/database.py",
@@ -730,449 +602,205 @@
         "services/saa/semantic_index.py",
         "services/operational_health.py"
       ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
+      "evidence": "documents/verification/database-lifecycle-2026-10-16/README.md"
     },
     {
-      "name": "Preserved current Trading; retired inactive rollback",
+      "name": "Complete Git runtime packaging and narrow consumer checks",
       "status": "accepted",
       "files": [
-        "services/trading_agent.py",
-        "services/trading_agent_view.py",
-        "api/main.py"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Retired frontend and migration authentication; retained current identities",
-      "status": "accepted",
-      "files": [
-        "services/auth_service.py",
-        "services/api_auth.py",
-        "api/main.py"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Accepted research engine; exclude held experiments",
-      "status": "accepted",
-      "files": [
-        "services/__init__.py",
-        "services/admin_view.py",
-        "services/agent_tools.py",
-        "services/agents/research_runs.py",
-        "services/agents/scratchpad.py",
-        "services/api_auth.py",
-        "services/aql/business_model_stack.py",
-        "services/aql/collector.py",
-        "services/aql/constants.py",
-        "services/aql/critique.py",
-        "services/aql/events.py",
-        "services/aql/evidence_index.py",
-        "services/aql/evidence_pack.py",
-        "services/aql/extractor.py",
-        "services/aql/macro.py",
-        "services/aql/news_business_resolution.py",
-        "services/aql/summarizer.py",
-        "services/aql/writer.py",
-        "services/aql_zopedia_engine.py",
-        "services/aql_zopedia_gateway.py",
-        "services/attention_context_llm.py",
-        "services/attention_live_research.py",
-        "services/auth_service.py",
-        "services/common/hypothesis.py",
-        "services/company.py",
-        "services/elevenlabs_tts.py",
-        "services/entity_extraction.py",
-        "services/entity_taxonomy.py",
-        "services/knowledge_graph.py",
-        "services/llm.py",
-        "services/llm_execution.py",
-        "services/page_agentic_summary.py",
-        "services/page_browsing.py",
-        "services/pipeline_store.py",
-        "services/robinhood_mcp.py",
-        "services/saa/semantic_index.py",
-        "services/saa/storage.py",
-        "services/saa/zopedia.py",
-        "services/trading_agent.py",
-        "services/trading_agent_view.py",
-        "services/web_research.py",
-        "services/zopedia_agent.py",
-        "services/zopedia_analysis.py",
-        "services/zopedia_research.py"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Whole-source packaging and consumer checks",
-      "status": "accepted",
-      "files": [
-        ".dockerignore",
-        "Dockerfile.api",
-        "Dockerfile.app",
-        "Dockerfile.pipeline",
-        "Dockerfile.robinhood-sync",
         "Dockerfile.runtime",
-        "Dockerfile.web",
-        "scripts/backport_pipeline_lock_fix.py",
-        "scripts/deploy_api_azure.sh",
-        "scripts/deploy_pipeline_azure.sh",
-        "scripts/deploy_ui_azure.sh",
-        "scripts/docker_dev.sh",
-        "scripts/load_local_env.sh",
-        "scripts/mobile_render_check.mjs",
-        "scripts/prepare_workbench_cutover.py",
-        "scripts/prepare_workbench_release.py",
-        "scripts/release_application.py",
         "scripts/release_source.py",
-        "scripts/run_ui_local.sh",
-        "scripts/setup_email_delivery_azure.sh",
-        "scripts/show_infra_inventory.sh",
-        "scripts/which_deploy.sh",
-        "scripts/zopedia_product_eval.py"
+        "scripts/release_application.py",
+        ".dockerignore"
       ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Retired held runtime modules",
-      "status": "accepted",
-      "files": [
-        ".streamlit/config.toml",
-        "Dockerfile.api",
-        "Dockerfile.app",
-        "Dockerfile.pipeline",
-        "Dockerfile.robinhood-sync",
-        "app.py",
-        "presentation/attention_content.py",
-        "presentation/dashboard_loaders.py",
-        "requirements-ui.lock",
-        "scripts/backport_pipeline_lock_fix.py",
-        "scripts/deploy_api_azure.sh",
-        "scripts/deploy_pipeline_azure.sh",
-        "scripts/deploy_ui_azure.sh",
-        "scripts/mobile_render_check.mjs",
-        "scripts/prepare_workbench_cutover.py",
-        "scripts/prepare_workbench_release.py",
-        "scripts/run_ui_local.sh",
-        "scripts/which_deploy.sh",
-        "services/llm_flow.py",
-        "services/trading_call_tracking.py",
-        "views/__init__.py",
-        "views/_shared.py",
-        "views/access_admin.py",
-        "views/broad_economy.py",
-        "views/experiments.py",
-        "views/market_explorer.py",
-        "views/option_strategizer.py",
-        "views/portfolio.py",
-        "views/stock_investigator.py",
-        "views/trading_agent.py",
-        "web/app/api/trading-agent/calls/[trackingId]/route.ts",
-        "web/components/admin/llm-flow-graph.tsx",
-        "web/components/admin/llm-flow-types.ts"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
-    },
-    {
-      "name": "Preserved frontend source",
-      "status": "accepted",
-      "files": [
-        "web/app/admin/page.tsx",
-        "web/app/trading-agent/page.tsx",
-        "web/components/admin/llm-settings.tsx"
-      ],
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/README.md"
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
     }
   ],
   "roles": {
     "worker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
-        "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
-        "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
-        "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
-        "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
-        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
-        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff"
       ],
       "development_targets": [
         {
           "kind": "jobs",
-          "name": "trading-agent-build-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "macro-fred-daily-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "sn-research-run-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "dataset-refresh-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
           "name": "attention-home-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
           "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
-          "name": "attention-ticker-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
           "name": "daily-datapoints-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
           "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "technical-history-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "equities-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "evidence-index-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "system-recovery-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:832a3965d3944d8d79f8f5d7fb6796f65f1d13fa619a48079930ca3406b4373b",
-          "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
-          "configuration_api_version": "2025-07-01",
-          "configuration_review": "Reviewed removal of empty optional ephemeralStorage by Azure; all effective settings unchanged."
         }
       ],
       "production_targets": [
-        {
-          "kind": "jobs",
-          "name": "universe-builder",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "equities-intraday-preload",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "macro-fred-daily",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "commodities-regime",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "options-liquid-universe",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "news-ingest-and-features",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "entity-taxonomy-refresh",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
-          "configuration_api_version": "2025-07-01"
-        },
         {
           "kind": "jobs",
           "name": "attention-home-build",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
           "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
           "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "fundamentals-quarterly-refresh",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "company-baseline-prefetch",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "trading-agent-build",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "zopedia-maintenance",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "zopedia-learning",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "system-health",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
-          "configuration_api_version": "2025-07-01"
-        },
-        {
-          "kind": "jobs",
-          "name": "sn-research-run",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
-          "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
-          "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d": {
-          "source_revision": "e5079b8a27376c10721c7465f9d7f155ce95b2ef",
-          "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
-          "runtime_inventory_sha256": "de9c1d1bd0d0ba5dd41db7a1c4bf2fb232445ba1dcfc0a42a1c9ecccd1c64f08",
-          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
-        }
-      }
-    },
-    "api-next": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
-      "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b"
-      ],
-      "development_targets": [
-        {
-          "kind": "containerApps",
-          "name": "sn-api-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:23f48aa5c543c218822acea8dd01c3f63b9ca0c7cc0c78c3d473a7aa11627e9c",
-          "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
-          "configuration_api_version": "2025-07-01"
-        }
-      ],
-      "production_targets": [
-        {
-          "kind": "containerApps",
-          "name": "sn-api-next",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f",
-          "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
-          "configuration_api_version": "2025-07-01"
-        }
-      ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:e830160990d9c6c4dffc15ad7fa63946d6a2527339ded6e84ba9e19d4eb0aef6": {
-          "source_revision": "e5079b8a27376c10721c7465f9d7f155ce95b2ef",
-          "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
-          "runtime_inventory_sha256": "de9c1d1bd0d0ba5dd41db7a1c4bf2fb232445ba1dcfc0a42a1c9ecccd1c64f08",
-          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
-        }
-      }
-    },
-    "broker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-broker@sha256:94715ea21911b1441f67cde8dc03d640386adf14453c66df66ba225ea96e5941",
-      "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3"
-      ],
-      "development_targets": [
-        {
-          "kind": "jobs",
-          "name": "robinhood-main-sync-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:0b30e3c2c38646cc1354603f6b8c0987302f60ab6bf155d75193cab8dd2283d5",
-          "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
-          "configuration_api_version": "2025-07-01"
-        }
-      ],
-      "production_targets": [
-        {
-          "kind": "jobs",
-          "name": "robinhood-main-sync-prod",
-          "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-broker@sha256:741ef70b2d3e2e3eaea9947289faf9f8a20e1b012655baf37e9ca3b9ea7a910d",
-          "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
-          "configuration_api_version": "2025-07-01"
-        }
-      ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:b2f12e1348c898a476c6090417490c34fa049f233c9d6cfb60c9333e43e13ae4": {
-          "source_revision": "e5079b8a27376c10721c7465f9d7f155ce95b2ef",
-          "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
-          "runtime_inventory_sha256": "de9c1d1bd0d0ba5dd41db7a1c4bf2fb232445ba1dcfc0a42a1c9ecccd1c64f08",
-          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
-        }
-      }
+      "accepted_images": {}
     }
   },
   "untouched_consumers": [
     {
       "name": "sn-streamlit-ui",
-      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
-      "reason": "Retained Next.js frontend / production alias."
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+      "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412"
     },
     {
       "name": "sn-next-ui-dev",
-      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
-      "reason": "Retained Next.js frontend / production alias."
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "configuration_sha256": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4"
     },
     {
       "name": "sn-next-ui",
-      "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
-      "reason": "Retained Next.js frontend / production alias."
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0"
+    },
+    {
+      "name": "sn-api-next",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+      "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0"
+    },
+    {
+      "name": "universe-builder",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+      "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505"
+    },
+    {
+      "name": "macro-fred-daily",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+      "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603"
+    },
+    {
+      "name": "commodities-regime",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b"
+    },
+    {
+      "name": "options-liquid-universe",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
+      "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de"
+    },
+    {
+      "name": "trading-agent-build",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
+      "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb"
+    },
+    {
+      "name": "zopedia-learning",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d"
+    },
+    {
+      "name": "system-health",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
+      "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68"
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad"
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97"
+    },
+    {
+      "name": "sn-research-run-dev",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba"
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7"
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09"
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884"
+    },
+    {
+      "name": "technical-history-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca"
+    },
+    {
+      "name": "sn-research-run",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+      "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91"
+    },
+    {
+      "name": "equities-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5"
+    },
+    {
+      "name": "evidence-index-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc"
+    },
+    {
+      "name": "system-recovery-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329"
     }
   ],
   "retired_consumers": [
@@ -1194,38 +822,19 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "development_quality_gate_failed",
-    "condition": "Fresh complete development research matches or exceeds the subjective quality of the accepted pre-incident output, with runtime and configuration verification.",
-    "requires_owner_review_after_development_failure": false,
+    "status": "pending_fresh_development_acceptance",
     "owner_instruction": "If the dev matches or exceeds the subjective research quality gate from before this collossal fuckup, go ahead and push to prod",
-    "development_quality_failure": {
-      "execution": "attention-home-next-dev-x8escat",
-      "home_run": "04210c6d-c766-4c05-8862-8e433194e09a",
-      "cause": "The completed fresh Home overstated a proposed label removal as complete, while the earlier accepted brief preserved approval and effective-date uncertainty. The local paired review candidate did not resolve it and was reverted without deployment.",
-      "evidence": "documents/verification/behavior-recovery-2026-10-16/DEVELOPMENT_QUALITY_REVIEW.md"
-    },
-    "development_failure": {
-      "execution": "attention-home-next-dev-ua70qlu",
-      "stage": "structured Home editor response",
-      "cause": "Required cause_status omitted in one complete model item; missing shared client prevented existing repair, so Home failed before publication. Retry stopped for source correction."
-    }
+    "condition": "Fresh complete development Home and genuinely new highlights match or exceed pre-incident subjective quality, with preserved runtime/configuration and acceptance of the exact image.",
+    "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules."
   },
   "development_acceptance": {
-    "status": "failed_quality",
-    "execution": "attention-home-next-dev-x8escat",
-    "home_run": "04210c6d-c766-4c05-8862-8e433194e09a",
-    "runtime_status": "verified",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:e830160990d9c6c4dffc15ad7fa63946d6a2527339ded6e84ba9e19d4eb0aef6",
-      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:b2f12e1348c898a476c6090417490c34fa049f233c9d6cfb60c9333e43e13ae4"
-    },
-    "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
-    "evidence": "documents/verification/behavior-recovery-2026-10-16/DEVELOPMENT_QUALITY_REVIEW.md"
+    "status": "pending",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
   },
-  "hold": {
+  "preceding_hold": {
+    "revision": "20108c58",
+    "status": "held_after_development_quality_failure",
     "reason": "Fresh rebuilt Home failed subjective quality. Later actual-image inspection also found an unreviewed daily chart generation difference: current source navigates supplied evidence and omits the historical separate chart review; the prior scoped audit covered chart reading but not generation.",
-    "evidence": "documents/verification/exact-production-recovery-2026-10-16/PRODUCTION_RESTORATION.md",
-    "production_state": "Exact historical images restored; fresh Home published; automatic highlight refresh remains unresolved due to historical inline input exceeding model context."
+    "evidence": "documents/verification/exact-production-recovery-2026-10-16/PRODUCTION_RESTORATION.md"
   }
 }
