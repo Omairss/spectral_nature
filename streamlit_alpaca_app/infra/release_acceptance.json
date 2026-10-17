@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Source fidelity and execution/storage contracts accepted for development verification; production conditionally authorized by owner only if complete development review passes.",
-  "source_revision": "46981c39d40687f6ddeed8e1b6dfb9570ce74055",
+  "source_revision": "062c9df4f913c161e052f0139c3b2085ecbf58f7",
   "review_base_revision": "9a7d1fd13fb21028e5d75caf7d0ffac5770602aa",
   "held_checkpoint": "held/pre-recovery-20261016",
   "files": {
@@ -90,7 +90,7 @@
     "scripts/load_local_env.sh": "615921a4fa67d5221c97f4531647be53198f02a2635c07ac648de7726f8bec04",
     "scripts/migrate_control_store.py": "d17816e0f8b034e18373e9fd76079fc114022e02586ac57f08fc17f47da6960c",
     "scripts/query_db.sh": "d0fe1bccd85fdf325327b6c31de8812627ddfccde373ab0cb0c9c8c9bb491a08",
-    "scripts/release_application.py": "7316b58fecca30785da82176bbbce0dbde78d61d2dbb33b07b5a67cdfe421928",
+    "scripts/release_application.py": "78833063ebba5c14a803645c1abdcd506d294accb97751544604711bfe9f96c0",
     "scripts/release_source.py": "0c186f309bf47943e3dca176808a342efb2bb37a3909bf5f316dd26e710368d6",
     "scripts/run_api_local.sh": "b5e539eac9bd1300891ba05046432151472e50e0d8b651583ffb813c18bf28ab",
     "scripts/run_query.py": "6a3cf400cd73832f5daaa5c31ab0e3d4602646d9463a83cd19bf0ab4b654ab17",
@@ -965,7 +965,7 @@
           "previous_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
           "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
           "configuration_api_version": "2025-07-01",
-          "configuration_review": "Azure removed an empty ephemeralStorage field on image-only PATCH; all effective resources, configuration, identity and remaining template fields match exactly."
+          "configuration_review": "Reviewed removal of empty optional ephemeralStorage by Azure; all effective settings unchanged."
         }
       ],
       "production_targets": [
@@ -1074,15 +1074,7 @@
           "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
           "configuration_api_version": "2025-07-01"
         }
-      ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:055f2b914d8ce4cab23cba5e5204720269927787422f5d0f51359e7146ba4d9a": {
-          "source_inventory_sha256": "89f79631adbc601a383ccd88c413610094b45b93d3d69e90479a0e2a6ef79641",
-          "runtime_inventory_sha256": "201dff120a8ce17dcaa56b0b34ed4d1e201340abf1c8e1f0e945db1a15da40b0",
-          "source_revision": "2c3e9634426ec27bcc9402acb9839b0bdc308ad2",
-          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
-        }
-      }
+      ]
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -1106,15 +1098,7 @@
           "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
           "configuration_api_version": "2025-07-01"
         }
-      ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:44e997610d25ccf0376b04500e9e66c176ca64cba8d6dfa3b1108a0519a7f0b3": {
-          "source_inventory_sha256": "89f79631adbc601a383ccd88c413610094b45b93d3d69e90479a0e2a6ef79641",
-          "runtime_inventory_sha256": "201dff120a8ce17dcaa56b0b34ed4d1e201340abf1c8e1f0e945db1a15da40b0",
-          "source_revision": "2c3e9634426ec27bcc9402acb9839b0bdc308ad2",
-          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
-        }
-      }
+      ]
     },
     "broker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-broker@sha256:94715ea21911b1441f67cde8dc03d640386adf14453c66df66ba225ea96e5941",
@@ -1138,15 +1122,7 @@
           "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
           "configuration_api_version": "2025-07-01"
         }
-      ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:9b66963104c74a31f4e7b3a57e2c1d8824136cab65eae2abbb74165dd53134f6": {
-          "source_inventory_sha256": "89f79631adbc601a383ccd88c413610094b45b93d3d69e90479a0e2a6ef79641",
-          "runtime_inventory_sha256": "201dff120a8ce17dcaa56b0b34ed4d1e201340abf1c8e1f0e945db1a15da40b0",
-          "source_revision": "2c3e9634426ec27bcc9402acb9839b0bdc308ad2",
-          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
-        }
-      }
+      ]
     }
   },
   "untouched_consumers": [
