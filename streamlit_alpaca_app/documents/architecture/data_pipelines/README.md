@@ -13,5 +13,5 @@ Boundary rule: pipelines orchestrate ingestion and materialization through publi
 - `FRED_V1_FALLBACK_2026-04-14.md`: FRED v2/v1 fallback behavior
 - `BROAD_ECONOMY_FRED_SOURCE_UI_FIX_2026-04-19.md`: Broad Economy source and layout fixes
 - `PIPELINE_CACHE_GUARDRAILS_2026-04-14.md`: local pipeline-store cache bounds and ignore policy
-- `PIPELINE_IDENTITY_AND_FRED_RETRY_FIX_2026-04-13.md`: attention job identity and FRED retry hardening
+- [PIPELINE_IDENTITY_AND_FRED_RETRY_FIX_2026-04-13.md (archived)](../../verification/legacy-retirement-2026-10-16/README.md): attention job identity and FRED retry hardening
 - `COMMODITY_PRELOAD_ROOT_CAUSE_FIX_2026-04-09.md`: commodity preload recovery and alignment plan

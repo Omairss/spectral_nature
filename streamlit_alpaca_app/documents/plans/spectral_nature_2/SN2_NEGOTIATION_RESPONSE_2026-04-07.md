@@ -195,7 +195,7 @@ Requested changes:
 
 - `SN2_NEGOTIATION_BASELINE_2026-04-07.md`
 - `AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`
-- `HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
+- [Current architecture map](../../architecture/ACTIVE_MAP.md)
 - `AGENTIC_API_AUTH_MCP_2026-04-07.md`
 - `IPHONE_MVP_SCAFFOLD_2026-04-06.md`
 - `documents/architecture/data_pipelines/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`

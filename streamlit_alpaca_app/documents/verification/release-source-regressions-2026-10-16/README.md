@@ -40,6 +40,8 @@ These are eight affected areas, not eight independent root causes. Several share
 
 The production public Home request returned HTTP 200 in about 1.3 seconds, serving run `46b3d391-91eb-4ae5-bd81-58ff09a66067`, observed at October 16, 13:50 PDT. It had eight stories, no overview, zero key charts and no intraday points in its 21 rendered ticker entries. Availability at this check does not erase the earlier HTTP 503/latency observations or establish sustained recovery. Database saturation was observed before the rollout; attributing all slow loading to the rollback would be unsupported.
 
+The October 14 [frontend deployment record](../../plans/ATTENTION_FEED_CARD_REDESIGN_2026-10-14.md) also reported zero production key charts before that frontend change. The source comparison establishes the later loss of independent selection and timestamp behavior; today's zero count alone does not date when chart absence began. The restored development API returns all five retained selections.
+
 The latest three scheduled health executions observed by this audit succeeded. An earlier failure documented in the production incident remains historical evidence, not a claim that every current health execution fails.
 
 The release also intentionally introduced transaction-owned connection pooling, Blob publication/job/provider receipts and recovery, chart evidence navigation, learning corrections, Admin Health and a 120-second database-role statement timeout. A blind rollback of every image would remove useful work alongside the regressions. Restoration must preserve the accepted functionality of each consumer.

@@ -18,7 +18,6 @@ Use the docs as follows:
 ## Product and UX
 
 - [Native Markets chart clarity](NATIVE_MARKETS_CHARTS_2026-10-14.md): interpretable return comparisons, numeric colors, point identities and named return bars.
-- `HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md`: homepage implied-open experiment notes
 - `EXPERIMENT_SUMMARY_CLARITY_ELEVENLABS_KEYVAULT_2026-04-11.md`: cleaner experiment summary text plus Key Vault-backed ElevenLabs setup notes
 - `DAILY_MARKET_OVERVIEW_SUMMARY_AUDIO_2026-04-10.md`: shared daily market overview summary plus on-demand ElevenLabs audio
 - `YIELD_VIEW_PLAN_2026-04-06.md`: market-explorer fixed-income and yield view plan
@@ -78,7 +77,6 @@ Use the docs as follows:
 - `spectral_nature_2/SN2_IPHONE_AGENT_REFERENCE_MAP_2026-04-07.md`: doc map for Spectral Nature 2, omnibar, agent workspace, shared API, and iPhone work
 - `spectral_nature_2/AGENTIC_API_AUTH_MCP_2026-04-07.md`: production-grade auth model, scoped agent keys, and MCP-compatible gateway
 - `spectral_nature_2/AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`: concrete `/v1/agent/*` REST resource schemas and payload examples for homepage and iPhone reuse
-- `spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`: phased plan for a homepage agent workspace with tools, RAG, notes, and sandbox execution
 - `spectral_nature_2/IPHONE_MVP_SCAFFOLD_2026-04-06.md`: delivered backend/API plus SwiftUI scaffold for the iPhone MVP
 - `spectral_nature_2/agent_omnibar/`: dedicated doc hub for the separate agent omnibar task
 - `spectral_nature_2/agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`: ready-to-send resolved response for the separate omnibar task

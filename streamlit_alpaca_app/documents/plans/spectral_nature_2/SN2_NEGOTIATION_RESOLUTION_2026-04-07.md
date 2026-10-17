@@ -162,7 +162,7 @@ Reject proposals that:
 2. `SN2_NEGOTIATION_RESPONSE_2026-04-07.md`
 3. `AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`
 4. `AGENTIC_API_AUTH_MCP_2026-04-07.md`
-5. `HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
-6. `IPHONE_APP_STRATEGY_2026-04-05.md`
+5. [Current architecture map](../../architecture/ACTIVE_MAP.md)
+6. [IPHONE_APP_STRATEGY_2026-04-05.md (archived)](../../verification/legacy-retirement-2026-10-16/README.md)
 7. `IPHONE_MVP_SCAFFOLD_2026-04-06.md`
 8. `documents/architecture/data_pipelines/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md`

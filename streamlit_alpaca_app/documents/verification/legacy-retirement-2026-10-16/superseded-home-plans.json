@@ -1,0 +1,20 @@
+{
+  "status": "archived_and_removed_from_active_paths",
+  "batch": "20261017T015505Z",
+  "retention_days": 30,
+  "automatic_expiry": true,
+  "files": [
+    "documents/plans/HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md",
+    "documents/plans/HOMEPAGE_PREBUILT_SUMMARY_AUDIO_ASYNC_FALLBACK_2026-04-12.md",
+    "documents/plans/spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md",
+    "documents/plans/HOME_RELEASE_RECOVERY_2026-10-16.md"
+  ],
+  "hashes": {
+    "documents/plans/HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md": "c355a61a5d4ef915bd44d6c18cd5dfdbc430dbb27a0c54ed7567809340e31409",
+    "documents/plans/HOMEPAGE_PREBUILT_SUMMARY_AUDIO_ASYNC_FALLBACK_2026-04-12.md": "4ecdc14b385edc8edbbbc839c9c90e0bc1699ad41c676c09c1ed89c1411aaa52",
+    "documents/plans/spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md": "5ecd867d9d44a2203de7a51fb102a25128810eb9bdbf9c0f4febec191114473a",
+    "documents/plans/HOME_RELEASE_RECOVERY_2026-10-16.md": "9aecda8bc83b540f96ad9c44f3356398ca39be6d89c41866cd711bae9f846fdc"
+  },
+  "application_runtime_changed": false,
+  "current_recovery_plan": "documents/plans/RELEASE_BEHAVIOR_RECOVERY_2026-10-16.md"
+}

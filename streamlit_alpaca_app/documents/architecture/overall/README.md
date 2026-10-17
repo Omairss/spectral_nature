@@ -11,7 +11,7 @@ This folder holds app-wide architecture and cross-cutting design docs.
 - [Historical context corpus and training harness](../../plans/HISTORICAL_CONTEXT_TRAINING_HARNESS_2026-10-07.md): requested episodes, raw-source collection, dated frames, source gaps, immutable storage and chronological/qualitative evaluation; free-source acquisition running in development Blob, with frozen frames, forward returns and a priced coverage backlog.
 - [Discovery model architecture - 2026-10-07, revision 2](../../../output/pdf/SPECTRAL_NATURE_LLM_DISCOVERY_REDESIGN_2026-10-07.pdf): current/source architecture, temporal encoder and losses, empirical and semantic relationships, preference learning, chronological evaluation, cost and repository restructuring; replaces the initial product-oriented proposal. [Editable specification](redesigns/DISCOVERY_MODEL_ARCHITECTURE_2026-10-07.json).
 - `audits/DECLINE_DISCOVERY_AUDIT_2026-10-07.md`: production audit of missed sustained stock declines, publication outages, discovery coverage, and the proposed shared architecture repair
-- `APP_SIMPLIFICATION_TRACK.md`: simplification and modularization status
+- [APP_SIMPLIFICATION_TRACK.md (archived)](../../verification/legacy-retirement-2026-10-16/README.md): simplification and modularization status
 - `ATTENTION_LAYER_PLAN.md`: historical layer-design context
 - `INDEPENDENT_MODULES_PLAN_2026-04-24.md`: clean module ownership, dependency direction, and migration phases
 - `PIPELINE_REDESIGN.md`: materialized pipeline redesign and snapshot-first architecture

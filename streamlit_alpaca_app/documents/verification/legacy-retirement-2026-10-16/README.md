@@ -1,6 +1,6 @@
 # Legacy retirement — October 16
 
-Status: **176 obsolete tracked files removed, 82 retired roots recorded, exact originals verified in external archives before deletion.** Local source/import/auth/release checks are recorded below. Development cloud retirement is tracked separately from the pending backend recovery deployment. The owner subsequently approved deletion of the obsolete production API `sn-api`; that deletion is complete and separately verified.
+Status: **180 obsolete tracked files removed, 86 retired roots recorded, exact originals verified in external archives before deletion.** Local source/import/auth/release checks are recorded below. Development cloud retirement is complete; corrected backend development rollout is complete and its fresh research quality review is pending. The owner subsequently approved deletion of the obsolete production API `sn-api`; that deletion is complete and separately verified.
 
 ## Removed from active source
 
@@ -34,7 +34,9 @@ Old and superseded registry images remain historical evidence/rollback records; 
 - Release-source, API authentication, account and API-contract scope: **63 passed**. This includes refusal of restored retired roots and an attempted Streamlit role allowlist. These are execution/security/provenance checks, not language grading.
 - The broader broker-data scope exposed two failures in untouched analytics: a fixture did not reach its expected series read, and the local system NumPy/Pandas combination produced a read-only-array error. They are recorded rather than hidden or patched during frontend retirement.
 - The [source-fidelity record](../behavior-recovery-2026-10-16/source-fidelity.json) preserves the accepted Home/data/DB behavior; Trading retirement has its own [complete comparison](trading-retirement-fidelity.json).
-- No fresh Home output has been accepted or published by this cleanup. Worker packaging hit an inherited image layer-depth limit; the broad-copy images were also superseded before deployment. Backend packaging, development rollout and fresh full-output review remain open in the [recovery record](../behavior-recovery-2026-10-16/README.md). The later owner instruction conditionally authorizes production recovery if full development review passes; after a development failure, fix the cause and ask for owner review.
+- The corrected worker/API/broker images are verified and deployed to all thirteen development targets. The fresh normal Home run and complete comparative quality review remain pending in the [recovery record](../behavior-recovery-2026-10-16/README.md). The latest owner instruction conditionally authorizes production when development research meets or exceeds pre-incident subjective quality.
+
+The [final planning-document check](superseded-home-plans.json) found four remaining obsolete Home plans: native Streamlit interaction, old UI audio fallback, the deprecated Home workspace prototype and the superseded single-job rollback proposal. They are verified into the external 30-day archive and removed from active paths. Current indices/reference maps point to the architecture map or archive inventory; the committed retired-path guard now covers these files too. Current narration and workspace functionality remain in application source and current contracts.
 
 ## Unused stored settings
 

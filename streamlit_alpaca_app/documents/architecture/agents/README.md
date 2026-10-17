@@ -25,4 +25,4 @@ Agent-owned state now lives behind `services.agents`:
 - `AGENTIC_TICKER_BACKGROUND_TAVILY_2026-04-03.md`: ticker background enrichment and Tavily integration notes
 - `DEPENDENCY_GRAPH_INTEGRATION_2026-04-10.md`: JSON-backed dependency graph feature plan
 - `OPEN_KNOWLEDGE_GRAPH_EXPERIMENT_2026-04-12.md`: admin-only open-ended graph generation experiment
-- `RESEARCH_EXPORT_API_2026-04-18.md`: unified research export endpoint and folder structure
+- [RESEARCH_EXPORT_API_2026-04-18.md (archived)](../../verification/legacy-retirement-2026-10-16/README.md): unified research export endpoint and folder structure

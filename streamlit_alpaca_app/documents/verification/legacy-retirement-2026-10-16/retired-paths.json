@@ -41,7 +41,10 @@
     "streamlit_alpaca_app/documents/plans/EMAIL_DELIVERY_SETUP_PLAN.md",
     "streamlit_alpaca_app/documents/plans/EXPERIMENT_PAGE_RENAME_2026-04-11.md",
     "streamlit_alpaca_app/documents/plans/GLOBAL_CLEANUP_PLAN_2026-09-21.md",
+    "streamlit_alpaca_app/documents/plans/HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md",
+    "streamlit_alpaca_app/documents/plans/HOMEPAGE_PREBUILT_SUMMARY_AUDIO_ASYNC_FALLBACK_2026-04-12.md",
     "streamlit_alpaca_app/documents/plans/HOMEPAGE_SUMMARY_CHAT_CLEANUP_2026-04-11.md",
+    "streamlit_alpaca_app/documents/plans/HOME_RELEASE_RECOVERY_2026-10-16.md",
     "streamlit_alpaca_app/documents/plans/INFRA_INDEX_HARDENING_2026-04-10.md",
     "streamlit_alpaca_app/documents/plans/INVITE_EMAIL_DESIGNER_ADMIN_2026-04-05.md",
     "streamlit_alpaca_app/documents/plans/MARKET_AGENTIC_TRADING_PLAN_2026-04-27.md",
@@ -58,6 +61,7 @@
     "streamlit_alpaca_app/documents/plans/UI_LLM_PROMOTION_ENV_FIX_2026-04-11.md",
     "streamlit_alpaca_app/documents/plans/UI_SHELL_REFINEMENT_2026-04-02.md",
     "streamlit_alpaca_app/documents/plans/UI_UX_PRODUCT_AUDIT_2026-05-23.md",
+    "streamlit_alpaca_app/documents/plans/spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md",
     "streamlit_alpaca_app/documents/plans/spectral_nature_2/IPHONE_APP_STRATEGY_2026-04-05.md",
     "streamlit_alpaca_app/documents/reference/HARDCODE_CLEANUP_MATRIX.md",
     "streamlit_alpaca_app/documents/ui_ux_audit_artifacts_2026_05_23",
@@ -1844,6 +1848,46 @@
         "member": "Dockerfile.robinhood-sync",
         "sha256": "50ff5e2307cc44680439cc106cc25139ae228ac612852e5b66636e7ef881174d"
       }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md",
+      "sha256": "c355a61a5d4ef915bd44d6c18cd5dfdbc430dbb27a0c54ed7567809340e31409",
+      "archive": {
+        "batch": "20261017T015505Z",
+        "archive": "superseded-home-plans.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/HOMEPAGE_IMPLIED_OPEN_EXPERIMENT_2026-04-02.md",
+        "sha256": "c355a61a5d4ef915bd44d6c18cd5dfdbc430dbb27a0c54ed7567809340e31409"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/HOMEPAGE_PREBUILT_SUMMARY_AUDIO_ASYNC_FALLBACK_2026-04-12.md",
+      "sha256": "4ecdc14b385edc8edbbbc839c9c90e0bc1699ad41c676c09c1ed89c1411aaa52",
+      "archive": {
+        "batch": "20261017T015505Z",
+        "archive": "superseded-home-plans.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/HOMEPAGE_PREBUILT_SUMMARY_AUDIO_ASYNC_FALLBACK_2026-04-12.md",
+        "sha256": "4ecdc14b385edc8edbbbc839c9c90e0bc1699ad41c676c09c1ed89c1411aaa52"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md",
+      "sha256": "5ecd867d9d44a2203de7a51fb102a25128810eb9bdbf9c0f4febec191114473a",
+      "archive": {
+        "batch": "20261017T015505Z",
+        "archive": "superseded-home-plans.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/spectral_nature_2/HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md",
+        "sha256": "5ecd867d9d44a2203de7a51fb102a25128810eb9bdbf9c0f4febec191114473a"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/plans/HOME_RELEASE_RECOVERY_2026-10-16.md",
+      "sha256": "9aecda8bc83b540f96ad9c44f3356398ca39be6d89c41866cd711bae9f846fdc",
+      "archive": {
+        "batch": "20261017T015505Z",
+        "archive": "superseded-home-plans.tar.gz",
+        "member": "streamlit_alpaca_app/documents/plans/HOME_RELEASE_RECOVERY_2026-10-16.md",
+        "sha256": "9aecda8bc83b540f96ad9c44f3356398ca39be6d89c41866cd711bae9f846fdc"
+      }
     }
   ],
   "archives": [
@@ -1882,6 +1926,12 @@
       "archive": "superseded-python-packaging.tar.gz",
       "sha256": "9de01778baf711815813964aa51b56104f498195657a435371c9d8dfc1ac74e8",
       "expires_at": "2026-11-16T00:04:43.079509+00:00"
+    },
+    {
+      "batch": "20261017T015505Z",
+      "archive": "superseded-home-plans.tar.gz",
+      "sha256": "c1e3fb9b4ca37dd4703eb50210df51be9fc886246a5e110a7d41844eaf94dd8b",
+      "expires_at": "2026-11-16T01:55:05.934624+00:00"
     }
   ]
 }

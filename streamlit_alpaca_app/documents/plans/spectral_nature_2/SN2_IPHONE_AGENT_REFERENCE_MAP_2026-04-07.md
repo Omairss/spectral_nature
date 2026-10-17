@@ -35,12 +35,12 @@ This map points to the current source-of-truth docs for:
 2. `AGENTIC_API_AUTH_MCP_2026-04-07.md`
 - Auth model, scoped agent keys, and MCP-compatible gateway behavior.
 
-3. `HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
-- Shared product behavior and rollout model for one-bar workspace flow.
+3. [Current architecture map](../../architecture/ACTIVE_MAP.md)
+- Current frontend, shared backend, native client and release ownership.
 
 ## iPhone Delivery Context
 
-1. `IPHONE_APP_STRATEGY_2026-04-05.md`
+1. [IPHONE_APP_STRATEGY_2026-04-05.md (archived)](../../verification/legacy-retirement-2026-10-16/README.md)
 - High-level migration direction and sequencing.
 
 2. `IPHONE_MVP_SCAFFOLD_2026-04-06.md`
@@ -65,6 +65,6 @@ This map points to the current source-of-truth docs for:
 2. `agent_omnibar/OTHER_TASK_RESPONSE_2026-04-08.md`
 3. `AGENT_API_RESOURCE_CONTRACT_2026-04-07.md`
 4. `AGENTIC_API_AUTH_MCP_2026-04-07.md`
-5. `HOMEPAGE_AGENT_WORKSPACE_PLAN_2026-04-06.md`
+5. [Current architecture map](../../architecture/ACTIVE_MAP.md)
 6. `IPHONE_MVP_SCAFFOLD_2026-04-06.md`
 7. `documents/architecture/data_pipelines/ATTENTION_FRED_INTEGRATION_PLAN_2026-04-06.md` (if macro reuse is in scope)
