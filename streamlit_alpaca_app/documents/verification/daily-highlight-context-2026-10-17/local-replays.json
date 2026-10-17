@@ -1,0 +1,220 @@
+[
+  {
+    "namespace": "production",
+    "summary": {
+      "status": "completed",
+      "seconds": 201.41,
+      "home_run": "fdb1ec77-d1f3-426a-bc4c-fa62f164e0a0",
+      "catalog_entries": 552,
+      "observations": 113725,
+      "calls": 15,
+      "source_sha256": "e4179304ee3c8453aca6169dacdc926c844d475a1a3cb19b377c1b039a744ca8",
+      "published": false,
+      "runtime_sources": {
+        "services/daily_market_datapoints.py": "e4179304ee3c8453aca6169dacdc926c844d475a1a3cb19b377c1b039a744ca8",
+        "services/llm.py": "2dd6700b0b1266820b4c5e741b4bf6db8a344429422a23cc75116c7bd2144017",
+        "services/aql_zopedia_engine.py": "22eae7fe664dfe60bff0778c85c520776b44e14d1da9dc1b2f658dfc69880c35",
+        "services/zopedia_agent.py": "d499c0cebfeea311e39afdab0824a0e752ee47d62c8251cd4dcb948915563a1d"
+      }
+    },
+    "provider_input_tokens": 991896,
+    "provider_output_tokens": 41112,
+    "maximum_request_input_tokens": 140297,
+    "reported_models": [
+      "deepseek-flash"
+    ],
+    "selected": [
+      {
+        "id": "stock:CRWV:price",
+        "title": "CoreWeave: AI credit stress epicenter",
+        "significance": "CoreWeave closed $61.40 on 16 Oct, down 11.9% that day and 33% from $91.70 on 6 Oct; I read this as AI-borrower credit stress, not an end-demand collapse.",
+        "latest_observation": "2026-10-16",
+        "observation_count": 391
+      },
+      {
+        "id": "fred:BAMLH0A0HYM2",
+        "title": "Broad high-yield spreads tight before scare",
+        "significance": "Broad high-yield spreads were 3.23% on 15 Oct, before the 16 Oct CoreWeave scare; this cash-bond index may miss CDS and private credit, so the next print tests contagion.",
+        "latest_observation": "2026-10-15",
+        "observation_count": 784
+      },
+      {
+        "id": "fred:DGS10",
+        "title": "10-year Treasury yield near 5.1%",
+        "significance": "The 10-year yield was 5.10% on 15 Oct, down from 5.31% on 5 Oct but still near the cycle high; high discount rates weigh on long-duration AI and software shares.",
+        "latest_observation": "2026-10-15",
+        "observation_count": 747
+      },
+      {
+        "id": "stock:TSM:price",
+        "title": "TSMC: strong results, falling shares",
+        "significance": "TSMC fell 2.3% on 16 Oct despite record $46.7bn revenue and ~58% Q4 growth guidance; the drop fits sector de-rating and maintained capex/cautious 2027, not weak AI demand.",
+        "latest_observation": "2026-10-16",
+        "observation_count": 1252
+      },
+      {
+        "id": "stock:CRGY:price",
+        "title": "Crescent Energy: deal-driven 10.3% jump",
+        "significance": "Crescent closed $13.79 on 16 Oct, up 10.3% on its $4.2bn Eagle Ford deal; that beat energy's +1.9% average and thin volume amplified it, so it is not proof of broad rotation.",
+        "latest_observation": "2026-10-16",
+        "observation_count": 1218
+      }
+    ],
+    "final_model_review": {
+      "approved": true,
+      "issues": []
+    },
+    "original_context_integrity": [
+      {
+        "provider_request": 10,
+        "sources": [
+          {
+            "id": "fred:DGS10",
+            "observations": 747
+          },
+          {
+            "id": "fred:DFII10",
+            "observations": 747
+          },
+          {
+            "id": "fred:BAMLH0A0HYM2",
+            "observations": 784
+          },
+          {
+            "id": "stock:CRWV:price",
+            "observations": 391
+          },
+          {
+            "id": "stock:NVDA:price",
+            "observations": 1254
+          }
+        ],
+        "all_selected_chart_originals_exact": true
+      },
+      {
+        "provider_request": 13,
+        "sources": [
+          {
+            "id": "stock:CRWV:price",
+            "observations": 391
+          },
+          {
+            "id": "fred:BAMLH0A0HYM2",
+            "observations": 784
+          },
+          {
+            "id": "fred:DGS10",
+            "observations": 747
+          },
+          {
+            "id": "stock:TSM:price",
+            "observations": 1252
+          },
+          {
+            "id": "stock:CRGY:price",
+            "observations": 1218
+          }
+        ],
+        "all_selected_chart_originals_exact": true
+      }
+    ]
+  },
+  {
+    "namespace": "development",
+    "summary": {
+      "status": "completed",
+      "seconds": 269.01,
+      "home_run": "5a9bdf2a-4050-46c7-bbd0-1488bfa33cbf",
+      "catalog_entries": 146,
+      "observations": 26772,
+      "calls": 16,
+      "source_sha256": "e4179304ee3c8453aca6169dacdc926c844d475a1a3cb19b377c1b039a744ca8",
+      "published": false,
+      "runtime_sources": {
+        "services/daily_market_datapoints.py": "e4179304ee3c8453aca6169dacdc926c844d475a1a3cb19b377c1b039a744ca8",
+        "services/llm.py": "2dd6700b0b1266820b4c5e741b4bf6db8a344429422a23cc75116c7bd2144017",
+        "services/aql_zopedia_engine.py": "22eae7fe664dfe60bff0778c85c520776b44e14d1da9dc1b2f658dfc69880c35",
+        "services/zopedia_agent.py": "d499c0cebfeea311e39afdab0824a0e752ee47d62c8251cd4dcb948915563a1d"
+      }
+    },
+    "provider_input_tokens": 1222300,
+    "provider_output_tokens": 55934,
+    "maximum_request_input_tokens": 150906,
+    "reported_models": [
+      "deepseek-flash"
+    ],
+    "selected": [
+      {
+        "id": "stock:MU:price",
+        "title": "Micron: AI-memory rally reverses sharply",
+        "significance": "Micron closed at $878.78 on Oct. 16, down 5.6% that day and 27.7% from its June 25 high, as China supply, financing fears and profit-taking hit an extended memory trade.",
+        "latest_observation": "2026-10-16",
+        "observation_count": 1254
+      },
+      {
+        "id": "stock:MU:operating_income",
+        "title": "Micron operating income: highest in supplied data",
+        "significance": "Micron's fiscal 2026 Q3 operating income was $33.32B, the highest of three supplied quarters, so the selloff is not a current profit miss but a bet on future competition.",
+        "latest_observation": "2026-05-31",
+        "observation_count": 3
+      },
+      {
+        "id": "fred:DGS10",
+        "title": "10-year Treasury yield: still near 5%",
+        "significance": "The 10-year Treasury yield was 5.10% on Oct. 15, down from 5.31% on Oct. 5 but still near 5%, keeping pressure on expensive AI shares.",
+        "latest_observation": "2026-10-15",
+        "observation_count": 747
+      },
+      {
+        "id": "fred:BAMLH0A0HYM2",
+        "title": "High-yield spreads: some widening, no broad shock",
+        "significance": "High-yield spreads were 3.23 percentage points on Oct. 15, up 63 basis points from 2.60 on Aug. 28 but below the 4.61 April 2025 peak: some widening, no broad credit shock.",
+        "latest_observation": "2026-10-15",
+        "observation_count": 784
+      },
+      {
+        "id": "stock:HUM:price",
+        "title": "Humana: star-rating rally, then a pullback",
+        "significance": "Humana closed at $413.06 on Oct. 16, down 4.4% that day, after a roughly 12% rally on improved 2027 Medicare star ratings, so health-care strength was selective.",
+        "latest_observation": "2026-10-16",
+        "observation_count": 1252
+      }
+    ],
+    "final_model_review": {
+      "approved": true,
+      "issues": [
+        "No incorrect values, dates, periods or trend directions found in the five selected charts. Follow-up: add Micron's fiscal Q4 2026 operating income when available, because the selected fundamental chart ends May 31 and does not cover the October selloff.",
+        "Keep the Oct. 15 dates for the 10-year Treasury yield and high-yield spread points. Do not present them as Oct. 16 closes, because the selected histories end on Oct. 15.",
+        "The Humana chart supports a star-rating rally and a later pullback. Follow-up: watch annual enrollment results and 2027 benefit changes, because the evidence has no enrollment outcome yet."
+      ]
+    },
+    "original_context_integrity": [
+      {
+        "provider_request": 7,
+        "sources": [
+          {
+            "id": "stock:MU:price",
+            "observations": 1254
+          },
+          {
+            "id": "stock:AMAT:price",
+            "observations": 1254
+          },
+          {
+            "id": "fred:DGS10",
+            "observations": 747
+          },
+          {
+            "id": "fred:BAMLH0A0HYM2",
+            "observations": 784
+          },
+          {
+            "id": "stock:HUM:price",
+            "observations": 1252
+          }
+        ],
+        "all_selected_chart_originals_exact": true
+      }
+    ]
+  }
+]

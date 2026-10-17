@@ -333,6 +333,7 @@ def _repair_structured_payload_from_agent_answer(
     surface: str,
     task: str,
     deadline_monotonic: float,
+    original_request: dict[str, Any] | None = None,
 ) -> dict[str, Any] | None:
     answer = _clean(answer_markdown)
     if not answer or llm_client is None or time.monotonic() >= deadline_monotonic:
@@ -356,9 +357,14 @@ def _repair_structured_payload_from_agent_answer(
                 "new analysis, or new source references. Preserve existing strings, numbers, arrays "
                 "and source references exactly wherever the schema permits. Change only the fields "
                 "or types required to satisfy the schema; do not rewrite or shorten prose."
+                + (" Use the original request and its collected evidence to interpret field meanings and recover the intended task. "
+                   "Preserve the research goal; do not substitute a goal about repairing output or turn intermediate protocol arguments into artifact content. "
+                   "Do not invent placeholders or unsupported facts to fill required fields." if original_request else "")
             ),
             user_prompt=(
                 f"Schema name: {schema_name}\n\n"
+                + (f"Original request and collected evidence:\n{serialize_llm_context(original_request)}\n\n" if original_request else "")
+                +
                 "Agent answer to convert:\n"
                 f"{answer}\n\n"
                 "Schema violations to correct:\n"
@@ -430,14 +436,22 @@ def run_aql_zopedia_structured_agent(
     if run_timeout_seconds is None and max_tool_calls is not None and int(max_tool_calls) <= 0 and llm_step_timeout_seconds is not None:
         timeout = min(float(timeout), float(llm_step_timeout_seconds))
     deadline = time.monotonic() + float(timeout)
+    original_request = {"query": query, "instructions": instructions, "initial_evidence": initial_evidence,
+                        "artifact_context": artifact_context, "conversation_history": conversation_history}
     structured_query = (
         (f"Task instructions:\n{instructions}\n\n" if instructions else "")
-        + f"{query}\n\n"
-        f"Return only a valid JSON object matching schema `{schema_name}`. "
-        "Do not wrap it in commentary. Do not use markdown except inside string values.\n\n"
-        "JSON schema:\n"
-        f"{_compact_json(schema, limit=8000)}"
+        + query
     )
+    if max_tool_calls is not None and int(max_tool_calls) <= 0 and review_answer:
+        # This no-tool editor already owns the artifact contract. Tool-using
+        # planners own the research-step contract; synthesis receives the full
+        # artifact schema separately through response_schema.
+        structured_query += (
+            f"\n\nReturn only a valid JSON object matching schema `{schema_name}`. "
+            "Do not wrap it in commentary. Do not use markdown except inside string values.\n\n"
+            "JSON schema:\n"
+            f"{_compact_json(schema, limit=8000)}"
+        )
     if max_tool_calls is not None and int(max_tool_calls) <= 0 and not review_answer:
         structured_query = query
     if initial_evidence and max_tool_calls is not None and int(max_tool_calls) <= 0 and not review_answer:
@@ -483,6 +497,7 @@ def run_aql_zopedia_structured_agent(
                     payload = _repair_structured_payload_from_agent_answer(
                         answer_markdown=partial_text, schema_name=schema_name, schema=schema,
                         llm_client=resolved_llm, surface=surface, task=task, deadline_monotonic=deadline,
+                        original_request=original_request,
                     )
                 if payload is None:
                     raise ValueError("Retained structured draft could not be repaired.")
@@ -528,6 +543,7 @@ def run_aql_zopedia_structured_agent(
                     surface=surface,
                     task=task,
                     deadline_monotonic=deadline,
+                    original_request=original_request,
                 )
                 if repaired is None:
                     raise ValueError("Structured response violated its schema: " + errors[0].message)
@@ -606,7 +622,8 @@ def run_aql_zopedia_structured_agent(
             llm_client = llm_client or load_aql_zopedia_llm_client(surface="zopedia.agent")
             payload = _repair_structured_payload_from_agent_answer(
                 answer_markdown=retained_answer, schema_name=schema_name, schema=schema,
-                llm_client=llm_client, surface=surface, task=task, deadline_monotonic=deadline)
+                llm_client=llm_client, surface=surface, task=task, deadline_monotonic=deadline,
+                original_request={**original_request, "collected_evidence": (retained_agent_result or {}).get("aql_evidence_pack")})
         if payload is not None:
             return {"status": "completed", "payload": payload,
                     "agent_result": retained_agent_result, "retained_draft_recovered": True}
@@ -657,6 +674,7 @@ def run_aql_zopedia_structured_agent(
             surface=surface,
             task=task,
             deadline_monotonic=deadline,
+            original_request={**original_request, "collected_evidence": agent_result.get("aql_evidence_pack")},
         )
         repair_used = payload is not None
     if payload is not None:

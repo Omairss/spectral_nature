@@ -88,6 +88,45 @@ def test_transport_records_retry_and_repair_with_causal_root(store):
     assert "max_tokens" not in calls[0]["json"]
 
 
+@pytest.mark.parametrize("provider,model_type", [
+    ("deepseek", llm.DeepSeekChatJSONClient),
+    ("openai", llm.OpenAIChatJSONClient),
+    ("azure_openai", llm.AzureOpenAIChatJSONClient),
+])
+def test_json_recovery_keeps_original_request(store, provider, model_type):
+    transport, calls = client([response(content='{"value":'), response()])
+    model = model_type(replace(transport.config, provider=provider, deployment="fake"), session=transport.session)
+    schema = {"type": "object", "properties": {"value": {"type": "integer"}},
+              "required": ["value"], "additionalProperties": False}
+    assert model.generate_json(system_prompt="Return supplied values.", user_prompt="Evidence: value=1",
+                               schema_name="transport", schema=schema)["value"] == 1
+    assert len(calls) == 2
+    assert json.dumps(calls[0]["json"]["messages"], ensure_ascii=False) in calls[1]["json"]["messages"][1]["content"]
+    assert '{"value":' in calls[1]["json"]["messages"][1]["content"]
+
+
+@pytest.mark.parametrize("provider,model_type", [
+    ("deepseek", llm.DeepSeekChatJSONClient),
+    ("openai", llm.OpenAIChatJSONClient),
+    ("azure_openai", llm.AzureOpenAIChatJSONClient),
+])
+def test_valid_schema_needs_one_provider_call(store, provider, model_type):
+    transport, calls = client([response()])
+    model = model_type(replace(transport.config, provider=provider, deployment="fake"), session=transport.session)
+    assert generate(model)["value"] == 1
+    assert len(calls) == 1
+
+
+def test_incomplete_json_repair_remains_a_failure(store):
+    model, calls = client([response(content='{"value":'), response(content='{broken')])
+    schema = {"type": "object", "required": ["value"]}
+    with pytest.raises(llm.LLMJSONParseError) as error:
+        model.generate_json(system_prompt="Return supplied values.", user_prompt="Evidence: value=1",
+                            schema_name="transport", schema=schema)
+    assert error.value.raw_content == '{broken'
+    assert len(calls) == 2
+
+
 def test_billing_circuit_is_shared_and_recovers_without_paid_probe(store, monkeypatch):
     model, calls = client([response(status=402), response()])
     with pytest.raises(llm.LLMAPIError):

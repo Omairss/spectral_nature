@@ -3254,6 +3254,11 @@ def _execute_zopedia_agent_loop(
                 },
                 ensure_ascii=False,
             )
+            planning_prompt = _planner_user_prompt(
+                query=agent_query, task=task, surface=surface, tool_catalog=tool_catalog,
+                tool_calls=tool_calls, max_tool_calls=max_tool_calls,
+                conversation_history=conversation_history, prefetched_context=prefetched_context,
+            ) + "\n\nCurrent planning state:\n" + planning_context
             try:
                 decision = _run_hidden_step_with_timeout(
                     label="research planning",
@@ -3266,16 +3271,7 @@ def _execute_zopedia_agent_loop(
                         purpose="agent.research_step",
                         call_type="research_grade",
                         system_prompt=_planner_system_prompt(),
-                        user_prompt=_planner_user_prompt(
-                            query=agent_query,
-                            task=task,
-                            surface=surface,
-                            tool_catalog=tool_catalog,
-                            tool_calls=tool_calls,
-                            max_tool_calls=max_tool_calls,
-                            conversation_history=conversation_history,
-                            prefetched_context=prefetched_context,
-                        ) + "\n\nCurrent planning state:\n" + planning_context,
+                        user_prompt=planning_prompt,
                         schema_name="zopedia_agent_step",
                         schema=_STEP_SCHEMA,
                         metadata={
@@ -3286,6 +3282,21 @@ def _execute_zopedia_agent_loop(
                         },
                     ),
                 )
+                step_payload = {key: value for key, value in decision.items() if not key.startswith("__")}
+                if list(Draft202012Validator(_STEP_SCHEMA).iter_errors(step_payload)):
+                    from .aql_zopedia_engine import _repair_structured_payload_from_agent_answer
+
+                    repaired = _repair_structured_payload_from_agent_answer(
+                        answer_markdown=json.dumps(step_payload, ensure_ascii=False, default=str),
+                        schema_name="zopedia_agent_step", schema=_STEP_SCHEMA, llm_client=resolved_llm,
+                        surface=surface, task="agent.research_step",
+                        deadline_monotonic=budget.step_deadline("research", llm_step_timeout_seconds),
+                        original_request={"system_prompt": _planner_system_prompt(), "user_prompt": planning_prompt},
+                    )
+                    if repaired is None:
+                        limitations.append("Planning stopped: structured response recovery was incomplete.")
+                        break
+                    decision = repaired
             except Exception as exc:
                 from .agents.research_session import ResearchCancellationRequested
 
@@ -3554,6 +3565,29 @@ def _execute_zopedia_agent_loop(
             and not trajectory_killed
             and budget.remaining("synthesis") > 0
         ):
+            if tool_registry.get("research.read_supplied_evidence") is not None:
+                supplied = getattr(resolved_service, "supplied_evidence", {})
+                selected_originals = {
+                    source_id: supplied[source_id]
+                    for source_id in dict.fromkeys(research_state.get("selected_source_ids") or [])
+                    if source_id in supplied
+                }
+                if selected_originals:
+                    # Resolve the planner's references through the same evidence
+                    # history used by synthesis, review, checkpoints and traces.
+                    tool_calls.append({
+                        "tool_call_id": f"agtc_supplied_{len(tool_calls) + 1}",
+                        "tool_name": "research.supplied_context", "arguments": {"source_ids": list(selected_originals)},
+                        "status": "completed", "error": None,
+                        "origin_run_id": run_id, "origin_turn_id": request_context.get("turn_id", ""),
+                        "result_summary": {
+                            "result_type": "supplied_context",
+                            "evidence_context_text": serialize_llm_context(selected_originals),
+                            "evidence_refs": [{"source_id": key, "ref": key, "title": value.get("title", key)}
+                                              for key, value in selected_originals.items()],
+                        },
+                    })
+                    checkpoint()
             _emit_progress(
                 progress_callback,
                 stage="final_synthesis_start",
@@ -3566,7 +3600,6 @@ def _execute_zopedia_agent_loop(
             synthesis_llm = _synthesis_llm_client(resolved_llm)
             synthesis_deadline = budget.step_deadline("synthesis", llm_step_timeout_seconds)
             synthesis_started = time.monotonic()
-
             def _run_final_synthesis() -> None:
                 try:
                     _final_result[0] = generate_json_via_aql_zopedia_gateway(
@@ -3698,6 +3731,8 @@ def _execute_zopedia_agent_loop(
                     answer_markdown=final_answer, schema_name=response_schema_name or "zopedia_agent_final",
                     schema=response_schema, llm_client=resolved_llm, surface=surface, task=task,
                     deadline_monotonic=budget.step_deadline("synthesis", llm_step_timeout_seconds),
+                    original_request={"query": agent_query, "collected_evidence": _tool_history_prompt(tool_calls),
+                                      "request_context": _prompt_request_context(request_context)},
                 )
                 if repaired is None:
                     raise ValueError("Structured synthesis violated its response schema: " + errors[0].message)

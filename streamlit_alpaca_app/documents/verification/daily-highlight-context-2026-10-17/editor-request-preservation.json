@@ -1,0 +1,19 @@
+{
+  "comparison_base": "20108c58",
+  "home_no_tool_editor_request_preserved": true,
+  "fields": {
+    "query": true,
+    "task": true,
+    "surface": true,
+    "max_tool_calls": true,
+    "initial_evidence": true,
+    "response_schema": true,
+    "response_schema_name": true,
+    "answer_review_owner": true,
+    "write_policy": true,
+    "persist_findings": true,
+    "request_context": true
+  },
+  "provider_calls": 0,
+  "scope": "Model request construction only; not a prose-quality judgment."
+}
