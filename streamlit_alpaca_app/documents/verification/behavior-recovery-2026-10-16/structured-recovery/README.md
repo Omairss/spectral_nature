@@ -8,7 +8,7 @@ The [real retained-draft recovery](live-recovery.json) completed in 176.248 seco
 
 Personally read all sixteen selected stories and the overview, then compared and read every changed field after review. The output restores concrete business explanations. One ETF description still supplies a denominator that the retained snippet does not make explicit; this remains a qualitative observation, not a reason to add a ticker/phrase-specific correction. A fresh normal development publication and complete personal review remain required. Six focused protocol/gateway checks establish recovery ordering, client ownership and telemetry contracts; they do not grade language.
 
-Production is held for owner review after the actual development failure, as requested. Four unused stored prompt keys remain archived but have not been removed from the shared database. Active custom prompts, parameters and model settings remain unchanged.
+Production is held until complete development quality and runtime acceptance. The owner's latest instruction conditionally authorizes promotion when fresh development research matches or exceeds the subjective pre-incident quality; no further approval is needed if that condition passes. Four unused stored prompt keys remain archived but have not been removed from the shared database. Active custom prompts, parameters and model settings remain unchanged.
 
 ## Why the earlier working version did not need this on successful runs
 

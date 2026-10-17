@@ -1,6 +1,6 @@
 # Accepted-behavior recovery — October 16
 
-Status: all 13 recovery targets deployed in development, with serving/configuration checks complete. The first fresh Home execution failed on a recoverable structured-response contract error before publication; its retry was stopped. The shared correction is locally verified and awaiting development rollout and a new normal publication. **Owner review is required before production**, following the owner’s instruction after a development failure.
+Status: all 13 initial recovery targets deployed in development, with serving/configuration checks complete. The first fresh Home execution failed on a recoverable structured-response contract error before publication; its retry was stopped. The shared correction is locally verified and awaiting development rollout and a new normal publication. The owner's latest instruction conditionally authorizes production if complete fresh development research matches or exceeds pre-incident subjective quality, alongside runtime verification.
 
 The [audit](../release-source-regressions-2026-10-16/README.md) owns the eight regressions. The [recovery plan](../../plans/RELEASE_BEHAVIOR_RECOVERY_2026-10-16.md) owns the work. This record does not accept the held reasoning/model-routing or Trading-call experiments.
 

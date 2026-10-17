@@ -1,6 +1,6 @@
 {
   "status": "accepted_locally",
-  "scope": "Restored source with shared structured-response recovery correction accepted for development verification; owner review required before production after the fresh Home failure.",
+  "scope": "Restored source and regression-compared structured recovery accepted locally for development verification; production conditionally authorized after complete development quality and runtime acceptance.",
   "source_revision": "ac6fd89695fc7a979b47bf4ca30f4801353181e4",
   "review_base_revision": "9a7d1fd13fb21028e5d75caf7d0ffac5770602aa",
   "held_checkpoint": "held/pre-recovery-20261016",
@@ -1170,10 +1170,10 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "owner_review_required_after_development_failure",
-    "condition": "Development looks okay after complete qualitative and runtime verification.",
-    "requires_owner_review_after_development_failure": true,
-    "owner_instruction": "If dev looks okay push to prod. Otherwise figure out where you went wrong and fix and then ask for my review.",
+    "status": "conditionally_authorized_pending_development_quality",
+    "condition": "Fresh complete development research matches or exceeds the subjective quality of the accepted pre-incident output, with runtime and configuration verification.",
+    "requires_owner_review_after_development_failure": false,
+    "owner_instruction": "If the dev matches or exceeds the subjective research quality gate from before this collossal fuckup, go ahead and push to prod",
     "development_failure": {
       "execution": "attention-home-next-dev-ua70qlu",
       "stage": "structured Home editor response",
