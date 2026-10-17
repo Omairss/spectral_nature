@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Locally reviewed chart/context repair; narrowly scoped worker development verification. Full fresh development quality and exact-image acceptance remain mandatory before the conditional production promotion.",
+  "status": "held_after_development_quality_failure",
+  "scope": "Context repair completed fresh development Home/highlight publication, but complete output did not clear owner subjective quality. New builds and promotions remain held; production retains its historical rollback.",
   "source_revision": "6c428b3b3f2f7c35b0f350869d30556f4287ae16",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
@@ -829,14 +829,22 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "pending_fresh_development_acceptance",
+    "status": "condition_not_met",
     "owner_instruction": "If the dev matches or exceeds the subjective research quality gate from before this collossal fuckup, go ahead and push to prod",
     "condition": "Fresh complete development Home and genuinely new highlights match or exceed pre-incident subjective quality, with preserved runtime/configuration and acceptance of the exact image.",
     "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules."
   },
   "development_acceptance": {
-    "status": "pending",
-    "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
+    "status": "not_accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe"
+    },
+    "source_inventory_sha256": "836e43377a76bb0a5a5d47acb17e24f483fade32ea59a1addc3a2dfa114e7eae",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/DEVELOPMENT_QUALITY_REVIEW.md",
+    "execution": "attention-home-next-dev-4js1f7n",
+    "home_run_id": "035fc67f-1315-439f-a72b-a045a4f853a3",
+    "asof": "2026-10-17T23:03:00.216879+00:00",
+    "reason": "Fresh complete Home retains process caveats, unsupported rates exclusion and unresolved chart-review feedback. Runtime/data integrity alone does not satisfy owner quality condition."
   },
   "preceding_hold": {
     "revision": "20108c58",

@@ -1,0 +1,14 @@
+{
+  "recorded_at_utc": "2026-10-17T23:42:30.624986+00:00",
+  "resources": 33,
+  "all_effective_configurations_exact": true,
+  "changed_image_targets": [
+    "attention-home-next-dev",
+    "daily-datapoints-next-dev"
+  ],
+  "other_images_unchanged": 31,
+  "production_images_unchanged": true,
+  "custom_domain_bindings_preserved": 4,
+  "retired_resources_stay_absent": true,
+  "modern_application_revisions_ready": true
+}

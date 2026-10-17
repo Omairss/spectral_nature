@@ -1,0 +1,456 @@
+{
+  "status": "not_accepted_for_production",
+  "recorded_at_utc": "2026-10-17T23:40:23.340650+00:00",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
+  "execution": "attention-home-next-dev-4js1f7n",
+  "execution_status": "Succeeded",
+  "core_published_at_utc": "2026-10-17T23:35:23.2206185Z",
+  "input_catalog": {
+    "namespace": "development",
+    "home_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+    "asof": "2026-10-17T23:03:00.216879+00:00",
+    "catalog_entries": 516,
+    "observations": 107971,
+    "catalog_json_characters": 5947755
+  },
+  "public_api_seconds": 1.937,
+  "public_home": {
+    "status": "available",
+    "as_of": "2026-10-17T23:03:00.216879+00:00",
+    "run_id": "035fc67f-1315-439f-a72b-a045a4f853a3",
+    "summary": {
+      "headline": "Market Summary",
+      "markdown": "Memory and AI-infrastructure shares led a broad risk-off session in the latest close. China's CXMT showed a denser DRAM design and YMTC reached third place in NAND shipments, while IREN's $2 billion private offering and reported stress in AI-cloud credit hit data-center, GPU-cloud, bitcoin-miner and enterprise-software shares. Energy was the clear counter-trend: Crescent Energy's Eagle Ford deal and a sector-wide bid lifted producers, midstream names and gas utilities. Biotechnology fell after Recursion priced a $200 million offering at a 21.7% discount; GRAIL and other small biotech names followed. Crypto-linked equities slid with bitcoin near $81,420 ahead of a $12.2 billion options expiry. Breadth was negative, with 400 advancers against 594 decliners and a median move of -0.5%. The 3-month Treasury yield was 4.26% and the 6-month 4.34%, little changed. The supplied September CPI index levels were 336.298 for headline and 338.896 for core; the record does not give year-over-year inflation rates. Unemployment was 4.2%. The tape favored energy and defensives over long-duration technology.",
+      "status": "completed",
+      "featured_symbols": [],
+      "audio_available": true,
+      "audio_mime_type": "audio/mpeg"
+    },
+    "daily_datapoints_as_of": "2026-10-17T23:03:00.216879+00:00",
+    "coverage": {
+      "candidate_count": 83,
+      "event_count": 15,
+      "must_read_count": 0,
+      "unresolved_count": 40,
+      "news_backed_count": 12
+    }
+  },
+  "stories": [
+    {
+      "id": "event::source-0deee33d6105c3e3c49d",
+      "kind": "event",
+      "title": "CXMT's 4F² DRAM plan targets a year-end server-memory launch ahead of Samsung's timeline",
+      "summary": "China's CXMT has shown a denser DRAM cell and says it will sell a server DDR5 module built on it by the end of 2026. The claim matters because it targets the commodity server memory where Micron, Samsung and SK Hynix earn cyclical profits, not just consumer chips.",
+      "what_changed": "CXMT President Cao Kanyu presented the 4F² architecture at an October 10 conference, according to TrendForce. CXMT plans a DDR5 RDIMM using the design by year-end. The cell uses a Vertical Surrounded Gate transistor, and CXMT says it has more than 300 patent families. TrendForce put CXMT fourth in second-quarter DRAM revenue at 9.5% share, behind Samsung at 39.4%, SK Hynix at 24.9% and Micron at 23.3% ([TrendForce](https://www.trendforce.com/news/2026/10/12/news-cxmt-accelerates-4f%C2%B2-dram-push-eyes-year-end-server-ddr5-rdimm-launch/)). Reports on October 12-13 said no speeds or capacities were disclosed. Micron fell for a fourth session on October 13 as chip shares sold off after a 5% KOSPI drop.",
+      "why": "A 4F² cell uses four times the square of the minimum feature size instead of six, so it can fit 30% to 50% more bits in the same area. More bits per wafer lower cost per bit if yields hold, and commodity DDR5 buyers switch on price. The timing is the threat: Samsung showed a prototype but is not expected to sell 4F² before 2028. The caveat is that a launch is not high-volume output; reports say CXMT may use 4F² only in part, and server customers require long validation.",
+      "business_context": "DRAM is a cost-curve business: price cycles swing hard, and adding low-cost supply during a shortage is what ends an upcycle. Micron earns most of its revenue from DRAM and sells high-bandwidth memory for AI servers, where customer certification and packaging limit how fast supply can grow. Multiyear customer agreements can cover part of its volume, but the rest reprices with the market. CXMT's 9.5% share matters most in commodity DDR5, where buyers can switch on price and specification.",
+      "watch_next": "Watch whether CXMT's 4F² DDR5 RDIMM reaches named server-customer qualification and real volume in 2027, with disclosed speed, capacity and yield, and whether DDR5 server contract prices roll over in the first half of 2027.",
+      "symbols": [
+        "MU",
+        "SSNLF",
+        "SKHY",
+        "SNDK",
+        "WDC",
+        "STX"
+      ]
+    },
+    {
+      "id": "event::source-6e615d935204e6696f23",
+      "kind": "event",
+      "title": "YMTC ranks third in NAND shipments and files for a Shanghai listing",
+      "summary": "YMTC has moved into third place in NAND shipments and filed for a Shanghai listing, strengthening China's position in flash memory. The share shift matters because NAND margins depend on how many credible suppliers can add output.",
+      "what_changed": "Counterpoint data reported by Benzinga ranked YMTC third in second-quarter 2026 NAND shipment volume, behind Samsung and SK Hynix and ahead of Kioxia and Micron; excluding SK Hynix's Solidigm unit, it would rank second. Revenue share rose to 14% in first-quarter 2026 from 9% a year earlier, and shipment share is about 16.5%, against a long-term target of 20% and roughly 500,000 wafers a month. YMTC filed a Shanghai STAR Market prospectus in August 2026 ([Benzinga](https://www.benzinga.com/markets/tech/26/10/62323827/ymtc-overtakes-micron-in-global-nand-shipment-volumes)). Valuation reports conflict; no offer price is confirmed. Micron fell 5.04% and SK Hynix 6.26% in October 13 premarket trade.",
+      "why": "YMTC's base is China, where local sourcing and state support help, and its Xtacking process gives it a way to build dense NAND. The shipment rank shows volume in commodity and domestic channels, not necessarily enterprise SSD wins outside China, where qualification is harder. A listing would add funding and a public currency, but it does not add output on listing day. The equity reaction is best read as a lower expected ceiling for NAND margins, not proof of lost orders.",
+      "business_context": "NAND is a minority of Micron's revenue but a large part of its cyclical exposure; Sandisk is a pure-play NAND supplier. Long-term supply agreements at floor prices can protect part of future volume, but they do not stop a lower market price from capping what new contracts can charge. The key distinction is commodity NAND versus enterprise SSDs: enterprise drives carry higher margins and stricter qualification, so a supplier that wins only commodity volume pressures client pricing before it pressures data-center pricing.",
+      "watch_next": "Watch whether YMTC wins a named enterprise SSD qualification outside China. A commodity-only YMTC caps client pricing; an enterprise-qualified YMTC attacks the segment where Micron and Sandisk earn record margins. The next tests are October-November NAND contract prices and Sandisk's October 29 report against its revenue and gross-margin guidance.",
+      "symbols": [
+        "MU",
+        "SNDK",
+        "SKHY",
+        "SSNLF"
+      ]
+    },
+    {
+      "id": "event::source-e3855258dacc0ec7dda0",
+      "kind": "event",
+      "title": "Liquidia settles six United Therapeutics lawsuits for net $380.7M and accepts limits on PH-ILD sales",
+      "summary": "Liquidia settled all six lawsuits with United Therapeutics for a net $380.7 million and accepted a narrower label. The deal removes an injunction risk for its PAH business but gives up PH-ILD sales, research and some patent challenges.",
+      "what_changed": "On October 13, 2026, Liquidia agreed to pay United Therapeutics $185 million within 30 business days for past YUTREPIA sales, while United Therapeutics pays Liquidia $10 million, for a net near-term $175 million. Liquidia also pays $145.4 million for ongoing PH-ILD sales in two $72.7 million installments due by January 31 and April 30, 2027, and $60.3 million to other antitrust parties, for $380.7 million net. It must stop promoting YUTREPIA for PH-ILD immediately and stop selling the affected product once the FDA approves removal of that indication. Liquidia filed the label supplement. YUTREPIA stays on sale for PAH. Reuters reported Liquidia shares rose 26% on October 14.",
+      "why": "The trigger was the September 30 Delaware ruling that claims 1 and 14 of the '327 patent were valid and infringed by marketing YUTREPIA for PH-ILD. Settling gives Liquidia certainty for PAH: no appeal, no injunction fight and no break in PAH sales. The cost is cash, the PH-ILD label, limits on PH-ILD research and data, and a promise not to challenge specified United Therapeutics patents. The economics are tight but not immediate insolvency: net payments equal about 96% of the $396.1 million cash reported at September 30.",
+      "business_context": "Liquidia is a single-product company: preliminary third-quarter YUTREPIA net product sales were $222.7 million. It books revenue on shipment and reports no backlog, so the payments depend on future sales and cash. United Therapeutics gains cash and removes a promoted PH-ILD competitor; its Tyvaso franchise faces less competition, but no switching data are supplied.",
+      "watch_next": "The FDA's acceptance and effective date for the label supplement starts the stop-sale clock. The next decisive facts are the first split of YUTREPIA sales between PAH and PH-ILD, 2027 guidance, and whether the ASCENT and data restrictions impair L606's path back into PH-ILD.",
+      "symbols": [
+        "LQDA",
+        "UTHR"
+      ]
+    },
+    {
+      "id": "event::cluster-04-7481f6c102",
+      "kind": "event",
+      "title": "IREN's $2 billion private offering sits at the center of an AI-infrastructure selloff",
+      "summary": "IREN's $2 billion private offering touched off a sharp selloff across AI data-center and bitcoin-infrastructure shares. The move links a single financing decision to the wider question of how much capital AI compute buildouts will need.",
+      "what_changed": "IREN announced a $2 billion private offering with an option for up to $300 million more. The stock closed at $27.00 on October 16, down 11.15%, near a 52-week low. The selling spread to Applied Digital, Nebius, CoreWeave, Cipher, Hut 8, TeraWulf, Bitdeer, CleanSpark and AXT. The supplied record does not give the security type, price or use of proceeds.",
+      "why": "A large new claim on the company creates dilution risk and must earn a high return. The sale equals about 17% of IREN's roughly $12 billion market value that morning, which helps explain the sharp reaction. Analyst doubt about IREN's Nvidia deal added a second concern. The broader AI-cloud group also faces credit stress: one report put CoreWeave default odds near 60% and its bonds near a 15% yield, and Gartner warned that most neoclouds will cease independent operations by 2030. Short-term government yields fell, so rates do not explain the drop.",
+      "business_context": "IREN combines bitcoin mining with data-center hosting. Applied Digital hosts high-performance computing, Nebius and CoreWeave sell GPU cloud capacity, and the miners sell power and data-center shells. These businesses are capital-intensive, so equity issuance is common and dilution risk is a permanent feature. A financing headline can reprice the group even when no customer order changes.",
+      "watch_next": "Watch the final terms of IREN's offering, the dilution and use of proceeds, and whether CoreWeave and Nebius show stable credit spreads and contracted revenue in their next reports. A widening in AI-cloud credit would change the interpretation from a one-off equity sale to a sector funding problem.",
+      "symbols": [
+        "IREN",
+        "APLD",
+        "NBIS",
+        "CRWV",
+        "AXTI",
+        "VICR",
+        "CIFR",
+        "VIAV"
+      ]
+    },
+    {
+      "id": "event::cluster-03-5ad6295c9c",
+      "kind": "event",
+      "title": "Recursion's discounted share sale pulls biotechnology and diagnostics lower",
+      "summary": "Recursion's discounted $200 million share sale pulled biotechnology and diagnostics shares lower. The offering reset Recursion's equity value and spilled into peers, with GRAIL falling 13% without a clear company catalyst.",
+      "what_changed": "Recursion priced 61.54 million Class A shares at $3.25, 21.7% below the prior close, for about $200 million gross. The stock fell 16.6% to $3.46 on October 16. GRAIL fell 12.99% to $117.74 on 87,984 shares; no new press release, FDA decision or filing explained it. Moderna fell 7.99%, Iovance 7.43%, Caris 3.76%, Kodiak 2.69% and 10x Genomics 3.47%.",
+      "why": "A discounted sale raises the share count and sets a lower price reference. Recursion's sale is the clearest cause: the discount showed the company chose to raise money below the prior market price. A Sanofi collaboration moved to its next stage and could bring more than $300 million in milestones, but that did not offset the offering. GRAIL's drop came on thin volume, so the move may be larger than the news; the peer weakness is consistent with lower risk appetite but not proven as a sector cause.",
+      "business_context": "Recursion uses AI for drug discovery and needs cash for trials. GRAIL sells a blood-based cancer test, still loses money and has limited payer coverage. Moderna, Iovance and 10x are clinical or commercial biotech names with their own funding needs. In biotech, financing risk is company-specific but can reprice the group when investors reassess cash needs.",
+      "watch_next": "Watch GRAIL's next filing or FDA update for a company-specific cause, and whether other small biotech names announce offerings. Recursion's post-deal cash and trial spending will show whether the $200 million is enough.",
+      "symbols": [
+        "RXRX",
+        "GRAL",
+        "MRNA",
+        "IOVA",
+        "CAI",
+        "KOD",
+        "TXG",
+        "LQDA"
+      ]
+    },
+    {
+      "id": "symbol::MXL",
+      "kind": "unresolved",
+      "title": "MaxLinear falls 8.8% without a disclosed catalyst",
+      "summary": "MaxLinear fell 8.8% with no disclosed company catalyst. The useful question is whether the drop reflects a reset in data-center optics expectations or broader semiconductor selling.",
+      "what_changed": "MXL closed at $71.32, down 8.77%, on 100,183 shares. No company release or analyst action is in the supplied record. The stock had been re-rated by growth in optical data-center revenue.",
+      "why": "MaxLinear's infrastructure business became its largest revenue category, and management raised its 2026 optical data-center revenue outlook to $210 million to $230 million from $150 million to $170 million, according to the supplied research. A stock that has re-rated on AI optics can fall on sector de-rating without a company event. The supplied record does not identify a cause.",
+      "business_context": "MaxLinear sells analog and mixed-signal chips. Data-center optics are now the growth engine, while broadband and industrial markets are more cyclical. The company's valuation is sensitive to the pace of AI data-center orders, not just current revenue.",
+      "watch_next": "Watch the next earnings or order update for optical data-center revenue, and whether Lumentum and Applied Optoelectronics confirm sector weakness. A company-specific design win or order cut would replace the sector explanation.",
+      "symbols": [
+        "MXL"
+      ]
+    },
+    {
+      "id": "symbol::TEAM",
+      "kind": "unresolved",
+      "title": "Atlassian slips 4.2% in a weak software session",
+      "summary": "Atlassian fell 4.2% without a fresh company event. The tension is between fast cloud growth and a sharply slower fiscal 2027 plan.",
+      "what_changed": "TEAM closed at $207.84, down 4.22% from $217.00. No new filing or analyst action appears in the supplied record for October 16. The move came in the same weak session for enterprise software.",
+      "why": "Atlassian's fiscal 2026 results showed accelerating cloud revenue, but its own fiscal 2027 guidance points to slower growth. Investors may be weighing that deceleration against the cloud mix shift. The supplied record does not establish a company-specific cause for the October 16 decline.",
+      "business_context": "Atlassian sells collaboration and developer tools, with a large cloud transition. A slower fiscal 2027 plan matters because the stock depends on durable subscription growth. The Data Center deadline adds a migration variable.",
+      "watch_next": "Watch the next earnings call for cloud revenue, remaining performance obligations and fiscal 2027 guidance. A guidance cut would make the move company-specific; a stable outlook would leave it as part of the software rotation.",
+      "symbols": [
+        "TEAM"
+      ]
+    }
+  ],
+  "charts": [
+    {
+      "id": "stock:IREN:price",
+      "title": "IREN price: AI data-center financing shock",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "IREN closed at $27.00 on Oct 16, down 11.2%, after announcing a $2 billion private offering; financing and dilution concerns helped drive the AI data-center selloff.",
+      "label": "IREN · Price",
+      "kind": "price",
+      "symbol": "IREN",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 27,
+      "period": ""
+    },
+    {
+      "id": "stock:MU:price",
+      "title": "Micron price: China supply reprices memory",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "MU closed at $878.78 on Oct 16, down 5.6% and 27.7% below its Jun 25 high; the drop followed CXMT and YMTC supply news, but the link to forecast cuts is interpretation.",
+      "label": "MU · Price",
+      "kind": "price",
+      "symbol": "MU",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 878.78,
+      "period": ""
+    },
+    {
+      "id": "stock:SNDK:price",
+      "title": "Sandisk price: NAND exposure repriced",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "SNDK closed at $1,299.04 on Oct 16, down 6.9% and 44.4% below its Jun 25 high; the drop is consistent with investors repricing NAND exposure after YMTC's shipment ranking.",
+      "label": "SNDK · Price",
+      "kind": "price",
+      "symbol": "SNDK",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 1299.04,
+      "period": ""
+    },
+    {
+      "id": "stock:CRGY:price",
+      "title": "Crescent Energy price: counter-trend rally",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "CRGY closed at $13.785 on Oct 16, up 10.3%, on its Eagle Ford deal and a sector-wide energy rally; energy was the session's clearest counter-trend.",
+      "label": "CRGY · Price",
+      "kind": "price",
+      "symbol": "CRGY",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 13.785,
+      "period": ""
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "title": "Broad high-yield spreads: modest widening",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "The broad US high-yield spread was 3.23% at the latest reading on Oct 15, up 0.63 percentage points from the Aug 28 low; it is background, not proof of CoreWeave-specific stress.",
+      "label": "High Yield OAS",
+      "kind": "macro",
+      "symbol": "",
+      "series_id": "BAMLH0A0HYM2",
+      "unit": "%",
+      "date": "2026-10-15",
+      "value": 3.23,
+      "period": "D"
+    }
+  ],
+  "data_integrity": {
+    "stage": "development-home",
+    "selection_run_ids": [
+      "035fc67f-1315-439f-a72b-a045a4f853a3"
+    ],
+    "home_run_ids": [
+      "035fc67f-1315-439f-a72b-a045a4f853a3"
+    ],
+    "asof": "2026-10-17T23:03:00.216879+00:00",
+    "checks": [
+      {
+        "id": "stock:IREN:price",
+        "stored_observations": 1233,
+        "displayed_observations": 1200,
+        "stored_and_public_text_match": true,
+        "existing_display_window_matches_source": true
+      },
+      {
+        "id": "stock:MU:price",
+        "stored_observations": 1254,
+        "displayed_observations": 1200,
+        "stored_and_public_text_match": true,
+        "existing_display_window_matches_source": true
+      },
+      {
+        "id": "stock:SNDK:price",
+        "stored_observations": 421,
+        "displayed_observations": 421,
+        "stored_and_public_text_match": true,
+        "existing_display_window_matches_source": true
+      },
+      {
+        "id": "stock:CRGY:price",
+        "stored_observations": 1218,
+        "displayed_observations": 1200,
+        "stored_and_public_text_match": true,
+        "existing_display_window_matches_source": true
+      },
+      {
+        "id": "fred:BAMLH0A0HYM2",
+        "stored_observations": 784,
+        "displayed_observations": 784,
+        "stored_and_public_text_match": true,
+        "existing_display_window_matches_source": true
+      }
+    ]
+  },
+  "intraday": [
+    {
+      "symbol": "MU",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SSNLF",
+      "status": "unavailable",
+      "session": "",
+      "as_of": "",
+      "interval": "5Min",
+      "observations": 0
+    },
+    {
+      "symbol": "SKHY",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SNDK",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "LQDA",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 77
+    },
+    {
+      "symbol": "UTHR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 76
+    },
+    {
+      "symbol": "IREN",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "APLD",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NBIS",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "CRWV",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "RXRX",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "GRAL",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 63
+    },
+    {
+      "symbol": "MRNA",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "IOVA",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "MXL",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 71
+    },
+    {
+      "symbol": "TEAM",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    }
+  ],
+  "audio": {
+    "http_status": 200,
+    "content_type": "audio/mpeg",
+    "first_chunk_bytes": 1024,
+    "seconds": 0.234
+  },
+  "browser": {
+    "fresh_overview_and_seven_story_headings": true,
+    "all_five_fresh_chart_headings": true,
+    "audio_control_present": true,
+    "existing_cache_refreshed_before_accepting_visible_state": true
+  },
+  "existing_chart_review_feedback": [
+    {
+      "at": "2026-10-17T23:33:50.1267055Z",
+      "attempt": 1,
+      "issues": [
+        "IREN: change 'after a $2 billion private offering' to 'after announcing a $2 billion private offering' because the evidence gives an announced offering, not final terms or completion. Also soften 'financing and dilution risks are now driving AI data-center shares' to 'financing and dilution concerns helped drive the selloff'; the source labels the cause partial and also cites AI-cloud credit stress and analyst doubt.",
+        "MU: the $878.78 close, -5.6% Oct 16 move, and 27.7% gap below the 2026-06-25 high of $1,215.08 are correct. The source's explicit 5.04% Micron move is a separate Oct 13 premarket observation, so label the China-supply link to the Oct 16 close as interpretation; 'cutting memory-cycle forecasts' is not directly observed. Say the drop 'coincided with' or 'followed' CXMT/YMTC news instead of saying it 'shows' forecast cuts.",
+        "SNDK: the $1,299.04 close, -6.9% Oct 16 move, and 44.4% gap below the 2026-06-25 high of $2,335.46 are correct. The phrase 'shows flash-memory pricing is now a major downside risk' overreaches because the chart is equity price, not NAND contract prices. Better: 'shows investors are repricing NAND exposure after YMTC's shipment ranking.'",
+        "High-yield OAS: 3.23% on 2026-10-15 and +0.63 percentage points from the 2.60% low on 2026-08-28 are correct, but BAMLH0A0HYM2 is a broad US high-yield spread, not AI-cloud-specific credit. Keep it as background and state that it does not confirm CoreWeave-specific stress; a title such as 'Broad high-yield spreads: modest widening' is more accurate.",
+        "Selection and labeling follow-up: the high-yield series has no Oct 16 observation, so label it 'latest available Oct 15' and 'background' rather than a same-session signal. If a same-day tape signal is needed, market breadth (400 advancers vs 594 decliners, median -0.5%) or sector rotation (Energy average +2.19%) is more direct; CRGY already covers the energy counter-trend."
+      ]
+    },
+    {
+      "at": "2026-10-17T23:34:56.1527195Z",
+      "attempt": 2,
+      "issues": [
+        "Micron entry introduces 'forecast cuts,' which the supplied evidence does not mention. Remove that phrase or replace it with the supplied memory-supply facts: CXMT's 4F² DDR5 plan and YMTC's NAND shipment ranking. The verified values stay: $878.78 close on 2026-10-16, -5.6% one-day move, and 27.7% below the 2026-06-25 close high of $1,215.08.",
+        "Micron and Sandisk cause wording is too strong: the record supports 'amid' or 'came after' the China memory headlines, not proof that those headlines caused the 2026-10-16 closes. For Sandisk, keep the verified $1,299.04 close, -6.9% move, and 44.4% drawdown from the 2026-06-25 close high of $2,335.46, but label the YMTC link as interpretation.",
+        "Selection could be improved because MU and SNDK repeat the same China memory-supply channel. If the brief is not explicitly a DRAM/NAND pair, swap one for Liquidia/UTHR (supported settlement) or Recursion (developing biotech financing) to broaden decision coverage beyond memory, AI infrastructure, energy and broad credit.",
+        "High-yield entry is accurate as background: 3.23% on 2026-10-15, up 0.63 percentage points from the 2.60% low on 2026-08-28. Keep the explicit caveat that BAMLH0A0HYM2 is a broad US high-yield spread, not CoreWeave-specific credit evidence; follow up with issuer-level AI-cloud credit data before linking it to IREN or CoreWeave."
+      ]
+    }
+  ],
+  "human_assessment": {
+    "decision": "hold",
+    "positive": "Fresh normal Home generation retained current data and five useful chart comparisons, with exact original observations and no oversized-context failure. All seven complete stories and five captions were personally read.",
+    "issues": [
+      "Overview reports CPI index levels and then a missing-year-over-year-data caveat instead of a useful macro interpretation.",
+      "IREN explanation infers that rates do not explain the decline because short Treasury yields fell; that does not exclude long-duration discount-rate or credit effects.",
+      "Final Micron caption retains a reference to forecast cuts that is not supplied as a reported event. Its own final chart reviewer requested removal; the existing bounded review retained the valid revised draft.",
+      "Several public fields still describe the supplied record or repeat missing-cause caveats."
+    ],
+    "causal_limit": "The accepted no-tool Home editorial request is unchanged. This run establishes surviving output defects, not that this chart-context repair introduced them or that another historical rollback would eliminate stochastic reasoning errors.",
+    "next_investigation": "Compare complete first drafts and critic revisions with the original task/evidence at the shared editorial boundary. Preserve model ownership and retained sources; do not add phrase filters, finance rules, a new reviewer or manual publication edits."
+  },
+  "production_changed": false,
+  "execution_start": "2026-10-17T23:02:21+00:00",
+  "execution_end": "2026-10-17T23:42:39+00:00",
+  "execution_seconds": 2418.0,
+  "terminal_public_api_seconds": 1.277,
+  "optional_page_summaries_completed": 5
+}
