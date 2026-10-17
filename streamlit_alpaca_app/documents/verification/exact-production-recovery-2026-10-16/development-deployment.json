@@ -1,0 +1,98 @@
+{
+  "environment": "development",
+  "targets": [
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "role": "api-next",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+      "current_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:e830160990d9c6c4dffc15ad7fa63946d6a2527339ded6e84ba9e19d4eb0aef6",
+      "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
+      "provisioning_state": "Succeeded",
+      "recorded_at": "2026-10-17T04:03:15.203176+00:00",
+      "settings_preserved": true,
+      "latest_revision": "sn-api-next-dev--0000040",
+      "ready_revision": "sn-api-next-dev--0000039"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "current_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
+      "configuration_sha256": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4",
+      "provisioning_state": "Succeeded",
+      "recorded_at": "2026-10-17T04:03:30.266564+00:00",
+      "settings_preserved": true,
+      "latest_revision": "sn-next-ui-dev--0000023",
+      "ready_revision": "sn-next-ui-dev--0000022"
+    },
+    {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+      "current_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "provisioning_state": "Succeeded",
+      "recorded_at": "2026-10-17T04:03:39.367464+00:00",
+      "settings_preserved": true
+    },
+    {
+      "name": "equities-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+      "current_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "provisioning_state": "Succeeded",
+      "recorded_at": "2026-10-17T04:03:48.214838+00:00",
+      "settings_preserved": true
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+      "current_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "provisioning_state": "Succeeded",
+      "recorded_at": "2026-10-17T04:03:57.330311+00:00",
+      "settings_preserved": true
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
+      "current_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "provisioning_state": "Succeeded",
+      "recorded_at": "2026-10-17T04:04:06.056318+00:00",
+      "settings_preserved": true
+    },
+    {
+      "name": "sn-research-run-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+      "current_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "provisioning_state": "Succeeded",
+      "recorded_at": "2026-10-17T04:04:15.109823+00:00",
+      "settings_preserved": true
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "kind": "jobs",
+      "role": "broker",
+      "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "current_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:b2f12e1348c898a476c6090417490c34fa049f233c9d6cfb60c9333e43e13ae4",
+      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+      "provisioning_state": "Succeeded",
+      "recorded_at": "2026-10-17T04:04:23.763164+00:00",
+      "settings_preserved": true
+    }
+  ],
+  "job_executions_started": 0
+}

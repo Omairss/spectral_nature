@@ -1,5 +1,7 @@
 # Accepted-behavior recovery — October 16
 
+Current restoration is the [exact per-consumer image rollback](../exact-production-recovery-2026-10-16/README.md), directed by the owner after this rebuilt candidate failed quality review. The status and images below describe that earlier candidate, not the now-restored development templates. Its production quality rejection remains in force.
+
 Status: the regression-compared shared format-recovery correction is deployed to all 13 development targets; API revision `sn-api-next-dev--0000039` is ready. All 33 resource definitions preserve effective settings, production images and frontend images. The fresh normal Home execution `attention-home-next-dev-x8escat` succeeded and published, but **failed the owner's subjective quality condition**. A material factual distinction that the accepted October 14 brief preserved was overstated. The [complete quality review](DEVELOPMENT_QUALITY_REVIEW.md) records the adverse comparison and rejected local candidate. Production recovery is not deployed.
 
 The [audit](../release-source-regressions-2026-10-16/README.md) owns the eight regressions. The [recovery plan](../../plans/RELEASE_BEHAVIOR_RECOVERY_2026-10-16.md) owns the work. This record does not accept the held reasoning/model-routing or Trading-call experiments.

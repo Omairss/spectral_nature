@@ -1080,6 +1080,8 @@ Require the complete committed application inventory and an explicit review for 
 
 ## Recovery deployment review — 2026-10-16
 
+Exact immutable-image rollback and source reconciliation are different operations. State which is being performed and preserve a per-consumer release map. An unsuccessful rebuilt candidate does not invalidate the historical rollback target. Follow paginated ARM lists before declaring a resource missing; verify all target definitions before mutation.
+
 Fresh execution success and semantic quality are separate release decisions. The recovered Home completed and served its charts/narration, but overstated a proposed label change that the exact earlier accepted brief left pending. Preserve adverse source/output comparisons and hold a conditional production release when its condition fails, even when the existing critic reports high confidence. See the [complete comparison](verification/behavior-recovery-2026-10-16/DEVELOPMENT_QUALITY_REVIEW.md).
 
 Removing an unused review outline can still change model reasoning and latency. The six-call paired review experiment corrected one payment description but retained the material factual-status error; it was faster on one case and slower on two. Archive and revert a failed candidate rather than stacking prompts, inventing status rules or declaring schema validity a quality pass. Keep requested model aliases distinct from the provider's reported model and started/success receipt events distinct from inference-call counts.

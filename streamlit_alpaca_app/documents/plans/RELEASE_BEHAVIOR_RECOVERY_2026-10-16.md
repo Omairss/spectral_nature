@@ -1,5 +1,7 @@
 # Restore accepted application behavior
 
+Active approach: the owner has now directed the [exact pre-incident image recovery](../verification/exact-production-recovery-2026-10-16/README.md). The reconstructed candidate below failed subjective acceptance and is not the restoration target. Preserve its evidence and newer repairs separately; restore each recorded consumer image directly, verify development, then complete the authorized production recovery.
+
 Owner authorization: October 16, “Do it.” Development restoration is authorized. The latest instruction authorizes production if complete development research matches or exceeds the subjective pre-incident quality gate; promotion remains conditional on that actual review and runtime verification.
 
 The [source-regression audit](../verification/release-source-regressions-2026-10-16/README.md) defines eight affected areas. Restore their accepted behavior without editorial redesign, new model routing, narrower research, or a blanket image rollback. Preserve the accepted reliability repairs and the already accepted Trading implementation.
