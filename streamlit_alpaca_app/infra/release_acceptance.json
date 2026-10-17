@@ -1083,7 +1083,15 @@
           "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
           "configuration_api_version": "2025-07-01"
         }
-      ]
+      ],
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d": {
+          "source_revision": "e5079b8a27376c10721c7465f9d7f155ce95b2ef",
+          "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
+          "runtime_inventory_sha256": "de9c1d1bd0d0ba5dd41db7a1c4bf2fb232445ba1dcfc0a42a1c9ecccd1c64f08",
+          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -1107,7 +1115,15 @@
           "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
           "configuration_api_version": "2025-07-01"
         }
-      ]
+      ],
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:e830160990d9c6c4dffc15ad7fa63946d6a2527339ded6e84ba9e19d4eb0aef6": {
+          "source_revision": "e5079b8a27376c10721c7465f9d7f155ce95b2ef",
+          "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
+          "runtime_inventory_sha256": "de9c1d1bd0d0ba5dd41db7a1c4bf2fb232445ba1dcfc0a42a1c9ecccd1c64f08",
+          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
+        }
+      }
     },
     "broker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-broker@sha256:94715ea21911b1441f67cde8dc03d640386adf14453c66df66ba225ea96e5941",
@@ -1131,7 +1147,15 @@
           "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
           "configuration_api_version": "2025-07-01"
         }
-      ]
+      ],
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:b2f12e1348c898a476c6090417490c34fa049f233c9d6cfb60c9333e43e13ae4": {
+          "source_revision": "e5079b8a27376c10721c7465f9d7f155ce95b2ef",
+          "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
+          "runtime_inventory_sha256": "de9c1d1bd0d0ba5dd41db7a1c4bf2fb232445ba1dcfc0a42a1c9ecccd1c64f08",
+          "evidence": "documents/verification/behavior-recovery-2026-10-16/packaged-images.json"
+        }
+      }
     }
   },
   "untouched_consumers": [
