@@ -3670,11 +3670,6 @@ def _execute_zopedia_agent_loop(
                 # Preserve the paid draft before validating. The shared
                 # structured owner can repair it without repeating acquisition.
                 final_answer = json.dumps(artifact, ensure_ascii=False, default=str)
-                errors = list(Draft202012Validator(response_schema).iter_errors(artifact))
-                if errors:
-                    raise ValueError(
-                        "Structured synthesis violated its response schema: " + errors[0].message
-                    )
             else:
                 final_answer = _clean_model_output(final_payload.get("answer_markdown"))
             final_confidence = _clean(final_payload.get("confidence")).lower() or final_confidence
@@ -3684,6 +3679,25 @@ def _execute_zopedia_agent_loop(
             for item in final_limitations:
                 if item not in limitations:
                     limitations.append(item)
+        if response_schema and final_answer:
+            # Recover the complete draft before semantic review, including on
+            # continuation. A formatting failure must not skip that review or
+            # force the caller to repeat the completed research.
+            from .aql_zopedia_engine import (
+                parse_aql_zopedia_structured_answer,
+                _repair_structured_payload_from_agent_answer,
+            )
+            artifact = parse_aql_zopedia_structured_answer(final_answer)
+            errors = list(Draft202012Validator(response_schema).iter_errors(artifact))
+            if errors:
+                repaired = _repair_structured_payload_from_agent_answer(
+                    answer_markdown=final_answer, schema_name=response_schema_name or "zopedia_agent_final",
+                    schema=response_schema, llm_client=resolved_llm, surface=surface, task=task,
+                    deadline_monotonic=budget.step_deadline("synthesis", llm_step_timeout_seconds),
+                )
+                if repaired is None:
+                    raise ValueError("Structured synthesis violated its response schema: " + errors[0].message)
+                final_answer = json.dumps(repaired, ensure_ascii=False, default=str)
     except Exception as exc:
         if not (response_schema and final_answer and isinstance(exc, ValueError)) and not isinstance(exc, (LLMAPIError, TimeoutError)) and not _looks_like_transient_transport_error(
             exc

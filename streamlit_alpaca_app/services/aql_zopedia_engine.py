@@ -430,6 +430,10 @@ def run_aql_zopedia_structured_agent(
     if run_timeout_seconds is None and max_tool_calls is not None and int(max_tool_calls) <= 0 and llm_step_timeout_seconds is not None:
         timeout = min(float(timeout), float(llm_step_timeout_seconds))
     deadline = time.monotonic() + float(timeout)
+    # The reviewed agent and its structured recovery must share the same
+    # resolved client. The agent's internal default is not returned to this
+    # owner, leaving schema repair unavailable when the caller omitted it.
+    llm_client = llm_client or load_aql_zopedia_llm_client(surface=surface)
     structured_query = (
         (f"Task instructions:\n{instructions}\n\n" if instructions else "")
         + f"{query}\n\n"
@@ -443,7 +447,7 @@ def run_aql_zopedia_structured_agent(
     if initial_evidence and max_tool_calls is not None and int(max_tool_calls) <= 0 and not review_answer:
         structured_query += "\nSupplied evidence:\n" + serialize_llm_context(initial_evidence)
     if max_tool_calls is not None and int(max_tool_calls) <= 0 and not review_answer:
-        resolved_llm = llm_client or load_aql_zopedia_llm_client(surface=surface)
+        resolved_llm = llm_client
         if resolved_llm is None:
             return {
                 "status": "unavailable",

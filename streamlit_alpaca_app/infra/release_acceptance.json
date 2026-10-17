@@ -1185,9 +1185,14 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "conditional_owner_authorized",
+    "status": "owner_review_required_after_development_failure",
     "condition": "Development looks okay after complete qualitative and runtime verification.",
     "requires_owner_review_after_development_failure": true,
-    "owner_instruction": "If dev looks okay push to prod. Otherwise figure out where you went wrong and fix and then ask for my review."
+    "owner_instruction": "If dev looks okay push to prod. Otherwise figure out where you went wrong and fix and then ask for my review.",
+    "development_failure": {
+      "execution": "attention-home-next-dev-ua70qlu",
+      "stage": "structured Home editor response",
+      "cause": "Required cause_status omitted in one complete model item; missing shared client prevented existing repair, so Home failed before publication. Retry stopped for source correction."
+    }
   }
 }

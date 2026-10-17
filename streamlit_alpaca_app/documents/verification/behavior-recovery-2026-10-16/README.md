@@ -1,6 +1,6 @@
 # Accepted-behavior recovery — October 16
 
-Status: all 13 development targets deployed and provisioned successfully; all 33 remaining app/job definitions compared, with production and frontends unchanged. Fresh normal Home output still awaits complete personal review. The owner conditionally authorized production if development passes; after a development quality failure, fix the cause and obtain owner review before promotion.
+Status: all 13 recovery targets deployed in development, with serving/configuration checks complete. The first fresh Home execution failed on a recoverable structured-response contract error before publication; its retry was stopped. The shared correction is locally verified and awaiting development rollout and a new normal publication. **Owner review is required before production**, following the owner’s instruction after a development failure.
 
 The [audit](../release-source-regressions-2026-10-16/README.md) owns the eight regressions. The [recovery plan](../../plans/RELEASE_BEHAVIOR_RECOVERY_2026-10-16.md) owns the work. This record does not accept the held reasoning/model-routing or Trading-call experiments.
 
@@ -62,3 +62,5 @@ The recovered API revision `sn-api-next-dev--0000037` is healthy. A direct HTTP 
 [Serving observations](development-serving-observations.json) distinguish direct API/cloud timings, browser rendering and variable external transfer time. Signed Admin access and its development operational-health view also loaded successfully after the final API update.
 
 The [effective settings audit](effective-llm-settings.json) confirms the accepted DeepSeek reasoner alias, thinking enabled, temperature 0.2 and current default language rule in both environments. Five custom prompts and eleven parameter overrides remain active and unchanged. Stored rows are distinguished from actually registered settings.
+
+The first normal Home attempt and [shared recovery correction](structured-recovery/README.md) supersede the earlier pending-publication state. The retained draft, complete evidence and real repair/review outputs are preserved privately. Production recovery images have not changed.

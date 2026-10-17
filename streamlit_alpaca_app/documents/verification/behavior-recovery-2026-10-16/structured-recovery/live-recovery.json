@@ -1,0 +1,35 @@
+{
+  "status": "completed",
+  "seconds": 176.248,
+  "schema_valid": true,
+  "real_schema_repairs": 1,
+  "review": {
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The draft is a coherent, high-recall briefing that preserves useful connections and distinguishes facts from interpretations. One factual correction is needed: the tower REIT item asserts a specific Treasury yield curve move (short-term yields falling, long-term yields rising) that is not supported by the supplied data, which covers only short-term yields. The 'round-hill' spelling should be corrected to 'Roundhill'. Other content is accurate and well-reasoned. The revised artifact fixes these issues and retains the useful analysis.",
+    "confidence": "medium",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "revised_answer_applied": true,
+    "research_requests": [
+      "Confirm the October 7, 2026 Treasury yield curve data, especially long-dated yields, to test the rate-sensitivity explanation for the tower REIT jump.",
+      "Resolve the Fastly record conflict by opening the October 16 article to verify the reported price and direction."
+    ]
+  },
+  "tool_calls": 1,
+  "source_research_repeated": false,
+  "published": false,
+  "knowledge_writes": false,
+  "input_candidates": 19,
+  "source_intake_records": 50,
+  "selected_stories": 16,
+  "format_changed_paths": [
+    "/items/12/cause_status"
+  ],
+  "existing_text_preserved_by_format_repair": true,
+  "source_hashes": {
+    "services/aql_zopedia_engine.py": "69dd31ca3a4df8c00975b1805b796cbe1cd81f567c65d5c9798c2a5b6faac4bd",
+    "services/zopedia_agent.py": "e544d1f2ed805d70634beef257f46017835f08da9fe2b0ad02af60e53fbd5e55"
+  }
+}

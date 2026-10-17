@@ -1085,3 +1085,5 @@ Bind production promotion to the exact immutable digests personally accepted in 
 An accepted Azure PATCH is not a completed deployment. Wait for both the requested image and successful provisioning, then separately verify application revision readiness. Preserve before/after definitions and resume idempotently instead of issuing duplicate updates.
 
 A stored override row is not necessarily an active setting. Compare against every current prompt/parameter registry and the actual language-rule key, then verify the live Admin view before retiring configuration. Preserve active owner customization.
+
+Structured syntax/schema recovery belongs before semantic answer review and must retain the complete paid draft and sources. Resolve the inference client once across the shared execution/recovery boundary. Test protocol ordering and client ownership separately from personally judging real model output; source equality and imports cannot reveal this runtime omission. Preserve failed research for recovery instead of restarting acquisition.
