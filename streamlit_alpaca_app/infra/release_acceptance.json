@@ -1194,14 +1194,33 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "conditionally_authorized_pending_development_quality",
+    "status": "development_quality_gate_failed",
     "condition": "Fresh complete development research matches or exceeds the subjective quality of the accepted pre-incident output, with runtime and configuration verification.",
     "requires_owner_review_after_development_failure": false,
     "owner_instruction": "If the dev matches or exceeds the subjective research quality gate from before this collossal fuckup, go ahead and push to prod",
+    "development_quality_failure": {
+      "execution": "attention-home-next-dev-x8escat",
+      "home_run": "04210c6d-c766-4c05-8862-8e433194e09a",
+      "cause": "The completed fresh Home overstated a proposed label removal as complete, while the earlier accepted brief preserved approval and effective-date uncertainty. The local paired review candidate did not resolve it and was reverted without deployment.",
+      "evidence": "documents/verification/behavior-recovery-2026-10-16/DEVELOPMENT_QUALITY_REVIEW.md"
+    },
     "development_failure": {
       "execution": "attention-home-next-dev-ua70qlu",
       "stage": "structured Home editor response",
       "cause": "Required cause_status omitted in one complete model item; missing shared client prevented existing repair, so Home failed before publication. Retry stopped for source correction."
     }
+  },
+  "development_acceptance": {
+    "status": "failed_quality",
+    "execution": "attention-home-next-dev-x8escat",
+    "home_run": "04210c6d-c766-4c05-8862-8e433194e09a",
+    "runtime_status": "verified",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:e830160990d9c6c4dffc15ad7fa63946d6a2527339ded6e84ba9e19d4eb0aef6",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:b2f12e1348c898a476c6090417490c34fa049f233c9d6cfb60c9333e43e13ae4"
+    },
+    "source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
+    "evidence": "documents/verification/behavior-recovery-2026-10-16/DEVELOPMENT_QUALITY_REVIEW.md"
   }
 }

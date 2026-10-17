@@ -1,0 +1,72 @@
+{
+  "image": "snpipelineacr03130136.azurecr.io/llm-cost@sha256:84b3c14c8e198e0229d9f65e1b904d51a22ed43f0e86110a0cdad57f17e82716",
+  "successful_execution": "attention-home-next-dev-jvwbbok",
+  "successful_home_run": "fe3ca0f5-9e84-4802-9fbe-2f10f2c1ec18",
+  "compared_git_revision": "7078ea26ed07bb3b3ca6f6037b54c002f2814cf1",
+  "deployed_image_source_revision": "e5079b8a27376c10721c7465f9d7f155ce95b2ef",
+  "compared_source_inventory_sha256": "f699d18e1d676257a560cde16e8768c6030c752f7874837192fba52e82f6f3d7",
+  "compared_runtime_inventory_sha256": "de9c1d1bd0d0ba5dd41db7a1c4bf2fb232445ba1dcfc0a42a1c9ecccd1c64f08",
+  "comparisons": [
+    {
+      "file": "services/zopedia_agent.py",
+      "node": "_AGENT_FINAL_SYSTEM_PROMPT",
+      "matches_original_successful_run": false
+    },
+    {
+      "file": "services/zopedia_agent.py",
+      "node": "_FINAL_SCHEMA",
+      "matches_original_successful_run": true
+    },
+    {
+      "file": "services/zopedia_agent.py",
+      "node": "_AGENT_JUDGE_SYSTEM_PROMPT",
+      "matches_original_successful_run": true
+    },
+    {
+      "file": "services/zopedia_agent.py",
+      "node": "_JUDGE_SCHEMA",
+      "matches_original_successful_run": true
+    },
+    {
+      "file": "services/zopedia_agent.py",
+      "node": "_run_answer_judge",
+      "matches_original_successful_run": true
+    },
+    {
+      "file": "services/zopedia_agent.py",
+      "node": "_execute_zopedia_agent_loop",
+      "matches_original_successful_run": false
+    },
+    {
+      "file": "services/aql_zopedia_engine.py",
+      "node": "_repair_structured_payload_from_agent_answer",
+      "matches_original_successful_run": true
+    },
+    {
+      "file": "services/aql_zopedia_engine.py",
+      "node": "run_aql_zopedia_structured_agent",
+      "matches_original_successful_run": false
+    },
+    {
+      "file": "services/llm.py",
+      "node": "NARRATIVE_STYLE_RULE",
+      "matches_original_successful_run": true
+    },
+    {
+      "file": "pipeline/jobs/attention_home_build.py",
+      "node": "_HOME_SURFACE_QUALITY_SCHEMA",
+      "matches_original_successful_run": true
+    },
+    {
+      "file": "pipeline/jobs/attention_home_build.py",
+      "node": "_apply_home_surface_quality_items",
+      "matches_original_successful_run": true
+    },
+    {
+      "file": "pipeline/jobs/attention_home_build.py",
+      "node": "_review_home_public_surface",
+      "matches_original_successful_run": true
+    }
+  ],
+  "method": "Read selected source nodes directly in the immutable successful image, then parse both expressions with the same local Python version before comparison; no source tree extraction or build overlay."
+}

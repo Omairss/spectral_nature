@@ -1,0 +1,205 @@
+{
+  "cases": [
+    {
+      "case": "fresh_home",
+      "version": "candidate",
+      "status": "completed",
+      "verdict": "revise",
+      "seconds": 73.668,
+      "schema_valid": true,
+      "output_characters": 34194,
+      "outline_points": 0,
+      "published": false,
+      "knowledge_writes": false,
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "thinking": {
+        "type": "enabled"
+      },
+      "usage": {
+        "prompt_tokens": 320562,
+        "completion_tokens": 16367,
+        "total_tokens": 336929,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 8089
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 320306
+      },
+      "estimated_usd": 0.057866867999999995
+    },
+    {
+      "case": "fresh_home",
+      "version": "baseline",
+      "status": "completed",
+      "verdict": "revise",
+      "seconds": 95.571,
+      "schema_valid": true,
+      "output_characters": 35790,
+      "outline_points": 6,
+      "published": false,
+      "knowledge_writes": false,
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "thinking": {
+        "type": "enabled"
+      },
+      "usage": {
+        "prompt_tokens": 320582,
+        "completion_tokens": 20423,
+        "total_tokens": 341005,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 11670
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 319942
+      },
+      "estimated_usd": 0.06024701999999999
+    },
+    {
+      "case": "retained_home",
+      "version": "baseline",
+      "status": "completed",
+      "verdict": "revise",
+      "seconds": 70.513,
+      "schema_valid": true,
+      "output_characters": 39810,
+      "outline_points": 7,
+      "published": false,
+      "knowledge_writes": false,
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "thinking": {
+        "type": "enabled"
+      },
+      "usage": {
+        "prompt_tokens": 487160,
+        "completion_tokens": 14895,
+        "total_tokens": 502055,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 5131
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 486520
+      },
+      "estimated_usd": 0.08191692
+    },
+    {
+      "case": "plain_research",
+      "version": "baseline",
+      "status": "completed",
+      "verdict": "revise",
+      "seconds": 35.986,
+      "schema_valid": null,
+      "output_characters": 2772,
+      "outline_points": 6,
+      "published": false,
+      "knowledge_writes": false,
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "thinking": {
+        "type": "enabled"
+      },
+      "usage": {
+        "prompt_tokens": 310423,
+        "completion_tokens": 4261,
+        "total_tokens": 314684,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3390
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 309783
+      },
+      "estimated_usd": 0.049025969999999995
+    },
+    {
+      "case": "retained_home",
+      "version": "candidate",
+      "status": "completed",
+      "verdict": "revise",
+      "seconds": 92.092,
+      "schema_valid": true,
+      "output_characters": 38358,
+      "outline_points": 0,
+      "published": false,
+      "knowledge_writes": false,
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "thinking": {
+        "type": "enabled"
+      },
+      "usage": {
+        "prompt_tokens": 487140,
+        "completion_tokens": 20527,
+        "total_tokens": 507667,
+        "prompt_tokens_details": {
+          "cached_tokens": 640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 11256
+        },
+        "prompt_cache_hit_tokens": 640,
+        "prompt_cache_miss_tokens": 486500
+      },
+      "estimated_usd": 0.08529312
+    },
+    {
+      "case": "plain_research",
+      "version": "candidate",
+      "status": "completed",
+      "verdict": "revise",
+      "seconds": 38.192,
+      "schema_valid": null,
+      "output_characters": 1761,
+      "outline_points": 6,
+      "published": false,
+      "knowledge_writes": false,
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "thinking": {
+        "type": "enabled"
+      },
+      "usage": {
+        "prompt_tokens": 310414,
+        "completion_tokens": 4960,
+        "total_tokens": 315374,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 4350
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 310158
+      },
+      "estimated_usd": 0.04950046799999999
+    }
+  ],
+  "models": [
+    "deepseek-flash",
+    "deepseek-reasoner"
+  ],
+  "scope": "Six actual paired shared-review calls over two complete frozen Home artifacts/evidence and an ordinary research control. Same requested model, reported model, temperature and thinking for both variants; 600-second review limit. No acquisition, publication or knowledge writes. Provider estimates are retained measurements, not current pricing claims.",
+  "status": "rejected_and_reverted",
+  "baseline_revision": "7078ea26ed07bb3b3ca6f6037b54c002f2814cf1",
+  "candidate_patch_sha256": "d04d50bde35166125d689e6cf87b7c1d3fee4f38c264d906e8173c81d4a7097e",
+  "archive_batch": "20261017T025311Z",
+  "archive_sha256": "d8436e9154f193f25cc57ea8de8c5432a40b4516833e3e059a1473b65399d810",
+  "actual_inference_calls": 6,
+  "provider_events": 12,
+  "estimated_usd": 0.383850366,
+  "decision": "Fresh candidate corrected settlement counterparties but retained the unsupported completed-label claim; both fresh variants missed that distinction. Candidate was faster on fresh Home but slower on retained Home and ordinary research. No general quality or latency improvement established.",
+  "personal_review": "Read the complete fresh candidate, complete unchanged source/output fields, all changed fields from both fresh and retained variants, and complete ordinary research controls. No prose-matching tests graded language."
+}

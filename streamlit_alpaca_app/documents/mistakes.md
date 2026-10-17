@@ -972,6 +972,12 @@ The audit initially compared COPY layers only, missing an application update wri
 
 ## Recovery deployment review — 2026-10-16
 
+The recovered normal development job succeeded but its reviewed final artifact still promoted a filed label-removal request into a completed change and assigned a split settlement total to one counterparty. The exact earlier accepted brief preserved the approval/effective-date distinction. Recorded the failed subjective comparison and kept production held instead of presenting runtime recovery as complete research-quality acceptance.
+
+I tested the hypothesis that requiring both an unused outline and a final structured artifact caused missed corrections. The candidate fixed the payment description but retained the completed-label assertion; the unchanged reviewer also missed it in the paired run. Six real calls did not establish a general quality or latency improvement. Archived the full comparison and candidate patch outside the checkout for 30 days, then reverted only that local candidate before deployment. The source-level ownership mismatch is not proven to be the cause of the observed factual error.
+
+An initial historical AST comparison crossed Python versions and reported irrelevant empty-field differences. Reparsed both selected expressions locally before recording equality. An early browser check also read the old DOM while reload was incomplete; completed navigation and run identity confirmed that the fresh page was served. Neither observation justified a product-code change.
+
 The first development update stopped before mutation because the reviewed Azure CLI configuration and the fixed ARM API represented the same settings differently. Capture baselines and deploy through the same API version; do not relax the deployment comparator. Preflight every consumer before the first update. The owner subsequently authorized production only if complete development review passes.
 
 The first API post-update read preceded Azure’s asynchronous template update, producing a false failure report. The API update subsequently completed. The release command now waits for the requested immutable image and successful provisioning before asserting retention, and skips already-current targets when resuming. Separately reviewed Azure’s removal of one empty optional storage field; CPU, memory and all effective settings remained exact.

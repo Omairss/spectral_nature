@@ -1080,6 +1080,12 @@ Require the complete committed application inventory and an explicit review for 
 
 ## Recovery deployment review — 2026-10-16
 
+Fresh execution success and semantic quality are separate release decisions. The recovered Home completed and served its charts/narration, but overstated a proposed label change that the exact earlier accepted brief left pending. Preserve adverse source/output comparisons and hold a conditional production release when its condition fails, even when the existing critic reports high confidence. See the [complete comparison](verification/behavior-recovery-2026-10-16/DEVELOPMENT_QUALITY_REVIEW.md).
+
+Removing an unused review outline can still change model reasoning and latency. The six-call paired review experiment corrected one payment description but retained the material factual-status error; it was faster on one case and slower on two. Archive and revert a failed candidate rather than stacking prompts, inventing status rules or declaring schema validity a quality pass. Keep requested model aliases distinct from the provider's reported model and started/success receipt events distinct from inference-call counts.
+
+Identify the immutable image that actually produced the successful baseline, rather than substituting a later accepted image. Compare source expressions under the same Python parser to avoid AST-version artifacts. For browser freshness, await completed navigation and verify the served run identity; an already-present heading does not establish that reload has finished.
+
 Bind production promotion to the exact immutable digests personally accepted in development and the owner’s actual permission. Conditional authorization remains pending until the condition is met. Capture and compare Azure configurations through the same API version; null/default schema fields can otherwise cause false change reports.
 
 An accepted Azure PATCH is not a completed deployment. Wait for both the requested image and successful provisioning, then separately verify application revision readiness. Preserve before/after definitions and resume idempotently instead of issuing duplicate updates.
