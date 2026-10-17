@@ -1,0 +1,11 @@
+{
+  "target": "system-recovery-dev",
+  "only_change_beyond_image": {
+    "path": "template.containers[0].resources.ephemeralStorage",
+    "before": "",
+    "after": "absent"
+  },
+  "all_other_fields_exact": true,
+  "cpu_and_memory_unchanged": true,
+  "review": "Empty optional server field removed by Azure; no requested storage allocation existed. Exact current configuration re-reviewed before continuing."
+}

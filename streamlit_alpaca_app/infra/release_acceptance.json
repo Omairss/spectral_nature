@@ -963,8 +963,9 @@
           "kind": "jobs",
           "name": "system-recovery-dev",
           "previous_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
-          "configuration_sha256": "bf36607ced62d76af300cd6a7553094a183b46bd98d2c52297fb1fb994952ec2",
-          "configuration_api_version": "2025-07-01"
+          "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+          "configuration_api_version": "2025-07-01",
+          "configuration_review": "Azure removed an empty ephemeralStorage field on image-only PATCH; all effective resources, configuration, identity and remaining template fields match exactly."
         }
       ],
       "production_targets": [
