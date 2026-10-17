@@ -1,7 +1,7 @@
 [
   {
     "role": "worker",
-    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e3be8f5359bc984c9c20f56ceb147e5141f6dc28a4ab725b84aa0c897e7ef4cc",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:055f2b914d8ce4cab23cba5e5204720269927787422f5d0f51359e7146ba4d9a",
     "status": "passed",
     "streamlit_absent": true,
     "imports": [
@@ -14,7 +14,7 @@
   },
   {
     "role": "api-next",
-    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f1120893f5f4dc7db79d438abfb002c8cea7a3a0d57b3774fca3e7bfdafce5ce",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:44e997610d25ccf0376b04500e9e66c176ca64cba8d6dfa3b1108a0519a7f0b3",
     "status": "passed",
     "streamlit_absent": true,
     "imports": [
@@ -27,7 +27,7 @@
   },
   {
     "role": "broker",
-    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:e4522dd91311ecf50747ff46ed34b1d5cec4d32b47fbf414834fd6cd27fb61ad",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:9b66963104c74a31f4e7b3a57e2c1d8824136cab65eae2abbb74165dd53134f6",
     "status": "passed",
     "streamlit_absent": true,
     "imports": [
