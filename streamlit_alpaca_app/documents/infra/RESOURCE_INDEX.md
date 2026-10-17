@@ -11,7 +11,7 @@ Resource group: `sn-pipeline-rg-03130136`. Registry: `snpipelineacr03130136.azur
 | Research/data jobs | Development targets in the committed acceptance record | Production targets in the committed acceptance record |
 | Broker ingestion | `robinhood-main-sync-dev` | `robinhood-main-sync-prod` |
 
-The production name `sn-streamlit-ui` is historical: it serves Next.js. Do not rename/delete it as a frontend cleanup, because it owns current ingress/domain bindings. The obsolete development resources `sn-streamlit-ui-dev` and `sn-api-dev` are deleted. The legacy production API `sn-api` remains pending explicit retirement approval. All are outside normal release eligibility; see the [retirement report](../verification/legacy-retirement-2026-10-16/README.md). Do not use them to obtain current application source or environment defaults.
+The production name `sn-streamlit-ui` is historical: it serves Next.js. Do not rename/delete it as a frontend cleanup, because it owns current ingress/domain bindings. The obsolete development resources `sn-streamlit-ui-dev` and `sn-api-dev` are deleted. The legacy production API `sn-api` is also deleted following explicit owner approval. All are outside normal release eligibility; see the [retirement report](../verification/legacy-retirement-2026-10-16/README.md). Do not use them to obtain current application source or environment defaults.
 
 For current revisions/images, read Azure or the newest explicit release receipt. Older sections in deployment history do not describe current runtime ownership.
 

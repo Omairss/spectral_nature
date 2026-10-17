@@ -1098,11 +1098,6 @@
       "reason": "Retained Next.js frontend / production alias."
     },
     {
-      "name": "sn-api",
-      "image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
-      "reason": "Retired legacy resource; excluded from builds and promotion. See legacy retirement report for cloud disposition."
-    },
-    {
       "name": "sn-next-ui-dev",
       "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a",
       "reason": "Retained Next.js frontend / production alias."
@@ -1123,6 +1118,11 @@
       "name": "sn-api-dev",
       "previous_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-legacy@sha256:6d7ede305b1272da7cd99f5cc231fb33946c8b2518d0892e7867600ee86832ba",
       "status": "development resource retired; definition retained privately"
+    },
+    {
+      "name": "sn-api",
+      "previous_image": "snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-legacy@sha256:788a2fa572efd106e71e672347292585b2b0d6dac0b0191bf341420dca1fdb3f",
+      "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
   "production_authorized": false

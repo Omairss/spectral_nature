@@ -1,17 +1,25 @@
-# Only dependencies and operating-system packages are inherited. Every
-# application file comes from the accepted Git checkout, including the broker.
+# Preserve pinned installed dependencies while removing the old application
+# before flattening the filesystem. This avoids inheriting years of source
+# overlay layers and keeps historical application files out of the final image.
 ARG DEPENDENCY_IMAGE
-FROM ${DEPENDENCY_IMAGE}
+FROM ${DEPENDENCY_IMAGE} AS dependencies
+RUN python -m pip uninstall -y streamlit && rm -rf /app && mkdir /app
 
+FROM scratch AS runtime
+COPY --from=dependencies / /
+
+ARG DEPENDENCY_IMAGE
 ARG SOURCE_REVISION
 ARG SOURCE_INVENTORY_SHA256
 ARG RUNTIME_INVENTORY_SHA256
 LABEL org.opencontainers.image.revision=$SOURCE_REVISION \
       com.spectral-nature.source-inventory=$SOURCE_INVENTORY_SHA256 \
-      com.spectral-nature.runtime-inventory=$RUNTIME_INVENTORY_SHA256
-ENV GIT_SHA=$SOURCE_REVISION PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/app
+      com.spectral-nature.runtime-inventory=$RUNTIME_INVENTORY_SHA256 \
+      com.spectral-nature.dependency-image=$DEPENDENCY_IMAGE
+ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LANG=C.UTF-8 PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 PYTHONPATH=/app GIT_SHA=$SOURCE_REVISION
 
-RUN rm -rf /app && mkdir /app
 WORKDIR /app
 COPY api ./api
 COPY compute ./compute
@@ -25,3 +33,14 @@ COPY branding ./branding
 COPY scripts/collect_historical_corpus.py ./scripts/collect_historical_corpus.py
 COPY cache/cache_policy.json ./cache/cache_policy.json
 COPY scripts/sync_robinhood_main.py ./scripts/sync_robinhood_main.py
+
+FROM runtime AS worker
+ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken-cache
+CMD ["python", "-m", "pipeline.jobs.main"]
+
+FROM runtime AS api-next
+EXPOSE 8080
+CMD ["python", "-m", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+FROM runtime AS broker
+CMD ["python", "/app/scripts/sync_robinhood_main.py", "--schedule-due", "--limit", "1"]

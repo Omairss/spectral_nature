@@ -5,7 +5,10 @@
     "requirements.txt",
     "src",
     "streamlit_alpaca_app/.streamlit",
+    "streamlit_alpaca_app/Dockerfile.api",
     "streamlit_alpaca_app/Dockerfile.app",
+    "streamlit_alpaca_app/Dockerfile.pipeline",
+    "streamlit_alpaca_app/Dockerfile.robinhood-sync",
     "streamlit_alpaca_app/app.py",
     "streamlit_alpaca_app/documents/agent-logs",
     "streamlit_alpaca_app/documents/architecture/AQL/AQL_LLM_UNIFICATION_PLAN_2026-05-15.md",
@@ -1811,6 +1814,36 @@
         "member": "web/app/api/trading-agent/calls/[trackingId]/route.ts",
         "sha256": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e"
       }
+    },
+    {
+      "path": "streamlit_alpaca_app/Dockerfile.api",
+      "sha256": "3733765dc894ea77e1a1dbd0465567a9ff60264358a91c73b48c037f1a6d3d58",
+      "archive": {
+        "batch": "20261017T000443Z",
+        "archive": "superseded-python-packaging.tar.gz",
+        "member": "Dockerfile.api",
+        "sha256": "3733765dc894ea77e1a1dbd0465567a9ff60264358a91c73b48c037f1a6d3d58"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/Dockerfile.pipeline",
+      "sha256": "8aa37ae379cdb8cda6756aed66c9c6dd90e52de729cc2e6faec8c4114e331fe9",
+      "archive": {
+        "batch": "20261017T000443Z",
+        "archive": "superseded-python-packaging.tar.gz",
+        "member": "Dockerfile.pipeline",
+        "sha256": "8aa37ae379cdb8cda6756aed66c9c6dd90e52de729cc2e6faec8c4114e331fe9"
+      }
+    },
+    {
+      "path": "streamlit_alpaca_app/Dockerfile.robinhood-sync",
+      "sha256": "50ff5e2307cc44680439cc106cc25139ae228ac612852e5b66636e7ef881174d",
+      "archive": {
+        "batch": "20261017T000443Z",
+        "archive": "superseded-python-packaging.tar.gz",
+        "member": "Dockerfile.robinhood-sync",
+        "sha256": "50ff5e2307cc44680439cc106cc25139ae228ac612852e5b66636e7ef881174d"
+      }
     }
   ],
   "archives": [
@@ -1843,6 +1876,12 @@
       "archive": "held-call-tracking-route.tar.gz",
       "sha256": "8c678d9e3570048ff3020f8fb4c9f6dad10d9fa7c2783e4f4d4991fd28ccc651",
       "expires_at": "2026-11-15T23:54:41.240150+00:00"
+    },
+    {
+      "batch": "20261017T000443Z",
+      "archive": "superseded-python-packaging.tar.gz",
+      "sha256": "9de01778baf711815813964aa51b56104f498195657a435371c9d8dfc1ac74e8",
+      "expires_at": "2026-11-16T00:04:43.079509+00:00"
     }
   ]
 }

@@ -51,7 +51,7 @@ def build(args) -> None:
     args.output.mkdir(parents=True, exist_ok=True, mode=0o700)
     save(args.output / "source.json", release)
     run = azure("acr", "build", "--registry", args.registry, "--resource-group", args.resource_group,
-                "--image", tag, "--file", str(APP / "Dockerfile.runtime"),
+                "--image", tag, "--file", str(APP / "Dockerfile.runtime"), "--target", args.role,
                 "--build-arg", f"DEPENDENCY_IMAGE={release['dependency_image']}",
                 "--build-arg", f"SOURCE_REVISION={release['source_revision']}",
                 "--build-arg", f"SOURCE_INVENTORY_SHA256={release['source_inventory_sha256']}",
@@ -119,7 +119,7 @@ def main() -> None:
     parser.add_argument("--registry", default="snpipelineacr03130136")
     commands = parser.add_subparsers(dest="command", required=True)
     package = commands.add_parser("build")
-    package.add_argument("--role", required=True)
+    package.add_argument("--role", required=True, choices=("worker", "api-next", "broker"))
     package.add_argument("--output", type=Path, required=True)
     development = commands.add_parser("deploy-development")
     development.add_argument("--subscription", required=True)

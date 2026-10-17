@@ -1,12 +1,12 @@
 # Legacy retirement — October 16
 
-Status: **173 obsolete tracked files removed, 79 retired roots recorded, exact originals verified in external archives before deletion.** Local source/import/auth/release checks are recorded below. Development cloud retirement is tracked separately from the pending backend recovery deployment. Production has not been changed by this cleanup.
+Status: **176 obsolete tracked files removed, 82 retired roots recorded, exact originals verified in external archives before deletion.** Local source/import/auth/release checks are recorded below. Development cloud retirement is tracked separately from the pending backend recovery deployment. The owner subsequently approved deletion of the obsolete production API `sn-api`; that deletion is complete and separately verified.
 
 ## Removed from active source
 
 - The earlier root `src/` Dash/Flask/notebook prototype, root dependency list and unused prototype metadata.
 - Streamlit `app.py`, all `views/`, `.streamlit/`, UI lock, UI-only presentation loaders/rendering, launch command, Dockerfile, mobile renderer check and UI-only tests.
-- The old UI/API/pipeline bootstrap deployers, filename-based deployment classifier, completed first-migration/cutover generators and old infrastructure-output fallback loading.
+- Duplicate Python runtime Dockerfiles (all current Python roles now use `Dockerfile.runtime`), the old UI/API/pipeline bootstrap deployers, filename-based deployment classifier, completed first-migration/cutover generators and old infrastructure-output fallback loading.
 - Streamlit's in-process settings editor, static-login selection, UI session-cookie helpers and migration-only session-bearer authentication. Current database accounts, signed access/refresh sessions and scoped agent keys remain.
 - The inactive per-horizon Trading rollback producer/mode and its unreachable timeout branches. The whole module matches the accepted source after mechanically removing only those inactive paths; 69 untouched functions match exactly. Current shared research, prompts, horizons, selection and model transport are retained.
 - Tests for removed UI/rollback and held experimental paths, and the last held paper-call proxy. Stopped database/Trading work, research inputs/results and scoped resume material remain in the held checkpoint and prior verified archives. Completed acquisition does not need repeating.
@@ -24,7 +24,7 @@ The historical directory name `streamlit_alpaca_app` is retained. Production `sn
 
 The reviewed development retirement targets are `sn-streamlit-ui-dev` and `sn-api-dev`. Full definitions were saved privately. The live app/job inventory has no other configured consumer of their endpoints, and neither owns a custom domain. Both resources are deleted. The [development receipt](development-retirement.json) verifies that all 34 remaining app/job definitions retained their exact configuration and image.
 
-`sn-api` is the remaining legacy **production** API. It is excluded from ordinary build/promotion eligibility. Its removal requires an explicit production decision under the owner's project rule; no deletion has been submitted. The [concrete proposal](production-retirement-proposal.json) removes only this API; its public endpoint would stop responding. External-client usage has not been independently measured. The current Next.js/native path uses `sn-api-next`.
+After the iPhone/backend route was explained, the owner explicitly approved deleting `sn-api`. It is deleted. The [production receipt](production-retirement.json) verifies all 33 remaining app/job definitions retained their exact configuration and image, including the Next.js frontend, private API and four current public domain bindings. The current Next.js/native path continues through `sn-api-next`. The old public API endpoint is retired. This approval covers this resource deletion only, not the pending recovery-image promotion.
 
 Old and superseded registry images remain historical evidence/rollback records; none of the Streamlit recovery builds was deployed or registered as eligible. This cleanup does not promote the failed release or any held implementation.
 
