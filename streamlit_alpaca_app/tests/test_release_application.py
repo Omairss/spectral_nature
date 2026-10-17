@@ -49,3 +49,38 @@ def test_late_consumer_change_prevents_every_patch(release, tmp_path, monkeypatc
     with pytest.raises(ValueError, match="configuration changed"):
         release.deploy(SimpleNamespace(images=images, command="deploy-development", output=tmp_path,
                                        subscription="subscription", resource_group="group"))
+
+
+def test_asynchronous_template_visibility_is_awaited(release, tmp_path, monkeypatch):
+    image = "registry@sha256:abc"
+    resource = {"identity": {}, "location": "westus", "properties": {
+        "configuration": {}, "provisioningState": "Succeeded",
+        "template": {"containers": [{"image": "previous"}]}}}
+    target = {"kind": "jobs", "name": "worker-dev", "previous_image": "previous",
+              "configuration_api_version": release.API_VERSION,
+              "configuration_sha256": release.fingerprint(release.configuration(resource))}
+    record = {"images": {"worker": image}, "source_inventory_sha256": "reviewed"}
+    images = tmp_path / "images.json"
+    images.write_text(json.dumps(record))
+    monkeypatch.setattr(release, "acceptance", lambda: {"roles": {"worker": {"development_targets": [target]}}})
+    monkeypatch.setattr(release, "verify", lambda role: {"source_inventory_sha256": "reviewed"})
+    monkeypatch.setattr(release, "verify_image", lambda *args: None)
+    monkeypatch.setattr(release.time, "sleep", lambda seconds: None)
+    reads = []
+    patches = []
+
+    def azure(*args):
+        value = deepcopy(resource)
+        if "patch" in args:
+            patches.append(True)
+        else:
+            reads.append(True)
+            if len(reads) >= 4:
+                value["properties"]["template"]["containers"][0]["image"] = image
+        return value
+
+    monkeypatch.setattr(release, "azure", azure)
+    release.deploy(SimpleNamespace(images=images, command="deploy-development", output=tmp_path,
+                                   subscription="subscription", resource_group="group"))
+    assert len(patches) == 1
+    assert json.loads((tmp_path / "deployment.json").read_text())["targets"][0]["image"] == image

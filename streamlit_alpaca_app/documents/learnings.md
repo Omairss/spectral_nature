@@ -1081,3 +1081,5 @@ Require the complete committed application inventory and an explicit review for 
 ## Recovery deployment review — 2026-10-16
 
 Bind production promotion to the exact immutable digests personally accepted in development and the owner’s actual permission. Conditional authorization remains pending until the condition is met. Capture and compare Azure configurations through the same API version; null/default schema fields can otherwise cause false change reports.
+
+An accepted Azure PATCH is not a completed deployment. Wait for both the requested image and successful provisioning, then separately verify application revision readiness. Preserve before/after definitions and resume idempotently instead of issuing duplicate updates.

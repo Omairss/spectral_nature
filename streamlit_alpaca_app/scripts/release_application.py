@@ -14,6 +14,7 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import time
 
 from release_source import APP, acceptance, verify, verify_image
 
@@ -118,8 +119,19 @@ def deploy(args) -> None:
         if (configuration(fresh) != configuration(before) or
                 fresh["properties"]["template"] != before["properties"]["template"]):
             raise ValueError(f"{name} changed during release preparation.")
-        azure("rest", "--method", "patch", "--url", url, "--body", "@" + str(body), *options)
-        after = azure("rest", "--method", "get", "--url", url)
+        if previous_image != image:
+            azure("rest", "--method", "patch", "--url", url, "--body", "@" + str(body), *options)
+        deadline = time.monotonic() + 180
+        while True:
+            after = azure("rest", "--method", "get", "--url", url)
+            state = after["properties"].get("provisioningState")
+            current_image = after["properties"]["template"]["containers"][0]["image"]
+            if current_image == image and state == "Succeeded":
+                break
+            if state in {"Failed", "Canceled"} or time.monotonic() >= deadline:
+                save(args.output / f"{name}.after.json", after)
+                raise ValueError(f"{name} image update did not finish successfully; inspect the saved definition.")
+            time.sleep(2)
         save(args.output / f"{name}.after.json", after)
         if configuration(before) != configuration(after):
             raise ValueError(f"Configuration changed beyond the image on {name}; inspect the saved definitions.")
