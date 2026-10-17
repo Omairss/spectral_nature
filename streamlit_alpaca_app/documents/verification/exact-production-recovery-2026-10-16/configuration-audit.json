@@ -1,0 +1,27 @@
+{
+  "resources_compared": 33,
+  "production_targets_restored": 19,
+  "development_counterparts_restored": 8,
+  "all_effective_settings_preserved": true,
+  "all_images_match_recorded_per_consumer_targets": true,
+  "other_six_resources_unchanged": true,
+  "production_app_revisions_ready": [
+    {
+      "name": "sn-streamlit-ui",
+      "latest": "sn-streamlit-ui--0000095",
+      "ready": "sn-streamlit-ui--0000095"
+    },
+    {
+      "name": "sn-next-ui",
+      "latest": "sn-next-ui--0000011",
+      "ready": "sn-next-ui--0000011"
+    },
+    {
+      "name": "sn-api-next",
+      "latest": "sn-api-next--0000011",
+      "ready": "sn-api-next--0000011"
+    }
+  ],
+  "custom_domains_preserved": 4,
+  "retired_services_stay_deleted": true
+}

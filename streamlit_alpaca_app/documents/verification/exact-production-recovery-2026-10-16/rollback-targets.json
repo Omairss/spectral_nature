@@ -1,8 +1,8 @@
 {
   "source_receipt": "documents/verification/system-reliability-production-2026-10-16/release.json",
   "owner_instruction": "Just fucking recover it you shit",
-  "development_status": "images_restored_pending_quality",
-  "production_status": "not_started",
+  "development_status": "accepted",
+  "production_status": "images_restored",
   "retired_resources_excluded": [
     "sn-api",
     "sn-api-dev",
@@ -199,5 +199,7 @@
       "digest": "sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
       "pull_enabled": true
     }
-  ]
+  ],
+  "development_evidence": "documents/verification/exact-production-recovery-2026-10-16/DEVELOPMENT_ACCEPTANCE.md",
+  "production_home_execution": "attention-home-build-4k1g09p"
 }

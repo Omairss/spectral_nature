@@ -22,6 +22,10 @@ Streamlit and Dash are retired. Their code, UI dependencies/tests, launchers, ol
 
 The retired image-backport utility and broker's two-file overlay are archived. Broker packaging now replaces the complete application source too. Held reasoning and Trading-call implementations remain in their held Git checkpoint and retained task archives; they are excluded from the recovery branch.
 
+## Current rollback record
+
+The owner-directed [exact October 16 recovery](../verification/exact-production-recovery-2026-10-16/README.md) records the actual per-consumer production images and restored development counterparts. Consult that live-state record before preparing another release. The earlier rebuilt candidate remains rejected for production quality; its source inventory and image allowlist are not acceptance of the rollback or an accurate current deployment baseline. Preserve newer database/format-recovery work in Git and its held evidence, and review its integration separately before a future release. An intentional historical rollback does not authorize assembling a new source tree from its images.
+
 ## Retirement and retention
 
 Completed release trees are compressed outside the repository under `~/Library/Application Support/SpectralNature/retired-release-sources/`. Private batches have an original-path index, content verification and archive hashes. No extracted application tree remains at the old path. Read historical evidence directly from an archive; do not use it as a build context.
