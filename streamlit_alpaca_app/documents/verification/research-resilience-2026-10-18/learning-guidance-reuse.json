@@ -1,0 +1,52 @@
+{
+  "seconds": 51.84,
+  "scope": "Existing replay consumes the model-produced learning guidance; frozen supplied-only access, no live retrieval, publication or knowledge writes. Not a causal comparison against an unguided model.",
+  "task_context": [
+    {
+      "task_context": {
+        "learning_review_guidance": {
+          "future_claims_to_reconsider": [
+            "Do not present the blog's $36 billion gross profit as filed data; the filing says $36 million.",
+            "Do not describe the company as strongly profitable when it reports an operating loss; a positive gross profit only shows what is left after cost of goods sold.",
+            "Do not drop the 64% customer concentration risk because of the unit error; it is an independent finding."
+          ],
+          "useful_evidence": [
+            "The filed revenue, gross profit and operating result for the company under review.",
+            "Gross margin and operating margin calculated from the filed figures.",
+            "For any figure taken from a blog or other secondary source, the source and a comparison with the filing."
+          ],
+          "failed_assumption": "The blog's $36 billion gross profit was consistent with the filing, and a large gross profit meant the company was strongly profitable."
+        }
+      },
+      "allow_web": false,
+      "allowed_source_access": [
+        "supplied"
+      ]
+    }
+  ],
+  "status": "reviewed",
+  "tool_names": [],
+  "answer_markdown": "The company looks financially weak, and the blog’s “$36 billion” gross profit is wrong. The filing shows $120 million of revenue and $36 million of gross profit, a 30% gross margin. But the company also reports an $8 million operating loss, about -6.7% of revenue. This means its other operating costs are about $44 million: the $36 million gross profit plus the $8 million loss.\n\nA positive gross profit does not make the company profitable. Gross profit is what remains after the direct cost of goods sold. It must still cover selling, administration and other operating costs. Here, those costs are larger than the gross profit, so the company loses money at the operating level.\n\nThe blog’s $36 billion figure is 300 times the company’s $120 million revenue, so it fails a basic check. The filed figure is $36 million. The unit error does not remove the customer risk: one customer is 64% of sales, or about $77 million. That is a separate concern.\n\nAs a rough estimate, if that customer left and the remaining sales kept a 30% margin, gross profit would fall to about $13 million. The operating loss would then widen to about $31 million. Customer-level margins may differ, so this is only an estimate.",
+  "quality_review": {
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The draft is mostly correct and keeps the important customer-concentration finding. Two points need precision: the $44 million operating cost figure is implied by the filing numbers, not filed directly; and the customer-loss stress test should say that operating costs stay fixed and the remaining business keeps a 30% gross margin. Calling 30% a weak margin is also a judgment that needs an industry benchmark.",
+    "answer_markdown": "The filing shows revenue of $120 million, gross profit of $36 million (30% gross margin), and an operating loss of $8 million (about -6.7% operating margin). The implied operating costs are about $44 million, calculated as $36 million gross profit plus the $8 million operating loss.\n\nThe blog's $36 billion gross profit is inconsistent with the filing: it is 300 times the $120 million revenue. The filed gross profit is $36 million, so the blog most likely confused millions with billions.\n\nA positive gross profit does not mean the company is profitable. Gross profit is what remains after the direct cost of goods sold; it still has to cover selling, administration and other operating costs. Here, implied operating costs of about $44 million exceed gross profit of $36 million, which explains the operating loss.\n\nOne customer provides 64% of sales, about $77 million of the $120 million. This is a separate and serious risk that does not depend on the blog's unit error.\n\nStress test, stated as an estimate: if that customer left, operating costs stayed at about $44 million, and the remaining sales kept the same 30% gross margin, gross profit would fall to about $13 million and the operating loss would widen to about $31 million. Actual customer-level margins may differ, so this is not a filed forecast.\n\nOverall, the company has a 30% gross margin that is not enough to cover its operating cost base, an operating loss, and heavy dependence on one buyer. The blog figure fails a basic sanity check against the filing.",
+    "answer_points": [
+      "The filing shows revenue of $120 million, gross profit of $36 million (30% gross margin), and an operating loss of $8 million (about -6.7% operating margin). The implied operating costs are about $44 million, calculated as $36 million gross profit plus the $8 million operating loss.",
+      "The blog's $36 billion gross profit is inconsistent with the filing: it is 300 times the $120 million revenue. The filed gross profit is $36 million, so the blog most likely confused millions with billions.",
+      "A positive gross profit does not mean the company is profitable. Gross profit is what remains after the direct cost of goods sold; it still has to cover selling, administration and other operating costs. Here, implied operating costs of about $44 million exceed gross profit of $36 million, which explains the operating loss.",
+      "One customer provides 64% of sales, about $77 million of the $120 million. This is a separate and serious risk that does not depend on the blog's unit error.",
+      "Stress test, stated as an estimate: if that customer left, operating costs stayed at about $44 million, and the remaining sales kept the same 30% gross margin, gross profit would fall to about $13 million and the operating loss would widen to about $31 million. Actual customer-level margins may differ, so this is not a filed forecast.",
+      "Overall, the company has a 30% gross margin that is not enough to cover its operating cost base, an operating loss, and heavy dependence on one buyer. The blog figure fails a basic sanity check against the filing."
+    ],
+    "confidence": "high",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "research_requests": [
+      "Industry gross-margin benchmark for this manufacturer, to judge whether 30% is low for its sector.",
+      "Customer-level gross margins, to test the assumption that the 64% customer carries the same 30% margin as the rest of the business."
+    ]
+  }
+}

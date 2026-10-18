@@ -1,0 +1,77 @@
+{
+  "environment": "development",
+  "source_revision": "dd3920fb3e8992c4ccb21b19a9459cabfd3f06f8",
+  "source_inventory_sha256": "285f03f48bf4f122cf53c891def0d973d9a2b907a90d443160a8b4d75fcaee9d",
+  "runtime_inventory_sha256": "910e086743632d1f673b95d1986071083d5414a37be1a6e52f993fae8c99061d",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104"
+  },
+  "targets": [
+    {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-research-run-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "equities-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104",
+      "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-10-18T21:48:15.976783+00:00",
+  "job_executions_started": 0
+}

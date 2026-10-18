@@ -1006,25 +1006,31 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "production_authorization": {
-    "status": "awaiting_separate_learning_development_verification",
-    "owner_instruction": "Push to prod. Then, the system has to be resiliant to imperfections like this. A one wrong date shoudln't change the whole analysis. Errors and mistakes are expected. Sources can be bad. Your fucking overcomplicated, fragile designs compound small errors like this",
-    "condition": "New learning change requires targeted DEV package/runtime and qualitative acceptance before existing conditional production promotion. The preceding recovery images are already in production under explicit owner acceptance.",
+    "status": "existing_conditional_instruction_satisfied_for_learning_change",
+    "owner_instruction": "Do it. If it works in dev, move to prod",
+    "condition": "Targeted learning verification passed in DEV: exact packages, live worker critique, preserved source/write permissions, four complete qualitative cases, learned-guidance replay and all-resource configuration audit. Promote these exact digests.",
     "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
     "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate.",
-    "prior_condition": "Complete fresh DEV research quality was previously held for a known financing-date error. Owner explicitly accepts promotion with that imperfection and requests subsequent general resilience improvement."
+    "prior_condition": "Complete fresh DEV research quality was previously held for a known financing-date error. Owner explicitly accepts promotion with that imperfection and requests subsequent general resilience improvement.",
+    "latest_direct_instruction": "Push to prod. Then, the system has to be resiliant to imperfections like this."
   },
   "development_acceptance": {
-    "status": "pending",
-    "scope": "One existing learning runtime file replaces hardcoded failure admission with versioned owner-bound episodes assessed by the existing critic. Four complete qualitative probes reviewed; existing critic execution, source permissions and memory writes preserved. Targeted DEV verification required for these new packages.",
+    "status": "accepted",
+    "scope": "Targeted acceptance of the one-file learning change. Full Home/data/auth/broker implementations are unchanged from the preceding owner-accepted production release.",
     "source_revision": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
-    "evidence": "documents/verification/research-resilience-2026-10-18/README.md",
+    "evidence": "documents/verification/research-resilience-2026-10-18/DEVELOPMENT.md",
     "images": {
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104"
     },
-    "source_inventory_sha256": "285f03f48bf4f122cf53c891def0d973d9a2b907a90d443160a8b4d75fcaee9d"
+    "source_inventory_sha256": "285f03f48bf4f122cf53c891def0d973d9a2b907a90d443160a8b4d75fcaee9d",
+    "accepted_at_utc": "2026-10-18T21:54:05.582031+00:00",
+    "execution": "attention-home-next-dev-i5kw9qq",
+    "execution_status": "Succeeded",
+    "api_revision": "sn-api-next-dev--0000045",
+    "learning_source_sha256": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe"
   },
   "preceding_hold": {
     "revision": "20108c58",

@@ -1,6 +1,6 @@
 # General learning episodes and research resilience
 
-Status: **accepted locally for DEV verification**. Production first received the exact verified recovery images under the owner's explicit acceptance of the date imperfection; [promotion record](../source-evidence-repair-2026-10-18/PRODUCTION.md). This subsequent one-file runtime change is not in those initial images.
+Status: **targeted DEV acceptance passed; exact-image production promotion authorized by the existing owner instruction**. Production first received the exact verified recovery images under the owner's explicit acceptance of the date imperfection; [promotion record](../source-evidence-repair-2026-10-18/PRODUCTION.md). This subsequent one-file runtime change is not in those initial images.
 
 The existing learning entrypoint only admitted answers matching unavailable-data/debug phrases and a successful tool from a fixed list. A corrected date, mistaken units or a false user correction could not reach the existing LLM critic. Replace that semantic admission with an immutable, owner-bound conversation-episode identity. The same critic receives the original conversation and execution evidence, decides whether there is a lesson or no change, and records its actual diagnosis. Sources, prior answers and corrections are all fallible; the model distinguishes dependent conclusions from independent findings.
 
@@ -13,3 +13,5 @@ An attempted switch to the existing direct evidence reader was rejected after it
 This closes the hardcoded learning-admission gap. It does not prove that every lesson changes future research. Existing learning replay consumes the generated semantic guidance; factual shared-memory changes retain their separate policy. Broad autonomous self-improvement is not claimed, and private episode contents are not made public wiki evidence. Targeted DEV verification follows before any promotion of this change.
 
 Both new packages from build Git `dd3920fb` / source `2706e245` match all 197 runtime files and preserve pinned dependency metadata. [Package proof](packaged-images.json) also verifies that `zopedia_learning.py` is the only changed runtime file. The first worker tag read occurred before that worker had finished publishing, while the API build had already succeeded; the later verified immutable package is authoritative.
+
+[Targeted DEV acceptance](DEVELOPMENT.md) records the live worker result, source hash, API readiness and all-resource audit. A separate existing replay uses the learned guidance in a later answer while preserving independent findings. No new controller, inference model or memory-write permission was introduced.

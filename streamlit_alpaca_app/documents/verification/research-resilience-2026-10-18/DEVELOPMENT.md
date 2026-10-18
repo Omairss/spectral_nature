@@ -1,0 +1,11 @@
+# Targeted DEV acceptance
+
+Accepted: exact worker `1d8a4276` and API `9c28b4c4`, build Git `dd3920fb` / source `2706e245`. [Package proof](packaged-images.json) establishes that the only changed runtime file is the existing learning service. Home, its prompts, the shared engine, data producers, broker and auth implementations are identical to the already promoted recovery release.
+
+All seven DEV image updates completed. API `sn-api-next-dev--0000045` is ready and Running. [Deployment](development-deployment.json) and [all-resource audit](development-configuration-audit.json) preserve all 33 configurations and four domains. The isolated worker execution `attention-home-next-dev-i5kw9qq` succeeded from 21:51:29 to 21:52:43 UTC. Its installed learning hash matches Git, its eligible model is DeepSeek reasoner, and its complete supplied-evidence critique correctly chooses no_change for a healthy answer. [Actual worker result](development-learning-probe.json). The per-execution command imports the installed service; no application files were overlaid. The saved job template/configuration is unchanged, and the probe created no Home, conversation or knowledge mutation.
+
+The initial shell probe selected the API role, which intentionally queues inference and has no inference client. It stopped before model work. The operator verification was moved to the registered DEV worker with its existing credentials/settings; no API credential or application change was made to accommodate the probe.
+
+The four complete frozen qualitative outputs and four execution checks remain applicable to this exact package. The existing learning replay also consumes the generated guidance and produces a useful follow-up: corrected margins, operating-loss analysis and the independent 64% customer-concentration concern. [Complete follow-up answer](learning-guidance-reuse.json). This demonstrates reuse in the existing replay, not a controlled causal gain over an unguided model or universal self-improvement.
+
+Promote these exact DEV digests under the owner's existing conditional instruction to move working DEV changes to production. The initial production Home job remains on its immutable `14257c0c` execution image; its Home implementation is identical. Do not restart that paid generation to verify a learning-only change.
