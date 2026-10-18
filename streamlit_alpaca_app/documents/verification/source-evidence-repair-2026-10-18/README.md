@@ -1,6 +1,6 @@
 # Shared source evidence repair
 
-Status: **not accepted after complete DEV verification. Production remains unchanged.** The seven DEV consumers now use verified worker `a0b15ecc` and API `80ca1d35` from Git `81d7a997`. Fresh Home `73c9478d-a1bc-4065-b489-4417e873dd50` completed under execution `attention-home-next-dev-4709cka`; personal review rejects promotion. See the [complete DEV review](DEVELOPMENT_REVIEW.md). The previous complete DEV run remains rejected. The owner's conditional production authorization still requires acceptance of the exact complete DEV result.
+Status: **deadline correction deployed to DEV; fresh Home verification running. Production is unchanged.** The seven DEV consumers use verified worker `14257c0c` and API `04f2db03` from Git `80e8f0fa`; API revision 44 is ready. Execution `attention-home-next-dev-7e6nmrq` is building Home `972a1ceb-47bc-4eb0-9bad-2d8bc690102b`. See the [current DEV record](DEADLINE_DEVELOPMENT_REVIEW.md). The [preceding complete run](DEVELOPMENT_REVIEW.md) discarded seven investigations and remains rejected; its credit-caption objection was corrected. The owner's existing conditional production authorization awaits the new result.
 
 ## Implementation
 

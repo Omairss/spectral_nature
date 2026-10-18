@@ -1,0 +1,11 @@
+# DEV verification — available research at the deadline
+
+**Running; not yet production acceptance.** The owner authorized production if DEV works. That permission is already recorded; no additional permission is needed after its condition is satisfied.
+
+Execution `attention-home-next-dev-7e6nmrq` started at 2026-10-18 20:23:59 UTC. Home root `972a1ceb-47bc-4eb0-9bad-2d8bc690102b`, as of 20:24:34 UTC, uses verified worker `14257c0c` from build Git `80e8f0fa`. API `04f2db03` is ready as revision `sn-api-next-dev--0000044`. [Exact package proof](deadline-packaged-images.json), [deployment](deadline-development-deployment.json) and [configuration audit](deadline-development-configuration-audit.json) identify all seven intended DEV image changes. All 33 resource configurations and four public domains are preserved, and retired resources remain absent. Production application images/configuration are unchanged.
+
+The five-file correction returns available checkpoint work at the existing timeout. A completed normal return takes precedence. Source-only work retains its documents with partial status and the existing empty narrative fields. No prompt, model, review loop, research time limit or market interpretation rule changes. [Local execution replay](deadline-result-contract.json), four permanent execution checks, nineteen existing execution checks and the [complete live company outputs](deadline-result-review.json) establish local acceptance.
+
+Review the resulting overview, all public stories and five new highlights in context. Confirm the timed-out company work is materialized, with actual complete/partial states, and confirm original chart observations, fresh narration, served Home identity and API behavior. The preceding credit-caption comparison does not independently block promotion and does not authorize another rule or prose change. This is verification of the existing recovery objective, not a new research-quality standard.
+
+The preceding [failed DEV record](DEVELOPMENT_REVIEW.md) remains historical evidence rather than acceptance of these new images. The application source correction is complete; this execution's publication and quality review remain in progress.
