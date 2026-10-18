@@ -1,6 +1,6 @@
 # Current-data Home recovery
 
-The simplified candidate is deployed to DEV and the complete Home run is in progress. **Production is unchanged.** Read the [current local review](SHARED_REVIEW_LOCAL_REVIEW.md) and [complete results/source hashes](shared-review-local.json).
+**HOLD: the complete DEV run finished but failed factual review. Production is unchanged.** Read the [current live review](SOURCE_DATE_QUALITY_REVIEW.md). The [local review](SHARED_REVIEW_LOCAL_REVIEW.md) and [local results/source hashes](shared-review-local.json) remain limited evidence and do not authorize promotion.
 
 Writing and review use the existing shared Zopedia reader over retained originals. The separate chart revision loop is removed; the existing shared reviewer corrects the artifact directly. The public-story projection replaces inline private confidence fields. Shared price contracts preserve raw/adjusted basis and observation dates; annual macro changes use calendar comparisons. No new reviewer, financial rule, phrase filter, model setting or larger operation budget.
 
@@ -23,4 +23,4 @@ Historical scopes and images do not authorize new source builds or promotions. T
 
 ## Current DEV execution
 
-`attention-home-next-dev-9dj8enx` started October 18 at 05:43:47 UTC with Home root `0b5a37b3-f0a4-4217-8c33-ff39c14a2d65`, as of 05:44:23 UTC. [Seven image updates](context-handoff-development-deployment.json) and the [full 33-resource audit](context-handoff-development-configuration.json) pass. API revision 42 is ready and [all five signed-in Trading horizons](context-handoff-development-trading.json) render retained research without approvals, orders or regeneration. Complete fresh publication, subjective review and serving checks remain pending.
+`attention-home-next-dev-9dj8enx` ran October 18 from 05:43:47 to 06:22:33 UTC (38m46s), with Home root `0b5a37b3-f0a4-4217-8c33-ff39c14a2d65`, as of 05:44:23 UTC. [Seven image updates](context-handoff-development-deployment.json) and the [full 33-resource audit](context-handoff-development-configuration.json) pass. API revision 42 is ready and [all five signed-in Trading horizons](context-handoff-development-trading.json) render retained research without approvals, orders or regeneration. The [new publication](context-handoff-development-publication.json) retains source points and correct narration; subjective review rejects misdated financing claims. Phone/desktop acceptance remains outstanding and cannot override that failure.

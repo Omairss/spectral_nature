@@ -1137,3 +1137,6 @@ A critic’s proposed correction is generated analysis, not new source evidence.
 When prose worsens, compare actual historical prompts and control flow before attributing the cause. The earlier working image already had review follow-up language; expanding two review passes into a repeated loop and relaxing the requested caption size changed behavior. Preserve the earlier limits while fixing evidence access, and assess complete outputs rather than adding prohibitions.
 
 A negative issue list handed back through repeated writing can become defensive public prose. Prefer the existing shared review that returns the corrected artifact directly, preserving its analysis and follow-up needs privately; avoid a feature-specific revision controller.
+
+### October 17 — complete live source-date failure
+Distinguish search-engine reported dates, publisher publication dates, event dates and retrieval timestamps. A normalized timestamp is not proof of article publication or event timing. Preserve original source metadata for the LLM; older material remains useful without being relabeled as a new event. Complete live personal review remains necessary after successful local paired replays.

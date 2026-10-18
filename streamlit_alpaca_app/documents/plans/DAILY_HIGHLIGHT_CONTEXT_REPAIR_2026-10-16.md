@@ -1,6 +1,6 @@
 # Current-data Home recovery
 
-Status: the simplified source is accepted locally for full DEV verification. Production is unchanged and remains conditional on the complete DEV quality gate. [Current local review](../verification/daily-highlight-context-2026-10-17/SHARED_REVIEW_LOCAL_REVIEW.md) and committed `infra/release_acceptance.json` define the current candidate.
+Status: **HOLD after complete DEV factual review.** The normal DEV run succeeded, but its research presents older financing announcements as current events. Production is unchanged. The [complete live review](../verification/daily-highlight-context-2026-10-17/SOURCE_DATE_QUALITY_REVIEW.md) and committed `infra/release_acceptance.json` supersede local acceptance for promotion.
 
 ## Current implementation
 
@@ -11,6 +11,8 @@ Remove the chart-specific approve/rewrite loop. Existing shared review corrects 
 Fourteen cumulative application/packaging files differ from the reviewed base; all need explicit recorded review. Complete Git inventory remains 312 files and packaged Python runtime 197. Use the existing separately verified worker/API dependency pins, including the evaluated tokenizer and cached encoding. Historical application images remain rollback evidence and never seed application source.
 
 ## Verification and rollout
+
+The full run `attention-home-next-dev-9dj8enx` completed in 38m46s. All seven stories, the overview and five new charts were personally read. CoreWeave's September financing is described as an October 14 announcement; an IREN article dated May 11 is represented as October evidence. Exact histories, narration and serving checks do not compensate for these factual errors. Trace shared acquisition/date provenance before changing research behavior; preserve older useful sources and let the LLM assess relevance. No ticker exceptions, fixed freshness rules, additional critic or manual prose corrections.
 
 Two current frozen complete-Home-to-chart cases finish in 139.95 and 103.78 seconds with all original histories preserved. All ten complete captions were personally read. These reuse earlier Home writing/acquisition; they are not a new all-stage DEV publication. Earlier replays and the first live candidate are rejected evidence. Restoring the original two review passes alone did not fix quality.
 

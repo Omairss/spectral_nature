@@ -1,23 +1,23 @@
 {
   "status": "not_accepted",
-  "recorded_at_utc": "2026-10-18T04:44:07.195945+00:00",
-  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
-  "execution": "attention-home-next-dev-bzfcjgg",
-  "execution_status": "Running",
-  "public_api_seconds": 1.172,
+  "recorded_at_utc": "2026-10-18T06:19:54.315047+00:00",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
+  "execution": "attention-home-next-dev-9dj8enx",
+  "execution_status": "Succeeded",
+  "public_api_seconds": 1.343,
   "input_catalog": {
     "namespace": "development",
-    "home_run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e",
-    "asof": "2026-10-18T04:04:23.056256+00:00",
-    "entries": 516,
-    "observations": 107892
+    "home_run_id": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
+    "asof": "2026-10-18T05:44:23.805111+00:00",
+    "entries": 543,
+    "observations": 112131
   },
   "public_home": {
-    "run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e",
-    "as_of": "2026-10-18T04:04:23.056256+00:00",
+    "run_id": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
+    "as_of": "2026-10-18T05:44:23.805111+00:00",
     "summary": {
       "headline": "Market Summary",
-      "markdown": "Technology sold off on 16 October 2026 while energy and defensives rose. The Nasdaq 100 fell 1.5% at midday as memory chips and companies with AI-related debt dropped; the 10-year Treasury yield was near 5.1% and bitcoin traded near $81,300. Of 999 names in the market snapshot, 594 fell and 400 rose, and the average move was -1.25%. Information technology was the weakest sector at -4.70%, while energy rose 2.19%, consumer staples 0.95% and utilities 0.94%. The common thread was a fall in valuations for AI hardware, companies that borrowed to build AI data centers, and high-multiple software, not one macro shock. Oil strength and defensive rotation supported the gainers.",
+      "markdown": "Stocks fell on Friday 16 October 2026 in a rotation, not a rout. Of 999 large US names, 400 rose and 594 fell; the median move was -0.5% and the average -1.25%. Energy (+2.19% average), consumer staples (+0.95%) and utilities (+0.94%) gained, while information technology lost 4.70% and health care 2.06%. Memory and AI-infrastructure shares took the largest hits: Micron -5.6%, SanDisk -6.9%, Western Digital -6.9%, Seagate -7.5%, CoreWeave -11.9%, Nebius -12.2%, IREN -11.2% and Vicor -12.8%. The software and security side of technology fell too, with Okta -10.2%, Twilio -10.6%, Snowflake -8.7%, Palo Alto Networks -7.6% and SentinelOne -7.7%. The 10-year Treasury yield was 5.09% and the 30-year 5.43%, with headline CPI 3.72% higher than a year earlier, so long-dated growth cash flow is discounted at a high rate. Part of the move has named causes: a denser DRAM cell shown by China's CXMT, YMTC's advance in NAND plus its Shanghai listing, discounted share sales at Recursion and large debt-and-equity financing at CoreWeave and IREN. The rest looks like de-risking after a strong year, with money moving to cash-generating energy and utility shares.",
       "status": "completed",
       "featured_symbols": [],
       "audio_available": true,
@@ -27,8 +27,8 @@
       "candidate_count": 83,
       "event_count": 15,
       "must_read_count": 0,
-      "unresolved_count": 41,
-      "news_backed_count": 13
+      "unresolved_count": 42,
+      "news_backed_count": 10
     },
     "provenance": {
       "mode": "materialized",
@@ -36,18 +36,18 @@
         "attention_home_snapshots_1d"
       ]
     },
-    "daily_datapoints_as_of": "2026-10-18T04:04:23.056256+00:00"
+    "daily_datapoints_as_of": "2026-10-18T05:44:23.805111+00:00"
   },
   "stories": [
     {
       "id": "event::source-a02d2a5249779018e7c1",
       "kind": "event",
-      "title": "CXMT's 4F² DRAM plan puts server memory in its sights",
-      "summary": "CXMT showed a denser DRAM design and targets server DDR5 modules by the end of 2026. The claim is a design and launch target, not confirmed volume supply. Memory stocks fell as investors repriced Chinese competition.",
-      "what_changed": "On 10 October 2026, CXMT president Cao Kanyu presented a 4F² DRAM design at the Integrated Circuits and Chiplet Conference, according to TrendForce citing Yicai Global. CXMT said its first 4F² product will be a server DDR5 RDIMM, due by the end of 2026. It gave no speed, capacity, yield or customer figures. Reports say the first parts may use 4F² in only part of the array, and that high-volume production is a separate hurdle from a launch.",
-      "why": "A DRAM cell is measured in F, the smallest feature the process can draw. The standard 6F² cell uses six squares; a 4F² cell uses four, about one third less area. TrendForce reports a possible 30% to 50% density gain in the same wafer area, which lowers cost per bit if yields hold. CXMT held 9.5% of DRAM revenue in the second quarter of 2026, behind Samsung at 39.4%, SK hynix at 24.9% and Micron at 23.3%. The near-term threat is to commodity server DDR5 price and share, not HBM, which is limited by stacking, packaging and customer qualification that CXMT has not disclosed.",
-      "business_context": "CXMT has sold mostly consumer memory. A server DDR5 RDIMM moves it into the segment where the three large makers earn standard DRAM margin. Server parts need long-run reliability and customer qualification that consumer parts do not. Micron's DRAM line includes HBM, but standard DRAM is still a large revenue base, so slower DDR5 price increases or share loss would show up there first.",
-      "watch_next": "Watch whether CXMT ships a qualified server DDR5 RDIMM in volume at competitive yields and at what price. Useful checks are a named server or cloud customer, disclosed die capacity and speed bins, how much of the array uses the 4F² cell, and any change in DDR5 contract prices after launch.",
+      "title": "CXMT shows a denser DRAM cell and names a year-end server memory target",
+      "summary": "China's CXMT showed a 4F\u00b2 DRAM cell on 10 October and said its first product will be a server DDR5 module by the end of 2026. Investors read it as future competition in the memory that Micron, Samsung and SK hynix sell. Micron closed 5.6% lower at $878.78 on 16 October, extending a losing run that was already four sessions long on 13 October.",
+      "what_changed": "CXMT president Cao Kanyu presented the design at the Integrated Circuits and Chiplet Conference, [TrendForce](https://www.trendforce.com/news/2026/10/12/news-cxmt-accelerates-4f%C2%B2-dram-push-eyes-year-end-server-ddr5-rdimm-launch/) reported, citing Yicai Global. The cell uses a vertical surrounded gate transistor and takes four squares of the smallest feature instead of the usual six. CXMT said its first 4F\u00b2 product will be a server DDR5 RDIMM, a memory module for data-centre servers, due by the end of 2026 ([Benzinga](https://www.benzinga.com/news/26/10/62315688/china-s-cxmt-monday-reported-major-progress-proprietary-memory-chip-transistor-structure-also-pursue)). No speed, capacity, yield or customer figures were given, and reports say the first parts may use the new cell in only part of the array. CXMT had already announced mass production of its fifth-generation DRAM platform and LPDDR6 in September 2026.",
+      "why": "A smaller cell fits more bits on a wafer, so cost per bit can fall. TrendForce, citing MyDrivers, puts the potential density gain at 30% to 50%; the arithmetic limit of a one-third cut in cell area is 50%, so the low end allows for the circuits around the array. The timing is what startled investors: Samsung showed a 4F\u00b2 prototype at ISSCC 2026 but is not expected to sell one before 2028, and SK hynix is still developing its version. On paper CXMT is ahead in the standard DRAM where the three large makers earn most of their margin. CXMT held 9.5% of DRAM revenue in 2Q26, against Micron's 23.3%. A design claim is not proof of a qualified, high-volume part. The selloff also carried wider AI profit-taking, so the CXMT news is one input, not the only one.",
+      "business_context": "Server DDR5 modules need long-run reliability and customer qualification that consumer memory does not. The incumbents are already qualified: SK hynix validated a 256GB DDR5 RDIMM for Intel Xeon 6 in December 2025, and Samsung mass-produces modules up to 128GB DDR5-6400. CXMT has sold mostly consumer memory. So the near-term earnings risk is slower DDR5 price increases or share loss in non-HBM DRAM, not a direct hit to high-bandwidth memory. HBM is limited by stacking, advanced packaging and customer qualification, and CXMT has disclosed none of those.",
+      "watch_next": "Watch for a named server or cloud customer, disclosed die capacity and speed bins, the share of the array that really uses the 4F\u00b2 cell, and any change in DDR5 contract prices after launch. A volume shipment at competitive yields would confirm the threat; a paper launch would not.",
       "symbols": [
         "MU",
         "SKHY",
@@ -57,58 +57,74 @@
       "change_pct": null
     },
     {
-      "id": "event::source-4fc6dbc6ff56bc056a8f",
+      "id": "event::cluster-04-a82f897a03",
       "kind": "event",
-      "title": "YMTC reaches No. 3 in NAND shipments and files for a Shanghai IPO",
-      "summary": "China's YMTC moved ahead of Micron in NAND shipments and filed for a STAR Market listing. The share gain is real but still concentrated in China; the open question is enterprise SSD wins outside China.",
-      "what_changed": "On 13 October 2026, Benzinga reported that YMTC had overtaken Micron in global NAND shipment volume and that SK hynix closed below its 200-day average for the first time since May 2025. Counterpoint Research gives the measurable change: YMTC was No. 3 by shipment volume in the second quarter of 2026, behind Samsung and SK hynix and ahead of Kioxia and Micron. If SK hynix's Solidigm unit is counted separately, YMTC ranks No. 2 by volume. YMTC's NAND revenue share rose from 9% in the first quarter of 2025 to 14% in the first quarter of 2026. Its August 2026 STAR Market prospectus is filed, but the offer price and valuation are not set.",
-      "why": "Counterpoint ties the gain to AI data-center demand, a NAND price upcycle and domestic China volume. Server-related revenue was effectively zero in 2024 and is estimated to reach close to 39% of total revenue by 2028. YMTC uses controller partners Phison, DapuStor, Silicon Motion, DERA and T-Head, plus a domestic enterprise link with Huawei. Its Xtacking process bonds a memory-array wafer to a logic wafer, which lets it add layers using mature lithography. Policy still limits near-term reach: YMTC has been on the US Entity List since 2022, and Section 5949 bars US federal agencies from buying products that use its chips from December 2027. The current share gain is mostly domestic; design wins outside China are the open question.",
-      "business_context": "NAND is a commodity business where price sets profit. Bit supply growth above demand quickly compresses margins, and all sellers book revenue against the same contract price. YMTC's reported long-term target is about 500,000 wafers per month including DRAM and a 20% share of the global NAND market. The IPO proceeds and the capacity they can fund are not yet known. Cross-source share figures are approximate: Counterpoint cites a 16.5% shipment share and a 14% revenue share, but those are not the same period or measure.",
-      "watch_next": "Watch whether YMTC turns domestic shipment volume into named enterprise SSD design wins outside China, and what its prospectus discloses on proceeds, wafer capacity, customer concentration and valuation. A second check is same-period NAND revenue and shipment share by segment.",
+      "title": "AI-compute and bitcoin-infrastructure shares fall together as financing worries spread",
+      "summary": "CoreWeave, Nebius, IREN, Applied Digital, Vicor and Super Micro fell 8% to 13% on 16 October. Three company events drove the group: a finance-chief change at Super Micro, a large share and debt sale at CoreWeave, and a $2 billion convertible note plan at IREN. CoreWeave's own debt also became more expensive to insure.",
+      "what_changed": "CoreWeave closed at $61.40, down 11.9%; Nebius $165.50, down 12.2%; IREN $27.00, down 11.2%; Applied Digital $18.05, down 11.5%; Vicor $191.52, down 12.8%; Super Micro $31.63, down 9.8% for a seventh straight loss. Bitcoin miners and data-centre hosts fell with them: Hut 8 11.0%, Cipher 10.7%, CleanSpark 10.0%, TeraWulf 7.5% and Bitdeer 7.9%. CoreWeave said on 14 October it would sell 35 million shares and add $3 billion of debt, and its bond yields and credit default swap costs then rose. IREN announced a $2 billion convertible note sale. Super Micro named Mark Long, a former Western Digital executive, as chief financial officer on 15 October, nearly two years into the search.",
+      "why": "Two channels connect these names. The first is dilution and leverage: new shares and new debt give CoreWeave and IREN cash to build capacity, but they cut each existing share's claim on future profit, and a higher cost of credit makes that funding dearer. The second is governance: a long-vacant finance seat at Super Micro revived memories of past reporting problems and put financial controls back in focus. No single catalyst explains the whole group. The common thread is that investors lowered the value they put on future AI and mining capacity in one session.",
+      "business_context": "These companies turn capital into computing capacity before they earn revenue, so their value depends on the cost and supply of finance as much as on demand. When credit spreads widen, the discount rate on distant cash flow rises and the weakest balance sheets fall first. Bitcoin miners carry a second exposure, because their cash flow also tracks the coin price.",
+      "watch_next": "Watch the pricing and take-up of the CoreWeave and IREN deals, CoreWeave's credit spreads over the next few weeks, and Super Micro's next filing for any restatement or control comment. A calm reopening of the high-yield market would change the read from funding stress to a one-off repricing.",
+      "symbols": [
+        "CRWV",
+        "IREN",
+        "VICR",
+        "APLD",
+        "NBIS",
+        "SMCI",
+        "HUT",
+        "CIFR"
+      ],
+      "primary_symbol": "CRWV",
+      "change_pct": -11.89
+    },
+    {
+      "id": "event::source-a45f0867717d864aebce",
+      "kind": "event",
+      "title": "YMTC reaches No. 3 in NAND shipments and files for a Shanghai listing",
+      "summary": "China's YMTC passed Micron in NAND shipment volume and filed a Shanghai STAR Market prospectus in August. NAND and storage shares fell on 16 October: SanDisk 6.9%, Western Digital 6.9% and Seagate 7.5%. The filing is a funding step, not new capacity by itself.",
+      "what_changed": "[Counterpoint Research](https://counterpointresearch.com/en/insights/ymtc-files-for-landmark-ipo-after-climbing-to-no-3-in-global-nand-race-with-dram-next) ranks YMTC third globally by NAND shipment volume in 2Q26, behind Samsung and SK hynix and ahead of Kioxia and Micron; counting SK hynix's Solidigm unit separately, YMTC would rank second. Its NAND revenue share rose from 9% in 1Q25 to 14% in 1Q26. The prospectus was filed in August 2026, about a month after CXMT's STAR Market debut; valuation and offer price are not set, and a social-media claim of a $44 billion valuation is unconfirmed. Counterpoint estimates that server-related revenue, near zero in 2024, will approach 39% of YMTC revenue by 2028 ([Benzinga](https://www.benzinga.com/markets/tech/26/10/62323827/ymtc-overtakes-micron-in-global-nand-shipment-volumes)).",
+      "why": "Two forces lifted YMTC. AI data centres raised NAND demand, and YMTC gained on both price and domestic volume; the 9% to 14% revenue-share gain is a cleaner measure than 478% growth from a small base. Its Xtacking process bonds a memory wafer to a logic wafer, so it can add layers with mature lithography, which matters while US export controls limit access to the most advanced tools. The enterprise SSD push is the part that matters for pricing. It depends on controller partners and on design wins outside China. The threat is still future supply: TrendForce expects NAND contract prices to rise 15% to 20% in 4Q26, while consumer spot prices are soft.",
+      "business_context": "NAND is storage memory that keeps data without power. It is cyclical: capacity arrives in waves and prices fall when supply catches demand. Shipment share and revenue share differ, because revenue also reflects price and product mix. Enterprise SSD qualification is slow, so AI storage share is stickier than commodity cards but slower to win. YMTC has been on the US Entity List since 2022, which limits public-sector demand in the United States even as its shipment rank rises.",
+      "watch_next": "Watch whether YMTC turns rank and listing cash into qualified enterprise SSD volume at buyers outside China, and whether its long-term target of about 500,000 wafers a month becomes real bit supply or stays a plan.",
       "symbols": [
         "MU",
         "SNDK",
-        "SKHY",
-        "SSNLF",
         "WDC",
         "STX",
-        "EWY",
-        "SMH"
+        "SKHY",
+        "SSNLF",
+        "AMAT",
+        "LRCX"
       ],
       "primary_symbol": "MU",
       "change_pct": null
     },
     {
-      "id": "event::cluster-03-7481f6c102",
+      "id": "event::cluster-01-1377104bc5",
       "kind": "event",
-      "title": "AI data-center and bitcoin-mining shares fall on credit and funding worries",
-      "summary": "AI cloud hosts, bitcoin miners and their power and network suppliers fell together. Reports point to a funding and credit scare in AI data centers, with CoreWeave debt concerns adding pressure. No single company event explains the whole move.",
-      "what_changed": "On 16 October 2026, the selloff was broad within the group. IREN fell 11.15% to $27.00, Applied Digital fell 11.46% to $18.045, Nebius fell 12.16% to $165.495, CoreWeave fell 11.89% to $61.395, Hut 8 fell 11.03% to $67.705, Cipher fell 10.74% to $8.98, CleanSpark fell 9.96% to $8.41, TeraWulf fell 7.50% to $11.655 and Bitdeer fell 7.92% to $7.73. Suppliers also fell: Vicor 12.81%, AXT 11.07%, Viavi 9.38%, Flex 8.17%, Applied Optoelectronics 9.78% and Lumentum 5.36%. The Nasdaq 100 was down 1.5% at midday as memory chips and companies with AI-related debt sold off.",
-      "why": "Reports point to a funding and credit scare in AI data centers as the main path. Investors worried that AI cloud builders may struggle to carry debt, and that worry spread from CoreWeave's bond yields to peers. A Gartner forecast that most AI cloud providers will not survive independently before 2030 made investors more cautious. A report on 17 October tied early weakness to a planned $2 billion IREN private offering; that report postdates the 16 October close and does not identify the security type, so it is a follow-on risk, not an established cause of the drop. Lower Treasury yields usually help long-duration growth stocks, so rates are an unlikely trigger. The move looks more like a reaction to credit and funding risk, but no single catalyst is confirmed.",
-      "business_context": "These companies are tied to the AI data-center buildout or to bitcoin mining. Both models are capital intensive. AI cloud hosts must fund GPUs and data centers before customer revenue arrives; miners carry power and equipment costs and are sensitive to bitcoin prices. When credit spreads widen or a large equity or debt raise appears, investors mark the shares down before the funding terms are known. Suppliers to the buildout are second-order exposures: they do not carry the same debt, but their orders depend on the same projects.",
-      "watch_next": "Watch CoreWeave credit spreads and any financing update, the final terms of IREN's offering, and whether other AI cloud hosts need new capital. Also watch bitcoin prices and the next monthly production or hosting updates from the miners.",
+      "title": "MSCI opens a review that could drop Indonesia from emerging markets; Telkom's ADR falls 13.7%",
+      "summary": "MSCI began a consultation on reclassifying Indonesia from emerging market to standalone market. Funds that track emerging-market indexes could then have to sell Indonesian shares. Telkom Indonesia's ADR fell 13.66% to $11.025.",
+      "what_changed": "The ADR, TLK, is the New York line of PT Telekomunikasi Indonesia, an integrated telecom operator. MarketBeat reported 4.42 million TLK shares traded on Thursday 15 October, which it called unusually heavy. Indonesian equities then had their worst session since 1998 as the MSCI proposal circulated, and reports said outflows could worsen. TLK closed at $11.025 on 16 October, down 13.66% from $12.77. One company report mentioned regulatory and competitive worries but gave no facts or figures, so it does not stand as a cause.",
+      "why": "The trigger is a country index decision, not a company event. If Indonesia leaves the emerging-market index family, tracking funds must sell to stay aligned with their benchmarks. A reclassification takes time, but the announcement alone changes expected future demand, so holders sell first and ask questions later. TLK is a liquid, easy way for foreign investors to cut Indonesia exposure, which is why it took a large share of the selling. Heavy volume before the drop fits that repositioning story.",
+      "business_context": "TLK is an integrated telecom operator and usually a defensive holding. Index-classification risk is a separate force from operating results, and it can dominate a single session for a large liquid ADR.",
+      "watch_next": "Watch the MSCI consultation timetable and whether other index providers follow. A decision not to reclassify would remove the forced-selling overhang; a confirmed downgrade would extend it.",
       "symbols": [
-        "IREN",
-        "APLD",
-        "NBIS",
-        "VICR",
-        "HUT",
-        "CRWV",
-        "AXTI",
-        "VIAV"
+        "TLK",
+        "ALL"
       ],
-      "primary_symbol": "IREN",
-      "change_pct": -11.15
+      "primary_symbol": "TLK",
+      "change_pct": -13.66
     },
     {
       "id": "event::source-e3855258dacc0ec7dda0",
       "kind": "event",
-      "title": "Liquidia pays $380.7M and drops PH-ILD use to end United Therapeutics suits",
-      "summary": "Liquidia settled six lawsuits with United Therapeutics. It pays net $380.7M, keeps YUTREPIA for PAH, and gives up the PH-ILD label and promotion. The cash schedule is tight against September cash.",
-      "what_changed": "On 13 October 2026, Liquidia and United Therapeutics announced a global settlement that resolves all six pending lawsuits. Liquidia agreed to pay $185M within 30 business days for past YUTREPIA sales, and United Therapeutics pays Liquidia $10M, for a first net payment of $175M. A further $145.4M is set as two fixed $72.7M installments due by 31 January and 30 April 2027. A further $60.3M is scheduled for October 2026 to parties in the treprostinil injection antitrust case. Gross payments total $390.7M; net is $380.70M. Liquidia submitted a supplement to remove the PH-ILD indication from the YUTREPIA label and no longer promotes the drug for that use. It keeps selling YUTREPIA for PAH and says it will keep advancing the YUTREPIA and L606 programs.",
-      "why": "The trigger was the 30 September 2026 District of Delaware ruling that claims 1 and 14 of U.S. Patent No. 11,826,327 are valid and infringed by marketing YUTREPIA for PH-ILD. Liquidia faced an appeal and a possible injunction. YUTREPIA supplied about $170.4M of Liquidia's $171.679M of second-quarter 2026 revenue, so a broad restriction would have hit the whole company. Settling buys certainty for the PAH business. The net $380.7M equals about 96% of the $396.1M cash reported at 30 September 2026. The 2026 net outflow, the $175M first payment plus the $60.3M antitrust payment, is about $235.3M, or 59% of that cash. United Therapeutics turns a court win into a net $320.4M cash receipt and removes a promoted rival from PH-ILD.",
-      "business_context": "Liquidia is a single-product commercial company. Its settlement payments are fixed and due over about six and a half months, so they are a claim on future sales and cash, not a single withdrawal. The PAH-only sales base is not disclosed; before the label change the company described a combined PAH and PH-ILD pool above 105,000 patients. United Therapeutics is larger and more diversified, so the competitive benefit is likely modest relative to its total business. L606 is a separate Phase 3 PH-ILD program, and the settlement does not clear it from future patent claims.",
-      "watch_next": "The decisive checks are FDA acceptance and the effective date of the label supplement, the filed third-quarter cash flow, any disclosure that splits YUTREPIA sales by condition, and 2027 guidance. Also watch whether the ASCENT data limits affect L606's separate Re-Spire PH-ILD program.",
+      "title": "Liquidia settles six United Therapeutics suits, pays net $380.7 million and gives up the PH-ILD use",
+      "summary": "Liquidia and United Therapeutics settled all six pending patent suits on 13 October. Liquidia keeps selling YUTREPIA for pulmonary arterial hypertension, gives up the PH-ILD use, and pays net $380.70 million across 2026 and 2027. The deal removes an injunction risk that could have hit nearly all of Liquidia's revenue.",
+      "what_changed": "The settlement follows a 30 September Delaware ruling that claims 1 and 14 of US Patent 11,826,327 are valid and infringed by marketing YUTREPIA for PH-ILD. Liquidia pays $185 million within 30 business days; United Therapeutics pays back $10 million, so the first net payment is $175 million. A further $145.4 million covers PH-ILD sales, set as two fixed $72.7 million instalments due by 31 January and 30 April 2027. A separate $60.3 million goes in October 2026 to claimants in the treprostinil injection antitrust case. Gross cash out is $390.7 million and net is $380.70 million ([Liquidia release](https://www.liquidia.com/news-releases/news-release-details/liquidia-announces-global-settlement-resolving-all-pending); [8-K summary](https://www.stocktitan.net/sec-filings/UTHR/8-k-united-therapeutics-corp-reports-material-event-c39f9aee31c3.html)). Liquidia must stop promoting PH-ILD at once and stop selling for it when the FDA approves the label change.",
+      "why": "A broad injunction could have stopped YUTREPIA altogether, and YUTREPIA supplied about $170.4 million of $171.679 million of second-quarter revenue. Liquidia therefore bought certainty for the PAH business with cash, the PH-ILD label, trial-data rights and some patent-challenge rights. The cash maths is tight but does not show immediate insolvency: net payments equal about 96% of the $396.1 million cash reported at 30 September, and about $235.3 million falls due in 2026, leaving about $160.8 million before operating costs. Revenue is booked on shipment and the company reports no order backlog, so the plan rests on continued sales.",
+      "business_context": "YUTREPIA is an inhaled dry-powder form of treprostinil. United Therapeutics sells Tyvaso and Tyvaso DPI into the same market, and said current PH-ILD patients can stay on therapy while new PH-ILD prescriptions should stop ([UTHR statement](https://ir.unither.com/press-releases/2026/10-14-2026)). That is a seller's intent, not measured patient switching. The deal ends only the six pending suits; United Therapeutics keeps the right to assert patents against Liquidia's development programmes, including L606.",
+      "watch_next": "The FDA's decision on the label supplement sets the date PH-ILD sales stop, and so the revenue base. Watch the next quarterly filing for a PAH-only sales split, and whether cash covers the $145.4 million due by 30 April 2027 without new financing.",
       "symbols": [
         "LQDA",
         "UTHR"
@@ -117,34 +133,29 @@
       "change_pct": null
     },
     {
-      "id": "event::source-3b057e57a0d09b1df79e",
-      "kind": "event",
-      "title": "Strive buys 3,311 Bitcoin and prices a $630M 15% preferred",
-      "summary": "Strive added 3,311 Bitcoin at an average near $84,500 and priced an upsized $630M SATS preferred sale at $90. The deal adds a fixed 15% claim ahead of common holders and funds a treasury that does not cover its dividends from operations.",
-      "what_changed": "Strive bought 3,311 Bitcoin from 5 to 9 October 2026 at an average near $84,500, for about $280M, lifting holdings to 32,773 coins. On 13 October it announced SATS, a new 15% Series A perpetual preferred stock, initially 5M shares at a $100 stated amount for a $500M target. On 15 October it priced 7M shares at $90.00, an upsize of 2M shares, for about $630M gross. Settlement is set for 20 October 2026. SATS ranks junior to the existing SATA preferred, which pays a variable rate now near 13%, and senior to the common stock. Strive says proceeds may buy more Bitcoin, acquire income-producing assets, or repurchase stock.",
-      "why": "Strive's operating business does not produce enough cash to buy Bitcoin and pay large preferred dividends. Second-quarter revenue was $2.9M. First-half operating cash flow was negative $39.4M, and preferred dividends paid in the same half were $39.7M. The company therefore sells common and preferred stock, then uses the money to buy Bitcoin and pay dividends. At $90 against a $100 stated amount, a buyer's effective yield is about 16.7% if dividends are paid on the stated amount. The 18-month dividend reserve of $22.50 per share is about $157.5M at 7M shares, or roughly a quarter of gross proceeds. Bitcoin traded near $81,300 on 16 October, below the average price Strive paid for the recent purchase.",
-      "business_context": "Strive is a structured-finance company with a Bitcoin treasury. It sells common stock, SATA preferred and now SATS preferred. Bitcoin pays no cash dividend, so the preferred dividend is funded from capital raised or from asset sales. SATA and SATS both rank ahead of the common stock, so the common holder is last in line. The model works while investors buy the securities; it strains when Bitcoin falls, when the common stock trades poorly, or when the preferred dividend bill grows faster than the treasury.",
-      "watch_next": "Watch the closing filing after the 20 October settlement: did the sale settle at 7M shares and $90.00, and how much net cash remains after the dividend reserve and fees? The next treasury filing should show how much cash bought Bitcoin. Also watch SATA and SATS dividend coverage and whether ASST's Bitcoin per share rises or falls after the issuance.",
+      "id": "symbol::AXTI",
+      "kind": "unresolved",
+      "title": "AXT falls 11% with the semiconductor complex and no company news",
+      "summary": "AXT fell 11.07% to $51.475 on 16 October. No company announcement explains it. The move came in a broad semiconductor selloff, with the information-technology sector down 4.70% on average.",
+      "what_changed": "AXT makes compound semiconductor substrates, including indium phosphide used in optical transceivers for data centres. Its second-quarter 2026 revenue was a record $47.6 million, with indium phosphide revenue of $30.7 million, so it sits directly in the AI optics supply chain that fell hardest on the day.",
+      "why": "The evidence shows a price fall and a sector-wide decline, not a company event. No order, price or customer change is reported. Optical and materials names fell hardest as investors cut exposure to AI infrastructure, so the likeliest channel is de-rating of the group rather than a change at AXT. That remains an inference.",
+      "business_context": "Substrate suppliers sit early in the optical supply chain. Their orders follow transceiver demand, so their shares often move with AI data-centre sentiment before any order change appears in results.",
+      "watch_next": "Watch AXT's next quarterly report and any indium phosphide pricing or capacity comment. A named catalyst would move this out of the unresolved group.",
       "symbols": [
-        "ASST",
-        "SATA",
-        "SATS",
-        "BTCUSD",
-        "MSTR",
-        "STRC"
+        "AXTI"
       ],
-      "primary_symbol": "ASST",
-      "change_pct": null
+      "primary_symbol": "AXTI",
+      "change_pct": -11.07
     },
     {
       "id": "symbol::MXL",
       "kind": "unresolved",
-      "title": "MaxLinear falls 8.8% after four-day run despite data-center optics growth",
-      "summary": "MaxLinear gave back part of a four-day rally even though its data-center optics business is growing fast and a broker raised its target. The evidence does not identify a company-specific negative.",
-      "what_changed": "On 16 October 2026, MaxLinear fell 8.77% to $71.32. Coverage said the stock was set to snap a four-day winning streak despite a second-quarter beat, and that Roth Capital raised its price target to $100 from $60 while keeping a Buy rating. The evidence does not show a company-specific negative.",
-      "why": "The best-supported explanation is profit-taking after a four-day run, set against a broad semiconductor and AI-hardware selloff. MaxLinear's operating momentum was strong before the drop. Second-quarter 2026 revenue was $168.8 million, up 23% from the first quarter and up 55% from a year earlier. The infrastructure business rose 145% year over year and became the largest revenue category at roughly $85 million. Management raised its full-year 2026 optical data-center revenue outlook to $210 million to $230 million, from $150 million to $170 million. No company-specific cause for the drop is confirmed.",
-      "business_context": "MaxLinear sells analog and mixed-signal semiconductors. Data-center optics is now its growth engine, so the shares are sensitive to AI capital spending and to whether the company can convert its outlook into orders. A broker target increase does not stop a valuation-driven pullback after a fast run.",
-      "watch_next": "Watch third-quarter results, optical data-center orders and customer concentration. A break in the semiconductor selloff would make the profit-taking explanation more likely; a guidance cut would change the read.",
+      "title": "MaxLinear falls 8.8% with AI-optics shares and no specific catalyst",
+      "summary": "MaxLinear fell 8.77% to $71.32 on 16 October. No company announcement explains the move; it fits the same semiconductor and AI-optics de-rating as the wider group.",
+      "what_changed": "MaxLinear makes analog and mixed-signal chips. In the second quarter of 2026 revenue was $168.8 million, up 23% from the first quarter and 55% from a year earlier. The infrastructure business, which serves data-centre optics, rose 145% year over year and became the largest revenue line at about $85 million. Management raised its full-year optical data-centre revenue outlook to $210 million to $230 million from $150 million to $170 million.",
+      "why": "The evidence gives a price fall and a strong operating backdrop, with no event in between. The likeliest channel is that investors sold high-multiple semiconductor and optics names together. That is an inference from the group move, not a documented cause.",
+      "business_context": "MaxLinear's growth now depends on data-centre optics rather than broad analog demand. That makes its share price more sensitive to AI capital-spending sentiment and less tied to its own order book in any single week.",
+      "watch_next": "Watch the third-quarter report and any update to the optical data-centre revenue outlook. A guidance cut would turn this into a company event; a clean report would confirm the fall was sentiment.",
       "symbols": [
         "MXL"
       ],
@@ -155,38 +166,38 @@
   "charts": [
     {
       "id": "fred:DGS10",
-      "title": "10-year yield 5.10% on 15 October, down from 5.19%",
-      "significance": "The 10-year Treasury yield fell to 5.10% on 15 October from 5.19% a day earlier; the separate 16 October curve showed 5.09%, so the easing predated the tech selloff.",
+      "title": "10-year Treasury yield: 5.10% keeps discount rates high",
+      "significance": "The 10-year yield was 5.10% on 15 October 2026, just below its 5.31% peak on 5 October; a high discount rate still pressures long-dated cash flows.",
       "date": "2026-10-15",
       "value": 5.1
     },
     {
+      "id": "fred:BAMLH0A0HYM2",
+      "title": "High-yield spread: 3.23% shows no broad credit event",
+      "significance": "At 3.23% on 15 October 2026, the high-yield spread is far below its 4.61% April 2025 peak; it does not signal a market-wide credit event, but CoreWeave's debt-insurance cost rose.",
+      "date": "2026-10-15",
+      "value": 3.23
+    },
+    {
       "id": "stock:MU:price",
-      "title": "Micron falls 5.65% as memory competition worries build",
-      "significance": "Micron fell 5.65% to $878.78 on 16 October; Chinese memory reports dated 10 and 13 October are partial, medium-confidence exposures, not proven causes.",
+      "title": "Micron: 27.7% below June high as memory de-rates",
+      "significance": "Micron closed at $878.78 on 16 October 2026, down 5.65% and 27.7% below its 25 June high, extending a multi-session slide as CXMT's server-memory plan added to the de-rating.",
       "date": "2026-10-16",
       "value": 878.78
     },
     {
+      "id": "stock:MU:revenue",
+      "title": "Micron revenue: $41.46bn in the May 2026 quarter",
+      "significance": "Micron revenue rose from $13.64bn in the November 2025 quarter to $41.46bn in the May 2026 quarter; the October fall is a valuation de-rating, not a reported demand collapse.",
+      "date": "2026-05-31",
+      "value": 41456000000
+    },
+    {
       "id": "stock:CRWV:price",
-      "title": "CoreWeave falls 11.89% on AI funding and credit worry",
-      "significance": "CoreWeave fell 11.89% to $61.40 on 16 October on AI funding and credit worry; the high-yield spread did not widen on 15 October but, at 3.23%, was 63bp above its 28 August low.",
+      "title": "CoreWeave: 66.6% below 2025 high after share and debt sale",
+      "significance": "CoreWeave closed at $61.40 on 16 October 2026, down 11.9% and 66.6% below its 2025 high after a 35 million-share sale and $3bn debt raise; financing terms drive its AI capacity.",
       "date": "2026-10-16",
       "value": 61.395
-    },
-    {
-      "id": "stock:EOG:price",
-      "title": "EOG rises 4.24% as energy leads the rotation",
-      "significance": "EOG rose 4.24% to $158.06 on 16 October as energy gained 2.19% and technology fell 4.70%; the snapshot's $152.65 prior close is stale, as exact history shows $151.63.",
-      "date": "2026-10-16",
-      "value": 158.06
-    },
-    {
-      "id": "fred:BAMLH0A0HYM2",
-      "title": "High-yield spread 3.23%, low but 63bp off its August low",
-      "significance": "The high-yield spread was 3.23% on 15 October, 2 basis points below 14 October but 63 basis points above its 28 August low of 2.60%; the series predates the 16 October selloff.",
-      "date": "2026-10-15",
-      "value": 3.23
     }
   ],
   "data_integrity": [
@@ -194,6 +205,14 @@
       "id": "fred:DGS10",
       "source_observations": 746,
       "rendered_observations": 746,
+      "last_observation": "2026-10-15",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "source_observations": 783,
+      "rendered_observations": 783,
       "last_observation": "2026-10-15",
       "full_original_history_matches": true,
       "public_window_matches": true
@@ -207,26 +226,18 @@
       "public_window_matches": true
     },
     {
+      "id": "stock:MU:revenue",
+      "source_observations": 3,
+      "rendered_observations": 3,
+      "last_observation": "2026-05-31",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
       "id": "stock:CRWV:price",
       "source_observations": 391,
       "rendered_observations": 391,
       "last_observation": "2026-10-16",
-      "full_original_history_matches": true,
-      "public_window_matches": true
-    },
-    {
-      "id": "stock:EOG:price",
-      "source_observations": 1252,
-      "rendered_observations": 1200,
-      "last_observation": "2026-10-16",
-      "full_original_history_matches": true,
-      "public_window_matches": true
-    },
-    {
-      "id": "fred:BAMLH0A0HYM2",
-      "source_observations": 783,
-      "rendered_observations": 783,
-      "last_observation": "2026-10-15",
       "full_original_history_matches": true,
       "public_window_matches": true
     }
@@ -257,7 +268,7 @@
       "observations": 0
     },
     {
-      "symbol": "SNDK",
+      "symbol": "CRWV",
       "status": "available",
       "session": "2026-10-16",
       "as_of": "2026-10-16T19:55:00+00:00",
@@ -273,6 +284,14 @@
       "observations": 78
     },
     {
+      "symbol": "VICR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 66
+    },
+    {
       "symbol": "APLD",
       "status": "available",
       "session": "2026-10-16",
@@ -281,7 +300,7 @@
       "observations": 78
     },
     {
-      "symbol": "NBIS",
+      "symbol": "SNDK",
       "status": "available",
       "session": "2026-10-16",
       "as_of": "2026-10-16T19:55:00+00:00",
@@ -289,12 +308,36 @@
       "observations": 78
     },
     {
-      "symbol": "VICR",
+      "symbol": "WDC",
       "status": "available",
       "session": "2026-10-16",
       "as_of": "2026-10-16T19:55:00+00:00",
       "interval": "5Min",
-      "observations": 66
+      "observations": 78
+    },
+    {
+      "symbol": "STX",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "TLK",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "ALL",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 68
     },
     {
       "symbol": "LQDA",
@@ -313,36 +356,12 @@
       "observations": 76
     },
     {
-      "symbol": "ASST",
+      "symbol": "AXTI",
       "status": "available",
       "session": "2026-10-16",
       "as_of": "2026-10-16T19:55:00+00:00",
       "interval": "5Min",
       "observations": 78
-    },
-    {
-      "symbol": "SATA",
-      "status": "available",
-      "session": "2026-10-16",
-      "as_of": "2026-10-16T19:55:00+00:00",
-      "interval": "5Min",
-      "observations": 19
-    },
-    {
-      "symbol": "SATS",
-      "status": "unavailable",
-      "session": "",
-      "as_of": "",
-      "interval": "5Min",
-      "observations": 0
-    },
-    {
-      "symbol": "BTCUSD",
-      "status": "unavailable",
-      "session": "",
-      "as_of": "",
-      "interval": "5Min",
-      "observations": 0
     },
     {
       "symbol": "MXL",
@@ -356,74 +375,26 @@
   "audio": {
     "http_status": 200,
     "content_type": "audio/mpeg",
-    "first_chunk_bytes": 1024,
-    "seconds": 0.216
+    "bytes": 1332496,
+    "seconds": 0.944,
+    "home_run_id": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
+    "text_matches_current_summary": true,
+    "audio_text_sha256": "123dc1a213bdf2392065e1f6ed06b621a7f4f001b87690a83201f2dba2fb8785",
+    "served_bytes_match_current_stored_audio": true
   },
   "existing_chart_review": {
-    "status": "accepted",
-    "attempts": [
-      {
-        "approved": false,
-        "issues": [
-          "EOG: the selected chart shows $151.63 on 15 October and $158.06 on 16 October, a +4.24% one-day move. The brief says +3.54%, which comes from a market-snapshot previous close of $152.65. Resolve the source conflict and use a chart-consistent percentage, or avoid a precise one-day move.",
-          "DGS10: 'holds at 5.10%' is inaccurate trend language. The selected series fell from 5.19% on 14 October to 5.10% on 15 October; the 16 October yield-curve fact is 5.09%. Say 'falls to about 5.1%' and date the 5.09% separately.",
-          "High-yield OAS: 3.23% is dated 15 October, before the 16 October AI and bitcoin-related selloff. It cannot show whether that selloff became broad credit stress. Phrase it as 'as of 15 October, before the selloff' and avoid implying it reflects 16 October credit conditions.",
-          "High-yield OAS: 'stays near 3.2%' hides the recent widening. The spread was 2.68% on 18 September and 3.23% on 15 October, near its 1 October level of 3.24%. Say 'rises to 3.23%' or 'near its recent high but still low in absolute terms.'",
-          "CRWV: 'on AI funding stress' asserts a single cause more strongly than the evidence supports. The event is marked partial confidence with no single confirmed catalyst. Use 'amid AI funding stress' or 'as investors weighed AI data-center credit risk.'"
-        ]
-      },
-      {
-        "approved": false,
-        "issues": [
-          "HY OAS: 3.23% on 15 October is correct, but the title 'reaches 3.23%' is misleading: the spread fell 2 bp from 3.25% on 14 October and is below the 3.24% reading on 1 October. Use 'stood at 3.23%, near its 1 October high' and keep the warning that the 15 October reading predates the 16 October selloff.",
-          "DGS10: the values and dates are correct (5.10% on 15 October, 5.19% on 14 October, 5.09% on the 16 October curve). Clarify that the 16 October yield eased and was not the trigger for the tech selloff; evidence points to AI hardware and credit repricing, not rates.",
-          "MU: the $878.78 close and -5.65% move on 16 October are correct. The significance should connect Micron's fall to the named memory catalysts in the session evidence: CXMT's 4F² server DDR5 plan and YMTC's NAND shipment gain/IPO filing, since Micron has both DRAM and NAND exposure.",
-          "EOG: the $158.06 close and +4.24% move are correct. 'Offset technology losses' overstates the effect because information technology fell 4.70% and the broad average was -1.25%; use 'cushioned' or 'counterbalanced' instead.",
-          "CRWV: the $61.395 close and -11.89% move are correct, and 'no single confirmed cause' fits the developing evidence. Add follow-ups on CoreWeave credit spreads and IREN's offering terms, and note that broad high-yield OAS does not measure issuer-level or private AI data-center credit stress."
-        ]
-      },
-      {
-        "approved": false,
-        "issues": [
-          "Chart 5 is wrong on the recent high: the high-yield spread was 3.23% on 15 October, down 2 bp from 3.25% on 14 October, not from a 1 October high. The 1 October value was 3.24%. Change the title to “near 14 October high” and keep the point that the reading predates the 16 October selloff.",
-          "Chart 1 mixes dates: the selected DGS10 history ends on 15 October at 5.10%, while the tech selloff was on 16 October and the 16 October yield curve showed 5.09%. Use an explicit title such as “10-year yield 5.10% on 15 October; 5.09% on 16 October” so the chart does not imply the 15 October yield was the 16 October selloff reading.",
-          "Chart 2 overstates the cause in its title. The exact chart shows Micron fell 5.65% to $878.78 on 16 October, but the CXMT and YMTC events are partial, medium-confidence explanations and are not same-day company news. Change “on memory competition” to “amid memory competition concerns” and keep the significance as an exposure link, not a proven cause.",
-          "Reconcile the EOG prior close before publication: the selected EOG chart shows $151.63 on 15 October and +4.24% to $158.06, but the market snapshot lists $152.65 and +3.54%. State which source the brief uses, or correct the prior close and change figure."
-        ]
-      },
-      {
-        "approved": false,
-        "issues": [
-          "DGS10: the selected FRED chart ends 15 October at 5.10%; the 5.09% value for 16 October comes from the separate treasury_daily_yield_curve dataset, not the rendered DGS10 history. Keep the title to 15 October or label the 16 October figure as a different curve source.",
-          "EOG: the draft correctly rejects the snapshot's $152.65 prior close, which matches 15 September, not 15 October. Use the price-history pair $151.63 to $158.06 (+4.24%) and do not repeat the snapshot's +3.54% as the chart value.",
-          "HY OAS: 3.23% on 15 October is 2 bp below the 14 October 3.25% reading and is still a tight spread, not evidence of broad credit stress. Retitle to avoid implying a high-stress level, and keep the explicit note that the 16 October selloff is not in the 15 October reading.",
-          "CRWV: the statement 'not broad high-yield OAS' conflicts with selecting the broad HY OAS chart. Clarify that broad HY OAS had not widened by 15 October; the useful checks are issuer-specific AI credit and funding news plus IREN's offering terms.",
-          "MU: the CXMT report is dated 10 October and the YMTC report 13 October, both before the 16 October drop, and both are partial, medium-confidence explanations. Keep the wording as an exposure link and note the same-day tech selloff rather than implying those reports alone caused the move."
-        ]
-      },
-      {
-        "approved": false,
-        "issues": [
-          "DGS10 date separation: the selected DGS10 history ends 15 October at 5.10%, down 9 basis points from 5.19% on 14 October. The 16 October Treasury curve is a separate observation at 5.09%, only 1 basis point lower; do not let 'rates eased as tech sold off' imply the 9-basis-point drop happened on the 16 October selloff day.",
-          "CRWV/high-yield context: 'broad high-yield spreads had not widened by 15 October' is too broad. BAML HY OAS was 3.23% on 15 October, 2 basis points below 14 October, but up from 3.11% on 9 October and 2.60% on 28 August. Say 'no further widening on 15 October' and note the series predates the 16 October selloff.",
-          "BAML 'tight level': 3.23% is low versus 2023 but 63 basis points above the 28 August 2026 low of 2.60%; qualify as 'still low by multi-year standards but off its August low' rather than 'stayed tight.'",
-          "EOG prior close: exact price history shows $151.63 on 15 October and $158.06 on 16 October, a 4.24% rise. The snapshot's $152.65 matches the 15 September close, so call the snapshot prior close stale/conflicting and use $151.63 and 4.24%, not the snapshot's 3.54%.",
-          "MU significance is 184 characters; trim it to 180 or fewer while keeping the partial, medium-confidence qualification."
-        ]
-      },
-      {
-        "approved": true,
-        "issues": []
-      }
-    ]
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The five-chart set is coherent: two macro rate/credit charts, two Micron charts that separate price from reported revenue, and CoreWeave for AI funding. I corrected the Micron timing: CXMT's server-memory news came before the 16 October drop, not after. I also narrowed the credit conclusion so it allows issuer-specific stress.",
+    "confidence": "high",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "revised_answer_applied": true,
+    "research_requests": []
   },
-  "execution_start": "2026-10-18T04:03:48+00:00",
-  "execution_end": null,
-  "personal_review": {
-    "decision": "Hold production",
-    "home": "The six-story brief is materially clearer, with specific business explanations, dated market breadth and current Strive financing terms. Some rate attribution remains a hypothesis; do not recast it as established causation.",
-    "charts": "Reject internal confidence/status wording in the Micron caption and the false claim that the EOG snapshot is stale. The LLM review approved these after six iterations; its approval is not qualitative acceptance.",
-    "price_source_probe": "Alpaca snapshot and raw bars both show EOG October 15 close $152.65; adjustment=all bars show $151.63 for the same date. Both October 16 closes are $158.06. This is a corporate-action adjustment basis difference, not stale data.",
-    "numerical_integrity": "All five full stored histories and existing public display windows match original observations. No plotted values may be rewritten to resolve the prose."
-  }
+  "execution_start": "2026-10-18T05:43:47+00:00",
+  "execution_end": "2026-10-18T06:22:33+00:00",
+  "personal_review": "SOURCE_DATE_QUALITY_REVIEW.md",
+  "reason": "CoreWeave September financing is described as an October 14 announcement. Cited IREN article is May 11 but search evidence assigns October. Shared model review missed both; trace shared acquisition/date provenance before further source changes."
 }
