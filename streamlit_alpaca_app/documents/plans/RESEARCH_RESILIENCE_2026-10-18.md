@@ -1,0 +1,11 @@
+# Research resilience
+
+The owner explicitly accepted production promotion of the verified DEV images with the known financing-date imperfection. Production promotion happens first; subsequent source changes have separate local and DEV acceptance.
+
+A bad source should change only the conclusions that depend on it. Failed execution preserves completed work. Corrections should improve future reasoning without erasing independent findings or adding phrase bans, fixed financial rules, new critics or controllers.
+
+The deadline handoff is deployed and proved. Existing source preservation and model review remain in place. The learning entrypoint still requires hardcoded unavailable-data phrases plus a successful tool from a fixed list before its existing LLM critic can see an episode. This excludes factual corrections and other useful failures. Remove that semantic detector, identify immutable conversation episodes, and let the existing critic decide whether there is a lesson or no change. Preserve retry/reuse, private evidence ownership and existing memory-write permissions. Do not claim stored lessons improve future answers until the existing retrieval/replay path demonstrates their use.
+
+Evaluate personally with the actual financing-date episode, an unrelated evidence correction, a misleading user correction and an ordinary successful conversation. Compare useful analysis under uncertain details, dependent versus independent conclusions, no-change judgments and generality. Mechanical checks cover episode identity and recovery only. No deterministic prose grading.
+
+Status: production images promoted; final runtime/publication verification is running. Resilience change is accepted locally after four complete qualitative reviews and three execution checks; DEV verification follows. It is not included in the initial promotion. See [local evidence](../verification/research-resilience-2026-10-18/README.md).

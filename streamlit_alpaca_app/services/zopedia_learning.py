@@ -29,29 +29,6 @@ DEFAULT_EVAL_CASE_DIR = (
     / "generated"
 )
 
-_UNAVAILABLE_CLAIM_RE = re.compile(
-    r"\b("
-    r"cannot\s+(?:query|access|get|retrieve)|"
-    r"can't\s+(?:query|access|get|retrieve)|"
-    r"data\s+(?:is\s+)?unavailable|"
-    r"no\s+(?:market|stock|price|etf|sector)\s+data|"
-    r"returned\s+empty.*no\s+data|"
-    r"not\s+available"
-    r")\b",
-    flags=re.IGNORECASE,
-)
-_IMPLEMENTATION_LEAK_RE = re.compile(
-    r"\b(tool[_ -]?call|run[_ -]?id|provider|debug|eval\.local|zthread_|zmsg_|agtc_)\b",
-    flags=re.IGNORECASE,
-)
-_PRIMITIVE_DATA_TOOLS = {
-    "dataset.price_history",
-    "dataset.daily_movers",
-    "dataset.yield_curve_facts_1d",
-    "dataset.yield_curve_observations",
-    "analysis.run_python",
-}
-
 
 def _clean(value: object) -> str:
     text = str(value if value is not None else "").strip()
@@ -119,97 +96,11 @@ def _slug(value: object, *, default: str = "learning") -> str:
     return (text or default)[:96]
 
 
-def _tool_name(call: dict[str, Any]) -> str:
-    return _clean(call.get("tool_name") or call.get("name"))
-
-
-def _tool_status(call: dict[str, Any]) -> str:
-    return _clean(call.get("status") or call.get("state")).lower()
-
-
-def _tool_arguments(call: dict[str, Any]) -> dict[str, Any]:
-    args = call.get("arguments") or call.get("args") or {}
-    return dict(args) if isinstance(args, dict) else {}
-
-
-def _payload_rows(value: object) -> int:
-    if value is None:
-        return 0
-    if isinstance(value, list):
-        return len(value)
-    if isinstance(value, dict):
-        for key in ("rows", "sample", "records", "data"):
-            child = value.get(key)
-            if isinstance(child, list):
-                return len(child)
-        row_count = value.get("row_count") or value.get("rows_count")
-        try:
-            return int(row_count)
-        except Exception:
-            return 1 if value else 0
-    return 0
-
-
-def _tool_has_rows(call: dict[str, Any]) -> bool:
-    summary = call.get("result_summary")
-    if isinstance(summary, dict):
-        if _payload_rows(summary.get("payload")) > 0 or _payload_rows(summary.get("preview")) > 0:
-            return True
-        row_count = summary.get("row_count")
-        try:
-            if int(row_count) > 0:
-                return True
-        except Exception:
-            pass
-    result = call.get("result")
-    if isinstance(result, dict):
-        if _payload_rows(result.get("payload")) > 0:
-            return True
-        row_count = result.get("row_count")
-        try:
-            if int(row_count) > 0:
-                return True
-        except Exception:
-            pass
-    return False
-
-
 def _assistant_payload(message: dict[str, Any]) -> dict[str, Any]:
     payload = dict(message.get("payload") or {}) if isinstance(message.get("payload"), dict) else {}
     if payload:
         return payload
     return dict(message)
-
-
-def _message_content(message: dict[str, Any]) -> str:
-    payload = _assistant_payload(message)
-    return _clean(
-        message.get("content")
-        or payload.get("content")
-        or payload.get("answer")
-        or payload.get("answer_markdown")
-        or (payload.get("agent_result") or {}).get("answer_markdown")
-    )
-
-
-def _agent_result(message: dict[str, Any]) -> dict[str, Any]:
-    payload = _assistant_payload(message)
-    agent_result = payload.get("agent_result")
-    if isinstance(agent_result, dict):
-        return dict(agent_result)
-    return payload
-
-
-def _tool_calls_from_thread(thread: dict[str, Any]) -> list[dict[str, Any]]:
-    calls: list[dict[str, Any]] = []
-    for message in list(thread.get("messages") or []):
-        if not isinstance(message, dict) or _clean(message.get("role")).lower() != "assistant":
-            continue
-        agent_result = _agent_result(message)
-        for call in list(agent_result.get("tool_calls") or []):
-            if isinstance(call, dict):
-                calls.append(dict(call))
-    return calls
 
 
 def _first_user_question(thread: dict[str, Any]) -> str:
@@ -219,54 +110,6 @@ def _first_user_question(thread: dict[str, Any]) -> str:
             if content:
                 return content
     return _clean(thread.get("title"))
-
-
-def _failed_claims(thread: dict[str, Any]) -> list[dict[str, Any]]:
-    failed: list[dict[str, Any]] = []
-    for message in list(thread.get("messages") or []):
-        if not isinstance(message, dict) or _clean(message.get("role")).lower() != "assistant":
-            continue
-        content = _message_content(message)
-        if not content:
-            continue
-        if _UNAVAILABLE_CLAIM_RE.search(content):
-            failed.append(
-                {
-                    "root_cause": "premature_unavailable_claim",
-                    "failed_claim": content[:1200],
-                    "trigger_type": "tool_path_later_succeeded",
-                }
-            )
-        if _IMPLEMENTATION_LEAK_RE.search(content):
-            failed.append(
-                {
-                    "root_cause": "ui_or_answer_surface_leak",
-                    "failed_claim": content[:1200],
-                    "trigger_type": "implementation_vocabulary_exposed",
-                }
-            )
-    return failed
-
-
-def _successful_tool_paths(tool_calls: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    paths: list[dict[str, Any]] = []
-    for call in tool_calls:
-        name = _tool_name(call)
-        status = _tool_status(call)
-        if status and status not in {"completed", "success", "succeeded"}:
-            continue
-        if name not in _PRIMITIVE_DATA_TOOLS:
-            continue
-        if not _tool_has_rows(call) and name != "analysis.run_python":
-            continue
-        paths.append(
-            {
-                "tool": name,
-                "arguments": _tool_arguments(call),
-                "why_it_worked": "The tool returned usable structured evidence after an earlier failed or insufficient path.",
-            }
-        )
-    return paths
 
 
 def bootstrap_zopedia_learning_storage(conn: Any, *, commit: bool = True) -> None:
@@ -338,65 +181,38 @@ def detect_learning_events_from_payload(
     user_key: str = "",
     run_payloads: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    """Detect durable learning candidates from a chat thread payload.
-
-    The detector looks for a generic failure shape: an answer made an
-    unavailable/debug claim while the same thread or later run found usable
-    primitive evidence. Domain interpretation is left to the critic.
-    """
-
+    """Offer a versioned conversation episode to the existing semantic critic."""
+    messages = [message for message in thread.get("messages") or [] if isinstance(message, dict)]
+    if not any(_clean(message.get("role")).lower() == "assistant" for message in messages):
+        return []
+    question = _first_user_question(thread)
+    if not question:
+        return []
     safe_user_key = _clean(user_key or thread.get("user_key")) or "default"
     thread_id = _clean(thread.get("thread_id"))
-    question = _first_user_question(thread)
-    tool_calls = _tool_calls_from_thread(thread)
-    for payload in list(run_payloads or []):
-        if not isinstance(payload, dict):
-            continue
-        for call in list(payload.get("tool_calls") or []):
-            if isinstance(call, dict):
-                tool_calls.append(dict(call))
-
-    failed = _failed_claims(thread)
-    successful_paths = _successful_tool_paths(tool_calls)
-    if not failed or not successful_paths:
-        return []
-
-    events: list[dict[str, Any]] = []
-    for item in failed:
-        root_cause = _clean(item.get("root_cause")) or "missing_fallback"
-        failed_claim = _clean(item.get("failed_claim"))
-        trigger_type = _clean(item.get("trigger_type")) or "user_rescue"
-        event = {
-            "event_id": _event_id(thread_id, question, root_cause, failed_claim[:240]),
-            "user_key": safe_user_key,
-            "thread_id": thread_id,
-            "status": "detected",
-            "severity": "high" if root_cause == "premature_unavailable_claim" else "medium",
-            "trigger_type": trigger_type,
-            "root_cause": root_cause,
-            "original_question": question,
-            "failed_claim": failed_claim,
-            "correction_summary": "A later tool path returned usable evidence, so future answers should not stop at the earlier failed path.",
-            "successful_path": successful_paths[:8],
-            "evidence_plan": {
-                "question": question,
-                "required_slots": [],
-                "fallbacks_attempted": [],
-                "cannot_claim": [
-                    "Do not claim data is unavailable until primitive evidence paths have been tried.",
-                    "Do not expose implementation IDs or debug refs in product answers.",
-                ],
-            },
-            "proposed_change_type": "tool_affordance_memory",
-            "proposal_id": "",
-            "mutation_id": "",
-            "eval_case_path": "",
-            "eval_status": "not_generated",
-            "confidence": 0.72,
-            "metadata": {"detector": "zopedia_learning_v1", "tool_count": len(tool_calls)},
-        }
-        events.append(event)
-    return events
+    episode = {"messages": messages, "runs": run_payloads or []}
+    fingerprint = hashlib.sha256(_json_dumps(episode).encode("utf-8")).hexdigest()
+    return [{
+        "event_id": _event_id(safe_user_key, thread_id, fingerprint),
+        "user_key": safe_user_key,
+        "thread_id": thread_id,
+        "status": "detected",
+        "severity": "unassessed",
+        "trigger_type": "conversation_episode",
+        "root_cause": "",
+        "original_question": question,
+        "failed_claim": "",
+        "correction_summary": "",
+        "successful_path": [],
+        "evidence_plan": {},
+        "proposed_change_type": "",
+        "proposal_id": "",
+        "mutation_id": "",
+        "eval_case_path": "",
+        "eval_status": "not_generated",
+        "confidence": 0.0,
+        "metadata": {"episode_fingerprint": fingerprint},
+    }]
 
 
 def _load_run_payloads_for_thread(thread: dict[str, Any]) -> list[dict[str, Any]]:
@@ -498,10 +314,12 @@ def critique_learning_event(
     instructions = (
         "You are the Zopedia learning critic. Review the original episode and conversation, then inspect relevant "
         "execution records using the supplied evidence tools and JSON Pointers. Every original remains available. "
-        "The detected event is a hypothesis, not an established failure or diagnosis. Assess its meaning in context; "
-        "do not infer a failure from a phrase, missing optional tool or incomplete review alone. Distinguish an "
-        "execution failure from research quality and useful partial output. Produce a compact, auditable diagnosis and generalizable learning guidance. "
-        "If the failure premise is unsupported, say so and choose no_change rather than manufacturing a repair. "
+        "Decide whether this episode contains a useful correction or lesson; ordinary successful work can need no_change. "
+        "Sources, prior answers and user corrections can all be wrong. Assess them against the evidence rather than "
+        "assuming a failure or accepting a correction. Identify which conclusions depend on a disputed detail and preserve "
+        "independent findings. A noisy detail or incomplete review need not invalidate useful analysis. Distinguish "
+        "execution failures from research quality, and return a compact diagnosis with reusable learning guidance. "
+        "Choose no_change when the evidence does not support a lesson. "
         "Do not invent successful paths, confidence or completed verification. "
         "Future claims/evidence are semantic guidance for review, never literal phrase bans or mandatory tool sequences."
     )
@@ -847,6 +665,9 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                     continue
                 event["status"] = "triaged"
                 event["root_cause"] = _clean(critique.get("root_cause")) or event.get("root_cause")
+                event["failed_claim"] = _clean(critique.get("failed_claim"))
+                event["successful_path"] = list(critique.get("successful_path") or [])
+                event["correction_summary"] = _clean(critique.get("root_cause"))
                 event["proposed_change_type"] = _clean(critique.get("proposed_change_type")) or event.get("proposed_change_type")
                 event["confidence"] = float(critique.get("confidence") or 0.0)
                 event["metadata"] = {**dict(event.get("metadata") or {}), "critic": critique}

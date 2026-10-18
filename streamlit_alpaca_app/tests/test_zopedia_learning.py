@@ -1,104 +1,79 @@
 from __future__ import annotations
 
-import json
+from copy import deepcopy
+from types import SimpleNamespace
 
-from services import zopedia_learning
-
-
-def _thread_payload() -> dict[str, object]:
-    return {
-        "thread_id": "zthread_test",
-        "user_key": "u",
-        "title": "What is the impact of the bond market today?",
-        "messages": [
-            {"role": "user", "content": "What is the impact of the bond market today?"},
-            {
-                "role": "assistant",
-                "content": "I cannot query actual stocks, so stock data is unavailable.",
-                "payload": {
-                    "agent_result": {
-                        "tool_calls": [
-                            {
-                                "tool_name": "dataset.daily_movers",
-                                "status": "completed",
-                                "arguments": {"symbols": ["SPY", "TLT"]},
-                                "result_summary": {"row_count": 0},
-                            },
-                            {
-                                "tool_name": "dataset.price_history",
-                                "status": "completed",
-                                "arguments": {"symbol": "SPY", "days": 5},
-                                "result_summary": {"row_count": 3},
-                            },
-                        ]
-                    }
-                },
-            },
-        ],
-    }
+from data_access.query_service import QueryService
+from services import aql_zopedia_engine, llm, zopedia_learning
 
 
-def test_detect_learning_events_from_payload_captures_rescued_tool_path():
-    events = zopedia_learning.detect_learning_events_from_payload(_thread_payload(), user_key="u")
-
-    assert len(events) == 1
-    event = events[0]
-    assert event["root_cause"] == "premature_unavailable_claim"
-    assert event["trigger_type"] == "tool_path_later_succeeded"
-    assert event["successful_path"][0]["tool"] == "dataset.price_history"
-    assert "primitive evidence paths" in event["evidence_plan"]["cannot_claim"][0]
+def _thread():
+    return {"thread_id": "thread", "user_key": "owner", "messages": [
+        {"role": "user", "content": "Question"},
+        {"role": "assistant", "content": "Answer"},
+    ]}
 
 
-def test_learning_event_builds_persisted_regression_eval(tmp_path):
-    event = zopedia_learning.detect_learning_events_from_payload(_thread_payload(), user_key="u")[0]
-    critique = zopedia_learning.critique_learning_event(event)
-    case = zopedia_learning.build_regression_eval_case(event, critique)
-    path = zopedia_learning.persist_regression_eval_case(case, base_dir=tmp_path)
-
-    payload = json.loads((tmp_path / path.split("/")[-1]).read_text())
-    assert payload["learning_event_id"] == event["event_id"]
-    assert "dataset.price_history" in payload["required_tool_patterns"]
-    assert "stock data is unavailable" in payload["forbidden_answer_patterns"]
-
-
-def test_build_tool_affordance_update_is_safe_upsert():
-    event = zopedia_learning.detect_learning_events_from_payload(_thread_payload(), user_key="u")[0]
-    critique = zopedia_learning.critique_learning_event(event)
-
-    update = zopedia_learning.build_tool_affordance_update(event, critique)
-
-    assert update["mutation_type"] == "upsert_pages"
-    assert update["pages"][0]["page_type"] == "concept"
-    assert event["event_id"] in update["pages"][0]["body_markdown"]
+def test_episode_identity_tracks_owner_messages_and_original_execution():
+    thread = _thread()
+    original = deepcopy(thread)
+    episode = zopedia_learning.detect_learning_events_from_payload(thread)[0]
+    assert thread == original
+    assert episode == zopedia_learning.detect_learning_events_from_payload(thread)[0]
+    assert episode["event_id"] != zopedia_learning.detect_learning_events_from_payload(thread, user_key="another-owner")[0]["event_id"]
+    thread["messages"].append({"role": "user", "content": "Correction"})
+    assert episode["event_id"] != zopedia_learning.detect_learning_events_from_payload(thread)[0]["event_id"]
+    assert episode["event_id"] != zopedia_learning.detect_learning_events_from_payload(original, run_payloads=[{"run_id": "attempt", "status": "failed"}])[0]["event_id"]
+    assert zopedia_learning.detect_learning_events_from_payload({"messages": [{"role": "user", "content": "Question"}]}) == []
 
 
-def test_replay_learning_eval_marks_tool_and_answer_contract(monkeypatch, tmp_path):
-    from services import aql_zopedia_engine
+def _critic_dependencies(monkeypatch, operation):
+    monkeypatch.setattr(QueryService, "from_environment", classmethod(lambda cls: cls(data_access=None)))
+    monkeypatch.setattr(aql_zopedia_engine, "research_engine_revision", lambda: "execution-contract")
+    monkeypatch.setattr(aql_zopedia_engine, "run_aql_zopedia_structured_agent", operation)
+    monkeypatch.setattr(llm, "get_active_narrative_style_rule", lambda: "frozen-style")
+    return SimpleNamespace(config=SimpleNamespace(provider="transport", model="model"))
 
-    def _fake_run_aql_zopedia_agent(**kwargs):
-        return {
-            "status": "completed",
-            "answer_markdown": "Yields bear-steepened; SPY and TLT moves were observed.",
-            "tool_calls": [
-                {"tool_name": "dataset.yield_curve_facts_1d", "status": "completed"},
-                {"tool_name": "dataset.daily_movers", "status": "completed"},
-            ],
-        }
 
-    monkeypatch.setattr(aql_zopedia_engine, "run_aql_zopedia_agent", _fake_run_aql_zopedia_agent)
-    path = tmp_path / "eval.json"
-    path.write_text(
-        json.dumps(
-            {
-                "question": "What is the impact of the bond market today?",
-                "required_tool_patterns": ["dataset.yield_curve_facts_1d", "dataset.daily_movers"],
-                "forbidden_answer_patterns": ["stock data is unavailable", "tool_call_id"],
-            }
-        )
-    )
+def test_completed_critique_reuses_exact_inputs_and_invalidates_changed_evidence(monkeypatch):
+    calls = []
+    payload = {"proposed_change_type": "no_change", "root_cause": ""}
+    def operation(**kwargs):
+        calls.append(kwargs)
+        return {"status": "completed", "payload": payload}
+    client = _critic_dependencies(monkeypatch, operation)
+    thread = _thread()
+    event = zopedia_learning.detect_learning_events_from_payload(thread)[0]
+    pending = []
+    result = zopedia_learning.critique_learning_event(event, thread, [], client, on_pending=lambda: pending.append(True))
+    assert result["_execution"]["status"] == "completed"
+    assert result["root_cause"] == payload["root_cause"]
+    repeated = zopedia_learning.critique_learning_event(event, thread, [], client, previous=result, on_pending=lambda: pending.append(True))
+    assert repeated["_reused"] is True
+    assert len(calls) == len(pending) == 1
+    thread["messages"].append({"role": "user", "content": "Additional evidence"})
+    changed_event = zopedia_learning.detect_learning_events_from_payload(thread)[0]
+    zopedia_learning.critique_learning_event(changed_event, thread, [], client, previous=result)
+    assert len(calls) == 2
+    assert calls[-1]["write_policy"] == "none"
+    assert calls[-1]["request_context"]["allowed_source_access"] == ["supplied"]
 
-    result = zopedia_learning.replay_learning_eval(str(path), run_agent=True)
 
-    assert result["status"] == "passed"
-    assert result["forbidden_hits"] == []
-    assert "dataset.daily_movers" in result["required_tool_hits"]
+def test_transport_failure_remains_pending_and_is_retried(monkeypatch):
+    calls = []
+    def operation(**kwargs):
+        calls.append(kwargs)
+        if len(calls) == 1:
+            raise TimeoutError("transport timeout")
+        return {"status": "completed", "payload": {"proposed_change_type": "no_change"}}
+    client = _critic_dependencies(monkeypatch, operation)
+    thread = _thread()
+    event = zopedia_learning.detect_learning_events_from_payload(thread)[0]
+    pending = []
+    failed = zopedia_learning.critique_learning_event(event, thread, [], client, on_pending=lambda: pending.append(True))
+    assert failed["_execution"]["status"] == "pending"
+    assert "error" in failed["_execution"]
+    assert "proposed_change_type" not in failed
+    recovered = zopedia_learning.critique_learning_event(event, thread, [], client, previous=failed, on_pending=lambda: pending.append(True))
+    assert recovered["_execution"]["status"] == "completed"
+    assert len(calls) == len(pending) == 2

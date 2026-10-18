@@ -1,0 +1,294 @@
+{
+  "recorded_at_utc": "2026-10-18T21:33:40.893924+00:00",
+  "scope": "Frozen supplied episodes through the existing shared AQL/Zopedia learning critic. No live retrieval, public publication, conversation or knowledge writes. Four semantic outputs require personal review.",
+  "model": "deepseek-reasoner",
+  "provider": "deepseek",
+  "thinking": "enabled",
+  "effort": "",
+  "engine_revision": "a087d63a3a2f168257d0",
+  "results": [
+    {
+      "name": "financing_date",
+      "seconds": 138.37,
+      "critique": {
+        "event_id": "zlearn_0ae04c785bc62c363ab7bcf1",
+        "root_cause": "Date attribution error plus imprecise description of financing terms. The answer dated CoreWeave's share program and note sale to 14 October 2026. CoreWeave's releases, opened during the review run, give 17 September 2026 for the at-the-market share program (up to 35 million shares, no obligation to sell) and 18 September 2026 for the priced convertible notes, upsized to $3.7 billion from $3.0 billion. How the wrong date entered is not proven; the answer also dated the Gartner forecast to 14 October, so a copied date is a reasonable inference, not an established mechanism. The funding-stress reading survives because it does not rest on the calendar date.",
+        "failed_assumption": "The assistant assumed both CoreWeave financing actions happened on 14 October 2026, that $3.0 billion was the final note size, that the share program was a committed sale, and that the timing of the raise relative to the selloff did not matter.",
+        "failed_claim": "CoreWeave said on 14 October 2026 that it would sell 35 million shares and raise $3 billion of debt.",
+        "successful_path": [
+          {
+            "tool": "research.open_page",
+            "arguments": {
+              "url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Announces-At-the-Market-Offering-Program/default.aspx"
+            },
+            "why_it_worked": "Gave the 17 September 2026 publication date and showed the share program is optional: up to 35 million shares, with no obligation to sell."
+          },
+          {
+            "tool": "research.open_page",
+            "arguments": {
+              "url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Prices-Upsized-3-7-Billion-Convertible-Senior-Notes-Offering/default.aspx"
+            },
+            "why_it_worked": "Gave the 18 September 2026 pricing date and the final upsized size of $3.7 billion, up from the earlier $3.0 billion."
+          }
+        ],
+        "should_try_earlier": [
+          "Open the named company release and copy its publication or pricing date into the sentence that uses it, rather than reusing a date already in the draft.",
+          "Use the final priced terms of a raise, and say whether the sale is optional or committed. A share count is not an amount of money.",
+          "Check the order of events before linking a financing to a market move. A raise that came weeks earlier is a background condition, not a same-week trigger.",
+          "After a date correction, re-check only the claims that use the date and keep findings that rest on separate evidence."
+        ],
+        "forbidden_future_claims": [
+          "CoreWeave's at-the-market share program is a 17 September 2026 announcement, not a 14 October event, and the sale is optional.",
+          "The convertible notes priced on 18 September 2026 at an upsized $3.7 billion; $3.0 billion was only the earlier announced size.",
+          "No direct link is supported between these September financing actions and a later selloff session as cause and same-week effect.",
+          "A first stock reaction figure needs a dated market record tied to the corrected dates."
+        ],
+        "required_future_evidence": [
+          "A dated source for CoreWeave's 2032 bond yield near 15%, which is the load-bearing fact in the credit-stress reading.",
+          "A dated source for the Gartner forecast that 80% of neocloud providers will stop independent operations by 2030, and its 14 October attribution.",
+          "A dated market record for the selloff session and the listed percentage moves, including Nebius at about -12%.",
+          "A source for Applied Digital's $6.264 billion net long-term debt at 31 August 2026 and its $2.083 billion investment in the quarter."
+        ],
+        "proposed_change_type": "eval_only",
+        "confidence": 0.86,
+        "_execution": {
+          "input_fingerprint": "de90e2b726eab74cd446834680aa309b20a9a21776c9ae7acf9d09c431385e1a",
+          "status": "completed",
+          "attempted_at": "2026-10-18T21:31:12.758628+00:00"
+        }
+      }
+    },
+    {
+      "name": "unit_error",
+      "seconds": 38.17,
+      "critique": {
+        "event_id": "zlearn_7d227ff025e2871d1df51ef5",
+        "root_cause": "The answer took a gross profit figure from an industry blog ($36 billion) and did not reconcile it with the filed figures given in the question ($120 million revenue, $36 million gross profit). Because it skipped the magnitude check, it also skipped the economics. The filed numbers give a 30% gross margin and, with an $8 million operating loss, about $44 million of operating costs (about 36.7% of revenue). The 64% customer concentration finding came from the question and did not depend on the disputed figure.",
+        "failed_assumption": "The blog's $36 billion gross profit was consistent with the filing, and a large gross profit meant the company was strongly profitable.",
+        "failed_claim": "Gross profit of $36 billion shows outstanding profitability.",
+        "successful_path": [],
+        "should_try_earlier": [
+          "Compare any blog or secondary-source figure with the primary filing before using it; the filing figures were already in the question.",
+          "Check whether the figure is possible: gross profit cannot be $36 billion when revenue is $120 million. The filed $36 million gross profit is 30% of revenue.",
+          "Judge profitability from the operating result: an $8 million operating loss on $120 million of revenue is about -6.7%, and it implies about $44 million of operating costs.",
+          "Separate conclusions that use the disputed figure from those that do not, and keep the 64% customer concentration risk."
+        ],
+        "forbidden_future_claims": [
+          "Do not present the blog's $36 billion gross profit as filed data; the filing says $36 million.",
+          "Do not describe the company as strongly profitable when it reports an operating loss; a positive gross profit only shows what is left after cost of goods sold.",
+          "Do not drop the 64% customer concentration risk because of the unit error; it is an independent finding."
+        ],
+        "required_future_evidence": [
+          "The filed revenue, gross profit and operating result for the company under review.",
+          "Gross margin and operating margin calculated from the filed figures.",
+          "For any figure taken from a blog or other secondary source, the source and a comparison with the filing."
+        ],
+        "proposed_change_type": "safe_memory_update",
+        "confidence": 0.96,
+        "_execution": {
+          "input_fingerprint": "ac73844622eed10fd096b0f23b9e500a36c4bf52b26ef10b15fa806afd781b01",
+          "status": "completed",
+          "attempted_at": "2026-10-18T21:31:12.759256+00:00"
+        }
+      }
+    },
+    {
+      "name": "misleading_correction",
+      "seconds": 60.42,
+      "critique": {
+        "event_id": "zlearn_7b0b3db2832c32f4055e97fe",
+        "root_cause": "This is a false user correction, not an execution or research failure. The assistant correctly said that a bond yield is not a default probability. A bond's yield is the rate that makes the present value of its promised cash flows equal its price. It reflects the risk-free rate, credit risk, liquidity, recovery expectations and other factors. A 15% yield can signal high credit risk, but it can also reflect high risk-free rates or other conditions. To estimate default probability, compare the yield with a risk-free yield of similar maturity to get the spread, then state assumptions about recovery and loss given default. The spread also includes liquidity and risk premiums, so it is not a direct probability.",
+        "failed_assumption": "A user correction is correct because the user asserts it, so a correct answer should be changed to match the user's rule.",
+        "failed_claim": "A corporate bond yield of 15% always means exactly a 15% probability of default.",
+        "successful_path": [],
+        "should_try_earlier": [],
+        "forbidden_future_claims": [
+          "A corporate bond yield equals its default probability.",
+          "A 15% corporate bond yield always means exactly a 15% probability of default.",
+          "A user correction proves that the previous answer was wrong without supporting evidence."
+        ],
+        "required_future_evidence": [
+          "If a numerical default probability is requested, a credit model is needed: a comparable risk-free yield, the credit spread, a recovery assumption and stated model assumptions."
+        ],
+        "proposed_change_type": "no_change",
+        "confidence": 0.97,
+        "_execution": {
+          "input_fingerprint": "3d5b178717f1fad3a2fec849aec2dc1811ac00d6cdf7d39dd52ff0ad8a595647",
+          "status": "completed",
+          "attempted_at": "2026-10-18T21:31:50.920743+00:00"
+        }
+      }
+    },
+    {
+      "name": "ordinary_success",
+      "seconds": 49.55,
+      "critique": {
+        "event_id": "zlearn_9c9bd11b76e5aaaef343fc8a",
+        "root_cause": "No failure found. The assistant gave a correct short explanation: evaporation happens at the liquid surface when fast molecules escape, while boiling happens throughout the liquid when vapor pressure reaches the surrounding pressure. The episode record has no failed claim, no correction and no proposed change.",
+        "failed_assumption": "A detected conversation episode means there was an error. The evidence does not support that assumption.",
+        "failed_claim": "",
+        "successful_path": [],
+        "should_try_earlier": [],
+        "forbidden_future_claims": [
+          "Do not claim that a puddle must boil before it can evaporate.",
+          "Do not claim that this episode contains a user correction or a failed answer unless a specific incorrect statement is identified."
+        ],
+        "required_future_evidence": [
+          "If a change is proposed later, identify the specific incorrect claim or user correction that justifies it.",
+          "If the answer is revised, keep the surface-versus-bulk distinction and explain that vapor is removed by the surrounding air."
+        ],
+        "proposed_change_type": "no_change",
+        "confidence": 0.97,
+        "_execution": {
+          "input_fingerprint": "f318a84cfdd7d51e6bc6513d8eba7e62a412d6090fc17eb0d0a3bfc7fd9b8e43",
+          "status": "completed",
+          "attempted_at": "2026-10-18T21:33:02.837148+00:00"
+        }
+      }
+    }
+  ],
+  "personally_reviewed_complete_outputs": true,
+  "accepted_change": "Remove hardcoded semantic episode admission; reuse existing critic, retries, reuse and write permissions.",
+  "mechanical_checks": {
+    "episode_identity_owner_and_evidence": true,
+    "completed_critique_reuse": true,
+    "changed_evidence_invalidates_reuse": true,
+    "transport_failure_remains_pending_and_retried": true,
+    "pytest_contract_checks": 3
+  },
+  "adverse_direct_reader_comparison": {
+    "status": "rejected",
+    "reason": "Did not improve complete quality/call count; one operation returned empty provider content and remained pending. Existing critic path restored; no new recovery added.",
+    "results": [
+      {
+        "name": "financing_date",
+        "seconds": 47.22,
+        "critique": {
+          "event_id": "zlearn_0ae04c785bc62c363ab7bcf1",
+          "_execution": {
+            "input_fingerprint": "de90e2b726eab74cd446834680aa309b20a9a21776c9ae7acf9d09c431385e1a",
+            "status": "pending",
+            "attempted_at": "2026-10-18T21:35:00.054924+00:00",
+            "error": "RuntimeError: LLMAPIError: DeepSeek returned empty content."
+          }
+        }
+      },
+      {
+        "name": "unit_error",
+        "seconds": 23.44,
+        "critique": {
+          "event_id": "zlearn_7d227ff025e2871d1df51ef5",
+          "root_cause": "The assistant accepted a unit error from a secondary blog. The filing gives gross profit of $36 million, but the blog said $36 billion. The assistant repeated the blog figure and did not compare it with the filing or with revenue of $120 million. A gross profit larger than revenue by a factor of about 300 should have been an immediate warning sign. The assistant also did not calculate the 30% gross margin or discuss the $8 million operating loss.",
+          "failed_assumption": "That a secondary source's figure is reliable without comparison to the primary filing or a common-sense check against revenue.",
+          "failed_claim": "Gross profit of $36 billion shows outstanding profitability. The filing actually reports gross profit of $36 million, so the correct margin is 30% ($36 million / $120 million). The company had an operating loss of $8 million, which contradicts the claim of outstanding profitability.",
+          "successful_path": [
+            {
+              "tool": "research.read_supplied_evidence",
+              "arguments": {
+                "source_id": "message:0"
+              },
+              "why_it_worked": "Reading the original question kept the exact filing figures in view: $120 million revenue, $36 million gross profit and an $8 million operating loss."
+            },
+            {
+              "tool": "research.read_supplied_evidence",
+              "arguments": {
+                "source_id": "message:1"
+              },
+              "why_it_worked": "Reading the assistant answer showed that it copied the blog figure of $36 billion instead of the filing figure."
+            }
+          ],
+          "should_try_earlier": [
+            "Before writing the answer, compare each secondary-source figure with the primary filing. Treat any large mismatch as an error until one value is confirmed.",
+            "Check figures against revenue for plausibility. Gross profit cannot exceed revenue, so $36 billion against $120 million revenue is impossible.",
+            "Calculate the main financial ratios from the filing: gross margin of 30% and an operating loss of $8 million. State that the company is unprofitable at the operating level."
+          ],
+          "forbidden_future_claims": [
+            "Do not state that gross profit is $36 billion, or that the company shows outstanding profitability, when the filing reports a $36 million gross profit and an $8 million operating loss.",
+            "Do not use a blog figure when it conflicts with the primary filing without clearly labeling and explaining the conflict."
+          ],
+          "required_future_evidence": [
+            "The primary filing figures for revenue, gross profit and operating loss, used as the source for any profitability claim.",
+            "An explicit note of the conflict between the blog's $36 billion and the filing's $36 million, with the filing treated as authoritative.",
+            "A calculation of gross margin ($36 million / $120 million = 30%) and a statement of the operating loss."
+          ],
+          "proposed_change_type": "safe_memory_update",
+          "confidence": 0.93,
+          "_execution": {
+            "input_fingerprint": "ac73844622eed10fd096b0f23b9e500a36c4bf52b26ef10b15fa806afd781b01",
+            "status": "completed",
+            "attempted_at": "2026-10-18T21:35:00.055486+00:00"
+          }
+        }
+      },
+      {
+        "name": "misleading_correction",
+        "seconds": 24.73,
+        "critique": {
+          "event_id": "zlearn_7b0b3db2832c32f4055e97fe",
+          "root_cause": "The episode was triggered by a user correction that contradicts basic bond math. The assistant's original answer correctly said that yield is not a default probability. The episode metadata is empty and unassessed, so it does not establish an execution failure.",
+          "failed_assumption": "A user correction is sufficient proof that the assistant's original answer was wrong.",
+          "failed_claim": "A corporate bond yield of 15% always means exactly a 15% probability of default.",
+          "successful_path": [
+            {
+              "tool": "research.list_supplied_evidence",
+              "arguments": {},
+              "why_it_worked": "Located the episode and the three conversation records without relying on the empty episode diagnosis."
+            },
+            {
+              "tool": "research.read_supplied_evidence",
+              "arguments": {
+                "source_id": "message:1"
+              },
+              "why_it_worked": "Confirmed that the assistant separated bond yield from default probability and named the main components of yield."
+            }
+          ],
+          "should_try_earlier": [
+            "Check the assistant's original answer against basic bond pricing before accepting a user correction.",
+            "Ask for the model or source behind any claim that yield equals default probability."
+          ],
+          "forbidden_future_claims": [
+            "A corporate bond yield of 15% always means exactly a 15% probability of default.",
+            "A user correction alone proves that a correct finance answer is wrong."
+          ],
+          "required_future_evidence": [
+            "A source or quantitative model that defines any mapping from observed yield to default probability, including recovery and risk premia.",
+            "The original assistant answer and the exact user correction when a disputed finance claim is reviewed."
+          ],
+          "proposed_change_type": "no_change",
+          "confidence": 0.99,
+          "_execution": {
+            "input_fingerprint": "3d5b178717f1fad3a2fec849aec2dc1811ac00d6cdf7d39dd52ff0ad8a595647",
+            "status": "completed",
+            "attempted_at": "2026-10-18T21:35:23.482906+00:00"
+          }
+        }
+      },
+      {
+        "name": "ordinary_success",
+        "seconds": 12.18,
+        "critique": {
+          "event_id": "zlearn_9c9bd11b76e5aaaef343fc8a",
+          "root_cause": "No failure caused this review. The original reply is scientifically correct and answers the question directly. The episode metadata has an empty failed claim, empty root cause, and zero confidence, but that does not show an error.",
+          "failed_assumption": "None. The review flagged the episode, but the evidence does not support a failed assumption by the assistant.",
+          "failed_claim": "",
+          "successful_path": [],
+          "should_try_earlier": [],
+          "forbidden_future_claims": [],
+          "required_future_evidence": [],
+          "proposed_change_type": "no_change",
+          "confidence": 0.95,
+          "_execution": {
+            "input_fingerprint": "f318a84cfdd7d51e6bc6513d8eba7e62a412d6090fc17eb0d0a3bfc7fd9b8e43",
+            "status": "completed",
+            "attempted_at": "2026-10-18T21:35:47.263240+00:00"
+          }
+        }
+      }
+    ]
+  },
+  "model_attempts": {
+    "accepted_comparison_unique_attempts": 38,
+    "rejected_direct_comparison_unique_attempts": 60
+  },
+  "learning_source_sha256": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe"
+}
