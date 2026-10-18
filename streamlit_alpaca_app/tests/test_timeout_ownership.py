@@ -1,9 +1,68 @@
 """Thread/IO ownership checks; no inference or answer-quality assertions."""
 import threading
+import json
+from types import SimpleNamespace
 
 import pytest
 
 from services.work_scope import register_cancellation, check_work, remaining_work_seconds, WorkCancelled
+
+
+@pytest.mark.parametrize("outcome", ["draft", "sources", "normal_return", "no_work"])
+def test_aql_deadline_returns_available_shared_research(monkeypatch, outcome):
+    from services import aql_zopedia_engine as engine
+    from services.aql import pipeline
+
+    cancelled, ended = threading.Event(), threading.Event()
+    latest = [None]
+    source = {"tool_call_id": "source", "status": "completed",
+              "result_summary": {"source_text": "complete captured source"}}
+    state = {"run_id": "run", "draft_answer": json.dumps({"value": "draft"}),
+             "tool_calls": [source], "quality_review": {"status": "not_run"}}
+    if outcome == "sources":
+        state["draft_answer"] = "{"
+    if outcome == "no_work":
+        state.update(draft_answer="", tool_calls=[])
+
+    def agent(**kwargs):
+        unregister = register_cancellation(cancelled.set)
+        try:
+            kwargs["checkpoint_callback"](state)
+            source["result_summary"]["source_text"] = "later mutable state"
+            if outcome == "normal_return":
+                return {"status": "completed", "answer_markdown": json.dumps({"value": "reviewed"})}
+            assert cancelled.wait(2)
+            check_work()
+        finally:
+            unregister()
+            ended.set()
+
+    def retain(result):
+        latest[0] = result
+
+    monkeypatch.setattr(engine, "run_aql_zopedia_agent", agent)
+    client = SimpleNamespace(config=SimpleNamespace(model="transport", provider="transport"))
+    def research():
+        return engine.run_aql_zopedia_structured_agent(
+            query="request", task="contract", surface="contract", llm_client=client,
+            schema_name="artifact", schema={"type": "object", "required": ["value"],
+                                            "properties": {"value": {"type": "string"}}},
+            result_callback=retain,
+        )
+
+    if outcome == "no_work":
+        with pytest.raises(pipeline.AQLStepTimeout):
+            pipeline._call_with_timeout("contract", .1, research, on_timeout=lambda: latest[0])
+    else:
+        result = pipeline._call_with_timeout("contract", .1, research, on_timeout=lambda: latest[0])
+        if outcome == "normal_return":
+            assert result["payload"] == {"value": "reviewed"}
+        else:
+            assert result["payload"] == ({"value": "draft"} if outcome == "draft" else None)
+            assert result["status"] == ("completed" if outcome == "draft" else "partial")
+            assert result["agent_result"]["tool_calls"][0]["result_summary"]["source_text"] == "complete captured source"
+    assert ended.wait(2)
+    assert cancelled.is_set() == (outcome != "normal_return")
 
 
 @pytest.mark.parametrize("owner", ["attention", "aql", "live_research", "pipeline"])

@@ -850,7 +850,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65": {
+          "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
+          "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68",
+          "runtime_inventory_sha256": "b37e795fcdefadd73c39fd0e51f75ca301c5cfc1da9ae40cc525c28bffdd2ee4",
+          "evidence": "documents/verification/source-evidence-repair-2026-10-18/deadline-packaged-images.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -872,7 +879,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a": {
+          "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
+          "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68",
+          "runtime_inventory_sha256": "b37e795fcdefadd73c39fd0e51f75ca301c5cfc1da9ae40cc525c28bffdd2ee4",
+          "evidence": "documents/verification/source-evidence-repair-2026-10-18/deadline-packaged-images.json"
+        }
+      },
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15",
@@ -977,7 +991,11 @@
     "status": "pending",
     "scope": "Narrow deadline-result correction accepted locally; complete fresh DEV Home verification pending.",
     "evidence": "documents/verification/source-evidence-repair-2026-10-18/deadline-result-review.json",
-    "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b"
+    "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a"
+    }
   },
   "preceding_hold": {
     "revision": "20108c58",
