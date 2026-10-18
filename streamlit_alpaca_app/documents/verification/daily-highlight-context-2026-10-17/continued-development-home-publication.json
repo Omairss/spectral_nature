@@ -1,0 +1,574 @@
+{
+  "status": "not_accepted",
+  "recorded_at_utc": "2026-10-18T01:57:14.816022+00:00",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961",
+  "execution": "attention-home-next-dev-cdzog4j",
+  "execution_status": "Succeeded",
+  "execution_start": "2026-10-18T00:37:00Z",
+  "execution_end": "2026-10-18T01:14:17Z",
+  "execution_seconds": 2237,
+  "input_catalog": {
+    "namespace": "development",
+    "home_run": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
+    "asof": "2026-10-18T00:37:36.127408+00:00",
+    "catalog_entries": 543,
+    "observations": 112203,
+    "catalog_json_characters": 6192056
+  },
+  "public_home": {
+    "run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
+    "as_of": "2026-10-18T00:37:36.127408+00:00",
+    "summary": {
+      "headline": "Market Summary",
+      "markdown": "The latest close showed a rotation, not a broad crash. Nine of 11 US sectors rose, led by energy at +2.19% and staples at +0.95%, while information technology fell 4.70%. The main move was out of long-duration AI, memory and high-multiple technology shares into energy, staples and utilities. Headline CPI was 4.02% higher than a year earlier, the 10-year Treasury yield was 5.1%, and Fed Chair Warsh did not rule out an October hike. Oil near $96-98 supported energy.",
+      "status": "completed",
+      "featured_symbols": [],
+      "audio_available": true,
+      "audio_mime_type": "audio/mpeg"
+    },
+    "coverage": {
+      "candidate_count": 83,
+      "event_count": 15,
+      "must_read_count": 0,
+      "unresolved_count": 41,
+      "news_backed_count": 9
+    },
+    "provenance": {
+      "mode": "materialized",
+      "datasets": [
+        "attention_home_snapshots_1d"
+      ]
+    }
+  },
+  "stories": [
+    {
+      "id": "event::source-8de879f79bc5d3627199",
+      "kind": "event",
+      "title": "China's CXMT 4F² DRAM plan sparked a memory-stock selloff",
+      "summary": "CXMT's plan to ship a denser server DRAM product by year-end hit memory shares. Micron, Sandisk and Korean memory makers fell. The market treated a roadmap as a future supply threat before yields or volumes were known.",
+      "what_changed": "At an industry event on 10 October 2026, CXMT presented a 4F² DRAM design and said it plans a server DDR5 RDIMM by year-end ([Benzinga](https://www.benzinga.com/news/26/10/62315688/china-s-cxmt-monday-reported-major-progress-proprietary-memory-chip-transistor-structure-also-pursue); [Tom's Hardware](https://www.tomshardware.com/pc-components/dram/cxmt-president-says-companys-first-4f2-dram-will-be-a-server-ddr5-rdimm-due-by-year-end-vertical-transistors-cut-each-memory-cells-footprint-by-a-third-on-paper-but-no-speeds-or-capacities-yet)). On 13 October, Samsung and SK Hynix fell in Seoul, the KOSPI dropped about 5%, and Micron and Applied Materials fell in the US. Sandisk dropped 4%. CXMT gave no speeds, capacities or yields.",
+      "why": "A smaller memory cell can lower cost per bit if it yields. That would add supply to commodity and server DRAM, where incumbents earn much of revenue. The news also hit a crowded AI-memory trade: Sandisk had risen 530% in 2026, and investors were taking profits. The reports do not split the move between CXMT fear and AI de-risking.",
+      "business_context": "DRAM is commodity-like: cost per bit and supply timing drive profit. 4F² is not new; Samsung had shown a design. The change is CXMT's plan to ship. Its first target is server DDR5, not HBM, the high-bandwidth memory used next to AI accelerators.",
+      "watch_next": "Does CXMT ship the server DDR5 RDIMM by year-end with disclosed speeds, capacities and yields? Do DRAM contract prices or incumbent guidance weaken? Watch Samsung and SK Hynix production and US export rules.",
+      "symbols": [
+        "MU",
+        "SKHY",
+        "SSNLF",
+        "AMAT",
+        "SNDK",
+        "SMH",
+        "EWY"
+      ],
+      "primary_symbol": "MU",
+      "change_pct": null
+    },
+    {
+      "id": "event::cluster-02-7481f6c102",
+      "kind": "event",
+      "title": "AI data-center hosts and bitcoin miners fell together on credit stress",
+      "summary": "A cluster of AI-cloud hosts, data-center operators and bitcoin miners fell about 7% to 13% as credit fears hit the AI build-out. The broad market rose, so this was a rotation out of leveraged AI infrastructure, not a market-wide selloff.",
+      "what_changed": "On 16 October 2026, AI-cloud hosts, data-center operators and bitcoin miners fell together. Nebius lost 12.2%, CoreWeave 11.9%, Applied Digital 11.5%, IREN 11.2%, Hut 8 11.0%, Cipher 10.7%, CleanSpark 10.0%, TeraWulf 7.5% and Bitdeer 7.9%. The broad market did not follow: nine of 11 US sectors rose.",
+      "why": "Credit stress at a major AI cloud provider raised funding costs for the AI build-out. CoreWeave credit default swaps implied about 60% default risk, and its bonds yielded near 15% ([Benzinga](https://www.benzinga.com/markets/tech/26/10/62412918/coreweave-bonds-distress-ai-darwin-moment-hartnett)). A 15 October Gartner forecast said 80% of newer cloud providers will not survive independently. Hot inflation and Fed-hike uncertainty added rate pressure, with the 10-year yield near 5.1%. These firms borrow to build data centers and sign long contracts to repay debt, so higher funding costs cut equity value directly.",
+      "business_context": "These companies are not one industry. AI hosts rent compute capacity; miners own power-intensive data centers. Both are capital-intensive and sensitive to credit and power costs. Bitcoin miners also carry crypto price risk.",
+      "watch_next": "Watch CoreWeave credit spreads and bond yields, new financing or lease announcements, neocloud warnings, and AI capex guidance from large cloud buyers.",
+      "symbols": [
+        "NBIS",
+        "IREN",
+        "CRWV",
+        "APLD",
+        "VICR",
+        "HUT",
+        "AXTI",
+        "CIFR"
+      ],
+      "primary_symbol": "NBIS",
+      "change_pct": -12.16
+    },
+    {
+      "id": "event::source-a45f0867717d864aebce",
+      "kind": "event",
+      "title": "YMTC reaches No. 3 in NAND shipments and files for a Shanghai IPO",
+      "summary": "YMTC overtook Micron in NAND shipments and filed for a Shanghai IPO. The news pressured NAND pricing expectations and storage shares, but the high-value enterprise market is slower to win.",
+      "what_changed": "On 13 October 2026, Benzinga reported that YMTC overtook Micron in global NAND shipment volume and is targeting AI enterprise storage ([Benzinga](https://www.benzinga.com/markets/tech/26/10/62323827/ymtc-overtakes-micron-in-global-nand-shipment-volumes)). Counterpoint put YMTC third by NAND shipments in Q2 2026, behind Samsung and SK Hynix and ahead of Kioxia and Micron; excluding SK Hynix's Solidigm unit, YMTC would rank second. YMTC's global NAND revenue share rose from 9% in Q1 2025 to 14% in Q1 2026. YMTC filed a Shanghai Star Market IPO prospectus in August 2026; pricing and valuation were not set ([Counterpoint](https://counterpointresearch.com/en/insights/ymtc-files-for-landmark-ipo-after-climbing-to-no-3-in-global-nand-race-with-dram-next)).",
+      "why": "AI data centers pulled demand toward enterprise SSDs. That growth let a new supplier win volume while the whole NAND market expanded. An IPO would give YMTC cheaper long-term capital and support capacity plans. The equity reaction is fear about future supply, not evidence of current oversupply: TrendForce still expected NAND contract prices to rise 15% to 20% in Q4 2026.",
+      "business_context": "NAND flash is storage memory. It is cyclical: capacity arrives in waves, and prices fall when supply catches demand. Enterprise SSD qualification is slow because cloud buyers test reliability, endurance and firmware. YMTC is also on the US Entity List, and US federal buying restrictions limit some demand.",
+      "watch_next": "Does YMTC convert shipment rank and IPO capital into qualified enterprise SSD volume at major cloud buyers? Watch NAND contract prices, YMTC capacity, IPO terms and US procurement rules.",
+      "symbols": [
+        "MU",
+        "SNDK",
+        "SKHY",
+        "SSNLF",
+        "WDC",
+        "STX",
+        "AMAT",
+        "LRCX"
+      ],
+      "primary_symbol": "MU",
+      "change_pct": null
+    },
+    {
+      "id": "event::source-e3855258dacc0ec7dda0",
+      "kind": "event",
+      "title": "Liquidia pays $380.7M and moves to drop PH-ILD use to end United Therapeutics lawsuits",
+      "summary": "Liquidia settled six lawsuits with United Therapeutics. It pays net $380.7M and agrees to give up the PH-ILD use of YUTREPIA to keep the drug on the market for PAH. The stock jumped because a company-wide legal risk was removed, but the cash cost is large.",
+      "what_changed": "On 13 October 2026, Liquidia and United Therapeutics announced a global settlement that resolves six lawsuits ([Benzinga](https://www.benzinga.com/news/26/10/62342767/liquidia-enters-global-settlement-agreement-united-therapeutics-resolves-all-pending-litigation-betw)). Liquidia pays $185M within 30 business days for past YUTREPIA sales, and United Therapeutics pays $10M back, for a $175M net first payment. Liquidia also pays $145.4M for PH-ILD sales after signing, in two $72.7M installments due by 31 January and 30 April 2027, plus $60.3M in October 2026 to parties in the Treprostinil Injection antitrust case. Gross payments are $390.7M; net is $380.7M. Liquidia filed a supplement to remove PH-ILD from the label; approval and effective date are pending. It will keep selling YUTREPIA for PAH ([Liquidia](https://www.liquidia.com/news-releases/news-release-details/liquidia-announces-global-settlement-resolving-all-pending)).",
+      "why": "The 30 September 2026 Delaware ruling found two patent claims valid and infringed by marketing YUTREPIA for PH-ILD. Liquidia faced an appeal and possible injunction. YUTREPIA supplied about $170.4M of $171.7M of Q2 2026 revenue, so a broad restriction would have hit the whole company. The settlement buys certainty for the PAH business and pays with cash, the PH-ILD label, trial-data rights and patent-challenge limits.",
+      "business_context": "Liquidia is a single-product company. Preliminary Q3 2026 YUTREPIA sales were $222.7M and cash was $396.1M at 30 September. Net payments equal about 96% of that cash, but they are spread into 2027: about $235.3M is payable in 2026, or 59% of cash, before operating costs. The lost PH-ILD revenue is not split out in reported sales.",
+      "watch_next": "Watch FDA acceptance and the effective date of the label removal, then Q3 cash flow, PAH-only sales and any disclosure that splits sales by condition. The L606 path back into PH-ILD is not settled.",
+      "symbols": [
+        "LQDA",
+        "UTHR"
+      ],
+      "primary_symbol": "LQDA",
+      "change_pct": null
+    },
+    {
+      "id": "event::cluster-01-e4b7ee09dc",
+      "kind": "event",
+      "title": "Oil near $98 and Crescent's Eagle Ford deal lifted energy shares",
+      "summary": "Energy was the strongest sector as crude held near $96-98 after a large US stock draw. Crescent Energy jumped 10% on deal optimism. Pipeline and utility names rose less.",
+      "what_changed": "WTI crude settled at $97.97 a barrel on 15 October 2026, up 3.03%, after a large US crude stock draw, and held near $96 the next day. Energy was the strongest US sector on 16 October, up 2.19% on average. Crescent Energy jumped 10.28% to $13.785; Antero Resources rose 6.1%, Ovintiv 4.8%, Diamondback 4.3%, EOG 3.5%, Kinder Morgan 4.1% and Enterprise Products 3.9%.",
+      "why": "Higher crude raises revenue and cash flow per barrel for producers. Crescent gained about three times large peers. Market commentary linked the extra push to optimism about its $4.2B Eagle Ford purchase from Devon and a $12.50 share sale; the prior close equals that issue price, so part of the rally is a recovery from the sale level. Pipeline operators earn fees on volumes, so they gain less from price; the gas utility gains least because returns are regulated.",
+      "business_context": "Oil producers are price takers with high fixed costs, so small crude moves can swing cash flow. Midstream companies are fee-based and more stable. Regulated utilities are defensive and rate-sensitive.",
+      "watch_next": "Watch US crude inventories, OPEC and sanctions headlines, and whether WTI holds near $96-98. For Crescent, watch deal closing, financing and whether the share price holds above the $12.50 issue price.",
+      "symbols": [
+        "CRGY",
+        "AR",
+        "NI",
+        "KMI",
+        "OVV",
+        "FANG",
+        "EPD",
+        "TRP"
+      ],
+      "primary_symbol": "CRGY",
+      "change_pct": 10.28
+    },
+    {
+      "id": "symbol::MXL",
+      "kind": "unresolved",
+      "title": "MaxLinear fell 8.8% without a confirmed company catalyst",
+      "summary": "MaxLinear dropped 8.8% with no clear company news. Its recent growth has come from data-center optics, so the stock may have moved with the AI-hardware selloff. This is a useful lead, not a confirmed event.",
+      "what_changed": "MaxLinear fell 8.77% to $71.32 on 16 October 2026 on about 100,000 shares. The move came with a broad AI-hardware selloff but no company announcement, earnings release or guidance change.",
+      "why": "The cause is unresolved. The company's growth is now tied to data-center optics: Q2 2026 revenue was $168.8M, up 23% from Q1 and 55% from a year earlier; infrastructure rose 145% and became the largest category; management raised its 2026 optical data-center revenue outlook to $210-230M from $150-170M. That makes the stock sensitive to AI capex sentiment, but the evidence does not show a MaxLinear-specific trigger.",
+      "business_context": "MaxLinear sells analog and mixed-signal chips. The data-center optics business is now the growth engine, so orders and hyperscaler spending matter more than the legacy broadband business.",
+      "watch_next": "Watch the next earnings and guidance, optical orders and comments from Lumentum, Coherent and Applied Optoelectronics.",
+      "symbols": [
+        "MXL"
+      ],
+      "primary_symbol": "MXL",
+      "change_pct": -8.77
+    }
+  ],
+  "charts": [
+    {
+      "id": "stock:IREN:price",
+      "title": "IREN price: AI data-center financing shock",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "IREN closed at $27.00 on Oct 16, down 11.2%, after announcing a $2 billion private offering; financing and dilution concerns helped drive the AI data-center selloff.",
+      "label": "IREN · Price",
+      "kind": "price",
+      "symbol": "IREN",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 27,
+      "period": ""
+    },
+    {
+      "id": "stock:MU:price",
+      "title": "Micron price: China supply reprices memory",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "MU closed at $878.78 on Oct 16, down 5.6% and 27.7% below its Jun 25 high; the drop followed CXMT and YMTC supply news, but the link to forecast cuts is interpretation.",
+      "label": "MU · Price",
+      "kind": "price",
+      "symbol": "MU",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 878.78,
+      "period": ""
+    },
+    {
+      "id": "stock:SNDK:price",
+      "title": "Sandisk price: NAND exposure repriced",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "SNDK closed at $1,299.04 on Oct 16, down 6.9% and 44.4% below its Jun 25 high; the drop is consistent with investors repricing NAND exposure after YMTC's shipment ranking.",
+      "label": "SNDK · Price",
+      "kind": "price",
+      "symbol": "SNDK",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 1299.04,
+      "period": ""
+    },
+    {
+      "id": "stock:CRGY:price",
+      "title": "Crescent Energy price: counter-trend rally",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "CRGY closed at $13.785 on Oct 16, up 10.3%, on its Eagle Ford deal and a sector-wide energy rally; energy was the session's clearest counter-trend.",
+      "label": "CRGY · Price",
+      "kind": "price",
+      "symbol": "CRGY",
+      "series_id": "",
+      "unit": "USD",
+      "date": "2026-10-16",
+      "value": 13.785,
+      "period": ""
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "title": "Broad high-yield spreads: modest widening",
+      "selected_at": "2026-10-17T23:03:00.216879+00:00",
+      "significance": "The broad US high-yield spread was 3.23% at the latest reading on Oct 15, up 0.63 percentage points from the Aug 28 low; it is background, not proof of CoreWeave-specific stress.",
+      "label": "High Yield OAS",
+      "kind": "macro",
+      "symbol": "",
+      "series_id": "BAMLH0A0HYM2",
+      "unit": "%",
+      "date": "2026-10-15",
+      "value": 3.23,
+      "period": "D"
+    }
+  ],
+  "chart_original_integrity": [
+    {
+      "id": "stock:IREN:price",
+      "stored_matches_its_retained_selection_original": true,
+      "home_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "selection_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "source_observations": 1233
+    },
+    {
+      "id": "stock:MU:price",
+      "stored_matches_its_retained_selection_original": true,
+      "home_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "selection_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "source_observations": 1254
+    },
+    {
+      "id": "stock:SNDK:price",
+      "stored_matches_its_retained_selection_original": true,
+      "home_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "selection_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "source_observations": 421
+    },
+    {
+      "id": "stock:CRGY:price",
+      "stored_matches_its_retained_selection_original": true,
+      "home_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "selection_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "source_observations": 1218
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "stored_matches_its_retained_selection_original": true,
+      "home_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "selection_run": "035fc67f-1315-439f-a72b-a045a4f853a3",
+      "source_observations": 784
+    }
+  ],
+  "new_chart_selection": false,
+  "chart_asof": "2026-10-17T23:03:00.216879+00:00",
+  "source_market_breadth": {
+    "total_symbols": 999,
+    "advancers": 400,
+    "decliners": 594,
+    "unchanged": 5,
+    "advance_decline_ratio": 0.67,
+    "median_change_pct": -0.5,
+    "average_change_pct": -1.25,
+    "strongest_count": 97,
+    "weakest_count": 306
+  },
+  "source_sector_table": [
+    {
+      "sector": "Energy",
+      "symbol_count": 61,
+      "average_change_pct": 2.19,
+      "median_change_pct": 2.91
+    },
+    {
+      "sector": "Consumer Staples",
+      "symbol_count": 53,
+      "average_change_pct": 0.95,
+      "median_change_pct": 1.29
+    },
+    {
+      "sector": "Utilities",
+      "symbol_count": 35,
+      "average_change_pct": 0.94,
+      "median_change_pct": 1.44
+    },
+    {
+      "sector": "Materials",
+      "symbol_count": 54,
+      "average_change_pct": 0.26,
+      "median_change_pct": 0.35
+    },
+    {
+      "sector": "Real Estate",
+      "symbol_count": 49,
+      "average_change_pct": 0.12,
+      "median_change_pct": 0.5
+    },
+    {
+      "sector": "Financials",
+      "symbol_count": 128,
+      "average_change_pct": -0.48,
+      "median_change_pct": -0.06
+    },
+    {
+      "sector": "Consumer Discretionary",
+      "symbol_count": 115,
+      "average_change_pct": -0.76,
+      "median_change_pct": -0.71
+    },
+    {
+      "sector": "Industrials",
+      "symbol_count": 145,
+      "average_change_pct": -0.76,
+      "median_change_pct": -0.33
+    },
+    {
+      "sector": "Communication Services",
+      "symbol_count": 35,
+      "average_change_pct": -1.34,
+      "median_change_pct": -0.54
+    },
+    {
+      "sector": "Health Care",
+      "symbol_count": 127,
+      "average_change_pct": -2.06,
+      "median_change_pct": -1.35
+    },
+    {
+      "sector": "Credit",
+      "symbol_count": 2,
+      "average_change_pct": -2.87,
+      "median_change_pct": -2.87
+    },
+    {
+      "sector": "Information Technology",
+      "symbol_count": 194,
+      "average_change_pct": -4.7,
+      "median_change_pct": -4.83
+    }
+  ],
+  "source_stage_statuses": {
+    "source_events": "completed",
+    "ticker_enrichment": "completed",
+    "ticker_answer_review": "completed",
+    "market_summary": "completed",
+    "group_synthesis": "consolidated_in_public_editor",
+    "public_editor": "completed",
+    "public_answer_review": "completed",
+    "market_inputs": "ok"
+  },
+  "research_health": [
+    {
+      "run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
+      "asof_time_utc": "2026-10-18T00:37:36.127408+00:00",
+      "status": "completed",
+      "summary": "Research completed; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
+      "stage_statuses_json": "{\"source_events\": \"completed\", \"ticker_enrichment\": \"completed\", \"ticker_answer_review\": \"completed\", \"market_summary\": \"completed\", \"group_synthesis\": \"consolidated_in_public_editor\", \"public_editor\": \"completed\", \"public_answer_review\": \"completed\", \"market_inputs\": \"ok\"}",
+      "failed_tickers_json": "[]",
+      "errors_json": "[]"
+    }
+  ],
+  "publication_review_statuses": [
+    {
+      "status": "completed",
+      "error": "",
+      "run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3"
+    }
+  ],
+  "intraday": [
+    {
+      "symbol": "MU",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SKHY",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SSNLF",
+      "status": "unavailable",
+      "session": "",
+      "as_of": "",
+      "interval": "5Min",
+      "observations": 0
+    },
+    {
+      "symbol": "AMAT",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NBIS",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "IREN",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "CRWV",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "APLD",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SNDK",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "LQDA",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 77
+    },
+    {
+      "symbol": "UTHR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 76
+    },
+    {
+      "symbol": "CRGY",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "AR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NI",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "KMI",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "MXL",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 71
+    }
+  ],
+  "audio": {
+    "http_status": 200,
+    "content_type": "audio/mpeg",
+    "first_chunk_bytes": 1024,
+    "seconds": 0.36
+  },
+  "browser": {
+    "refreshed_new_summary_and_six_headings": true,
+    "old_five_highlights_retained": true,
+    "audio_control_present": true
+  },
+  "chart_failure": {
+    "status": "HTTP 400 context limit",
+    "request_characters": 3493111,
+    "requested_tokens": 1199136,
+    "maximum_context_tokens": 1048576,
+    "successful_provider_attempts_before_failure": 6,
+    "successful_maximum_request_input_tokens": 211275
+  },
+  "human_assessment": {
+    "decision": "hold production",
+    "findings": [
+      "Final chart context still exceeds provider window after successful evidence navigation; no new selection was produced.",
+      "Overview says nine of eleven sectors rose, while the supplied full sector table has five positive standard sectors and six negative; its broad-market-rise interpretation is not established by that snapshot.",
+      "New prose is clearer and CPI annual rate/full long-yield backdrop are restored, but that is insufficient for the complete quality condition."
+    ],
+    "incomplete_company_investigations": [
+      "NBIS",
+      "TLK",
+      "IREN",
+      "SNOW",
+      "CRWV"
+    ]
+  },
+  "optional_page_summary_rows": 5,
+  "production_read": {
+    "recorded_at": "2026-10-18T01:54:16.613899+00:00",
+    "run": "fdb1ec77-d1f3-426a-bc4c-fa62f164e0a0",
+    "asof": "2026-10-17T04:44:41.577045+00:00",
+    "stories": 8,
+    "charts": 5,
+    "chart_asof": "2026-10-14T16:50:30.725170+00:00"
+  },
+  "configuration_audit": {
+    "recorded_at_utc": "2026-10-18T01:54:17.909030+00:00",
+    "resources": 33,
+    "all_effective_configurations_exact": true,
+    "changed_image_targets": [
+      "attention-home-next-dev",
+      "daily-datapoints-next-dev"
+    ],
+    "other_images_unchanged": 31,
+    "production_images_unchanged": true,
+    "custom_domain_bindings_preserved": 4,
+    "retired_resources_stay_absent": true,
+    "modern_application_revisions_ready": true
+  }
+}
