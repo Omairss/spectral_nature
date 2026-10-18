@@ -1,0 +1,7 @@
+{
+  "source_build_rejected": "Application source has no local acceptance.",
+  "production_promotion_rejected": "Production requires owner authorization and development acceptance of these exact images.",
+  "azure_calls": 0,
+  "status": "held_after_development_quality_failure",
+  "scope": "Local source and production-authorization guard only; no application quality claim or deployment attempt."
+}

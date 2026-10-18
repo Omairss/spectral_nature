@@ -27,3 +27,5 @@ The final 33-resource audit confirms only the two DEV worker images changed. Eve
 The local monitor stalled on an Azure replica-list read. A direct execution read established the completed job; stale monitoring output had briefly been mistaken for a slow editor. Stopped only the local monitor and read the actual publication, model-event error and original datasets. No cloud job was stopped or restarted.
 
 The remaining work is a shared context handoff that preserves navigability and original evidence without rebuilding an oversized final request, plus reliable reconciliation of conflicting dated evidence. The current receipts establish the failures; they do not establish that another prompt or a smaller excerpt would solve them generally. The conditional production permission remains unfulfilled.
+
+The committed hold is enforced: the [local guard probe](continuation-quality-hold-guard.json) rejects a new source build and production promotion before any Azure access. These permission checks are separate from the failed qualitative review.
