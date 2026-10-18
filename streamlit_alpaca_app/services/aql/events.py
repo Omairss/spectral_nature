@@ -25,6 +25,7 @@ from ..llm import (
 )
 from ._shared import _coerce_text, _normalize_symbol, _safe_list
 from .evidence_index import parse_json_list
+from .evidence_pack import materialize_research_artifacts
 
 _P_EVENT_LIMIT = register_config_param(
     "Source event investigation limit",
@@ -160,6 +161,7 @@ def research_source_events(
         )
         text = (
             _coerce_text(row.get("content"))
+            or _coerce_text(row.get("raw_text") or row.get("provider_text"))
             or _coerce_text(row.get("summary") or row.get("description"))
             or title
         )
@@ -176,14 +178,17 @@ def research_source_events(
                 "published_at": published,
                 "raw_text": text,
                 "text": text,
-                "source_kind": "news",
+                "source_kind": _coerce_text(row.get("source_kind")) or "news",
+                "raw_text_origin": _coerce_text(row.get("raw_text_origin")) or "feed_record",
+                "provider_payload_json": _coerce_text(row.get("provider_payload_json")) or json.dumps(to_jsonable(row), ensure_ascii=False),
                 "source_provider": _coerce_text(row.get("source")),
                 "provider_symbols": parse_json_list(row.get("symbols"))
                 if isinstance(row.get("symbols"), str)
                 else _safe_list(row.get("symbols")),
-                "source_trace": json.dumps(
-                    {"source": "news_articles", "selection": "source_event_intake"}
-                ),
+                "source_trace": _coerce_text(row.get("source_trace")) or json.dumps({
+                    "capture_kind": "feed_record", "provider": row.get("source"),
+                    "reported_publication_date": str(row.get("published_at") or ""),
+                }),
             }
         )
     documents = list({doc["document_id"]: doc for doc in documents}.values())
@@ -289,7 +294,7 @@ def research_source_events(
     previews = [
         {
             key: doc[key]
-            for key in ("source_id", "title", "url", "published_at", "provider_symbols")
+            for key in ("source_id", "title", "url", "published_at", "provider_symbols", "source_trace", "raw_text_origin")
         }
         | {"text_preview": doc["text"][:1200]}
         for doc in documents
@@ -303,6 +308,7 @@ def research_source_events(
             ),
             ensure_ascii=False,
         ),
+        initial_evidence=documents,
         schema_name="source_event_nominations",
         schema=nomination_schema,
         task="source_event_nomination",
@@ -403,72 +409,18 @@ def research_source_events(
             progress_callback=progress_callback,
         )
         agent = dict(result.get("agent_result") or {})
-        collected = [
-            {
-                "tool_name": call.get("tool_name"),
-                "text": call["result_summary"].get("evidence_context_text", ""),
-                "source_refs": call["result_summary"].get("evidence_refs") or [],
-            }
-            for call in agent.get("tool_calls", [])
-            if call.get("status") == "completed"
-            and isinstance(call.get("result_summary"), dict)
-        ]
-        refs = list(
-            (agent.get("aql_evidence_pack") or {}).get("source_documents") or []
+        acquired = materialize_research_artifacts(
+            agent, candidate_id=event_id, subject=event_id,
+            run_id=run_id, asof_time_utc=asof,
         )
-        by_url = {}
-        for ref in refs:
-            if ref.get("url"):
-                by_url[ref["url"]] = {
-                    **by_url.get(ref["url"], {}),
-                    **{
-                        key: value
-                        for key, value in ref.items()
-                        if value is not None and value != ""
-                    },
-                }
-        acquired_documents = []
-        for ordinal, item in enumerate(collected):
-            if item["tool_name"] == "research.supplied_context" or not item["text"]:
-                continue
-            source_refs = item["source_refs"]
-            ref = source_refs[0] if len(source_refs) == 1 else {}
-            document_id = (
-                f"doc::source-event::{agent.get('run_id', event_id)}::{ordinal}"
-            )
-            acquired_documents.append(
-                {
-                    "run_id": run_id,
-                    "asof_time_utc": asof,
-                    "document_id": document_id,
-                    "source_id": document_id,
-                    "bundle_subject": event_id,
-                    "title": ref.get("title") or plan["title"],
-                    "url": ref.get("url", ""),
-                    "published_at": pd.to_datetime(
-                        ref.get("published_date"), utc=True, errors="coerce"
-                    ),
-                    "raw_text": item["text"],
-                    "text": item["text"],
-                    "source_kind": "research",
-                    "source_provider": ref.get("source") or item["tool_name"],
-                    "source_trace": json.dumps(source_refs, default=str),
-                }
-            )
-            for source_ref in source_refs:
-                url = source_ref.get("url")
-                if (
-                    url
-                    and url in by_url
-                    and (
-                        len(source_refs) == 1
-                        or by_url[url].get("document_id")
-                        not in {
-                            doc["document_id"] for doc in documents + acquired_documents
-                        }
-                    )
-                ):
-                    by_url[url].update(document_id=document_id, source_id=document_id)
+        acquired_documents = [
+            {**doc, "source_id": doc["document_id"], "text": doc["raw_text"]}
+            for doc in acquired["documents"]
+            if doc.get("source_kind") != "research_tool_result"
+        ]
+        by_url = {
+            doc["url"]: doc for doc in [*selected, *acquired_documents] if doc.get("url")
+        }
         output = result.get("payload")
         record = {
             "run_id": run_id,
@@ -525,10 +477,8 @@ def research_source_events(
                     "source": doc.get("source_provider", ""),
                     "url": item["source_url"] or doc.get("url", ""),
                     "published_at": date,
-                    "is_same_day": bool(pd.notna(date) and date.date() == asof.date()),
-                    "freshness_class": "current"
-                    if pd.notna(date) and 0 <= (asof - date).total_seconds() <= 259200
-                    else "background",
+                    "source_trace": doc.get("source_trace", ""),
+                    "raw_text_origin": doc.get("raw_text_origin", ""),
                 }
             )
         evidence = [
@@ -539,8 +489,11 @@ def research_source_events(
                 "url": doc["url"],
                 "published_at": doc["published_at"],
                 "source_text": doc["text"],
+                "raw_text_origin": doc.get("raw_text_origin", ""),
+                "source_trace": doc.get("source_trace", ""),
+                "provider_payload_json": doc.get("provider_payload_json", ""),
             }
-            for doc in selected
+            for doc in [*selected, *acquired_documents]
         ]
         bundle = {
             **output,
@@ -560,10 +513,10 @@ def research_source_events(
             "source_count": len({doc["url"] or doc["source_id"] for doc in selected}),
             "evidence_count": len(claims),
             "same_day_evidence_count": sum(
-                bool(claim["is_same_day"]) for claim in claims
+                bool(claim.get("is_same_day")) for claim in claims
             ),
             "supporting_claim_ids": [claim["claim_id"] for claim in claims],
-            "freshness_quality": "High",
+            "freshness_quality": "",
             "evidence_quality": agent.get("confidence", "medium").title(),
             "confidence_label": agent.get("confidence", "medium").title(),
             "research_result": agent.get("answer_markdown", ""),
@@ -572,7 +525,12 @@ def research_source_events(
         }
         bundle.update(
             asof_time_utc=asof,
-            research_evidence=collected,
+            research_evidence=[
+                {"tool_name": doc["source_provider"], "text": doc["raw_text"],
+                 "source_refs": json.loads(doc["source_refs_json"])}
+                for doc in acquired["documents"]
+                if doc.get("source_kind") == "research_tool_result"
+            ],
             related_symbols=[
                 row for row in observations if row.get("symbol") in symbols
             ],

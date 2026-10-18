@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Shared live/retained source capture and metadata preservation, source-reference retention, LLM-owned chronology, and existing phase/per-request execution deadlines. 24 reviewed cumulative application changes; full fresh DEV quality/serving acceptance required before production.",
+  "status": "held_during_source_path_alignment",
+  "scope": "Symbol/source reader contracts are locally verified; source-event intake still needs alignment with the shared materializer before the root repair is complete. No new image is authorized or deployed.",
   "source_revision": "9b0038675220af11aabad75738b0799dc4708e88",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
@@ -957,9 +957,10 @@
     "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate."
   },
   "development_acceptance": {
-    "status": "pending",
+    "status": "not_accepted",
     "scope": "Shared capture/execution repair accepted locally for complete fresh development verification; prior DEV source-date failure retained separately. No image for this source has been deployed.",
-    "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md"
+    "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md",
+    "reason": "Remaining event adapter duplicates source materialization and derives semantic freshness from publication dates. Existing newly built packages are not registered for deployment."
   },
   "preceding_hold": {
     "revision": "20108c58",

@@ -1147,3 +1147,6 @@ Establish whether each defect predates an incident by comparing the actual accep
 
 ### October 18 — retain captures, interpret through the existing agent
 Separate actual acquisition records from references and model interpretations. Preserve source content and capture metadata together; replaying a shortened reference must never overwrite its original. A provider date is a reported property, and a source's age is not proof of event timing or causality. Existing retained sources need the same representation as new acquisition. Iterative evidence reading uses a phase deadline; each provider request has its own step limit inside that phase. Evaluate with the deployed whole-run budget before accepting a longer diagnostic probe as working behavior.
+
+### October 18 — acquisition contracts include event adapters
+Audit the entire source path, including event nomination, acquisition, bundle evidence and later public writing. Reusing one materializer prevents URL attribution and capture metadata from diverging between company and event research. A bounded preview can coexist with complete evidence available through the existing reader. Publication metadata never establishes event timing by itself. Keep unattributed aggregate tool results separate from original captured sources.

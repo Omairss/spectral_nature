@@ -6,7 +6,7 @@ Status: **source repair accepted locally for a new complete DEV verification; pr
 
 ### Authorized source-evidence repair
 
-Implementation and current acceptance evidence are tracked in the [October 18 source repair review](../verification/source-evidence-repair-2026-10-18/README.md). Source/capture retention checks pass; initial temporal research improved, but the first normal-budget repeat exposed a shared reader-exchange deadline failure. Corrected per-request/phase ownership completes both source investigations and existing review in 166.3s and 182.0s under the unchanged deployed 240-second budget. No new image has been built or deployed for this repair.
+Implementation and current acceptance evidence are tracked in the [October 18 source repair review](../verification/source-evidence-repair-2026-10-18/README.md). Source/capture retention checks pass; initial temporal research improved, but the first normal-budget repeat exposed a shared reader-exchange deadline failure. Corrected per-request/phase ownership completes both source investigations and existing review in 166.3s and 182.0s under the unchanged deployed 240-second budget. The initial two source packages were superseded before registration or deployment when the event adapter’s duplicate source path was found. The event adapter now reuses the shared materializer; its complete live local review is running.
 
 Fix the existing shared acquisition, retention and retrieval path. Preserve the raw search result and its reported date/retrieval time as capture metadata, without claiming an article publication or event date. Retain captured page content and publisher metadata through model evidence and storage. Remove timestamp-derived narrative confirmation from the shared bundle assembler. Retained records expose their actual capture origin and unresolved legacy date basis; recover originals through the existing page reader and regenerate affected research instead of rewriting dates or prose. Existing source references and reader own access; no added reviewer, semantic filter or ticker exception. Personally compare acquisition-to-research outputs on the failed cases and a held-out subject before packaging or DEV rollout. Production remains conditional on the complete fresh DEV result.
 
@@ -14,7 +14,7 @@ Use Zopedia’s existing evidence reader throughout writing and review, with LLM
 
 Remove the chart-specific approve/rewrite loop. Existing shared review corrects the structured artifact directly, with its research requests and diagnostic notes retained privately. No additional reviewer, financial rule, phrase filter, model change or operation-budget increase. The original chart output request stays 65/180 characters.
 
-Twenty-four cumulative application/packaging files differ from the reviewed base; all need explicit recorded review. Complete Git inventory remains 312 files and packaged Python runtime 197. Use the existing separately verified worker/API dependency pins, including the evaluated tokenizer and cached encoding. Historical application images remain rollback evidence and never seed application source.
+Twenty-five cumulative application/packaging files differ from the reviewed base; all need explicit recorded review. Complete Git inventory remains 312 files and packaged Python runtime 197. Use the existing separately verified worker/API dependency pins, including the evaluated tokenizer and cached encoding. Historical application images remain rollback evidence and never seed application source.
 
 ## Verification and rollout
 
