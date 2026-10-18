@@ -116,25 +116,6 @@ def normalize_fred_frequency_short(value: Any) -> str:
     return raw
 
 
-def _periods_per_year(frequency_short: str) -> int | None:
-    key = normalize_fred_frequency_short(frequency_short)
-    if key in {"D", "B"}:
-        return 252
-    if key in {"W", "WEF", "WETH", "WEW", "WETU", "WEM", "WESU", "WESA"}:
-        return 52
-    if key == "BW":
-        return 26
-    if key == "M":
-        return 12
-    if key == "Q":
-        return 4
-    if key == "SA":
-        return 2
-    if key == "A":
-        return 1
-    return None
-
-
 def _latest_valid(frame: pd.DataFrame) -> pd.Series | None:
     if frame.empty:
         return None
@@ -337,6 +318,18 @@ def format_fred_delta(value: float | None, units_short: str | None) -> str:
 
 
 def build_fred_series_summary(spec: FredSeriesSpec, metadata: dict[str, Any], frame: pd.DataFrame) -> dict[str, object]:
+    """Use the calendar anniversary, retaining the actual comparison observation.
+
+    Row offsets are not elapsed years when releases are missing or calendars
+    differ. Periodic series need their matching year-ago period; frequent
+    series use the last observation available at the anniversary.
+    """
+    if not frame.empty:
+        frame = frame.copy()
+        frame["date"] = pd.to_datetime(frame["date"], errors="coerce", utc=True).dt.tz_localize(None)
+        frame["value"] = pd.to_numeric(frame["value"], errors="coerce")
+        frame = (frame.dropna(subset=["date", "value"]).sort_values("date", kind="stable")
+                 .drop_duplicates("date", keep="last").reset_index(drop=True))
     frequency_short = normalize_fred_frequency_short(metadata.get("frequency_short") or metadata.get("frequency"))
     latest_row = _latest_valid(frame)
     if latest_row is None:
@@ -351,12 +344,20 @@ def build_fred_series_summary(spec: FredSeriesSpec, metadata: dict[str, Any], fr
             "prev_delta": None,
             "yoy_delta": None,
             "yoy_pct": None,
+            "yoy_reference_date": pd.NaT,
+            "yoy_reference_value": None,
         }
 
     latest_value = float(latest_row["value"])
     previous_value = float(frame.iloc[-2]["value"]) if len(frame) >= 2 else None
-    periods = _periods_per_year(frequency_short)
-    yoy_value = float(frame.iloc[-(periods + 1)]["value"]) if periods is not None and len(frame) > periods else None
+    anniversary = latest_row["date"] - pd.DateOffset(years=1)
+    period = {"M": "M", "Q": "Q", "SA": "M", "A": "Y"}.get(frequency_short)
+    if period:
+        prior = frame[frame["date"].dt.to_period(period) == anniversary.to_period(period)]
+    else:
+        prior = frame[frame["date"] <= anniversary]
+    reference = prior.iloc[-1] if not prior.empty else None
+    yoy_value = float(reference["value"]) if reference is not None else None
     return {
         "category": spec.category,
         "series_id": spec.series_id,
@@ -368,6 +369,8 @@ def build_fred_series_summary(spec: FredSeriesSpec, metadata: dict[str, Any], fr
         "prev_delta": _value_delta(latest_value, previous_value),
         "yoy_delta": _value_delta(latest_value, yoy_value),
         "yoy_pct": _pct_delta(latest_value, yoy_value),
+        "yoy_reference_date": reference["date"] if reference is not None else pd.NaT,
+        "yoy_reference_value": yoy_value,
         "source_title": metadata.get("title") or spec.label,
         "last_updated": pd.to_datetime(metadata.get("last_updated"), utc=True, errors="coerce"),
     }
