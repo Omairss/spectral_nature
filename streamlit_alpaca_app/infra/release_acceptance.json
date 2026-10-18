@@ -990,12 +990,17 @@
   "development_acceptance": {
     "status": "pending",
     "scope": "Narrow deadline-result correction accepted locally; complete fresh DEV Home verification pending.",
-    "evidence": "documents/verification/source-evidence-repair-2026-10-18/deadline-result-review.json",
+    "evidence": "documents/verification/source-evidence-repair-2026-10-18/DEADLINE_DEVELOPMENT_REVIEW.md",
     "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
     "images": {
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a"
-    }
+    },
+    "execution": "attention-home-next-dev-7e6nmrq",
+    "home_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "asof": "2026-10-18T20:24:34.140109+00:00",
+    "started_at": "2026-10-18T20:23:59+00:00",
+    "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68"
   },
   "preceding_hold": {
     "revision": "20108c58",
