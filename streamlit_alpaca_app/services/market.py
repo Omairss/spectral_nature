@@ -633,6 +633,9 @@ def scan_daily_movers(api: AlpacaAPI, symbols: list[str] | None = None) -> pd.Da
                 "symbol": sym,
                 "close": close,
                 "prev_close": prev_close,
+                "price_observed_at": daily.get("t"),
+                "previous_close_observed_at": prev.get("t"),
+                "price_adjustment": "raw",
                 "change_pct": pct,
                 "volume": pd.to_numeric(daily.get("v"), errors="coerce"),
             }

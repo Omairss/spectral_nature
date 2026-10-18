@@ -23,7 +23,7 @@ from compute.portfolio import (
 )
 from compute.treasury_yields import build_treasury_yield_facts_1d, build_treasury_yield_observations, build_treasury_yield_summary
 from data_access.contracts import DataProvenance, ResolvedPayload
-from services.alpaca_api import AlpacaAPI, AlpacaAPIError
+from services.alpaca_api import AlpacaAPI, AlpacaAPIError, PRICE_HISTORY_ADJUSTMENT
 from services.attention_materialized import (
     deserialize_attention_home_payload,
     deserialize_attention_research_bundle_frame,
@@ -1593,6 +1593,7 @@ class DataAccessLayer:
         materialized = self._try_pipeline_symbol_frame("price_history", ticker, force_refresh=force_refresh)
         if materialized is not None:
             pipeline, details = materialized
+            details = {**details, "price_adjustment": pipeline.attrs.get("price_adjustment", PRICE_HISTORY_ADJUSTMENT)}
             if not pipeline.empty and {"symbol", "timestamp"}.issubset(set(pipeline.columns)):
                 out = pipeline[pipeline["symbol"].astype(str).str.upper() == ticker.upper()].copy()
                 if not out.empty:
@@ -1622,7 +1623,7 @@ class DataAccessLayer:
             ),
             force_refresh=force_refresh,
         )
-        return self._resolved(frame, mode="on_demand", datasets=("price_history",), details={"ticker": ticker.upper(), "days": days})
+        return self._resolved(frame, mode="on_demand", datasets=("price_history",), details={"ticker": ticker.upper(), "days": days, "price_adjustment": frame.attrs.get("price_adjustment", PRICE_HISTORY_ADJUSTMENT)})
 
     def resolve_technical_signal_history(self, ticker: str, *, days: int, force_refresh: bool = False) -> ResolvedPayload:
         materialized = self._try_pipeline_symbol_frame("technical_signal_history", ticker, force_refresh=force_refresh)

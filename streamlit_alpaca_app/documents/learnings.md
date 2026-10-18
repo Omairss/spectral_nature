@@ -1132,3 +1132,6 @@ A requirement in requirements.txt does not prove that inherited role images inst
 
 ### October 17 — live review rejects critic-approved metadata prose
 A critic’s proposed correction is generated analysis, not new source evidence. Repeatedly ordering the writer to apply a false critique can turn it into a polished falsehood. Public writing should start from the same approved-story projection the reader sees; private execution flags remain available as research metadata. Raw and adjusted prices need their basis and observation dates retained before comparing values.
+
+### October 17 — review instructions can create public caveats
+Remove prompts that ask a public-caption reviewer for extra uncertainty commentary or follow-up tasks when the product asks for a useful explanation. Review against the original purpose and source facts; adding more caution instructions can itself cause a prose regression.

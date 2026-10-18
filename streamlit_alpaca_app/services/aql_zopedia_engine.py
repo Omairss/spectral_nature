@@ -504,10 +504,13 @@ def run_aql_zopedia_structured_agent(
                 if payload is None:
                     raise ValueError("Retained structured draft could not be repaired.")
             if payload is None:
+                allowed_sources = (request_context or {}).get("allowed_source_access")
+                supplied_allowed = allowed_sources is None or "supplied" in allowed_sources
+                read_supplied = bool(service is not None and getattr(service, "supplied_evidence", {}) and supplied_allowed)
                 direct_system = instructions or (
                     "You are the Spectral Nature AQL/Zopedia structured synthesis engine. "
-                    "Use the supplied prompt context as evidence. Do not call tools. "
-                    "Return only the requested JSON object and do not invent facts."
+                    + ("Use the supplied context and its evidence reader. " if read_supplied else "Use the supplied prompt context as evidence. Do not call tools. ")
+                    + "Return only the requested JSON object and do not invent facts."
                 )
                 def direct_call():
                     return generate_json_via_aql_zopedia_gateway(
@@ -532,9 +535,13 @@ def run_aql_zopedia_structured_agent(
                             ),
                         },
                     )
-                try:
-                    payload = direct_call()
-                except LLMContextWindowExceeded as exc:
+                capacity_feedback = ""
+                if not read_supplied:
+                    try:
+                        payload = direct_call()
+                    except LLMContextWindowExceeded as exc:
+                        capacity_feedback = str(exc)
+                if read_supplied or capacity_feedback:
                     from data_access.query_service import QueryService
                     from .zopedia_agent import _run_evidence_model_step, _tool_history_prompt
 
@@ -545,10 +552,9 @@ def run_aql_zopedia_structured_agent(
                         system_prompt=direct_system, schema_name=schema_name, schema=schema,
                         surface=surface, purpose=f"{_clean(task) or 'structured_answer'}.direct",
                         deadline_monotonic=deadline, metadata=operation_metadata or {},
-                        progress_callback=progress_callback, capacity_feedback=str(exc), call_type=call_type,
+                        progress_callback=progress_callback, capacity_feedback=capacity_feedback, call_type=call_type,
                         query=query,
-                        supplied_evidence_allowed=(request_context or {}).get("allowed_source_access") is None
-                        or "supplied" in (request_context or {}).get("allowed_source_access", []),
+                        supplied_evidence_allowed=supplied_allowed,
                     )
             payload = {key: value for key, value in payload.items() if not key.startswith("__")}
             errors = list(Draft202012Validator(schema).iter_errors(payload))

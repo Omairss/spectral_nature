@@ -14,6 +14,9 @@ import requests
 
 from .config import AppConfig
 
+# The materialized price_history dataset uses this corporate-action basis.
+PRICE_HISTORY_ADJUSTMENT = "all"
+
 
 class AlpacaAPIError(RuntimeError):
     def __init__(self, message: str, *, status_code: int | None = None, payload: Any = None):
@@ -396,7 +399,7 @@ class AlpacaAPI:
         end: datetime | None = None,
         timeframe: str = "1Day",
         feed: str = "iex",
-        adjustment: str = "all",
+        adjustment: str = PRICE_HISTORY_ADJUSTMENT,
     ) -> dict[str, pd.DataFrame]:
         normalized_symbols = self._normalize_symbols(symbols)
         if not normalized_symbols:
@@ -481,7 +484,9 @@ class AlpacaAPI:
                 previous = parsed.get(symbol.upper())
                 if previous is not None and not previous.empty:
                     frame = pd.concat([previous, frame], ignore_index=True)
-                parsed[symbol.upper()] = frame.sort_values("timestamp")
+                frame = frame.sort_values("timestamp")
+                frame.attrs.update(price_adjustment=adjustment, price_feed=feed, price_provider="alpaca")
+                parsed[symbol.upper()] = frame
             by_symbol.clear()
             del payload
 

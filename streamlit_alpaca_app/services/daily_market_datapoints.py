@@ -13,6 +13,8 @@ from data_access.query_service import QueryService
 from services.aql_zopedia_engine import run_aql_zopedia_structured_agent
 from services.llm import remaining_request_timeout
 from services.llm_context import serialize_llm_context
+from services.alpaca_api import PRICE_HISTORY_ADJUSTMENT
+from services.aql.summarizer import build_attention_home_narrative_beats
 
 
 def _points(raw: object) -> list[dict[str, Any]]:
@@ -44,6 +46,9 @@ def build_daily_datapoint_catalog(*, snapshots: pd.DataFrame, fred_observations:
         symbol = str(row.get("symbol") or "").strip().upper()
         if not symbol:
             continue
+        adjustment = row.get("price_adjustment")
+        if not isinstance(adjustment, str) or not adjustment:
+            adjustment = PRICE_HISTORY_ADJUSTMENT
         series = {"price": _points(row.get("price_trend_json"))}
         raw_financials = row.get("financial_trends_json")
         try:
@@ -64,6 +69,10 @@ def build_daily_datapoint_catalog(*, snapshots: pd.DataFrame, fred_observations:
                 "period": points[-1].get("period", ""), "change_1d_pct": row.get("price_change_1d_pct") if metric == "price" else None,
                 "source": "price_history" if metric == "price" else "quarterly_fundamentals",
             }
+            if metric == "price":
+                catalog[key]["price_adjustment"] = adjustment
+                if adjustment != "raw":
+                    catalog[key]["label"] = f"{symbol} · Adjusted price"
     metadata = {str(row.get("series_id") or ""): row for row in fred_summary.to_dict("records")}
     if {"series_id", "date", "value"}.issubset(fred_observations.columns):
         frame = fred_observations.copy()
@@ -102,7 +111,8 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
         for key, candidate in catalog.items()
     }
     summary = home.get("homepage_summary") or {}
-    brief = {key: home.get(key) for key in ("generated_at_utc", "coverage_summary", "top_events", "must_read_movers", "unresolved_large_moves")}
+    brief = {"generated_at_utc": home.get("generated_at_utc"),
+             "stories": build_attention_home_narrative_beats(home)}
     brief["homepage_summary"] = {key: summary.get(key) for key in ("headline", "summary_text", "answer_markdown")} if isinstance(summary, dict) else summary
     records["daily_brief"] = {"title": "Today's complete investor brief", "metadata": {
         "kind": "daily_brief", "role": "Dated narrative context for relevance; chart originals establish plotted observations"}, "content": brief}
@@ -117,18 +127,15 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
     service = QueryService.from_environment().with_supplied_evidence(records)
     schema = {"type": "object", "additionalProperties": False, "properties": {"datapoints": {"type": "array", "minItems": 5, "maxItems": 5, "items": {
         "type": "object", "additionalProperties": False, "properties": {
-            "id": {"type": "string", "enum": list(catalog)}, "title": {"type": "string"}, "significance": {"type": "string"},
+            "id": {"type": "string", "enum": list(catalog)}, "title": {"type": "string", "maxLength": 100}, "significance": {"type": "string", "maxLength": 260},
         }, "required": ["id", "title", "significance"],
     }}}, "required": ["datapoints"]}
-    context = {"homepage_summary": brief["homepage_summary"], "market_coverage": home.get("market_coverage") or (home.get("coverage_summary") or {}).get("market_coverage")}
-    evidence_fields = ("event_title", "headline", "symbol", "change_pct", "surface_summary_text", "surface_what_changed_text", "surface_why_text", "business_context_text", "watch_next_text", "surface_cause_status", "cause_status", "confidence_label", "same_day_evidence_count", "supporting_symbols")
-    for section in ("top_events", "must_read_movers"):
-        context[section] = [{key: item[key] for key in evidence_fields if key in item} for item in (home.get(section) or [])[:16] if isinstance(item, dict)]
+    context = brief
     selection_query = (
             f"As of {pd.Timestamp(asof).isoformat()}, choose the FIVE most decision-relevant charts for this investor daily brief. "
             "Use the research and chart catalog to decide which questions matter and which complementary series best illuminate them. "
             "For each, explain a concrete finding and why it matters in this context, distinguishing dated observations from your interpretation. "
-            "Return its catalog id, a descriptive title (at most 65 characters), and one specific sentence of significance (at most 180 characters). "
+            "Return its catalog id, a descriptive title, and one specific sentence of significance. "
             "The application renders the exact original history with its units, dates and current values.\n\n"
             f"Daily brief evidence:\n{serialize_llm_context(context)}\n\n"
             f"Supplied evidence manifest: {json.dumps(service.supplied_evidence_manifest)}"
@@ -176,16 +183,14 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             review = run_aql_zopedia_structured_agent(
                 query=(
                     "Review this five-chart brief against its exact supplied data and session evidence. "
-                    "Improve useful selections and interpretations, including reasonable indirect business connections. "
                     "Read the selected histories and identify incorrect values, dates, periods, trend descriptions or causes. "
-                    "Background series can matter without a fresh release. Suggest concrete corrections and follow-ups. "
-                    "Judge meaning rather than preferred wording; do not manufacture objections. "
-                    "Review guides revision; incomplete certainty does not make useful charts disappear.\n\n"
+                    "\n\n"
                     f"As of: {pd.Timestamp(asof).isoformat()}\nDaily evidence: {serialize_llm_context(context)}\n"
                     f"Draft: {json.dumps(selections, ensure_ascii=False)}\n"
                     f"Exact selected charts: {json.dumps([catalog[key] for key in ids], ensure_ascii=False, default=str)}"
                 ),
                 schema_name="daily_market_datapoints_review", schema=review_schema, task="daily_market_datapoints_review",
+                service=service, request_context={"allow_web": False, "allowed_source_access": ["supplied"]},
                 surface="attention_home.daily_datapoints.review", max_tool_calls=0, persist_findings=False, write_policy="none",
                 initial_evidence=[{"original_request": selection_query}],
                 run_timeout_seconds=min(remaining_request_timeout(120), max(0.0, operation_deadline - time.monotonic())),
@@ -201,9 +206,8 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             print(f"[info] daily datapoint semantic review attempt={attempt} issues="
                   + json.dumps(verdict.get("issues") or [], ensure_ascii=False), flush=True)
             feedback = (
-                "\n\nRevise this exact prior draft against its review. Preserve useful choices and comparisons; "
-                "correct errors and retain reasonable hypotheses under uncertainty. Replace a chart only when "
-                "another better answers the research question.\n"
+                "\n\nConsider these suggested revisions alongside the original sources, "
+                "then improve the draft for the original request.\n"
                 + json.dumps({"previous_draft": selections, "review": verdict}, ensure_ascii=False)
             )
         except Exception as exc:

@@ -1,0 +1,23 @@
+{
+  "status": "passed",
+  "model_calls": 0,
+  "price_values_unchanged": true,
+  "explicit_raw_basis_survives_prepare_parquet_split_concat": true,
+  "legacy_materialized_history_basis_all": true,
+  "snapshot_dates_and_raw_basis_retained": true,
+  "structured_reader": {
+    "no_records": {
+      "gateway_calls": 1,
+      "contract": "passed"
+    },
+    "permitted": {
+      "gateway_calls": 2,
+      "contract": "passed"
+    },
+    "forbidden": {
+      "gateway_calls": 1,
+      "contract": "passed"
+    }
+  },
+  "scope": "Mechanical data/ownership/execution contracts only; no narrative grade."
+}

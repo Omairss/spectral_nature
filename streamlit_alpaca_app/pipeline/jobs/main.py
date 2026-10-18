@@ -32,7 +32,7 @@ from services.market_data import (
     normalize_horizons,
 )
 from compute.portfolio import build_portfolio_timeseries
-from services.alpaca_api import AlpacaAPI, AlpacaAPIError
+from services.alpaca_api import AlpacaAPI, AlpacaAPIError, PRICE_HISTORY_ADJUSTMENT
 from pipeline.jobs.attention_home_build import run_attention_home_build as run_attention_home_build_job
 from pipeline.jobs.attention_ticker_snapshot_build import (
     run_attention_ticker_snapshot_build as run_attention_ticker_snapshot_build_job,
@@ -1545,6 +1545,7 @@ def _prepare_price_history_frame(
         return pd.DataFrame(columns=columns)
 
     out = out.sort_values(["symbol", "timestamp"]).drop_duplicates(subset=["symbol", "timestamp"], keep="last")
+    out.attrs.setdefault("price_adjustment", PRICE_HISTORY_ADJUSTMENT)
     return out.reset_index(drop=True)
 
 

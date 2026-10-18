@@ -9,6 +9,7 @@ import pandas as pd
 
 from compute.fundamentals import share_counts_asof, fundamental_snapshots_by_symbol as _fundamental_snapshots_by_symbol
 from services.company import summarize_recent_news
+from services.alpaca_api import PRICE_HISTORY_ADJUSTMENT
 from services.entity_taxonomy import dashboard_business_lens_from_taxonomy_row, normalize_entity_taxonomy_frame, taxonomy_lookup_by_symbol
 from services.market import commodity_proxy_profile
 
@@ -650,6 +651,7 @@ def build_attention_ticker_snapshot_frame(
                 "latest_close": latest_close,
                 "price_change_1d_pct": _price_return_pct(price_history, 1),
                 "price_change_1m_pct": _price_return_pct(price_history, 20),
+                "price_adjustment": price_history.attrs.get("price_adjustment", PRICE_HISTORY_ADJUSTMENT),
                 "market_cap": market_cap,
                 "market_cap_label": _format_market_cap_label(market_cap),
                 "share_count": share_count,
@@ -671,6 +673,7 @@ def build_attention_ticker_snapshot_frame(
                         "datasets": ["price_history", "universe_snapshot", "quarterly_fundamentals"],
                         "share_count_source": "local_quarterly_fundamentals",
                         "price_points": int(len(price_history)),
+                        "price_adjustment": price_history.attrs.get("price_adjustment", PRICE_HISTORY_ADJUSTMENT),
                         "intraday": {key: intraday.get(key) for key in ("status", "feed", "interval", "as_of", "prefetched_at", "previous_close", "previous_close_at")},
                     }
                 ),
