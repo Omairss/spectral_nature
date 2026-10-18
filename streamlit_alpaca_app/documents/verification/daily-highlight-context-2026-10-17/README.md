@@ -1,6 +1,6 @@
 # Shared context recovery
 
-Status: **accepted locally; both API/worker packages are verified; fresh DEV verification is in progress. Production has not received this candidate.** The current [release acceptance record](../../../infra/release_acceptance.json) is the deployment authority. The owner authorized production only after DEV works and meets the earlier subjective research quality bar.
+Status: **accepted locally; DEV API and six workers are deployed; fresh macro/Home verification is in progress. Production has not received this candidate.** The current [release acceptance record](../../../infra/release_acceptance.json) is the deployment authority. The owner authorized production only after DEV works and meets the earlier subjective research quality bar.
 
 ## Current source
 
@@ -19,6 +19,10 @@ Thirteen other resources retain their images, including every Next.js frontend a
 The [packaged-image verification](context-handoff-packaged-images.json) passes for both roles: all 197 files match Git, imports pass and cold context accounting works with downloads blocked. Worker dependency metadata is unchanged; API adds only the exact tokenizer versions to its reviewed pool-enabled dependency base. The [API dependency comparison](api-dependencies-review.json) separately establishes the pool addition against its actual previous consumer. Refresh DEV macro data first, then run the normal complete Home workflow and assess its own newly generated highlights. Read all public stories, overview and captions against original sources and observations. Verify serving latency, native-compatible JSON, narration, intraday histories, provenance, protected access and actual revision readiness. Only accepted exact DEV image digests may move to production under the owner's conditional permission.
 
 The existing API renders the latest 1,200 observations per highlight; complete stored originals remain available to the model. That unchanged display window is distinct from model-context integrity.
+
+## Current DEV runtime
+
+[All seven image-only updates](context-handoff-development-deployment.json) succeeded. The [full audit](context-handoff-development-configuration.json) confirms all 33 resources, unchanged effective configuration, four domain bindings and retired resources still absent. The new API revision is ready. Actual signed-in browser checks load [all five existing Trading horizons](context-handoff-development-trading.json), with no decision or broker operation and no regenerated Trading output. Public Home still serves the preceding artifact while fresh generation runs; that output is not accepted as this candidate's quality evidence. The DEV macro execution is `macro-fred-daily-dev-qx4055p`. Production images and generated artifacts remain unchanged in this repair.
 
 ## Historical evidence
 

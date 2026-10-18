@@ -920,8 +920,15 @@
     "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate."
   },
   "development_acceptance": {
-    "status": "pending",
-    "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTEXT_HANDOFF_LOCAL_REVIEW.md"
+    "status": "running",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44"
+    },
+    "source_inventory_sha256": "b05827de1528ef44024c7028d5691be36b098464e4456995d8a45a3260b739b5",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md",
+    "macro_execution": "macro-fred-daily-dev-qx4055p",
+    "scope": "Seven DEV image updates and full configuration audit pass; API ready, signed-in Trading retains all five horizons. Fresh macro and complete Home quality acceptance remain pending."
   },
   "preceding_hold": {
     "revision": "20108c58",
