@@ -1059,3 +1059,6 @@ The initial source review missed the source-event adapter’s duplicate material
 
 ### October 18 — trace the injected loader before assigning cause
 Found Home's default loader calling `.get` on a typed `PipelineDataset` and initially described its possible timestamp loss without identifying the caller. The scheduled worker injects a separate loader that already uses the correct attribute. Correct only the default path to the existing contract and retain an actual-type check; do not claim this explains the normal worker's prior output. Reissue packages from the corrected Git source before registration.
+
+### October 18 — exact budget is not the exact caller boundary
+The direct company probes completed under 240 seconds but omitted AQL's outer timeout/cancellation wrapper and normal acquisition checkpoint lifecycle. Full DEV discarded seven of twelve candidate results while engine review/return was still finishing. The normal job succeeded but is not accepted. Separate caller/engine clocks and finalization ownership need a shared correction; no timer increase or new recovery controller was added. Personal review also rejects a high-yield caption that uses 15 October data to exclude broader credit stress during the 16 October selloff, despite model approval. Retain the actual failed full result and hold production.

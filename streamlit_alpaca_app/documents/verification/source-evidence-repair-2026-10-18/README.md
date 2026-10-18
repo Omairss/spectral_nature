@@ -1,6 +1,6 @@
 # Shared source evidence repair
 
-Status: accepted locally for complete DEV verification only. Production remains unchanged. The seven DEV consumers now use verified worker `a0b15ecc` and API `80ca1d35` from Git `81d7a997`. Fresh Home `73c9478d-a1bc-4065-b489-4417e873dd50` is running under execution `attention-home-next-dev-4709cka`; its complete output has not been accepted. The previous complete DEV run remains rejected. The owner's conditional production authorization still requires acceptance of the exact complete DEV result.
+Status: **not accepted after complete DEV verification. Production remains unchanged.** The seven DEV consumers now use verified worker `a0b15ecc` and API `80ca1d35` from Git `81d7a997`. Fresh Home `73c9478d-a1bc-4065-b489-4417e873dd50` completed under execution `attention-home-next-dev-4709cka`; personal review rejects promotion. See the [complete DEV review](DEVELOPMENT_REVIEW.md). The previous complete DEV run remains rejected. The owner's conditional production authorization still requires acceptance of the exact complete DEV result.
 
 ## Implementation
 
@@ -43,3 +43,5 @@ The source freshness check also found a dictionary-style read of the typed `Pipe
 ## Remaining acceptance
 
 Both complete narratives, claim arrays and model reviews from the corrected exact-budget runs have now been personally read; [full outputs and source hashes](local-evaluation.json) retain the evidence. Some writing still exposes process language, and IREN compares different sessions when discussing relative move size; this must be assessed in the complete public result, not hidden by manual edits. These probes omit the full Home peer/universe context and are not the full workflow. The shared source/execution repair is accepted for that full DEV verification only. Reconcile the complete release inventory and all cumulative file reviews, package both Python roles from one clean Git revision, verify their actual contents and preserved dependencies, then deploy the seven existing DEV consumers. Run and review normal complete DEV Home, its own new charts, actual original points, narration, API/authenticated research, desktop/phone and unchanged configuration. Production promotion remains conditional on that result. Original release latency/prose regressions and this confirmed pre-existing source weakness remain distinct causal findings.
+
+The full run exposes caller/engine deadline ownership and an unsupported cross-date credit inference. Local source preservation is verified, but full recovery is unfinished; successful local probes and package checks do not satisfy production acceptance.

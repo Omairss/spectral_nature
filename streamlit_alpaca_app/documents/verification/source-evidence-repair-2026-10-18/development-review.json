@@ -1,0 +1,516 @@
+{
+  "status": "not_accepted",
+  "recorded_at_utc": "2026-10-18T19:17:28.134390+00:00",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+  "execution": "attention-home-next-dev-4709cka",
+  "execution_status": "Succeeded",
+  "public_api_seconds": 0.851,
+  "input_catalog": {
+    "namespace": "development",
+    "home_run_id": "73c9478d-a1bc-4065-b489-4417e873dd50",
+    "asof": "2026-10-18T08:18:52.788602+00:00",
+    "entries": 526,
+    "observations": 110556
+  },
+  "public_home": {
+    "run_id": "73c9478d-a1bc-4065-b489-4417e873dd50",
+    "as_of": "2026-10-18T08:18:52.788602+00:00",
+    "summary": {
+      "headline": "Market Summary",
+      "markdown": "Stocks were under pressure in the latest supplied session. In the 999-name universe observed for 16-17 October 2026, 594 fell and 400 rose; the median move was -0.5% and the average was -1.25%. Information Technology was the weakest large group, with an average decline of 4.7%, while Energy rose 2.19% and Consumer Staples and Utilities also gained. The 10-year Treasury yield was near 5.1%, and hot inflation kept a possible October Fed hike in play. The dominant theme was a repricing lower of AI infrastructure, semiconductors and software with profits far in the future, on worries about financing costs and the rate used to value future profits. Crypto-linked and clinical-stage health-care names also fell. Energy was the clear offset.",
+      "status": "completed",
+      "featured_symbols": [],
+      "audio_available": true,
+      "audio_mime_type": "audio/mpeg"
+    },
+    "coverage": {
+      "candidate_count": 83,
+      "event_count": 16,
+      "must_read_count": 0,
+      "unresolved_count": 41,
+      "news_backed_count": 4
+    },
+    "provenance": {
+      "mode": "materialized",
+      "datasets": [
+        "attention_home_snapshots_1d"
+      ]
+    },
+    "daily_datapoints_as_of": "2026-10-18T08:18:52.788602+00:00"
+  },
+  "stories": [
+    {
+      "id": "event::source-e7da2891ae24eb456742",
+      "kind": "event",
+      "title": "CXMT's 4F² DRAM claim puts server-memory pricing risk back on the screen",
+      "summary": "CXMT said its first 4F² DRAM product will be a server DDR5 module due by year-end. The claim threatens future commodity DRAM prices, but yields, speeds, customer samples and volumes are not disclosed. Micron, SK Hynix and Samsung sold off.",
+      "what_changed": "On 13 October 2026, reports said CXMT claimed major progress on a 4F² DRAM cell using a Vertical Surrounding Gate transistor. CXMT President Cao Kanyu said the first product would be a server DDR5 RDIMM due by end-2026. No speed, capacity, process node, yield or named customer was disclosed. TrendForce put CXMT fourth in global DRAM revenue in 2Q26 with 9.5% share, up from 7.6%.",
+      "why": "A 4F² cell is smaller than the common 6F² cell, so it can raise bits per wafer and lower cost per bit without advanced lithography. That can weaken the price umbrella for commodity server DRAM. Analysts caution that CXMT is working on older 10nm-class processes; one estimate says its cell could be about 34% larger than rivals' existing 6F² cells. The market moved on future supply fear, not proven volume.",
+      "business_context": "Memory is a cost-curve business. A smaller cell raises output per wafer, but actual chip area includes peripheral circuits, and yield and process cost decide the real gain. The gap between a paper cell and shipped supply is large.",
+      "watch_next": "Watch whether CXMT ships year-end DDR5 RDIMMs in volume with competitive yield, speed and a named customer. Also watch 4Q26 DRAM contract prices, CXMT sampling details and Micron's pricing commentary.",
+      "symbols": [
+        "MU",
+        "SKHY",
+        "SSNLF",
+        "SNDK",
+        "FXI",
+        "SMH"
+      ],
+      "primary_symbol": "MU",
+      "change_pct": null
+    },
+    {
+      "id": "event::cluster-03-7481f6c102",
+      "kind": "event",
+      "title": "AI cloud, power and bitcoin-mining shares fell together as CoreWeave credit stress spread",
+      "summary": "Nebius, CoreWeave, Applied Digital, IREN, Hut 8 and related AI-power names fell 10-13% together. CoreWeave's unsecured bond yield near 15% and a surge in credit default swaps put financing cost at the center. The move was a sector repricing lower, not one company's news.",
+      "what_changed": "On 16 October 2026, Nebius fell 12.16%, CoreWeave 11.89%, Vicor 12.81%, Applied Digital 11.46%, IREN 11.15%, Hut 8 11.03% and Cipher 10.74%. CoreWeave closed at $61.40, down $8.29. Reports put its unsecured bond yield near 15% and said credit default swaps surged. CoreWeave owed $35.6B of borrowed principal, against about $10.0B of convertible notes at Nebius.",
+      "why": "These firms borrow and spend on chips and data centers before customers pay. When lenders demand more to hold CoreWeave debt, the cost of funding the AI buildout rises. Higher funding costs take a larger share of cash flow and raise the rate used to value profits that arrive far in the future. Bitcoin miners share power and funding exposure, so they fell with the cloud names even without bitcoin-specific news.",
+      "business_context": "The group sells AI compute, data-center capacity or the power and optical parts that connect it. Revenue often comes from contracts, but cash spending comes first. Equity value is sensitive to borrowing cost and to the gap between spend and cash collection.",
+      "watch_next": "Watch CoreWeave bond yields and credit default swaps, AI-financing headlines, and whether the iShares Semiconductor ETF's nine-session losing streak extends. Watch contract announcements that show demand is still funded.",
+      "symbols": [
+        "NBIS",
+        "CRWV",
+        "VICR",
+        "APLD",
+        "IREN",
+        "HUT",
+        "AXTI",
+        "CIFR"
+      ],
+      "primary_symbol": "NBIS",
+      "change_pct": -12.16
+    },
+    {
+      "id": "event::source-4fc6dbc6ff56bc056a8f",
+      "kind": "event",
+      "title": "YMTC reaches No. 3 in NAND shipments and files for a Shanghai IPO",
+      "summary": "Counterpoint put YMTC third by NAND shipment volume in 2Q26 and said its revenue share rose from 9% in 1Q25 to 14% in 1Q26. The August 2026 STAR Market filing adds funding to China's NAND push. Near-term share gains remain mostly inside China.",
+      "what_changed": "On 13 October 2026, Benzinga reported YMTC overtook Micron in global NAND shipment volume and that SK Hynix closed below its 200-day average. Counterpoint data put YMTC behind Samsung and SK Hynix and ahead of Kioxia and Micron. If SK Hynix's Solidigm unit is counted separately, YMTC ranks second by volume. YMTC's parent filed a Shanghai STAR Market IPO prospectus in August 2026 and targeted about $4.9 billion.",
+      "why": "Counterpoint ties the gain to AI data-center demand, a NAND price upcycle and domestic China volume. YMTC uses its Xtacking process to add layers with mature lithography, which helps under export controls. US Entity List limits and a US federal buying ban from December 2027 cap near-term reach outside China. TrendForce still expected NAND contract prices to rise 15-20% in 4Q26.",
+      "business_context": "NAND is a commodity where price sets profit. Bit supply growth above demand compresses margins. YMTC's long-term target is about 500,000 wafers per month including DRAM and a 20% global NAND share.",
+      "watch_next": "Watch named enterprise SSD design wins outside China, the STAR Market prospectus for proceeds and capacity, and whether 4Q26 NAND contract prices hold.",
+      "symbols": [
+        "MU",
+        "SNDK",
+        "SKHY",
+        "SSNLF",
+        "WDC",
+        "STX",
+        "EWY",
+        "SMH"
+      ],
+      "primary_symbol": "MU",
+      "change_pct": null
+    },
+    {
+      "id": "event::cluster-02-e4b7ee09dc",
+      "kind": "event",
+      "title": "Energy shares rally as crude rises and Crescent's Eagle Ford deal draws buyers",
+      "summary": "Energy was the strongest large group on 16 October, with average gain 2.19% and median 2.91%. Producers rose most after a large US crude stock draw; pipelines followed. Crescent Energy jumped 10.28%, far above peers, on its $4.2B Eagle Ford acquisition and a $1B equity raise.",
+      "what_changed": "WTI settled at $97.97 on 15 October, up 3.03%, after a large US crude stock draw. On 16 October, Crescent Energy rose 10.28% to $13.785, Antero Resources 6.12%, Ovintiv 4.83%, Targa 4.41%, EOG 3.54% and Enterprise Products 3.89%. Crescent closed at exactly its $12.50 equity offer price the day before, then traded above it. It agreed on 8 October to buy Devon's Eagle Ford assets for $4.2B cash and priced 80M shares at $12.50.",
+      "why": "Higher crude raises revenue and cash flow per barrel for producers. Midstream operators gain if more oil and gas moves through their systems. Crescent's gain was too large for the sector alone, so the deal and the clearing of the equity overhang likely added a company-specific lift. The funding mix for the $4.2B cash price is not disclosed; the $1B raise covers only about a quarter.",
+      "business_context": "Upstream producers sell crude and gas at market prices. Midstream owns pipelines and processing, so it earns fees on volumes and is less directly geared to the commodity price. Crescent's deal adds scale in the Eagle Ford but also adds financing need.",
+      "watch_next": "Watch crude inventories and OPEC+ supply, the funding plan for Crescent's $4.2B purchase, and 3Q results on 2 November. A fall in crude would remove the main sector support.",
+      "symbols": [
+        "CRGY",
+        "AR",
+        "EPD",
+        "KMI",
+        "NI",
+        "TRGP",
+        "OVV",
+        "DTM"
+      ],
+      "primary_symbol": "CRGY",
+      "change_pct": 10.28
+    },
+    {
+      "id": "event::home-7dbe7259301eb48d5582",
+      "kind": "event",
+      "title": "Chip stocks endure a nine-session losing streak as credit and inflation worries hit the AI trade",
+      "summary": "The iShares Semiconductor ETF was on a nine-session losing run, its longest since May 2006. South Korea's KOSPI had its worst week since 2008. The trigger was not one chip company: CoreWeave credit stress and hot inflation hit the whole AI buildout trade.",
+      "what_changed": "The semiconductor ETF was on a nine-session losing run, the longest since May 2006. The KOSPI fell 5.5% in one session and had its worst week since 2008. Memory names Micron and Sandisk fell, and optical names had sharp drops. Bank of America compared Nvidia, Broadcom and Micron valuations with Cisco after the dot-com crash.",
+      "why": "Two forces hit the group together. First, CoreWeave credit stress raised the cost of financing AI data centers. Second, hot CPI and PPI data kept a Federal Reserve rate hike possible, with the 10-year Treasury near 5.1%. Higher funding costs and a higher rate for valuing future profits reduce the value of AI projects that pay back slowly. The move was a sector repricing, not a single company miss.",
+      "business_context": "Chip demand from AI data centers depends on projects that are often funded with debt. When credit gets more expensive, some projects are delayed or repriced. That can change orders for chips and optical parts before company earnings show it.",
+      "watch_next": "Watch the next semiconductor earnings and guidance, CoreWeave credit spreads, and whether the ETF stabilizes. A break in the losing streak would show the repricing has paused, not that the fundamental risk is gone.",
+      "symbols": [
+        "SMH",
+        "MU",
+        "SNDK",
+        "NVDA",
+        "AMD",
+        "TSM",
+        "CRWV"
+      ],
+      "primary_symbol": "SMH",
+      "change_pct": null
+    },
+    {
+      "id": "symbol::MXL",
+      "kind": "unresolved",
+      "title": "MaxLinear falls with semiconductors as its data-center optics story meets a sector selloff",
+      "summary": "MaxLinear fell 8.77%, in line with a weak semiconductor tape, after a 2026 re-rating on data-center optics. The company had raised its full-year optical data-center revenue outlook to $210-230M. No company-specific catalyst is confirmed for the drop.",
+      "what_changed": "On 16 October 2026, MaxLinear closed at $71.32, down 8.77% from $78.18. The move came as the iShares Semiconductor ETF ran a nine-session losing streak, its longest since 2006. MaxLinear's 2Q26 revenue was $168.8M, up 23% from 1Q and 55% year over year; infrastructure revenue rose 145% and became the largest category. Management raised the 2026 optical data-center revenue outlook to $210-230M from $150-170M.",
+      "why": "The drop fits a sector repricing lower, not a disclosed MaxLinear event. AI-infrastructure and semiconductor stocks sold off on financing and inflation worries. MaxLinear had already re-rated on its shift toward data-center optics, so profit-taking could add to the move. The evidence does not prove a company-specific cause.",
+      "business_context": "MaxLinear is an analog and mixed-signal chipmaker. Its growth now depends on optical data-center components, a market tied to AI cluster buildout. Revenue is still cyclical and customer-concentrated.",
+      "watch_next": "Watch the next MaxLinear results for optical data-center orders and whether the $210-230M outlook holds. Watch semiconductor breadth and AI capex headlines.",
+      "symbols": [
+        "MXL"
+      ],
+      "primary_symbol": "MXL",
+      "change_pct": -8.77
+    }
+  ],
+  "charts": [
+    {
+      "id": "fred:DGS10",
+      "title": "10Y Treasury Yield: 5.10% Keeps Pressure on Valuations",
+      "significance": "The 10-year yield was 5.10% on 15 Oct 2026, near the 5.31% high of 5 Oct; a high discount rate is the main channel from inflation to AI equity values.",
+      "date": "2026-10-15",
+      "value": 5.1
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "title": "High-Yield Spreads: Broad Credit Calm at 3.23%",
+      "significance": "High-yield spreads were 3.23% on 15 Oct 2026, below the 4.61% peak in April 2025, so broad credit is calm and the AI funding stress is not a general credit event.",
+      "date": "2026-10-15",
+      "value": 3.23
+    },
+    {
+      "id": "stock:CRWV:price",
+      "title": "CoreWeave: Funding Cost Is the AI Stress Point",
+      "significance": "CoreWeave closed at $61.40 on 16 Oct 2026, down 11.89% and about two-thirds below its June 2025 high, as reports put its unsecured bond yield near 15%.",
+      "date": "2026-10-16",
+      "value": 61.395
+    },
+    {
+      "id": "stock:MU:price",
+      "title": "Micron: China Memory Supply Meets the AI Selloff",
+      "significance": "Micron closed at $878.78 on 16 Oct 2026, down 5.65% and about 28% below its June 2026 high, as CXMT and YMTC supply claims threatened memory pricing.",
+      "date": "2026-10-16",
+      "value": 878.78
+    },
+    {
+      "id": "stock:OVV:price",
+      "title": "Ovintiv: Energy's Offset at a Series High",
+      "significance": "Ovintiv closed at $69.32 on 16 Oct 2026, up 4.83% to a series high, as WTI at $97.97 on 15 Oct gave producers an offset to the chip selloff.",
+      "date": "2026-10-16",
+      "value": 69.32
+    }
+  ],
+  "data_integrity": [
+    {
+      "id": "fred:DGS10",
+      "source_observations": 746,
+      "rendered_observations": 746,
+      "last_observation": "2026-10-15",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "source_observations": 783,
+      "rendered_observations": 783,
+      "last_observation": "2026-10-15",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "stock:CRWV:price",
+      "source_observations": 391,
+      "rendered_observations": 391,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "stock:MU:price",
+      "source_observations": 1253,
+      "rendered_observations": 1200,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "stock:OVV:price",
+      "source_observations": 1251,
+      "rendered_observations": 1200,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    }
+  ],
+  "intraday": [
+    {
+      "symbol": "MU",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SKHY",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SSNLF",
+      "status": "unavailable",
+      "session": "",
+      "as_of": "",
+      "interval": "5Min",
+      "observations": 0
+    },
+    {
+      "symbol": "SNDK",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NBIS",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "CRWV",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "VICR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 66
+    },
+    {
+      "symbol": "APLD",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "CRGY",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "AR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "EPD",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "KMI",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SMH",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NVDA",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "MXL",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 71
+    }
+  ],
+  "audio": {
+    "http_status": 200,
+    "content_type": "audio/mpeg",
+    "bytes": 822168,
+    "seconds": 0.64,
+    "home_run_id": "73c9478d-a1bc-4065-b489-4417e873dd50",
+    "text_matches_current_summary": true,
+    "audio_text_sha256": "2202f6e7667831d304b488247bc432252516d417c4a9d7e08e926e6fe7f216b5",
+    "served_bytes_match_current_stored_audio": true
+  },
+  "existing_chart_review": {
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The five charts are the right set for this brief, but the wording needed tightening to fit the field limits and to keep dated observations separate from interpretation. The revised entries lead with the dated value, keep the credit point precise (broad high-yield credit is calm, while the visible stress is in AI-linked borrowers), and keep the energy offset tied to the dated WTI level.",
+    "confidence": "high",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "revised_answer_applied": true,
+    "research_requests": []
+  },
+  "execution_start": "2026-10-18T08:18:14+00:00",
+  "execution_end": "2026-10-18T09:03:41+00:00",
+  "personal_review": {
+    "complete_overview_stories_and_charts_read": true,
+    "stories": 6,
+    "charts": 5,
+    "findings": [
+      "Seven of twelve company investigations were discarded at the 240-second caller deadline while engine review/return was still finishing.",
+      "The high-yield highlight uses a 15 October observation to exclude a broader credit event during the 16 October selloff. The data supports a dated historical comparison; it does not establish that causal exclusion.",
+      "The new public result does not repeat the earlier October CoreWeave financing announcement or new IREN financing assertion. IREN research was dropped, so omission is not proof of successful full-path chronology handling.",
+      "Overview wording still exposes supplied-session context rather than naming one clearly dated trading session. Readability improves but does not establish full recovery."
+    ],
+    "production_condition_satisfied": false
+  },
+  "candidate_execution": {
+    "attempted": 12,
+    "discarded_at_caller_deadline": 7,
+    "discarded_symbols": [
+      "TLK",
+      "NBIS",
+      "RXRX",
+      "APLD",
+      "TWLO",
+      "GRAL",
+      "IREN"
+    ],
+    "warning_records": [
+      "2026-10-18T08:32:58.0812298Z stdout F [warn] AQL candidate research skipped index=1/12 symbol=TLK reason=AQLStepTimeout: AQL candidate research TLK exceeded 240s",
+      "2026-10-18T08:32:58.0999430Z stdout F [warn] AQL candidate research skipped index=3/12 symbol=NBIS reason=AQLStepTimeout: AQL candidate research NBIS exceeded 240s",
+      "2026-10-18T08:32:58.1249626Z stdout F [warn] AQL candidate research skipped index=4/12 symbol=RXRX reason=AQLStepTimeout: AQL candidate research RXRX exceeded 240s[info] job_memory stage=research_candidates {\"current_bytes\": 860758016, \"limit_bytes\": 8589934592, \"peak_bytes\": 1215614976}",
+      "2026-10-18T08:39:24.4795019Z stdout F [warn] failed to record job progress stage=answer_judge_heartbeat: Research work has expired.[warn] AQL candidate research skipped index=9/12 symbol=APLD reason=AQLStepTimeout: AQL candidate research APLD exceeded 240s",
+      "2026-10-18T08:40:08.9761141Z stdout F [warn] AQL candidate research skipped index=10/12 symbol=TWLO reason=AQLStepTimeout: AQL candidate research TWLO exceeded 240s",
+      "2026-10-18T08:40:21.4348230Z stdout F [warn] AQL candidate research skipped index=11/12 symbol=GRAL reason=AQLStepTimeout: AQL candidate research GRAL exceeded 240s",
+      "2026-10-18T08:40:22.8239280Z stdout F [warn] AQL candidate research skipped index=12/12 symbol=IREN reason=AQLStepTimeout: AQL candidate research IREN exceeded 240s"
+    ]
+  },
+  "research_stages": {
+    "source_event_research_status": "completed",
+    "source_event_nominated_count": 4,
+    "source_event_completed_count": 4,
+    "source_event_input_count": 50,
+    "public_surface_quality_reviewed_count": 22,
+    "public_surface_quality_changed_count": 12,
+    "public_surface_quality_dropped_count": 10,
+    "research_health_status": "degraded",
+    "research_stage_statuses": {
+      "source_events": "completed",
+      "ticker_enrichment": "completed",
+      "ticker_answer_review": "partial",
+      "market_summary": "completed",
+      "group_synthesis": "consolidated_in_public_editor",
+      "public_editor": "completed",
+      "public_answer_review": "completed",
+      "market_inputs": "ok"
+    },
+    "ticker_enrichment_failed_count": 0,
+    "ticker_enrichment_unreviewed_count": 2,
+    "public_home_story_count": 6
+  },
+  "provider_attempts": {
+    "scope": "Exact Home root only; other five attempts since execution start excluded. Embeddings included. Snapshot can contain unreconciled in-flight/outbox records. No cost/savings claim.",
+    "root": "73c9478d-a1bc-4065-b489-4417e873dd50",
+    "attempts": 1179,
+    "statuses": {
+      "success": 1163,
+      "started": 14,
+      "failure": 2
+    },
+    "peak_reported_prompt_tokens": 569030,
+    "failed_attempts": [
+      {
+        "purpose": "agent.answer_judge",
+        "error_type": "ConnectionError",
+        "duration_ms": 39965.20116100009,
+        "http_status": null
+      },
+      {
+        "purpose": "agent.answer_judge",
+        "error_type": "ConnectionError",
+        "duration_ms": 5040.868309999951,
+        "http_status": null
+      }
+    ]
+  },
+  "browser_review": {
+    "signed_in": true,
+    "fresh_asof_visible": "Oct 18, 8:18 AM UTC",
+    "desktop_viewport": {
+      "width": 1619,
+      "scroll_width": 1619
+    },
+    "phone_viewport": {
+      "width": 390,
+      "height": 844,
+      "scroll_width": 390
+    },
+    "combined_week_and_latest_day_chart_retained": true,
+    "fundamental_value_and_trend_present_once_per_field": true,
+    "physical_iphone_test": false,
+    "temporary_viewport_reset": true,
+    "initial_prefetched_route_showed_old_data_until_normal_reload": true
+  },
+  "production_changed": false,
+  "post_publication_http_checks": [
+    {
+      "environment": "development",
+      "path": "/api/home",
+      "http_status": 200,
+      "seconds": 1.042,
+      "run_id": "73c9478d-a1bc-4065-b489-4417e873dd50",
+      "asof": "2026-10-18T08:18:52.788602+00:00",
+      "stories": 6,
+      "charts": 5,
+      "charts_asof": "2026-10-18T08:18:52.788602+00:00"
+    },
+    {
+      "environment": "development",
+      "path": "/api/auth/session",
+      "http_status": 200,
+      "seconds": 0.191
+    },
+    {
+      "environment": "development",
+      "path": "/api/trading-agent",
+      "http_status": 401,
+      "seconds": 0.201
+    }
+  ],
+  "post_publication_configuration_check": "development-configuration-audit.json"
+}

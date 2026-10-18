@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Complete shared source capture/reference repair and event alignment accepted locally for a full fresh development run; production remains gated on the exact public result.",
+  "status": "held_after_development_quality_failure",
+  "scope": "Source capture/reference contracts verified, but complete DEV execution and public reasoning fail the owner quality condition. Current verified images are not authorized for promotion.",
   "source_revision": "001895073648c1bdde9a9907238b701ca1c0fb08",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
@@ -974,16 +974,19 @@
   },
   "development_acceptance": {
     "status": "not_accepted",
-    "scope": "Seven verified DEV image updates complete. All-33 configuration/readiness audit and signed-in retained research/Trading views pass. Fresh complete Home generation and personal public quality review remain pending.",
-    "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md",
-    "reason": "Fresh complete Home and its new charts have not yet completed or been personally accepted.",
+    "scope": "Normal complete fresh DEV Home and five new charts generated; runtime/data/configuration checks pass, but personal public quality and execution review reject promotion.",
+    "evidence": "documents/verification/source-evidence-repair-2026-10-18/DEVELOPMENT_REVIEW.md",
+    "reason": "Seven of twelve company investigations discarded at 240-second caller deadlines, including IREN. High-yield caption uses 15 October data to exclude a general credit event during 16 October selling.",
     "images": {
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54"
     },
     "execution": "attention-home-next-dev-4709cka",
     "home_run_id": "73c9478d-a1bc-4065-b489-4417e873dd50",
-    "asof": "2026-10-18T08:18:52.788602+00:00"
+    "asof": "2026-10-18T08:18:52.788602+00:00",
+    "home_status": "Succeeded",
+    "started_at": "2026-10-18T08:18:14+00:00",
+    "finished_at": "2026-10-18T09:03:41+00:00"
   },
   "preceding_hold": {
     "revision": "20108c58",

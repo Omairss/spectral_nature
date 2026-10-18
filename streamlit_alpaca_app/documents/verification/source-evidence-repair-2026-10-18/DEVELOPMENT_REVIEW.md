@@ -1,0 +1,33 @@
+# Complete DEV review — source evidence repair
+
+**Not accepted for production.** The normal complete job succeeded in 45m27s, but personal review rejects promotion. Production application images and configuration remain unchanged.
+
+Execution `attention-home-next-dev-4709cka`, Home `73c9478d-a1bc-4065-b489-4417e873dd50`, as-of `2026-10-18T08:18:52.788602+00:00`. Verified worker `a0b15ecc` and API `80ca1d35` were built from Git `81d7a997`; API revision 43 is ready. All seven DEV image changes and all 33 resource configurations, four domains and retirement checks pass. See [complete public output and evidence](development-review.json).
+
+## Qualitative decision
+
+The overview, all fields of all six public stories, all five new highlights and their existing model review were personally read. The stories are clearer and explain the memory suppliers, AI financing, energy rotation and chip/software selloff. The original unreadable card-role prose is absent. The new public result does not repeat the earlier October CoreWeave financing announcement or invent a new IREN offering. However, IREN's candidate research was discarded; its omission is not evidence that the entire live chronology path succeeded.
+
+The high-yield highlight states that broad credit is calm and AI funding stress is not a general credit event, based on a 15 October spread of 3.23% and an April 2025 peak. The selloff being explained is 16 October. That earlier observation and historical peak do not establish the exclusion. The shared model review strengthened the same interpretation and approved it. Numerical integrity and model approval do not resolve this reasoning failure. The overview also says “latest supplied session” and gives an observation range of 16–17 October rather than one clear trading session.
+
+No manual caption correction, phrase ban, date cutoff, new critic or financial rule was introduced. The reviewed output remains available for inspection.
+
+## Execution failure
+
+Twelve company investigations were attempted. Seven were discarded at the existing 240-second caller fence: TLK, NBIS, RXRX, APLD, TWLO, GRAL and IREN. Several had produced a draft and were returning it after review failed or timed out. Their intermediate work did not become the candidate result. Four source-event investigations completed; ticker enrichment completed, with two answer reviews unreviewed. Final Home and chart model reviews completed, yet the public temporal inference above still failed human review.
+
+The actual path includes `_call_with_timeout` in `services/aql/pipeline.py`, the structured engine's separately started deadline, `ResearchBudget.start`, operational checkpointing and the answer-review return. The caller cancels and raises if its thread is alive at 240 seconds, discarding the function's result. These independently started clocks and finalization ownership need reconciliation. The trace proves the caller cuts off work while review/return is finishing; it does not yet quantify every source of elapsed time or prove that the latest source change alone caused all seven outcomes.
+
+The local 240-second company probes exercised the collector directly, without this outer AQL timeout/cancellation boundary and normal acquisition checkpoint bookkeeping. They did not establish this integration's reliability. Preserve those successful local results and this failed full run together. Do not raise timeouts, skip review or add a recovery controller merely to make a pass. The next correction must use the existing execution/checkpoint path to give the operation one deadline owner and preserve already completed paid work.
+
+## Preserved behavior
+
+All five selections belong to the new Home root. Their complete histories match the source catalog: DGS10 746 observations, high-yield OAS 783, CoreWeave 391, Micron 1,253 and Ovintiv 1,251. The public 1,200-point windows match exactly. Original observation dates remain October 15 for FRED and October 16 for prices. The catalog contains 526 entries and 110,556 observations. Narration text/hash and all 822,168 served audio bytes match this overview. The public Home API took 0.851 seconds in the capture.
+
+Signed-in desktop and 390×844 phone review retain the combined week/latest-day price chart and compact fundamental value/trend grid. Neither viewport has document-level horizontal overflow. The phone override is reset. The first client navigation showed a prefetched old route; a normal reload showed the correct new as-of time. This is recorded rather than treated as a newly verified cache fix. Existing Zopedia history/follow-up table and all five Trading horizons load on the new API. Trading artifacts were retained, not regenerated. No orders or approvals were executed, and no physical iPhone test was performed.
+
+## Metering and hold
+
+The exact Home root has 1,179 recorded model/embedding attempts at capture: 1,163 success, 14 still marked started, and two connection failures during answer review. Outbox/in-flight reconciliation is unresolved, so these are not complete spend totals. Five other attempts since job start are excluded. The largest reported prompt is 569,030 tokens; no final context overflow is shown in this run.
+
+Production remains held under the owner's existing conditional authorization. No additional production permission is needed if a future exact DEV result actually satisfies that condition. This result does not. Both application source and the concrete remaining failures are retained; the overall recovery is unfinished.
