@@ -1,0 +1,949 @@
+{
+  "recorded_at_utc": "2026-10-18T03:21:05.402620+00:00",
+  "status": "accepted_for_development",
+  "scope": "Complete frozen macro-finalizer/market contract, editor/materializer, full resulting Home, selection and existing review. Earlier source acquisition reused; no publication.",
+  "summary": {
+    "status": "completed",
+    "seconds": 380.09,
+    "published": false,
+    "provider_attempts": 17,
+    "selected_ids": [
+      "stock:MU:price",
+      "stock:CRWV:price",
+      "fred:BAMLH0A0HYM2",
+      "fred:DGS10",
+      "stock:CRGY:price"
+    ],
+    "exact_histories_preserved": true
+  },
+  "source_identity": {
+    "runtime_files": {
+      "services/zopedia_agent.py": "1bfa94182098fabb8b7875eb07226fc48a2e600a40ccfc5fa407abf845c82274",
+      "services/llm_execution.py": "4e321b2dbcc72b784f84b05e1abd14f2a6565078f6687547358182d88ec7b3b8",
+      "services/daily_market_datapoints.py": "04915fd41f3d77af2ecc8f86b4f9e1faf2994f643ca0a25a6e5be85da294034b",
+      "pipeline/jobs/attention_home_build.py": "e511a63b0ccaa663ab5e6b1eaf5184d4999b13da8431407c9011e1963e5eb23a",
+      "services/aql_zopedia_engine.py": "589a7d35d731a2faad6ac72220bb2469c763e9859af379e5cd969d3d80ae34d8",
+      "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60"
+    },
+    "frozen_home_run": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
+    "original_editor_evidence_sha256": "8ec2ceddce1f0ea5181630f85e4cc4e047163064e3b63fda6b94321fa1970fb1",
+    "catalog_entries": 543,
+    "published": false,
+    "scope": "Complete frozen editor input, normal materializer, resulting full Home to chart selection and review. Earlier acquisition is reused unchanged."
+  },
+  "macro_finalizer": {
+    "normal_dashboard_finalizer_validated": true,
+    "observations_unchanged": 23604,
+    "summary_series": 35,
+    "additional_existing_change_metadata_columns": [
+      "latest_rate_of_change",
+      "latest_smoothed_rate_of_change",
+      "rate_of_change_kind",
+      "rate_of_change_label",
+      "smoothing_label",
+      "smoothing_span"
+    ],
+    "metadata_scope": "Frozen stored series metadata; release_name ordering field unavailable and left empty. Numerical source records unchanged."
+  },
+  "calendar_edges": {
+    "all_35_prepared_summaries_identical": true,
+    "missing_annual_period_is_unknown": true,
+    "month_end_leap_year_and_unsorted_data_correct": true,
+    "empty_input_and_asof_frequent_series_correct": true
+  },
+  "overview": {
+    "summary_text": "Stocks split in the latest session. Energy, staples and utilities rose, while information technology averaged a 4.7% fall and health care fell 2.1%. Breadth was weak: 594 decliners against 400 advancers, with an average move of -1.25%. The session continued a week-long memory and AI-infrastructure de-rating: CXMT's 4F² DRAM plan and YMTC's NAND share gains had already hit memory names, while credit stress at AI cloud builders and hot inflation pressured high-multiple technology shares. Oil near $96 and a large US crude draw lifted producers. This looks like rotation and de-risking, not a broad recession signal.",
+    "confidence": "medium",
+    "limitations": [
+      "Most evidence is provider headlines and snippets, not full article bodies; causal statements are reported, not measured.",
+      "Several cohort moves have no company-specific filing; cause is inferred from timing and sector direction.",
+      "Market data are the latest closes through 16-17 October; later moves are not reflected.",
+      "Some payment and ownership details rely on second-hand summaries of filings.",
+      "Sector data conflict: one report says nine of 11 sectors rose, while the supplied rotation table shows five positive. I use the table's averages and breadth."
+    ],
+    "summary_status": "completed"
+  },
+  "stories": [
+    {
+      "symbol": "",
+      "event_title": "CXMT's 4F² DRAM plan and the memory-chip selloff",
+      "surface_summary_text": "CXMT showed a denser DRAM design and a year-end server DDR5 target. Memory stocks fell before any mass-production proof.",
+      "what_happened_text": "At an industry conference on 10 October 2026, CXMT President Cao Kanyu presented a 4F² DRAM architecture, according to TrendForce. CXMT called it major progress on a proprietary memory-cell structure that Samsung and SK Hynix also pursue. The first product is planned as a server DDR5 RDIMM by the end of 2026. The design uses vertical transistors; reports say it cuts each cell's footprint by about one-third on paper, with one estimate of 30-50% higher cell density. CXMT disclosed no speeds or capacities. A launch plan is not mass production. On 13 October, Samsung and SK Hynix fell in Seoul, the KOSPI dropped about 5%, and Micron and Applied Materials fell in the US. Micron was on a fourth straight losing session, and SanDisk dropped 4%. Samsung had already shown a 4F² design at ISSCC 2026, so the architecture itself was not new.",
+      "why_happened_text": "If CXMT can make 4F² DDR5 at scale, it can add supply and pressure prices in conventional server DRAM, where Samsung, SK Hynix and Micron earn a large share of revenue. That is the economic channel. The direct near-term threat is to commodity and server DRAM, not HBM, the stacked memory used next to AI accelerators. The market also used the news to sell a crowded memory and AI trade. Reports cite profit-taking, bearish bets and doubts about AI spending, including a Broadcom executive comparing AI investors to casino gamblers. The reports do not quantify how much of the selloff came from CXMT versus AI profit-taking.",
+      "business_context_text": "DRAM is a commodity-like business where cost per bit and supply timing drive profit. A smaller cell lets a maker fit more bits on each wafer, so 4F² matters if it yields. CXMT's first target, server DDR5, is conventional DRAM, not HBM. For equipment suppliers such as Applied Materials, more Chinese DRAM capacity could mean more tool demand, but China's push for self-sufficiency and export controls make the net effect uncertain.",
+      "watch_next_text": "Watch whether CXMT actually ships the planned server DDR5 RDIMM by year-end 2026 with disclosed speeds, capacities and yields. Also watch conventional DDR5 contract pricing and guidance from Micron, Samsung and SK Hynix."
+    },
+    {
+      "symbol": "",
+      "event_title": "AI data-center hosts and bitcoin miners fall together on credit stress",
+      "surface_summary_text": "Leveraged AI-infrastructure and crypto-mining shares fell 10% to 13% together while the broad market was mixed. Credit stress is the best-supported shared driver.",
+      "what_happened_text": "In the latest session, AI cloud hosts, data-center operators, bitcoin miners and several power and optical suppliers fell heavily. Nebius, CoreWeave, IREN, Applied Digital, Vicor, Hut 8, Cipher Digital and CleanSpark fell roughly 10% to 13%. Other related names such as DigitalOcean, Applied Optoelectronics, Lumentum, Penguin Solutions, TeraWulf and Bitdeer fell 5% to 10%. The broad market did not show the same concentrated stress. Breadth was negative, with 594 decliners against 400 advancers, but the sharpest selling was in this AI-infrastructure group.",
+      "why_happened_text": "Credit stress at a major AI cloud provider raised the cost of funding for the whole AI build-out, and that repricing hit shares whose value depends on future lease revenue. CoreWeave credit default swaps, which are contracts that pay out if a company defaults, implied about a 60% default risk, and its bonds yielded near 15%. A 15 October Gartner forecast said 80% of newer cloud providers will not survive independently. These companies borrow to build data centers and sign long contracts to repay the debt, so a higher funding cost and a higher rate used to value future revenue cut the equity value directly. Hot inflation data and uncertainty about the next Federal Reserve move added to rate pressure, with the 10-year yield near 5.1%. No company announcement was confirmed as the single trigger.",
+      "business_context_text": "These firms sit between AI demand and the power, buildings and chips that supply it. Many borrow heavily and sign long contracts to repay debt. When credit spreads widen or rates rise, the equity absorbs the change first. Bitcoin miners are included because they also run power-intensive data centers and are sensitive to funding costs and crypto prices.",
+      "watch_next_text": "Watch CoreWeave credit spreads and bond yields, neocloud financing terms, the Federal Reserve path, hyperscaler capital-spending guidance and data-center lease pricing."
+    },
+    {
+      "symbol": "",
+      "event_title": "YMTC reaches No. 3 in NAND shipments and files for a Shanghai IPO",
+      "surface_summary_text": "YMTC gained NAND share and is raising public capital. The market treats that as future supply, but enterprise qualification and US procurement limits slow the shift.",
+      "what_happened_text": "On 13 October 2026, Benzinga reported that YMTC overtook Micron in global NAND shipment volumes and is targeting AI enterprise storage. Counterpoint ranked YMTC third globally by NAND shipment volume in Q2 2026, behind Samsung and SK Hynix and ahead of Kioxia and Micron; excluding SK Hynix's Solidigm unit, YMTC would rank second. YMTC's global NAND revenue share rose from 9% in Q1 2025 to 14% in Q1 2026, with year-over-year revenue growth reported as high as 478%. YMTC filed a Shanghai Star Market IPO prospectus in August 2026; Counterpoint said valuation and offer price had not been set. A social-media post claimed a $44 billion valuation, but that is unconfirmed. SK Hynix closed below its 200-day moving average for the first time since May 2025. UBS cut Western Digital's price target ahead of earnings on rising memory supply and broad chip weakness.",
+      "why_happened_text": "AI data centers pulled demand toward enterprise SSDs. YMTC gained volume in a growing market, so the 478% revenue growth is mostly market growth; the cleaner measure is its revenue share rising from 9% to 14%. An IPO would give YMTC cheaper long-term capital and a public valuation, supporting capacity plans and customer confidence. The equity reaction is fear about future supply, not evidence of current oversupply. TrendForce still expects NAND contract prices to rise 15% to 20% in Q4 2026, with enterprise SSDs accelerating. Consumer NAND is weaker: a reported TrendForce note says the 512GB TLC spot price fell 2.9% in October 2026 on weak module demand and high inventories. Pricing is split by end market.",
+      "business_context_text": "NAND flash is storage memory. It keeps data without power and goes into phones, PCs and enterprise SSDs. NAND is cyclical: capacity arrives in multi-year waves, and prices fall when supply catches demand. Enterprise SSD qualification is slow because cloud buyers test reliability, endurance and firmware. YMTC's shipment rank matters first in commodity NAND and client SSDs, where qualification is quicker. The IPO is a funding event, not a completed capacity commitment. YMTC has been on the US Entity List since 2022, and US federal agencies are barred from buying products containing YMTC chips from December 2027.",
+      "watch_next_text": "Watch whether YMTC converts shipment rank and IPO capital into qualified enterprise SSD volume at major cloud buyers. Also watch YMTC's IPO terms, its Wuhan fab ramp, and NAND contract prices."
+    },
+    {
+      "symbol": "",
+      "event_title": "Liquidia pays a net $380.7M and gives up the PH-ILD use of YUTREPIA to end six lawsuits",
+      "surface_summary_text": "Liquidia bought certainty for its PAH business by paying United Therapeutics and dropping the PH-ILD label. The cash cost is large relative to its cash balance.",
+      "what_happened_text": "On 13 October 2026, Liquidia and United Therapeutics announced a global settlement that resolves all six pending lawsuits. Liquidia pays $185M within 30 business days for past YUTREPIA sales; United Therapeutics pays Liquidia $10M, so the first net payment is $175M. Liquidia also pays $145.4M for PH-ILD sales made after signing, in two $72.7M installments due by 31 January and 30 April 2027. A further $60.3M goes in October 2026 to parties with interests in the Treprostinil Injection antitrust case. Gross payments total $390.7M; net of the $10M receipt, $380.7M. Liquidia submitted a supplement to remove the PH-ILD indication from the YUTREPIA label and will no longer promote it for that use. YUTREPIA stays on the market for PAH.",
+      "why_happened_text": "The trigger was the 30 September 2026 District of Delaware ruling that claims 1 and 14 of U.S. Patent No. 11,826,327 are valid and infringed by marketing YUTREPIA for PH-ILD; other asserted claims were invalid. Liquidia faced an appeal and a possible injunction. A broad restriction would have hit the whole company because YUTREPIA supplied about $170.4M of the $171.679M of Q2 2026 revenue. Settling buys certainty for the PAH business and the cash flow behind it, and pays with cash, the PH-ILD label, trial data rights and patent-challenge rights. For United Therapeutics, the settlement turns a court win into about $320.4M of net cash and removes a promoted rival from PH-ILD. The competitive gain is clear in direction but unmeasured in size.",
+      "business_context_text": "Liquidia is a single-product commercial company. Q2 2026 revenue was $171.679M, with YUTREPIA net product sales of about $170.4M; net income was $74.722M and cash was $284.2M at 30 June 2026. Preliminary and unaudited Q3 2026 figures show YUTREPIA sales of $222.7M and cash of $396.1M at 30 September 2026. The net $380.7M equals about 96% of that cash. About $235.3M falls in 2026, or 59% of the September cash, before operating costs. Management says it can fund the settlement from sales and cash without new financing.",
+      "watch_next_text": "The key fact is FDA acceptance and the effective date of the label supplement, because that sets when PH-ILD sales stop. Also watch the filed Q3 report for cash flow, any split of YUTREPIA sales by condition, 2027 guidance, and whether the ASCENT data limits block L606's path back into PH-ILD."
+    },
+    {
+      "symbol": "",
+      "event_title": "Strive buys 3,311 BTC with security sales and prices a 15% preferred layer",
+      "surface_summary_text": "Strive added bitcoin, then sold a high-cost preferred stock. The fixed dividend raises the return bitcoin must earn for common holders.",
+      "what_happened_text": "On 13 October 2026, Strive reported that it bought 3,311 bitcoin from 5 to 9 October at an average price near $84,500. That is about $280M and raised holdings to 32,773 bitcoin. On the same day, Strive announced a plan to sell 5 million shares of a new 15.00% Series A Perpetual SATS preferred stock. On 15 October, it priced 7 million shares at $90 each, an upsize of 2 million shares, for about $630M of gross proceeds. Settlement is set for 20 October 2026, so the sale had not closed as of 18 October. Each share carries a $100 stated amount and a cumulative 15.00% dividend, or $15.00 a year. Regular payments start 9 November. On 7 million shares the stated dividend is about $105M a year, or 16.7% of the $90 issue price before fees. Strive plans an 18-month dividend reserve of $22.50 per share, about $157.5M or 25% of the gross deal size.",
+      "why_happened_text": "Strive's operating business is too small to carry the treasury. Revenue was $2.8M in Q1 2026 and $2.9M in Q2. First-half operating cash flow was negative $39.4M, and preferred dividends paid in that half were $39.7M. Bitcoin pays no cash yield, so every preferred layer adds a cash cost that must come from cash reserves, asset sales or new security sales. A preferred sale raises cash without issuing common shares directly, which can protect bitcoin per common share if the cash buys more bitcoin. But the 15.00% rate sets a high hurdle. For a common holder to gain, bitcoin's total return must beat roughly 16.7% a year on the SATS money, after dilution from other shares and preferred claims. Using reported share counts, SATA and SATS together imply near $224M a year of preferred dividends, probably a floor.",
+      "business_context_text": "Strive is a structured finance company with a bitcoin treasury and a small asset manager. Its funding stack includes Class A common stock through an at-the-market program with $2.55B of planned capacity, SATA preferred through an at-the-market program that may reach $2.6B, and now SATS preferred. Cash was $284.7M on 2 October. The company retired all debt by August 2026, so the balance sheet is now bitcoin funded by common and preferred equity. The exact mix of cash and at-the-market sales used for the October purchase is not disclosed.",
+      "watch_next_text": "Watch the 20 October settlement: how much cash remains after fees and the $157.5M dividend reserve, and whether Strive puts it into bitcoin or into buybacks of common and SATA stock. The Q3 filing should show cash, at-the-market sales, preferred dividends paid and the current SATA share count."
+    },
+    {
+      "symbol": "MXL",
+      "event_title": "MaxLinear falls 8.8% with no confirmed company catalyst",
+      "surface_summary_text": "MaxLinear had a large one-day drop while its data-center optics business is growing fast. The evidence does not identify a trigger.",
+      "what_happened_text": "MaxLinear closed at $71.32, down 8.77% from $78.18, on 100,183 shares. The move was large relative to its recent range, but the supplied evidence contains no company announcement, earnings release or filing that explains it.",
+      "why_happened_text": "The cause is unresolved. The wider semiconductor and AI-infrastructure complex was selling off, and MaxLinear sells optical components into data centers, so sector de-risking is a plausible contributor. But the evidence does not prove that sector pressure caused this specific drop. The company had raised its 2026 optical data-center revenue outlook, which may have left the stock exposed to profit-taking.",
+      "business_context_text": "In Q2 2026, MaxLinear reported revenue of $168.8M, up 23% from Q1 and 55% from a year earlier. Its infrastructure business rose 145% year over year and became the largest revenue category at roughly $85M. Management raised its full-year 2026 optical data-center revenue outlook to $210M-$230M from $150M-$170M. That makes data-center optics the growth engine, but also raises expectations.",
+      "watch_next_text": "Watch the next earnings or guidance update, optical data-center orders, and whether the stock recovers with the semiconductor sector."
+    }
+  ],
+  "charts": [
+    {
+      "id": "stock:MU:price",
+      "title": "Micron falls 5.6% as memory de-rating deepens",
+      "significance": "MU fell 5.65% to $878.78 on 16 October after a one-day rebound, yet remains 14.6% below 9 October; the memory de-rating matters because MU is a core AI-hardware holding.",
+      "date": "2026-10-16",
+      "value": 878.78,
+      "unit": "USD"
+    },
+    {
+      "id": "stock:CRWV:price",
+      "title": "CoreWeave drops 11.9% on AI funding stress",
+      "significance": "CRWV fell 11.89% to $61.40 on 16 October and 23.5% from 12 October; this tests whether debt-funded AI data-centre growth can hold value as funding costs rise.",
+      "date": "2026-10-16",
+      "value": 61.395,
+      "unit": "USD"
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "title": "High-yield spreads widen but stay low in absolute terms",
+      "significance": "Broad high-yield OAS was 3.23% on 15 October, 0.63 points wider since 28 August; the low level masks acute issuer-specific AI credit stress.",
+      "date": "2026-10-15",
+      "value": 3.23,
+      "unit": "%"
+    },
+    {
+      "id": "fred:DGS10",
+      "title": "10-year Treasury at 5.10% pressures valuations",
+      "significance": "The 10-year Treasury yield was 5.10% on 15 October, up 1.05 points from a year earlier; high discount rates weigh on long-duration AI and technology shares.",
+      "date": "2026-10-15",
+      "value": 5.1,
+      "unit": "%"
+    },
+    {
+      "id": "stock:CRGY:price",
+      "title": "Energy leads; CRGY jumps 10.3% far past sector",
+      "significance": "CRGY rose 10.28% to $13.785 on 16 October as energy led at +2.19% and oil traded near $96; its far larger move suggests company-specific drivers too.",
+      "date": "2026-10-16",
+      "value": 13.785,
+      "unit": "USD"
+    }
+  ],
+  "chart_review": {
+    "status": "accepted",
+    "attempts": [
+      {
+        "approved": false,
+        "issues": [
+          "MU: remove 'fourth straight decline.' The chart shows MU fell 5.65% to $878.78 on 16 October, but it rose 1.87% on 15 October from $914.32 to $931.38. The event note's 'fourth straight losing session' referred to 13 October. Correction: 'MU fell 5.65% on 16 October after a one-day rebound; the week still showed a memory de-rating.' Follow-up: check whether the decline is consecutive or week-to-date.",
+          "High-yield OAS: 3.23% on 15 October is correct and 0.28 points above a year earlier, but the series is broad high-yield spread, not AI-cloud credit. It also rose from 2.60 on 28 August to 3.23 on 15 October, a 0.63-point widening. CoreWeave-specific CDS and bond pricing showed acute stress. Correction: say broad high-yield spreads remain low in absolute terms but are widening, while issuer-specific AI credit stress is severe; do not imply AI credit stress is contained. Follow-up: add a CoreWeave spread or bond-yield series if available.",
+          "CRGY: 10.28% to $13.785 on 16 October is correct, but the evidence supports energy-sector strength (sector average +2.19%) and oil near $96, not that oil alone caused the single-stock jump. Correction: say CRGY jumped 10.28% as energy led, while noting the move was far larger than the sector average and may include company-specific drivers. Follow-up: check CRGY news and volume."
+        ]
+      },
+      {
+        "approved": true,
+        "issues": [
+          "No material data errors found. Minor precision notes: frame CRWV as falling \"amid\" AI funding stress, because the evidence says the cause is partial and no single trigger was confirmed; use \"percentage points\" for the +0.63 HY OAS and +1.05 10-year yield changes; and label CRGY's company-specific drivers as unconfirmed, with a follow-up on company news and volume."
+        ]
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "purpose": "agent.final_synthesis",
+      "status": "success",
+      "duration_ms": 93766.84020797256,
+      "usage": {
+        "prompt_tokens": 497825,
+        "completion_tokens": 19339,
+        "total_tokens": 517164,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 11852
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 497569
+      },
+      "composition": {
+        "serialized_characters": 1533611,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 2234,
+          "user": 1531252
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 598063,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.answer_judge",
+      "status": "success",
+      "duration_ms": 82346.06616699602,
+      "usage": {
+        "prompt_tokens": 506156,
+        "completion_tokens": 18969,
+        "total_tokens": 525125,
+        "prompt_tokens_details": {
+          "cached_tokens": 768
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 11006
+        },
+        "prompt_cache_hit_tokens": 768,
+        "prompt_cache_miss_tokens": 505388
+      },
+      "composition": {
+        "serialized_characters": 1568224,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 4787,
+          "user": 1563312
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 608427,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 5940.460624988191,
+      "usage": {
+        "prompt_tokens": 171238,
+        "completion_tokens": 360,
+        "total_tokens": 171598,
+        "prompt_tokens_details": {
+          "cached_tokens": 1408
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 150
+        },
+        "prompt_cache_hit_tokens": 1408,
+        "prompt_cache_miss_tokens": 169830
+      },
+      "composition": {
+        "serialized_characters": 515403,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 507387
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 205427,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 3105.6247499655,
+      "usage": {
+        "prompt_tokens": 171988,
+        "completion_tokens": 315,
+        "total_tokens": 172303,
+        "prompt_tokens_details": {
+          "cached_tokens": 169984
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 91
+        },
+        "prompt_cache_hit_tokens": 169984,
+        "prompt_cache_miss_tokens": 2004
+      },
+      "composition": {
+        "serialized_characters": 518078,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 510062
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 206327,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 4085.079249984119,
+      "usage": {
+        "prompt_tokens": 205218,
+        "completion_tokens": 454,
+        "total_tokens": 205672,
+        "prompt_tokens_details": {
+          "cached_tokens": 170752
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 101
+        },
+        "prompt_cache_hit_tokens": 170752,
+        "prompt_cache_miss_tokens": 34466
+      },
+      "composition": {
+        "serialized_characters": 624110,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 616094
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 247497,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 3940.294624946546,
+      "usage": {
+        "prompt_tokens": 207421,
+        "completion_tokens": 512,
+        "total_tokens": 207933,
+        "prompt_tokens_details": {
+          "cached_tokens": 203904
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 143
+        },
+        "prompt_cache_hit_tokens": 203904,
+        "prompt_cache_miss_tokens": 3517
+      },
+      "composition": {
+        "serialized_characters": 631244,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 623228
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 250249,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 3636.4336669794284,
+      "usage": {
+        "prompt_tokens": 208080,
+        "completion_tokens": 508,
+        "total_tokens": 208588,
+        "prompt_tokens_details": {
+          "cached_tokens": 206080
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 109
+        },
+        "prompt_cache_hit_tokens": 206080,
+        "prompt_cache_miss_tokens": 2000
+      },
+      "composition": {
+        "serialized_characters": 633119,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 625103
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 251064,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 4935.301874997094,
+      "usage": {
+        "prompt_tokens": 210051,
+        "completion_tokens": 629,
+        "total_tokens": 210680,
+        "prompt_tokens_details": {
+          "cached_tokens": 206720
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 523
+        },
+        "prompt_cache_hit_tokens": 206720,
+        "prompt_cache_miss_tokens": 3331
+      },
+      "composition": {
+        "serialized_characters": 639468,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 631452
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 253527,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step.repair",
+      "status": "success",
+      "duration_ms": 6508.346334041562,
+      "usage": {
+        "prompt_tokens": 242927,
+        "completion_tokens": 396,
+        "total_tokens": 243323,
+        "prompt_tokens_details": {
+          "cached_tokens": 1280
+        },
+        "prompt_cache_hit_tokens": 1280,
+        "prompt_cache_miss_tokens": 241647
+      },
+      "composition": {
+        "serialized_characters": 762993,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 742,
+          "user": 762084
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 364777,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 6327.344624965917,
+      "usage": {
+        "prompt_tokens": 210287,
+        "completion_tokens": 995,
+        "total_tokens": 211282,
+        "prompt_tokens_details": {
+          "cached_tokens": 208640
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 497
+        },
+        "prompt_cache_hit_tokens": 208640,
+        "prompt_cache_miss_tokens": 1647
+      },
+      "composition": {
+        "serialized_characters": 640282,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 632266
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 253818,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 15185.671583982185,
+      "usage": {
+        "prompt_tokens": 210667,
+        "completion_tokens": 2967,
+        "total_tokens": 213634,
+        "prompt_tokens_details": {
+          "cached_tokens": 208896
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1609
+        },
+        "prompt_cache_hit_tokens": 208896,
+        "prompt_cache_miss_tokens": 1771
+      },
+      "composition": {
+        "serialized_characters": 641577,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 633561
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 254294,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.final_synthesis",
+      "status": "success",
+      "duration_ms": 33954.63966700481,
+      "usage": {
+        "prompt_tokens": 215448,
+        "completion_tokens": 6304,
+        "total_tokens": 221752,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 5912
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 215192
+      },
+      "composition": {
+        "serialized_characters": 653052,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 2234,
+          "user": 650693
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 259682,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "daily_market_datapoints_review.direct",
+      "status": "success",
+      "duration_ms": 30671.776042028796,
+      "usage": {
+        "prompt_tokens": 460317,
+        "completion_tokens": 4610,
+        "total_tokens": 464927,
+        "prompt_tokens_details": {
+          "cached_tokens": 384
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 4251
+        },
+        "prompt_cache_hit_tokens": 384,
+        "prompt_cache_miss_tokens": 459933
+      },
+      "composition": {
+        "serialized_characters": 1352062,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 1750,
+          "user": 1350187
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 619239,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 13290.220291994046,
+      "usage": {
+        "prompt_tokens": 247542,
+        "completion_tokens": 2410,
+        "total_tokens": 249952,
+        "prompt_tokens_details": {
+          "cached_tokens": 169728
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1665
+        },
+        "prompt_cache_hit_tokens": 169728,
+        "prompt_cache_miss_tokens": 77814
+      },
+      "composition": {
+        "serialized_characters": 750266,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 742250
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 306295,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.research_step",
+      "status": "success",
+      "duration_ms": 17694.075458974112,
+      "usage": {
+        "prompt_tokens": 258675,
+        "completion_tokens": 4034,
+        "total_tokens": 262709,
+        "prompt_tokens_details": {
+          "cached_tokens": 246272
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2748
+        },
+        "prompt_cache_hit_tokens": 246272,
+        "prompt_cache_miss_tokens": 12403
+      },
+      "composition": {
+        "serialized_characters": 786452,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 7891,
+          "user": 778436
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 320208,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "agent.final_synthesis",
+      "status": "success",
+      "duration_ms": 18290.005500020925,
+      "usage": {
+        "prompt_tokens": 262895,
+        "completion_tokens": 3185,
+        "total_tokens": 266080,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2782
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 262639
+      },
+      "composition": {
+        "serialized_characters": 795939,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 2234,
+          "user": 793580
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 324869,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    },
+    {
+      "purpose": "daily_market_datapoints_review.direct",
+      "status": "success",
+      "duration_ms": 31547.822499996983,
+      "usage": {
+        "prompt_tokens": 460321,
+        "completion_tokens": 5503,
+        "total_tokens": 465824,
+        "prompt_tokens_details": {
+          "cached_tokens": 168576
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 5407
+        },
+        "prompt_cache_hit_tokens": 168576,
+        "prompt_cache_miss_tokens": 291745
+      },
+      "composition": {
+        "serialized_characters": 1352009,
+        "message_count": 2,
+        "message_characters_by_role": {
+          "system": 1750,
+          "user": 1350134
+        },
+        "tool_count": 0,
+        "tool_schema_characters": 2,
+        "response_schema_characters": 23,
+        "measurement": "serialized JSON characters; provider usage supplies actual tokens",
+        "context_budget": {
+          "window_tokens": 1048576,
+          "estimated_input_tokens": 619244,
+          "reserved_output_tokens": 65536,
+          "fits": true,
+          "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"
+        }
+      }
+    }
+  ],
+  "gateway_schema_names": [
+    "attention_home_public_surface_quality_evidence_step",
+    "zopedia_agent_judge_evidence_step",
+    "zopedia_agent_step",
+    "zopedia_agent_step",
+    "zopedia_agent_step",
+    "zopedia_agent_step",
+    "zopedia_agent_step",
+    "zopedia_agent_step",
+    "zopedia_agent_step_structured_repair",
+    "zopedia_agent_step",
+    "zopedia_agent_step",
+    "daily_market_datapoints_evidence_step",
+    "daily_market_datapoints_review",
+    "zopedia_agent_step",
+    "zopedia_agent_step",
+    "daily_market_datapoints_evidence_step",
+    "daily_market_datapoints_review"
+  ],
+  "held_out": [
+    {
+      "case": "held-out-operations-02",
+      "summary": {
+        "status": "completed",
+        "seconds": 52.61,
+        "published": false
+      },
+      "payload": {
+        "answer_markdown": "On-time deliveries rose 6 percentage points, from 88% to 94%. That is a reported change in the overall rate, but the delivery mix also changed from 70% standard and 30% express to 50% standard and 50% express. Because the records give no on-time rates for standard and express separately, the overall gain could come from better service, from the mix shift, or from both. The records do not prove that service improved inside either delivery class.\n\nThe routing model began during the same interval, so timing alone does not support the manager's claim that the model caused the gain. A useful test would compare on-time rates for similar routes with and without the model, or compare class-specific rates before and after. For the reviewed route, the review does not prove that the score was below 0.6. A score below 0.6 always triggers review, but an operating constraint can also trigger review. Since nobody manually requested it, either trigger remains possible. The route's score is unknown and could be below, at, or above 0.6.\n\nSet the driver-assignment decision deadline at 60 seconds, leaving 30 seconds to confirm and dispatch within the 90-second limit. Do not wait for the missing score. The most useful missing comparison is the on-time rate for standard deliveries and for express deliveries separately in each period. That would separate the mix effect from a real service change; a follow-up comparison of similar routes with and without the model would then test the model's effect."
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft is substantively correct. I tightened the numerical statement to 6 percentage points and made the most useful missing comparison singular and clearer, while preserving the reasoning about mix, causality and the one-way review rule.",
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": []
+      },
+      "source_reads": [
+        {
+          "tool": "research.supplied_context",
+          "arguments": {}
+        },
+        {
+          "tool": "research.read_supplied_evidence",
+          "arguments": {
+            "source_id": "history:agtc_supplied_2d02ddadd35147e38890210b38d539e7",
+            "max_characters": 60000
+          }
+        }
+      ]
+    },
+    {
+      "case": "held-out-business_hypothesis-02",
+      "summary": {
+        "status": "completed",
+        "seconds": 11.88,
+        "published": false
+      },
+      "payload": {
+        "answer_markdown": "The useful change is that an existing customer relationship now has a signed, dated commitment. The manufacturer reports a three-year supply agreement that starts in January 2027. That is stronger evidence than a sales lead or an unsigned plan, because it records a contract and a term. The effect falls in 2027 and later, so it does not change the current period's reported revenue.\n\nManagement says existing capacity can serve the agreement. Read plainly, that means no new plant or equipment is needed for it. It is management's own statement, and the record says nothing about how full that capacity already is or whether other customers depend on it.\n\nValue and volume are undisclosed. There is no price, no minimum purchase amount and no revenue figure, so the agreement does not support a revenue forecast. The reasonable interpretation is a qualitative upgrade: better visibility on demand and customer retention from 2027. The main unknown is the size of the commitment. Retained research described the customer relationship but not this agreement, so the new material adds contract status, term and start date, not financial scale."
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft is coherent and correctly refuses to build a revenue forecast. Two small precision fixes: make explicit that the agreement affects 2027 and later, not the current period, and label the customer-retention reading and the capacity conclusion as interpretation rather than reported fact. The capacity statement is management's own claim, and the record says nothing about utilisation or competing demands on that capacity.",
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "Any disclosed contract values, minimum purchase or take-or-pay terms, or volume ranges for this agreement.",
+          "Current capacity utilisation and whether the same capacity is committed to other customers or products."
+        ]
+      },
+      "source_reads": []
+    },
+    {
+      "case": "held-out-source-01",
+      "summary": {
+        "status": "completed",
+        "seconds": 65.7,
+        "published": false
+      },
+      "payload": {
+        "answer_markdown": "HTTP 200 with blank lines establishes only that the client received response headers and that the connection stayed open. It does not establish that DeepSeek started inference or produced JSON. DeepSeek documents this behavior for non-streaming calls: while the request waits, the server may send empty lines; streaming calls get SSE keep-alive comments instead. The blank lines are keep-alive traffic to skip, not a JSON error. The 75-second expiry is the client's own deadline. DeepSeek's documented server-side cutoff is different: it closes the connection if inference has not started after 10 minutes. The observations are therefore consistent with a request waiting before inference—possibly in scheduling or a queue—but they do not prove a server fault or identify the cause of the wait. See [Rate Limit & Isolation | DeepSeek API Docs](https://api-docs.deepseek.com/quick_start/rate_limit/).\n\nHTTPX's default is to raise a TimeoutException after 5 seconds of network inactivity, and incoming data counts against that timer. Blank lines are incoming data, so they can keep resetting a read timeout even while no useful answer arrives. A sensible setup separates a short connect timeout (a few seconds), a read-inactivity timeout for true silence, and an overall wall-clock deadline. The 75-second deadline is valid as a business SLA, but it should be reported as \"client deadline exceeded,\" not \"server timeout.\" For diagnosis, set the overall deadline just over 10 minutes to see whether DeepSeek hits its documented no-inference cutoff. Do not treat 10 minutes 30 seconds as a production limit if inference may legitimately run longer; production should use the business SLA plus expected generation time. See [Timeouts - HTTPX](https://www.python-httpx.org/advanced/timeouts/).\n\nTelemetry should record monotonic times for request send, receipt of the 200 headers, each blank line, the first non-blank body byte if any, the last byte, and cancellation. Also record response headers, any request ID, the exception type, and whether the socket was still open at 75 seconds. If DeepSeek exposes them, capture queue wait, inference start and completion, with the model and account concurrency; a 200 response from DeepSeek rules out an immediate documented 429 concurrency rejection for that request. A controlled retry with a longer deadline is the most informative test: JSON at, say, 100 seconds strongly suggests the 75-second deadline was too short on that attempt; blank lines ending near 10 minutes with no JSON point to the no-inference cutoff; non-blank body bytes followed by long silence point to slow or stalled inference. Proxy logs and a direct-connection test separate a middlebox from DeepSeek."
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft is mostly correct, but it treats a deadline just over 10 minutes as a general production limit. DeepSeek's 10-minute rule applies only before inference starts. The draft also calls a longer retry decisive; it is better described as the most informative next test. The pre-inference queue should be marked as a likely inference, not a proven fact.",
+        "confidence": "medium",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": []
+      },
+      "source_reads": [
+        {
+          "tool": "research.supplied_context",
+          "arguments": {}
+        }
+      ]
+    },
+    {
+      "case": "held-out-operations-direct-04",
+      "summary": {
+        "status": "completed",
+        "seconds": 14.58,
+        "published": false
+      },
+      "payload": {
+        "answer_markdown": "The monthly operating record shows that total on-time deliveries improved from 88% to 94%. But the delivery mix also changed, from 70% standard/30% express to 50% standard/50% express. The record gives no on-time rate for each class. So the total rise may come from better performance, from the mix shift, or from both. These two records do not show which.\n\nThe manager's claim that the new routing model caused the improvement is not proven. The model started during the period, but there is no same-conditions comparison with similar routes that did not use it, and no before-and-after rate at the same mix. The reviewed route's score is also unknown. The review policy says routes scoring below 0.6 are always reviewed, but reviews can also come from operating constraints, and the log does not record the trigger. Because nobody manually requested the review, a low score is possible, but the review alone does not prove the score was below 0.6. The score could be below, equal to, or above 0.6.\n\nFor the 90-second driver assignment, set the decision deadline at 60 seconds. That leaves 30 seconds to assign the driver and send the details. The most useful missing comparison is a same-conditions on-time comparison: standard and express deliveries, on similar routes, with and without the routing model, before and after launch. If only one extra comparison can be obtained, get the class-specific on-time rates for both months; that separates the mix effect from a real performance change."
+      },
+      "review": null,
+      "source_reads": [
+        {
+          "tool": "research.read_supplied_evidence",
+          "arguments": {
+            "source_id": "stage_input:held_out_research_answer.direct",
+            "max_characters": 60000
+          }
+        }
+      ]
+    }
+  ],
+  "production_authorized": false,
+  "adverse_evidence": [
+    "Initial envelope regenerated a valid direct artifact; corrected before acceptance.",
+    "Direct reduced-context case misstated a delivery mix; rejected, original request kept visible during recovery and replay corrected it.",
+    "Earlier coupled runs exposed the pre-existing row-count annual-comparison bug; old outputs retained unchanged.",
+    "One first calendar replay retains an unwanted jargon word and a weak CPI caption; no output was manually edited or promoted."
+  ]
+}

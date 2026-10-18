@@ -547,6 +547,8 @@ def run_aql_zopedia_structured_agent(
                         deadline_monotonic=deadline, metadata=operation_metadata or {},
                         progress_callback=progress_callback, capacity_feedback=str(exc), call_type=call_type,
                         query=query,
+                        supplied_evidence_allowed=(request_context or {}).get("allowed_source_access") is None
+                        or "supplied" in (request_context or {}).get("allowed_source_access", []),
                     )
             payload = {key: value for key, value in payload.items() if not key.startswith("__")}
             errors = list(Draft202012Validator(schema).iter_errors(payload))

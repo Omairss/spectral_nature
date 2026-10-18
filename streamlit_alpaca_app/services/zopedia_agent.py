@@ -1133,6 +1133,7 @@ def _run_evidence_model_step(
     metadata: dict[str, Any], progress_callback: ProgressCallback | None,
     capacity_feedback: str = "", call_type: str = "research_grade",
     query: str = "",
+    supplied_evidence_allowed: bool = True,
 ) -> dict[str, Any]:
     """Keep source reads available through planning, writing and review.
 
@@ -1161,7 +1162,8 @@ def _run_evidence_model_step(
     catalog_only = False
     input_reference = ""
     query_in_context = bool(query)
-    records = {**service.supplied_evidence, **context_state.get("stage_inputs", {})}
+    records = {**(service.supplied_evidence if supplied_evidence_allowed else {}),
+               **context_state.get("stage_inputs", {})}
     if capacity_feedback:
         input_reference = "stage_input:" + purpose
         records[input_reference] = {"title": "Complete input for " + purpose,
@@ -2106,6 +2108,7 @@ def _run_answer_judge(
     response_schema: dict[str, Any] | None = None,
     service: QueryService | None = None,
     context_state: dict[str, Any] | None = None,
+    supplied_evidence_allowed: bool = True,
 ) -> dict[str, Any]:
     """Review a draft answer against evidence without blocking the whole run."""
     if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
@@ -2137,6 +2140,7 @@ def _run_answer_judge(
                 service=service or QueryService.from_environment(),
                 tool_calls=tool_calls,
                 context_state=context_state if context_state is not None else {},
+                supplied_evidence_allowed=supplied_evidence_allowed,
                 query=query,
                 progress_callback=progress_callback,
                 surface=_clean(surface) or "zopedia.chat",
@@ -3452,6 +3456,7 @@ def _execute_zopedia_agent_loop(
                         metadata={"run_id": run_id, "iteration": iteration}, progress_callback=progress_callback,
                         capacity_feedback=str(exc),
                         query=agent_query,
+                        supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
                     )
             try:
                 decision = _run_hidden_step_with_timeout(
@@ -3558,6 +3563,7 @@ def _execute_zopedia_agent_loop(
                         response_schema=response_schema,
                         service=resolved_service,
                         context_state=context_state,
+                        supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
                     )
                     if quality_review.get("status") == "completed":
                         best_draft = quality_review.get("answer_markdown") or best_draft
@@ -3768,6 +3774,7 @@ def _execute_zopedia_agent_loop(
                         tool_calls=tool_calls,
                         context_state=context_state,
                         query=agent_query,
+                        supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
                         progress_callback=progress_callback,
                         surface=_clean(surface) or "zopedia.chat",
                         purpose="agent.final_synthesis",
@@ -3986,6 +3993,7 @@ def _execute_zopedia_agent_loop(
             response_schema=response_schema,
             service=resolved_service,
             context_state=context_state,
+            supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,
         )
         if quality_review.get("status") == "completed":
             verdict = _clean(quality_review.get("verdict")).lower()
