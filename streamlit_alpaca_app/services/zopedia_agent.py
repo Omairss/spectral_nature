@@ -3,7 +3,7 @@ from __future__ import annotations
 from services.work_scope import WorkScope
 
 from contextvars import copy_context
-from .llm_execution import research_run_context
+from .llm_execution import LLMContextWindowExceeded, research_run_context
 
 from dataclasses import replace
 
@@ -1125,6 +1125,163 @@ def _tool_history_prompt(
     return serialize_llm_context(records, append_only=True)
 
 
+def _run_evidence_model_step(
+    *, llm_client: LLMClient, service: QueryService, tool_calls: list[dict[str, Any]],
+    context_state: dict[str, Any], prompt: Callable[[list[dict[str, Any]]], str],
+    system_prompt: str, schema_name: str, schema: dict[str, Any],
+    surface: str, purpose: str, deadline_monotonic: float,
+    metadata: dict[str, Any], progress_callback: ProgressCallback | None,
+    capacity_feedback: str = "", call_type: str = "research_grade",
+    query: str = "",
+) -> dict[str, Any]:
+    """Keep source reads available through planning, writing and review.
+
+    The trace retains every result. The model owns which results stay in its
+    working context and can reopen any original through the existing reader.
+    """
+    if not isinstance(service, QueryService):
+        return generate_json_via_aql_zopedia_gateway(
+            llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
+            system_prompt=system_prompt, user_prompt=prompt(tool_calls), schema_name=schema_name,
+            schema=schema, deadline_monotonic=deadline_monotonic, metadata=metadata,
+        )
+    step_schema = {
+        "type": "object", "additionalProperties": False,
+        "properties": {
+            "action": {"type": "string", "enum": ["answer", "read", "select_context"]},
+            "tool_name": {"type": "string"},
+            "tool_arguments": {"type": "string", "description": "JSON object for the evidence tool; {} otherwise."},
+            "keep_tool_call_ids": {"type": ["array", "null"], "items": {"type": "string"},
+                                   "description": "Results to keep in working context; null keeps the current selection. All originals remain readable."},
+            "answer": {"anyOf": [schema, {"type": "null"}]},
+        },
+        "required": ["action", "tool_name", "tool_arguments", "keep_tool_call_ids", "answer"],
+    }
+    feedback = capacity_feedback
+    catalog_only = False
+    input_reference = ""
+    query_in_context = bool(query)
+    records = {**service.supplied_evidence, **context_state.get("stage_inputs", {})}
+    if capacity_feedback:
+        input_reference = "stage_input:" + purpose
+        records[input_reference] = {"title": "Complete input for " + purpose,
+                                    "content": prompt(tool_calls), "metadata": {"purpose": purpose}}
+        context_state.setdefault("stage_inputs", {})[input_reference] = records[input_reference]
+    while time.monotonic() < deadline_monotonic:
+        for call in tool_calls:
+            summary = dict(call.get("result_summary") or {})
+            for key in ("evidence_context_text", "llm_context_text"):
+                value = summary.get(key)
+                if isinstance(value, str) and value.lstrip().startswith(("{", "[")):
+                    try:
+                        summary[key] = json.loads(value)
+                    except ValueError:
+                        pass
+            records["history:" + call["tool_call_id"]] = {
+                "title": call.get("tool_name", "Collected evidence"),
+                "metadata": {"tool_call_id": call["tool_call_id"], "status": call.get("status"),
+                             "origin_run_id": call.get("origin_run_id")},
+                "content": {**call, "result_summary": summary},
+            }
+        reader = service.with_supplied_evidence(records)
+        read_tools = [tool for tool in build_tool_registry(reader).catalog() if tool["name"] in {
+            "research.list_supplied_evidence", "research.read_supplied_evidence",
+        }]
+        selected = context_state.get("tool_call_ids")
+        visible = [call for call in tool_calls if selected is None or call["tool_call_id"] in selected]
+        base_prompt = prompt([] if catalog_only else visible)
+        if input_reference:
+            base_prompt = (("Original request:\n" + query + "\n\n") if query_in_context else "") + (
+                           "The complete stage input, including the original request, is supplied source "
+                           + input_reference + ". Read it with the evidence tools.\n\nRead evidence:\n"
+                           + _tool_history_prompt([] if catalog_only else visible))
+        history_catalog = [{"tool_call_id": call["tool_call_id"], "source_id": "history:" + call["tool_call_id"],
+                            "tool_name": call.get("tool_name"), "argument_fields": list(call.get("arguments") or {}),
+                            "status": call.get("status")} for call in tool_calls]
+        user_prompt = base_prompt + "\n\nEvidence access:\n" + serialize_llm_context({
+            "history_catalog": history_catalog, "supplied_sources": reader.supplied_evidence_manifest,
+            "tools": read_tools, "context_feedback": feedback,
+        })
+        try:
+            step = generate_json_via_aql_zopedia_gateway(
+                llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
+                system_prompt=system_prompt + (
+                    "\nEvidence remains readable during this step. Return action=answer with the requested result in answer, "
+                    "or action=read with an evidence tool and its JSON arguments. Use select_context to choose which "
+                    "tool results stay in working context. Read any omitted result through its history source_id."
+                ),
+                user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=step_schema,
+                deadline_monotonic=deadline_monotonic, metadata=metadata,
+            )
+        except LLMContextWindowExceeded as exc:
+            if input_reference:
+                if query_in_context:
+                    query_in_context = False
+                elif catalog_only:
+                    raise
+            elif catalog_only:
+                input_reference = "stage_input:" + purpose
+                records[input_reference] = {"title": "Complete input for " + purpose,
+                                            "content": base_prompt, "metadata": {"purpose": purpose}}
+                context_state.setdefault("stage_inputs", {})[input_reference] = records[input_reference]
+            catalog_only = True
+            feedback = str(exc) + " Choose working-context tool_call_ids or read specific sections. Originals are retained."
+            continue
+        public_step = {key: value for key, value in step.items() if not key.startswith("__")}
+        # An existing caller may request the artifact directly in its query.
+        # Preserve that valid paid answer rather than regenerate it to obtain
+        # an unused tool-control envelope.
+        if not list(Draft202012Validator(schema).iter_errors(public_step)):
+            return step
+        errors = list(Draft202012Validator(step_schema).iter_errors(public_step))
+        if errors:
+            feedback = "Invalid response: " + errors[0].message
+            continue
+        keep = step.get("keep_tool_call_ids")
+        if keep is not None:
+            known = {call["tool_call_id"] for call in tool_calls}
+            if not set(keep) <= known:
+                feedback = "Unknown tool_call_id in working-context selection. Use the history catalog."
+                continue
+            context_state["tool_call_ids"] = keep
+        action = step["action"]
+        if action == "answer" and isinstance(step.get("answer"), dict):
+            return {**step["answer"], **{key: value for key, value in step.items() if key.startswith("__")}}
+        if action == "select_context":
+            catalog_only = False
+            feedback = ""
+            continue
+        arguments, error = _coerce_tool_arguments(step.get("tool_arguments"))
+        tool_name = step.get("tool_name")
+        entry = next((tool for tool in read_tools if tool["name"] == tool_name), None)
+        if not entry or error:
+            feedback = error or "Choose an advertised evidence reader or return the answer."
+            continue
+        errors = list(Draft202012Validator(entry["inputSchema"]).iter_errors(arguments))
+        if errors:
+            feedback = errors[0].message
+            continue
+        call_id = "agtc_read_" + uuid.uuid4().hex
+        try:
+            result = invoke_tool(service=reader, tool_name=tool_name, arguments=arguments)
+            call = {"tool_call_id": call_id, "tool_name": tool_name, "arguments": arguments,
+                    "status": "completed", "error": None, "result_summary": _summarize_tool_result(result)}
+        except Exception as exc:
+            call = {"tool_call_id": call_id, "tool_name": tool_name, "arguments": arguments,
+                    "status": "failed", "error": str(exc), "result_summary": {}}
+        call.update(origin_run_id=metadata.get("run_id"), origin_turn_id=metadata.get("turn_id"))
+        tool_calls.append(call)
+        if context_state.get("tool_call_ids") is not None:
+            context_state["tool_call_ids"] = [*context_state["tool_call_ids"], call_id]
+        elif catalog_only:
+            context_state["tool_call_ids"] = [call_id]
+        catalog_only = False
+        feedback = ""
+        _emit_progress(progress_callback, stage="evidence_read_complete", message="Evidence reading complete.",
+                       progress=0.9, tool_name=tool_name, tool_call_id=call_id, purpose=purpose)
+    raise TimeoutError("Evidence step exceeded its existing deadline: " + purpose)
+
+
 def _tool_entry_by_name(catalog: list[dict[str, Any]], tool_name: str) -> dict[str, Any]:
     normalized_name = _clean(tool_name)
     return next((tool for tool in catalog if _clean(tool.get("name")) == normalized_name), {})
@@ -1850,6 +2007,8 @@ def _final_user_prompt(
         f"User question:\n{query}\n\n"
         "Tool evidence:\n"
         f"{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids)}\n\n"
+        + "Research outline:\n" + json.dumps(answer_points or [], ensure_ascii=False)
+        + "\n\nAvailable draft:\n" + draft_answer + "\n\n"
         + (
             f"Return the artifact JSON for {response_schema_name}, using its requested fields and format. "
             if response_schema_name
@@ -1945,6 +2104,8 @@ def _run_answer_judge(
     task: str = "",
     surface: str = "",
     response_schema: dict[str, Any] | None = None,
+    service: QueryService | None = None,
+    context_state: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Review a draft answer against evidence without blocking the whole run."""
     if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
@@ -1971,11 +2132,15 @@ def _run_answer_judge(
 
     def _runner() -> None:
         try:
-            result_box[0] = generate_json_via_aql_zopedia_gateway(
+            result_box[0] = _run_evidence_model_step(
                 llm_client=llm,
+                service=service or QueryService.from_environment(),
+                tool_calls=tool_calls,
+                context_state=context_state if context_state is not None else {},
+                query=query,
+                progress_callback=progress_callback,
                 surface=_clean(surface) or "zopedia.chat",
                 purpose="agent.answer_judge",
-                call_type="research_grade",
                 system_prompt=(
                     get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT)
                     + (
@@ -1985,11 +2150,11 @@ def _run_answer_judge(
                         else ""
                     )
                 ),
-                user_prompt=_judge_user_prompt(
+                prompt=lambda visible: _judge_user_prompt(
                     query=query,
                     task=task,
                     surface=surface,
-                    tool_calls=tool_calls,
+                    tool_calls=visible,
                     draft_answer=draft_answer,
                     draft_confidence=draft_confidence,
                     limitations=limitations,
@@ -2980,6 +3145,7 @@ def _execute_zopedia_agent_loop(
             resolved_write_policy = resumed["write_policy"]
             request_context["write_policy"] = resolved_write_policy
     research_state = dict(resumed.get("research_state") or {})
+    context_state = dict(resumed.get("working_context") or {})
     source_policy = (
         "retained_only"
         if not request_context["allow_web"]
@@ -3147,11 +3313,13 @@ def _execute_zopedia_agent_loop(
         evidence_text = json.dumps(evidence, ensure_ascii=False, default=str)
         tool_calls.append(
             {
-                "tool_call_id": "agtc_supplied_1",
+                "tool_call_id": "agtc_supplied_" + uuid.uuid4().hex,
                 "tool_name": "research.supplied_context",
                 "arguments": {},
                 "status": "completed",
                 "error": None,
+                "origin_run_id": run_id,
+                "origin_turn_id": request_context.get("turn_id", ""),
                 "result_summary": {
                     "preview_text": _truncate(evidence_text, limit=800),
                     "llm_context_text": _truncate(evidence_text, limit=4000),
@@ -3209,6 +3377,7 @@ def _execute_zopedia_agent_loop(
             "original_query": normalized_query,
             "request_context": request_context,
             "research_state": research_state,
+            "working_context": context_state,
             "source_policy": source_policy,
             "write_policy": resolved_write_policy,
             "tool_calls": tool_calls,
@@ -3254,33 +3423,43 @@ def _execute_zopedia_agent_loop(
                 },
                 ensure_ascii=False,
             )
-            planning_prompt = _planner_user_prompt(
-                query=agent_query, task=task, surface=surface, tool_catalog=tool_catalog,
-                tool_calls=tool_calls, max_tool_calls=max_tool_calls,
-                conversation_history=conversation_history, prefetched_context=prefetched_context,
-            ) + "\n\nCurrent planning state:\n" + planning_context
+            def planning_prompt_for(visible):
+                return _planner_user_prompt(
+                    query=agent_query, task=task, surface=surface, tool_catalog=tool_catalog,
+                    tool_calls=visible, max_tool_calls=max_tool_calls,
+                    conversation_history=conversation_history, prefetched_context=prefetched_context,
+                ) + "\n\nCurrent planning state:\n" + planning_context
+            selected_calls = context_state.get("tool_call_ids")
+            planning_prompt = planning_prompt_for([
+                call for call in tool_calls if selected_calls is None or call["tool_call_id"] in selected_calls
+            ])
+            def research_step():
+                try:
+                    return generate_json_via_aql_zopedia_gateway(
+                        llm_client=resolved_llm, surface=surface, purpose="agent.research_step", call_type="research_grade",
+                        system_prompt=_planner_system_prompt(), user_prompt=planning_prompt,
+                        schema_name="zopedia_agent_step", schema=_STEP_SCHEMA,
+                        metadata={"run_id": run_id, "iteration": iteration, "max_tool_calls": max_tool_calls,
+                                  "tool_call_count": _budgeted_tool_count(tool_calls)},
+                    )
+                except LLMContextWindowExceeded as exc:
+                    return _run_evidence_model_step(
+                        llm_client=resolved_llm, service=resolved_service, tool_calls=tool_calls,
+                        context_state=context_state, prompt=planning_prompt_for,
+                        system_prompt=_planner_system_prompt(), schema_name="zopedia_agent_step", schema=_STEP_SCHEMA,
+                        surface=surface, purpose="agent.research_step",
+                        deadline_monotonic=budget.step_deadline("research", llm_step_timeout_seconds),
+                        metadata={"run_id": run_id, "iteration": iteration}, progress_callback=progress_callback,
+                        capacity_feedback=str(exc),
+                        query=agent_query,
+                    )
             try:
                 decision = _run_hidden_step_with_timeout(
                     label="research planning",
                     timeout_seconds=budget.remaining(maximum=llm_step_timeout_seconds),
                     progress_callback=progress_callback,
                     progress=step_progress,
-                    func=lambda: generate_json_via_aql_zopedia_gateway(
-                        llm_client=resolved_llm,
-                        surface=surface,
-                        purpose="agent.research_step",
-                        call_type="research_grade",
-                        system_prompt=_planner_system_prompt(),
-                        user_prompt=planning_prompt,
-                        schema_name="zopedia_agent_step",
-                        schema=_STEP_SCHEMA,
-                        metadata={
-                            "run_id": run_id,
-                            "iteration": iteration,
-                            "max_tool_calls": max_tool_calls,
-                            "tool_call_count": _budgeted_tool_count(tool_calls),
-                        },
-                    ),
+                    func=research_step,
                 )
                 step_payload = {key: value for key, value in decision.items() if not key.startswith("__")}
                 if list(Draft202012Validator(_STEP_SCHEMA).iter_errors(step_payload)):
@@ -3377,6 +3556,8 @@ def _execute_zopedia_agent_loop(
                         timeout_seconds=budget.remaining(maximum=llm_step_timeout_seconds),
                         progress_callback=progress_callback,
                         response_schema=response_schema,
+                        service=resolved_service,
+                        context_state=context_state,
                     )
                     if quality_review.get("status") == "completed":
                         best_draft = quality_review.get("answer_markdown") or best_draft
@@ -3539,6 +3720,8 @@ def _execute_zopedia_agent_loop(
             call["origin_run_id"] = run_id
             call["origin_turn_id"] = request_context.get("turn_id", "")
             tool_calls.append(call)
+            if context_state.get("tool_call_ids") is not None:
+                context_state["tool_call_ids"] = [*context_state["tool_call_ids"], call_id]
             seen_calls.add(signature)
             pending_action = None
             checkpoint()
@@ -3565,29 +3748,6 @@ def _execute_zopedia_agent_loop(
             and not trajectory_killed
             and budget.remaining("synthesis") > 0
         ):
-            if tool_registry.get("research.read_supplied_evidence") is not None:
-                supplied = getattr(resolved_service, "supplied_evidence", {})
-                selected_originals = {
-                    source_id: supplied[source_id]
-                    for source_id in dict.fromkeys(research_state.get("selected_source_ids") or [])
-                    if source_id in supplied
-                }
-                if selected_originals:
-                    # Resolve the planner's references through the same evidence
-                    # history used by synthesis, review, checkpoints and traces.
-                    tool_calls.append({
-                        "tool_call_id": f"agtc_supplied_{len(tool_calls) + 1}",
-                        "tool_name": "research.supplied_context", "arguments": {"source_ids": list(selected_originals)},
-                        "status": "completed", "error": None,
-                        "origin_run_id": run_id, "origin_turn_id": request_context.get("turn_id", ""),
-                        "result_summary": {
-                            "result_type": "supplied_context",
-                            "evidence_context_text": serialize_llm_context(selected_originals),
-                            "evidence_refs": [{"source_id": key, "ref": key, "title": value.get("title", key)}
-                                              for key, value in selected_originals.items()],
-                        },
-                    })
-                    checkpoint()
             _emit_progress(
                 progress_callback,
                 stage="final_synthesis_start",
@@ -3602,11 +3762,15 @@ def _execute_zopedia_agent_loop(
             synthesis_started = time.monotonic()
             def _run_final_synthesis() -> None:
                 try:
-                    _final_result[0] = generate_json_via_aql_zopedia_gateway(
+                    _final_result[0] = _run_evidence_model_step(
                         llm_client=synthesis_llm,
+                        service=resolved_service,
+                        tool_calls=tool_calls,
+                        context_state=context_state,
+                        query=agent_query,
+                        progress_callback=progress_callback,
                         surface=_clean(surface) or "zopedia.chat",
                         purpose="agent.final_synthesis",
-                        call_type="research_grade",
                         system_prompt=(
                             "You are the shared AQL/Zopedia research synthesis engine. Use the collected sources and supplied context. "
                             "Return only the requested artifact JSON matching its schema. Preserve reported facts, business context and "
@@ -3615,11 +3779,11 @@ def _execute_zopedia_agent_loop(
                             if response_schema
                             else get_prompt(_AGENT_FINAL_SYSTEM_PROMPT)
                         ),
-                        user_prompt=_final_user_prompt(
+                        prompt=lambda visible: _final_user_prompt(
                             query=agent_query,
                             task=task,
                             surface=surface,
-                            tool_calls=tool_calls,
+                            tool_calls=visible,
                             conversation_history=conversation_history,
                             prefetched_context=json.dumps(
                                 {
@@ -3820,6 +3984,8 @@ def _execute_zopedia_agent_loop(
             timeout_seconds=budget.remaining("completion", llm_step_timeout_seconds),
             progress_callback=progress_callback,
             response_schema=response_schema,
+            service=resolved_service,
+            context_state=context_state,
         )
         if quality_review.get("status") == "completed":
             verdict = _clean(quality_review.get("verdict")).lower()

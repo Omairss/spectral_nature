@@ -14,11 +14,13 @@ from functools import lru_cache
 import json
 import logging
 import os
+import re
 import threading
 import time
 from typing import Any
 import uuid
 from pathlib import Path
+from urllib.parse import urlparse
 
 import requests
 
@@ -26,6 +28,35 @@ log = logging.getLogger(__name__)
 _CALL: ContextVar[dict[str, Any]] = ContextVar("llm_execution_call", default={})
 _ACCOUNTS: dict[str, tuple[float, bool]] = {}
 _ACCOUNT_LOCK = threading.RLock()
+
+
+class LLMContextWindowExceeded(RuntimeError):
+    """Capacity feedback for the agent; retrying an unchanged request cannot help."""
+
+
+def request_context_budget(config: Any, payload: dict[str, Any]) -> dict[str, Any]:
+    """Preflight the complete request, including schemas and output headroom.
+
+    cl100k is an estimate for other tokenizers, not provider-reported usage.
+    Leave headroom for that difference and handle exact provider feedback too.
+    Unknown deployments must declare their window through configuration.
+    """
+    window = int(os.getenv("LLM_CONTEXT_WINDOW_TOKENS") or (
+        1048576 if config.provider == "deepseek" and
+        urlparse(config.base_url).hostname == "api.deepseek.com" else 0
+    ))
+    if not window or not payload.get("messages"):
+        return {}
+    import tiktoken
+
+    encoding = tiktoken.get_encoding("cl100k_base")
+    text = json.dumps(payload, ensure_ascii=False, default=str)
+    tokens = len(encoding.encode_ordinary(text))
+    reserve = int(payload.get("max_tokens") or os.getenv("LLM_CONTEXT_OUTPUT_RESERVE_TOKENS") or 65536)
+    estimate = (tokens * 5 + 3) // 4
+    return {"window_tokens": window, "estimated_input_tokens": estimate,
+            "reserved_output_tokens": reserve, "fits": estimate + reserve <= window,
+            "measurement": "cl100k estimate with 25% tokenizer headroom; provider usage is authoritative"}
 
 
 @contextmanager
@@ -180,6 +211,9 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         payload.setdefault("max_tokens", int(os.getenv("DEEPSEEK_LITERAL_MAX_OUTPUT_TOKENS") or "65536"))
         kwargs["json"] = payload
     composition = request_composition(payload)
+    context_budget = request_context_budget(config, payload)
+    if context_budget:
+        composition["context_budget"] = context_budget
     started = datetime.now(timezone.utc)
     t0 = time.monotonic()
     attempt_id = "llmhttp_" + uuid.uuid4().hex
@@ -203,9 +237,16 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     error_type = ""
     transport_attempted = False
     try:
+        if context_budget and not context_budget["fits"]:
+            raise LLMContextWindowExceeded(json.dumps(context_budget))
         kwargs["timeout"] = _remaining_request_timeout(deadline)
         transport_attempted = True
         response = session.post(**kwargs)
+        if response.status_code == 400 and re.search(
+            r"maximum context length|context[_ ](?:length|window).*exceed|too many tokens",
+            response.text, re.IGNORECASE,
+        ):
+            raise LLMContextWindowExceeded(response.text[:2000])
         if config.provider == "deepseek" and response.status_code == 402:
             key = _account_key(config)
             with _ACCOUNT_LOCK:

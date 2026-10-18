@@ -22,7 +22,7 @@ from .elevenlabs_tts import (
 )
 from .json_utils import to_jsonable
 from .llm_context import serialize_llm_context
-from .llm_execution import checkpoint_agent_research, checkpoint_structured_research
+from .llm_execution import LLMContextWindowExceeded, checkpoint_agent_research, checkpoint_structured_research
 from .llm import get_config_param, register_config_param
 from .zopedia_runtime import ZopediaLLMClient, load_zopedia_llm_client
 
@@ -490,6 +490,8 @@ def run_aql_zopedia_structured_agent(
             )
         payload = retained_partial_payload
         partial_text = retained_partial_text
+        context_reads: list[dict[str, Any]] = []
+        working_context: dict[str, Any] = {}
         try:
             if payload is None and partial_text:
                 payload = parse_aql_zopedia_structured_answer(partial_text)
@@ -502,33 +504,50 @@ def run_aql_zopedia_structured_agent(
                 if payload is None:
                     raise ValueError("Retained structured draft could not be repaired.")
             if payload is None:
-                payload = generate_json_via_aql_zopedia_gateway(
-                    llm_client=resolved_llm,
-                    surface=surface,
-                    purpose=f"{_clean(task) or 'structured_answer'}.direct",
-                    call_type=call_type,
-                    system_prompt=instructions
-                    or (
-                        "You are the Spectral Nature AQL/Zopedia structured synthesis engine. "
-                        "Use the supplied prompt context as evidence. Do not call tools. "
-                        "Return only the requested JSON object and do not invent facts."
-                    ),
-                    user_prompt=structured_query,
-                    schema_name=schema_name,
-                    schema=schema,
-                    deadline_monotonic=deadline,
-                    metadata={
-                        **(operation_metadata or {}),
-                        "engine": "aql_zopedia",
-                        "task": _clean(task) or "structured_answer",
-                        "max_tool_calls": 0,
-                        "source": (
-                            "retained_partial_repair"
-                            if retained_partial_payload
-                            else "structured_direct"
-                        ),
-                    },
+                direct_system = instructions or (
+                    "You are the Spectral Nature AQL/Zopedia structured synthesis engine. "
+                    "Use the supplied prompt context as evidence. Do not call tools. "
+                    "Return only the requested JSON object and do not invent facts."
                 )
+                def direct_call():
+                    return generate_json_via_aql_zopedia_gateway(
+                        llm_client=resolved_llm,
+                        surface=surface,
+                        purpose=f"{_clean(task) or 'structured_answer'}.direct",
+                        call_type=call_type,
+                        system_prompt=direct_system,
+                        user_prompt=structured_query,
+                        schema_name=schema_name,
+                        schema=schema,
+                        deadline_monotonic=deadline,
+                        metadata={
+                            **(operation_metadata or {}),
+                            "engine": "aql_zopedia",
+                            "task": _clean(task) or "structured_answer",
+                            "max_tool_calls": 0,
+                            "source": (
+                                "retained_partial_repair"
+                                if retained_partial_payload
+                                else "structured_direct"
+                            ),
+                        },
+                    )
+                try:
+                    payload = direct_call()
+                except LLMContextWindowExceeded as exc:
+                    from data_access.query_service import QueryService
+                    from .zopedia_agent import _run_evidence_model_step, _tool_history_prompt
+
+                    payload = _run_evidence_model_step(
+                        llm_client=resolved_llm, service=service or QueryService.from_environment(),
+                        tool_calls=context_reads, context_state=working_context,
+                        prompt=lambda visible: structured_query + "\n\nRead evidence:\n" + _tool_history_prompt(visible),
+                        system_prompt=direct_system, schema_name=schema_name, schema=schema,
+                        surface=surface, purpose=f"{_clean(task) or 'structured_answer'}.direct",
+                        deadline_monotonic=deadline, metadata=operation_metadata or {},
+                        progress_callback=progress_callback, capacity_feedback=str(exc), call_type=call_type,
+                        query=query,
+                    )
             payload = {key: value for key, value in payload.items() if not key.startswith("__")}
             errors = list(Draft202012Validator(schema).iter_errors(payload))
             if errors:
@@ -561,7 +580,8 @@ def run_aql_zopedia_structured_agent(
                 "agent_result": {
                     "status": "failed",
                     "answer_markdown": partial_text,
-                    "tool_calls": [],
+                    "tool_calls": context_reads,
+                    "working_context": working_context,
                     "confidence": "low",
                     "error": f"{type(exc).__name__}: {exc}",
                     "engine": {
@@ -592,7 +612,8 @@ def run_aql_zopedia_structured_agent(
                 getattr(getattr(resolved_llm, "config", None), "provider", "")
             ),
             "answer_markdown": answer_markdown,
-            "tool_calls": [],
+            "tool_calls": context_reads,
+            "working_context": working_context,
             "confidence": "medium",
             "error": "",
             "engine": {
