@@ -49,3 +49,5 @@ The [full review](DEVELOPMENT_QUALITY_REVIEW.md) did not accept the publication:
 ## Continued DEV verification
 
 Source correction `060c2968`; accepted build revision `9c444d16`, ACR `cj17b`, worker digest `3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961`. The [full packaged-image check](continuation-packaged-image.json) matches 197 Git runtime files and all 93 installed dependency metadata records, with retired UI source/dependency absent. Only the two DEV Home/chart jobs are eligible for this verification. Fresh complete DEV output and subjective acceptance remain pending.
+
+The [two-target DEV rollout](continuation-development-deployment.json) completed with exact effective configuration preservation. The [33-resource audit](continuation-development-configuration-audit.json) confirms the other 31 images, all four domain bindings and retired-service absence. Fresh normal Home execution `attention-home-next-dev-cdzog4j` started; no independent chart refresh is being substituted for its own output. The production condition remains pending.

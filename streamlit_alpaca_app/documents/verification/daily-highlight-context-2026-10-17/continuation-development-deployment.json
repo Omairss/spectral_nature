@@ -1,0 +1,30 @@
+{
+  "environment": "development",
+  "source_revision": "9c444d169064d5274a243b190a87018706985ea8",
+  "source_inventory_sha256": "69662df4141e4cb38c30ea88e554126a346c04b71c6e6f1d34f593c10ab8a0ce",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961"
+  },
+  "targets": [
+    {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-10-18T00:36:18.351828+00:00",
+  "job_executions_started": 0
+}
