@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
-  "scope": "Promote the exact verified DEV images after explicit informed owner acceptance of the known source-date imperfection. Execution/data/configuration verification passed; the date error is recorded, not represented as corrected. Improve resilience separately after promotion.",
-  "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
+  "scope": "One existing learning runtime file replaces hardcoded failure admission with versioned owner-bound episodes assessed by the existing critic. Four complete qualitative probes reviewed; existing critic execution, source permissions and memory writes preserved. Targeted DEV verification required for these new packages.",
+  "source_revision": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
@@ -225,7 +225,7 @@
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
     "services/zopedia_agent.py": "c5a8045165b25107fc7745a12746a8cb4e25aae95fd1effad509ae8854fd5abd",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
-    "services/zopedia_learning.py": "a610b21df101afc02f7fddf4bdd6656d3622b3846da001fa78a59fdafab31776",
+    "services/zopedia_learning.py": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
     "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec",
     "services/zopedia_resolver.py": "d3a81502b7db7c11e5131f9874d5d4e37372e45b58b18abbee621ed5fb97d578",
@@ -509,7 +509,7 @@
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
     "services/zopedia_agent.py": "c5a8045165b25107fc7745a12746a8cb4e25aae95fd1effad509ae8854fd5abd",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
-    "services/zopedia_learning.py": "a610b21df101afc02f7fddf4bdd6656d3622b3846da001fa78a59fdafab31776",
+    "services/zopedia_learning.py": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
     "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec",
     "services/zopedia_resolver.py": "d3a81502b7db7c11e5131f9874d5d4e37372e45b58b18abbee621ed5fb97d578",
@@ -542,7 +542,8 @@
     "services/saa/storage.py": "Separate source captures from retained references; do not repersist excerpts over originals. Content/provider-metadata capture identities retain distinct versions, while identical passages deduplicate by URL/origin/content. Capture metadata survives ancestry projection. Existing IDs remain readable, with unresolved legacy date basis represented honestly. No SQL schema migration or destructive historic date rewrite. Actual body, metadata-only identity, reference-only write and roundtrip checks pass.",
     "services/zopedia_research.py": "Carry shared capture records and full opened content through actual model evidence. Existing retained reader reopens captured original and metadata; retained dates are recorded metadata with capture/legacy basis rather than asserted event facts. Reference access controls and existing tools are retained. Live acquired nonfinancial chronology check is limited by existing retained-search timeouts; full DEV required.",
     "services/aql/events.py": "Replace duplicate source aggregation with the existing shared materializer; retain complete provider/native captures through nomination and downstream writing; keep aggregate tool results separate. Remove timestamp-derived current claims and hardcoded High freshness. Preserve existing event schema/prompt/model/settings/budgets. Mechanical projection contract and all four complete live outputs personally reviewed; first structural/model failures preserved. Accepted for full DEV only.",
-    "services/aql/pipeline.py": "At the existing deadline, cancel further research and use the retained checkpoint. Materialize sources, claims and bundles outside the cancelled research scope. Preserve source-only work as partial with existing empty narrative fields. A complete normal return wins. Actual nested pipeline replay preserves 11 generated claims and seven documents, or all seven documents without a narrative. No new model calls, interpretation rules or timeout increase."
+    "services/aql/pipeline.py": "At the existing deadline, cancel further research and use the retained checkpoint. Materialize sources, claims and bundles outside the cancelled research scope. Preserve source-only work as partial with existing empty narrative fields. A complete normal return wins. Actual nested pipeline replay preserves 11 generated claims and seven documents, or all seven documents without a narrative. No new model calls, interpretation rules or timeout increase.",
+    "services/zopedia_learning.py": "Remove unavailable/debug regexes, fixed successful-tool lists and fabricated fallback diagnoses. Existing critic receives one owner-bound versioned episode and judges its meaning, including no_change and false user corrections. Preserve full original evidence, completed-critique reuse, pending/retry semantics and source/write permissions. Persist the actual model diagnosis, claim and successful path. Four complete live DeepSeek outputs personally reviewed; direct-reader experiment rejected and original critic execution retained. Three execution contract checks pass; no NLP word assertions."
   },
   "retired_files": [
     ".streamlit/config.toml",
@@ -704,6 +705,14 @@
         "services/zopedia_agent.py"
       ],
       "evidence": "documents/verification/source-evidence-repair-2026-10-18/deadline-result-review.json"
+    },
+    {
+      "name": "General LLM-assessed learning episodes and preserved failure/reuse ownership",
+      "status": "accepted",
+      "evidence": "documents/verification/research-resilience-2026-10-18/README.md",
+      "files": [
+        "services/zopedia_learning.py"
+      ]
     }
   ],
   "roles": {
@@ -718,48 +727,49 @@
         "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
         "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
         "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
-        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95"
+        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65"
       ],
       "development_targets": [
         {
           "kind": "jobs",
           "name": "attention-home-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "daily-datapoints-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "macro-fred-daily-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "sn-research-run-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "trading-agent-build-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "equities-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
           "configuration_api_version": "2025-07-01"
         }
@@ -768,89 +778,90 @@
         {
           "kind": "jobs",
           "name": "attention-home-build",
-          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "macro-fred-daily",
-          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "sn-research-run",
-          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "trading-agent-build",
-          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "equities-intraday-preload",
-          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "commodities-regime",
-          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "options-liquid-universe",
-          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "news-ingest-and-features",
-          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "entity-taxonomy-refresh",
-          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "company-baseline-prefetch",
-          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "zopedia-maintenance",
-          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "zopedia-learning",
-          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
           "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {
+      "accepted_images": {},
+      "previous_verified_images": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65": {
           "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
           "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68",
@@ -865,7 +876,7 @@
         {
           "kind": "containerApps",
           "name": "sn-api-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a",
           "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
           "configuration_api_version": "2025-07-01"
         }
@@ -874,25 +885,27 @@
         {
           "kind": "containerApps",
           "name": "sn-api-next",
-          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a",
           "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {
+      "accepted_images": {},
+      "baseline_images": [
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15",
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54",
+        "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a"
+      ],
+      "previous_verified_images": {
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a": {
           "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
           "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68",
           "runtime_inventory_sha256": "b37e795fcdefadd73c39fd0e51f75ca301c5cfc1da9ae40cc525c28bffdd2ee4",
           "evidence": "documents/verification/source-evidence-repair-2026-10-18/deadline-packaged-images.json"
         }
-      },
-      "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15",
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54",
-        "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b"
-      ]
+      }
     }
   },
   "untouched_consumers": [
@@ -979,38 +992,20 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": true,
+  "production_authorized": false,
   "production_authorization": {
-    "status": "explicit_owner_acceptance_with_known_imperfection",
+    "status": "awaiting_separate_learning_development_verification",
     "owner_instruction": "Push to prod. Then, the system has to be resiliant to imperfections like this. A one wrong date shoudln't change the whole analysis. Errors and mistakes are expected. Sources can be bad. Your fucking overcomplicated, fragile designs compound small errors like this",
-    "condition": "Promote the exact previously verified DEV worker/API digests, preserving all consumer configurations. No resilience code change is included in this promotion.",
+    "condition": "New learning change requires targeted DEV package/runtime and qualitative acceptance before existing conditional production promotion. The preceding recovery images are already in production under explicit owner acceptance.",
     "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
     "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate.",
     "prior_condition": "Complete fresh DEV research quality was previously held for a known financing-date error. Owner explicitly accepts promotion with that imperfection and requests subsequent general resilience improvement."
   },
   "development_acceptance": {
-    "status": "accepted",
-    "scope": "Promote the exact verified DEV images after explicit informed owner acceptance of the known source-date imperfection. Execution/data/configuration verification passed; the date error is recorded, not represented as corrected. Improve resilience separately after promotion.",
-    "evidence": "documents/verification/source-evidence-repair-2026-10-18/DEADLINE_DEVELOPMENT_REVIEW.md",
-    "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a"
-    },
-    "execution": "attention-home-next-dev-7e6nmrq",
-    "home_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
-    "asof": "2026-10-18T20:24:34.140109+00:00",
-    "started_at": "2026-10-18T20:23:59+00:00",
-    "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68",
-    "home_status": "Succeeded",
-    "finished_at": "2026-10-18T21:03:36+00:00",
-    "deadline_result_status": "accepted",
-    "company_results_retained": 12,
-    "company_results_skipped": 0,
-    "reason": "Previously identified September CoreWeave financing again represented as an October 14 announcement through an older retained search excerpt. This is not the retracted credit-caption timing objection.",
-    "acceptance_basis": "Explicit owner acceptance after disclosure of the known source-date error; original human review and adverse evidence retained.",
-    "known_imperfection": "September financing is described as an October 14 announcement. This remains an acknowledged research error; it does not invalidate the observed credit stress and broader funding analysis.",
-    "accepted_at_utc": "2026-10-18T21:25:31.773199+00:00"
+    "status": "pending",
+    "scope": "One existing learning runtime file replaces hardcoded failure admission with versioned owner-bound episodes assessed by the existing critic. Four complete qualitative probes reviewed; existing critic execution, source permissions and memory writes preserved. Targeted DEV verification required for these new packages.",
+    "source_revision": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
+    "evidence": "documents/verification/research-resilience-2026-10-18/README.md"
   },
   "preceding_hold": {
     "revision": "20108c58",
@@ -1090,5 +1085,46 @@
     "home_status": "Succeeded",
     "started_at": "2026-10-18T08:18:14+00:00",
     "finished_at": "2026-10-18T09:03:41+00:00"
+  },
+  "previous_owner_accepted_production_release": {
+    "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
+    "build_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a"
+    },
+    "development_acceptance": {
+      "status": "accepted",
+      "scope": "Promote the exact verified DEV images after explicit informed owner acceptance of the known source-date imperfection. Execution/data/configuration verification passed; the date error is recorded, not represented as corrected. Improve resilience separately after promotion.",
+      "evidence": "documents/verification/source-evidence-repair-2026-10-18/DEADLINE_DEVELOPMENT_REVIEW.md",
+      "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
+      "images": {
+        "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+        "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a"
+      },
+      "execution": "attention-home-next-dev-7e6nmrq",
+      "home_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+      "asof": "2026-10-18T20:24:34.140109+00:00",
+      "started_at": "2026-10-18T20:23:59+00:00",
+      "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68",
+      "home_status": "Succeeded",
+      "finished_at": "2026-10-18T21:03:36+00:00",
+      "deadline_result_status": "accepted",
+      "company_results_retained": 12,
+      "company_results_skipped": 0,
+      "reason": "Previously identified September CoreWeave financing again represented as an October 14 announcement through an older retained search excerpt. This is not the retracted credit-caption timing objection.",
+      "acceptance_basis": "Explicit owner acceptance after disclosure of the known source-date error; original human review and adverse evidence retained.",
+      "known_imperfection": "September financing is described as an October 14 announcement. This remains an acknowledged research error; it does not invalidate the observed credit stress and broader funding analysis.",
+      "accepted_at_utc": "2026-10-18T21:25:31.773199+00:00"
+    },
+    "authorization": {
+      "status": "awaiting_separate_learning_development_verification",
+      "owner_instruction": "Push to prod. Then, the system has to be resiliant to imperfections like this. A one wrong date shoudln't change the whole analysis. Errors and mistakes are expected. Sources can be bad. Your fucking overcomplicated, fragile designs compound small errors like this",
+      "condition": "New learning change requires targeted DEV package/runtime and qualitative acceptance before existing conditional production promotion. The preceding recovery images are already in production under explicit owner acceptance.",
+      "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
+      "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate.",
+      "prior_condition": "Complete fresh DEV research quality was previously held for a known financing-date error. Owner explicitly accepts promotion with that imperfection and requests subsequent general resilience improvement."
+    },
+    "deployment_evidence": "documents/verification/source-evidence-repair-2026-10-18/PRODUCTION.md"
   }
 }
