@@ -845,7 +845,7 @@
     "execution": "attention-home-next-dev-cdzog4j",
     "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
     "asof": "2026-10-18T00:37:36.127408+00:00",
-    "reason": "Final chart synthesis exceeded context (1,199,136 tokens / 1,048,576 maximum), retaining old selection; new overview contradicts the full sector table."
+    "reason": "Final chart synthesis exceeded context (1,199,136 tokens / 1,048,576 maximum), retaining old selection; new overview combines different sector measures without establishing comparability."
   },
   "preceding_hold": {
     "revision": "20108c58",
@@ -866,7 +866,7 @@
     "reason": "Fresh complete Home retains process caveats, unsupported rates exclusion and unresolved chart-review feedback. Runtime/data integrity alone does not satisfy owner quality condition."
   },
   "hold": {
-    "reason": "Final chart synthesis exceeded context (1,199,136 tokens / 1,048,576 maximum), retaining old selection; new overview contradicts the full sector table.",
+    "reason": "Final chart synthesis exceeded context (1,199,136 tokens / 1,048,576 maximum), retaining old selection; new overview combines different sector measures without establishing comparability.",
     "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTINUED_DEVELOPMENT_QUALITY_REVIEW.md"
   }
 }

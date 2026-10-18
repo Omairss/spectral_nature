@@ -537,7 +537,7 @@
     "decision": "hold production",
     "findings": [
       "Final chart context still exceeds provider window after successful evidence navigation; no new selection was produced.",
-      "Overview says nine of eleven sectors rose, while the supplied full sector table has five positive standard sectors and six negative; its broad-market-rise interpretation is not established by that snapshot.",
+      "The overview combines a retained news report’s nine-of-eleven count with unweighted sector averages from our covered stocks. Their universes, weighting and observation times were not established as comparable. The earlier claim that five positive averages proved the report false was premature.",
       "New prose is clearer and CPI annual rate/full long-yield backdrop are restored, but that is insufficient for the complete quality condition."
     ],
     "incomplete_company_investigations": [
@@ -546,7 +546,15 @@
       "IREN",
       "SNOW",
       "CRWV"
-    ]
+    ],
+    "sector_claim_follow_up": {
+      "source_title": "9 Of 11 Sectors Rise In Friday Trading As Cyclicals Lead",
+      "source_url": "https://benzinga.com/etfs/sector-etfs/26/10/62413716/9-of-11-sectors-rise-in-friday-trading-as-cyclicals-lead",
+      "stored_published_date": "2026-10-16 00:00:00+00:00",
+      "local_measure": "Unweighted mean and median of covered stocks grouped by sector",
+      "provenance": "Present in retained source evidence, a research draft and an unverified claim before final editing",
+      "report_measure_comparability": "Not established; do not infer a false published count from local averages alone"
+    }
   },
   "optional_page_summary_rows": 5,
   "production_read": {

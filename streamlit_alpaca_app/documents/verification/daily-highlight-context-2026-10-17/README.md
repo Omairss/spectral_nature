@@ -1,6 +1,6 @@
 # Daily highlight context recovery
 
-Status: **the continued fresh DEV run also failed the production quality condition; the repair remains unfinished.** The [current full review](CONTINUED_DEVELOPMENT_QUALITY_REVIEW.md) records an oversized final chart request and an overview that contradicts the supplied sector table. The [complete new served output](continued-development-home-publication.json) retains those failures. New builds and production promotion are held. Production remains on the restored historical image and October 14 highlights.
+Status: **the continued fresh DEV run also failed the production quality condition; the repair remains unfinished.** The [current full review](CONTINUED_DEVELOPMENT_QUALITY_REVIEW.md) records an oversized final chart request and an overview that combines different sector measures without establishing their comparability. The [complete new served output](continued-development-home-publication.json) retains those failures. New builds and production promotion are held. Production remains on the restored historical image and October 14 highlights.
 
 Source implementation: `6c428b3b`; scoped development acceptance/build revision: `18322b68`; ACR build: `cj179`. Image: `accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe`. The complete application inventory has 312 files; the Python runtime inventory has 197. Its packaging verification remains valid evidence, separate from the failed complete development quality decision.
 
