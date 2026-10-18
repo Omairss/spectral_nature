@@ -1,7 +1,7 @@
 {
-  "status": "held_after_development_quality_failure",
-  "scope": "Context repair completed fresh development Home/highlight publication, but complete output did not clear owner subjective quality. New builds and promotions remain held; production retains its historical rollback.",
-  "source_revision": "6c428b3b3f2f7c35b0f350869d30556f4287ae16",
+  "status": "accepted_locally",
+  "scope": "Locally reviewed complete-data/concise-Home/budget-review continuation; fresh full DEV quality required before conditional production promotion.",
+  "source_revision": "060c296850ea753223b7c4aef14f519344888e1d",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
@@ -67,7 +67,7 @@
     "docker-compose.dev.yml": "b34fcd354a6743bbdf3c75b4c98dc49164d15f9eb5b02448d7c51a83f9ecf19d",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "c36bf4c19417cb7f276efe43822f712ae2ec656f039edda4ba72be0bb497085a",
+    "pipeline/jobs/attention_home_build.py": "e511a63b0ccaa663ab5e6b1eaf5184d4999b13da8431407c9011e1963e5eb23a",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "e123bd5634099469cd030461231b236b3317f2e8f1eb1342ca30286efdc984fc",
@@ -163,7 +163,7 @@
     "services/company.py": "5aae2327e2e251715a6be856037efd40987061e82a7529874d1b24d4dec1711e",
     "services/company_baseline.py": "9ee3efc52a1bf86be1c972d43962685ea60308dc384b9d6b83dcf78ec5a579d7",
     "services/config.py": "90da8235542df4fac4e468afef9d8c844e5ad4e5b6f7c1d68b2834aa1d1beeda",
-    "services/daily_market_datapoints.py": "e4179304ee3c8453aca6169dacdc926c844d475a1a3cb19b377c1b039a744ca8",
+    "services/daily_market_datapoints.py": "04915fd41f3d77af2ecc8f86b4f9e1faf2994f643ca0a25a6e5be85da294034b",
     "services/data_cache.py": "c1013d8050df1a8c221810943fe06356a744027e22e3fe66f34a70da8547be31",
     "services/database.py": "79d55fa089a01fd2d67d76a388da77242f36c28407e9494b37023ecc88fab151",
     "services/dependency_graphs.py": "282f912d3795aba411bd005d80ab6b2458594a2d47e5ff3aa30f0ebcd635dc17",
@@ -373,7 +373,7 @@
     "data_access/query_service.py": "8671aab2691759e226844ed3dcf9469b97f147077b97ef6107af10cfb564fc59",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "c36bf4c19417cb7f276efe43822f712ae2ec656f039edda4ba72be0bb497085a",
+    "pipeline/jobs/attention_home_build.py": "e511a63b0ccaa663ab5e6b1eaf5184d4999b13da8431407c9011e1963e5eb23a",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "e123bd5634099469cd030461231b236b3317f2e8f1eb1342ca30286efdc984fc",
@@ -447,7 +447,7 @@
     "services/company.py": "5aae2327e2e251715a6be856037efd40987061e82a7529874d1b24d4dec1711e",
     "services/company_baseline.py": "9ee3efc52a1bf86be1c972d43962685ea60308dc384b9d6b83dcf78ec5a579d7",
     "services/config.py": "90da8235542df4fac4e468afef9d8c844e5ad4e5b6f7c1d68b2834aa1d1beeda",
-    "services/daily_market_datapoints.py": "e4179304ee3c8453aca6169dacdc926c844d475a1a3cb19b377c1b039a744ca8",
+    "services/daily_market_datapoints.py": "04915fd41f3d77af2ecc8f86b4f9e1faf2994f643ca0a25a6e5be85da294034b",
     "services/data_cache.py": "c1013d8050df1a8c221810943fe06356a744027e22e3fe66f34a70da8547be31",
     "services/database.py": "79d55fa089a01fd2d67d76a388da77242f36c28407e9494b37023ecc88fab151",
     "services/dependency_graphs.py": "282f912d3795aba411bd005d80ab6b2458594a2d47e5ff3aa30f0ebcd635dc17",
@@ -517,10 +517,11 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "services/daily_market_datapoints.py": "Complete original catalog is invocation-owned and navigable; preserve historical five-chart schema, distinct references, dedicated review/revision, exact plotted originals and 600-second operation budget. Remove accumulated metric preferences/prohibitions under the owner instruction to keep selection LLM-driven. Carry the original task into review. Personally reviewed both current-data replays; fresh development publication remains the production gate.",
+    "services/daily_market_datapoints.py": "Preserve the already-reviewed invocation-owned complete catalog, five distinct references, dedicated original review/revision, original task ownership and exact plotted histories. Continue the same LLM-owned loop only within the unchanged 600-second budget, stop on explicit LLM approval and retain follow-up notes/valid draft. Real retained failure corrected within remaining budget; real approved path has identical two requests and rows. No financial rule or new critic.",
     "services/llm.py": "Keep valid provider requests and call counts; syntax recovery receives its original messages to retain task/evidence meaning. All three existing transports use the same recovery contract; no provider/model/settings change. Paired actual malformed responses and transport contract checks retained.",
     "services/aql_zopedia_engine.py": "Retain original task/evidence in schema recovery; keep planner-step and artifact schemas separate instead of truncating/embedding the artifact contract in the planner question. Exact no-tool Home editor request is preserved; original retained-draft ownership and failure behavior checked.",
-    "services/zopedia_agent.py": "Keep the original planner prompt. Recover malformed step schemas with the existing LLM/schema owner, retain collected evidence on incomplete planning, and resolve the LLM-selected supplied source IDs through the existing permitted evidence history before synthesis. Preserve originals in checkpoints/review/provenance. No fixed subjects, semantic classifier, new role or admission rule."
+    "services/zopedia_agent.py": "Keep the original planner prompt. Recover malformed step schemas with the existing LLM/schema owner, retain collected evidence on incomplete planning, and resolve the LLM-selected supplied source IDs through the existing permitted evidence history before synthesis. Preserve originals in checkpoints/review/provenance. No fixed subjects, semantic classifier, new role or admission rule.",
+    "pipeline/jobs/attention_home_build.py": "Remove stale projection helpers, key whitelists and row caps that erased available units, annual changes, long maturities, weak sectors and signal identities. Existing typed serialization retains complete source records. Replace the accumulated editorial checklist with the exact paid concise task; keep all four immutable identity fields, existing schema/shared critic/600-second budget/materializer/audio/intraday behavior. Complete comparison personally reviewed, adverse experiments rejected and remaining limits recorded; fresh DEV acceptance remains mandatory."
   },
   "retired_files": [
     ".streamlit/config.toml",
@@ -567,10 +568,10 @@
         "services/aql_zopedia_engine.py",
         "services/zopedia_agent.py"
       ],
-      "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/LOCAL_CONTINUATION_REVIEW.md"
     },
     {
-      "name": "Preserved Home editor, narration and intraday publication",
+      "name": "Complete Home evidence and concise LLM briefing; preserved narration/intraday/materialization",
       "status": "accepted",
       "files": [
         "pipeline/jobs/attention_home_build.py",
@@ -579,7 +580,7 @@
         "services/attention_ticker_snapshots.py",
         "services/alpaca_api.py"
       ],
-      "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/LOCAL_CONTINUATION_REVIEW.md"
     },
     {
       "name": "Shared normal-Home and independent chart generation",
@@ -620,21 +621,21 @@
     "worker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
         "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff"
       ],
       "development_targets": [
         {
           "kind": "jobs",
           "name": "attention-home-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
           "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "daily-datapoints-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
           "configuration_api_version": "2025-07-01"
         }
@@ -648,14 +649,7 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe": {
-          "source_revision": "18322b68411727234ab8b83f5571c55d5e49097b",
-          "source_inventory_sha256": "836e43377a76bb0a5a5d47acb17e24f483fade32ea59a1addc3a2dfa114e7eae",
-          "runtime_inventory_sha256": "4f3cd5fbcb4ffbc51f4735d21ec92eebeaca6822e57e7a1dae8f06874e6a5685",
-          "evidence": "documents/verification/daily-highlight-context-2026-10-17/packaged-image.json"
-        }
-      }
+      "accepted_images": {}
     }
   },
   "untouched_consumers": [
@@ -829,12 +823,22 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "condition_not_met",
+    "status": "pending_fresh_development_acceptance",
     "owner_instruction": "If the dev matches or exceeds the subjective research quality gate from before this collossal fuckup, go ahead and push to prod",
     "condition": "Fresh complete development Home and genuinely new highlights match or exceed pre-incident subjective quality, with preserved runtime/configuration and acceptance of the exact image.",
     "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules."
   },
   "development_acceptance": {
+    "status": "pending",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/LOCAL_CONTINUATION_REVIEW.md"
+  },
+  "preceding_hold": {
+    "revision": "20108c58",
+    "status": "held_after_development_quality_failure",
+    "reason": "Fresh rebuilt Home failed subjective quality. Later actual-image inspection also found an unreviewed daily chart generation difference: current source navigates supplied evidence and omits the historical separate chart review; the prior scoped audit covered chart reading but not generation.",
+    "evidence": "documents/verification/exact-production-recovery-2026-10-16/PRODUCTION_RESTORATION.md"
+  },
+  "previous_development_quality_failure": {
     "status": "not_accepted",
     "images": {
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe"
@@ -845,11 +849,5 @@
     "home_run_id": "035fc67f-1315-439f-a72b-a045a4f853a3",
     "asof": "2026-10-17T23:03:00.216879+00:00",
     "reason": "Fresh complete Home retains process caveats, unsupported rates exclusion and unresolved chart-review feedback. Runtime/data integrity alone does not satisfy owner quality condition."
-  },
-  "preceding_hold": {
-    "revision": "20108c58",
-    "status": "held_after_development_quality_failure",
-    "reason": "Fresh rebuilt Home failed subjective quality. Later actual-image inspection also found an unreviewed daily chart generation difference: current source navigates supplied evidence and omits the historical separate chart review; the prior scoped audit covered chart reading but not generation.",
-    "evidence": "documents/verification/exact-production-recovery-2026-10-16/PRODUCTION_RESTORATION.md"
   }
 }
