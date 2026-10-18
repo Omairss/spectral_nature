@@ -1,6 +1,6 @@
 # Shared source evidence repair
 
-Status: accepted locally for complete DEV verification only. Production remains unchanged. The current DEV images are still worker `619934d0` and API `71532d4f`; neither contains this repair. The previous complete DEV run remains rejected. The owner's conditional production authorization still requires acceptance of the exact complete DEV result.
+Status: accepted locally for complete DEV verification only. Production remains unchanged. The seven DEV consumers now use verified worker `a0b15ecc` and API `80ca1d35` from Git `81d7a997`. Fresh Home `73c9478d-a1bc-4065-b489-4417e873dd50` is running under execution `attention-home-next-dev-4709cka`; its complete output has not been accepted. The previous complete DEV run remains rejected. The owner's conditional production authorization still requires acceptance of the exact complete DEV result.
 
 ## Implementation
 

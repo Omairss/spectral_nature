@@ -974,9 +974,16 @@
   },
   "development_acceptance": {
     "status": "not_accepted",
-    "scope": "Complete source/company/event local review and typed metadata contract accepted; final packages and fresh complete DEV publication remain pending.",
+    "scope": "Seven verified DEV image updates complete. All-33 configuration/readiness audit and signed-in retained research/Trading views pass. Fresh complete Home generation and personal public quality review remain pending.",
     "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md",
-    "reason": "Complete fresh development publication and exact image verification remain pending."
+    "reason": "Fresh complete Home and its new charts have not yet completed or been personally accepted.",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54"
+    },
+    "execution": "attention-home-next-dev-4709cka",
+    "home_run_id": "73c9478d-a1bc-4065-b489-4417e873dd50",
+    "asof": "2026-10-18T08:18:52.788602+00:00"
   },
   "preceding_hold": {
     "revision": "20108c58",

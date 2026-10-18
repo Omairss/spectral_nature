@@ -1,0 +1,245 @@
+{
+  "environment": "development",
+  "recorded_at_utc": "2026-10-18T08:19:58.429969+00:00",
+  "resources": 33,
+  "image_changes": 7,
+  "all_configurations_preserved": true,
+  "retired_resources_absent": true,
+  "custom_domain_bindings": [
+    {
+      "name": "sn-streamlit-ui",
+      "hostname": "spectral-nature.com",
+      "binding": "SniEnabled"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "hostname": "torres-cap.com",
+      "binding": "SniEnabled"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "hostname": "www.spectral-nature.com",
+      "binding": "SniEnabled"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "hostname": "www.torres-cap.com",
+      "binding": "SniEnabled"
+    }
+  ],
+  "targets": [
+    {
+      "name": "sn-streamlit-ui",
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
+      "image_changed": false,
+      "latest_revision": "sn-streamlit-ui--0000095",
+      "ready_revision": "sn-streamlit-ui--0000095",
+      "running_status": "Running"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54",
+      "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
+      "image_changed": true,
+      "latest_revision": "sn-api-next-dev--0000043",
+      "ready_revision": "sn-api-next-dev--0000043",
+      "running_status": "Running"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "configuration_sha256": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4",
+      "image_changed": false,
+      "latest_revision": "sn-next-ui-dev--0000023",
+      "ready_revision": "sn-next-ui-dev--0000023",
+      "running_status": "Running"
+    },
+    {
+      "name": "sn-next-ui",
+      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+      "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
+      "image_changed": false,
+      "latest_revision": "sn-next-ui--0000011",
+      "ready_revision": "sn-next-ui--0000011",
+      "running_status": "Running"
+    },
+    {
+      "name": "sn-api-next",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+      "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
+      "image_changed": false,
+      "latest_revision": "sn-api-next--0000011",
+      "ready_revision": "sn-api-next--0000011",
+      "running_status": "Running"
+    },
+    {
+      "name": "universe-builder",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
+      "image_changed": false
+    },
+    {
+      "name": "equities-intraday-preload",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+      "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
+      "image_changed": false
+    },
+    {
+      "name": "macro-fred-daily",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+      "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
+      "image_changed": false
+    },
+    {
+      "name": "commodities-regime",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
+      "image_changed": false
+    },
+    {
+      "name": "options-liquid-universe",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
+      "image_changed": false
+    },
+    {
+      "name": "news-ingest-and-features",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
+      "image_changed": false
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
+      "image_changed": false
+    },
+    {
+      "name": "attention-home-build",
+      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+      "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
+      "image_changed": false
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
+      "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
+      "image_changed": false
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
+      "image_changed": false
+    },
+    {
+      "name": "trading-agent-build",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
+      "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
+      "image_changed": false
+    },
+    {
+      "name": "zopedia-maintenance",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb",
+      "image_changed": false
+    },
+    {
+      "name": "zopedia-learning",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
+      "image_changed": false
+    },
+    {
+      "name": "system-health",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
+      "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
+      "image_changed": false
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "image_changed": true
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "image_changed": true
+    },
+    {
+      "name": "sn-research-run-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "image_changed": true
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+      "image_changed": false
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+      "image_changed": false
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+      "image_changed": false
+    },
+    {
+      "name": "attention-home-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "image_changed": true
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+      "image_changed": false
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "image_changed": true
+    },
+    {
+      "name": "technical-history-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+      "image_changed": false
+    },
+    {
+      "name": "sn-research-run",
+      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+      "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
+      "image_changed": false
+    },
+    {
+      "name": "equities-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "image_changed": true
+    },
+    {
+      "name": "evidence-index-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc",
+      "image_changed": false
+    },
+    {
+      "name": "system-recovery-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+      "image_changed": false
+    }
+  ]
+}

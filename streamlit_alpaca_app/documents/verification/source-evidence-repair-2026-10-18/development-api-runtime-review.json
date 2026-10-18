@@ -1,0 +1,35 @@
+{
+  "status": "runtime_checks_passed_fresh_home_quality_pending",
+  "recorded_at_utc": "2026-10-18T08:22:13.920655+00:00",
+  "api_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54",
+  "api_revision": "sn-api-next-dev--0000043",
+  "signed_in_role": "admin",
+  "retained_conversation": "zthread_b103141c39e1458b9416a4d0",
+  "retained_conversation_two_turn_history_and_followup_table_render": true,
+  "trading_horizons": [
+    {
+      "label": "1 Week",
+      "cards": 3
+    },
+    {
+      "label": "1 Month",
+      "cards": 4
+    },
+    {
+      "label": "3 Month",
+      "cards": 3
+    },
+    {
+      "label": "1 Year",
+      "cards": 4
+    },
+    {
+      "label": "5 Year",
+      "cards": 3
+    }
+  ],
+  "method": "Actual signed-in Chrome views after API readiness; retained artifacts only. No new chat messages, research regeneration, approvals, rejection or order actions.",
+  "trading_content_is_retained_not_new_research_acceptance": true,
+  "physical_iphone_test": false,
+  "production_changed": false
+}

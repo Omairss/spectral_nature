@@ -1,6 +1,6 @@
 # Current-data Home recovery
 
-Status: **source repair accepted locally for a new complete DEV verification; production remains on HOLD.** The normal DEV run succeeded, but its research presents older financing announcements as current events. Production is unchanged. The [complete live review](../verification/daily-highlight-context-2026-10-17/SOURCE_DATE_QUALITY_REVIEW.md) and committed `infra/release_acceptance.json` supersede local acceptance for promotion.
+Status: **source repair deployed to seven DEV consumers; fresh complete Home verification is running. Production remains on HOLD.** The normal DEV run succeeded, but its research presents older financing announcements as current events. Production is unchanged. The [complete live review](../verification/daily-highlight-context-2026-10-17/SOURCE_DATE_QUALITY_REVIEW.md) and committed `infra/release_acceptance.json` supersede local acceptance for promotion.
 
 ## Current implementation
 
