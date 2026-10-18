@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "runtime_file_sha256": "af85e5dbf7d468364225e2ade3948fa31d4477a6a5b3ae9f8c35da35d8d20bbe",
+  "raw_provider_text_available_to_nomination": true,
+  "raw_payload_and_capture_trace_preserved": true,
+  "opened_capture_materialized_by_shared_adapter": true,
+  "full_opened_source_available_to_downstream_writer": true,
+  "aggregate_result_keeps_multiple_references_without_attribution": true,
+  "date_age_does_not_assign_claim_timing_or_freshness": true,
+  "model_calls": 0,
+  "qualitative_acceptance": false
+}

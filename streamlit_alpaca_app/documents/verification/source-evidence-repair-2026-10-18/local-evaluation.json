@@ -24,9 +24,10 @@
     "services/seeking_alpha_access.py": "651702e991bb26c1b25289f5a270f8a2451b70912ecad4389bfd57376797db15",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/zopedia_agent.py": "f41f9dce57095b2bb3cc24356976d95a5591206eec467a456175ba7fd48a1817",
-    "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec"
+    "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec",
+    "services/aql/events.py": "af85e5dbf7d468364225e2ade3948fa31d4477a6a5b3ae9f8c35da35d8d20bbe"
   },
-  "application_changes": 24,
+  "application_changes": 25,
   "cases": [
     {
       "subject": "CRWV",
@@ -491,5 +492,6 @@
   ],
   "unchanged_settings": "Same eligible DeepSeek model and thinking settings; 240-second candidate budget, 90-second per-request limit and existing phase reservations; no extra reviewer, semantic date rule or ticker exception.",
   "full_development_required": true,
-  "production_authorized_by_this_record": false
+  "production_authorized_by_this_record": false,
+  "source_event_evidence": "event-local-evaluation.json"
 }

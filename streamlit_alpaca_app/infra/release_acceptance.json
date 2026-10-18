@@ -1,7 +1,7 @@
 {
-  "status": "held_during_source_path_alignment",
-  "scope": "Symbol/source reader contracts are locally verified; source-event intake still needs alignment with the shared materializer before the root repair is complete. No new image is authorized or deployed.",
-  "source_revision": "9b0038675220af11aabad75738b0799dc4708e88",
+  "status": "accepted_locally",
+  "scope": "Complete shared source capture/reference repair and event alignment accepted locally for a full fresh development run; production remains gated on the exact public result.",
+  "source_revision": "810833f8d2dc747002e37948df2b5f7440623a78",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
@@ -124,7 +124,7 @@
     "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
     "services/aql/critique.py": "fddd11f9290b841af47053c11820c98546a1bca26aad0cad83c2c4fd488eddb1",
     "services/aql/entities.py": "d7f5fa9833aa9238f8d81dabfeb75bb9caa313f180ace88ab5f5df1a62282003",
-    "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a",
+    "services/aql/events.py": "af85e5dbf7d468364225e2ade3948fa31d4477a6a5b3ae9f8c35da35d8d20bbe",
     "services/aql/evidence_index.py": "6a594a6fff4dff1a3c3913758dc5a66a3db2def8d7ad5942dc1348ff69a7c07b",
     "services/aql/evidence_pack.py": "ed053239682a6fa323660ea1bf98e5af4c6e62ca53bd985d659fadac8d13f506",
     "services/aql/extractor.py": "77bbfe2cd208287fa255532b4080ecd9221094c6984409e008cc5f460aad9997",
@@ -408,7 +408,7 @@
     "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
     "services/aql/critique.py": "fddd11f9290b841af47053c11820c98546a1bca26aad0cad83c2c4fd488eddb1",
     "services/aql/entities.py": "d7f5fa9833aa9238f8d81dabfeb75bb9caa313f180ace88ab5f5df1a62282003",
-    "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a",
+    "services/aql/events.py": "af85e5dbf7d468364225e2ade3948fa31d4477a6a5b3ae9f8c35da35d8d20bbe",
     "services/aql/evidence_index.py": "6a594a6fff4dff1a3c3913758dc5a66a3db2def8d7ad5942dc1348ff69a7c07b",
     "services/aql/evidence_pack.py": "ed053239682a6fa323660ea1bf98e5af4c6e62ca53bd985d659fadac8d13f506",
     "services/aql/extractor.py": "77bbfe2cd208287fa255532b4080ecd9221094c6984409e008cc5f460aad9997",
@@ -540,7 +540,8 @@
     "services/page_browsing.py": "Preserve complete captured substantive text alongside bounded previews and raw HTML metadata/JSON-LD/time elements across existing browser, HTTP, Scrapling and Firecrawl routes. No new dependencies, authentication behavior or business inference. Actual company page roundtrip preserves all 5424 captured characters and metadata with 800-character preview.",
     "services/seeking_alpha_access.py": "Authenticated existing Scrapling route preserves the same complete capture and publisher metadata contract. Login, credentials, profile lock, retries, access and backend are unchanged. Only source content/metadata are retained, no cookies or credentials.",
     "services/saa/storage.py": "Separate source captures from retained references; do not repersist excerpts over originals. Content/provider-metadata capture identities retain distinct versions, while identical passages deduplicate by URL/origin/content. Capture metadata survives ancestry projection. Existing IDs remain readable, with unresolved legacy date basis represented honestly. No SQL schema migration or destructive historic date rewrite. Actual body, metadata-only identity, reference-only write and roundtrip checks pass.",
-    "services/zopedia_research.py": "Carry shared capture records and full opened content through actual model evidence. Existing retained reader reopens captured original and metadata; retained dates are recorded metadata with capture/legacy basis rather than asserted event facts. Reference access controls and existing tools are retained. Live acquired nonfinancial chronology check is limited by existing retained-search timeouts; full DEV required."
+    "services/zopedia_research.py": "Carry shared capture records and full opened content through actual model evidence. Existing retained reader reopens captured original and metadata; retained dates are recorded metadata with capture/legacy basis rather than asserted event facts. Reference access controls and existing tools are retained. Live acquired nonfinancial chronology check is limited by existing retained-search timeouts; full DEV required.",
+    "services/aql/events.py": "Replace duplicate source aggregation with the existing shared materializer; retain complete provider/native captures through nomination and downstream writing; keep aggregate tool results separate. Remove timestamp-derived current claims and hardcoded High freshness. Preserve existing event schema/prompt/model/settings/budgets. Mechanical projection contract and all four complete live outputs personally reviewed; first structural/model failures preserved. Accepted for full DEV only."
   },
   "retired_files": [
     ".streamlit/config.toml",
@@ -686,7 +687,8 @@
         "services/seeking_alpha_access.py",
         "services/web_research.py",
         "services/zopedia_agent.py",
-        "services/zopedia_research.py"
+        "services/zopedia_research.py",
+        "services/aql/events.py"
       ],
       "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md"
     }
@@ -958,9 +960,9 @@
   },
   "development_acceptance": {
     "status": "not_accepted",
-    "scope": "Shared capture/execution repair accepted locally for complete fresh development verification; prior DEV source-date failure retained separately. No image for this source has been deployed.",
+    "scope": "All local source/company/event checks complete; final 25-file source not yet deployed. Fresh complete public Home acceptance remains required.",
     "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md",
-    "reason": "Remaining event adapter duplicates source materialization and derives semantic freshness from publication dates. Existing newly built packages are not registered for deployment."
+    "reason": "Complete fresh development publication and exact image verification remain pending."
   },
   "preceding_hold": {
     "revision": "20108c58",

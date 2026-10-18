@@ -1,0 +1,566 @@
+{
+  "status": "accepted_for_complete_development_verification_only",
+  "whole_adapter_seconds": 476.5,
+  "settings": {
+    "provider": "deepseek",
+    "model": "deepseek-reasoner",
+    "thinking": "enabled",
+    "effort": "",
+    "engine_revision": "5da9c2f911a42f2571c3"
+  },
+  "unchanged_budgets": {
+    "nomination_seconds": 180,
+    "event_seconds": 600,
+    "event_limit": 4,
+    "event_tools": 6
+  },
+  "provider_attempts": {
+    "unique_attempts": 61,
+    "statuses": {
+      "success": 61
+    },
+    "includes_embeddings": true,
+    "retained_tool_timeouts_are_not_provider_success": true
+  },
+  "source_documents": 87,
+  "capture_origins": {
+    "search_result": 79,
+    "page_capture": 8
+  },
+  "cases": [
+    {
+      "payload": {
+        "event_title": "CoreWeave bond yields spike on AI funding fears, not a new refinancing deal",
+        "surface_summary_text": "CoreWeave's funding worry in mid-October 2026 came from a sharp selloff in bonds it had already issued, not from a newly announced debt or refinancing deal. The 9.625% notes due 2032 yielded about 14.8% to 15%, and the 9.75% notes due 2031 briefly traded above a 16% yield on October 15. A late-September CEO share sale was made under a trading plan set up in November 2025. Sector doubts about neocloud economics and higher odds of a Fed rate rise widened the move to IREN and other AI data-center shares.",
+        "what_happened_text": "In mid-October 2026, CoreWeave's existing bonds sold off hard, and its shares fell about 15% on October 14. The 9.625% notes due 2032 that CoreWeave issued in June fell from about 85 cents on the dollar at the start of October to below 80 cents. Their yield rose from about 13.4% to 14.8% and briefly touched 15%, according to CNBC data cited by [Benzinga](https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on). The 9.75% notes due 2031 yielded about 14.9% in that October 15 report, and the 2031 bond briefly traded above a 16% yield on Thursday, October 15, before heading for a fifth straight weekly decline, [Reuters](https://www.reuters.com/business/coreweave-shares-bonds-headed-steep-weekly-losses-ai-borrowing-concerns-mount-2026-10-16/) reported. The cost of insuring CoreWeave's debt against default rose to about 1,000 basis points, roughly 10 percentage points a year, and S&P rated the debt B+, below investment grade. Reuters put CoreWeave's total debt at about $50 billion.\n\nNo report describes a new October bond sale or a signed refinancing. The 2032 notes were already outstanding from June. CoreWeave's quarterly [filing](https://www.sec.gov/Archives/edgar/data/1769628/000176962826000366/crwv-20260630.htm) for the period ended June 30, 2026 says the company funds itself with debt, convertible debt and equity, and refers to a $3.1 billion delayed draw term loan facility that it can still use.\n\nOn the insider side, a Form 4 report shows the CEO sold shares on September 29, 2026 from direct holdings and Omnadora Capital LLC under a trading plan adopted on November 20, 2025, alongside a 107,692-share conversion, according to [Stock Titan](https://www.stocktitan.net/sec-filings/CRWV/form-4-core-weave-inc-insider-trading-activity-abbe2e385dba.html). That is a scheduled sale, not a discretionary one. A [Yahoo Finance](https://finance.yahoo.com/quote/CRWV/) summary said coverage centered on \"heavy insider\" selling, but the excerpt is cut off and gives no size or date.",
+        "why_happened_text": "The first link in the chain is the bond price. When a bond's price falls, its yield rises. CoreWeave is a neocloud: an AI cloud provider that buys GPUs and builds data centers, funded largely with borrowed money. A yield near 15% on a B+ credit sits far above normal high-yield levels, so investors were pricing real doubt about default or about CoreWeave's ability to refinance at a fair cost. The same doubt showed up in the default-insurance price near 1,000 basis points. Higher yields raise the cost of the next dollar borrowed and lower the present value of future cash flows, which pulls the share price down.\n\nThe pressure was not a single-company event. [Benzinga](https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on) tied it to a Gartner report that more than 80% of neocloud providers could stop operating independently by 2030, because AI data-center revenue may reach only about $3.6 trillion by 2030 against roughly $8.5 trillion needed to cover spending, financing costs and a 12% return on capital, leaving more than $3.5 trillion of planned spending exposed to impairment. Two other facts reinforced the mood: Firmus, an Nvidia-backed Australian data center operator, shelved a roughly $5 billion IPO on October 9, and September core inflation of 2.6% lifted the market-implied odds of a Fed rate rise that month to 44% from 22%. Higher policy rates raise the cost of the floating-rate and new debt that neoclouds use.\n\nIREN's link to CoreWeave runs through a shared business model, not a disclosure. IREN is a bitcoin miner moving into AI cloud and data centers, so it carries the same heavy capital needs. Benzinga reported that IREN fell on \"neocloud concerns, rising CoreWeave bond yields and Fed rate hike fears.\" That is a reported market association; nothing in the sources proves that CoreWeave's bond move caused IREN's fall. IREN's own AI cloud revenue was still growing fast, $128.8 million in fiscal 2026 against $16.4 million a year earlier, with $2.8 billion of new customer contracts signed in July, so the selloff looks like a sector-wide funding discount rather than an IREN operating miss.\n\nThe insider sale is a weak candidate for the cause. The trading plan predates the bond selloff by about ten months, and the sales happened on September 29, before the October move. Nothing in the evidence shows that investors treated the filing as new negative information; the selloff is better explained by the bond repricing and the sector news that surrounded it. The honest conclusion is partial: existing debt repriced sharply and the fear spread across neocloud equities, while a new debt or refinancing disclosure is not established.",
+        "affected_assets_summary_text": "CoreWeave common stock (CRWV), its 9.75% notes due 2031 and 9.625% notes due 2032, and the credit default swaps that insure that debt. IREN (IREN) and other neocloud or AI data-center equities, including Nebius, Applied Digital and Cipher Digital, which [Benzinga](https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on) said also fell. Bondholders feel the mark-to-market loss directly; shareholders feel it through a higher cost of capital and a lower valuation of future cash flows.",
+        "business_context_text": "A neocloud rents out GPU capacity for AI work. The model needs large spending on chips and buildings before any revenue arrives, so these firms depend on continuous access to debt and equity. CoreWeave's B+ S&P rating places its bonds in high-yield, or junk, territory, which already means a higher interest rate than investment-grade issuers pay. A yield near 15% is far above a normal junk-bond yield, so the market was pricing serious default or refinancing risk, not just a bad week. IREN has a similar capital-hungry model as it shifts from bitcoin mining to AI cloud. The Gartner forecast matters to both because it questions whether AI infrastructure revenue can cover the cost of the money borrowed to build it.",
+        "watch_next_text": "The decisive question is whether CoreWeave draws on its $3.1 billion delayed draw term loan facility or comes to the bond market for new money in the next few quarters, and at what yield. A new issue priced well below 15%, or 2031 and 2032 bonds recovering toward 13%, would point to a market-wide risk-off episode. A draw on the facility or a failed issuance would point to a company-specific funding problem.",
+        "cause_status": "partial",
+        "supporting_symbols": [
+          "CRWV",
+          "IREN",
+          "NBIS",
+          "APLD",
+          "CIFR"
+        ],
+        "claims": [
+          {
+            "claim_text": "CoreWeave shares fell about 15% on October 14, 2026, while yields on its bonds surged.",
+            "source_id": "url_2d1bcdff5647aba0b9e8",
+            "source_url": "https://www.cnbc.com/2026/10/14/coreweave-stock-bond-yields-ai-debt.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The yield to maturity on CoreWeave's 9.625% bonds due 2032 rose to 14.8% and briefly touched 15%; its 9.75% notes due 2031 yielded about 14.9% in the October 15, 2026 report.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The 2032 notes, issued in June 2026, fell from about 85 cents on the dollar at the start of October to below 80 cents, lifting their yield from about 13.4%, according to BigGo Finance data cited in the report.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The yield on CoreWeave's October 2031 maturity bond briefly surged past 16% on Thursday, October 15, 2026, and the bond was set for a fifth straight weekly decline.",
+            "source_id": "url_1d4ed0f6db82c4c6f5ba",
+            "source_url": "https://www.reuters.com/business/coreweave-shares-bonds-headed-steep-weekly-losses-ai-borrowing-concerns-mount-2026-10-16/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "CoreWeave's credit rating is B+ at S&P, and the cost of insuring its debt against default rose to around 1,000 basis points.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "CoreWeave had about $50 billion of debt as of the October 15, 2026 Reuters report.",
+            "source_id": "url_a0b8fc37f2023588d3c0",
+            "source_url": "https://www.reuters.com/legal/transactional/coreweave-shares-bonds-slide-further-ai-debt-fears-mount-2026-10-15/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "CoreWeave's quarterly filing for the period ended June 30, 2026 says it funds operations through debt, convertible debt and equity financing, and refers to a $3.1 billion delayed draw term loan facility.",
+            "source_id": "url_50de019fb5b725d04cb9",
+            "source_url": "https://www.sec.gov/Archives/edgar/data/1769628/000176962826000366/crwv-20260630.htm",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "CoreWeave's CEO sold shares on September 29, 2026 from direct holdings and Omnadora Capital LLC under a trading plan adopted on November 20, 2025, alongside a 107,692-share conversion.",
+            "source_id": "url_0c20d0b60dc95918c2bd",
+            "source_url": "https://www.stocktitan.net/sec-filings/CRWV/form-4-core-weave-inc-insider-trading-activity-abbe2e385dba.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "A Yahoo Finance summary said CoreWeave shares were under pressure from debt, funding and refinancing concerns and that coverage centered on heavy insider selling, but the excerpt is truncated.",
+            "source_id": "doc::event-news::c4cdf6242ec61c202bde",
+            "source_url": "https://finance.yahoo.com/quote/CRWV/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Gartner said more than 80% of neocloud providers could cease independent operations by 2030, because AI data-center revenue may reach only about $3.6 trillion by 2030 against roughly $8.5 trillion needed to cover spending, financing costs and a 12% return on capital, and more than $3.5 trillion of spending could face impairment.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Firmus shelved a roughly $5 billion IPO on October 9, 2026 after weak demand, citing market volatility and investor concerns about debt and its track record.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "September CPI rose 3.7% from a year earlier and core CPI rose 2.6%, above forecasts, and market-implied odds of a Fed rate rise that month jumped to 44% from 22%.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN fell roughly 9% to 12% on Wednesday, October 14, 2026, and traded around $30.90 the next morning, more than 55% below its 2026 high of $70.65.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN's AI cloud revenue reached $128.8 million in fiscal 2026, up from $16.4 million a year earlier, and it signed $2.8 billion in new customer contracts in July.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The evidence points to investors repricing CoreWeave bonds that were already outstanding, not a newly announced debt or refinancing transaction.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "hypothesis"
+          },
+          {
+            "claim_text": "A yield near 15% on a B+ rated issuer is far above a normal high-yield level, so the bond price implied serious default or refinancing risk rather than a routine spread widening.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "hypothesis"
+          },
+          {
+            "claim_text": "The insider sale was made under a pre-arranged trading plan and occurred before the October bond selloff, so the evidence does not establish it as the cause of the yield move.",
+            "source_id": "url_0c20d0b60dc95918c2bd",
+            "source_url": "https://www.stocktitan.net/sec-filings/CRWV/form-4-core-weave-inc-insider-trading-activity-abbe2e385dba.html",
+            "evidence_role": "hypothesis"
+          },
+          {
+            "claim_text": "The reports link IREN's decline to neocloud concerns, CoreWeave bond yields and Fed rate-hike fears, but they do not prove that CoreWeave's bond move caused IREN's price decline.",
+            "source_id": "doc::event-news::f1418e51607b63d04326",
+            "source_url": "https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on",
+            "evidence_role": "hypothesis"
+          }
+        ]
+      },
+      "existing_quality_review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft's central finding is right and well supported: the mid-October CoreWeave funding scare came from repricing of existing bonds, not a newly announced debt or refinancing deal, and the CEO sale was plan-based. One material date error must be fixed: the brief move above a 16% yield on the 2031 notes happened on Thursday, October 15, 2026, not October 16. The draft also contradicts itself on that date between the narrative and the claim list. The story gains depth by adding the reported $50 billion total debt and the $3.1 billion delayed draw term loan facility in CoreWeave's June 30, 2026 quarterly filing, which is the concrete capital commitment that makes the yield level matter. Minor edits reduce repetition of the insider point and explain what a 1,000-basis-point default-insurance cost means.",
+        "confidence": "medium",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "CoreWeave's debt maturity schedule, covenant terms and available revolver or delayed draw capacity from its June 30, 2026 Form 10-Q.",
+          "Whether the 2031 and 2032 CoreWeave bonds widened further or stabilized after October 16, 2026.",
+          "The share count and Rule 10b5-1 plan status recorded in the Form 4 for the CEO's September 29, 2026 sale."
+        ]
+      }
+    },
+    {
+      "payload": {
+        "event_title": "Gartner forecasts most neoclouds will lose independence, pressuring IREN and CoreWeave",
+        "surface_summary_text": "Gartner's warning is about money, not a sudden drop in AI demand. In a release published 14 October 2026, the firm said AI data-centre owners would need about $8.5 trillion of cumulative revenue through 2030 to cover announced capital spending, financing costs and a 12% return on invested capital. It forecasts no more than about $3.6 trillion of AI revenue that can be credited to those data centres. Gartner says more than $3.5 trillion of spending could be exposed to impairment by the end of 2030, and more than $4 trillion of asset value to write-downs through 2032. From that gap it predicts that more than 80% of neocloud providers will cease independent operations by 2030. A neocloud is a specialist company that rents out AI computing, usually GPUs.\n\nThe Gartner release does not name IREN, CoreWeave or Nebius. Market coverage applied the forecast to them on 15 October, and the three fell harder than cloud and large-cap technology funds that day. The threat reaches IREN through the need to turn new capacity into paying contracts before the hardware ages, and CoreWeave through concentrated revenue and heavy borrowing.",
+        "what_happened_text": "Gartner published the press release on 14 October 2026 under the title \"Gartner Says Over $3.5 Trillion of AI Infrastructure Spending Could Be Exposed to Impairment by the End of 2030\". The central forecast is that cost pressure and a lack of a differentiating business model will force more than 80% of neocloud providers to cease independent operations by 2030. \"Cease independent operations\" means being acquired, absorbed or restructured, not necessarily shut down.\n\nOn 15 October, 24/7 Wall St. reported that IREN fell about 5% to $28.94 and CoreWeave about 5% to $62.26, while Nebius fell about 4% to $177.68. The same article put the First Trust Cloud Computing ETF (SKYY) down 3% and the Invesco QQQ Trust down 1%, which it read as a repricing of the neocloud model rather than of technology generally. Yahoo Finance and Benzinga carried similar accounts. Same-day coverage supports a link between the report and those moves; it does not prove that the report caused them.\n\nA separate market snapshot supplied for 18 October showed IREN at -11.15% and CoreWeave at -11.89%. That snapshot also shows double-digit falls in telecom, biotechnology, identity software and semiconductor names that have no direct link to neoclouds. It therefore looks like a broad risk-off session, and it should not be read as the market still reacting to Gartner.",
+        "why_happened_text": "Gartner's evidence is an arithmetic gap with a return target attached. The firm expects AI providers to spend nearly $1 trillion on infrastructure in 2026 and another $6 trillion between 2027 and 2030. To cover that spending, financing costs and a 12% return on invested capital, data-centre owners would need about $8.5 trillion of cumulative revenue through 2030. Gartner forecasts no more than about $3.6 trillion of AI revenue attributable to AI data centres. The two figures differ by roughly $4.9 trillion. Gartner expresses the consequence in two separate figures: more than $3.5 trillion of spending could be exposed to impairment by the end of 2030, and more than $4 trillion of asset value to write-down risk through 2032, with the 12% return not achieved before the end of 2032 at the earliest.\n\nThe narrow end of the funnel is rented capacity. Gartner estimates AI-optimized infrastructure-as-a-service spending will grow from $66 billion in 2027 to $174 billion in 2030. That is fast growth, but small against nearly $1 trillion a year of capital spending. Gartner's analyst adds that this growth \"will be too low for most AI compute providers to recover their AI investments before the current generation of AI semiconductors is replaced\". A GPU that is superseded still has to be paid for, so the owner must earn its cost back inside one hardware generation.\n\nHyperscalers can carry a stretch of weak returns because they have other revenue. Specialist neoclouds cannot, which is why Gartner expects most of them to lose independence. The collected Gartner text attributes the pressure to cost and to a lack of differentiation. It does not say customer concentration, debt maturities, low utilization or contract terms are the main cause. Those are the channels through which the industry gap reaches individual companies.\n\nOne part of the release cuts slightly the other way. Gartner expects less than half of AI revenue to be earned by providers that own significant AI infrastructure, because most AI-native providers are asset-light. IREN and CoreWeave are in the group that owns the assets, so they keep a larger share of a smaller pool, but they also carry the depreciation.",
+        "affected_assets_summary_text": "IREN, CoreWeave and Nebius are the three names the market coverage tied to the forecast. The read-across extends to other companies whose revenue depends on building or renting AI data-centre capacity: Applied Digital, Hut 8, Cipher Digital, TeraWulf, Bitdeer and DigitalOcean, plus hardware suppliers such as Super Micro, Vicor and Lumentum. For those suppliers the link is indirect: slower neocloud expansion would mean fewer orders, but the Gartner note says nothing about them. These names appeared in the 18 October snapshot with large declines, on a day when unrelated sectors fell too, so that snapshot is weak evidence of a Gartner effect.",
+        "business_context_text": "A neocloud buys or leases data-centre space and GPUs, then rents the computing to AI developers, model companies or large cloud providers. Costs are largely fixed and paid up front; revenue depends on utilization, price and contract length. If the rental market turns out smaller than planned, or prices soften, the fixed costs and the debt remain.\n\nIREN owns its data-centre sites and power and is converting them from bitcoin mining to AI cloud. Its 20 July 2026 release raised the year-end AI Cloud annualized run-rate revenue target from $3.7bn to more than $4bn, with about 85% of that under contract after $2.8bn of new multi-year contracts. It gave a weighted average contract term of about 4 years, said recent contracts include customer prepayments of about 45% of the associated GPU capital spending, and reported about $7.6bn of cash and equivalents at 30 June 2026, including $1.7bn restricted. Its customers include Microsoft, NVIDIA, Perplexity, Figure AI, Together AI, Fluidstack and others. That is meaningful protection against Gartner's thesis: most of the near-term revenue is already signed and partly prepaid. The weak point is timing. The same release says revenue ramps only after each data centre is commissioned, tested and accepted by the customer, and the company plans to go from about 3MW of AI cloud capacity a year earlier to 480MW delivered in 2026 and 1.2GW targeted for 2027. A four-year weighted average contract term is close to the chip replacement cycle Gartner cites, so IREN must re-contract a large share of its fleet at roughly the moment that fleet becomes a generation old. Earlier analysis also described IREN's AI cloud revenue as concentrated on Microsoft, which the newer contracts are meant to dilute.\n\nCoreWeave is a pure-play GPU cloud with a large contract base and heavy borrowing relative to equity, as the 24/7 Wall St. article notes. A secondary analysis put its revenue dependence on Microsoft at 62% in 2024, up from 35% in 2023 and 16% in 2022. A delay, price change or workload shift at that one customer would therefore matter far more to CoreWeave than to a diversified cloud provider. The collected sources do not give CoreWeave's current customer shares or contract durations, so the timing of its refinancing and re-contracting pressure cannot be measured here.",
+        "watch_next_text": "The decisive question is whether IREN and CoreWeave can keep signing multi-year capacity contracts at prices that cover capital spending and debt as their first contract terms and first GPU generations run out around 2028 to 2030. The disclosures that would settle it are customer revenue shares, contract duration and backlog tenor, utilization, and debt maturity schedules.",
+        "cause_status": "partial",
+        "supporting_symbols": [
+          "CRWV",
+          "IREN",
+          "NBIS"
+        ],
+        "claims": [
+          {
+            "claim_text": "Gartner published the forecast on 14 October 2026 and said that by 2030 more than 80% of neocloud providers are expected to cease independent operations.",
+            "source_id": "url_be4dc224ef888351dbb6",
+            "source_url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-14-gartner-says-over-us-dollars-three-and-a-half-trillion-of-artificial-intelligence-infrastructure-spending-could-be-exposed-to-impairment-by-the-end-of-2030",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Gartner said AI data-centre owners would need about $8.5 trillion of cumulative revenue through 2030 to cover announced capital spending, financing costs and a 12% return on invested capital, while revenue attributable to AI data centres is forecast at no more than about $3.6 trillion.",
+            "source_id": "url_be4dc224ef888351dbb6",
+            "source_url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-14-gartner-says-over-us-dollars-three-and-a-half-trillion-of-artificial-intelligence-infrastructure-spending-could-be-exposed-to-impairment-by-the-end-of-2030",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Gartner said more than $3.5 trillion of AI infrastructure spending could be exposed to impairment by the end of 2030, and more than $4 trillion of asset value to write-down risk through 2032, with the 12% return not reached before the end of 2032 at the earliest.",
+            "source_id": "url_be4dc224ef888351dbb6",
+            "source_url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-14-gartner-says-over-us-dollars-three-and-a-half-trillion-of-artificial-intelligence-infrastructure-spending-could-be-exposed-to-impairment-by-the-end-of-2030",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Gartner estimates AI-optimized IaaS spending will grow from $66 billion in 2027 to $174 billion in 2030, and says that growth will be too low for most AI compute providers to recover their investments before the current generation of AI semiconductors is replaced.",
+            "source_id": "url_be4dc224ef888351dbb6",
+            "source_url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-14-gartner-says-over-us-dollars-three-and-a-half-trillion-of-artificial-intelligence-infrastructure-spending-could-be-exposed-to-impairment-by-the-end-of-2030",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Gartner attributes the pressure on neoclouds to cost and to a lack of a differentiating business model; the release does not name customer concentration, debt maturities, low utilization or contract terms as the mechanism.",
+            "source_id": "url_be4dc224ef888351dbb6",
+            "source_url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-14-gartner-says-over-us-dollars-three-and-a-half-trillion-of-artificial-intelligence-infrastructure-spending-could-be-exposed-to-impairment-by-the-end-of-2030",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The Gartner release does not name IREN, CoreWeave or Nebius; the 24/7 Wall St. article applies the forecast to those three companies.",
+            "source_id": "doc::event-news::37270d190cb168ce892a",
+            "source_url": "https://247wallst.com/investing/2026/10/15/ai-cloud-stocks-sink-as-gartner-warns-most-neoclouds-wont-survive-independently-iren-and-coreweave-fall-5-nebius-drops-4/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "24/7 Wall St., published 15 October 2026, reported IREN down about 5% to $28.94 and CoreWeave down about 5% to $62.26, with Nebius down about 4% to $177.68, while SKYY fell 3% and QQQ fell 1%.",
+            "source_id": "doc::event-news::37270d190cb168ce892a",
+            "source_url": "https://247wallst.com/investing/2026/10/15/ai-cloud-stocks-sink-as-gartner-warns-most-neoclouds-wont-survive-independently-iren-and-coreweave-fall-5-nebius-drops-4/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "24/7 Wall St. reported that IREN has flagged customer concentration and GPU and hardware supply constraints as key risks, and that CoreWeave carries a heavy debt load relative to its equity.",
+            "source_id": "doc::event-news::37270d190cb168ce892a",
+            "source_url": "https://247wallst.com/investing/2026/10/15/ai-cloud-stocks-sink-as-gartner-warns-most-neoclouds-wont-survive-independently-iren-and-coreweave-fall-5-nebius-drops-4/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Yahoo Finance reported that CRWV, NBIS and IREN shares tumbled after the Gartner forecast.",
+            "source_id": "url_6bc42cde79f9d7eed40f",
+            "source_url": "https://finance.yahoo.com/technology/ai/articles/crwv-nbis-iren-stocks-tumble-181012372.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Benzinga reported that Gartner warned 80% of neoclouds will cease independent operations by 2030, naming CRWV, NBIS and IREN.",
+            "source_id": "url_f3e3919335155d3dc2c4",
+            "source_url": "https://www.benzinga.com/markets/equities/26/10/62381272/crwv-nbis-iren-in-focus-gartner-warns-80-of-neoclouds-will-cease-independent-operations-by-2030",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN said on 20 July 2026 that it raised its year-end AI Cloud ARR target to more than $4bn, with about 85% under contract after $2.8bn of new multi-year contracts, a weighted average contract term of about 4 years, customer prepayments of about 45% of associated GPU capital spending on recent deals, and about $7.6bn of cash and equivalents at 30 June 2026.",
+            "source_id": "url_cf83426c20a937eba05b",
+            "source_url": "https://www.sec.gov/Archives/edgar/data/1878848/000114036126028871/ef20078253_ex99-1.htm",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN listed Microsoft, NVIDIA, Perplexity, Figure AI, Together AI, Fluidstack, Fireworks AI, Fal AI and Hume AI among its customers.",
+            "source_id": "url_cf83426c20a937eba05b",
+            "source_url": "https://www.sec.gov/Archives/edgar/data/1878848/000114036126028871/ef20078253_ex99-1.htm",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN said revenue ramps only after each data centre is commissioned, tested and customer-accepted, and it is moving from about 3MW of AI cloud capacity a year earlier to 480MW delivered in 2026 and 1.2GW targeted for 2027.",
+            "source_id": "url_cf83426c20a937eba05b",
+            "source_url": "https://www.sec.gov/Archives/edgar/data/1878848/000114036126028871/ef20078253_ex99-1.htm",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "A secondary analysis reported that CoreWeave's revenue from Microsoft rose to 62% in 2024, from 35% in 2023 and 16% in 2022.",
+            "source_id": "url_db8e3fe32e51bab65da7",
+            "source_url": "https://daloopa.com/blog/analyst-pov/coreweaves-ai-cloud-ambitions-high-growth-high-risk-and-high-stakes",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "An earlier analysis described IREN's AI cloud revenue as highly concentrated on Microsoft, before the newer contracts broadened the customer list.",
+            "source_id": "url_8fabfa69673c3f7a0772",
+            "source_url": "https://www.tradingkey.com/analysis/stocks/us-stocks/261867151-neocloud-coreweave-nebius-iren-analysis-tradingkey",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN's roughly 4-year weighted average contract term is close to the chip replacement cycle Gartner describes, so a large part of its fleet must be re-contracted at about the time that hardware becomes a generation old.",
+            "source_id": "url_be4dc224ef888351dbb6",
+            "source_url": "https://www.gartner.com/en/newsroom/press-releases/2026-10-14-gartner-says-over-us-dollars-three-and-a-half-trillion-of-artificial-intelligence-infrastructure-spending-could-be-exposed-to-impairment-by-the-end-of-2030",
+            "evidence_role": "hypothesis"
+          },
+          {
+            "claim_text": "CoreWeave's main exposure is that a large share of revenue depends on one customer, so a delay or price change at Microsoft would hurt revenue more than it would at a diversified cloud provider.",
+            "source_id": "url_db8e3fe32e51bab65da7",
+            "source_url": "https://daloopa.com/blog/analyst-pov/coreweaves-ai-cloud-ambitions-high-growth-high-risk-and-high-stakes",
+            "evidence_role": "hypothesis"
+          }
+        ]
+      },
+      "existing_quality_review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft gets the core story right: Gartner's 14 October 2026 release is a revenue-versus-cost argument, it names no neoclouds, and market coverage applied it to IREN, CoreWeave and Nebius. Two material errors need correction. First, the draft calls $3.5 trillion \"the shortfall\" between the $8.5 trillion revenue need and the $3.6 trillion revenue forecast, but those two numbers differ by about $4.9 trillion; Gartner's $3.5 trillion is a separate statement about spending exposed to impairment by 2030, alongside a $4 trillion write-down figure through 2032. Second, the draft says the collected sources give no contract durations for IREN, but IREN's 20 July 2026 release states a weighted average contract term of about 4 years, roughly 85% of its $4bn+ ARR target under contract, customer prepayments covering about 45% of GPU capex on recent deals, and $7.6bn of cash at 30 June 2026. That is the strongest available evidence for and against the Gartner thesis at company level and must be used. Also, the 18 October market snapshot is a broad decline across unrelated sectors (telecom, biotech, software), so it should not be presented as read-through from the Gartner note, and the Benzinga item should carry its own source link rather than being folded into the Yahoo link.",
+        "confidence": "medium",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "CoreWeave's latest 10-Q or shareholder letter: share of revenue from its largest customer and any disclosed contract duration or backlog tenor for 2026.",
+          "IREN's most recent filings: revenue split by customer, and any update on how much of the 480MW 2026 capacity has signed contracts versus letters of intent.",
+          "Any announced neocloud merger, acquisition or recapitalization after 14 October 2026 that would show Gartner's consolidation call already happening."
+        ]
+      }
+    },
+    {
+      "payload": {
+        "event_title": "IREN upsized its $2 billion convertible note sale and closed at $3.0 billion (May 2026)",
+        "surface_summary_text": "IREN sold $3.0 billion of convertible senior notes, not shares. The notes are a loan that can later become equity. They are due 2033, pay a 1.00% coupon and carry a 32.5% conversion premium. The deal started at $2 billion with a $300 million buyer option. It was enlarged to $2.6 billion with a $400 million option, and buyers took the full option. Net proceeds were about $2.96 billion, of which about $201.3 million pays for capped call hedges. That leaves about $2.76 billion for general corporate purposes. New debt is $3.0 billion and cash interest is about $30 million a year. Full conversion would add roughly 41 million shares at about $73 each, but IREN's share count is not in the record, so the dilution percentage cannot be fixed from this evidence.",
+        "what_happened_text": "On 11 May 2026 IREN announced a private offering of convertible senior notes and gave the first buyers an option to buy $300 million more. The same day its shares closed at $55.15, down 9.89%, as new paper came to market. The deal then grew: the base size rose to $2.6 billion and the option to $400 million, and the option was fully used, so the final principal was $3.0 billion. The pricing and closing releases are dated 12-14 May 2026, which is the period these terms describe. The sale went only to qualified institutional buyers under Rule 144A, so it was not a public share sale. One early secondary post described two tranches, $1 billion due 2032 and $1 billion due 2033. The pricing and closing releases are the controlling record and show a single 2033 series. The record contains no new October 2026 IREN financing; the supplied article reflects that May episode.",
+        "why_happened_text": "Convertible debt lets IREN raise a large sum at a 1.00% coupon, which is far cheaper in cash terms than a normal loan, because the buyer also gets a share option. The 32.5% premium means investors only profit from conversion if the shares rise well above the reference price. IREN bought capped calls for $201.3 million to soften the dilution from that option up to $110.30 a share. The capped calls cost real cash, so the money available to build data centers is the $2.96 billion net proceeds less that $201.3 million, or about $2.76 billion. The share fall on the announcement fits a simple supply story: more potential shares, plus hedge selling by arbitrage funds. That hedge effect is a plausible reading, not something the record proves. The JPMorgan angle is separate. Its research desk kept an Underweight rating and lifted its target to $46 from $39, while J.P. Morgan Securities was one of the bookrunners on the notes. Research views and banking roles sit in separate parts of the firm, and the record does not show that either side drove the other.",
+        "affected_assets_summary_text": "IREN is the direct affected company. Nvidia is a counterparty through a reported agreement that gives it a right to invest up to $2.1 billion in IREN, but the record gives no terms, so the value of that link is unknown. The wider read-through is to AI data-center and bitcoin-mining companies that compete for the same capital, power and GPU supply, such as CoreWeave, Applied Digital, Cipher, Hut 8 and CleanSpark. The supplied market snapshot for 18 October 2026 shows a broad technology selloff, so those peer moves should not be read as caused by IREN's May financing. One secondary report says JPMorgan reversed to Overweight with a $65 target on 26 September 2026, when the shares traded near $40. That suggests the May doubt did not last, but it rests on a single report.",
+        "business_context_text": "A convertible note pays interest now and may become shares later. IREN takes on $3.0 billion of senior unsecured debt and pays about $30 million a year in cash interest, which is small next to the principal. Conversion is the real cost to shareholders. The 32.5% premium is measured from the $55.15 reference price, so the implied conversion price is about $73 and the notes cover roughly 41 million shares. That is the number to compare with IREN's share count, which the record does not give. The capped call sets a ceiling of $110.30 a share, a 100% premium, above which dilution is no longer offset. This is a second large convertible deal: IREN priced and closed a separate offering in December 2025 that also repurchased earlier 3.25% notes due 2030. The record does not give IREN's capital budget, contracted AI capacity or a split between AI cloud and bitcoin mining, so the $2.76 billion cannot be measured against a stated funding need.",
+        "watch_next_text": "The decisive question is what the Nvidia agreement actually obliges: is it a binding investment right or a signed data-center capacity contract with revenue, and how much of the $2.76 billion of usable proceeds is already committed to that build-out?",
+        "cause_status": "partial",
+        "supporting_symbols": [
+          "IREN",
+          "NVDA",
+          "CRWV",
+          "APLD",
+          "CIFR",
+          "HUT"
+        ],
+        "claims": [
+          {
+            "claim_text": "The source article reports that IREN announced a $2 billion private offering and granted initial buyers an option to buy up to $300 million more.",
+            "source_id": "doc::event-news::72a7d4f66a1ddc8b736d",
+            "source_url": "https://stocktwits.com/news-articles/markets/equity/iren-stock-falls-2billion-offering-nvidia-deal/cZXaIVjRehX",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The financing is senior unsecured convertible notes due 2033, with a stated maturity of 1 December 2033.",
+            "source_id": "source_ref_ca9922b79a71bcffc343392e12abd3f4a8cf2adbe827d6d8aad0285a6ccf57b3",
+            "source_url": "https://www.stocktitan.net/sec-filings/IREN/8-k-iren-ltd-reports-material-event-ba81e13cbd68.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The notes were sold in a private offering to qualified institutional buyers under Rule 144A, not as a public share sale.",
+            "source_id": "source_ref_e5b0211cdcd94fb608e603dd296bf15f525d612f834d0f07e1e1364e426ff118",
+            "source_url": "https://finance.yahoo.com/markets/stocks/articles/iren-closes-3-0-billion-200100338.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN closed $3.0 billion of principal: a $2.6 billion base deal plus a fully exercised $400 million option, with a 1.00% coupon and a 32.5% conversion premium.",
+            "source_id": "source_ref_e5b0211cdcd94fb608e603dd296bf15f525d612f834d0f07e1e1364e426ff118",
+            "source_url": "https://finance.yahoo.com/markets/stocks/articles/iren-closes-3-0-billion-200100338.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Net proceeds were about $2.96 billion after fees, and $201.3 million of that funds the capped call transactions; the rest is for general corporate purposes and working capital.",
+            "source_id": "source_ref_e5b0211cdcd94fb608e603dd296bf15f525d612f834d0f07e1e1364e426ff118",
+            "source_url": "https://finance.yahoo.com/markets/stocks/articles/iren-closes-3-0-billion-200100338.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The capped calls have an initial cap price of $110.30 per share, a 100% premium to the $55.15 last reported sale price on 11 May 2026, and they cover the shares initially underlying the notes.",
+            "source_id": "source_ref_e5b0211cdcd94fb608e603dd296bf15f525d612f834d0f07e1e1364e426ff118",
+            "source_url": "https://finance.yahoo.com/markets/stocks/articles/iren-closes-3-0-billion-200100338.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN shares closed at $55.15 on 11 May 2026, down 9.89%, after the $2 billion convertible offering was announced.",
+            "source_id": "source_ref_2031ba5b2c9beeb039a1e432db423783d1be0f2a81411aa66959f5a7bca99870",
+            "source_url": "https://finance.yahoo.com/markets/stocks/articles/stock-market-today-may-11-212714819.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "A 32.5% premium measured from the $55.15 reference price implies a conversion price of about $73 per share and roughly 41 million shares underlying the $3.0 billion of notes; this is arithmetic from the reported figures, not a stated figure.",
+            "source_id": "source_ref_e5b0211cdcd94fb608e603dd296bf15f525d612f834d0f07e1e1364e426ff118",
+            "source_url": "https://finance.yahoo.com/markets/stocks/articles/iren-closes-3-0-billion-200100338.html",
+            "evidence_role": "established_context"
+          },
+          {
+            "claim_text": "The notes add $3.0 billion of debt now with about $30 million a year of cash interest, while dilution only occurs on conversion; the capped calls offset dilution up to $110.30 a share and cost cash up front.",
+            "source_id": "source_ref_e5b0211cdcd94fb608e603dd296bf15f525d612f834d0f07e1e1364e426ff118",
+            "source_url": "https://finance.yahoo.com/markets/stocks/articles/iren-closes-3-0-billion-200100338.html",
+            "evidence_role": "established_context"
+          },
+          {
+            "claim_text": "JPMorgan kept an Underweight rating on IREN and raised its price target to $46 from $39 around the deal, while J.P. Morgan Securities was one of the bookrunners on the notes.",
+            "source_id": "source_ref_bff3502e7d69245994bb1d95c061446b72e42f1607ff3e1f6648a4944abbea29",
+            "source_url": "https://stocktwits.com/news-articles/markets/equity/iren-stock-falls-2billion-offering-nvidia-deal/cZXaIVjRehX",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Secondary reports describe an Nvidia agreement that gives Nvidia the right to invest up to $2.1 billion in IREN and a major Nvidia-linked data-center win, but the record gives no contract terms, funding or revenue.",
+            "source_id": "source_ref_a64fa9b3df6d6897552016ab4539248cb623616d6185ef516392d915791d6788",
+            "source_url": "https://www.facebook.com/Stockstoearnpage/videos/nvidia-has-invested-more-than-15-billion-in-these-seven-companies-so-far-in-2026/1551213353118677/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN completed a separate convertible notes offering in December 2025 that also repurchased earlier 3.25% notes due 2030; the May 2026 deal is a second, larger financing.",
+            "source_id": "source_ref_cbfe086ef9df79b9d378d7728234c8a6a973e21cc4411c0b77487f4686871a75",
+            "source_url": "https://irisenergy.gcs-web.com/news-releases/news-release-details/iren-closes-23-billion-convertible-notes-offering-and-repurchase/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "One secondary report says JPMorgan moved IREN from underweight to overweight on 26 September 2026 with a $65 target while the shares traded near $40.",
+            "source_id": "source_ref_9cafc72717a1cb01183f7db6a5e59840b5d72a968039af36f4a1c605bdf1d15f",
+            "source_url": "https://startupfortune.com/jpmorgan-flips-bullish-on-iren-weeks-after-telling-investors-to-sell-it/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The $2.76 billion of usable proceeds is likely growth capital for AI data-center and GPU capacity, but the record gives no capital budget and no split between AI cloud and bitcoin mining.",
+            "source_id": "source_ref_9bb9f0319fb698adcd7e7f898ea43ea357a109b401996032a4fd7f900c43f20e",
+            "source_url": "https://blockspace.media/insight/iren-proposes-2-billion-convertible-notes-offering-due-2033/",
+            "evidence_role": "hypothesis"
+          },
+          {
+            "claim_text": "Hedging by convertible arbitrage funds may have added selling pressure on IREN shares around the launch, but this is a plausible mechanism and is not established by the record.",
+            "source_id": "source_ref_bff3502e7d69245994bb1d95c061446b72e42f1607ff3e1f6648a4944abbea29",
+            "source_url": "https://stocktwits.com/news-articles/markets/equity/iren-stock-falls-2billion-offering-nvidia-deal/cZXaIVjRehX",
+            "evidence_role": "hypothesis"
+          }
+        ]
+      },
+      "existing_quality_review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft is useful and its timeline discipline is good, but it contains one material error: it says the absolute conversion price and share count are unknown. The closing release gives enough to derive them (32.5% premium over a $55.15 reference price implies about $73 per share, or roughly 41 million shares). The draft also under-uses the use-of-proceeds detail ($201.3M for capped calls) and does not quantify the cash left for the business or the annual interest. The Nvidia link needs better framing: the record shows a reported right for Nvidia to invest up to $2.1B, not a signed customer contract. A useful extra connection is that J.P. Morgan was both a bookrunner on the deal and the house that kept an Underweight rating, and later reversed that rating.",
+        "confidence": "medium",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "IREN's latest reported ordinary shares outstanding and diluted share count, to convert the roughly 41M shares underlying the notes into a dilution percentage.",
+          "The primary filing or press release for the Nvidia agreement: is it a binding investment right, an equity subscription, or a data-center capacity contract, and what conditions and amounts apply?",
+          "IREN's stated capital plan for AI cloud capacity versus bitcoin mining, including contracted customer commitments, so the $2.76B of usable proceeds can be compared with total funding needs."
+        ]
+      }
+    },
+    {
+      "payload": {
+        "event_title": "Unconfirmed report links Anthropic to IREN's unnamed AI cloud customer",
+        "surface_summary_text": "The link is not confirmed. Coverage attributed to The Information, a technology news site, named Anthropic as IREN's unnamed customer—a leading developer of advanced AI models. The available reports gave no value, capacity, term or revenue start, and neither company had confirmed it. The report matters only if Anthropic is a new, contracted customer with material annual revenue. If Anthropic is the customer IREN already disclosed in August, the report mostly puts a name on existing business.",
+        "what_happened_text": "In mid-October 2026, coverage attributed to The Information said Anthropic had an unannounced multiyear cloud deal with IREN. IREN had disclosed in August 2026 a multiyear contract with a leading AI developer that it did not name. On 12 October, IREN shares rose about 4%, while TeraWulf and Applied Digital were roughly flat. A 13 October report said IREN then slid about 5% as the first reaction faded. The reports said neither IREN nor Anthropic had confirmed the deal. The evidence shows no denial. No contract value, computing capacity, location or revenue start date was disclosed.",
+        "why_happened_text": "The first move is best explained as a customer-quality signal. A named leading AI developer would reduce uncertainty about who buys IREN's computing capacity and whether the contracts are durable. The reaction was mostly IREN-specific. TeraWulf already had a confirmed Anthropic lease, according to 24/7 Wall St., so the name was not new to the sector. Applied Digital did not move much and had no comparable Anthropic disclosure in the evidence. That pattern fits a stock-specific update, not a sector-wide contract announcement. It does not prove the report is true, and the later pullback shows the market did not treat it as settled.",
+        "affected_assets_summary_text": "IREN is directly affected. TeraWulf (WULF) and Applied Digital (APLD) are peer data-center hosts moving from bitcoin mining into AI computing. Their small move on 12 October suggests investors saw the report as IREN-specific. TeraWulf reportedly already has a confirmed Anthropic lease, which makes the IREN report a customer-identity question rather than a first-of-its-kind validation. Applied Digital had no similar disclosure in the evidence. Anthropic is private and has no public ticker in this evidence.",
+        "business_context_text": "IREN is a bitcoin miner converting its data centers into AI cloud capacity. In the latest fiscal fourth quarter, total revenue fell 27% to $137.2 million. AI cloud revenue was $70.5 million, about half of sales. Management expected contracted annualized run-rate revenue (ARR—the annual pace of signed recurring revenue, not cash already collected) to exceed $4 billion by December 2026, with $1 billion already operating. IREN also had a $9.7 billion Microsoft AI computing agreement and signed $2.8 billion of AI cloud contracts in July 2026. Those figures are the right scale for judging materiality. The central unknown is whether Anthropic is the unnamed lab from August or an additional customer. If it is the August customer, the report adds no signed contracts and should not change forecasts much. If it is new, materiality depends on annual revenue, term, take-or-pay terms (the customer pays even if it does not use all the capacity) and start date. The correct denominator is annualized revenue, not total contract value. On a simple straight-line basis, a $1 billion contract spread over five years is about $200 million a year, roughly 5% of the >$4 billion ARR target. A $1 billion-a-year commitment would be about 25%. A multiyear deal adding several hundred million dollars or more of annual revenue, with take-or-pay terms and a near-term start, would be material. A small pilot or a short contract would not. The evidence does not give enough terms to calculate this. Separately, 24/7 Wall St. reported SemiAnalysis complaints about the operational quality of IREN's older British Columbia data centers, which are scheduled for liquid-cooling upgrades, a cooling method for dense AI computers, in 2027. That is an execution risk for serving demanding AI customers, but it is not evidence about the Anthropic report.",
+        "watch_next_text": "The decisive question is whether IREN or Anthropic confirms the customer and whether IREN discloses annual contract value, duration, capacity, take-or-pay terms and revenue start. The next filing or earnings call should show whether the contract adds revenue beyond the >$4 billion contracted ARR target or only identifies the August customer.",
+        "cause_status": "partial",
+        "supporting_symbols": [
+          "IREN",
+          "WULF",
+          "APLD"
+        ],
+        "claims": [
+          {
+            "claim_text": "IREN is a bitcoin miner expanding into AI cloud services.",
+            "source_id": "url_8827defe5e37b3c505bf",
+            "source_url": "https://247wallst.com/investing/2026/10/12/iren-climbs-4-on-report-of-unconfirmed-anthropic-cloud-deal-terawulf-and-applied-digital-hold-flat/",
+            "evidence_role": "established_context"
+          },
+          {
+            "claim_text": "A social-media summary of the coverage attributed the original report to The Information and said Anthropic had an unannounced multiyear cloud deal with IREN.",
+            "source_id": "url_91c625ea5450857b1bfb",
+            "source_url": "https://www.instagram.com/reel/DeZebFkigDa/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN had disclosed in August 2026 a multiyear cloud contract with a leading AI developer that it did not name.",
+            "source_id": "url_8827defe5e37b3c505bf",
+            "source_url": "https://247wallst.com/investing/2026/10/12/iren-climbs-4-on-report-of-unconfirmed-anthropic-cloud-deal-terawulf-and-applied-digital-hold-flat/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Neither IREN nor Anthropic had confirmed the partnership.",
+            "source_id": "url_c5a3745fe0841d754467",
+            "source_url": "https://finance.yahoo.com/technology/ai/articles/irens-mystery-customer-anthropic-fresh-015734164.html",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN shares rose about 4% on 12 October while TeraWulf and Applied Digital were roughly flat.",
+            "source_id": "url_8827defe5e37b3c505bf",
+            "source_url": "https://247wallst.com/investing/2026/10/12/iren-climbs-4-on-report-of-unconfirmed-anthropic-cloud-deal-terawulf-and-applied-digital-hold-flat/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "A 13 October report said IREN slid about 5% as the first reaction faded.",
+            "source_id": "url_e0a7ec292a2457b05c47",
+            "source_url": "https://247wallst.com/investing/2026/10/13/iren-slides-5-as-anthropic-cloud-report-buzz-fades-core-scientific-falls-3/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "The report gave no verified terms: no value, capacity, location or revenue start date.",
+            "source_id": "url_8827defe5e37b3c505bf",
+            "source_url": "https://247wallst.com/investing/2026/10/12/iren-climbs-4-on-report-of-unconfirmed-anthropic-cloud-deal-terawulf-and-applied-digital-hold-flat/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "TeraWulf already held a confirmed Anthropic lease, according to 24/7 Wall St.",
+            "source_id": "url_8827defe5e37b3c505bf",
+            "source_url": "https://247wallst.com/investing/2026/10/12/iren-climbs-4-on-report-of-unconfirmed-anthropic-cloud-deal-terawulf-and-applied-digital-hold-flat/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN had a $9.7 billion Microsoft AI computing agreement.",
+            "source_id": "url_32aaa9946b1b7a299e4b",
+            "source_url": "https://iren.com/resources/blog/iren-signs97-billion-agreement-with-microsoft-to-deploy-ai-cloud-infrastructure",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "IREN signed $2.8 billion of AI cloud contracts in July 2026 and raised its 2026 AI cloud ARR target above $4 billion.",
+            "source_id": "url_74153697ba7fe252c696",
+            "source_url": "https://mlq.ai/news/iren-signs-28b-in-ai-cloud-contracts-raises-2026-run-rate-target-above-4b/",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Management expected contracted ARR to exceed $4 billion by December 2026, with $1 billion already operating; in the latest fiscal fourth quarter, total revenue was $137.2 million, down 27%, and AI cloud revenue was $70.5 million, about half of sales.",
+            "source_id": "url_a5d333724ef3fbe21940",
+            "source_url": "https://www.barchart.com/story/news/7946600/iren-shares-rose-on-reports-of-a-multiyear-deal-with-anthropic-how-investors-should-view-the-news",
+            "evidence_role": "reported_fact"
+          },
+          {
+            "claim_text": "Naming Anthropic would be material only if it is new business with annual revenue large relative to the >$4 billion ARR target; total contract value alone is not the right measure.",
+            "source_id": "url_a5d333724ef3fbe21940",
+            "source_url": "https://www.barchart.com/story/news/7946600/iren-shares-rose-on-reports-of-a-multiyear-deal-with-anthropic-how-investors-should-view-the-news",
+            "evidence_role": "hypothesis"
+          },
+          {
+            "claim_text": "24/7 Wall St. reported SemiAnalysis customer complaints about the operational quality of IREN's older British Columbia data centers, which are scheduled for 2027 liquid-cooling upgrades.",
+            "source_id": "url_8827defe5e37b3c505bf",
+            "source_url": "https://247wallst.com/investing/2026/10/12/iren-climbs-4-on-report-of-unconfirmed-anthropic-cloud-deal-terawulf-and-applied-digital-hold-flat/",
+            "evidence_role": "reported_fact"
+          }
+        ]
+      },
+      "existing_quality_review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft is useful but needs correction. It mixes IREN's August unnamed-lab disclosure with the July $2.8 billion contracts and does not say clearly whether the report is new business or the same customer. It should name The Information as the attributed source, explain ARR and take-or-pay in plain words, add TeraWulf's confirmed Anthropic lease, and measure materiality on annualized revenue against the >$4 billion target. It should also avoid implying that a named customer automatically means new contracted revenue.",
+        "confidence": "medium",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "Find the original The Information article and any IREN or Anthropic statement confirming or denying the customer.",
+          "Find IREN's August 2026 earnings-call transcript or filing that describes the unnamed frontier AI customer, including contract value, term and capacity.",
+          "Find TeraWulf's disclosed Anthropic lease terms to compare contract quality and duration."
+        ]
+      }
+    }
+  ],
+  "personal_assessment": "All four complete outputs and claim arrays personally read. IREN places its proposed, upsized and closed financing in May 2026; CoreWeave describes existing bonds repricing rather than a new October refinancing. Gartner uses its full publisher release and company filings; the Anthropic report remains useful and unconfirmed. Background writing still includes source/process commentary and the event market snapshot is labeled by the invocation date rather than a clearly stated trading session. These are not accepted public Home text; full normal workflow and complete public review remain required. No manual prose correction, semantic admission gate or additional reviewer. Live follow-ups differ across runs; this is not a frozen counterfactual.",
+  "adverse_first_adapter_run": {
+    "status": "failed",
+    "completed_bundles": 0,
+    "seconds": 384.5,
+    "errors": [
+      "LLMJSONParseError: LLM returned non-JSON content: {\"action\":\"final\",\"reasoning\":\"The evidence now covers the instrument (9.75% senior notes due 2031, $2.75bn), the credit signal (yield past 16%, CDS at distress levels), the surrounding catalysts (rate-hike fears, Gartner warning, Nvidia's no-backstop comment, cumulative insider sales), and IREN's side of the funding channel (large convertible and equity issuance in 2026, the 'debt fears' framing)",
+      "NameError: name 'collected' is not defined",
+      "NameError: name 'collected' is not defined",
+      "NameError: name 'collected' is not defined"
+    ],
+    "resolution": "Corrected stale collected variable after shared adapter refactor; mechanical contract then passed before the full live rerun. One earlier malformed model response is retained separately from that structural failure."
+  },
+  "full_development_required": true,
+  "production_authorized_by_this_record": false
+}
