@@ -1,8 +1,8 @@
 {
   "scope": "All local diagnostic model/embedding provider attempts for this root repair, including adverse and superseded evaluations; excludes earlier recovery and search-provider requests. No cost estimate or complete-platform savings claim.",
-  "unique_attempts": 150,
+  "unique_attempts": 275,
   "states": {
-    "success": 150
+    "success": 275
   },
   "diagnostics": {
     "provider-attempts.private.json": {
@@ -34,6 +34,19 @@
       "states": {
         "success": 37
       }
+    },
+    "event-adapter-pre-completion/event-provider-attempts.private.json": {
+      "unique_attempts": 64,
+      "states": {
+        "success": 64
+      }
+    },
+    "event-provider-attempts.private.json": {
+      "unique_attempts": 61,
+      "states": {
+        "success": 61
+      }
     }
-  }
+  },
+  "interpretation": "Transport/provider success is separate from JSON parsing, retained-tool timeouts, phase deadlines and bundle construction. Adverse evaluations are included and are not acceptance. Final company pair and final event adapter complete; full DEV remains pending."
 }

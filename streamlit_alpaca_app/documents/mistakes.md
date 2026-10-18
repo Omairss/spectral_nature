@@ -1056,3 +1056,6 @@ Retained excerpts were eligible to be repersisted over their source records; cap
 
 ### October 18 — finish the event adapter before packaging acceptance
 The initial source review missed the source-event adapter’s duplicate materializer and its timestamp-derived “current” claim label. Found it before package registration or deployment; superseded both completed packages and held the manifest. Reuse the existing shared materializer and expose complete captured sources to the existing downstream reader. The first local event run also found a stale variable left by that refactor; it completed model work but failed bundle construction. Preserve the failed run, correct the structural error, verify the adapter contract without inference, then rerun the complete real adapter. No failed output or prior package is deployment acceptance.
+
+### October 18 — trace the injected loader before assigning cause
+Found Home's default loader calling `.get` on a typed `PipelineDataset` and initially described its possible timestamp loss without identifying the caller. The scheduled worker injects a separate loader that already uses the correct attribute. Correct only the default path to the existing contract and retain an actual-type check; do not claim this explains the normal worker's prior output. Reissue packages from the corrected Git source before registration.

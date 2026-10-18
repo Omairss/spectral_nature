@@ -1150,3 +1150,5 @@ Separate actual acquisition records from references and model interpretations. P
 
 ### October 18 — acquisition contracts include event adapters
 Audit the entire source path, including event nomination, acquisition, bundle evidence and later public writing. Reusing one materializer prevents URL attribution and capture metadata from diverging between company and event research. A bounded preview can coexist with complete evidence available through the existing reader. Publication metadata never establishes event timing by itself. Keep unattributed aggregate tool results separate from original captured sources.
+
+Source timestamps must survive typed metadata handling. Check the actual injected loader and caller before treating a helper defect as an incident cause; a default function and the scheduled path can differ. Preserve explicit observation dates and keep dataset as-of, capture time and market-session evidence distinguishable during review.

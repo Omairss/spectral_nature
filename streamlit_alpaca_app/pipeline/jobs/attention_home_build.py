@@ -78,7 +78,7 @@ def _load_latest_materialized_frame(dataset_name: str) -> pd.DataFrame:
     try:
         frame, metadata = load_latest_dataset_frame(dataset_name)
         if dataset_name in {"daily_movers", "macro_anchor_daily_movers"} and not frame.empty and "observed_at_utc" not in frame:
-            frame = frame.assign(observed_at_utc=(metadata or {}).get("asof_time_utc"))
+            frame = frame.assign(observed_at_utc=getattr(metadata, "asof_time_utc", None))
     except Exception:
         frame = pd.DataFrame()
     if isinstance(frame, pd.DataFrame) and not frame.empty:

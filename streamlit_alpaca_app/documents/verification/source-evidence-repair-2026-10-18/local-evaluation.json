@@ -4,7 +4,7 @@
     "Dockerfile.runtime": "ab6108a0640adeae8e1bea766b0cc69761dfe73d4cbb6894c2ba0f99d07419a9",
     "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
     "data_access/layer.py": "91d2facf53761b5b939294b1c2abe14451cea9bb151263d7821fbcd63b6c5e34",
-    "pipeline/jobs/attention_home_build.py": "f11d8c8abb66a627b8bc5b047a353d850355290cb28ddd8bd6206ea93b14e155",
+    "pipeline/jobs/attention_home_build.py": "5b8ffafcf8c1f4343597536e23d9cb084930bffb0cb37cb66800db2c3fb4fae3",
     "pipeline/jobs/main.py": "54c816fc1c1802143fb96ac95b5234f12c15f9b2f532fb888d4b8388e3f3516e",
     "services/alpaca_api.py": "5fe7198b092753364d456b87b7a8836e5b7352686bc401edf1dda693990db101",
     "services/aql/assembler.py": "b5d795bb987821baa426532f7bf6bc2210d85a5dd2353e93ad942cb0fd76bd35",
@@ -493,5 +493,6 @@
   "unchanged_settings": "Same eligible DeepSeek model and thinking settings; 240-second candidate budget, 90-second per-request limit and existing phase reservations; no extra reviewer, semantic date rule or ticker exception.",
   "full_development_required": true,
   "production_authorized_by_this_record": false,
-  "source_event_evidence": "event-local-evaluation.json"
+  "source_event_evidence": "event-local-evaluation.json",
+  "default_loader_correction": "Typed PipelineDataset attribute access; scheduled worker already injects the correct loader. Company/event research is unchanged."
 }
