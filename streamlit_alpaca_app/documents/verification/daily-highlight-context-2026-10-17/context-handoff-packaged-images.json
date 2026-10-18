@@ -1,0 +1,61 @@
+{
+  "status": "packaged_verified_development_pending",
+  "build_runs": {
+    "worker": "cj180",
+    "api-next": "cj181"
+  },
+  "source_revision": "07393087284f0616e05af8eb7a5c80032de33cb2",
+  "source_inventory_sha256": "b05827de1528ef44024c7028d5691be36b098464e4456995d8a45a3260b739b5",
+  "runtime_inventory_sha256": "cacece5305bdb6d28fb41bba78c1d1920ed26b43753d625fb8937fa7273d12c0",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44"
+  },
+  "roles": [
+    {
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+      "source_revision": "07393087284f0616e05af8eb7a5c80032de33cb2",
+      "accepted_source_revision": "544df4314b582828adcc65b8ff7813bb70bf3e06",
+      "source_inventory_sha256": "b05827de1528ef44024c7028d5691be36b098464e4456995d8a45a3260b739b5",
+      "runtime_inventory_sha256": "cacece5305bdb6d28fb41bba78c1d1920ed26b43753d625fb8937fa7273d12c0",
+      "expected_files": 197,
+      "packaged_files": 197,
+      "complete_git_inventory_matches": true,
+      "dependency_distribution_metadata_matches": true,
+      "preserved_installed_distributions": 93,
+      "installed_distributions": 93,
+      "declared_tokenizer_additions": {},
+      "token_accounting_without_runtime_download": true,
+      "retired_streamlit_absent": true,
+      "api_pipeline_broker_imports_passed": true,
+      "context_preflight_available": true,
+      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+      "method": "Read-only file hashes, imports, cold token accounting without downloads, and unchanged baseline distribution metadata plus explicit declared tokenizer additions in ACR execution containers; no source extraction or research execution."
+    },
+    {
+      "role": "api-next",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
+      "source_revision": "07393087284f0616e05af8eb7a5c80032de33cb2",
+      "accepted_source_revision": "544df4314b582828adcc65b8ff7813bb70bf3e06",
+      "source_inventory_sha256": "b05827de1528ef44024c7028d5691be36b098464e4456995d8a45a3260b739b5",
+      "runtime_inventory_sha256": "cacece5305bdb6d28fb41bba78c1d1920ed26b43753d625fb8937fa7273d12c0",
+      "expected_files": 197,
+      "packaged_files": 197,
+      "complete_git_inventory_matches": true,
+      "dependency_distribution_metadata_matches": true,
+      "preserved_installed_distributions": 99,
+      "installed_distributions": 101,
+      "declared_tokenizer_additions": {
+        "regex": "2026.9.29",
+        "tiktoken": "0.14.0"
+      },
+      "token_accounting_without_runtime_download": true,
+      "retired_streamlit_absent": true,
+      "api_pipeline_broker_imports_passed": true,
+      "context_preflight_available": true,
+      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
+      "method": "Read-only file hashes, imports, cold token accounting without downloads, and unchanged baseline distribution metadata plus explicit declared tokenizer additions in ACR execution containers; no source extraction or research execution."
+    }
+  ]
+}

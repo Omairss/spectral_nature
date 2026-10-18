@@ -1,6 +1,6 @@
 # Shared context recovery
 
-Status: **accepted locally; corrected API/worker packaging and fresh DEV verification are in progress. Production has not received this candidate.** The current [release acceptance record](../../../infra/release_acceptance.json) is the deployment authority. The owner authorized production only after DEV works and meets the earlier subjective research quality bar.
+Status: **accepted locally; both API/worker packages are verified; fresh DEV verification is in progress. Production has not received this candidate.** The current [release acceptance record](../../../infra/release_acceptance.json) is the deployment authority. The owner authorized production only after DEV works and meets the earlier subjective research quality bar.
 
 ## Current source
 
@@ -16,7 +16,7 @@ DEV targets are the modern API and six workers: Home, daily highlights, macro, q
 
 Thirteen other resources retain their images, including every Next.js frontend and broker worker. All credentials, identities, model settings, schedules, allocations and public domain bindings must remain unchanged. Do not run unrelated paid research or broker operations to exercise image templates.
 
-Verify every packaged file, imports and installed dependency metadata before DEV deployment. Refresh DEV macro data first, then run the normal complete Home workflow and assess its own newly generated highlights. Read all public stories, overview and captions against original sources and observations. Verify serving latency, native-compatible JSON, narration, intraday histories, provenance, protected access and actual revision readiness. Only accepted exact DEV image digests may move to production under the owner's conditional permission.
+The [packaged-image verification](context-handoff-packaged-images.json) passes for both roles: all 197 files match Git, imports pass and cold context accounting works with downloads blocked. Worker dependency metadata is unchanged; API adds only the exact tokenizer versions to its reviewed pool-enabled dependency base. The [API dependency comparison](api-dependencies-review.json) separately establishes the pool addition against its actual previous consumer. Refresh DEV macro data first, then run the normal complete Home workflow and assess its own newly generated highlights. Read all public stories, overview and captions against original sources and observations. Verify serving latency, native-compatible JSON, narration, intraday histories, provenance, protected access and actual revision readiness. Only accepted exact DEV image digests may move to production under the owner's conditional permission.
 
 The existing API renders the latest 1,200 observations per highlight; complete stored originals remain available to the model. That unchanged display window is distinct from model-context integrity.
 

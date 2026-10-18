@@ -785,7 +785,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5": {
+          "source_revision": "07393087284f0616e05af8eb7a5c80032de33cb2",
+          "source_inventory_sha256": "b05827de1528ef44024c7028d5691be36b098464e4456995d8a45a3260b739b5",
+          "runtime_inventory_sha256": "cacece5305bdb6d28fb41bba78c1d1920ed26b43753d625fb8937fa7273d12c0",
+          "evidence": "documents/verification/daily-highlight-context-2026-10-17/context-handoff-packaged-images.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -807,7 +814,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44": {
+          "source_revision": "07393087284f0616e05af8eb7a5c80032de33cb2",
+          "source_inventory_sha256": "b05827de1528ef44024c7028d5691be36b098464e4456995d8a45a3260b739b5",
+          "runtime_inventory_sha256": "cacece5305bdb6d28fb41bba78c1d1920ed26b43753d625fb8937fa7273d12c0",
+          "evidence": "documents/verification/daily-highlight-context-2026-10-17/context-handoff-packaged-images.json"
+        }
+      },
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b"
       ]

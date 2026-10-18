@@ -1,0 +1,12 @@
+{
+  "previous_api_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+  "reviewed_dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
+  "previous_distributions": 98,
+  "reviewed_distributions": 99,
+  "differences": {
+    "psycopg-pool": {
+      "before": null,
+      "after": "3.3.3"
+    }
+  }
+}
