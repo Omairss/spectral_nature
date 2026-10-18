@@ -1046,3 +1046,5 @@ Restoring two chart-review passes and the original concise size alone did not fi
 
 ### October 17 — complete live source-date failure
 A complete DEV run and existing model approval still produced false current-event dates: September CoreWeave financing and a May IREN article were treated as October catalysts. Reject the full candidate; keep production unchanged. Trace source-date provenance rather than adding a reviewer or manually rewriting stories. Operator inspection must use the prepared app virtualenv and discover file paths before reading them.
+
+Actual checkpoints later traced CoreWeave's October date to retained search evidence. The stored source document was a 141-character snippet with empty provider payload and source trace. IREN's researcher searched around the false October premise without opening the original. I initially treated this as only a current date-adapter problem; that would leave misleading retained evidence able to reintroduce it. Context repair cannot restore source detail discarded before acquisition, and downstream-only replays miss that failure.

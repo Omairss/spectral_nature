@@ -1140,3 +1140,5 @@ A negative issue list handed back through repeated writing can become defensive 
 
 ### October 17 — complete live source-date failure
 Distinguish search-engine reported dates, publisher publication dates, event dates and retrieval timestamps. A normalized timestamp is not proof of article publication or event timing. Preserve original source metadata for the LLM; older material remains useful without being relabeled as a new event. Complete live personal review remains necessary after successful local paired replays.
+
+Apply this distinction to retained evidence as well as new acquisition. A record called a source document may contain only a search snippet; reopening it does not recover an absent original body. Keep capture origin and source content intact, and keep model interpretation linked to those observations. Existing wrong labels in retained records can survive a corrected new adapter and repeated model review. Replay the acquisition path before claiming a root fix.
