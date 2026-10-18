@@ -1,13 +1,13 @@
 {
   "status": "accepted_locally",
   "scope": "Shared LLM-owned evidence context through synthesis/review and calendar-correct annual macro comparisons; full accepted Git source for modern API and research consumers. Exact fresh DEV quality and runtime acceptance required before production.",
-  "source_revision": "1fcac25efaa7b16af242e44aecea230410b92d5a",
+  "source_revision": "36385e8c284cbbc9cb74db35cf6c488d318f124b",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
     ".env.example": "411839b19dc8a7f9a5e4586766d414d9856e698b28a4d274a96363fc2dea9d1e",
     "Dockerfile.dev": "4496ca96f4426fd3cb703333846c96d799be16feb087c971049c8214b560a4e7",
-    "Dockerfile.runtime": "f1c72af98b9be6330ee02fe55215fb7e50f84a9576450547bfb525c85c70f828",
+    "Dockerfile.runtime": "e2744b92203b54bf73860f10cd99208612d22ab2b7de8e893018331757e2d6fc",
     "Dockerfile.web": "ed11c9da1acd5fa93199ec12e6ab5514fce0410792bce3af878c24cbdac572e3",
     "api/__init__.py": "d263cd3e0682327cdd7596508ae7d7d54ea508e38347b6be13e0997b1fd1da9a",
     "api/feature_requests.py": "a9de6f58dc920cd9f81431d7b606f8fa19ca24261502a66084265df334d24158",
@@ -523,7 +523,8 @@
     "services/zopedia_agent.py": "Keep collected originals and complete checkpoint traces; final writing and existing review reuse the existing permitted list/read evidence tools. The LLM selects working context and can reopen original results. Remove whole-container expansion, retain the original question and valid direct artifacts, preserve source permissions and normal planner behavior. Complete coupled Home/chart replay and held-out nonfinancial capacity recovery personally reviewed. No financial rules, new critic, changed model or increased task budget.",
     "pipeline/jobs/attention_home_build.py": "Remove stale projection helpers, key whitelists and row caps that erased available units, annual changes, long maturities, weak sectors and signal identities. Existing typed serialization retains complete source records. Replace the accumulated editorial checklist with the exact paid concise task; keep all four immutable identity fields, existing schema/shared critic/600-second budget/materializer/audio/intraday behavior. Complete comparison personally reviewed, adverse experiments rejected and remaining limits recorded; fresh DEV acceptance remains mandatory.",
     "services/llm_execution.py": "Shared full-request token estimate with explicit tokenizer headroom and output reserve, recorded separately from authoritative provider usage. Oversized requests are recorded as not sent and exact provider context errors return capacity feedback to the same LLM-owned reader. No semantic truncation, request-setting or model change. Forced-cap and normal full workflow examined.",
-    "compute/fred.py": "Replace annual row offsets with calendar-period/date comparisons; retain actual reference dates/values and missing periods as unknown. Preserve all 35 latest levels and 23,604 observations through normal dashboard finalization. CPI/core match official September release; monthly gaps, leap dates, sorting and frequent as-of comparisons checked. No financial interpretation rule."
+    "compute/fred.py": "Replace annual row offsets with calendar-period/date comparisons; retain actual reference dates/values and missing periods as unknown. Preserve all 35 latest levels and 23,604 observations through normal dashboard finalization. CPI/core match official September release; monthly gaps, leap dates, sorting and frequent as-of comparisons checked. No financial interpretation rule.",
+    "Dockerfile.runtime": "Install the exact evaluated tiktoken 0.14.0 / regex 2026.9.29 versions without dependency upgrades and cache cl100k encoding for all Python roles. Previously only worker dependencies carried the declared tokenizer; API checks rejected both incomplete packages before deployment. Preserve all unrelated installed metadata, remove all inherited application files and Streamlit, and verify cold accounting without runtime encoding downloads in each role."
   },
   "retired_files": [
     ".streamlit/config.toml",
@@ -609,7 +610,7 @@
       "evidence": "documents/verification/database-lifecycle-2026-10-16/README.md"
     },
     {
-      "name": "Complete Git runtime packaging and narrow consumer checks",
+      "name": "Complete Git runtime packaging, declared tokenizer and cold token accounting in all roles",
       "status": "accepted",
       "files": [
         "Dockerfile.runtime",
@@ -617,7 +618,7 @@
         "scripts/release_application.py",
         ".dockerignore"
       ],
-      "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTEXT_HANDOFF_LOCAL_REVIEW.md"
     },
     {
       "name": "Calendar-correct FRED annual comparisons and preserved original observations",
