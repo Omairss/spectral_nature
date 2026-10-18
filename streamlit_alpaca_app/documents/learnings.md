@@ -1120,3 +1120,7 @@ Trace a disputed aggregate to its source and definition before declaring it fals
 Keep context control inside the existing research execution. Original evidence can remain invocation-owned while writing and review reopen it through the existing reader. A valid paid artifact matching the caller's schema must survive an optional tool-control envelope; do not regenerate research just to obtain unused wrapper fields. Capacity checks are mechanical estimates plus exact provider feedback, while evidence selection remains LLM-owned. Evaluate the complete enlarged workflow and separate context-recovery cases before DEV.
 
 Year-over-year statistics must use observation dates and periods, with the actual reference date/value preserved. Row offsets silently compare thirteen months when a monthly release is missing and 252 daily observations need not span one calendar year. A qualitative critic correctly calculating from a chart must not be overruled by a mislabeled summary. The full workflow, not a software pass or a stored field name, exposed this source defect.
+
+
+### October 17 — reconcile dependencies separately from rollback identity
+An actual consumer image establishes its previous behavior and rollback target, not compatibility with all accepted source integrations. The API database lifecycle source requires `psycopg_pool`; use its previously verified API dependency pin and verify complete packaged imports before deployment.
