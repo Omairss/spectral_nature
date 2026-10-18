@@ -127,7 +127,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
     service = QueryService.from_environment().with_supplied_evidence(records)
     schema = {"type": "object", "additionalProperties": False, "properties": {"datapoints": {"type": "array", "minItems": 5, "maxItems": 5, "items": {
         "type": "object", "additionalProperties": False, "properties": {
-            "id": {"type": "string", "enum": list(catalog)}, "title": {"type": "string", "maxLength": 100}, "significance": {"type": "string", "maxLength": 260},
+            "id": {"type": "string", "enum": list(catalog)}, "title": {"type": "string", "maxLength": 65}, "significance": {"type": "string", "maxLength": 180},
         }, "required": ["id", "title", "significance"],
     }}}, "required": ["datapoints"]}
     context = brief
@@ -151,9 +151,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
     except ValueError:
         operation_timeout = 600
     operation_deadline = time.monotonic() + operation_timeout
-    attempt = 0
-    while not attempt or time.monotonic() < operation_deadline:
-        attempt += 1
+    for attempt in range(2):
         try:
             initial_evidence = [{"title": "Evidence navigation", **service.supplied_evidence_manifest}]
             if selections:
@@ -203,7 +201,7 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
                 review_state["status"] = "accepted"
                 break
             review_state["status"] = "needs_follow_up"
-            print(f"[info] daily datapoint semantic review attempt={attempt} issues="
+            print(f"[info] daily datapoint semantic review attempt={attempt + 1} issues="
                   + json.dumps(verdict.get("issues") or [], ensure_ascii=False), flush=True)
             feedback = (
                 "\n\nConsider these suggested revisions alongside the original sources, "
