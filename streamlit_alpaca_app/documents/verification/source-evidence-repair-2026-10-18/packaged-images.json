@@ -1,0 +1,71 @@
+{
+  "status": "packaged_verified_development_pending",
+  "build_runs": {
+    "worker": {
+      "run_id": "cj18e",
+      "status": "Succeeded",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9"
+    },
+    "api-next": {
+      "run_id": "cj18f",
+      "status": "Succeeded",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54"
+    }
+  },
+  "source_revision": "81d7a997235305997d2df6adcf5c168015da871a",
+  "source_inventory_sha256": "df14195d98227c0286aa53150a3ae6f338d9b2e1d17ff03f1a3d7910418a4abb",
+  "runtime_inventory_sha256": "96a06d2df0b0d3652c4097565efcb26bf8b447908a9c343e404abf4f2ec0e72e",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54"
+  },
+  "roles": [
+    {
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
+      "source_revision": "81d7a997235305997d2df6adcf5c168015da871a",
+      "accepted_source_revision": "001895073648c1bdde9a9907238b701ca1c0fb08",
+      "source_inventory_sha256": "df14195d98227c0286aa53150a3ae6f338d9b2e1d17ff03f1a3d7910418a4abb",
+      "runtime_inventory_sha256": "96a06d2df0b0d3652c4097565efcb26bf8b447908a9c343e404abf4f2ec0e72e",
+      "expected_files": 197,
+      "packaged_files": 197,
+      "complete_git_inventory_matches": true,
+      "dependency_distribution_metadata_matches": true,
+      "preserved_installed_distributions": 93,
+      "installed_distributions": 93,
+      "declared_tokenizer_additions": {},
+      "token_accounting_without_runtime_download": true,
+      "retired_streamlit_absent": true,
+      "api_pipeline_broker_imports_passed": true,
+      "context_preflight_available": true,
+      "price_basis_roundtrip_in_role_runtime": true,
+      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+      "method": "Read-only file hashes, imports, cold token accounting without downloads, and unchanged baseline distribution metadata plus explicit declared tokenizer additions in ACR execution containers; no source extraction or research execution."
+    },
+    {
+      "role": "api-next",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54",
+      "source_revision": "81d7a997235305997d2df6adcf5c168015da871a",
+      "accepted_source_revision": "001895073648c1bdde9a9907238b701ca1c0fb08",
+      "source_inventory_sha256": "df14195d98227c0286aa53150a3ae6f338d9b2e1d17ff03f1a3d7910418a4abb",
+      "runtime_inventory_sha256": "96a06d2df0b0d3652c4097565efcb26bf8b447908a9c343e404abf4f2ec0e72e",
+      "expected_files": 197,
+      "packaged_files": 197,
+      "complete_git_inventory_matches": true,
+      "dependency_distribution_metadata_matches": true,
+      "preserved_installed_distributions": 99,
+      "installed_distributions": 101,
+      "declared_tokenizer_additions": {
+        "regex": "2026.9.29",
+        "tiktoken": "0.14.0"
+      },
+      "token_accounting_without_runtime_download": true,
+      "retired_streamlit_absent": true,
+      "api_pipeline_broker_imports_passed": true,
+      "context_preflight_available": true,
+      "price_basis_roundtrip_in_role_runtime": true,
+      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
+      "method": "Read-only file hashes, imports, cold token accounting without downloads, and unchanged baseline distribution metadata plus explicit declared tokenizer additions in ACR execution containers; no source extraction or research execution."
+    }
+  ]
+}
