@@ -1,0 +1,52 @@
+{
+  "recorded_at_utc": "2026-10-18T21:18:16.648309+00:00",
+  "scope": "Read-only source provenance query; no application, database, publication or deployment mutation.",
+  "document": {
+    "canonical_document_id": "saa_doc::76ea0d391ac2a9de15742765",
+    "source_provider": "TipRanks",
+    "search_provider": "serper",
+    "first_seen_at_utc": "2026-10-14 15:21:26.201181+00:00",
+    "last_seen_at_utc": "2026-10-18 06:17:28.820558+00:00",
+    "last_run_id": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
+    "last_dataset_version_id": "development__attention_source_documents__20261018T054423Z__0b5a37b3",
+    "raw_text_origin": null,
+    "published_at": "2026-10-14 00:00:00+00:00",
+    "published_date": "2026-10-14",
+    "metadata_json": {
+      "query_text": "",
+      "source_trace": ""
+    }
+  },
+  "chunks": [
+    {
+      "chunk_record_id": "saa_chunk::5608047f77b33bc75896ada2",
+      "document_id": "doc::CRWV::news::bb9cf0e10e16",
+      "chunk_id": "doc::CRWV::news::bb9cf0e10e16::chunk::1",
+      "dataset_name": "attention_evidence_chunks",
+      "dataset_version_id": "attention_evidence_chunks__20261014T145028Z__31e34e9e",
+      "run_id": "31e34e9e-e612-4ded-b6e9-c0a042fc16e3",
+      "asof_time_utc": "2026-10-14 14:50:28.994686+00:00",
+      "source_provider": "TipRanks",
+      "search_provider": "serper",
+      "published_at": "2026-10-14 08:50:33.504637+00:00",
+      "published_date": "2026-10-14",
+      "raw_text_origin": null
+    },
+    {
+      "chunk_record_id": "saa_chunk::2615bb46848a783ac6a68503",
+      "document_id": "agent_source::7befdce1b836d97f98f6",
+      "chunk_id": "saa_chunk::5608047f77b33bc75896ada2",
+      "dataset_name": "attention_evidence_chunks",
+      "dataset_version_id": "development__attention_evidence_chunks__20261018T054423Z__0b5a37b3",
+      "run_id": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
+      "asof_time_utc": "2026-10-18 05:44:23.805111+00:00",
+      "source_provider": "TipRanks",
+      "search_provider": null,
+      "published_at": "2026-10-14 00:00:00+00:00",
+      "published_date": null,
+      "raw_text_origin": null
+    }
+  ],
+  "finding": "Original source is a Serper-delivered TipRanks news excerpt collected by Home run 31e34e9e-e612-4ded-b6e9-c0a042fc16e3 on October 14. Recovery run 0b5a37b3 reused and materialized a reference on October 18. The latter is not the first acquisition.",
+  "limit": "The original provider response and date string are absent from the retained source; identifying Serper as transport does not establish whether the original date error came from Serper or application date parsing."
+}
