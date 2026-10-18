@@ -1,0 +1,52 @@
+{
+  "scope": "Execution contract only. Replay of an actual complete 12,356-character generated IREN draft and its four tool records through collector, shared engine, operational checkpoint handoff and the real AQL timeout wrapper. No inference, publication or knowledge writes; this does not grade research quality.",
+  "checks": {
+    "deadline": {
+      "original_generated_payload_preserved": true,
+      "complete_source_rows_and_chunks_preserved": true,
+      "worker_finished": true,
+      "cancelled": true
+    },
+    "expired_return": {
+      "original_generated_payload_preserved": true,
+      "complete_source_rows_and_chunks_preserved": true,
+      "worker_finished": true,
+      "cancelled": false
+    },
+    "blocked_persistence": {
+      "original_generated_payload_preserved": true,
+      "complete_source_rows_and_chunks_preserved": true,
+      "worker_finished": true,
+      "cancelled": true
+    },
+    "normal": {
+      "original_generated_payload_preserved": true,
+      "complete_source_rows_and_chunks_preserved": true,
+      "worker_finished": true,
+      "cancelled": false
+    },
+    "no_complete_draft": {
+      "original_generated_payload_preserved": false,
+      "complete_source_rows_and_chunks_preserved": true,
+      "worker_finished": true,
+      "cancelled": true
+    },
+    "no_work": {
+      "timeout_without_a_complete_draft_still_reported": true
+    },
+    "normal_pipeline_caller": {
+      "retained_claims": 11,
+      "retained_documents": 7,
+      "original_narrative_preserved": true,
+      "skipped": false,
+      "research_status": "completed"
+    },
+    "normal_pipeline_evidence_only": {
+      "retained_claims": 0,
+      "retained_documents": 7,
+      "original_narrative_preserved": false,
+      "skipped": false,
+      "research_status": "partial"
+    }
+  }
+}

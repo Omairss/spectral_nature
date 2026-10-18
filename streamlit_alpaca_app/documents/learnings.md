@@ -1158,3 +1158,6 @@ A standalone model/collector duration does not verify a caller that wraps setup,
 
 ### October 18 — review reasonable inference without inventing a new admission rule
 Latest available observations can inform subsequent events. Evaluate their relevance and the strength of the conclusion in context; a one-day lag is not itself a research failure. A plausible interpretation expressed too categorically is not automatically grounds to reject an entire release. Keep editorial concerns distinct from demonstrable execution failures and materially false facts. Correct an overstated review judgment in the record instead of changing the product to satisfy it.
+
+### October 18 — a deadline returns available research
+Use the existing checkpoint to hand drafts and sources to the caller before optional review or persistence. At the research deadline, cancel further work and materialize what is already available outside the cancelled scope. Preserve the actual incomplete review or partial-research state; keep collected sources even when no complete narrative exists. A complete normal return takes precedence, and an incomplete later checkpoint must not erase a complete draft. This is execution ownership, not a reason for new research prompts, market rules or a controller.

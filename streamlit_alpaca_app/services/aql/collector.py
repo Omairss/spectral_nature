@@ -711,6 +711,7 @@ def research_attention_candidate(
     llm_client: LLMClient,
     timeout_seconds: float | None = None,
     progress_callback: Callable[[dict[str, Any]], None] | None = None,
+    result_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Define a feed task; the shared engine owns its entire research lifecycle."""
     from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
@@ -760,5 +761,6 @@ def research_attention_candidate(
         persist_findings=False,
         write_policy="none",
         progress_callback=progress_callback,
+        result_callback=result_callback,
     )
     return result

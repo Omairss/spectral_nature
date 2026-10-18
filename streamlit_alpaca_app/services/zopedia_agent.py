@@ -3399,6 +3399,7 @@ def _execute_zopedia_agent_loop(
             "pending_action": pending_action,
             "draft_answer": final_answer or best_draft,
             "confidence": final_confidence,
+            "quality_review": quality_review,
         }
         _emit_progress(
             progress_callback,

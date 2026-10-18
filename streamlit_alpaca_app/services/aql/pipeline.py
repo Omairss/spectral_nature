@@ -117,7 +117,10 @@ def _macro_verification_timeout_seconds() -> int:
     return _env_positive_int("AQL_MACRO_VERIFICATION_TIMEOUT_SECONDS", 120)
 
 
-def _call_with_timeout(label: str, timeout_seconds: int, fn: Callable[[], Any]) -> Any:
+def _call_with_timeout(
+    label: str, timeout_seconds: int, fn: Callable[[], Any], *,
+    on_timeout: Callable[[], Any] | None = None,
+) -> Any:
     if timeout_seconds <= 0:
         raise AQLStepTimeout(f"{label} has no remaining execution budget")
 
@@ -138,11 +141,20 @@ def _call_with_timeout(label: str, timeout_seconds: int, fn: Callable[[], Any]) 
     thread.start()
     thread.join(float(timeout_seconds))
     if thread.is_alive():
+        retained = on_timeout() if on_timeout is not None else None
         work.cancel()
+        if retained is not None:
+            print(f"[warn] {label} exceeded {timeout_seconds}s; using retained research checkpoint", flush=True)
+            return retained
         raise AQLStepTimeout(f"{label} exceeded {timeout_seconds}s")
 
     status, payload = result_queue.get_nowait()
     if status == "error":
+        if isinstance(payload, TimeoutError) and on_timeout is not None:
+            retained = on_timeout()
+            if retained is not None:
+                print(f"[warn] {label} timed out; using retained research checkpoint", flush=True)
+                return retained
         raise payload
     return payload
 
@@ -322,38 +334,19 @@ def build_bottom_up_attention_artifacts(
             "bundle": bundle,
         }
 
-    def _research_one_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
+    def _materialize_candidate_result(
+        candidate: dict[str, Any], result: dict[str, Any],
+        supplied_documents: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         peer_symbols = _peer_candidates(candidate, candidates, limit=5)
-        supplied_documents = _candidate_context_documents(
-            candidate,
-            news_payloads=news_payloads,
-            context_payloads=context_payloads,
-            filings_frame=filings_frame,
-            fred_summary_frame=fred_summary_frame,
-            yield_curve_facts_frame=yield_curve_facts_frame,
-            run_id=run_id,
-            asof_time_utc=asof_time_utc,
-        )
-        result = research_attention_candidate(
-            candidate,
-            peer_symbols=peer_symbols,
-            documents=supplied_documents,
-            llm_client=llm_client,
-            timeout_seconds=_candidate_research_timeout_seconds(),
-            progress_callback=(
-                (lambda event: progress_callback(0, 1, event))
-                if progress_callback
-                else None
-            ),
-        )
         agent = result.get("agent_result") or {}
-        if result.get("status") != "completed":
+        if result.get("status") not in {"completed", "partial"}:
             raise RuntimeError(
                 result.get("error")
                 or agent.get("error")
                 or "Shared candidate research did not complete"
             )
-        payload = result["payload"]
+        payload = result.get("payload") or {"claims": []}
         artifacts = materialize_research_artifacts(
             agent,
             candidate_id=_coerce_text(candidate.get("candidate_id")),
@@ -396,7 +389,7 @@ def build_bottom_up_attention_artifacts(
             prompt_version=prompt_version,
             model_name=agent.get("model") or model_name,
             run_id=run_id,
-            written=payload,
+            written=result.get("payload"),
             yield_facts=(
                 _latest_yield_facts(yield_curve_facts_frame)
                 if _yield_context_relevant(candidate)
@@ -422,6 +415,7 @@ def build_bottom_up_attention_artifacts(
                 "priority_entities_json": "[]",
                 "evidence_budget": agent.get("engine", {}).get("max_tool_calls"),
                 "engine_revision": agent.get("engine", {}).get("revision"),
+                "research_status": result.get("status"),
             },
             "request_rows": artifacts["request_rows"],
             "result_rows": artifacts["result_rows"],
@@ -451,11 +445,31 @@ def build_bottom_up_attention_artifacts(
                 f"index={index}/{research_total} symbol={symbol or '?'}",
                 flush=True,
             )
-            candidate_payload = _call_with_timeout(
+            supplied_documents = _candidate_context_documents(
+                candidate, news_payloads=news_payloads, context_payloads=context_payloads,
+                filings_frame=filings_frame, fred_summary_frame=fred_summary_frame,
+                yield_curve_facts_frame=yield_curve_facts_frame,
+                run_id=run_id, asof_time_utc=asof_time_utc,
+            )
+            latest_result: list[dict[str, Any] | None] = [None]
+
+            def retain_result(result: dict[str, Any]) -> None:
+                if latest_result[0] is None or result["status"] == "completed" or latest_result[0]["status"] != "completed":
+                    latest_result[0] = result
+
+            result = _call_with_timeout(
                 f"AQL candidate research {symbol or index}",
                 candidate_timeout_seconds,
-                lambda candidate=candidate: _research_one_candidate(candidate),
+                lambda: research_attention_candidate(
+                    candidate, peer_symbols=_peer_candidates(candidate, candidates, limit=5),
+                    documents=supplied_documents, llm_client=llm_client,
+                    timeout_seconds=candidate_timeout_seconds,
+                    progress_callback=(lambda event: progress_callback(0, 1, event)) if progress_callback else None,
+                    result_callback=retain_result,
+                ),
+                on_timeout=lambda: latest_result[0],
             )
+            candidate_payload = _materialize_candidate_result(candidate, result, supplied_documents)
             claims_count = len(candidate_payload.get("claims") or []) if isinstance(candidate_payload, dict) else 0
             document_rows = candidate_payload.get("document_rows") if isinstance(candidate_payload, dict) else []
             document_count = len(document_rows) if hasattr(document_rows, "__len__") else 0

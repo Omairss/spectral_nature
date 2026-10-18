@@ -543,13 +543,13 @@ def checkpoint_agent_research(function):
 
             def checkpoint(state):
                 nonlocal checkpoint_saved
+                if original_checkpoint:
+                    original_checkpoint(state)
                 checkpoint_saved = pipeline_store.write_execution_state(namespace + ":incomplete", key, {
                     "checkpoint": state, "execution": execution, "input_id": key,
                 })
                 if not checkpoint_saved:
                     log.warning("Research acquisition checkpoint unavailable: %s", key)
-                if original_checkpoint:
-                    original_checkpoint(state)
 
             kwargs["checkpoint_callback"] = checkpoint
             with model_call_context(artifact_input_id=key):

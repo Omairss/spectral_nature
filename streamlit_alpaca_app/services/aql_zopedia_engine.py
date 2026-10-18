@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from copy import deepcopy
 import hashlib
 import json
 import os
@@ -425,6 +426,7 @@ def run_aql_zopedia_structured_agent(
     operation_metadata: dict[str, Any] | None = None,
     request_context: dict[str, Any] | None = None,
     resume_state: dict[str, Any] | None = None,
+    result_callback: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     """Run the shared Zopedia tool agent and require a structured JSON answer.
 
@@ -659,6 +661,30 @@ def run_aql_zopedia_structured_agent(
     # Preserve the agent's existing default client and share it with recovery.
     # Valid retained answers above need no inference client.
     llm_client = llm_client or load_aql_zopedia_llm_client(surface="zopedia.agent")
+
+    def checkpoint(state: dict[str, Any]) -> None:
+        payload = parse_aql_zopedia_structured_answer(state.get("draft_answer"))
+        if payload is not None and list(Draft202012Validator(schema).iter_errors(payload)):
+            payload = None
+        if not state.get("draft_answer") and not state.get("tool_calls"):
+            return
+        # Hand completed model work to the caller before optional review or
+        # checkpoint persistence can consume the remaining execution time.
+        agent = deepcopy({key: state.get(key) for key in (
+            "run_id", "tool_calls", "confidence", "research_state", "quality_review",
+        )})
+        agent.update(
+            status="completed" if payload is not None else "partial",
+            answer_markdown=state.get("draft_answer") or "",
+            model=str(llm_client.config.model), provider=str(llm_client.config.provider),
+            query=structured_query, original_query=query,
+            engine={"name": "aql_zopedia", "revision": research_engine_revision(),
+                    "task": task, "surface": surface,
+                    "max_tool_calls": resolve_research_budget(max_tool_calls=max_tool_calls)["max_tool_calls"]},
+            runtime={"returned_from_checkpoint": True},
+        )
+        result_callback({"status": agent["status"], "payload": payload, "agent_result": agent})
+
     agent_result = run_aql_zopedia_agent(
         query=structured_query,
         task=task,
@@ -680,6 +706,7 @@ def run_aql_zopedia_structured_agent(
         response_schema=schema,
         response_schema_name=schema_name,
         answer_review_owner=answer_review_owner,
+        checkpoint_callback=checkpoint if result_callback is not None else None,
         resume_state=(
             resume_state
             if resume_state is not None
