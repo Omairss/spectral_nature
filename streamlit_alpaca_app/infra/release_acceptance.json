@@ -1,5 +1,5 @@
 {
-  "status": "accepted_locally",
+  "status": "held_after_development_quality_failure",
   "scope": "Shared LLM-owned evidence context through synthesis/review and calendar-correct annual macro comparisons; full accepted Git source for modern API and research consumers. Exact fresh DEV quality and runtime acceptance required before production.",
   "source_revision": "544df4314b582828adcc65b8ff7813bb70bf3e06",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
@@ -913,24 +913,25 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "awaiting_exact_development_verification",
+    "status": "condition_not_met",
     "owner_instruction": "Do it. If it works in dev, move to prod",
     "condition": "Fresh complete development Home and genuinely new highlights match or exceed pre-incident subjective quality, with preserved runtime/configuration and acceptance of the exact image.",
     "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
     "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate."
   },
   "development_acceptance": {
-    "status": "running",
+    "status": "not_accepted",
     "images": {
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44"
     },
     "source_inventory_sha256": "b05827de1528ef44024c7028d5691be36b098464e4456995d8a45a3260b739b5",
-    "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/LIVE_DEVELOPMENT_QUALITY_REVIEW.md",
     "macro_execution": "macro-fred-daily-dev-qx4055p",
     "scope": "Seven DEV image updates and full configuration audit pass; API ready, signed-in Trading retains all five horizons. Fresh macro and complete Home quality acceptance remain pending.",
     "home_execution": "attention-home-next-dev-bzfcjgg",
-    "macro_status": "Succeeded"
+    "macro_status": "Succeeded",
+    "home_run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e"
   },
   "preceding_hold": {
     "revision": "20108c58",
@@ -961,5 +962,9 @@
     "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
     "asof": "2026-10-18T00:37:36.127408+00:00",
     "reason": "Final chart synthesis exceeded context (1,199,136 tokens / 1,048,576 maximum), retaining old selection; new overview combines different sector measures without establishing comparability."
+  },
+  "hold": {
+    "reason": "New charts preserve observations but still leak confidence metadata and falsely call adjusted/raw price-basis differences stale. Human review rejects the LLM-approved output.",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/LIVE_DEVELOPMENT_QUALITY_REVIEW.md"
   }
 }

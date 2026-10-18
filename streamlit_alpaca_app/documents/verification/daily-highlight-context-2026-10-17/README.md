@@ -1,6 +1,6 @@
 # Shared context recovery
 
-Status: **accepted locally; DEV API and six workers are deployed; fresh macro/Home verification is in progress. Production has not received this candidate.** The current [release acceptance record](../../../infra/release_acceptance.json) is the deployment authority. The owner authorized production only after DEV works and meets the earlier subjective research quality bar.
+Status: **the new complete DEV publication fails the prose quality bar; production is held.** Read the [live human review](LIVE_DEVELOPMENT_QUALITY_REVIEW.md). The context-overflow and observation-integrity checks pass; the next local correction addresses public writing context and price-basis provenance.
 
 ## Current source
 

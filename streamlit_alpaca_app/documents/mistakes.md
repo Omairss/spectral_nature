@@ -1034,3 +1034,7 @@ The API packaging contract incorrectly used its actual preincident image as the 
 After correcting the API pool dependency, the second package check found no installed tokenizer in either API base. The dependency comparison had checked only the pool change, rather than compatibility with the newly shared context boundary. Both packages were rejected before deployment. The shared runtime Dockerfile now installs the exact already-evaluated tokenizer versions without upgrading other packages and caches encoding data for every role. Verify role dependencies and cold accounting explicitly, including required assets, before deployment.
 
 The first explicit tokenizer build also attempted pip after removing the inherited `/app` working directory. Pip rejected the deleted current directory. Set dependency-stage `WORKDIR /` before cleanup/installation, while the final application stage remains `/app`. The failed builds were not deployed.
+
+
+### October 17 — live review rejects critic-approved metadata prose
+The complete live DEV charts were LLM-approved after six rounds but still emitted internal confidence labels and falsely called EOG’s snapshot stale. A primary raw/all provider comparison proved both dates were October 15 and the difference was adjustment basis. Human review rejected production. Fix the writing input’s public/private contract, retain all originals through the reader, and carry price-basis provenance; do not replace words or mutate prices.

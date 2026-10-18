@@ -1128,3 +1128,7 @@ An actual consumer image establishes its previous behavior and rollback target, 
 
 ### October 17 — shared runtime changes require role-wide dependency checks
 A requirement in requirements.txt does not prove that inherited role images installed it. Moving tokenizer accounting into a shared provider boundary requires every caller role to carry the evaluated tokenizer and its cached encoding. Put that requirement in shared packaging, preserve all unrelated dependency versions, and check token accounting without network access in each packaged role.
+
+
+### October 17 — live review rejects critic-approved metadata prose
+A critic’s proposed correction is generated analysis, not new source evidence. Repeatedly ordering the writer to apply a false critique can turn it into a polished falsehood. Public writing should start from the same approved-story projection the reader sees; private execution flags remain available as research metadata. Raw and adjusted prices need their basis and observation dates retained before comparing values.

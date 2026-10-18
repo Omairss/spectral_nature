@@ -1,6 +1,6 @@
 # Daily highlight context repair
 
-Updated October 17, 2026 (04:15 UTC October 18). **Current state: the locally accepted repair is deployed to the DEV API and six workers. The live macro refresh and 35-series numerical audit pass. Full Home execution `attention-home-next-dev-bzfcjgg` is running; its final public brief/charts have not yet been accepted. Production is unchanged.**
+Updated October 17, 2026. **Current state: the full DEV execution completed, but its chart prose fails human review. Production is held.** The context-size and numerical checks pass. The local correction reuses the published-story projection, carries price-adjustment provenance and gives the existing review the same supplied-evidence reader as generation. No additional critic, phrase bans or financial selection rules.
 
 The [current verification index](../verification/daily-highlight-context-2026-10-17/README.md) and committed `infra/release_acceptance.json` are authoritative. Both packaged roles match all 197 Git runtime files and pass imports and cold tokenizer accounting without downloads. Eight cumulative application/packaging files are reviewed. The API adds the previously accepted pool dependency plus the same evaluated tokenizer versions as workers; unrelated dependency versions remain unchanged. Existing signed-in Trading views retain all five horizons.
 

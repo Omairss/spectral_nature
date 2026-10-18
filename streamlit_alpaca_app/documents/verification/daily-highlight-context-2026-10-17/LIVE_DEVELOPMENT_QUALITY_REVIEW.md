@@ -1,0 +1,15 @@
+# Live development quality review
+
+**Not accepted for production.** The normal complete Home execution published fresh Home `a0bd1515-3ce7-4438-b051-89189f82d43e` and its own five new charts. The [complete served output and reviews](context-handoff-development-publication.json) retain the actual result. Production is unchanged.
+
+The six complete stories are clearer and economically useful: CXMT server DRAM, YMTC shipment/share/IPO distinctions, AI funding exposure, Liquidia payment timing and pending label acceptance, Strive’s newly priced $630M preferred and MaxLinear’s rally reversal. The overview separates the midday Nasdaq reading from the dated 999-stock snapshot. The AI rates explanation is a working interpretation, not proof that the rate level cannot matter.
+
+Context overflow is repaired in this run: Home writing used 464,332 input tokens, and a revised chart draft used 252,626, against the prior failed 1,199,136-token chart request. Full stored histories and the unchanged public windows match originals. Public Home returned in 1.172 seconds; audio returned actual bytes in 0.216 seconds. API readiness, protected access, all five signed-in Trading horizons and the full 33-resource configuration audit pass.
+
+The prose bar still fails. Micron’s caption describes reports as “partial, medium-confidence exposures.” EOG’s caption says the snapshot’s prior close is stale. Those are private workflow/data-audit statements rather than a useful investor explanation; the second is also false. The existing LLM critic approved the result after six rounds, repeatedly promoting its own stale-data conjecture into instructions. Do not treat that approval as a quality oracle.
+
+A [read-only primary provider probe](price-basis-probe.json) establishes EOG’s two bases: snapshot and raw bars have $152.65 on October 15; fully adjusted bars have $151.63 on the same date. October 16 is $158.06 in both. Both histories are valid for their basis. No price or timestamp should be overwritten to make the caption appear consistent.
+
+The candidate correction reuses the existing public-story projection instead of inlining private status fields, keeps full research behind the same reader, exposes actual price-adjustment provenance through shared data contracts, aligns schema length limits with the existing consumer, and treats critique as suggestions for the original task. No phrase bans, ticker exceptions, new critic, model/settings changes or budget increases. Local evaluation and a new DEV verification remain required.
+
+Further source inspection found a second access gap: the dedicated chart review did not receive the generation QueryService and stayed in the no-tool formatter path even when the catalog had an unselected supporting series. A local held-out review falsely declared a breakeven value absent while it existed in the full source catalog. Direct formatting with explicitly permitted invocation-owned records now reuses the existing reader normally, while the no-record one-call path and source permissions remain intact. The same service is passed to chart review. This changes access, not the number of reviewer roles.

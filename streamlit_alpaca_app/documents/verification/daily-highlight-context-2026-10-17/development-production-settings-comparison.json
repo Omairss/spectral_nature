@@ -1,0 +1,16 @@
+{
+  "checked_keys": {
+    "provider": true,
+    "model": true,
+    "effort": true,
+    "thinking": true,
+    "style": true,
+    "parameters": true,
+    "active_overrides": true
+  },
+  "different_override_keys": [],
+  "development_override_count": 20,
+  "production_override_count": 20,
+  "semantic_settings_match": true,
+  "changes_made": 0
+}
