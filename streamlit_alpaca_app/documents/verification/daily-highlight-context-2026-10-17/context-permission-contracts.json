@@ -1,0 +1,6 @@
+{
+  "restricted_invocation_sources_not_exposed": true,
+  "authorized_collected_results_remain_readable": true,
+  "valid_direct_artifact_retained_without_regeneration": true,
+  "model_calls_made": 0
+}
