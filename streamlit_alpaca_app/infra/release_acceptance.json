@@ -1,7 +1,7 @@
 {
-  "status": "held_after_development_quality_failure",
-  "scope": "Continued DEV source is held after failed final-context assembly and complete subjective review; no new builds or promotion.",
-  "source_revision": "060c296850ea753223b7c4aef14f519344888e1d",
+  "status": "accepted_locally",
+  "scope": "Shared LLM-owned evidence context through synthesis/review and calendar-correct annual macro comparisons; full accepted Git source for modern API and research consumers. Exact fresh DEV quality and runtime acceptance required before production.",
+  "source_revision": "1fcac25efaa7b16af242e44aecea230410b92d5a",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
@@ -37,7 +37,7 @@
     "compute/analytics.py": "c6550f140c2a9ad94d026d09873ed36a8aeb17760cb7039ce086dbd0e073ca05",
     "compute/anomalies.py": "1e14cb20ed8c33553ccf8d5545f1d2915d9b8686d2b81d691dfee29b4d6412c8",
     "compute/event_study.py": "a0c136e22a49c36b28af9e300ed19497108c9829609040232839237ec56d894c",
-    "compute/fred.py": "3bcae244163ba5237daa9fe7140ef7636d11a0b088b49f41e2b9aa9c29cf0ac9",
+    "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
     "compute/fundamentals.py": "43d4cde29627856c10e631cd162a53a1929f47eae27a4cbab8827b963c08acbd",
     "compute/ownership.py": "e184716d90b4c62edfcf8b09500703a18ec3084245b96c89214f4f267135d367",
     "compute/portfolio.py": "f859a1e5e8f2560231df20a9cd6172bb279a051e7cc4bcac279ce81ce083c9d7",
@@ -134,7 +134,7 @@
     "services/aql/scratchpad.py": "031a699bfe459628c3aa4e415b3c2fdcbf2dc36e4b02d579d3e3deb68cc8788e",
     "services/aql/summarizer.py": "c2f2f031649fb99b32cfd8e34338935fa1ada49c2e59fa4f6a56c08bb5c2c4fe",
     "services/aql/writer.py": "cc0a8516917579a0069b4924a40a185b0929f75f8e58560fbe8d1a82eb1b5b59",
-    "services/aql_zopedia_engine.py": "22eae7fe664dfe60bff0778c85c520776b44e14d1da9dc1b2f658dfc69880c35",
+    "services/aql_zopedia_engine.py": "b36e34539c52f148991077c7cd910ece8c39be290f90017d21d9e0cc1def8651",
     "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
     "services/attention/__init__.py": "eaf23a3900301cf51f8537211ef174590fab02dacf9072017717bdb7e378e5d2",
     "services/attention_agentic.py": "b5ed770c653c02b62f5c14e9777668d79c50deca0c1ef22f6a34e129a9162f55",
@@ -184,7 +184,7 @@
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
     "services/llm.py": "2dd6700b0b1266820b4c5e741b4bf6db8a344429422a23cc75116c7bd2144017",
     "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
-    "services/llm_execution.py": "057ac18584aa3dba45cab7f4492dc134f6134a427c6f9551c19affa7e11fdcf0",
+    "services/llm_execution.py": "4e321b2dbcc72b784f84b05e1abd14f2a6565078f6687547358182d88ec7b3b8",
     "services/llm_prices.json": "e6e8a6a76ebce48d8d584ce9fba66b8794cc2a3ab8c7d946a407eab9e0861a5b",
     "services/market.py": "9cc307d998af5a80a2c72d177e0290910867536ea12692dcd526475be2e78d1c",
     "services/market_activity_shared.py": "1cd4cf3c7125b3a2ed6fec89c101faeb27d91fdf309e783d4ba0670d4c28752d",
@@ -223,7 +223,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "19f52cd6f8d073a9a609db197e2e4013b3156ccf4445700b0a308ed13d023bb3",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "d499c0cebfeea311e39afdab0824a0e752ee47d62c8251cd4dcb948915563a1d",
+    "services/zopedia_agent.py": "2857f3f0d3a0a965bca11a3ff1205bbd89989d1efc04b710818d82ec9cd9589f",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
     "services/zopedia_learning.py": "a610b21df101afc02f7fddf4bdd6656d3622b3846da001fa78a59fdafab31776",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
@@ -344,7 +344,7 @@
     "compute/analytics.py": "c6550f140c2a9ad94d026d09873ed36a8aeb17760cb7039ce086dbd0e073ca05",
     "compute/anomalies.py": "1e14cb20ed8c33553ccf8d5545f1d2915d9b8686d2b81d691dfee29b4d6412c8",
     "compute/event_study.py": "a0c136e22a49c36b28af9e300ed19497108c9829609040232839237ec56d894c",
-    "compute/fred.py": "3bcae244163ba5237daa9fe7140ef7636d11a0b088b49f41e2b9aa9c29cf0ac9",
+    "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
     "compute/fundamentals.py": "43d4cde29627856c10e631cd162a53a1929f47eae27a4cbab8827b963c08acbd",
     "compute/ownership.py": "e184716d90b4c62edfcf8b09500703a18ec3084245b96c89214f4f267135d367",
     "compute/portfolio.py": "f859a1e5e8f2560231df20a9cd6172bb279a051e7cc4bcac279ce81ce083c9d7",
@@ -418,7 +418,7 @@
     "services/aql/scratchpad.py": "031a699bfe459628c3aa4e415b3c2fdcbf2dc36e4b02d579d3e3deb68cc8788e",
     "services/aql/summarizer.py": "c2f2f031649fb99b32cfd8e34338935fa1ada49c2e59fa4f6a56c08bb5c2c4fe",
     "services/aql/writer.py": "cc0a8516917579a0069b4924a40a185b0929f75f8e58560fbe8d1a82eb1b5b59",
-    "services/aql_zopedia_engine.py": "22eae7fe664dfe60bff0778c85c520776b44e14d1da9dc1b2f658dfc69880c35",
+    "services/aql_zopedia_engine.py": "b36e34539c52f148991077c7cd910ece8c39be290f90017d21d9e0cc1def8651",
     "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
     "services/attention/__init__.py": "eaf23a3900301cf51f8537211ef174590fab02dacf9072017717bdb7e378e5d2",
     "services/attention_agentic.py": "b5ed770c653c02b62f5c14e9777668d79c50deca0c1ef22f6a34e129a9162f55",
@@ -468,7 +468,7 @@
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
     "services/llm.py": "2dd6700b0b1266820b4c5e741b4bf6db8a344429422a23cc75116c7bd2144017",
     "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
-    "services/llm_execution.py": "057ac18584aa3dba45cab7f4492dc134f6134a427c6f9551c19affa7e11fdcf0",
+    "services/llm_execution.py": "4e321b2dbcc72b784f84b05e1abd14f2a6565078f6687547358182d88ec7b3b8",
     "services/llm_prices.json": "e6e8a6a76ebce48d8d584ce9fba66b8794cc2a3ab8c7d946a407eab9e0861a5b",
     "services/market.py": "9cc307d998af5a80a2c72d177e0290910867536ea12692dcd526475be2e78d1c",
     "services/market_activity_shared.py": "1cd4cf3c7125b3a2ed6fec89c101faeb27d91fdf309e783d4ba0670d4c28752d",
@@ -507,7 +507,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "19f52cd6f8d073a9a609db197e2e4013b3156ccf4445700b0a308ed13d023bb3",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "d499c0cebfeea311e39afdab0824a0e752ee47d62c8251cd4dcb948915563a1d",
+    "services/zopedia_agent.py": "2857f3f0d3a0a965bca11a3ff1205bbd89989d1efc04b710818d82ec9cd9589f",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
     "services/zopedia_learning.py": "a610b21df101afc02f7fddf4bdd6656d3622b3846da001fa78a59fdafab31776",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
@@ -519,9 +519,11 @@
   "reviewed_changes": {
     "services/daily_market_datapoints.py": "Preserve the already-reviewed invocation-owned complete catalog, five distinct references, dedicated original review/revision, original task ownership and exact plotted histories. Continue the same LLM-owned loop only within the unchanged 600-second budget, stop on explicit LLM approval and retain follow-up notes/valid draft. Real retained failure corrected within remaining budget; real approved path has identical two requests and rows. No financial rule or new critic.",
     "services/llm.py": "Keep valid provider requests and call counts; syntax recovery receives its original messages to retain task/evidence meaning. All three existing transports use the same recovery contract; no provider/model/settings change. Paired actual malformed responses and transport contract checks retained.",
-    "services/aql_zopedia_engine.py": "Retain original task/evidence in schema recovery; keep planner-step and artifact schemas separate instead of truncating/embedding the artifact contract in the planner question. Exact no-tool Home editor request is preserved; original retained-draft ownership and failure behavior checked.",
-    "services/zopedia_agent.py": "Keep the original planner prompt. Recover malformed step schemas with the existing LLM/schema owner, retain collected evidence on incomplete planning, and resolve the LLM-selected supplied source IDs through the existing permitted evidence history before synthesis. Preserve originals in checkpoints/review/provenance. No fixed subjects, semantic classifier, new role or admission rule.",
-    "pipeline/jobs/attention_home_build.py": "Remove stale projection helpers, key whitelists and row caps that erased available units, annual changes, long maturities, weak sectors and signal identities. Existing typed serialization retains complete source records. Replace the accumulated editorial checklist with the exact paid concise task; keep all four immutable identity fields, existing schema/shared critic/600-second budget/materializer/audio/intraday behavior. Complete comparison personally reviewed, adverse experiments rejected and remaining limits recorded; fresh DEV acceptance remains mandatory."
+    "services/aql_zopedia_engine.py": "Retain original task and schema-recovery ownership. Preserve normal no-tool formatter request; capacity recovery reuses shared reader and retains original question, caller type and source permissions. Separate planner and artifact schemas. Direct held-out recovery and complete Home workflow personally reviewed.",
+    "services/zopedia_agent.py": "Keep collected originals and complete checkpoint traces; final writing and existing review reuse the existing permitted list/read evidence tools. The LLM selects working context and can reopen original results. Remove whole-container expansion, retain the original question and valid direct artifacts, preserve source permissions and normal planner behavior. Complete coupled Home/chart replay and held-out nonfinancial capacity recovery personally reviewed. No financial rules, new critic, changed model or increased task budget.",
+    "pipeline/jobs/attention_home_build.py": "Remove stale projection helpers, key whitelists and row caps that erased available units, annual changes, long maturities, weak sectors and signal identities. Existing typed serialization retains complete source records. Replace the accumulated editorial checklist with the exact paid concise task; keep all four immutable identity fields, existing schema/shared critic/600-second budget/materializer/audio/intraday behavior. Complete comparison personally reviewed, adverse experiments rejected and remaining limits recorded; fresh DEV acceptance remains mandatory.",
+    "services/llm_execution.py": "Shared full-request token estimate with explicit tokenizer headroom and output reserve, recorded separately from authoritative provider usage. Oversized requests are recorded as not sent and exact provider context errors return capacity feedback to the same LLM-owned reader. No semantic truncation, request-setting or model change. Forced-cap and normal full workflow examined.",
+    "compute/fred.py": "Replace annual row offsets with calendar-period/date comparisons; retain actual reference dates/values and missing periods as unknown. Preserve all 35 latest levels and 23,604 observations through normal dashboard finalization. CPI/core match official September release; monthly gaps, leap dates, sorting and frequent as-of comparisons checked. No financial interpretation rule."
   },
   "retired_files": [
     ".streamlit/config.toml",
@@ -566,9 +568,10 @@
         "services/daily_market_datapoints.py",
         "services/llm.py",
         "services/aql_zopedia_engine.py",
-        "services/zopedia_agent.py"
+        "services/zopedia_agent.py",
+        "services/llm_execution.py"
       ],
-      "evidence": "documents/verification/daily-highlight-context-2026-10-17/LOCAL_CONTINUATION_REVIEW.md"
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTEXT_HANDOFF_LOCAL_REVIEW.md"
     },
     {
       "name": "Complete Home evidence and concise LLM briefing; preserved narration/intraday/materialization",
@@ -615,28 +618,83 @@
         ".dockerignore"
       ],
       "evidence": "documents/verification/daily-highlight-context-2026-10-17/README.md"
+    },
+    {
+      "name": "Calendar-correct FRED annual comparisons and preserved original observations",
+      "status": "accepted",
+      "files": [
+        "compute/fred.py",
+        "services/fred.py",
+        "pipeline/jobs/main.py"
+      ],
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTEXT_HANDOFF_LOCAL_REVIEW.md"
+    },
+    {
+      "name": "Shared modern API, queued research and producer behavior against actual consumer images",
+      "status": "accepted",
+      "files": [
+        "api/main.py",
+        "services/agents/research_runs.py",
+        "pipeline/jobs/main.py",
+        "services/trading_agent.py",
+        "services/zopedia_learning.py"
+      ],
+      "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTEXT_HANDOFF_LOCAL_REVIEW.md"
     }
   ],
   "roles": {
     "worker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
-        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961",
+        "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+        "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
+        "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
+        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+        "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95"
       ],
       "development_targets": [
         {
           "kind": "jobs",
           "name": "attention-home-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961",
           "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "daily-datapoints-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "macro-fred-daily-dev",
+          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+          "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "sn-research-run-dev",
+          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+          "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "trading-agent-build-dev",
+          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
+          "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "equities-next-dev",
+          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+          "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
           "configuration_api_version": "2025-07-01"
         }
       ],
@@ -647,16 +705,111 @@
           "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:7d3cac3abeb3e7453db77333c419ccc68ee0fd7c1e661518d92fb8e5a1dc7bff",
           "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
           "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "macro-fred-daily",
+          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
+          "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "sn-research-run",
+          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
+          "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "trading-agent-build",
+          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
+          "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "equities-intraday-preload",
+          "previous_image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
+          "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "commodities-regime",
+          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "options-liquid-universe",
+          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "news-ingest-and-features",
+          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "entity-taxonomy-refresh",
+          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "company-baseline-prefetch",
+          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "zopedia-maintenance",
+          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "kind": "jobs",
+          "name": "zopedia-learning",
+          "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+          "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
+          "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961": {
-          "source_revision": "9c444d169064d5274a243b190a87018706985ea8",
-          "source_inventory_sha256": "69662df4141e4cb38c30ea88e554126a346c04b71c6e6f1d34f593c10ab8a0ce",
-          "runtime_inventory_sha256": "cbc818d533be7174470db9130353388d178bde4b4d00ef26aabc7a84cc4ff23d",
-          "evidence": "documents/verification/daily-highlight-context-2026-10-17/continuation-packaged-image.json"
+      "accepted_images": {}
+    },
+    "api-next": {
+      "dependency_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+      "development_targets": [
+        {
+          "kind": "containerApps",
+          "name": "sn-api-next-dev",
+          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+          "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
+          "configuration_api_version": "2025-07-01"
         }
-      }
+      ],
+      "production_targets": [
+        {
+          "kind": "containerApps",
+          "name": "sn-api-next",
+          "previous_image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
+          "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
+          "configuration_api_version": "2025-07-01"
+        }
+      ],
+      "accepted_images": {},
+      "baseline_images": [
+        "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b"
+      ]
     }
   },
   "untouched_consumers": [
@@ -664,11 +817,6 @@
       "name": "sn-streamlit-ui",
       "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
       "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06"
-    },
-    {
-      "name": "sn-api-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
-      "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412"
     },
     {
       "name": "sn-next-ui-dev",
@@ -681,44 +829,9 @@
       "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0"
     },
     {
-      "name": "sn-api-next",
-      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b",
-      "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0"
-    },
-    {
       "name": "universe-builder",
       "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
       "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763"
-    },
-    {
-      "name": "equities-intraday-preload",
-      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
-      "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505"
-    },
-    {
-      "name": "macro-fred-daily",
-      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
-      "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603"
-    },
-    {
-      "name": "commodities-regime",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-      "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b"
-    },
-    {
-      "name": "options-liquid-universe",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-      "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae"
-    },
-    {
-      "name": "news-ingest-and-features",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-      "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00"
-    },
-    {
-      "name": "entity-taxonomy-refresh",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-      "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2"
     },
     {
       "name": "fundamentals-quarterly-refresh",
@@ -726,44 +839,9 @@
       "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704"
     },
     {
-      "name": "company-baseline-prefetch",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-      "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de"
-    },
-    {
-      "name": "trading-agent-build",
-      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
-      "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f"
-    },
-    {
-      "name": "zopedia-maintenance",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-      "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb"
-    },
-    {
-      "name": "zopedia-learning",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-      "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d"
-    },
-    {
       "name": "system-health",
       "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
       "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68"
-    },
-    {
-      "name": "trading-agent-build-dev",
-      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
-      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad"
-    },
-    {
-      "name": "macro-fred-daily-dev",
-      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:d1d2e2533573559e4df87f2aa6508fd2db8a874374bcd8a1b892d8243df9bf95",
-      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97"
-    },
-    {
-      "name": "sn-research-run-dev",
-      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
-      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba"
     },
     {
       "name": "robinhood-main-sync-dev",
@@ -789,16 +867,6 @@
       "name": "technical-history-next-dev",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
       "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca"
-    },
-    {
-      "name": "sn-research-run",
-      "image": "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
-      "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91"
-    },
-    {
-      "name": "equities-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98",
-      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5"
     },
     {
       "name": "evidence-index-dev",
@@ -830,22 +898,15 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "condition_not_met",
-    "owner_instruction": "If the dev matches or exceeds the subjective research quality gate from before this collossal fuckup, go ahead and push to prod",
+    "status": "awaiting_exact_development_verification",
+    "owner_instruction": "Do it. If it works in dev, move to prod",
     "condition": "Fresh complete development Home and genuinely new highlights match or exceed pre-incident subjective quality, with preserved runtime/configuration and acceptance of the exact image.",
-    "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules."
+    "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
+    "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate."
   },
   "development_acceptance": {
-    "status": "not_accepted",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961"
-    },
-    "source_inventory_sha256": "69662df4141e4cb38c30ea88e554126a346c04b71c6e6f1d34f593c10ab8a0ce",
-    "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTINUED_DEVELOPMENT_QUALITY_REVIEW.md",
-    "execution": "attention-home-next-dev-cdzog4j",
-    "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
-    "asof": "2026-10-18T00:37:36.127408+00:00",
-    "reason": "Final chart synthesis exceeded context (1,199,136 tokens / 1,048,576 maximum), retaining old selection; new overview combines different sector measures without establishing comparability."
+    "status": "pending",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTEXT_HANDOFF_LOCAL_REVIEW.md"
   },
   "preceding_hold": {
     "revision": "20108c58",
@@ -865,8 +926,16 @@
     "asof": "2026-10-17T23:03:00.216879+00:00",
     "reason": "Fresh complete Home retains process caveats, unsupported rates exclusion and unresolved chart-review feedback. Runtime/data integrity alone does not satisfy owner quality condition."
   },
-  "hold": {
-    "reason": "Final chart synthesis exceeded context (1,199,136 tokens / 1,048,576 maximum), retaining old selection; new overview combines different sector measures without establishing comparability.",
-    "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTINUED_DEVELOPMENT_QUALITY_REVIEW.md"
+  "previous_context_overflow_development_failure": {
+    "status": "not_accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961"
+    },
+    "source_inventory_sha256": "69662df4141e4cb38c30ea88e554126a346c04b71c6e6f1d34f593c10ab8a0ce",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/CONTINUED_DEVELOPMENT_QUALITY_REVIEW.md",
+    "execution": "attention-home-next-dev-cdzog4j",
+    "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
+    "asof": "2026-10-18T00:37:36.127408+00:00",
+    "reason": "Final chart synthesis exceeded context (1,199,136 tokens / 1,048,576 maximum), retaining old selection; new overview combines different sector measures without establishing comparability."
   }
 }
