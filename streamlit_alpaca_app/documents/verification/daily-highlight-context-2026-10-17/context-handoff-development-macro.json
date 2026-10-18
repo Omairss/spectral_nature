@@ -1,0 +1,332 @@
+{
+  "environment": "development",
+  "series": 35,
+  "observations": 23596,
+  "all_latest_and_reference_values_match_observations": true,
+  "all_reported_annual_arithmetic_matches_actual_reference": true,
+  "comparison_with_frozen_source": {
+    "common_values_changed": 0,
+    "added_observations": 0,
+    "expired_observations": 8,
+    "expired_dates": [
+      "2016-10-17"
+    ]
+  },
+  "series_checks": [
+    {
+      "series_id": "CPIAUCSL",
+      "latest_date": "2026-09-01",
+      "latest_value": 336.298,
+      "reference_date": "2025-09-01",
+      "reference_value": 324.245,
+      "yoy_pct": 3.7172508442689933,
+      "yoy_delta": 12.052999999999997
+    },
+    {
+      "series_id": "CPILFESL",
+      "latest_date": "2026-09-01",
+      "latest_value": 338.896,
+      "reference_date": "2025-09-01",
+      "reference_value": 330.418,
+      "yoy_pct": 2.565840844021827,
+      "yoy_delta": 8.478000000000009
+    },
+    {
+      "series_id": "PCEPI",
+      "latest_date": "2026-08-01",
+      "latest_value": 131.579,
+      "reference_date": "2025-08-01",
+      "reference_value": 127.229,
+      "yoy_pct": 3.419031824505425,
+      "yoy_delta": 4.3500000000000085
+    },
+    {
+      "series_id": "PCEPILFE",
+      "latest_date": "2026-08-01",
+      "latest_value": 130.455,
+      "reference_date": "2025-08-01",
+      "reference_value": 126.646,
+      "yoy_pct": 3.0075959761856064,
+      "yoy_delta": 3.8090000000000117
+    },
+    {
+      "series_id": "UNRATE",
+      "latest_date": "2026-09-01",
+      "latest_value": 4.2,
+      "reference_date": "2025-09-01",
+      "reference_value": 4.4,
+      "yoy_pct": -4.545454545454552,
+      "yoy_delta": -0.20000000000000018
+    },
+    {
+      "series_id": "PAYEMS",
+      "latest_date": "2026-09-01",
+      "latest_value": 159044.0,
+      "reference_date": "2025-09-01",
+      "reference_value": 158548.0,
+      "yoy_pct": 0.3128390140525239,
+      "yoy_delta": 496.0
+    },
+    {
+      "series_id": "CES0500000003",
+      "latest_date": "2026-09-01",
+      "latest_value": 37.81,
+      "reference_date": "2025-09-01",
+      "reference_value": 36.7,
+      "yoy_pct": 3.0245231607629375,
+      "yoy_delta": 1.1099999999999994
+    },
+    {
+      "series_id": "JTSJOL",
+      "latest_date": "2026-08-01",
+      "latest_value": 7079.0,
+      "reference_date": "2025-08-01",
+      "reference_value": 6919.0,
+      "yoy_pct": 2.3124729007081957,
+      "yoy_delta": 160.0
+    },
+    {
+      "series_id": "CIVPART",
+      "latest_date": "2026-09-01",
+      "latest_value": 61.8,
+      "reference_date": "2025-09-01",
+      "reference_value": 62.5,
+      "yoy_pct": -1.1200000000000099,
+      "yoy_delta": -0.7000000000000028
+    },
+    {
+      "series_id": "ICSA",
+      "latest_date": "2026-10-10",
+      "latest_value": 199000.0,
+      "reference_date": "2025-10-04",
+      "reference_value": 233000.0,
+      "yoy_pct": -14.592274678111583,
+      "yoy_delta": -34000.0
+    },
+    {
+      "series_id": "INDPRO",
+      "latest_date": "2026-09-01",
+      "latest_value": 103.9506,
+      "reference_date": "2025-09-01",
+      "reference_value": 101.668,
+      "yoy_pct": 2.2451508832670886,
+      "yoy_delta": 2.282599999999988
+    },
+    {
+      "series_id": "RSAFS",
+      "latest_date": "2026-09-01",
+      "latest_value": 745021.0,
+      "reference_date": "2025-09-01",
+      "reference_value": 700948.0,
+      "yoy_pct": 6.287627612889968,
+      "yoy_delta": 44073.0
+    },
+    {
+      "series_id": "PCEC96",
+      "latest_date": "2026-08-01",
+      "latest_value": 16955.3,
+      "reference_date": "2025-08-01",
+      "reference_value": 16529.7,
+      "yoy_pct": 2.574759372523383,
+      "yoy_delta": 425.59999999999854
+    },
+    {
+      "series_id": "PSAVERT",
+      "latest_date": "2026-08-01",
+      "latest_value": 4.1,
+      "reference_date": "2025-08-01",
+      "reference_value": 5.2,
+      "yoy_pct": -21.153846153846168,
+      "yoy_delta": -1.1000000000000005
+    },
+    {
+      "series_id": "HOUST",
+      "latest_date": "2026-08-01",
+      "latest_value": 1275.0,
+      "reference_date": "2025-08-01",
+      "reference_value": 1291.0,
+      "yoy_pct": -1.2393493415956636,
+      "yoy_delta": -16.0
+    },
+    {
+      "series_id": "PERMIT",
+      "latest_date": "2026-08-01",
+      "latest_value": 1403.0,
+      "reference_date": "2025-08-01",
+      "reference_value": 1347.0,
+      "yoy_pct": 4.157386785449146,
+      "yoy_delta": 56.0
+    },
+    {
+      "series_id": "MORTGAGE30US",
+      "latest_date": "2026-10-15",
+      "latest_value": 7.4,
+      "reference_date": "2025-10-09",
+      "reference_value": 6.3,
+      "yoy_pct": 17.460317460317466,
+      "yoy_delta": 1.1000000000000005
+    },
+    {
+      "series_id": "CSUSHPINSA",
+      "latest_date": "2026-07-01",
+      "latest_value": 337.306,
+      "reference_date": "2025-07-01",
+      "reference_value": 330.923,
+      "yoy_pct": 1.928847496245334,
+      "yoy_delta": 6.382999999999981
+    },
+    {
+      "series_id": "DRCLACBS",
+      "latest_date": "2026-04-01",
+      "latest_value": 2.62,
+      "reference_date": "2025-04-01",
+      "reference_value": 2.75,
+      "yoy_pct": -4.727272727272725,
+      "yoy_delta": -0.1299999999999999
+    },
+    {
+      "series_id": "DRCCLACBS",
+      "latest_date": "2026-04-01",
+      "latest_value": 2.85,
+      "reference_date": "2025-04-01",
+      "reference_value": 3.04,
+      "yoy_pct": -6.25,
+      "yoy_delta": -0.18999999999999995
+    },
+    {
+      "series_id": "BAMLH0A0HYM2",
+      "latest_date": "2026-10-15",
+      "latest_value": 3.23,
+      "reference_date": "2025-10-15",
+      "reference_value": 2.95,
+      "yoy_pct": 9.491525423728797,
+      "yoy_delta": 0.2799999999999998
+    },
+    {
+      "series_id": "BAMLC0A4CBBB",
+      "latest_date": "2026-10-15",
+      "latest_value": 1.05,
+      "reference_date": "2025-10-15",
+      "reference_value": 0.99,
+      "yoy_pct": 6.060606060606055,
+      "yoy_delta": 0.06000000000000005
+    },
+    {
+      "series_id": "DGS2",
+      "latest_date": "2026-10-15",
+      "latest_value": 4.77,
+      "reference_date": "2025-10-15",
+      "reference_value": 3.5,
+      "yoy_pct": 36.28571428571428,
+      "yoy_delta": 1.2699999999999996
+    },
+    {
+      "series_id": "DGS10",
+      "latest_date": "2026-10-15",
+      "latest_value": 5.1,
+      "reference_date": "2025-10-15",
+      "reference_value": 4.05,
+      "yoy_pct": 25.92592592592593,
+      "yoy_delta": 1.0499999999999998
+    },
+    {
+      "series_id": "T10Y2Y",
+      "latest_date": "2026-10-16",
+      "latest_value": 0.35,
+      "reference_date": "2025-10-16",
+      "reference_value": 0.58,
+      "yoy_pct": -39.6551724137931,
+      "yoy_delta": -0.22999999999999998
+    },
+    {
+      "series_id": "DFII10",
+      "latest_date": "2026-10-15",
+      "latest_value": 2.78,
+      "reference_date": "2025-10-15",
+      "reference_value": 1.76,
+      "yoy_pct": 57.95454545454544,
+      "yoy_delta": 1.0199999999999998
+    },
+    {
+      "series_id": "T5YIE",
+      "latest_date": "2026-10-16",
+      "latest_value": 2.37,
+      "reference_date": "2025-10-16",
+      "reference_value": 2.29,
+      "yoy_pct": 3.493449781659397,
+      "yoy_delta": 0.08000000000000007
+    },
+    {
+      "series_id": "T10YIE",
+      "latest_date": "2026-10-16",
+      "latest_value": 2.35,
+      "reference_date": "2025-10-16",
+      "reference_value": 2.28,
+      "yoy_pct": 3.070175438596512,
+      "yoy_delta": 0.07000000000000028
+    },
+    {
+      "series_id": "FEDFUNDS",
+      "latest_date": "2026-09-01",
+      "latest_value": 3.75,
+      "reference_date": "2025-09-01",
+      "reference_value": 4.22,
+      "yoy_pct": -11.137440758293838,
+      "yoy_delta": -0.46999999999999975
+    },
+    {
+      "series_id": "DTWEXBGS",
+      "latest_date": "2026-10-09",
+      "latest_value": 121.6023,
+      "reference_date": "2025-10-09",
+      "reference_value": 121.0902,
+      "yoy_pct": 0.42290788189300876,
+      "yoy_delta": 0.5121000000000038
+    },
+    {
+      "series_id": "BUSLOANS",
+      "latest_date": "2026-09-01",
+      "latest_value": 2959.4457,
+      "reference_date": "2025-09-01",
+      "reference_value": 2691.0056,
+      "yoy_pct": 9.975456758618417,
+      "yoy_delta": 268.44010000000026
+    },
+    {
+      "series_id": "WALCL",
+      "latest_date": "2026-10-14",
+      "latest_value": 6755639.0,
+      "reference_date": "2025-10-08",
+      "reference_value": 6590815.0,
+      "yoy_pct": 2.5008136323049657,
+      "yoy_delta": 164824.0
+    },
+    {
+      "series_id": "M1SL",
+      "latest_date": "2026-08-01",
+      "latest_value": 19991.1,
+      "reference_date": "2025-08-01",
+      "reference_value": 18840.8,
+      "yoy_pct": 6.105367075708035,
+      "yoy_delta": 1150.2999999999993
+    },
+    {
+      "series_id": "M2SL",
+      "latest_date": "2026-08-01",
+      "latest_value": 23342.8,
+      "reference_date": "2025-08-01",
+      "reference_value": 22092.6,
+      "yoy_pct": 5.6589084127717015,
+      "yoy_delta": 1250.2000000000007
+    },
+    {
+      "series_id": "WM2NS",
+      "latest_date": "2026-08-31",
+      "latest_value": 23305.5,
+      "reference_date": "2025-08-25",
+      "reference_value": 21972.2,
+      "yoy_pct": 6.068122445635837,
+      "yoy_delta": 1333.2999999999993
+    }
+  ]
+}
