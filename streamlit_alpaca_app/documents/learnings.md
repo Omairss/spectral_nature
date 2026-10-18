@@ -1161,3 +1161,5 @@ Latest available observations can inform subsequent events. Evaluate their relev
 
 ### October 18 — a deadline returns available research
 Use the existing checkpoint to hand drafts and sources to the caller before optional review or persistence. At the research deadline, cancel further work and materialize what is already available outside the cancelled scope. Preserve the actual incomplete review or partial-research state; keep collected sources even when no complete narrative exists. A complete normal return takes precedence, and an incomplete later checkpoint must not erase a complete draft. This is execution ownership, not a reason for new research prompts, market rules or a controller.
+
+The full DEV job confirms available-work handoff without changing prompts or deadlines: all twelve company results are retained. Inspect the actual cited retained record when a known error recurs. Preserving new captures cannot reconstruct an original body or provider trace missing from an older snippet. Distinguish acceptance of the execution correction from completion of the broader source recovery, and do not expand that finding into semantic rules.

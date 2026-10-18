@@ -1,0 +1,519 @@
+{
+  "status": "not_accepted_for_production",
+  "recorded_at_utc": "2026-10-18T21:10:59.782183+00:00",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+  "execution": "attention-home-next-dev-7e6nmrq",
+  "execution_status": "Succeeded",
+  "public_api_seconds": 1.252,
+  "input_catalog": {
+    "namespace": "development",
+    "home_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "asof": "2026-10-18T20:24:34.140109+00:00",
+    "entries": 516,
+    "observations": 107892
+  },
+  "public_home": {
+    "run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "as_of": "2026-10-18T20:24:34.140109+00:00",
+    "summary": {
+      "headline": "Market Summary",
+      "markdown": "The latest supplied market snapshot is 2026-10-17 06:51 UTC, the prior session close. It shows 594 decliners against 400 advancers, an average stock move of -1.25%, and a median of -0.5%. Information technology averaged -4.7%; energy +2.19%; consumer staples +0.95%; utilities +0.94%. AI hardware, memory, software and bitcoin-linked names fell together. Energy producers and pipelines rose with oil above $100. The 10-year Treasury yield was 5.10%, the 2-year 4.77%, and headline CPI was 3.72% year over year. The mix is consistent with a funding and valuation shock in technology whose earnings sit far in the future, not a broad recession signal.\n\nThe strongest supported company events are the YMTC and CXMT China memory supply scare, the Liquidia settlement, Strive's costly preferred financing, and the CoreWeave-led AI data-centre credit stress. Oil supply risk and the TLK spin-off explain two other large moves. Several sector clusters are only co-movement. The public items keep those out or label them unresolved.",
+      "status": "completed",
+      "featured_symbols": [],
+      "audio_available": true,
+      "audio_mime_type": "audio/mpeg"
+    },
+    "coverage": {
+      "candidate_count": 83,
+      "event_count": 15,
+      "must_read_count": 0,
+      "unresolved_count": 41,
+      "news_backed_count": 7
+    },
+    "provenance": {
+      "mode": "materialized",
+      "datasets": [
+        "attention_home_snapshots_1d"
+      ]
+    },
+    "daily_datapoints_as_of": "2026-10-18T20:24:34.140109+00:00"
+  },
+  "stories": [
+    {
+      "id": "event::source-901ee53894b5fae35bcd",
+      "kind": "event",
+      "title": "CXMT shows a denser DRAM cell and targets a server memory module by year-end",
+      "summary": "China's CXMT showed a smaller DRAM cell design and said its first product will be a server DDR5 module due by end-2026. The news is a technology milestone, not new supply yet. It hit memory shares because it raises the chance of future Chinese competition.",
+      "what_changed": "CXMT President Cao Kanyu presented the 4F² design at an October 10 conference in China. 4F² means each memory cell uses four square units of the smallest circuit feature, down from six in today's main DRAM. CXMT says a gate that wraps the side of a vertical channel improves control and cuts leakage. It says density could rise 30% to 50% in the same area. The first product is a server DDR5 RDIMM, a memory module for data-center servers, due by the end of 2026. CXMT gave no speed, capacity or yield. In September 2026 it said its fifth-generation DRAM and 24Gb LPDDR5X phone memory were in mass production. Sources: [TrendForce](https://www.trendforce.com/news/2026/10/12/news-cxmt-accelerates-4f%C2%B2-dram-push-eyes-year-end-server-ddr5-rdimm-launch/), [Tom's Hardware](https://www.tomshardware.com/pc-components/dram/cxmt-president-says-companys-first-4f2-dram-will-be-a-server-ddr5-rdimm-due-by-year-end-vertical-transistors-cut-each-memory-cells-footprint-by-a-third-on-paper-but-no-speeds-or-capacities-yet), [Benzinga](https://www.benzinga.com/news/26/10/62315688/china-s-cxmt-monday-reported-major-progress-proprietary-memory-chip-transistor-structure-also-pursue).",
+      "why": "Cost per bit falls when a maker fits more cells on a wafer and keeps yield high. A denser cell also helps CXMT work around export limits on advanced chipmaking tools. But a launch can be a sample or a small run. Server buyers qualify memory over quarters. Reports say early parts may use 4F² only in part. Investors repriced future supply, not output that exists today.",
+      "business_context": "Micron's fiscal 2026 revenue was $133.19 billion; DRAM was $100.68 billion and NAND $31.79 billion. Its first-quarter fiscal 2027 guidance is $61.5 billion, plus or minus $1.5 billion. TrendForce's share data show CXMT is still much smaller than the leaders. Near-term revenue risk depends on how much qualified server DRAM CXMT can add, not on the announcement alone.",
+      "watch_next": "Watch whether the year-end CXMT server DDR5 RDIMM reaches volume production with published speed, capacity and yield, and whether a major server maker qualifies it. A sample or a partly 4F² part would not move prices. Also watch DRAM contract prices and Micron's next report.",
+      "symbols": [
+        "MU",
+        "SSNLF",
+        "SKHY"
+      ],
+      "primary_symbol": "MU",
+      "change_pct": null
+    },
+    {
+      "id": "event::source-181a1edeec8b896588b1",
+      "kind": "event",
+      "title": "YMTC takes third place in NAND shipments and seeks a $4.9 billion Shanghai listing",
+      "summary": "China's YMTC shipped 14% of NAND flash bits in Q2 2026, ahead of Micron and Kioxia. Its parent is seeking about $4.9 billion in a Shanghai listing. The shipment data was from August, but investors sold memory stocks in October as they connected it to new Chinese supply.",
+      "what_changed": "Counterpoint put YMTC at 14% of global NAND flash bit shipments in Q2 2026, third behind Samsung at 25% and SK hynix at 22%. NAND flash is the storage chip used in phones, computers and data centers. Micron was fifth at 13%. Counterpoint published the data on 11-13 August 2026; Benzinga repeated it on 13 October. Reuters reported on 21 August that YMTC's parent targets about $4.9 billion in a Shanghai STAR Market listing, with quarterly profit of 33.38 billion yuan. On 12 October, Benzinga said memory stocks lost $108 billion of market value as China competition fears spread. Sandisk fell about 4% on 13 October after a reported 530% gain in 2026. SK hynix closed below its 200-day average for the first time since May 2025. Reported YMTC valuations conflict: one says above CNY 3 trillion, about $443 billion; another says about $44 billion. Treat the expected valuation as unknown. Sources: [Benzinga](https://www.benzinga.com/markets/tech/26/10/62323827/ymtc-overtakes-micron-in-global-nand-shipment-volumes), [Reuters](https://www.reuters.com/world/asia-pacific/chinese-flash-memory-chipmaker-ymtc-plans-raise-49-billion-shanghai-ipo-2026-08-21/).",
+      "why": "YMTC added wafer capacity and moved to more advanced NAND layers. That raised bit volume. But YMTC still earned less NAND revenue than Micron and Kioxia, so its shipment lead did not become a revenue lead. The next step is enterprise solid-state drives. AI inference pushed enterprise SSDs to 48% of NAND bit shipments in Q2 2026, almost double 26% a year earlier. Enterprise drives carry higher prices and long qualification cycles. A qualified YMTC enterprise drive at a large AI server buyer would take revenue from incumbents. The October drop looks more like a pricing and expectation shock than evidence of lost volume. That is an inference.",
+      "business_context": "NAND is a commodity memory market. Prices swing with capacity, and profit follows price more than volume. YMTC has been on the US Entity List since 2022, and US federal agencies are barred from buying products that use its chips from December 2027. That limits access to US AI server demand. The open question is whether non-US buyers adopt YMTC enterprise drives at scale.",
+      "watch_next": "Watch whether YMTC wins qualification for an enterprise SSD at a large AI server buyer, and whether fourth-quarter enterprise SSD contract prices keep rising while wafer prices stall. Also watch the Shanghai listing price and any policy change.",
+      "symbols": [
+        "SNDK",
+        "MU",
+        "SKHY",
+        "SSNLF",
+        "WDC",
+        "STX"
+      ],
+      "primary_symbol": "SNDK",
+      "change_pct": null
+    },
+    {
+      "id": "event::cluster-03-7481f6c102",
+      "kind": "event",
+      "title": "AI data-center credit stress hits neoclouds and bitcoin miners",
+      "summary": "CoreWeave's cost of borrowing and a large share-and-debt plan hit the rented-AI-computing group. The selloff spread to bitcoin miners that host AI workloads. The common driver was funding, not a single company's operations.",
+      "what_changed": "CoreWeave's 2032 bond yield touched about 15%, and on 14 October the company said it would sell 35 million shares and raise $3 billion of debt. The stock fell about 4% at first and kept falling. In the latest session, Nebius fell 12.2%, CoreWeave 11.9%, Applied Digital 11.5%, IREN 11.2%, Hut 8 11.0%, Cipher 10.7% and CleanSpark 10.0%. Gartner forecast on 14 October that 80% of neocloud providers will stop independent operations by 2030 and that more than $3.5 trillion of AI infrastructure spending could face impairment by then. A neocloud is a company that rents AI computing capacity. Applied Digital had $6.264 billion of net long-term debt on 31 August 2026 and invested $2.083 billion in the quarter.",
+      "why": "Higher borrowing costs make each new data center more expensive. Equity holders are last in line if cash flow disappoints, so the market cut equity value before projects finish. The repricing passed to other companies with the same model: heavy spending, thin free cash flow, and reliance on debt or share sales. Bitcoin miners in the group now sell computing capacity as well as mine coins, so a shock to AI data-center credit hits their expansion plans and their cost of capital. The link to bitcoin prices is indirect. The shared driver is financing.",
+      "business_context": "These firms are landlords and operators for AI computing. They must build capacity before they earn revenue. When borrowing costs rise, the value of future cash flow falls and the cost of the next build rises. A Gartner forecast about who survives adds the risk that a partner cannot pay.",
+      "watch_next": "Watch CoreWeave's debt pricing and the completion of its share and debt sale, borrowing costs for AI data-center developers, and whether miners slow their AI hosting build plans. A jump in contracted capacity with financing already secured would change the read.",
+      "symbols": [
+        "NBIS",
+        "CRWV",
+        "VICR",
+        "APLD",
+        "IREN",
+        "HUT",
+        "AXTI",
+        "CIFR"
+      ],
+      "primary_symbol": "NBIS",
+      "change_pct": -12.16
+    },
+    {
+      "id": "event::source-e3855258dacc0ec7dda0",
+      "kind": "event",
+      "title": "Liquidia settles six United Therapeutics lawsuits and gives up PH-ILD promotion",
+      "summary": "Liquidia will pay United Therapeutics net $380.7 million and stop promoting YUTREPIA for PH-ILD. It keeps the PAH use. The deal removes a wider injunction risk but leaves a tight cash plan and a smaller sales base.",
+      "what_changed": "On 13 October 2026, Liquidia and United Therapeutics announced a global settlement of six lawsuits. YUTREPIA is Liquidia's inhaled drug for two lung-blood-pressure conditions: pulmonary arterial hypertension (PAH) and pulmonary hypertension caused by interstitial lung disease (PH-ILD). Liquidia pays $185 million within 30 business days for past YUTREPIA sales, plus $145.4 million in two $72.7 million payments by 31 January and 30 April 2027 for PH-ILD sales after signing. United Therapeutics pays Liquidia $10 million. Liquidia also pays $60.3 million in October 2026 to parties with interests in the antitrust case, so its net cash cost is $380.7 million. Liquidia must stop promoting YUTREPIA for PH-ILD immediately and stop selling that labeled product once the FDA approves removal of the indication. It keeps YUTREPIA on sale for PAH and submitted the label change. The releases are conditional on payments and dismissal, and the deal is not an admission of liability. Sources: [Benzinga](https://www.benzinga.com/news/26/10/62342767/liquidia-enters-global-settlement-agreement-united-therapeutics-resolves-all-pending-litigation-betw), [UTHR 8-K](https://www.stocktitan.net/sec-filings/UTHR/8-k-united-therapeutics-corp-reports-material-event-c39f9aee31c3.html).",
+      "why": "The trigger was the 30 September 2026 Delaware ruling. The court held that claims 1 and 14 of U.S. Patent No. 11,826,327 are valid and infringed by marketing YUTREPIA for PH-ILD. Liquidia faced an appeal and a possible injunction. YUTREPIA supplied about $170.4 million of Liquidia's $171.679 million Q2 2026 revenue. A broad restriction would have hit the whole company. Liquidia settled 13 days later. It gave up PH-ILD promotion and future PH-ILD sales. It removed the risk of a wider stop. United Therapeutics gets cash and less promoted competition for Tyvaso.",
+      "business_context": "Liquidia is a single-product company. Q2 2026 revenue was $171.679 million, and YUTREPIA product sales were about $170.4 million. Preliminary Q3 2026 YUTREPIA sales were $222.7 million and cash was $396.1 million. No source splits sales between PAH and PH-ILD, so the revenue lost with the label change cannot be measured yet. United Therapeutics' Tyvaso franchise had $452.6 million of Q2 2026 revenue, down 4% from a year earlier. Its net receipt from the patent payments is $320.4 million.",
+      "watch_next": "Watch the FDA decision on the label change and its effective date, the first PAH-only sales quarter, and the 2027 instalments. Also watch whether Liquidia moves PH-ILD staff to PAH and the L606 programme, and whether United Therapeutics asserts patents against L606.",
+      "symbols": [
+        "LQDA",
+        "UTHR"
+      ],
+      "primary_symbol": "LQDA",
+      "change_pct": null
+    },
+    {
+      "id": "event::cluster-02-e4b7ee09dc",
+      "kind": "event",
+      "title": "Oil supply-risk spike lifts energy producers and pipeline operators",
+      "summary": "Oil held above $100 after attacks on a Saudi airport, and the US energy agency raised its Brent forecast. Producers rose most; pipeline operators and a gas utility rose less. Part of the move was a broad energy rally, so the oil cause is only partly clean.",
+      "what_changed": "Crescent Energy rose 10.28% to $13.785. Antero Resources rose 6.12%, Ovintiv 4.83%, Talos 4.62%, Equinor 4.62%, Targa 4.41%, Chord 4.26%, EOG 3.54%, Enterprise Products 3.89%, Kinder Morgan 4.14% and NiSource 3.50%. Crude rose 3.51% to $101.41 a barrel on 16 October in one report. Another report put oil at $108.51. The level is not settled; the direction is. Attacks on a Saudi airport around 12 October pushed crude up by nearly $2, and the US Energy Information Administration raised its fourth-quarter Brent forecast by $14 to $105 a barrel.",
+      "why": "Producers sell each barrel at the higher price while many costs stay fixed in the short run. A small oil move can become a larger profit move. Pipeline operators earn fees on volumes moved, not on the price itself, so they gain less from price but benefit from a healthier producing sector. The utility gained with the sector, though higher fuel costs can pressure a regulated utility whose rates lag. Lower Treasury yields may have eased refinancing costs slightly, but no company financing event appears. The cause is not clean: the same-session report describes a broad energy rally, so part of the move may be sector flows.",
+      "business_context": "Upstream producers have high sensitivity to oil. A small revenue change can make a larger profit change. Midstream pipelines have fee-based cash flow and less direct price exposure. A supply-risk premium can fade quickly, so part of the gain depends on conflict risk rather than durable demand.",
+      "watch_next": "Watch the oil benchmark and the conflict premium, the EIA forecast, and whether producers hedge future output. A fall back below $100 without damage to supply would weaken the read.",
+      "symbols": [
+        "CRGY",
+        "AR",
+        "EPD",
+        "KMI",
+        "NI",
+        "TRGP",
+        "OVV",
+        "DTM"
+      ],
+      "primary_symbol": "CRGY",
+      "change_pct": 10.28
+    },
+    {
+      "id": "symbol::MXL",
+      "kind": "unresolved",
+      "title": "MaxLinear falls with optical and semiconductor peers; company cause not established",
+      "summary": "MaxLinear fell 8.8% in the same session as a broad technology selloff. The company had strong data-center optics growth, but the supplied evidence gives no company-specific trigger.",
+      "what_changed": "MXL closed at $71.32, down 8.77% from $78.18, on 100,183 shares. Optical and semiconductor peers also fell: Applied Optoelectronics 9.78%, Lumentum 5.36%, Coherent 7.00% and the information-technology sector averaged -4.7%. MaxLinear's Q2 2026 revenue was $168.8 million, up 23% from Q1 and 55% from a year earlier. Infrastructure revenue rose 145% year over year to about $85 million and became the largest category. Management raised its full-year 2026 optical data-center revenue outlook to $210 million-$230 million from $150 million-$170 million.",
+      "why": "No company-specific catalyst appears in the supplied evidence. The move is best read as part of a broad technology and semiconductor selloff. That is a partial explanation, not a confirmed cause. The business trend from the last report was positive, so a single down day does not by itself show weaker demand.",
+      "business_context": "MaxLinear sells analog and mixed-signal chips. Data-center optics are now its growth engine. The raised outlook shows demand was strong before the drop.",
+      "watch_next": "Watch the next earnings report for data-center optics orders and pricing. A company-specific order cut or a customer delay would change the read. Without one, treat the move as a sector move.",
+      "symbols": [
+        "MXL"
+      ],
+      "primary_symbol": "MXL",
+      "change_pct": -8.77
+    }
+  ],
+  "charts": [
+    {
+      "id": "fred:DGS10",
+      "title": "10Y Treasury yield: the discount rate pressing on tech",
+      "significance": "On 2026-10-15 the 10-year yield was 5.10%, down from 5.31% on 2026-10-05 but far above its 3.63% low; I read that high rate as a central drag on far-dated tech earnings.",
+      "date": "2026-10-15",
+      "value": 5.1
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "title": "High-yield spread: broad credit calm despite AI stress",
+      "significance": "At 3.23% on 2026-10-15, the high-yield spread sat 0.64 points above its 2025 low; public credit did not confirm the AI funding shock, though private AI debt is less visible.",
+      "date": "2026-10-15",
+      "value": 3.23
+    },
+    {
+      "id": "stock:MU:price",
+      "title": "Micron: memory reprices on Chinese supply threat",
+      "significance": "MU closed at $878.78 on 2026-10-16, down 5.65% and about 28% below its June high; I read that as pricing future Chinese memory supply, not lost current demand.",
+      "date": "2026-10-16",
+      "value": 878.78
+    },
+    {
+      "id": "stock:CRWV:price",
+      "title": "CoreWeave: AI data-centre funding cost bites",
+      "significance": "CRWV fell 11.89% to $61.395 on 2026-10-16 as its 2032 bond yield touched about 15%; I read that as funding stress on debt-heavy AI builders, not a demand collapse.",
+      "date": "2026-10-16",
+      "value": 61.395
+    },
+    {
+      "id": "stock:CRGY:price",
+      "title": "Crescent Energy: oil above $100 lifts cash-flow value",
+      "significance": "CRGY rose 10.28% to $13.785 on 2026-10-16 while tech averaged -4.7%; I read this as a shift toward near-term energy cash flow, though part may be sector flows.",
+      "date": "2026-10-16",
+      "value": 13.785
+    }
+  ],
+  "data_integrity": [
+    {
+      "id": "fred:DGS10",
+      "source_observations": 746,
+      "rendered_observations": 746,
+      "last_observation": "2026-10-15",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "source_observations": 783,
+      "rendered_observations": 783,
+      "last_observation": "2026-10-15",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "stock:MU:price",
+      "source_observations": 1253,
+      "rendered_observations": 1200,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "stock:CRWV:price",
+      "source_observations": 391,
+      "rendered_observations": 391,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "stock:CRGY:price",
+      "source_observations": 1218,
+      "rendered_observations": 1200,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    }
+  ],
+  "intraday": [
+    {
+      "symbol": "MU",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SSNLF",
+      "status": "unavailable",
+      "session": "",
+      "as_of": "",
+      "interval": "5Min",
+      "observations": 0
+    },
+    {
+      "symbol": "SKHY",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SNDK",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NBIS",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "CRWV",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "VICR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 66
+    },
+    {
+      "symbol": "APLD",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "LQDA",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 77
+    },
+    {
+      "symbol": "UTHR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 76
+    },
+    {
+      "symbol": "CRGY",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "AR",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "EPD",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "KMI",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "MXL",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 71
+    }
+  ],
+  "audio": {
+    "http_status": 200,
+    "content_type": "audio/mpeg",
+    "bytes": 1097185,
+    "seconds": 0.806,
+    "home_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "text_matches_current_summary": true,
+    "audio_text_sha256": "1cecdf8a3dfbeedee177b117eed911de59855d5e5f1e473852a8a77d30e9d32a",
+    "served_bytes_match_current_stored_audio": true
+  },
+  "existing_chart_review": {
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The five-chart structure is sound and uses complementary drivers. The draft overstates the high-yield chart as \"blind to AI debt\": the broad OAS can include public AI-linked bonds. It also has significance lines over the 180-character limit. I corrected the credit interpretation, tightened each line to one dated finding plus a clearly labelled inference, and kept the original useful connections.",
+    "confidence": "medium",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "revised_answer_applied": true,
+    "research_requests": [
+      "Confirm whether CoreWeave's 2032 notes are in the ICE BofA US High Yield index; this determines how much of the AI funding stress the 3.23% OAS can show."
+    ]
+  },
+  "execution_start": "2026-10-18T20:23:59+00:00",
+  "execution_end": "2026-10-18T21:03:36+00:00",
+  "company_research": {
+    "home_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "plans": [
+      {
+        "symbol": "TLK",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "CRGY",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "NBIS",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "RXRX",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "CRWV",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "OKTA",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "FROG",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "VICR",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "APLD",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "TWLO",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "GRAL",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "IREN",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      }
+    ]
+  },
+  "retained_signed_in_views": {
+    "recorded_at_utc": "2026-10-18T20:33:32.122450+00:00",
+    "api_revision": "sn-api-next-dev--0000044",
+    "signed_in_role": "Admin",
+    "retained_conversation_turns": 2,
+    "followup_table_rendered": true,
+    "trading_horizons": [
+      {
+        "horizon": "1 Week",
+        "retained_cards": 3
+      },
+      {
+        "horizon": "1 Month",
+        "retained_cards": 4
+      },
+      {
+        "horizon": "3 Month",
+        "retained_cards": 3
+      },
+      {
+        "horizon": "1 Year",
+        "retained_cards": 4
+      },
+      {
+        "horizon": "5 Year",
+        "retained_cards": 3
+      }
+    ],
+    "scope": "Read-only existing history and retained Trading views. No new conversation, research run, order, approval or preference change. Home is still the previous 08:18 UTC publication while the new job runs.",
+    "browser": "Chrome existing DEV tab",
+    "viewport_override": null,
+    "application_changes_from_UI": false
+  },
+  "browser_home": {
+    "asof_visible": "Oct 18, 8:24 PM UTC",
+    "latest_six_story_headings_visible": true,
+    "new_five_highlights_visible": true,
+    "cache_revalidation_required": true,
+    "application_UI_mutations": false
+  },
+  "personal_review": {
+    "deadline_correction": "accepted_in_development",
+    "complete_recovery": "not_accepted",
+    "overview_read": true,
+    "all_six_complete_public_story_records_read": true,
+    "all_five_new_highlights_read": true,
+    "baseline": "Actual accepted October 14 image output, root fdb1ec77-d1f3-426a-bc4c-fa62f164e0a0; reasonable historical context and uncertainty remain valid research.",
+    "reason": "Same previously identified material financing-date error recurs through old retained evidence. No new semantic gate or application patch added.",
+    "credit_comparison": "October 15 broad-credit observations can inform October 16 selling. The earlier one-day-lag rejection was overstated and does not block this candidate.",
+    "unmeasured": "This run proves retained results and current data integrity; it does not prove strict superiority on every quality, latency and cost measure."
+  },
+  "repeated_source_error": {
+    "company_run": "agrun_15318187dc1c25ed3a10d75fc030af43fa424d84",
+    "retained_chunk": "saa_chunk::2615bb46848a783ac6a68503",
+    "canonical_document_id": "saa_doc::76ea0d391ac2a9de15742765",
+    "original_root": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
+    "stored_published_at": "2026-10-14T00:00:00+00:00",
+    "stored_excerpt": "CoreWeave stock ($CRWV) dropped 4% to trade near $77 on Wednesday morning after the cloud computing firm announced plans to raise billions...",
+    "stored_chars": 141,
+    "canonical_url": "https://tipranks.com/news/coreweave-stock-crwv-drops-4-to-77-as-cloud-firm-plans-to-sell-35-million-shares-and-add-3-billion-in-debt",
+    "provider_payload_present": false,
+    "source_trace_present": false,
+    "publication_section": "public API what_changed and rendered financing summary/watch_next",
+    "primary_release_dates": {
+      "share_program": "2026-09-17",
+      "upsized_notes": "2026-09-18"
+    },
+    "primary_sources": [
+      "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Announces-At-the-Market-Offering-Program/default.aspx",
+      "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Prices-Upsized-3-7-Billion-Convertible-Senior-Notes-Offering/default.aspx"
+    ],
+    "causal_limit": "Shows misleading retained input reused before public editing; original assignment of October date remains unknown."
+  }
+}

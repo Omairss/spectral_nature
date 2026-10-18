@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Use available drafts and sources at the existing candidate deadline through shared checkpoints. Local execution and full live company outputs reviewed; exact fresh DEV publication remains required before conditional production promotion.",
+  "status": "held_after_development_quality_failure",
+  "scope": "Deadline-result correction proved in complete DEV: all twelve company results retained, including available work at expiry. Broader recovery held because the known financing-date error recurs through retained evidence; no further application change added.",
   "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
@@ -981,15 +981,15 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "awaiting_exact_development_verification",
+    "status": "condition_not_met_known_source_date_error",
     "owner_instruction": "Do it. If it works in dev, move to prod",
     "condition": "Fresh complete development Home and genuinely new highlights match or exceed pre-incident subjective quality, with preserved runtime/configuration and acceptance of the exact image.",
     "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
     "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate."
   },
   "development_acceptance": {
-    "status": "pending",
-    "scope": "Narrow deadline-result correction accepted locally; complete fresh DEV Home verification pending.",
+    "status": "not_accepted",
+    "scope": "Deadline-result correction proved in complete DEV: all twelve company results retained, including available work at expiry. Broader recovery held because the known financing-date error recurs through retained evidence; no further application change added.",
     "evidence": "documents/verification/source-evidence-repair-2026-10-18/DEADLINE_DEVELOPMENT_REVIEW.md",
     "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
     "images": {
@@ -1000,7 +1000,13 @@
     "home_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
     "asof": "2026-10-18T20:24:34.140109+00:00",
     "started_at": "2026-10-18T20:23:59+00:00",
-    "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68"
+    "source_inventory_sha256": "febe15fc21e843a3f0e074e44a39d2a475c77bb950a961bc7dd4ce4421173f68",
+    "home_status": "Succeeded",
+    "finished_at": "2026-10-18T21:03:36+00:00",
+    "deadline_result_status": "accepted",
+    "company_results_retained": 12,
+    "company_results_skipped": 0,
+    "reason": "Previously identified September CoreWeave financing again represented as an October 14 announcement through an older retained search excerpt. This is not the retracted credit-caption timing objection."
   },
   "preceding_hold": {
     "revision": "20108c58",
