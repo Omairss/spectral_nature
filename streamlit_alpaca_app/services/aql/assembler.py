@@ -586,20 +586,7 @@ def _build_candidate_bundle(
     written: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     cause_status, why_today_mode = _judge_cause_status(claims)
-    asof_time = pd.to_datetime(candidate.get("asof_time_utc"), utc=True, errors="coerce")
-    same_day_documents = [
-        doc
-        for doc in list(documents or [])
-        if _coerce_text(doc.get("source_kind")).lower() in {"news", "search"}
-        and _freshness_score(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce"), asof_time) >= 0.95
-    ]
-    if cause_status == "unresolved" and same_day_documents:
-        cause_status = "partial"
-        why_today_mode = "source_context"
     evidence_quality, freshness_quality = _quality_label(claims, cause_status)
-    if cause_status == "partial" and same_day_documents:
-        evidence_quality = "Developing"
-        freshness_quality = "High"
     written = (
         written
         if written is not None
@@ -620,16 +607,9 @@ def _build_candidate_bundle(
             continue
         document_id = _coerce_text(doc.get("document_id"))
         source_kind = _coerce_text(doc.get("source_kind"))
-        evidence_role = (
-            "same_day"
-            if _freshness_score(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce"), asof_time) >= 0.95
-            else "background"
-        )
         importance_score = float(document_importance.get(document_id, 0.0))
         importance_label = _importance_label(importance_score)
         is_important = importance_score >= 0.5
-        if source_kind.lower() in {"news", "search"} and evidence_role == "same_day" and cause_status == "supported":
-            is_important = is_important or importance_score >= 0.45
         if source_kind.lower() in {"news", "search"} and int(doc.get("authority_rank") or 3) <= 1:
             is_important = is_important or importance_score >= 0.42
         item = {
@@ -643,15 +623,14 @@ def _build_candidate_bundle(
             "display_excerpt": _coerce_text(doc.get("display_excerpt")),
             "url": _coerce_text(doc.get("url")),
             "published_at": _coerce_text(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce").isoformat() if pd.notna(pd.to_datetime(doc.get("published_at"), utc=True, errors="coerce")) else ""),
-            "evidence_role": evidence_role,
+            "evidence_role": "source",
+            "raw_text_origin": _coerce_text(doc.get("raw_text_origin")),
+            "source_trace": _coerce_text(doc.get("source_trace")),
             "importance_score": round(importance_score, 3),
             "importance_label": importance_label,
             "is_important": bool(is_important),
         }
-        if item["evidence_role"] == "same_day":
-            evidence.append(item)
-        else:
-            background.append(item)
+        evidence.append(item)
     top_claim_ids = [item["claim_id"] for item in claims[:4]]
     important_news_count = sum(
         1
@@ -684,7 +663,7 @@ def _build_candidate_bundle(
         "source_summary": _top_sources(claims) or ", ".join(list(dict.fromkeys(_coerce_text(item) for item in document_sources if _coerce_text(item)))[:4]),
         "source_count": len({item for item in claim_sources + document_sources if _coerce_text(item)}),
         "evidence_count": len(documents),
-        "same_day_evidence_count": same_day_claim_count + len(same_day_documents),
+        "same_day_evidence_count": same_day_claim_count,
         "important_news_count": int(important_news_count),
         "evidence": evidence[:6],
         "background_context": background[:4],

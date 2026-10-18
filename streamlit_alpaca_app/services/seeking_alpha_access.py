@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 import os
 from pathlib import Path
 import tempfile
@@ -366,7 +367,8 @@ def _build_scrapling_payload(
         "meta[property='og:description']",
         "content",
     )
-    text = _trim(_response_text(response), limit=max(max_text_chars, 500))
+    source_text = _response_text(response)
+    text = _trim(source_text, limit=max(max_text_chars, 500))
     excerpt = _trim(description or text, limit=320)
 
     if not text:
@@ -379,6 +381,13 @@ def _build_scrapling_payload(
         "description": description,
         "excerpt": excerpt,
         "text": text,
+        "source_text": source_text,
+        "source_metadata": {
+            "meta": [dict(node.attrib) for node in response.css("meta")],
+            "structured_data": [str(node.text or "") for node in response.css('script[type="application/ld+json"]')],
+            "times": [{"attributes": dict(node.attrib), "text": _clean(node.text)} for node in response.css("time")],
+        },
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
         "mode": "seeking_alpha_authenticated",
         "warning": _clean(warning),
         "backend": "scrapling",

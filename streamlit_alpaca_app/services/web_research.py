@@ -186,8 +186,30 @@ class WebSearchResult:
     snippet: str = ""
     raw_text: str = ""
     source: str = ""
-    published_at: str = ""
+    reported_date: str = ""
     raw: dict[str, Any] | None = None
+    retrieved_at: str = ""
+
+    def to_source_record(self) -> dict[str, Any]:
+        """A search provider's date describes its result, not an established event."""
+        return {
+            "headline": self.title,
+            "summary": self.snippet,
+            "description": self.snippet,
+            "provider_text": self.raw_text or self.snippet,
+            "source": self.source or self.provider,
+            "provider": self.provider,
+            "source_kind": "search",
+            "raw_text_origin": "search_result",
+            "published_at": None,
+            "url": self.url,
+            "provider_payload_json": json.dumps(self.raw or {}, ensure_ascii=False),
+            "source_trace": json.dumps({
+                "capture_kind": "search_result", "provider": self.provider,
+                "retrieved_at": self.retrieved_at,
+                "reported_date": self.reported_date,
+            }, ensure_ascii=False),
+        }
 
 
 @dataclass(frozen=True)
@@ -346,8 +368,9 @@ class SerpAPISearchClient:
                         snippet=_clean(item.get("snippet") or item.get("summary")),
                         raw_text=_clean(item.get("snippet") or item.get("summary")),
                         source=_source_label(item.get("source")),
-                        published_at=_clean(item.get("date")),
+                        reported_date=_clean(item.get("date")),
                         raw=item,
+                        retrieved_at=started_at.isoformat(),
                     )
                 )
             _record_connector_call(
@@ -476,7 +499,8 @@ class SerpAPISearchClient:
                 snippet=snippet,
                 raw_text=snippet,
                 source="Google AI Overview",
-                published_at="",
+                reported_date="",
+                retrieved_at=started_at.isoformat(),
                 raw=overview,
             )
         except Exception as exc:
@@ -557,8 +581,9 @@ class SerperSearchClient:
                         snippet=_clean(item.get("snippet")),
                         raw_text=_clean(item.get("snippet")),
                         source=_source_label(item.get("source")),
-                        published_at=_clean(item.get("date")),
+                        reported_date=_clean(item.get("date")),
                         raw=item,
+                        retrieved_at=started_at.isoformat(),
                     )
                 )
             _record_connector_call(
@@ -648,8 +673,9 @@ class TavilySearchClient:
                         snippet=_clean(item.get("content")),
                         raw_text=_clean(item.get("raw_content") or item.get("content")),
                         source=_source_label(item.get("source") or item.get("domain")),
-                        published_at=_clean(item.get("published_date")),
+                        reported_date=_clean(item.get("published_date")),
                         raw=item,
+                        retrieved_at=started_at.isoformat(),
                     )
                 )
             _record_connector_call(

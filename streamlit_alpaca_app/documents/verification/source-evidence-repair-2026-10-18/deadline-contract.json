@@ -1,0 +1,8 @@
+{
+  "two_model_calls_with_original_reader_complete_across_single_request_limit": true,
+  "each_request_keeps_own_limit": true,
+  "whole_run_and_phase_reservation_unchanged": true,
+  "elapsed_seconds": 0.076,
+  "model_calls": 0,
+  "database_writes": 0
+}

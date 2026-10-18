@@ -2333,7 +2333,7 @@ def test_search_query_results_uses_tavily_rag_fallback_when_serp_is_irrelevant()
                     url="https://example.com/irdm-dividend-equivalent",
                     snippet="Form 4 filing about director dividend-equivalent rights.",
                     source="Stock Titan",
-                    published_at="2026-04-03T08:00:00Z",
+                    reported_date="2026-04-03T08:00:00Z",
                 )
             ]
 
@@ -2350,7 +2350,7 @@ def test_search_query_results_uses_tavily_rag_fallback_when_serp_is_irrelevant()
                     url="https://example.com/irdm-contract",
                     snippet="The award expands protected satcom capacity for defense use.",
                     source="Reuters",
-                    published_at="2026-04-03T10:00:00Z",
+                    reported_date="2026-04-03T10:00:00Z",
                 )
             ]
 
@@ -2405,7 +2405,7 @@ def test_search_query_results_skips_tavily_when_serp_is_relevant():
                     url="https://example.com/irdm-outlook",
                     snippet="Management raised guidance after stronger commercial demand trends.",
                     source="Reuters",
-                    published_at="2026-04-03T09:00:00Z",
+                    reported_date="2026-04-03T09:00:00Z",
                 )
             ]
 
@@ -2463,7 +2463,7 @@ def test_search_query_results_can_retain_provider_payload_and_provider_text():
                         "Contractors and utilities are revising expected project schedules."
                     ),
                     source="Seeking Alpha",
-                    published_at="2026-04-03T10:00:00Z",
+                    reported_date="2026-04-03T10:00:00Z",
                     raw={"title": "Copper demand rises on AI data-center buildout", "raw_content": "Full Tavily raw content body"},
                 )
             ]
@@ -3057,7 +3057,7 @@ def test_bottom_up_attention_artifacts_verifies_macro_hypotheses_with_search():
                     url="https://example.com/macro-release",
                     snippet="Treasury proxies rallied, the dollar softened, and duration-sensitive equities gained after labor cooled.",
                     source="Reuters",
-                    published_at="2026-03-24T14:00:00Z",
+                    reported_date="2026-03-24T14:00:00Z",
                 )
             ]
 
@@ -4173,7 +4173,7 @@ def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_clai
                     url=f"https://example.com/{len(self.calls)}",
                     snippet="",
                     source="Reuters",
-                    published_at="2026-03-24T17:30:00Z",
+                    reported_date="2026-03-24T17:30:00Z",
                 )
             ]
 
@@ -4297,7 +4297,7 @@ def test_build_attention_agentic_summary_with_trace_returns_materializable_frame
                     url="https://example.com/summary-trace",
                     snippet="",
                     source="Reuters",
-                    published_at="2026-03-24T17:30:00Z",
+                    reported_date="2026-03-24T17:30:00Z",
                 )
             ]
 
@@ -4432,7 +4432,7 @@ def test_supporting_claims_from_results_enrich_seeking_alpha_pages(monkeypatch):
                     url="https://seekingalpha.com/news/123456",
                     snippet="Short snippet only.",
                     source="Seeking Alpha",
-                    published_at="2026-03-24T17:30:00Z",
+                    reported_date="2026-03-24T17:30:00Z",
                 )
             ]
 

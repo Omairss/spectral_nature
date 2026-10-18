@@ -54,7 +54,7 @@ def test_symbol_news_payload_loads_serper_as_primary_search(monkeypatch):
                     url="https://example.com/nvidia-ai-chip-report",
                     snippet="NVIDIA stock moved after a report about AI chip demand and export controls.",
                     source="Example News",
-                    published_at="2 hours ago",
+                    reported_date="2 hours ago",
                 )
             ]
 

@@ -1745,10 +1745,11 @@ def _news_payloads_from_articles_frame(
             published_at,
             asof_time_utc=asof_label,
             max_age_days=3,
-            include_undated=False,
+            include_undated=True,
         ):
             continue
         article = {
+            **row.to_dict(),
             "headline": str(row.get("headline") or "").strip(),
             "summary": str(row.get("summary") or row.get("description") or "").strip(),
             "description": str(row.get("description") or row.get("summary") or "").strip(),
@@ -1893,11 +1894,12 @@ def _materialize_news_payload_frame(
                 published_at,
                 asof_time_utc=asof_label,
                 max_age_days=_attention_home_search_backfill_lookback_days(),
-                include_undated=False,
+                include_undated=True,
             ):
                 continue
             rows.append(
                 {
+                    **row.to_dict(),
                     "symbol": symbol,
                     "symbols": [symbol],
                     "headline": str(row.get("headline") or "").strip(),
@@ -1974,11 +1976,12 @@ def _materialize_attention_web_search_news(
                     published_at,
                     asof_time_utc=asof_label,
                     max_age_days=_attention_home_search_backfill_lookback_days(),
-                    include_undated=False,
+                    include_undated=True,
                 ):
                     continue
                 rows.append(
                     {
+                        **row.to_dict(),
                         "symbol": symbol,
                         "row_type": "article",
                         "headline": str(row.get("headline") or "").strip(),

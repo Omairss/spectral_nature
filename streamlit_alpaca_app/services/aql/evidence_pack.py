@@ -217,6 +217,7 @@ def materialize_research_artifacts(
     claims or treats a rendered preview as the complete evidence.
     """
     import pandas as pd
+    from ..saa.storage import build_canonical_document_fields
 
     documents, chunks, requests, results = [], [], [], []
     aliases: dict[str, list[str]] = {}
@@ -331,6 +332,15 @@ def materialize_research_artifacts(
                 "url": _clean(source.get("url")),
                 "canonical_url": _clean(source.get("url")),
                 "raw_text": text,
+                "raw_text_origin": source.get("raw_text_origin") or (
+                    "retained_reference" if source.get("chunk_record_id") else "tool_capture"
+                ),
+                "provider_payload_json": _clean(source.get("provider_payload_json")),
+                "source_trace": _clean(source.get("source_trace")) or _json_dumps({
+                    "capture_kind": "tool_capture", "tool": call.get("tool_name"),
+                    "recorded_dates": source.get("recorded_dates") or {},
+                    "date_basis": source.get("date_basis") or "unspecified",
+                }),
                 "display_excerpt": text[:240],
                 "published_at": published,
                 "source_provider": _clean(
@@ -352,6 +362,8 @@ def materialize_research_artifacts(
                     }] if source.get("source_references_loaded") is False else [])
                 ),
             }
+            if doc["raw_text_origin"] != "retained_reference":
+                doc.update(build_canonical_document_fields(doc))
             documents.append(doc)
             chunks.append(
                 {

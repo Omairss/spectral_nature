@@ -8,12 +8,11 @@ from ..llm_execution import latest_research_artifact
 
 import hashlib
 import json
-import os
 from typing import Any, Callable
 
 import pandas as pd
 
-from ..common.news_freshness import coerce_article_published_at, is_recent_for_attention
+from ..common.news_freshness import coerce_article_published_at
 from ..common.company_identity import clean_company_display_name
 from ..web_research import (
     SerperSearchClient,
@@ -117,44 +116,11 @@ def _symbol_news_general_query(symbol: str, company_name: str) -> str:
     )
 
 
-def _provider_payload_json(value: object) -> str:
-    if not isinstance(value, dict) or not value:
-        return ""
-    return _json_dumps(value)
-
-
 def _provider_result_text(item: WebSearchResult) -> str:
     raw_text = _coerce_text(getattr(item, "raw_text", ""))
     if raw_text:
         return raw_text
     return _coerce_text(item.snippet)
-
-
-def _symbol_news_max_age_days() -> int:
-    raw = _coerce_text(os.getenv("ATTENTION_SYMBOL_NEWS_MAX_AGE_DAYS"))
-    if raw:
-        try:
-            return max(int(raw), 1)
-        except Exception:
-            pass
-    return 7
-
-
-def _symbol_news_include_undated() -> bool:
-    raw = _coerce_text(os.getenv("ATTENTION_SYMBOL_NEWS_INCLUDE_UNDATED")).lower()
-    return raw in {"1", "true", "yes", "on"}
-
-
-def _current_symbol_news_timestamp(value: object, *, url: object, asof_time_utc: object) -> pd.Timestamp:
-    published_at = coerce_article_published_at(value, url=url, asof_time_utc=asof_time_utc)
-    if not is_recent_for_attention(
-        published_at,
-        asof_time_utc=asof_time_utc,
-        max_age_days=_symbol_news_max_age_days(),
-        include_undated=_symbol_news_include_undated(),
-    ):
-        return pd.NaT
-    return published_at
 
 
 def _llm_search_relevance_flags(
@@ -332,10 +298,6 @@ def search_symbol_news_payload(
     if not normalized_symbol:
         return {"articles": pd.DataFrame(), "fallback_summary": None, "source": None}
     company_name = clean_company_display_name(company_name) or _coerce_text(company_name)
-    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
-    if pd.isna(asof_ts):
-        asof_ts = pd.Timestamp.utcnow()
-
     if serp_client is None:
         serper_cfg = load_serper_config()
         if serper_cfg is not None:
@@ -370,8 +332,6 @@ def search_symbol_news_payload(
             serp_preview.append({"title": row.get("title", ""), "snippet": row.get("snippet", ""), "source": row.get("source", "")})
             if not bool(keep):
                 continue
-            if pd.isna(row.get("published_at")):
-                continue
             if _is_irrelevant_news_text(row.get("title"), row.get("snippet")):
                 continue
             kept += 1
@@ -379,6 +339,7 @@ def search_symbol_news_payload(
                 serp_relevant_count += 1
             article_rows.append(
                 {
+                    **row,
                     "headline": _coerce_text(row.get("title")),
                     "summary": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
                     "description": _evidence_text(row.get("provider_text") or row.get("snippet"), row.get("title")),
@@ -405,12 +366,7 @@ def search_symbol_news_payload(
                         "provider_text": _provider_result_text(item),
                         "source": _coerce_text(item.source) or primary_provider,
                         "url": _coerce_text(item.url),
-                        "published_at": _current_symbol_news_timestamp(
-                            item.published_at,
-                            url=item.url,
-                            asof_time_utc=asof_ts,
-                        ),
-                        "provider_payload_json": _provider_payload_json(item.raw),
+                        **item.to_source_record(),
                     }
                 )
             if hasattr(serp_client, "search_ai_overview"):
@@ -426,12 +382,7 @@ def search_symbol_news_payload(
                             "provider_text": _provider_result_text(ai_overview),
                             "source": _coerce_text(ai_overview.source) or "Google AI Overview",
                             "url": _coerce_text(ai_overview.url),
-                            "published_at": _current_symbol_news_timestamp(
-                                ai_overview.published_at,
-                                url=ai_overview.url,
-                                asof_time_utc=asof_ts,
-                            ),
-                            "provider_payload_json": _provider_payload_json(ai_overview.raw),
+                            **ai_overview.to_source_record(),
                         }
                     )
             _append_current_candidates(provider=primary_provider, query=query_base, candidates=serp_candidates)
@@ -450,12 +401,7 @@ def search_symbol_news_payload(
                             "provider_text": _provider_result_text(item),
                             "source": _coerce_text(item.source) or primary_provider,
                             "url": _coerce_text(item.url),
-                            "published_at": _current_symbol_news_timestamp(
-                                item.published_at,
-                                url=item.url,
-                                asof_time_utc=asof_ts,
-                            ),
-                            "provider_payload_json": _provider_payload_json(item.raw),
+                            **item.to_source_record(),
                         }
                     )
                 _append_current_candidates(provider=primary_provider, query=general_query, candidates=general_candidates)
@@ -494,12 +440,7 @@ def search_symbol_news_payload(
                         "provider_text": _provider_result_text(item),
                         "source": _coerce_text(item.source) or "Tavily",
                         "url": _coerce_text(item.url),
-                        "published_at": _current_symbol_news_timestamp(
-                            item.published_at,
-                            url=item.url,
-                            asof_time_utc=asof_ts,
-                        ),
-                        "provider_payload_json": _provider_payload_json(item.raw),
+                        **item.to_source_record(),
                     }
                 )
             _append_current_candidates(provider="tavily", query=tavily_query, candidates=tavily_candidates)
@@ -585,7 +526,9 @@ def _candidate_context_documents(
                     "candidate_id": _coerce_text(candidate.get("candidate_id")),
                     "bundle_subject": symbol,
                     "document_id": f"doc::{symbol}::news::{hashlib.sha1((_coerce_text(row.get('url')) or _coerce_text(row.get('headline'))).encode('utf-8')).hexdigest()[:12]}",
-                    "source_kind": "news",
+                    "source_kind": _coerce_text(row.get("source_kind")) or "news",
+                    "raw_text_origin": _coerce_text(row.get("raw_text_origin")) or "feed_record",
+                    "provider_payload_json": _coerce_text(row.get("provider_payload_json")) or _json_dumps(row.to_dict()),
                     "source_provider": _coerce_text(row.get("source")),
                     "source_authority_bucket": authority_bucket,
                     "authority_rank": authority_rank,
@@ -599,7 +542,10 @@ def _candidate_context_documents(
                     "raw_text": news_text,
                     "display_excerpt": _display_excerpt(news_text, row.get("headline")),
                     "search_provider": search_provider,
-                    "source_trace": _json_dumps({"source": "news_payloads", "provider": search_provider}),
+                    "source_trace": _coerce_text(row.get("source_trace")) or _json_dumps({
+                        "capture_kind": "feed_record", "provider": search_provider,
+                        "reported_publication_date": str(row.get("published_at") or ""),
+                    }),
                 }
             )
     context = dict((context_payloads or {}).get(symbol) or {})

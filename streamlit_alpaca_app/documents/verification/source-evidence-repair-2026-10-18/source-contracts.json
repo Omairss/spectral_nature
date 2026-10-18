@@ -1,0 +1,18 @@
+{
+  "checks": {
+    "search_reported_date_and_original_response_preserved_without_publication_claim": true,
+    "undated_search_lead_retained_through_both_materializers_and_parquet": true,
+    "html_meta_structured_data_and_time_elements_retained": true,
+    "actual_opened_page_complete_capture_reaches_shared_reader": true,
+    "actual_page_body_publisher_metadata_and_capture_identity_retained": true,
+    "retained_reference_preserves_id_and_cannot_overwrite_document_or_chunk": true,
+    "metadata_only_capture_changes_preserve_distinct_versions": true,
+    "capture_metadata_survives_source_reference_projection": true,
+    "existing_retained_reader_reopens_complete_original_and_capture_metadata": true
+  },
+  "model_calls": 0,
+  "database_writes": 0,
+  "source_body_characters": 5424,
+  "preview_characters": 800,
+  "source_body_sha256": "d21a17716d1346bcc80aa82f03e8e1285063f9ccc785d73afa2c39856d10ef91"
+}

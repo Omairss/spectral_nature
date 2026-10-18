@@ -84,8 +84,6 @@ def coerce_article_published_at(
     if pd.isna(published_at):
         published_at = _relative_published_at(value, asof_time_utc=asof_time_utc)
     if pd.isna(published_at):
-        published_at = infer_published_at_from_url(url)
-    if pd.isna(published_at):
         return pd.NaT
     asof_ts = _as_utc_timestamp(asof_time_utc) if asof_time_utc is not None else pd.NaT
     if pd.notna(asof_ts) and published_at > asof_ts + pd.Timedelta(days=2):

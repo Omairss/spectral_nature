@@ -636,6 +636,9 @@ def _news_rows_from_payload(
                 "summary_text": summary or headline,
                 "source": _clean(article.get("source")),
                 "published_at": published_at.isoformat() if pd.notna(published_at) else "",
+                "source_trace": _clean(article.get("source_trace")),
+                "provider_payload_json": _clean(article.get("provider_payload_json")),
+                "raw_text_origin": _clean(article.get("raw_text_origin")),
                 "url": url,
             }
         )
@@ -851,6 +854,7 @@ def live_event_evidence(
             }
             for row in ordered
         ],
+        "evidence_context_text": json.dumps(ordered, ensure_ascii=False, default=str),
         "llm_context_text": " ".join(item for item in llm_lines if item),
         "messages": _dedupe_text_items(messages, limit=8),
     }
@@ -1026,8 +1030,13 @@ def search_evidence(
                     "source_reference_resource": {"tool": "research.read_evidence", "arguments": {
                         "chunk_record_id": _clean(row.get("chunk_record_id")), "include_source_references": True,
                     }},
-                    "published_date": _clean(row.get("published_date")),
-                    "published_at": "" if pd.isna(row.get("published_at")) else str(row.get("published_at")),
+                    "recorded_dates": {
+                        "published_date": _clean(row.get("published_date")),
+                        "published_at": "" if pd.isna(row.get("published_at")) else str(row.get("published_at")),
+                    },
+                    "source_trace": json.dumps(row.get("source_capture") or {}, ensure_ascii=False),
+                    "date_basis": (row.get("source_capture") or {}).get("capture_kind") or _clean(row.get("raw_text_origin")) or "legacy_unspecified",
+                    "raw_text_origin": "retained_reference",
                     "retained_at": str(row.get("asof_time_utc") or ""),
                     "url": _clean(row.get("canonical_url")),
                 }
@@ -1048,17 +1057,18 @@ def search_evidence(
 
 
 def read_evidence(*, chunk_record_id: str, include_source_references: bool = False) -> dict[str, Any]:
-    from .saa.storage import load_retained_evidence_chunk, load_retained_document_metadata
+    from .saa.storage import load_retained_evidence_chunk, load_retained_document_metadata, load_retained_document
 
     row = load_retained_evidence_chunk(chunk_record_id, include_source_references=include_source_references)
     if not row:
         return {"summary": [], "llm_context_text": "The retained source is unavailable."}
     doc = load_retained_document_metadata(row.get("canonical_document_id") or "", include_source_references=False) or {}
+    original = load_retained_document(row.get("canonical_document_id") or "") or {}
     source = {
         "chunk_record_id": chunk_record_id,
         "canonical_document_id": row.get("canonical_document_id"),
         "title": row.get("title"),
-        "chunk_text": row.get("chunk_text"),
+        "chunk_text": original.get("raw_text") or row.get("chunk_text"),
         "source_kind": row.get("source_kind"),
         "evidence_type": row.get("evidence_type"),
         "source_refs": row.get("source_refs") or [],
@@ -1068,11 +1078,17 @@ def read_evidence(*, chunk_record_id: str, include_source_references: bool = Fal
         }},
         "page_id": row.get("page_id"),
         "url": doc.get("canonical_url") or row.get("canonical_url"),
-        "published_date": row.get("published_date"),
+        "recorded_dates": {"published_date": row.get("published_date"), "published_at": str(row.get("published_at") or "")},
+        "source_trace": original.get("source_trace") or doc.get("source_trace") or "",
+        "provider_payload_json": original.get("provider_payload_json") or "",
+        "source_capture": original.get("source_capture") or doc.get("source_capture") or {},
+        "date_basis": original.get("raw_text_origin") or "legacy_unspecified",
+        "raw_text_origin": "retained_reference",
         "retained_at": str(row.get("asof_time_utc") or ""),
     }
     return {
         "summary": [source],
+        "candidate_sources": [source],
         "llm_context_text": json.dumps(source, ensure_ascii=False, default=str),
     }
 
@@ -1099,6 +1115,8 @@ def open_page(
         "excerpt": _trim(page.get("excerpt"), limit=260),
         "warning": _clean(page.get("warning")),
         "quality_issue": _clean(page.get("quality_issue")),
+        "source_metadata": page.get("source_metadata") or {},
+        "retrieved_at": _clean(page.get("retrieved_at")),
     }
     llm_lines = [
         f"Opened page via {summary_row['mode'] or 'unknown'}.",
@@ -1111,11 +1129,24 @@ def open_page(
     if summary_row["excerpt"]:
         llm_lines.append(f"Excerpt: {summary_row['excerpt']}.")
     text = str(page.get("text") or "").strip()[:safe_max_chars]
+    source_text = str(page.get("source_text") or text).strip()
+    source = {
+        **summary_row, "chunk_text": source_text,
+        "source_kind": "opened_page", "raw_text_origin": "page_capture",
+        "source_trace": json.dumps({
+            "capture_kind": "page_capture", "reader": summary_row["mode"],
+            "retrieved_at": summary_row["retrieved_at"],
+            "publisher_metadata": summary_row["source_metadata"],
+        }, ensure_ascii=False),
+    }
     if text:
         llm_lines.append(f"Visible text: {text}")
     return {
         "url": summary_row["url"],
         "summary": [summary_row],
+        "candidate_sources": [source],
+        "source_text": source_text,
+        "evidence_context_text": json.dumps([source], ensure_ascii=False, default=str),
         "page_text": text,
         "llm_context_text": " ".join(item for item in llm_lines if item),
     }

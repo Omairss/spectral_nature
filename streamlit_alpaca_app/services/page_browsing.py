@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timezone
 from html.parser import HTMLParser
 import os
 import re
@@ -164,9 +165,19 @@ class _HTMLTextExtractor(HTMLParser):
         self.description = ""
         self.og_title = ""
         self.og_description = ""
+        self.metadata: list[dict[str, str]] = []
+        self.structured_data: list[str] = []
+        self.times: list[dict[str, Any]] = []
+        self._structured_parts: list[str] | None = None
+        self._time: dict[str, Any] | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         normalized = tag.lower().strip()
+        attrs_map = {str(key).lower(): str(value or "") for key, value in attrs}
+        if normalized == "script" and attrs_map.get("type", "").lower() == "application/ld+json":
+            self._structured_parts = []
+        if normalized == "time":
+            self._time = {"attributes": attrs_map, "text": ""}
         if normalized in {"script", "style", "noscript"}:
             self._ignore_depth += 1
             return
@@ -174,7 +185,7 @@ class _HTMLTextExtractor(HTMLParser):
             self._in_title = True
             return
         if normalized == "meta":
-            attrs_map = {str(key).lower(): str(value or "") for key, value in attrs}
+            self.metadata.append(attrs_map)
             name = attrs_map.get("name", "").lower()
             prop = attrs_map.get("property", "").lower()
             content = _clean(attrs_map.get("content"))
@@ -187,6 +198,12 @@ class _HTMLTextExtractor(HTMLParser):
 
     def handle_endtag(self, tag: str) -> None:
         normalized = tag.lower().strip()
+        if normalized == "script" and self._structured_parts is not None:
+            self.structured_data.append("".join(self._structured_parts))
+            self._structured_parts = None
+        if normalized == "time" and self._time is not None:
+            self.times.append(self._time)
+            self._time = None
         if normalized in {"script", "style", "noscript"} and self._ignore_depth > 0:
             self._ignore_depth -= 1
             return
@@ -194,6 +211,10 @@ class _HTMLTextExtractor(HTMLParser):
             self._in_title = False
 
     def handle_data(self, data: str) -> None:
+        if self._structured_parts is not None:
+            self._structured_parts.append(data)
+        if self._time is not None:
+            self._time["text"] = _clean(self._time["text"] + " " + data)
         clean = _clean(data)
         if not clean or self._ignore_depth > 0:
             return
@@ -211,13 +232,14 @@ class _HTMLTextExtractor(HTMLParser):
         return _clean(" ".join(self._text_parts))
 
 
-def _parse_html_document(html: str) -> dict[str, str]:
+def _parse_html_document(html: str) -> dict[str, Any]:
     parser = _HTMLTextExtractor()
     parser.feed(html)
     return {
         "title": parser.title,
         "description": parser.description or parser.og_description,
         "text": parser.text,
+        "source_metadata": {"meta": parser.metadata, "structured_data": parser.structured_data, "times": parser.times},
     }
 
 
@@ -293,7 +315,7 @@ def page_quality_issue(payload: dict[str, Any] | None, *, min_text_chars: int = 
     return ""
 
 
-async def _extract_readable_text_blocks(page: Any, *, max_blocks: int = 90) -> list[str]:
+async def _extract_readable_text_blocks(page: Any, *, max_blocks: int = 0) -> list[str]:
     try:
         blocks = await page.evaluate(
             """
@@ -320,7 +342,7 @@ async def _extract_readable_text_blocks(page: Any, *, max_blocks: int = 90) -> l
                 const minLength = tag.startsWith('h') ? 8 : 35;
                 if (!text || text.length < minLength || reject.test(text)) continue;
                 output.push(text);
-                if (output.length >= maxBlocks) break;
+                if (maxBlocks > 0 && output.length >= maxBlocks) break;
               }
               return output;
             }
@@ -357,6 +379,7 @@ async def _browse_with_playwright(
                     pass
                 title = _clean(await page.title())
                 final_url = _clean(page.url)
+                source_metadata = _parse_html_document(await page.content())["source_metadata"]
                 description = ""
                 try:
                     description = _clean(await page.evaluate(
@@ -373,6 +396,7 @@ async def _browse_with_playwright(
     except (PlaywrightTimeoutError, PlaywrightError) as exc:
         raise PageBrowsingError(f"Playwright page browse failed: {type(exc).__name__}: {exc}") from exc
 
+    source_text = text
     text = _trim(text, limit=max_text_chars)
     return {
         "url": url,
@@ -381,6 +405,9 @@ async def _browse_with_playwright(
         "description": description,
         "excerpt": _build_excerpt(title, description, text),
         "text": text,
+        "source_text": source_text,
+        "source_metadata": source_metadata,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
         "mode": "playwright",
         "warning": "",
     }
@@ -459,7 +486,13 @@ def _browse_with_scrapling(
         "meta[property='og:description']",
         "content",
     )
-    text = _trim(_scrapling_response_text(response), limit=max(max_text_chars, 500))
+    source_text = _scrapling_response_text(response)
+    source_metadata = {
+        "meta": [dict(node.attrib) for node in response.css("meta")],
+        "structured_data": [str(node.text or "") for node in response.css('script[type="application/ld+json"]')],
+        "times": [{"attributes": dict(node.attrib), "text": _clean(node.text)} for node in response.css("time")],
+    }
+    text = _trim(source_text, limit=max(max_text_chars, 500))
     if not text:
         raise PageBrowsingError("Scrapling captured no visible page text.")
     return {
@@ -469,6 +502,9 @@ def _browse_with_scrapling(
         "description": description,
         "excerpt": _build_excerpt(title, description, text),
         "text": text,
+        "source_text": source_text,
+        "source_metadata": source_metadata,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
         "mode": "scrapling",
         "warning": _clean(warning),
     }
@@ -539,6 +575,9 @@ def _browse_with_firecrawl(
         "description": description,
         "excerpt": _build_excerpt(title, description, text),
         "text": _trim(text, limit=max(max_text_chars, 500)),
+        "source_text": text,
+        "source_metadata": metadata,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
         "mode": "firecrawl",
         "warning": _clean(warning or data.get("warning")),
     }
@@ -580,13 +619,16 @@ def _browse_with_http(
     raw_text = response.text
     title = ""
     description = ""
+    source_metadata = {}
     text = _clean(raw_text)
     if "html" in content_type.lower() or "<html" in raw_text.lower():
         parsed = _parse_html_document(raw_text)
         title = parsed["title"]
         description = parsed["description"]
         text = parsed["text"] or text
+        source_metadata = parsed["source_metadata"]
 
+    source_text = text
     text = _trim(text, limit=max_text_chars)
     final_url = _clean(response.url) or url
     return {
@@ -596,6 +638,9 @@ def _browse_with_http(
         "description": description,
         "excerpt": _build_excerpt(title, description, text),
         "text": text,
+        "source_text": source_text,
+        "source_metadata": source_metadata,
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
         "mode": "http",
         "warning": _clean(warning),
     }

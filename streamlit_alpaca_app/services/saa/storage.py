@@ -108,6 +108,8 @@ def _canonical_reference_metadata(metadata: dict[str, Any]) -> dict[str, Any]:
             trace = None
     if isinstance(trace, list):
         metadata["source_trace"] = json.dumps(canonical_source_references(trace), ensure_ascii=False)
+    elif isinstance(trace, dict) and trace.get("capture_kind"):
+        metadata["source_capture"] = trace
     return metadata
 
 
@@ -294,7 +296,10 @@ def build_canonical_document_fields(row: dict[str, Any]) -> dict[str, str]:
     provider_payload_json = _parse_json_text(row.get("provider_payload_json"))
     provider_payload_sha256 = _sha256_text(provider_payload_json) if provider_payload_json else ""
     identity_key = (
-        canonical_url
+        "|".join((canonical_url, _coerce_text(row.get("raw_text_origin")), content_sha256,
+                  provider_payload_sha256, _sha256_text(row.get("source_trace"))))
+        if canonical_url and _coerce_text(row.get("raw_text_origin"))
+        else canonical_url
         or "|".join(
             part
             for part in (
@@ -310,7 +315,11 @@ def build_canonical_document_fields(row: dict[str, Any]) -> dict[str, str]:
     )
     identity_sha256 = _sha256_text(identity_key)
     return {
-        "canonical_document_id": f"saa_doc::{identity_sha256[:24]}",
+        "canonical_document_id": (
+            _coerce_text(row.get("canonical_document_id"))
+            if row.get("raw_text_origin") == "retained_reference" and row.get("canonical_document_id")
+            else f"saa_doc::{identity_sha256[:24]}"
+        ),
         "canonical_url": canonical_url,
         "url_host": _url_host(canonical_url or row.get("url")),
         "document_identity_sha256": identity_sha256,
@@ -685,6 +694,7 @@ def _retained_document_body(
         "mentioned_dates_json": _coerce_text(row.get("mentioned_dates_json")),
         "query_text": _coerce_text(row.get("query_text")),
         "source_trace": _coerce_text(row.get("source_trace")),
+        "source_capture": _canonical_reference_metadata({"source_trace": row.get("source_trace")}).get("source_capture", {}),
         "raw_text": _coerce_text(row.get("raw_text")),
         "provider_text": _coerce_text(row.get("provider_text")),
         "provider_payload_json": _coerce_text(row.get("provider_payload_json")),
@@ -716,6 +726,8 @@ def prepare_retained_source_documents(
 
     for idx, row in base.iterrows():
         item = dict(row.dropna().to_dict())
+        if item.get("raw_text_origin") == "retained_reference":
+            continue
         item.update(build_canonical_document_fields(item))
         item["display_excerpt"] = _display_excerpt(item)
         item["search_text"] = _search_text(item)
@@ -791,6 +803,7 @@ def prepare_retained_source_documents(
                     _canonical_reference_metadata({
                         "query_text": _coerce_text(item.get("query_text")),
                         "source_trace": _coerce_text(item.get("source_trace")),
+                        "raw_text_origin": _coerce_text(item.get("raw_text_origin")),
                     }),
                     ensure_ascii=False,
                 ),
@@ -933,6 +946,8 @@ def prepare_retained_evidence_chunks(
     records: list[tuple[Any, ...]] = []
     for idx, row in base.iterrows():
         item = dict(row.dropna().to_dict())
+        if item.get("raw_text_origin") == "retained_reference":
+            continue
         chunk_text = _coerce_text(item.get("chunk_text"))
         if not chunk_text:
             continue
@@ -945,7 +960,8 @@ def prepare_retained_evidence_chunks(
             "|".join(
                 part
                 for part in (
-                    _coerce_text(item.get("canonical_document_id")),
+                    _coerce_text(item.get("canonical_url") or item.get("canonical_document_id")),
+                    _coerce_text(item.get("raw_text_origin")),
                     _coerce_text(item.get("chunk_index")),
                     chunk_text,
                 )
@@ -1297,9 +1313,10 @@ def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame
     ):
         frame[list_column] = frame[json_column].map(_safe_json_list)
     frame["canonical_url"] = ""
-    for column in ("page_id", "source_version", "evidence_type", "retrieved_at"):
+    for column in ("page_id", "source_version", "evidence_type", "retrieved_at", "source_trace"):
         frame[column] = ""
     frame["source_refs"] = [[] for _ in range(len(frame))]
+    frame["source_capture"] = [{} for _ in range(len(frame))]
     for index, row in frame.iterrows():
         try:
             meta = json.loads(row.get("metadata_json") or "{}")
@@ -1320,7 +1337,9 @@ def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame
         # The original metadata stays in SQL. The projected frame uses the
         # linked representation too, so it cannot retain a second ancestry tree.
         frame.at[index, "metadata_json"] = json.dumps(meta, ensure_ascii=False)
-        for key in ("source_refs", "page_id", "source_version", "evidence_type", "retrieved_at"):
+        if isinstance(meta.get("source_capture"), dict):
+            frame.at[index, "source_capture"] = meta["source_capture"]
+        for key in ("source_refs", "page_id", "source_version", "evidence_type", "retrieved_at", "source_trace", "raw_text_origin"):
             if key in meta:
                 frame.at[index, key] = (
                     (meta[key] if isinstance(meta[key], list) else [])

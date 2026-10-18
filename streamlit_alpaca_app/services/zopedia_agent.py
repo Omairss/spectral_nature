@@ -790,14 +790,15 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
     source_documents = []
     if isinstance(payload, dict):
         source_documents = list(payload.get("candidate_sources") or [])
-        if payload.get("page_text"):
+        if payload.get("page_text") and not source_documents:
             page = (payload.get("summary") or [{}])[0]
             source_documents.append(
                 {
                     "url": payload.get("url"),
                     "title": page.get("title"),
-                    "chunk_text": payload["page_text"],
-                    "source_kind": "original_reporting",
+                    "chunk_text": payload.get("source_text") or payload["page_text"],
+                    "source_kind": "opened_page",
+                    "raw_text_origin": "page_capture",
                 }
             )
     preview = _preview_payload(payload)
@@ -935,6 +936,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
                 "evidence_type": _clean(item.get("evidence_type")),
                 "source_kind": _clean(item.get("source_kind")),
                 "source_refs": (item.get("source_refs") if isinstance(item.get("source_refs"), list) else []),
+                **{key: item[key] for key in ("raw_text_origin", "source_trace", "recorded_dates", "date_basis") if key in item},
                 **{key: item[key] for key in ("source_references_loaded", "source_reference_resource") if key in item},
             }
             if any(evidence_ref.values()):
@@ -1134,6 +1136,7 @@ def _run_evidence_model_step(
     capacity_feedback: str = "", call_type: str = "research_grade",
     query: str = "",
     supplied_evidence_allowed: bool = True,
+    model_timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     """Keep source reads available through planning, writing and review.
 
@@ -1144,7 +1147,8 @@ def _run_evidence_model_step(
         return generate_json_via_aql_zopedia_gateway(
             llm_client=llm_client, surface=surface, purpose=purpose, call_type=call_type,
             system_prompt=system_prompt, user_prompt=prompt(tool_calls), schema_name=schema_name,
-            schema=schema, deadline_monotonic=deadline_monotonic, metadata=metadata,
+            schema=schema, deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
+            if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
         )
     step_schema = {
         "type": "object", "additionalProperties": False,
@@ -1213,7 +1217,8 @@ def _run_evidence_model_step(
                     "tool results stay in working context. Read any omitted result through its history source_id."
                 ),
                 user_prompt=user_prompt, schema_name=schema_name + "_evidence_step", schema=step_schema,
-                deadline_monotonic=deadline_monotonic, metadata=metadata,
+                deadline_monotonic=min(deadline_monotonic, time.monotonic() + model_timeout_seconds)
+                if model_timeout_seconds is not None else deadline_monotonic, metadata=metadata,
             )
         except LLMContextWindowExceeded as exc:
             if input_reference:
@@ -1958,6 +1963,10 @@ def _final_user_prompt(
             "source_refs",
             "published_at",
             "published_date",
+            "recorded_dates",
+            "date_basis",
+            "source_trace",
+            "raw_text_origin",
             "evidence_type",
         )
         candidates = [
@@ -2109,6 +2118,7 @@ def _run_answer_judge(
     service: QueryService | None = None,
     context_state: dict[str, Any] | None = None,
     supplied_evidence_allowed: bool = True,
+    model_timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     """Review a draft answer against evidence without blocking the whole run."""
     if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
@@ -2169,6 +2179,7 @@ def _run_answer_judge(
                 schema_name="zopedia_agent_judge",
                 schema=review_schema,
                 deadline_monotonic=deadline,
+                model_timeout_seconds=model_timeout_seconds,
                 metadata={
                     "run_id": run_id,
                     "task": _clean(task) or "agent_answer",
@@ -3443,6 +3454,7 @@ def _execute_zopedia_agent_loop(
                         llm_client=resolved_llm, surface=surface, purpose="agent.research_step", call_type="research_grade",
                         system_prompt=_planner_system_prompt(), user_prompt=planning_prompt,
                         schema_name="zopedia_agent_step", schema=_STEP_SCHEMA,
+                        deadline_monotonic=budget.step_deadline("research", llm_step_timeout_seconds),
                         metadata={"run_id": run_id, "iteration": iteration, "max_tool_calls": max_tool_calls,
                                   "tool_call_count": _budgeted_tool_count(tool_calls)},
                     )
@@ -3452,7 +3464,8 @@ def _execute_zopedia_agent_loop(
                         context_state=context_state, prompt=planning_prompt_for,
                         system_prompt=_planner_system_prompt(), schema_name="zopedia_agent_step", schema=_STEP_SCHEMA,
                         surface=surface, purpose="agent.research_step",
-                        deadline_monotonic=budget.step_deadline("research", llm_step_timeout_seconds),
+                        deadline_monotonic=budget.step_deadline("research", budget.remaining()),
+                        model_timeout_seconds=llm_step_timeout_seconds,
                         metadata={"run_id": run_id, "iteration": iteration}, progress_callback=progress_callback,
                         capacity_feedback=str(exc),
                         query=agent_query,
@@ -3461,7 +3474,7 @@ def _execute_zopedia_agent_loop(
             try:
                 decision = _run_hidden_step_with_timeout(
                     label="research planning",
-                    timeout_seconds=budget.remaining(maximum=llm_step_timeout_seconds),
+                    timeout_seconds=budget.remaining(),
                     progress_callback=progress_callback,
                     progress=step_progress,
                     func=research_step,
@@ -3558,7 +3571,8 @@ def _execute_zopedia_agent_loop(
                         prefetched_context=json.dumps(_prompt_request_context(request_context), ensure_ascii=False)
                         + "\n"
                         + prefetched_context,
-                        timeout_seconds=budget.remaining(maximum=llm_step_timeout_seconds),
+                        timeout_seconds=budget.remaining(),
+                        model_timeout_seconds=llm_step_timeout_seconds,
                         progress_callback=progress_callback,
                         response_schema=response_schema,
                         service=resolved_service,
@@ -3764,7 +3778,11 @@ def _execute_zopedia_agent_loop(
             _final_result: list[dict[str, Any] | None] = [None]
             _final_error: list[BaseException | None] = [None]
             synthesis_llm = _synthesis_llm_client(resolved_llm)
-            synthesis_deadline = budget.step_deadline("synthesis", llm_step_timeout_seconds)
+            # Reading and writing share the existing phase clock. Individual
+            # model requests keep their own configured step limit.
+            synthesis_deadline = budget.step_deadline(
+                "synthesis", budget.remaining("synthesis") if budget.deadline is not None else llm_step_timeout_seconds
+            )
             synthesis_started = time.monotonic()
             def _run_final_synthesis() -> None:
                 try:
@@ -3808,6 +3826,7 @@ def _execute_zopedia_agent_loop(
                         schema_name=response_schema_name or "zopedia_agent_final",
                         schema=response_schema or _FINAL_SCHEMA,
                         deadline_monotonic=synthesis_deadline,
+                        model_timeout_seconds=llm_step_timeout_seconds,
                         metadata={
                             "run_id": run_id,
                             "task": task,
@@ -3829,7 +3848,7 @@ def _execute_zopedia_agent_loop(
                     _heartbeat_elapsed = time.monotonic() - synthesis_started
                     if time.monotonic() >= synthesis_deadline:
                         _final_error[0] = TimeoutError(
-                            f"Final synthesis LLM step timed out after {llm_step_timeout_seconds}s."
+                            "Final synthesis exceeded its remaining phase budget."
                         )
                         _emit_progress(
                             progress_callback,
@@ -3988,7 +4007,8 @@ def _execute_zopedia_agent_loop(
             limitations=limitations,
             conversation_history=conversation_history,
             prefetched_context=json.dumps(_prompt_request_context(request_context), ensure_ascii=False) + "\n" + prefetched_context,
-            timeout_seconds=budget.remaining("completion", llm_step_timeout_seconds),
+            timeout_seconds=budget.remaining("completion"),
+            model_timeout_seconds=llm_step_timeout_seconds,
             progress_callback=progress_callback,
             response_schema=response_schema,
             service=resolved_service,

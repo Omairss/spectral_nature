@@ -1,0 +1,495 @@
+{
+  "status": "accepted_for_complete_development_verification_only",
+  "source_files": {
+    "Dockerfile.runtime": "ab6108a0640adeae8e1bea766b0cc69761dfe73d4cbb6894c2ba0f99d07419a9",
+    "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
+    "data_access/layer.py": "91d2facf53761b5b939294b1c2abe14451cea9bb151263d7821fbcd63b6c5e34",
+    "pipeline/jobs/attention_home_build.py": "f11d8c8abb66a627b8bc5b047a353d850355290cb28ddd8bd6206ea93b14e155",
+    "pipeline/jobs/main.py": "54c816fc1c1802143fb96ac95b5234f12c15f9b2f532fb888d4b8388e3f3516e",
+    "services/alpaca_api.py": "5fe7198b092753364d456b87b7a8836e5b7352686bc401edf1dda693990db101",
+    "services/aql/assembler.py": "b5d795bb987821baa426532f7bf6bc2210d85a5dd2353e93ad942cb0fd76bd35",
+    "services/aql/collector.py": "932062ba9ecb5a78ed1f29bebe73c6e65ac585f0ec4d245efd699ee94fae6d59",
+    "services/aql/evidence_pack.py": "ed053239682a6fa323660ea1bf98e5af4c6e62ca53bd985d659fadac8d13f506",
+    "services/aql_zopedia_engine.py": "36e798a6122db61ad0b6d96f99c7d3999771de1a3eaff64fcdbef2ea2fe4cfc7",
+    "services/attention_home_1d.py": "d8ad63e4f120ee8815202697c654d3fc45394f797edd779cbf40fa15f07165fe",
+    "services/attention_live_research.py": "e852692d8719a403c9c482bfffbded2cd53a153f5736025f73a3fcef46c8ee68",
+    "services/attention_ticker_snapshots.py": "634ce2f9b67f6d30de1c7ba2a9f1967a19e65f4fc12157d241d6fa5c7a524900",
+    "services/common/news_freshness.py": "a81201ce532a4d78182616c97c38bb8cbc544c2f511262f002d9f5cbca3e5e47",
+    "services/daily_market_datapoints.py": "d23148f9e92df1b100205a7a6e6996804dfe585cfb14bb3fa59a703976cf3f52",
+    "services/llm.py": "2dd6700b0b1266820b4c5e741b4bf6db8a344429422a23cc75116c7bd2144017",
+    "services/llm_execution.py": "4e321b2dbcc72b784f84b05e1abd14f2a6565078f6687547358182d88ec7b3b8",
+    "services/market.py": "93f5cc5981f36d9817ae9f3d7fd316fa54cf057e7655c39f0c6836bf01205123",
+    "services/page_browsing.py": "53a2602e454879c3cf3afd921ba886bc3e2dbacd33145b8e4a3e0679f4e4d38a",
+    "services/saa/storage.py": "7aa2dc8fc91b571025cf9881071271f71b7e41b1dba9233ab77e49e6fbf92011",
+    "services/seeking_alpha_access.py": "651702e991bb26c1b25289f5a270f8a2451b70912ecad4389bfd57376797db15",
+    "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
+    "services/zopedia_agent.py": "f41f9dce57095b2bb3cc24356976d95a5591206eec467a456175ba7fd48a1817",
+    "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec"
+  },
+  "application_changes": 24,
+  "cases": [
+    {
+      "subject": "CRWV",
+      "status": "completed",
+      "payload": {
+        "title": "CoreWeave falls 11.9% as worry about AI-related borrowing hits its shares and bonds",
+        "surface_summary": "CoreWeave (CRWV) closed at $61.39 on 16 October 2026, down 11.9% from $69.68. This ended a bad week that started with a 15.5% fall on 14 October. Reuters linked the selling to concern about AI-related borrowing and refinancing. The shares and the company's bonds fell together, which points to a funding problem rather than a sudden drop in demand for AI computing.",
+        "what_changed_text": "CoreWeave closed at $61.39 on 16 October 2026, down $8.30, or 11.91%, from $69.68 the day before, per a [Reuters delayed quote](https://www.reuters.com/markets/companies/CRWV.O/) and [Yahoo Finance](https://ca.finance.yahoo.com/quote/CRWV/). After-hours trading added a small further fall to $60.99.\n\nThe drop capped a bad week. [Admiral Markets](https://admiralmarkets.com/education/articles/shares/coreweave-stock-drop-ai-debt) records a 15.5% one-day fall on Wednesday 14 October 2026 that closed the stock at $65.78, and calls it the largest one-day fall since a date the excerpt does not show. The next session was volatile: [Reuters](https://www.reuters.com/legal/transactional/coreweave-shares-bonds-slide-further-ai-debt-fears-mount-2026-10-15/) said the stock slipped as much as 8.3% to its lowest level since May 2025 before trading up 5%. Friday brought the 11.9% fall. [Reuters](https://www.reuters.com/business/coreweave-shares-bonds-headed-steep-weekly-losses-ai-borrowing-concerns-mount-2026-10-16/) said shares and bonds were set for steep weekly losses as concern about AI-related borrowing grew; the same headline refers to rate-hike worries.",
+        "why_today_text": "The clearest supported cause is a change in how investors price CoreWeave's debt. Its shares and its bonds fell in the same week. A bond is a loan that investors buy; its price falls when investors demand a higher interest rate. A joint fall in shares and bonds therefore points to higher funding costs, not only weaker demand for AI computing. [Reuters](https://www.reuters.com/business/coreweave-shares-bonds-headed-steep-weekly-losses-ai-borrowing-concerns-mount-2026-10-16/) tied the weekly loss to rising concern about AI-related borrowing, and its headline also points to rate-hike worries. Higher policy rates raise the return investors want on long, capital-heavy projects, so they hurt companies that borrow first to build.\n\nCoreWeave is exposed to this because it must buy GPUs (the chips that train and run AI models), data-centre space and power before customers pay. The equity takes the first loss when credit gets more expensive or harder to obtain. Views differ: UBS started coverage with a Buy rating and a $120 price target, far above the market price, per an undated [market summary](https://www.perplexity.ai/finance/CRWV). That gap suggests a dispute about financing risk, not agreement that the business is broken.",
+        "what_else_moved_text": "CoreWeave's bonds moved with its shares, and that is the most useful cross-asset signal in the evidence. The specialist GPU-cloud group also trades together on sentiment: a [24/7 Wall Street note](https://public.com/stocks/crwv/news/2) dated 25 September 2026 said neocloud stocks fell as selling extended after a week of research notes, with IREN down 4% and Nebius easing. That episode came three weeks before this drop, so it shows shared trading behaviour in the group, not a same-day peer cause. The evidence has no bond-yield or leverage comparison across these names, so the idea that CoreWeave is the most debt-sensitive of them is an inference, not a measured fact.",
+        "background_context_text": "CoreWeave is a GPU cloud provider. It rents access to graphics processing units, the chips that train and run AI models. Customers commit to multi-year compute contracts, but the company must build or lease data centres and buy chips first. That timing gap is the main financial risk: revenue arrives over the life of the contract, while spending, rent and interest arrive earlier. The model works well when credit is cheap and demand is strong. It becomes fragile when investors start to question the debt that pays for the buildout, because the cost of rolling over that debt rises and each new project must earn more to cover it.",
+        "claims": [
+          {
+            "claim_text": "CoreWeave closed at $61.39 on 16 October 2026, down $8.30 or 11.91% from the previous close of $69.68.",
+            "claim_type": "price_move",
+            "claim_entities": [
+              "CoreWeave",
+              "CRWV"
+            ],
+            "supports_hypothesis": "The attention candidate is a real, large negative price move.",
+            "freshness_class": "recent",
+            "relevance_score": 1.0,
+            "causal_score": 0.05,
+            "confidence_score": 0.98,
+            "evidence_chunk_ids": [
+              "ctx_b95b2dc75ce82c368a38deb72582f96efb5c7bfdf10f5e14db9d4948e8b43082",
+              "ctx_9e23190326cb27a64917bcd04ac2d3796b817fe363b9b8692b6b2e8eff71ac39"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "CoreWeave fell 15.5% on Wednesday 14 October 2026 and closed at $65.78, according to a market write-up that calls it the largest one-day fall since a date the excerpt does not show.",
+            "claim_type": "price_move",
+            "claim_entities": [
+              "CoreWeave",
+              "CRWV"
+            ],
+            "supports_hypothesis": "The 16 October drop came after several days of selling, not as an isolated event.",
+            "freshness_class": "recent",
+            "relevance_score": 0.9,
+            "causal_score": 0.05,
+            "confidence_score": 0.8,
+            "evidence_chunk_ids": [
+              "ctx_4a76adb15c8df2f46da80bf7f69129f0f08241f270b4758d0e1b36ca70bdc77a"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "Reuters reported that CoreWeave's shares and bonds fell together as concern about AI-related borrowing, debt and refinancing increased.",
+            "claim_type": "causal_financing",
+            "claim_entities": [
+              "CoreWeave",
+              "CRWV",
+              "corporate bonds"
+            ],
+            "supports_hypothesis": "Financing risk is the main supported driver of the selloff.",
+            "freshness_class": "recent",
+            "relevance_score": 0.95,
+            "causal_score": 0.75,
+            "confidence_score": 0.85,
+            "evidence_chunk_ids": [
+              "ctx_5462b2803cac9cfe6bdd3fd8109de0d2632300932da81b966528ed3192e54a85",
+              "ctx_91d9e39e8923587af9fc3a4c43463595b419141ff438feba7270a33f43d815c3",
+              "ctx_0c53d3643cb38db7ddf963bca4943e76d4c523bb8ae6b6af6fa75a873e106430"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "On 15 October 2026 CoreWeave slipped as much as 8.3% to its lowest level since May 2025 before trading up about 5%, so the week included sharp intraday swings in both directions.",
+            "claim_type": "market_volatility",
+            "claim_entities": [
+              "CoreWeave",
+              "CRWV"
+            ],
+            "supports_hypothesis": "Investors were repricing the stock quickly as news arrived, not reacting to one settled fact.",
+            "freshness_class": "recent",
+            "relevance_score": 0.7,
+            "causal_score": 0.15,
+            "confidence_score": 0.75,
+            "evidence_chunk_ids": [
+              "ctx_91d9e39e8923587af9fc3a4c43463595b419141ff438feba7270a33f43d815c3"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "CoreWeave must spend heavily on GPUs, data-centre leases and power before multi-year compute contracts pay back, so the equity is sensitive to the cost of debt.",
+            "claim_type": "business_model",
+            "claim_entities": [
+              "CoreWeave",
+              "GPUs",
+              "data centres",
+              "debt"
+            ],
+            "supports_hypothesis": "The operating model amplifies financing shocks.",
+            "freshness_class": "background",
+            "relevance_score": 0.8,
+            "causal_score": 0.5,
+            "confidence_score": 0.8,
+            "evidence_chunk_ids": [
+              "ctx_91d9e39e8923587af9fc3a4c43463595b419141ff438feba7270a33f43d815c3",
+              "ctx_4a76adb15c8df2f46da80bf7f69129f0f08241f270b4758d0e1b36ca70bdc77a"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "On 25 September 2026 neocloud stocks fell together as selling extended after a week of research notes: IREN dropped 4%, CoreWeave slid 3% and Nebius eased.",
+            "claim_type": "peer_move",
+            "claim_entities": [
+              "IREN",
+              "Nebius",
+              "CoreWeave"
+            ],
+            "supports_hypothesis": "The group shares a sentiment channel, but this earlier episode is not a same-day cause of the 16 October fall.",
+            "freshness_class": "older",
+            "relevance_score": 0.6,
+            "causal_score": 0.25,
+            "confidence_score": 0.8,
+            "evidence_chunk_ids": [
+              "ctx_9500295fe852ab390662ce03cfb4a9bafb5a63e18875200fd7c8da17726d8a50"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "UBS initiated coverage of CoreWeave with a Buy rating and a $120 price target, close to double the mid-October market price; the summary is undated.",
+            "claim_type": "analyst_view",
+            "claim_entities": [
+              "UBS",
+              "CoreWeave"
+            ],
+            "supports_hypothesis": "Investors disagree about how severe the financing risk is.",
+            "freshness_class": "undated",
+            "relevance_score": 0.55,
+            "causal_score": 0.1,
+            "confidence_score": 0.65,
+            "evidence_chunk_ids": [
+              "ctx_d7e7a995ce12b1279b02e12c9f448c4a7284e32f5b785275aa415ff64abdbe6a"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "A search summary says recent coverage centres on heavy insider activity, but it gives no amounts or dates that would link insider selling to the fall.",
+            "claim_type": "indirect_connection",
+            "claim_entities": [
+              "CoreWeave",
+              "insiders"
+            ],
+            "supports_hypothesis": "Insider selling is a possible extra overhang, not a proven cause.",
+            "freshness_class": "recent",
+            "relevance_score": 0.4,
+            "causal_score": 0.15,
+            "confidence_score": 0.35,
+            "evidence_chunk_ids": [
+              "ctx_0c53d3643cb38db7ddf963bca4943e76d4c523bb8ae6b6af6fa75a873e106430"
+            ],
+            "is_same_day": false
+          }
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft's core reading (a financing-risk repricing, shown by shares and bonds falling together) is well supported and worth keeping. Three fixes are needed. First, the draft says the Admiral Markets excerpt does not date the 15.5% drop; the excerpt does date it to Wednesday 14 October 2026 and gives a $65.78 close, so the correction also builds a useful week-long price path. Second, the peer claim mixes a 25 September neocloud selloff with the mid-October move and needs its date stated so it is not read as same-day contagion. Third, the Reuters headline ties the weekly plunge to rate-hike worries as well as AI borrowing, which adds a useful macro channel that the draft omits. Business-model reasoning and the weak insider lead are kept at appropriate strength.",
+        "confidence": "medium",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "What specific financing events (bond issuance, refinancing facility, covenant terms, rating action, rate expectations) drove the 14-16 October 2026 selloff in CoreWeave shares and bonds?",
+          "How do CoreWeave's bond yields, total debt and lease obligations compare with Nebius and IREN as of October 2026?",
+          "Is there dated detail on insider selling at CoreWeave in September-October 2026, such as amounts, dates and filers?"
+        ]
+      },
+      "runtime": {
+        "run_id": "agrun_cb8fcfe4ef",
+        "event_count": 49,
+        "durable_event_log": false,
+        "resumable": false,
+        "budget": {
+          "timeout_seconds": 239.99999162496533,
+          "elapsed_seconds": 163.092,
+          "research_budget_exhausted": true,
+          "run_budget_exhausted": false
+        }
+      },
+      "scope": "Frozen actual search acquisition seeds and original observations; live follow-up under unchanged deployed 240-second candidate budget. No source text/date corrections supplied; not a strict counterfactual."
+    },
+    {
+      "subject": "IREN",
+      "status": "completed",
+      "payload": {
+        "title": "IREN's 11% fall follows an AI-cloud selloff; its $2 billion convertible notes date to May",
+        "surface_summary": "The record labels IREN's close at $27.00, down 11.15% from $30.39, far more than the 1.69% decline its expected-move measure implied. The drop came with a selloff across companies that rent out AI computing, after Gartner said most independent AI cloud providers will not survive, and as CoreWeave bond yields and rate fears rose. The $2 billion convertible note sale in the headlines is dated 11 May 2026, not this week; the record shows no new October offering.",
+        "what_changed_text": "The record labels $27.00 as a close and $30.39 as the previous close, an 11.15% fall, stamped 2026-10-17 06:51 UTC. Volume was 2.03 million shares, or $54.8 million, and the record's volume gauge puts that a little above its recent norm. The decline built over more than one session. [MarketBeat](https://www.marketbeat.com/instant-alerts/price-iren-nasdaq-iren-stock-falls-122-time-to-sell-2026-10-14/) reported a 12.2% fall on Wednesday, 14 October, with a low of $30.38. [Investing.com](https://www.investing.com/news/stock-market-news/iren-stock-falls-near-52-week-low-oversold-setup-or-deeper-downside-93CH-4954364) reported $28.82, down 5.17%, at 9:50 a.m. EDT on Friday, 16 October, with market value near $11.98 billion, and asked whether the stock sat near a 52-week low. The $27.00 print is below that, so selling continued into Friday's close. Turnover of 2.03 million shares is light for a company of that size, so treat this single print as a thin snapshot; the 11% figure describes a price change, not the value traded.",
+        "why_today_text": "The best-supported cause is a group repricing, not one new company disclosure. On 15 October, [24/7 Wall St.](https://247wallst.com/investing/2026/10/15/ai-cloud-stocks-sink-as-gartner-warns-most-neoclouds-wont-survive-independently-iren-and-coreweave-fall-5-nebius-drops-4/) reported that Gartner expects most AI cloud providers to lose their independence before the end of the decade, and that IREN and CoreWeave fell about 5% while Nebius fell about 4% in that session. The Gartner point is about contract durability: if buyers expect the field to shrink, they may favour the largest suppliers, and investors then pay less for future contracts at the smaller ones. [Benzinga](https://www.benzinga.com/trading-ideas/movers/26/10/62380295/iren-shares-are-falling-thursday-whats-going-on) tied IREN's Thursday slide to three linked forces: doubts about independent AI clouds, rising CoreWeave bond yields and fears of Federal Reserve rate increases. Higher peer bond yields raise the cost of money for building data centers. Higher rates also cut the present value of profit that arrives years from now. IREN must spend on power and buildings before it bills customers, so it feels that shift more than a mature software firm.\n\nCompany-specific factors added to the group move. IREN had risen 4% about five days earlier on an unconfirmed report naming Anthropic as its customer, so part of the selling looks like give-back after that rally. It had also already fallen 12.2% on 14 October.\n\nThe $2 billion private offering in the headlines is not new. Reports dated 11 May 2026 describe $2 billion of convertible senior notes due 2032 and 2033, and IREN fell 6% on that day ([Yahoo Finance](https://finance.yahoo.com/markets/stocks/articles/iren-iren-shares-slide-announcement-135528799.html), [Investing.com](https://www.investing.com/news/company-news/iren-plans-2-billion-convertible-notes-offering-due-2033-93CH-4675771)). One recent headline repeats the same $2 billion figure with an extra $300 million buyer option ([Stocktwits](https://stocktwits.com/news-articles/markets/equity/iren-stock-falls-2billion-offering-nvidia-deal/cZXaIVjRehX)), but the record dates that page both one day and two days back, and nothing in the record shows a new October filing. Treat the offering as a May overhang, not the trigger for this week's fall.",
+        "what_else_moved_text": "CoreWeave and Nebius fell with IREN in the 15 October session, which supports a shared driver. IREN still fell more than twice as much over the full move (11.15%) as the group did in that one session (about 5%), so the sector story explains the direction but not the size. The extra weight most likely comes from IREN's own news flow and its high sensitivity to AI-contract headlines. The earlier Anthropic report gives the cleanest split: IREN rose 4% while TeraWulf and Applied Digital held flat ([Yahoo Finance](https://finance.yahoo.com/markets/stocks/articles/iren-climbs-4-report-unconfirmed-123016202.html)), so that move was about IREN alone.",
+        "background_context_text": "IREN is a hybrid business. It owns data centers run on renewable power in Canada and the US and uses them for Bitcoin mining and rented AI computing ([CoinDesk](https://www.coindesk.com/price/stock/iren)). Two demand engines mean two risk channels: bitcoin price and mining economics on one side, AI contracts, construction and financing on the other. IREN has an Nvidia partnership. Analysts raised targets around it: JPMorgan to $46 from $39 in a mid-October report, and Cantor Fitzgerald to $77 in May, citing the Nvidia tie-up and a $3.4 billion cloud deal. These are opinions, not results. The May notes mature in 2032 and 2033, and part of the proceeds funds capped call transactions that offset dilution up to a set share price. The cost now is interest and leverage; dilution comes only if holders convert at a higher price later. The unconfirmed Anthropic report shows how much value the market gives to a single large contract.",
+        "claims": [
+          {
+            "claim_text": "The record labels IREN's close at $27.00 against a previous close of $30.39, a fall of 11.15%, with 2.03 million shares traded and about $54.8 million in dollar volume.",
+            "claim_type": "market_move",
+            "claim_entities": [
+              "IREN"
+            ],
+            "supports_hypothesis": "sharp_single_name_repricing",
+            "freshness_class": "1_3_days",
+            "relevance_score": 1.0,
+            "causal_score": 0.2,
+            "confidence_score": 0.97,
+            "evidence_chunk_ids": [
+              "candidate::IREN"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "The 11.15% fall was much larger than the record's expected-move measure of -1.69%, leaving a surprise of about -9.47 percentage points.",
+            "claim_type": "market_move",
+            "claim_entities": [
+              "IREN"
+            ],
+            "supports_hypothesis": "surprise_downside",
+            "freshness_class": "1_3_days",
+            "relevance_score": 0.95,
+            "causal_score": 0.2,
+            "confidence_score": 0.96,
+            "evidence_chunk_ids": [
+              "candidate::IREN"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "On 15 October 2026, 24/7 Wall St. reported Gartner's view that most AI cloud providers will not survive independently, and that IREN and CoreWeave fell about 5% while Nebius fell about 4% in the same session.",
+            "claim_type": "sector_catalyst",
+            "claim_entities": [
+              "IREN",
+              "CoreWeave",
+              "Nebius",
+              "Gartner"
+            ],
+            "supports_hypothesis": "sector_derating",
+            "freshness_class": "1_3_days",
+            "relevance_score": 0.95,
+            "causal_score": 0.6,
+            "confidence_score": 0.88,
+            "evidence_chunk_ids": [
+              "ctx_226f57518453637623671b7b9ff3a556a5075ca189b5954eafae72f890523488"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "Benzinga linked IREN's Thursday pressure to doubts about independent AI clouds, rising CoreWeave bond yields and fears of Federal Reserve rate increases.",
+            "claim_type": "reported_cause",
+            "claim_entities": [
+              "IREN",
+              "CoreWeave",
+              "Federal Reserve"
+            ],
+            "supports_hypothesis": "sector_derating",
+            "freshness_class": "1_3_days",
+            "relevance_score": 0.9,
+            "causal_score": 0.65,
+            "confidence_score": 0.8,
+            "evidence_chunk_ids": [
+              "ctx_64eca10e6f9a9b38a6e052986f79c92cff9c10e9d0832b8d73ed9f0a65fd1812"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "IREN's 11.15% fall is more than twice the roughly 5% group move in the 15 October session, so the sector story explains the direction but not the size; company-specific news and high sensitivity to AI-contract headlines likely added to it.",
+            "claim_type": "causal_hypothesis",
+            "claim_entities": [
+              "IREN",
+              "CoreWeave",
+              "Nebius"
+            ],
+            "supports_hypothesis": "company_specific_amplification",
+            "freshness_class": "current",
+            "relevance_score": 0.9,
+            "causal_score": 0.55,
+            "confidence_score": 0.6,
+            "evidence_chunk_ids": [
+              "ctx_226f57518453637623671b7b9ff3a556a5075ca189b5954eafae72f890523488",
+              "candidate::IREN"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "IREN announced $2 billion of convertible senior notes due 2032 and 2033 on 11 May 2026, when the shares fell 6%; a recent headline repeats the same $2 billion figure with a $300 million buyer option but carries inconsistent dates, so the offering is a May overhang, not a new October event.",
+            "claim_type": "financing_context",
+            "claim_entities": [
+              "IREN"
+            ],
+            "supports_hypothesis": "dilution_overhang_not_fresh",
+            "freshness_class": "months_old",
+            "relevance_score": 0.85,
+            "causal_score": 0.35,
+            "confidence_score": 0.85,
+            "evidence_chunk_ids": [
+              "ctx_6c138434f9d49c8234d4b933d7414fa1608e5837557a170d1888ba03be6bb240",
+              "ctx_d72ccc63d626a1e4f2548e92b6a34fe0744aae12bc87b39123e5b996c9018236",
+              "ctx_91a0d0ce2cb11f35b3d551963ba4c85c16e77851b10000aeeab856ae5e5a123f",
+              "ctx_fdbe79e7fdfd536d7156d64c7956790d232e5ef15c45029870af1b63bedb9f0c",
+              "ctx_5689c03d41b93b53e543ae1b94a05fd7d6d38905426d046cdad414d812629a2d"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "The May notes mature in 2032 and 2033 and partly fund capped call transactions, so their immediate cost is interest and leverage rather than near-term refinancing pressure.",
+            "claim_type": "financing_structure",
+            "claim_entities": [
+              "IREN"
+            ],
+            "supports_hypothesis": "dilution_overhang_not_fresh",
+            "freshness_class": "months_old",
+            "relevance_score": 0.7,
+            "causal_score": 0.2,
+            "confidence_score": 0.75,
+            "evidence_chunk_ids": [
+              "ctx_d72ccc63d626a1e4f2548e92b6a34fe0744aae12bc87b39123e5b996c9018236",
+              "ctx_91a0d0ce2cb11f35b3d551963ba4c85c16e77851b10000aeeab856ae5e5a123f"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "IREN owns renewable-powered data centers in Canada and the US and uses them for Bitcoin mining and AI cloud services.",
+            "claim_type": "business_model",
+            "claim_entities": [
+              "IREN"
+            ],
+            "supports_hypothesis": "hybrid_crypto_ai_exposure",
+            "freshness_class": "background",
+            "relevance_score": 0.8,
+            "causal_score": 0.1,
+            "confidence_score": 0.9,
+            "evidence_chunk_ids": [
+              "ctx_51ebd926a545e02526f8096c3e23e8cda5172370b4a908a727a5355a77d6ad2b"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "An unconfirmed report naming Anthropic as IREN's customer lifted IREN shares 4% about five days before the snapshot, while TeraWulf and Applied Digital held flat.",
+            "claim_type": "company_specific_catalyst",
+            "claim_entities": [
+              "IREN",
+              "Anthropic",
+              "TeraWulf",
+              "Applied Digital"
+            ],
+            "supports_hypothesis": "contract_concentration",
+            "freshness_class": "recent",
+            "relevance_score": 0.8,
+            "causal_score": 0.4,
+            "confidence_score": 0.7,
+            "evidence_chunk_ids": [
+              "ctx_842488395f4e5d9883e6f2496f0b72acaa3ed7babc79ee8005bf7141efa2990a"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "Analysts raised IREN targets around the Nvidia partnership: JPMorgan to $46 from $39 in a mid-October report, and Cantor Fitzgerald to $77 in May, citing the Nvidia tie-up and a $3.4 billion cloud deal.",
+            "claim_type": "analyst_view",
+            "claim_entities": [
+              "IREN",
+              "JPMorgan",
+              "Cantor Fitzgerald",
+              "Nvidia"
+            ],
+            "supports_hypothesis": "nvidia_deal_support",
+            "freshness_class": "recent",
+            "relevance_score": 0.75,
+            "causal_score": 0.1,
+            "confidence_score": 0.8,
+            "evidence_chunk_ids": [
+              "ctx_210ff22baef672e56a40667678a2cc01640143f5a3322b7eb82e6aafddb0a0ab",
+              "ctx_fdbe79e7fdfd536d7156d64c7956790d232e5ef15c45029870af1b63bedb9f0c"
+            ],
+            "is_same_day": false
+          },
+          {
+            "claim_text": "The most likely explanation is a group de-rating of rented AI computing that hit a capital-intensive Bitcoin-mining and AI-data-center hybrid, with IREN's own contract news adding give-back, and with the May convertible notes acting as an overhang rather than a fresh trigger.",
+            "claim_type": "causal_hypothesis",
+            "claim_entities": [
+              "IREN",
+              "CoreWeave",
+              "Nebius",
+              "Gartner"
+            ],
+            "supports_hypothesis": "sector_derating_primary",
+            "freshness_class": "current",
+            "relevance_score": 1.0,
+            "causal_score": 0.7,
+            "confidence_score": 0.65,
+            "evidence_chunk_ids": [
+              "ctx_226f57518453637623671b7b9ff3a556a5075ca189b5954eafae72f890523488",
+              "ctx_64eca10e6f9a9b38a6e052986f79c92cff9c10e9d0832b8d73ed9f0a65fd1812",
+              "ctx_6c138434f9d49c8234d4b933d7414fa1608e5837557a170d1888ba03be6bb240"
+            ],
+            "is_same_day": false
+          }
+        ]
+      },
+      "review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The draft's central conclusions hold: the move is a group de-rating of rented AI computing after Gartner's consolidation warning, and the $2 billion convertible note sale is dated May 2026, not this week. Four fixes were needed. First, the -1.69% figure is the record's expected-move measure, not a market consensus. Second, the notes carry 2032 and 2033 maturities and partly fund capped calls, so they create leverage and future dilution, not near-term refinancing pressure. Third, the quote stamp, close labelling and thin volume needed stating so the single print is not over-read. Fourth, the draft missed the size gap: IREN fell far more than the group's roughly 5%, so company-specific amplification needs its own claim. Analyst target dates were also separated.",
+        "confidence": "medium",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "Did IREN price a second convertible or private offering in October 2026? Check the IREN investor relations page and SEC filings for the pricing date, size and use of proceeds.",
+          "What did CoreWeave bond yields do in the week to 16 October 2026, and how much of the move was a spread widening rather than a general rate move?",
+          "Was the Anthropic customer report ever confirmed or denied by IREN or Anthropic?",
+          "Did IREN's Bitcoin mining segment show any change in hash price or production in October 2026 that could add to the AI-cloud effect?"
+        ]
+      },
+      "runtime": {
+        "run_id": "agrun_c77cfbd9a9",
+        "event_count": 53,
+        "durable_event_log": false,
+        "resumable": false,
+        "budget": {
+          "timeout_seconds": 239.99998949997826,
+          "elapsed_seconds": 178.368,
+          "research_budget_exhausted": true,
+          "run_budget_exhausted": false
+        }
+      },
+      "scope": "Frozen actual search acquisition seeds and original observations; live follow-up under unchanged deployed 240-second candidate budget. No source text/date corrections supplied; not a strict counterfactual."
+    }
+  ],
+  "attempts": {
+    "unique_attempts": 30,
+    "states": {
+      "success": 30
+    },
+    "reported_models": [
+      "deepseek-flash",
+      "text-embedding-3-small"
+    ],
+    "max_actual_input_tokens": 19607
+  },
+  "personal_assessment": "Temporal research improves on the failed live run: IREN separates the May financing from October selling, and CoreWeave does not invent an October 14 announcement of the September financing. Both final artifacts and existing review complete within deployed budget. Company drilldown writing still has process/caution language and some unsupported thin-volume/causal-strength commentary; inspect it in the complete fresh public result and do not manually edit prose or add phrase filters. This is acceptance of the shared evidence/execution repair for full DEV verification, not production or a zero-regression guarantee.",
+  "adverse_results": [
+    {
+      "case": "Initial longer company probes",
+      "result": "CRWV 217.8s, IREN 303.3s; IREN exceeds deployed 240s and is not normal-budget acceptance."
+    },
+    {
+      "case": "First actual-budget repeat",
+      "result": "CRWV 179.9s completes; IREN 156.4s fails because interactive final synthesis is capped at one 90s model-step interval."
+    },
+    {
+      "case": "Unseeded nonfinancial DART",
+      "result": "Retained searches time out; background knowledge is not verified latest research."
+    },
+    {
+      "case": "Acquired nonfinancial DART",
+      "result": "Separates 2022 impact from reported March 2026 paper; original paper not opened and retained searches time out. Limited chronology/source-strength evidence, not complete primary research acceptance."
+    }
+  ],
+  "unchanged_settings": "Same eligible DeepSeek model and thinking settings; 240-second candidate budget, 90-second per-request limit and existing phase reservations; no extra reviewer, semantic date rule or ticker exception.",
+  "full_development_required": true,
+  "production_authorized_by_this_record": false
+}

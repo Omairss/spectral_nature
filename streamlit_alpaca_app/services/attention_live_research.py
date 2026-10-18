@@ -608,6 +608,10 @@ def _serialize_evidence_item(item: dict[str, Any], *, symbol: str = "") -> dict[
         "url": _coerce_text(item.get("url")),
         "published_at": _coerce_text(item.get("published_at")),
         "evidence_role": _coerce_text(item.get("evidence_role")),
+        "source_kind": _coerce_text(item.get("source_kind")),
+        "raw_text_origin": _coerce_text(item.get("raw_text_origin")),
+        "source_trace": _coerce_text(item.get("source_trace")),
+        "provider_payload_json": _coerce_text(item.get("provider_payload_json")),
     }
 
 
@@ -802,6 +806,7 @@ def merge_news_payloads(*payloads: dict[str, Any] | None) -> dict[str, Any]:
             for _, row in frame.iterrows():
                 rows.append(
                     {
+                        **row.to_dict(),
                         "headline": _coerce_text(row.get("headline")),
                         "summary": _coerce_text(row.get("summary") or row.get("description")),
                         "description": _coerce_text(row.get("description") or row.get("summary")),
@@ -929,7 +934,7 @@ def search_market_event_news_payload(
                     title = _coerce_text(item.title)
                     if not title:
                         continue
-                    rows.append({"headline": title, "summary": _coerce_text(item.snippet), "description": _coerce_text(item.snippet), "source": _coerce_text(item.source) or provider, "published_at": coerce_article_published_at(item.published_at, url=item.url), "url": _coerce_text(item.url), "search_kind": "news" if news else "web"})
+                    rows.append({**item.to_source_record(), "search_kind": "news" if news else "web"})
                 providers.append(provider)
             except Exception as exc:
                 errors.append(f"{provider} {'news' if news else 'web'} search failed: {type(exc).__name__}")
@@ -979,6 +984,7 @@ def _normalize_news_evidence(
         causal_score = min(1.0, _catalyst_score(blob) + relevance_score * 0.25)
         rows.append(
             {
+                **article.to_dict(),
                 "symbol": symbol,
                 "source": source or "News",
                 "source_type": "news_article",
@@ -994,8 +1000,7 @@ def _normalize_news_evidence(
                 "relevance_score": round(relevance_score, 2),
                 "causal_score": round(causal_score, 2),
                 "theme_tag": _theme_tag(blob),
-                "is_same_day": bool(pd.notna(published_at) and published_at.date() == asof_time_utc.date()),
-                "evidence_role": "same_day_confirmation" if pd.notna(published_at) and published_at.date() == asof_time_utc.date() else "background_context",
+                "evidence_role": "source",
             }
         )
     return rows
@@ -1038,6 +1043,7 @@ def _normalize_event_news_evidence(
         causal_score = min(1.0, _catalyst_score(blob) + relevance_score * 0.3 + theme_bonus)
         rows.append(
             {
+                **article.to_dict(),
                 "symbol": "",
                 "source": source or "News",
                 "source_type": "event_news",
@@ -1053,8 +1059,7 @@ def _normalize_event_news_evidence(
                 "relevance_score": round(relevance_score, 2),
                 "causal_score": round(causal_score, 2),
                 "theme_tag": theme or _theme_tag(blob),
-                "is_same_day": bool(pd.notna(published_at) and published_at.date() == asof_time_utc.date()),
-                "evidence_role": "same_day_confirmation" if pd.notna(published_at) and published_at.date() == asof_time_utc.date() else "background_context",
+                "evidence_role": "source",
             }
         )
     return rows
@@ -1158,7 +1163,6 @@ def _normalize_filing_evidence(
         elif generic_summary:
             relevance_score = 0.45
             causal_score = min(causal_score, 0.15)
-        is_same_day = bool(pd.notna(filing_date) and filing_date.date() == asof_time_utc.date())
         rows.append(
             {
                 "symbol": symbol,
@@ -1176,8 +1180,7 @@ def _normalize_filing_evidence(
                 "relevance_score": round(relevance_score, 2),
                 "causal_score": round(causal_score, 2),
                 "theme_tag": _theme_tag(f"{items} {summary}"),
-                "is_same_day": is_same_day,
-                "evidence_role": "fresh_catalyst" if is_same_day and causal_score >= 0.72 else "background_context",
+                "evidence_role": "source",
                 "filing_form": form,
                 "filing_items": items,
             }

@@ -169,7 +169,7 @@ def test_serper_news_search_records_success_telemetry(monkeypatch):
 
     assert len(rows) == 1
     assert rows[0].provider == "serper"
-    assert rows[0].published_at == "12 hours ago"
+    assert rows[0].reported_date == "12 hours ago"
     assert calls[0]["provider"] == "serper"
     assert calls[0]["operation"] == "search_news"
     assert calls[0]["status"] == "success"

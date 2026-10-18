@@ -130,7 +130,7 @@ class _FakeSearchClient:
                 snippet="Meta expands contracted AI infrastructure capacity with CoreWeave.",
                 raw_text="Meta expands contracted AI infrastructure capacity with CoreWeave.",
                 source="ExampleWire",
-                published_at="2026-05-21",
+                reported_date="2026-05-21",
             )
         ][:count]
 
@@ -264,7 +264,7 @@ def test_ticker_business_model_stack_filters_source_noise_but_keeps_clean_eviden
                     snippet="Annual reports and 10-K filing index.",
                     raw_text="Annual reports and 10-K filing index.",
                     source="Main Street Capital Corporation",
-                    published_at="",
+                    reported_date="",
                 ),
                 WebSearchResult(
                     provider="fake",
@@ -273,7 +273,7 @@ def test_ticker_business_model_stack_filters_source_noise_but_keeps_clean_eviden
                     snippet="Main Street Capital Corporation company filing.",
                     raw_text="Main Street Capital Corporation company filing.",
                     source="SEC.gov",
-                    published_at="",
+                    reported_date="",
                 ),
             ]
 
