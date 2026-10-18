@@ -1,0 +1,532 @@
+{
+  "status": "core_publication_verified",
+  "recorded_at_utc": "2026-10-18T22:06:16.714805+00:00",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65",
+  "execution": "attention-home-build-vna3suq",
+  "execution_status": "Running",
+  "public_api_seconds": 0.916,
+  "input_catalog": {
+    "namespace": "production",
+    "home_run_id": "627a7ea2-8d45-4a80-af87-687f03953fac",
+    "asof": "2026-10-18T21:30:19.032155+00:00",
+    "entries": 579,
+    "observations": 117876
+  },
+  "public_home": {
+    "run_id": "627a7ea2-8d45-4a80-af87-687f03953fac",
+    "as_of": "2026-10-18T21:30:19.032155+00:00",
+    "summary": {
+      "headline": "Market Summary",
+      "markdown": "The latest session was Friday 16 October 2026, and it split sharply. Information Technology was the weakest major sector, with an average fall of 4.78% across 202 names, while Energy rose 1.91%, Consumer Staples 0.93% and Utilities 0.91%. Breadth was negative: 386 advancers against 608 decliners, and the median stock fell 0.59%. The pressure was concentrated in AI infrastructure, memory, optical, software and other long-duration technology shares. CoreWeave's credit repricing was the central story. The iShares Semiconductor ETF had a ninth straight down session, its longest run since May 2006. Macro data added pressure: hot CPI and PPI, a 10-year Treasury yield near 5.1%, and Fed Chair Warsh declined to rule out an October hike, although a separate report said prediction-market odds for an October hike fell to 14%. Energy and defensives rallied, helped by a $4.2 billion Eagle Ford deal and a broader cyclical bid.",
+      "status": "completed",
+      "featured_symbols": [],
+      "audio_available": true,
+      "audio_mime_type": "audio/mpeg"
+    },
+    "coverage": {
+      "candidate_count": 81,
+      "event_count": 15,
+      "must_read_count": 1,
+      "unresolved_count": 43,
+      "news_backed_count": 11
+    },
+    "provenance": {
+      "mode": "materialized",
+      "datasets": [
+        "attention_home_snapshots_1d"
+      ]
+    },
+    "daily_datapoints_as_of": "2026-10-18T21:30:19.032155+00:00"
+  },
+  "stories": [
+    {
+      "id": "event::source-e630ea787a4de4516328",
+      "kind": "event",
+      "title": "CoreWeave credit stress exposes the financing fault line under AI clouds",
+      "summary": "CoreWeave's bonds and default insurance repriced sharply, and the stress spread to other AI-cloud landlords and chip shares. The signal is about refinancing risk, not proof that demand has collapsed.",
+      "what_changed": "On 16 October 2026, CoreWeave fell 11.9% to $61.40 and was down about 20% for the week. A [Benzinga report](https://www.benzinga.com/markets/tech/26/10/62412918/coreweave-bonds-distress-ai-darwin-moment-hartnett) said credit default swaps implied about 60% default risk and its 2031 bond yielded near 15%. [JPMorgan](https://www.benzinga.com/analyst-stock-ratings/analyst-color/26/10/62419358/coreweave-stock-crashes-20-this-week-but-analyst-says-wall-street-is-overreacting) kept an Overweight rating and called the selloff an overreaction. Applied Digital, Nebius, IREN and Cipher Digital fell with it, and the iShares Semiconductor ETF ran a ninth straight down session, its longest since May 2006.",
+      "why": "CoreWeave is a GPU cloud landlord: it commits capital to Nvidia hardware and data-centre capacity before customers pay. Higher credit spreads and a 15% bond yield make new borrowing expensive and raise doubts about refinancing. The 60% figure is a market price for default insurance, not a company forecast; it depends on recovery assumptions. Hot CPI and PPI data and a 10-year Treasury yield near 5.1% added rate pressure, but the direct trigger was the credit repricing.",
+      "business_context": "The neocloud model has a maturity mismatch: construction and debt service come now, while contracted compute revenue arrives later. A large backlog does not remove refinancing risk if lenders demand more collateral or higher coupons. CoreWeave's credit is a bellwether because it is large, listed and heavily tied to Nvidia supply and financing.",
+      "watch_next": "Watch CoreWeave's next refinancing or amendment, its bond yield and credit-default-swap levels, and whether customers have take-or-pay terms that keep cash coming. A clean refinancing would suggest the swap signal was overpriced; a costly rescue would extend the funding test to other AI-cloud landlords.",
+      "symbols": [
+        "CRWV",
+        "APLD",
+        "NBIS",
+        "IREN",
+        "CIFR",
+        "NVDA",
+        "ORCL",
+        "MU"
+      ],
+      "primary_symbol": "CRWV",
+      "change_pct": null
+    },
+    {
+      "id": "event::home-f3cbe3408c2bdd710c35",
+      "kind": "event",
+      "title": "Chip complex posts longest losing streak since 2006 as AI credit stress spreads",
+      "summary": "The iShares Semiconductor ETF fell for nine straight sessions, its longest run since May 2006, as CoreWeave credit stress and hot inflation hit AI-linked shares. The KOSPI had its worst week since 2008 and optical names fell sharply.",
+      "what_changed": "By 16 October 2026, the iShares Semiconductor ETF had nine consecutive down sessions, the longest since May 2006. The KOSPI posted its worst week since 2008, optical names suffered dot-com-era drops, and Bank of America compared Nvidia, Broadcom and Micron valuations with Cisco after the dot-com crash. CoreWeave credit concerns were the central narrative.",
+      "why": "The chain runs from AI-cloud credit to hardware demand. CoreWeave's default insurance priced about 60% odds and its bonds yielded near 15%, which raised doubts about debt-funded AI capacity. Hot CPI and PPI data and a 10-year yield near 5.1% added rate pressure. The chip selloff is a de-rating of long-duration AI cash flows, not evidence of a demand collapse; the Bank of America comparison is a valuation signal, not a forecast.",
+      "business_context": "Chips are the physical layer of the AI buildout. When financing conditions tighten, customers can delay capacity, and suppliers with long lead times feel it through orders and valuation. The nine-session streak matters because it shows the stress moved from one credit to the whole complex.",
+      "watch_next": "Watch whether the semiconductor ETF stabilizes, whether CoreWeave refinances, and whether memory pricing or hyperscaler capex guidance confirms or reverses the de-rating. A single strong earnings print would not prove the credit stress is over.",
+      "symbols": [
+        "SOXX",
+        "NVDA",
+        "AVGO",
+        "MU",
+        "SNDK",
+        "LITE",
+        "COHR",
+        "CIEN",
+        "CRWV",
+        "NBIS"
+      ],
+      "primary_symbol": "SOXX",
+      "change_pct": null
+    },
+    {
+      "id": "event::source-50ce9d4fcbc8678f02e1",
+      "kind": "event",
+      "title": "TSMC keeps 2026 capital spending at $60–64bn as analysts raise targets, while chip shares fall",
+      "summary": "TSMC reported record profit and strong guidance, but it did not newly raise its 2026 capital budget. Analysts lifted targets; the shares fell with the chip complex.",
+      "what_changed": "TSMC's Q3 2026 revenue was $46.7 billion, up 41% year on year and 16% sequentially. Net income was NT$763.06 billion, up 68.7%. High-performance computing was about 68% of revenue, and Q4 guidance was $52.3–54.3 billion. TSMC kept 2026 capital spending at $60–64 billion, with fourth-quarter spending likely above $21 billion. The shares were down 1.62% at $415.39 when Benzinga published and closed at $412.51, down 2.33% for the session. [Needham raised its target to $560](https://www.benzinga.com/analyst-stock-ratings/price-target/26/10/62421560/taiwan-semiconductor-manufacturing-doubles-down-on-capex-as-agentic-ai-expands-say-bullish-analysts), DA Davidson kept $500 and Barclays raised to $670.",
+      "why": "The company-specific story is strong demand and a maintained, not increased, capital budget. The budget had already been lifted in July, so the 16 October report did not add a new capex raise. Management was prudent on 2027 and gross margin faces dilution from the 2nm ramp and overseas fabs. The share fall also reflected a broad chip selloff and AI-financing stress, so TSMC's operating result was not the sole cause.",
+      "business_context": "TSMC manufactures chips designed by others. Its leading-edge capacity and advanced packaging are scarce, so its capital budget is a leading indicator for equipment suppliers. HPC is broader than AI alone, which makes the AI signal strong but not pure.",
+      "watch_next": "Watch whether TSMC turns the maintained 2026 plan into a higher 2027 budget and firm leading-edge or packaging capacity while gross margin holds. If capex rises but margin dilution and AI-financing caution also rise, equipment suppliers can get more revenue without a higher market value.",
+      "symbols": [
+        "TSM",
+        "AMAT",
+        "LRCX",
+        "NVDA",
+        "AVGO",
+        "AMD"
+      ],
+      "primary_symbol": "TSM",
+      "change_pct": null
+    },
+    {
+      "id": "event::source-c29d50cf4745a59109a1",
+      "kind": "event",
+      "title": "NiSource signs 20-year, 1,100 MW Microsoft power deal for Indiana data centre",
+      "summary": "NiSource will supply about 1,100 MW to Microsoft from 2028 under a 20-year agreement. Microsoft funds the dedicated generation and transmission, and NiSource lifts expected customer savings to about $1.75 billion.",
+      "what_changed": "NiSource announced a 20-year energy agreement with Microsoft for its northwest Indiana data-centre campus. Microsoft is expected to begin service in 2028. The GenCo-owned pool grows by about 1,100 MW, and GenCo also contracted 600 MW of battery storage under a long-term tolling agreement. NiSource says total expected NIPSCO electric customer savings rise to about $1.75 billion from $1.4 billion, or as much as $140 per customer annually.",
+      "why": "Microsoft needs firm long-duration power, and NiSource needs a creditworthy customer that can support new infrastructure without spreading the dedicated cost across existing customers. The contract design shifts the cost to Microsoft, which supports the savings claim. The trade-off is regulatory approval and contract design; the release does not give contract value, NiSource capex or return, capacity payments, fuel pass-through, cancellation terms or approval conditions.",
+      "business_context": "NiSource is using its GenCo affiliate to serve large-load customers outside the standard retail tariff. The model is meant to keep existing customers whole: the large-load customer pays for dedicated generation and transmission, and the assets also upgrade the local grid. The $1.75 billion is expected customer savings over the contract life, not booked cash or NiSource profit.",
+      "watch_next": "Watch the Indiana Utility Regulatory Commission's treatment of the GenCo large-load contract: cost allocation, customer-savings mechanism, capacity payments, fuel pass-through, capital recovery and cancellation terms. NiSource's Q3 call is the next company checkpoint for the financial detail the release leaves out.",
+      "symbols": [
+        "NI",
+        "MSFT"
+      ],
+      "primary_symbol": "NI",
+      "change_pct": null
+    },
+    {
+      "id": "event::source-6a152e87374b88a8c7e1",
+      "kind": "event",
+      "title": "Nvidia accused of barring neoclouds from GTC Berlin over rival chips",
+      "summary": "A single analyst post said several neoclouds were refused access to Nvidia's Berlin conference because they also sell AMD, Google or other chips. No company or regulator has confirmed it; treat the specific act as unproven and the conduct risk as a live lead.",
+      "what_changed": "SemiAnalysis posted on X on 16 October 2026, four days before GTC Berlin was scheduled to open on 20 October, that multiple neoclouds were refused access because they had added AMD GPUs, TPUs and other chips. The post said hyperscalers were exempt and that neocloud executives described pressure to stay Nvidia-only. The same wording circulated on an AMD investor forum, which repeats the post rather than adding confirmation. No affected neocloud, Nvidia, AMD or Google confirmed or denied a specific refusal.",
+      "why": "GTC is a commercial showcase where cloud operators meet buyers and partners, so access has sales value. Nvidia already sits on both sides of the neocloud relationship: it supplies GPUs, invests in CoreWeave and Nebius, and backstops some CoreWeave capacity. That gives it leverage, but a pattern of single-vendor terms does not prove this particular exclusion. Reports say France's competition authority is examining Nvidia's CUDA dependence and AI-cloud investments, so a confirmed exhibitor rule could add a distribution-conduct theory.",
+      "business_context": "Access to GTC is a business asset, not a courtesy. Nvidia's revenue scale gives it room to absorb criticism, but remedies that limit CUDA licensing or bundling would touch its software moat. No regulator has opened a case on this specific allegation in the evidence.",
+      "watch_next": "The decisive check is whether a named neocloud, Nvidia, AMD or Google confirms or denies a specific refusal, or whether a competition authority asks about exhibitor access. A written policy or a regulator request would turn the allegation into a testable conduct finding.",
+      "symbols": [
+        "NVDA",
+        "AMD",
+        "GOOGL",
+        "CRWV",
+        "NBIS",
+        "IREN",
+        "APLD"
+      ],
+      "primary_symbol": "NVDA",
+      "change_pct": null
+    },
+    {
+      "id": "symbol::SNOW",
+      "kind": "mover",
+      "title": "Snowflake falls 8.7% as AI-software valuations compress",
+      "summary": "Snowflake dropped 8.7% on heavy volume with no company-specific news. The selloff grouped it with other software names as investors questioned how AI will change software business models.",
+      "what_changed": "Snowflake closed at $306.75 on 16 October, down 8.69% from $335.95, on about $158.6 million of dollar volume. Volume was about two standard deviations above normal and the daily range was unusually wide. The stock had already fallen 6.3% on 14 October in a broad AI and tech selloff. It was still up 59.3% from 18 January to 15 October, against 12.5% for the S&P 500.",
+      "why": "A [report grouped Snowflake with Atlassian, Bandwidth, Five9 and Palo Alto Networks](https://finance.yahoo.com/markets/stocks/articles/snowflake-atlassian-bandwidth-five9-palo-193939143.html) and said the group fell as investors shifted from what AI can do to how it will change software businesses. That fits a reversal after a crowded rally. No downgrade, guidance cut, outage or customer loss was reported. The cause therefore remains unresolved, with sector sentiment and valuation the leading candidates.",
+      "business_context": "Snowflake sells cloud data-platform software. Its revenue depends on enterprise data workloads and AI adoption, so its valuation is sensitive to long-term growth expectations and to how investors think AI will reshape software pricing and competition.",
+      "watch_next": "Watch the next enterprise-software earnings and any company update on AI product usage and margins. A sector-wide stabilization would support the view that this was valuation-driven; a company-specific guidance change would shift the interpretation.",
+      "symbols": [
+        "SNOW"
+      ],
+      "primary_symbol": "SNOW",
+      "change_pct": -8.69
+    },
+    {
+      "id": "symbol::SNDK",
+      "kind": "unresolved",
+      "title": "SanDisk falls 6.9% in a memory-chip and AI-credit selloff",
+      "summary": "SanDisk fell 6.9% with Micron and other memory names. No SanDisk-specific order cut, price concession or guidance change was reported; the move looks sector-driven.",
+      "what_changed": "SanDisk closed at $1,299.04 on 16 October, down 6.93% from $1,395.82. Micron fell 5.65% and the iShares Semiconductor ETF ran a ninth straight down session. CoreWeave credit stress and hot inflation data were the main reported drivers. SanDisk was still up sharply in 2026 before the drop, so sellers had large gains to lock in.",
+      "why": "The best-supported driver is a broad memory and AI-infrastructure selloff, not company news. CoreWeave credit-default swaps implied about 60% default risk and its bonds yielded near 15%, which hit debt-funded AI capacity and the chip complex. Higher rates and a 5.1% 10-year yield added pressure. The evidence does not identify a NAND pricing trigger.",
+      "business_context": "SanDisk sells NAND flash memory. AI data-centre buildouts support memory demand, but that spending is often debt-financed, so memory shares are sensitive to borrowing costs and credit stress.",
+      "watch_next": "Watch SanDisk's next earnings and NAND contract pricing, plus Micron's report for a memory-sector read. A CoreWeave refinancing or a stabilization in chip breadth would reduce the sector pressure.",
+      "symbols": [
+        "SNDK"
+      ],
+      "primary_symbol": "SNDK",
+      "change_pct": -6.93
+    },
+    {
+      "id": "symbol::LITE",
+      "kind": "unresolved",
+      "title": "Lumentum falls 5.4% as optical and AI-infrastructure shares de-rate",
+      "summary": "Lumentum fell 5.4% with optical and AI-infrastructure names. The available evidence points to CoreWeave credit stress and sector de-rating, not a Lumentum-specific operating update.",
+      "what_changed": "Lumentum closed at $823.01 on 16 October, down 5.36% from $869.66. Optical peers and AI-infrastructure names fell, and the iShares Semiconductor ETF had a ninth straight down session. CoreWeave's credit stress was the centre of the move.",
+      "why": "Lumentum sells optical components into data-centre and telecom networks, so its demand outlook is tied to AI buildouts. When CoreWeave's credit spreads widened and its bonds yielded near 15%, investors questioned the financing behind those buildouts. The move looks like a sector de-rating. The evidence does not show a Lumentum order cut or guidance change.",
+      "business_context": "Lumentum makes lasers and optical components for networking and telecom. AI data centres need more optical bandwidth, but the spending is capital-intensive and often financed with debt, which makes the shares sensitive to credit conditions.",
+      "watch_next": "Watch Lumentum's next orders and earnings, plus CoreWeave's credit spreads as the sector signal. A stabilization in AI-cloud financing would support optical demand; further credit stress would keep the de-rating pressure on.",
+      "symbols": [
+        "LITE"
+      ],
+      "primary_symbol": "LITE",
+      "change_pct": -5.36
+    }
+  ],
+  "charts": [
+    {
+      "id": "stock:CRWV:price",
+      "title": "CoreWeave: the AI credit stress gauge",
+      "significance": "CoreWeave closed at $61.40 on 16 Oct, down 11.9% and 66.6% below its June 2025 peak; its credit default swaps implied about 60% default risk, a refinancing warning.",
+      "date": "2026-10-16",
+      "value": 61.395
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "title": "High-yield credit spreads: contagion check",
+      "significance": "High-yield spreads were 3.23% on 15 Oct, well below April 2025's 4.61% peak; broad credit is calm, so stress is concentrated in AI-cloud landlords, not the whole market.",
+      "date": "2026-10-15",
+      "value": 3.23
+    },
+    {
+      "id": "fred:DGS10",
+      "title": "10-year Treasury yield: discount-rate pressure",
+      "significance": "The 10-year Treasury yield was 5.10% on 15 Oct, close to the 5.31% high on 5 Oct; high long-term rates pressure the present value of AI cash flows that arrive years from now.",
+      "date": "2026-10-15",
+      "value": 5.1
+    },
+    {
+      "id": "stock:TSM:price",
+      "title": "TSMC: strong demand, weaker valuation",
+      "significance": "TSMC closed at $412.51 on 16 Oct, down 2.33% and 15.1% below its 5 Oct record; the drop came despite 41% revenue growth, so it looks like sector de-rating, not a demand collapse.",
+      "date": "2026-10-16",
+      "value": 412.51
+    },
+    {
+      "id": "stock:EOG:price",
+      "title": "EOG and energy: a broad bid",
+      "significance": "EOG closed at $158.06 on 16 Oct, up 4.24% and the highest in the available history; Ovintiv and Canadian Natural also set series highs, so the energy bid was broad.",
+      "date": "2026-10-16",
+      "value": 158.06
+    }
+  ],
+  "data_integrity": [
+    {
+      "id": "stock:CRWV:price",
+      "source_observations": 391,
+      "rendered_observations": 391,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "fred:BAMLH0A0HYM2",
+      "source_observations": 783,
+      "rendered_observations": 783,
+      "last_observation": "2026-10-15",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "fred:DGS10",
+      "source_observations": 746,
+      "rendered_observations": 746,
+      "last_observation": "2026-10-15",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "stock:TSM:price",
+      "source_observations": 1251,
+      "rendered_observations": 1200,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    },
+    {
+      "id": "stock:EOG:price",
+      "source_observations": 1252,
+      "rendered_observations": 1200,
+      "last_observation": "2026-10-16",
+      "full_original_history_matches": true,
+      "public_window_matches": true
+    }
+  ],
+  "intraday": [
+    {
+      "symbol": "CRWV",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "APLD",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NBIS",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "IREN",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SOXX",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NVDA",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "AVGO",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "MU",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "TSM",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "AMAT",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "LRCX",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "NI",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "MSFT",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "AMD",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "GOOGL",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SNOW",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "SNDK",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 78
+    },
+    {
+      "symbol": "LITE",
+      "status": "available",
+      "session": "2026-10-16",
+      "as_of": "2026-10-16T19:55:00+00:00",
+      "interval": "5Min",
+      "observations": 77
+    }
+  ],
+  "audio": {
+    "http_status": 200,
+    "content_type": "audio/mpeg",
+    "bytes": 1004816,
+    "seconds": 0.856,
+    "home_run_id": "627a7ea2-8d45-4a80-af87-687f03953fac",
+    "text_matches_current_summary": true,
+    "audio_text_sha256": "c986f03d7bbac15ca8078bda5ffc22b21b6f57abd36eabd1c6919a88d8d3d7ec",
+    "served_bytes_match_current_stored_audio": true
+  },
+  "existing_chart_review": {
+    "status": "completed",
+    "verdict": "revise",
+    "critique_summary": "The five-chart mix is sound. I corrected 'single-name' because the stress spread to several AI-cloud landlords, tightened the TSMC wording to separate operating results from the share move, and made the EOG record claim match the available history.",
+    "confidence": "high",
+    "limitations": [],
+    "unsupported_claims": [],
+    "evidence_gaps": [],
+    "revised_answer_applied": true,
+    "research_requests": []
+  },
+  "execution_start": "2026-10-18T21:29:40+00:00",
+  "execution_end": null,
+  "company_retention": {
+    "home_run_id": "627a7ea2-8d45-4a80-af87-687f03953fac",
+    "dataset_version_id": "attention_research_plans__20261018T213019Z__627a7ea2",
+    "plans": [
+      {
+        "symbol": "NBIS",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "CRGY",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "RXRX",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "CRWV",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "OKTA",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "FROG",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "VICR",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "APLD",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "TWLO",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "AEHR",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "IREN",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      },
+      {
+        "symbol": "SNOW",
+        "research_status": "completed",
+        "engine_revision": "a087d63a3a2f168257d0"
+      }
+    ]
+  },
+  "current_serving_api_revision": "sn-api-next--0000013",
+  "current_installed_images": {
+    "worker": "1d8a4276",
+    "api-next": "9c28b4c4"
+  },
+  "execution_image_scope": "Generated by the first owner-accepted recovery worker 14257c0c. The installed follow-up 1d8a4276 differs only in zopedia_learning.py; Home/data/auth/broker code is identical.",
+  "browser_verification": {
+    "url": "https://spectral-nature.com/",
+    "asof_displayed": "Oct 18, 9:30 PM UTC",
+    "eight_new_story_headings_visible": true,
+    "five_october_18_highlights_visible": true,
+    "graph_plotted_points": 281,
+    "normal_server_cache_revalidation_observed": true,
+    "production_authenticated_checks": "No signed-in production session was available; retained authenticated behavior was verified in DEV and its implementations are byte-identical in this follow-up."
+  },
+  "personal_review": {
+    "overview_read": true,
+    "all_eight_complete_public_story_records_read": true,
+    "all_five_new_highlights_read": true,
+    "assessment": "Useful business explanations and broad credit/valuation interpretation survive imperfect source evidence. No new perfection or one-day-lag admission criterion imposed. The previously false October financing-announcement sentence is absent from this publication without a source-specific patch. Some uncertainty and repeated sector explanations remain; owner explicitly accepts fallible research.",
+    "existing_chart_review": {
+      "status": "completed",
+      "verdict": "revise",
+      "revised_answer_applied": true
+    },
+    "scope": "Core Home, exact chart data, narration, stored company results and browser identity verified. Optional page summaries continue after core persistence."
+  }
+}

@@ -1163,8 +1163,14 @@
     "api_revision": "sn-api-next--0000013",
     "configuration_audit": "documents/verification/research-resilience-2026-10-18/production-configuration-audit.json",
     "evidence": "documents/verification/research-resilience-2026-10-18/PRODUCTION.md",
-    "publication_verification": "running",
+    "publication_verification": "passed_core_publication",
     "home_execution": "attention-home-build-vna3suq",
-    "home_run_id": "627a7ea2-8d45-4a80-af87-687f03953fac"
+    "home_run_id": "627a7ea2-8d45-4a80-af87-687f03953fac",
+    "publication_evidence": "documents/verification/research-resilience-2026-10-18/production-publication.json",
+    "company_results_retained": 12,
+    "stories": 8,
+    "new_highlights": 5,
+    "narration_matches_current_summary": true,
+    "optional_page_summaries": "still_running_after_core_persistence"
   }
 }

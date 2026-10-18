@@ -1,6 +1,6 @@
 # Current-data Home recovery
 
-Status: **recovery and subsequent learning images are deployed to production under explicit owner acceptance.** [Current production record](../verification/research-resilience-2026-10-18/PRODUCTION.md). All twelve company investigations and enrichments returned in the fresh production run; publication, new highlights and narration verification are finishing. The known date imperfection is recorded, without a source-specific patch or new publication rule.
+Status: **recovery and subsequent learning images are deployed to production under explicit owner acceptance.** [Current production record](../verification/research-resilience-2026-10-18/PRODUCTION.md). All twelve company investigations and enrichments returned in the fresh production run; the new overview, eight stories, five new highlights, exact source histories and current narration are verified. Optional page summaries continue after the served core publication. The known date imperfection is recorded, without a source-specific patch or new publication rule.
 
 ## Current implementation
 

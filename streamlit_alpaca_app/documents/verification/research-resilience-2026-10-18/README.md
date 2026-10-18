@@ -1,6 +1,6 @@
 # General learning episodes and research resilience
 
-Status: **deployed to DEV and production; API revisions are ready and all-resource audits pass.** The exact DEV-accepted worker `1d8a4276` and API `9c28b4c4` are live on all twenty intended DEV/production consumers. [Current production record](PRODUCTION.md). Fresh production Home publication verification is finishing independently.
+Status: **deployed to DEV and production; API revisions are ready and all-resource audits pass.** The exact DEV-accepted worker `1d8a4276` and API `9c28b4c4` are live on all twenty intended DEV/production consumers. [Current production record](PRODUCTION.md). Fresh production Home is verified: eight stories, five new highlights, matching original histories/current narration and all twelve company results. Optional page summaries continue independently after core publication.
 
 The existing learning entrypoint only admitted answers matching unavailable-data/debug phrases and a successful tool from a fixed list. A corrected date, mistaken units or a false user correction could not reach the existing LLM critic. Replace that semantic admission with an immutable, owner-bound conversation-episode identity. The same critic receives the original conversation and execution evidence, decides whether there is a lesson or no change, and records its actual diagnosis. Sources, prior answers and corrections are all fallible; the model distinguishes dependent conclusions from independent findings.
 
@@ -15,3 +15,5 @@ This closes the hardcoded learning-admission gap. It does not prove that every l
 Both new packages from build Git `dd3920fb` / source `2706e245` match all 197 runtime files and preserve pinned dependency metadata. [Package proof](packaged-images.json) also verifies that `zopedia_learning.py` is the only changed runtime file. The first worker tag read occurred before that worker had finished publishing, while the API build had already succeeded; the later verified immutable package is authoritative.
 
 [Targeted DEV acceptance](DEVELOPMENT.md) records the live worker result, source hash, API readiness and all-resource audit. A separate existing replay uses the learned guidance in a later answer while preserving independent findings. No new controller, inference model or memory-write permission was introduced.
+
+[Current production publication](production-publication.json) records the served root, complete public output, original data and narration checks. The browser displays the October 18 brief. All twelve company research results are stored as completed, including retained work when optional review fails.
