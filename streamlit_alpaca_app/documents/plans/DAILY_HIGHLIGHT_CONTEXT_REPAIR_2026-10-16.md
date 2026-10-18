@@ -1,6 +1,10 @@
 # Daily highlight context repair
 
-Updated October 17, 2026. **Current state: shared context handoff repair is under local evaluation. The preceding DEV image remains held; no production promotion is accepted.** Read the [latest failed DEV review](../verification/daily-highlight-context-2026-10-17/CONTINUED_DEVELOPMENT_QUALITY_REVIEW.md).
+Updated October 17, 2026 (04:15 UTC October 18). **Current state: the locally accepted repair is deployed to the DEV API and six workers. The live macro refresh and 35-series numerical audit pass. Full Home execution `attention-home-next-dev-bzfcjgg` is running; its final public brief/charts have not yet been accepted. Production is unchanged.**
+
+The [current verification index](../verification/daily-highlight-context-2026-10-17/README.md) and committed `infra/release_acceptance.json` are authoritative. Both packaged roles match all 197 Git runtime files and pass imports and cold tokenizer accounting without downloads. Eight cumulative application/packaging files are reviewed. The API adds the previously accepted pool dependency plus the same evaluated tokenizer versions as workers; unrelated dependency versions remain unchanged. Existing signed-in Trading views retain all five horizons.
+
+The owner authorized promotion of these exact images only after complete DEV quality and runtime acceptance. Current scope includes the modern API and shared research/data workers; frontend and broker images remain fixed. Earlier worker-only scopes and failed image references below are historical, superseded attempts.
 
 ## Goal and cause
 
@@ -8,13 +12,13 @@ Restore current-data highlights after the exact per-consumer production rollback
 
 Use the existing shared Zopedia supplied-evidence contract. Retain the complete catalog and observations and let the LLM navigate and choose. Synthesis and review must retain access to originals without automatically expanding selected containers into their prompts. Preserve exact plotted observations, the original dedicated chart review/revision, valid-draft retention, configured model and 600-second operation budget. No feature-local model, financial classifier, ticker ranking, phrase filter, added reviewer or semantic admission gate.
 
-## Committed implementation
+## Earlier implementation (superseded)
 
 Source `6c428b3b` changes four runtime files: chart adapter, shared inference syntax recovery, structured-engine request/recovery ownership and shared agent evidence handoff. Syntax/schema recovery carries the original task/evidence. Planner and final-artifact schemas remain separate. The LLM's selected source references resolve through invocation-owned permitted evidence before synthesis. The accepted no-tool Home editorial request and original planner prompt are unchanged. The chart task removes accumulated preferences and prohibitions, retaining purpose and output shape.
 
-Both normal Home and the independent daily-datapoints job call the corrected selector. The complete source also explicitly reconciles the previously accepted database lifecycle/cancellation repair. Web, modern API/iPhone gateway, Trading, broker and other workers remain outside this rollout.
+Both normal Home and the independent daily-datapoints job call the corrected selector. The complete source also explicitly reconciles the previously accepted database lifecycle/cancellation repair. That earlier rollout excluded the API/Trading consumers. This worker-only scope is superseded by the current shared release at the top of this plan.
 
-## Evaluation and adverse evidence
+## Earlier evaluation and adverse evidence
 
 Preserve frozen original inputs, complete provider requests/results and failed experiments privately. The first navigation attempts produced invalid IDs or repeatedly read metadata without originals. A provider-level schema-validation prototype changed partial-draft/call ownership and was reverted. An added planner paragraph did not establish original reads and was removed before packaging. A temporary direct-prefetch prototype was replaced by the existing evidence-history handoff. Carrying the original task to chart review alone did not restore good prose. These results do not authorize publication or more prompt rules.
 
@@ -22,7 +26,7 @@ The final current-data local replays completed in 201.41/269.01 seconds. Maximum
 
 Focused mechanical checks passed for transport/context ownership; one outdated fake-Blob fixture was excluded. They do not grade research. Full originals were retained beyond 1,200 observations; the unchanged modern API separately displays at most 1,200 points per highlight. Current caption comparisons lie inside that window.
 
-## Actual development release
+## Earlier development releases (failed quality)
 
 Build revision `18322b68`, ACR run `cj179`, image `accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe`. In-registry verification matched all 197 runtime files and all 93 installed dependency versions/metadata hashes. The complete application inventory has 312 files. No inherited application source survives the dependency image.
 
