@@ -1,0 +1,39 @@
+{
+  "scope": "All local diagnostic model/embedding provider attempts for this root repair, including adverse and superseded evaluations; excludes earlier recovery and search-provider requests. No cost estimate or complete-platform savings claim.",
+  "unique_attempts": 150,
+  "states": {
+    "success": 150
+  },
+  "diagnostics": {
+    "provider-attempts.private.json": {
+      "unique_attempts": 39,
+      "states": {
+        "success": 39
+      }
+    },
+    "budget-provider-attempts.private.json": {
+      "unique_attempts": 20,
+      "states": {
+        "success": 20
+      }
+    },
+    "phase-budget-provider-attempts.private.json": {
+      "unique_attempts": 30,
+      "states": {
+        "success": 30
+      }
+    },
+    "heldout-attempts.private.json": {
+      "unique_attempts": 24,
+      "states": {
+        "success": 24
+      }
+    },
+    "heldout-acquired-attempts.private.json": {
+      "unique_attempts": 37,
+      "states": {
+        "success": 37
+      }
+    }
+  }
+}
