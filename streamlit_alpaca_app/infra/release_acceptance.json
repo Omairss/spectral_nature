@@ -1,7 +1,7 @@
 {
-  "status": "held_after_development_quality_failure",
-  "scope": "HOLD: complete DEV research misdates older financing as October events. Shared context and packaging checks pass, but the owner quality condition is not met; production unchanged.",
-  "source_revision": "076f92bf38b49d4bf44985804fb2bd123a12be60",
+  "status": "accepted_locally",
+  "scope": "Shared live/retained source capture and metadata preservation, source-reference retention, LLM-owned chronology, and existing phase/per-request execution deadlines. 24 reviewed cumulative application changes; full fresh DEV quality/serving acceptance required before production.",
+  "source_revision": "9b0038675220af11aabad75738b0799dc4708e88",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
@@ -67,7 +67,7 @@
     "docker-compose.dev.yml": "b34fcd354a6743bbdf3c75b4c98dc49164d15f9eb5b02448d7c51a83f9ecf19d",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "e511a63b0ccaa663ab5e6b1eaf5184d4999b13da8431407c9011e1963e5eb23a",
+    "pipeline/jobs/attention_home_build.py": "f11d8c8abb66a627b8bc5b047a353d850355290cb28ddd8bd6206ea93b14e155",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "54c816fc1c1802143fb96ac95b5234f12c15f9b2f532fb888d4b8388e3f3516e",
@@ -115,18 +115,18 @@
     "services/aql/__init__.py": "e9150353cee4ad7f426a553a54ab8cc46f99a85e6797fbd1ff0ea1f5778bd077",
     "services/aql/_agentic.py": "9fdbaad3afc77377d3ccea1dcda3629c8cc1bd32a5c7df5be0df41be78ccecae",
     "services/aql/_shared.py": "aecc09aaa18da41798e28707427f8c723c39624b2033ba68f6868fad5469c8df",
-    "services/aql/assembler.py": "59ae7a6d260a679a17587344fb79cba88ff7a94f194163f5dec1e5bec891577e",
+    "services/aql/assembler.py": "b5d795bb987821baa426532f7bf6bc2210d85a5dd2353e93ad942cb0fd76bd35",
     "services/aql/business_model_stack.py": "40a69bfe66cdaa9372094b147a74f2c7a97b5260d75312c73b8133ad6341f6e8",
     "services/aql/chat_log.py": "6c26c7eca9eb9fe7ee8b596746c2220abd08a514aad1dd398e669ea32e74a7c9",
     "services/aql/clusterer.py": "3cd8337bc882b3617cbcaaff51146796bbfa4c6437c038e763c7fb3b4892afb7",
-    "services/aql/collector.py": "5968bcbe4e0c16e2b45207da8c9450c82dbdbd00ed53440025e0361204fb4687",
+    "services/aql/collector.py": "932062ba9ecb5a78ed1f29bebe73c6e65ac585f0ec4d245efd699ee94fae6d59",
     "services/aql/config.py": "3fd5d6fcea0b0b933bc5a613d82fa3fd2dfdaf7e13d5623369ffd708a5da95ac",
     "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
     "services/aql/critique.py": "fddd11f9290b841af47053c11820c98546a1bca26aad0cad83c2c4fd488eddb1",
     "services/aql/entities.py": "d7f5fa9833aa9238f8d81dabfeb75bb9caa313f180ace88ab5f5df1a62282003",
     "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a",
     "services/aql/evidence_index.py": "6a594a6fff4dff1a3c3913758dc5a66a3db2def8d7ad5942dc1348ff69a7c07b",
-    "services/aql/evidence_pack.py": "1e0ee70c8359f78b5e818721e3fe9f1585a787a0d9a4e1fc8df49e3d9aa73b22",
+    "services/aql/evidence_pack.py": "ed053239682a6fa323660ea1bf98e5af4c6e62ca53bd985d659fadac8d13f506",
     "services/aql/extractor.py": "77bbfe2cd208287fa255532b4080ecd9221094c6984409e008cc5f460aad9997",
     "services/aql/macro.py": "274c03c13eedf17f8dce07e613114d3a3e05427b84424fcdb98bb4c928695521",
     "services/aql/news_business_resolution.py": "74c6ec4cac2f3f3b610c370388b9e8548f8d28c28abac94ffb1f23deb5d42357",
@@ -143,7 +143,7 @@
     "services/attention_graph_topology.py": "a3497f7cd4e1831724948e842721c1909fee57fb9d83a196c1f562f1e4553f0d",
     "services/attention_home_1d.py": "d8ad63e4f120ee8815202697c654d3fc45394f797edd779cbf40fa15f07165fe",
     "services/attention_home_summary.py": "ac903b09ffd90f95d353165bcc6e62f8c9b5c9afa7438123d22ed99e9295b1d7",
-    "services/attention_live_research.py": "b328f66e664949713077b8f0cd9300eb3c4029c341741ae05ca307b218947064",
+    "services/attention_live_research.py": "e852692d8719a403c9c482bfffbded2cd53a153f5736025f73a3fcef46c8ee68",
     "services/attention_macro_signals.py": "ab138ad97a05bc90e1603f1c37373a7d842a8deceb5eba3c3c39ab2b2c30af8b",
     "services/attention_market_events.py": "72f5049589acc4427c2667feb51b5401bc5f39902d1aefa27af77cc1284a55df",
     "services/attention_materialized.py": "0618da8cbc64e3940e811557c7a2c1323bf8960cb7f93e9fa9df379fae09565c",
@@ -159,7 +159,7 @@
     "services/common/contracts.py": "091620b205635319dd50332383293682a7066b139e681fc02c7e79e43e25a334",
     "services/common/hypothesis.py": "b165f0cc1ef7e0caa87ba8ab7d29c34b3eb926754b64eaf25634f3cf93425179",
     "services/common/market_activity.py": "5ace2689b0c39806723751a08c2d95d5992cf6364844c1a6159d5f09595616a5",
-    "services/common/news_freshness.py": "4f90d5e720230eb29c52a659883fc10022377a0eac38f4c7c29c596aded7011e",
+    "services/common/news_freshness.py": "a81201ce532a4d78182616c97c38bb8cbc544c2f511262f002d9f5cbca3e5e47",
     "services/company.py": "5aae2327e2e251715a6be856037efd40987061e82a7529874d1b24d4dec1711e",
     "services/company_baseline.py": "9ee3efc52a1bf86be1c972d43962685ea60308dc384b9d6b83dcf78ec5a579d7",
     "services/config.py": "90da8235542df4fac4e468afef9d8c844e5ad4e5b6f7c1d68b2834aa1d1beeda",
@@ -194,7 +194,7 @@
     "services/operational_health.py": "cbac16d2ad06a59f8a4ac02229ba60f090bda409fb66f7521636dacf2d467a34",
     "services/options.py": "0451f958398c313c08ff8b9b66f1d3e1863e068b98af78907328ad51728c09e4",
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
-    "services/page_browsing.py": "f0b5254fb7465a773f02b80f3de06851b658e3357a90bb9d9bddfb04ee927858",
+    "services/page_browsing.py": "53a2602e454879c3cf3afd921ba886bc3e2dbacd33145b8e4a3e0679f4e4d38a",
     "services/pipeline_slices.py": "208f75f12a2cb9fec6e5b87754d4c1e6cb506b78e79f7e41e6f045d699b361dc",
     "services/pipeline_store.py": "4b82f1715d0e25e67b9c84948fdebc07d2121c44035bb690b221b5cb490c94e6",
     "services/portfolio_view.py": "a10fa72f98fca0005cecf3c516293dfa01e448e54ef573fd44ae513251d58c97",
@@ -207,10 +207,10 @@
     "services/runtime_policy.py": "22a23573704b1d50214481970c8f5c8b3cce351e2a17c91a7073f73651229830",
     "services/saa/__init__.py": "64ba9d382190f6083dca6cd71ad192e9eec4967292820c3da8c63815e4fd5004",
     "services/saa/semantic_index.py": "26bdba219db7b4fbcbb0d73b70988fea46d2e2997cd60639d950da49113279e8",
-    "services/saa/storage.py": "542daaf79b57b56bff858f4aaed1078dfc4c4a4760a13dffe2baf202e598d8ca",
+    "services/saa/storage.py": "7aa2dc8fc91b571025cf9881071271f71b7e41b1dba9233ab77e49e6fbf92011",
     "services/saa/zopedia.py": "20f80b0fd6fa1f90a4b208d90f7aadae30ef0bdb5add750e79f8021dc3d0e0f6",
     "services/secrets.py": "9bde624f7d33cd04d414b4c45d93cb937bb5aef10287c1ce1f8423673cc8874e",
-    "services/seeking_alpha_access.py": "5d14d90f63056f84ea8a58275acf3dab976fceb6e1de7626e08243dd3aab7eb4",
+    "services/seeking_alpha_access.py": "651702e991bb26c1b25289f5a270f8a2451b70912ecad4389bfd57376797db15",
     "services/signal_catalog.py": "7d9314ab789233de373b9fe36a98121b1c51d92b2d6dbae501c53c0e24637069",
     "services/signals.py": "c5831a7990697be454a55643b7b206c442e45fd0dd5a59fe6890635d8b8cacd5",
     "services/simfin_refresh.py": "01b88fc5639e456f9fc77d29b686585d82e5fdf351e21ea49c004e63c83b6a36",
@@ -221,13 +221,13 @@
     "services/trading_agent_view.py": "61776927bdd4af78258fe6d6b4158ab8aecd7039cf2ab60681bb6a6b194356ff",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
-    "services/web_research.py": "19f52cd6f8d073a9a609db197e2e4013b3156ccf4445700b0a308ed13d023bb3",
+    "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "2857f3f0d3a0a965bca11a3ff1205bbd89989d1efc04b710818d82ec9cd9589f",
+    "services/zopedia_agent.py": "f41f9dce57095b2bb3cc24356976d95a5591206eec467a456175ba7fd48a1817",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
     "services/zopedia_learning.py": "a610b21df101afc02f7fddf4bdd6656d3622b3846da001fa78a59fdafab31776",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
-    "services/zopedia_research.py": "4e00a94718385dfec0a6a4c271bac9ad33b29e8cc67651ada8c08ceaf7de3fbd",
+    "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec",
     "services/zopedia_resolver.py": "d3a81502b7db7c11e5131f9874d5d4e37372e45b58b18abbee621ed5fb97d578",
     "services/zopedia_runtime.py": "c5f6a8c9f6e9a8baab3aeab15429f7f028475dabe1cf22ba3b4e1e51b24ad188",
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2",
@@ -373,7 +373,7 @@
     "data_access/query_service.py": "8671aab2691759e226844ed3dcf9469b97f147077b97ef6107af10cfb564fc59",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "e511a63b0ccaa663ab5e6b1eaf5184d4999b13da8431407c9011e1963e5eb23a",
+    "pipeline/jobs/attention_home_build.py": "f11d8c8abb66a627b8bc5b047a353d850355290cb28ddd8bd6206ea93b14e155",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "54c816fc1c1802143fb96ac95b5234f12c15f9b2f532fb888d4b8388e3f3516e",
@@ -399,18 +399,18 @@
     "services/aql/__init__.py": "e9150353cee4ad7f426a553a54ab8cc46f99a85e6797fbd1ff0ea1f5778bd077",
     "services/aql/_agentic.py": "9fdbaad3afc77377d3ccea1dcda3629c8cc1bd32a5c7df5be0df41be78ccecae",
     "services/aql/_shared.py": "aecc09aaa18da41798e28707427f8c723c39624b2033ba68f6868fad5469c8df",
-    "services/aql/assembler.py": "59ae7a6d260a679a17587344fb79cba88ff7a94f194163f5dec1e5bec891577e",
+    "services/aql/assembler.py": "b5d795bb987821baa426532f7bf6bc2210d85a5dd2353e93ad942cb0fd76bd35",
     "services/aql/business_model_stack.py": "40a69bfe66cdaa9372094b147a74f2c7a97b5260d75312c73b8133ad6341f6e8",
     "services/aql/chat_log.py": "6c26c7eca9eb9fe7ee8b596746c2220abd08a514aad1dd398e669ea32e74a7c9",
     "services/aql/clusterer.py": "3cd8337bc882b3617cbcaaff51146796bbfa4c6437c038e763c7fb3b4892afb7",
-    "services/aql/collector.py": "5968bcbe4e0c16e2b45207da8c9450c82dbdbd00ed53440025e0361204fb4687",
+    "services/aql/collector.py": "932062ba9ecb5a78ed1f29bebe73c6e65ac585f0ec4d245efd699ee94fae6d59",
     "services/aql/config.py": "3fd5d6fcea0b0b933bc5a613d82fa3fd2dfdaf7e13d5623369ffd708a5da95ac",
     "services/aql/constants.py": "47ec71d063a428da0368527f033d614862083ec5d24953d5b040d5da62e1f4a7",
     "services/aql/critique.py": "fddd11f9290b841af47053c11820c98546a1bca26aad0cad83c2c4fd488eddb1",
     "services/aql/entities.py": "d7f5fa9833aa9238f8d81dabfeb75bb9caa313f180ace88ab5f5df1a62282003",
     "services/aql/events.py": "52e1f165efd25c58be536a42da2c5348271835ea09c65b9a66c863d135b0844a",
     "services/aql/evidence_index.py": "6a594a6fff4dff1a3c3913758dc5a66a3db2def8d7ad5942dc1348ff69a7c07b",
-    "services/aql/evidence_pack.py": "1e0ee70c8359f78b5e818721e3fe9f1585a787a0d9a4e1fc8df49e3d9aa73b22",
+    "services/aql/evidence_pack.py": "ed053239682a6fa323660ea1bf98e5af4c6e62ca53bd985d659fadac8d13f506",
     "services/aql/extractor.py": "77bbfe2cd208287fa255532b4080ecd9221094c6984409e008cc5f460aad9997",
     "services/aql/macro.py": "274c03c13eedf17f8dce07e613114d3a3e05427b84424fcdb98bb4c928695521",
     "services/aql/news_business_resolution.py": "74c6ec4cac2f3f3b610c370388b9e8548f8d28c28abac94ffb1f23deb5d42357",
@@ -427,7 +427,7 @@
     "services/attention_graph_topology.py": "a3497f7cd4e1831724948e842721c1909fee57fb9d83a196c1f562f1e4553f0d",
     "services/attention_home_1d.py": "d8ad63e4f120ee8815202697c654d3fc45394f797edd779cbf40fa15f07165fe",
     "services/attention_home_summary.py": "ac903b09ffd90f95d353165bcc6e62f8c9b5c9afa7438123d22ed99e9295b1d7",
-    "services/attention_live_research.py": "b328f66e664949713077b8f0cd9300eb3c4029c341741ae05ca307b218947064",
+    "services/attention_live_research.py": "e852692d8719a403c9c482bfffbded2cd53a153f5736025f73a3fcef46c8ee68",
     "services/attention_macro_signals.py": "ab138ad97a05bc90e1603f1c37373a7d842a8deceb5eba3c3c39ab2b2c30af8b",
     "services/attention_market_events.py": "72f5049589acc4427c2667feb51b5401bc5f39902d1aefa27af77cc1284a55df",
     "services/attention_materialized.py": "0618da8cbc64e3940e811557c7a2c1323bf8960cb7f93e9fa9df379fae09565c",
@@ -443,7 +443,7 @@
     "services/common/contracts.py": "091620b205635319dd50332383293682a7066b139e681fc02c7e79e43e25a334",
     "services/common/hypothesis.py": "b165f0cc1ef7e0caa87ba8ab7d29c34b3eb926754b64eaf25634f3cf93425179",
     "services/common/market_activity.py": "5ace2689b0c39806723751a08c2d95d5992cf6364844c1a6159d5f09595616a5",
-    "services/common/news_freshness.py": "4f90d5e720230eb29c52a659883fc10022377a0eac38f4c7c29c596aded7011e",
+    "services/common/news_freshness.py": "a81201ce532a4d78182616c97c38bb8cbc544c2f511262f002d9f5cbca3e5e47",
     "services/company.py": "5aae2327e2e251715a6be856037efd40987061e82a7529874d1b24d4dec1711e",
     "services/company_baseline.py": "9ee3efc52a1bf86be1c972d43962685ea60308dc384b9d6b83dcf78ec5a579d7",
     "services/config.py": "90da8235542df4fac4e468afef9d8c844e5ad4e5b6f7c1d68b2834aa1d1beeda",
@@ -478,7 +478,7 @@
     "services/operational_health.py": "cbac16d2ad06a59f8a4ac02229ba60f090bda409fb66f7521636dacf2d467a34",
     "services/options.py": "0451f958398c313c08ff8b9b66f1d3e1863e068b98af78907328ad51728c09e4",
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
-    "services/page_browsing.py": "f0b5254fb7465a773f02b80f3de06851b658e3357a90bb9d9bddfb04ee927858",
+    "services/page_browsing.py": "53a2602e454879c3cf3afd921ba886bc3e2dbacd33145b8e4a3e0679f4e4d38a",
     "services/pipeline_slices.py": "208f75f12a2cb9fec6e5b87754d4c1e6cb506b78e79f7e41e6f045d699b361dc",
     "services/pipeline_store.py": "4b82f1715d0e25e67b9c84948fdebc07d2121c44035bb690b221b5cb490c94e6",
     "services/portfolio_view.py": "a10fa72f98fca0005cecf3c516293dfa01e448e54ef573fd44ae513251d58c97",
@@ -491,10 +491,10 @@
     "services/runtime_policy.py": "22a23573704b1d50214481970c8f5c8b3cce351e2a17c91a7073f73651229830",
     "services/saa/__init__.py": "64ba9d382190f6083dca6cd71ad192e9eec4967292820c3da8c63815e4fd5004",
     "services/saa/semantic_index.py": "26bdba219db7b4fbcbb0d73b70988fea46d2e2997cd60639d950da49113279e8",
-    "services/saa/storage.py": "542daaf79b57b56bff858f4aaed1078dfc4c4a4760a13dffe2baf202e598d8ca",
+    "services/saa/storage.py": "7aa2dc8fc91b571025cf9881071271f71b7e41b1dba9233ab77e49e6fbf92011",
     "services/saa/zopedia.py": "20f80b0fd6fa1f90a4b208d90f7aadae30ef0bdb5add750e79f8021dc3d0e0f6",
     "services/secrets.py": "9bde624f7d33cd04d414b4c45d93cb937bb5aef10287c1ce1f8423673cc8874e",
-    "services/seeking_alpha_access.py": "5d14d90f63056f84ea8a58275acf3dab976fceb6e1de7626e08243dd3aab7eb4",
+    "services/seeking_alpha_access.py": "651702e991bb26c1b25289f5a270f8a2451b70912ecad4389bfd57376797db15",
     "services/signal_catalog.py": "7d9314ab789233de373b9fe36a98121b1c51d92b2d6dbae501c53c0e24637069",
     "services/signals.py": "c5831a7990697be454a55643b7b206c442e45fd0dd5a59fe6890635d8b8cacd5",
     "services/simfin_refresh.py": "01b88fc5639e456f9fc77d29b686585d82e5fdf351e21ea49c004e63c83b6a36",
@@ -505,13 +505,13 @@
     "services/trading_agent_view.py": "61776927bdd4af78258fe6d6b4158ab8aecd7039cf2ab60681bb6a6b194356ff",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
-    "services/web_research.py": "19f52cd6f8d073a9a609db197e2e4013b3156ccf4445700b0a308ed13d023bb3",
+    "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "2857f3f0d3a0a965bca11a3ff1205bbd89989d1efc04b710818d82ec9cd9589f",
+    "services/zopedia_agent.py": "f41f9dce57095b2bb3cc24356976d95a5591206eec467a456175ba7fd48a1817",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
     "services/zopedia_learning.py": "a610b21df101afc02f7fddf4bdd6656d3622b3846da001fa78a59fdafab31776",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
-    "services/zopedia_research.py": "4e00a94718385dfec0a6a4c271bac9ad33b29e8cc67651ada8c08ceaf7de3fbd",
+    "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec",
     "services/zopedia_resolver.py": "d3a81502b7db7c11e5131f9874d5d4e37372e45b58b18abbee621ed5fb97d578",
     "services/zopedia_runtime.py": "c5f6a8c9f6e9a8baab3aeab15429f7f028475dabe1cf22ba3b4e1e51b24ad188",
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
@@ -520,8 +520,8 @@
     "services/daily_market_datapoints.py": "Preserve full catalog, exact original points, five distinct references and existing public materialization. Use existing public-story projection and explicit adjusted-price basis. Replace separate critique/rewrite controller with existing shared Zopedia artifact review; no new critic or semantic rules. Retain original 65/180-character requested format and 600-second operation budget. Both complete local chart sets personally read; earlier failed pairs retained. Normal Home and independent chart job share this same function.",
     "services/llm.py": "Keep valid provider requests and call counts; syntax recovery receives its original messages to retain task/evidence meaning. All three existing transports use the same recovery contract; no provider/model/settings change. Paired actual malformed responses and transport contract checks retained.",
     "services/aql_zopedia_engine.py": "Keep original task/schema-recovery ownership and normal no-record single formatter call. Explicitly permitted invocation-owned records use the existing reader even when context fits; oversized direct calls reuse that same shared recovery. Preserve source restrictions and call type. Mechanical one-call/permitted-read/forbidden-source checks pass; current full chart comparisons and earlier held-out recovery personally reviewed.",
-    "services/zopedia_agent.py": "Keep collected originals and complete checkpoint traces; final writing and existing review reuse the existing permitted list/read evidence tools. The LLM selects working context and can reopen original results. Remove whole-container expansion, retain the original question and valid direct artifacts, preserve source permissions and normal planner behavior. Complete coupled Home/chart replay and held-out nonfinancial capacity recovery personally reviewed. No financial rules, new critic, changed model or increased task budget.",
-    "pipeline/jobs/attention_home_build.py": "Remove stale projection helpers, key whitelists and row caps that erased available units, annual changes, long maturities, weak sectors and signal identities. Existing typed serialization retains complete source records. Replace the accumulated editorial checklist with the exact paid concise task; keep all four immutable identity fields, existing schema/shared critic/600-second budget/materializer/audio/intraday behavior. Complete comparison personally reviewed, adverse experiments rejected and remaining limits recorded; fresh DEV acceptance remains mandatory.",
+    "services/zopedia_agent.py": "Keep collected originals and complete checkpoint traces; final writing and existing review reuse the existing permitted list/read evidence tools. The LLM selects working context and can reopen original results. Remove whole-container expansion, retain the original question and valid direct artifacts, preserve source permissions and normal planner behavior. Complete coupled Home/chart replay and held-out nonfinancial capacity recovery personally reviewed. No financial rules, new critic, changed model or increased task budget. Preserve capture metadata and distinguish opened-page acquisitions from retained references. Correct interactive reader exchange deadlines: each model request retains its 90-second limit inside unchanged research/synthesis/review phase clocks and whole 240-second candidate budget. Both complete exact-budget probes and existing review succeed after adverse timeout is retained; 14 objective access/client checks pass.",
+    "pipeline/jobs/attention_home_build.py": "Remove stale projection helpers, key whitelists and row caps that erased available units, annual changes, long maturities, weak sectors and signal identities. Existing typed serialization retains complete source records. Replace the accumulated editorial checklist with the exact paid concise task; keep all four immutable identity fields, existing schema/shared critic/600-second budget/materializer/audio/intraday behavior. Complete comparison personally reviewed, adverse experiments rejected and remaining limits recorded; fresh DEV acceptance remains mandatory. Preserve all available search capture fields through both news materializers and native input rows; retain useful unknown-date leads. Existing Home editor, charts, narration and background flow remain unchanged. Source/Parquet contract checks pass; complete fresh public publication remains required.",
     "services/llm_execution.py": "Shared full-request token estimate with explicit tokenizer headroom and output reserve, recorded separately from authoritative provider usage. Oversized requests are recorded as not sent and exact provider context errors return capacity feedback to the same LLM-owned reader. No semantic truncation, request-setting or model change. Forced-cap and normal full workflow examined.",
     "compute/fred.py": "Replace annual row offsets with calendar-period/date comparisons; retain actual reference dates/values and missing periods as unknown. Preserve all 35 latest levels and 23,604 observations through normal dashboard finalization. CPI/core match official September release; monthly gaps, leap dates, sorting and frequent as-of comparisons checked. No financial interpretation rule.",
     "Dockerfile.runtime": "Install the exact evaluated tiktoken 0.14.0 / regex 2026.9.29 versions without dependency upgrades and cache cl100k encoding for all Python roles. Previously only worker dependencies carried the declared tokenizer; API checks rejected both incomplete packages before deployment. Preserve all unrelated installed metadata, remove all inherited application files and Streamlit, and verify cold accounting without runtime encoding downloads in each role.",
@@ -530,7 +530,17 @@
     "services/attention_ticker_snapshots.py": "Add price adjustment basis to snapshot row and source trace, inherited from source attributes or stable all-adjusted dataset contract. Numeric return/fundamental calculations and all price/financial points unchanged. Full catalog original-point equivalence and primary provider basis comparison verified.",
     "services/market.py": "Retain provider daily/previous timestamps and raw adjustment basis on daily mover rows. Universe, close/previous values, return calculation, ranking and filters unchanged. Frozen snapshot contract verifies exact values and dates; no ticker exception or financial rule.",
     "services/attention_home_1d.py": "Carry the three additive quote date/basis fields into candidate observations using existing text conversion. Scoring, selection, numbers and existing columns unchanged. No NLP classifier or ranking change.",
-    "data_access/layer.py": "Add price adjustment basis to existing materialized/on-demand price-history provenance; preserve actual values, returned rows and mode decisions. Stable legacy materialized contract is all-adjusted; explicit source metadata retained. No API route, permission, trading or broker behavior changed."
+    "data_access/layer.py": "Add price adjustment basis to existing materialized/on-demand price-history provenance; preserve actual values, returned rows and mode decisions. Stable legacy materialized contract is all-adjusted; explicit source metadata retained. No API route, permission, trading or broker behavior changed.",
+    "services/web_research.py": "Name provider dates reported_date, preserve original provider payload and retrieval time, and produce one shared structural source record without an established publication date. All four search transports retain settings, queries and HTTP behavior. Internal fixtures follow field rename; eight client contract checks pass. No semantic date inference or additional model call.",
+    "services/aql/collector.py": "Retain complete search capture/available native feed row and origin through initial evidence. Unknown-date leads survive; remove unused search-age admission helpers. Candidate task, shared model/schema and business investigation remain unchanged. Both actual-source company probes finish with correct financing chronology and completed existing review under the deployed 240-second budget.",
+    "services/aql/evidence_pack.py": "Keep complete captured content, capture origin, raw provider result and source trace during materialization; compute matching capture identities before deriving chunks. Retrieved originals stay references and retain their actual IDs. No acquisition or model call in materialization. Objective capture/storage/source-reference checks pass.",
+    "services/aql/assembler.py": "Remove promotion of timestamp recency into same-day confirmation or raised cause/freshness verdicts. Model claim assessments remain the interpretation source; citations retain capture origin and metadata. No new time cutoff, relevance gate or financial classifier. Fresh complete public quality remains the DEV condition.",
+    "services/attention_live_research.py": "Preserve all available capture data through news merging, normalization and evidence serialization. Shared event acquisition uses the common source record. Remove timestamp-derived same-day/fresh-catalyst assertions from news and filing adapters; observations retain their actual dates. No new keyword, score, ranking or publication gate.",
+    "services/common/news_freshness.py": "Parse explicitly reported date values without silently promoting URL-inferred dates to article publication. Unknown stays unknown; original URLs stay available. Search materializers retain unknown-date leads. No fixed freshness cutoff or event-date rule added.",
+    "services/page_browsing.py": "Preserve complete captured substantive text alongside bounded previews and raw HTML metadata/JSON-LD/time elements across existing browser, HTTP, Scrapling and Firecrawl routes. No new dependencies, authentication behavior or business inference. Actual company page roundtrip preserves all 5424 captured characters and metadata with 800-character preview.",
+    "services/seeking_alpha_access.py": "Authenticated existing Scrapling route preserves the same complete capture and publisher metadata contract. Login, credentials, profile lock, retries, access and backend are unchanged. Only source content/metadata are retained, no cookies or credentials.",
+    "services/saa/storage.py": "Separate source captures from retained references; do not repersist excerpts over originals. Content/provider-metadata capture identities retain distinct versions, while identical passages deduplicate by URL/origin/content. Capture metadata survives ancestry projection. Existing IDs remain readable, with unresolved legacy date basis represented honestly. No SQL schema migration or destructive historic date rewrite. Actual body, metadata-only identity, reference-only write and roundtrip checks pass.",
+    "services/zopedia_research.py": "Carry shared capture records and full opened content through actual model evidence. Existing retained reader reopens captured original and metadata; retained dates are recorded metadata with capture/legacy basis rather than asserted event facts. Reference access controls and existing tools are retained. Live acquired nonfinancial chronology check is limited by existing retained-search timeouts; full DEV required."
   },
   "retired_files": [
     ".streamlit/config.toml",
@@ -660,12 +670,32 @@
         "pipeline/jobs/main.py"
       ],
       "evidence": "documents/verification/daily-highlight-context-2026-10-17/SHARED_REVIEW_LOCAL_REVIEW.md"
+    },
+    {
+      "name": "Shared source capture, retained reference integrity and bounded reader exchange",
+      "status": "accepted",
+      "files": [
+        "pipeline/jobs/attention_home_build.py",
+        "services/aql/assembler.py",
+        "services/aql/collector.py",
+        "services/aql/evidence_pack.py",
+        "services/attention_live_research.py",
+        "services/common/news_freshness.py",
+        "services/page_browsing.py",
+        "services/saa/storage.py",
+        "services/seeking_alpha_access.py",
+        "services/web_research.py",
+        "services/zopedia_agent.py",
+        "services/zopedia_research.py"
+      ],
+      "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md"
     }
   ],
   "roles": {
     "worker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
       "baseline_images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
         "snpipelineacr03130136.azurecr.io/native-trading-repair-research-dev@sha256:316454f9b4d0022e82d231d76a5f2dbb45e89ae445155d6ad494e9e960d60487",
         "snpipelineacr03130136.azurecr.io/native-trading-repair-worker-dev@sha256:aac667337d7d87f78cc3ff252b583f19bb825e194604d4df485303a82ddb8070",
@@ -678,42 +708,42 @@
         {
           "kind": "jobs",
           "name": "attention-home-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
           "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "daily-datapoints-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "macro-fred-daily-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
           "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "sn-research-run-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
           "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "trading-agent-build-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
           "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
           "configuration_api_version": "2025-07-01"
         },
         {
           "kind": "jobs",
           "name": "equities-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
           "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
           "configuration_api_version": "2025-07-01"
         }
@@ -804,14 +834,7 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a": {
-          "source_revision": "8d87b5ec78214ae7c6ffa0b7edc717eba68f3838",
-          "source_inventory_sha256": "acc2ca4effe93a5948ab17525cebc50e5ebe5cc7321a23d156ccd7fd15bf1f1d",
-          "runtime_inventory_sha256": "7037b99f401da4fe5bd640d087f36e810cb667aede8103cd19f97e27a576d7b6",
-          "evidence": "documents/verification/daily-highlight-context-2026-10-17/context-handoff-packaged-images.json"
-        }
-      }
+      "accepted_images": {}
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -819,7 +842,7 @@
         {
           "kind": "containerApps",
           "name": "sn-api-next-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15",
           "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
           "configuration_api_version": "2025-07-01"
         }
@@ -833,15 +856,9 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15": {
-          "source_revision": "8d87b5ec78214ae7c6ffa0b7edc717eba68f3838",
-          "source_inventory_sha256": "acc2ca4effe93a5948ab17525cebc50e5ebe5cc7321a23d156ccd7fd15bf1f1d",
-          "runtime_inventory_sha256": "7037b99f401da4fe5bd640d087f36e810cb667aede8103cd19f97e27a576d7b6",
-          "evidence": "documents/verification/daily-highlight-context-2026-10-17/context-handoff-packaged-images.json"
-        }
-      },
+      "accepted_images": {},
       "baseline_images": [
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15",
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
         "snpipelineacr03130136.azurecr.io/native-trading-repair-api-dev@sha256:2b1596f0469e2441a8b2b4a6a84a3c3434a4533a6a11e7ab4273117471075a3b"
       ]
@@ -933,29 +950,16 @@
   ],
   "production_authorized": false,
   "production_authorization": {
-    "status": "condition_not_met",
+    "status": "awaiting_exact_development_verification",
     "owner_instruction": "Do it. If it works in dev, move to prod",
     "condition": "Fresh complete development Home and genuinely new highlights match or exceed pre-incident subjective quality, with preserved runtime/configuration and acceptance of the exact image.",
     "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
     "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate."
   },
   "development_acceptance": {
-    "status": "not_accepted",
-    "evidence": "documents/verification/daily-highlight-context-2026-10-17/SOURCE_DATE_QUALITY_REVIEW.md",
-    "scope": "Complete Home succeeded, but personal review rejects financing event dates. Source histories, current narration, API readiness, authenticated retained research and all-33 configuration checks pass; they do not establish research quality.",
-    "macro_execution": "macro-fred-daily-dev-qx4055p",
-    "macro_status": "Succeeded",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15"
-    },
-    "source_inventory_sha256": "acc2ca4effe93a5948ab17525cebc50e5ebe5cc7321a23d156ccd7fd15bf1f1d",
-    "home_execution": "attention-home-next-dev-9dj8enx",
-    "home_run_id": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
-    "home_status": "Succeeded",
-    "home_started_at": "2026-10-18T05:43:47+00:00",
-    "home_finished_at": "2026-10-18T06:22:33+00:00",
-    "reason": "CoreWeave September financing is described as an October 14 announcement. Cited IREN article is May 11 but search evidence assigns October. Shared model review missed both; trace shared acquisition/date provenance before further source changes."
+    "status": "pending",
+    "scope": "Shared capture/execution repair accepted locally for complete fresh development verification; prior DEV source-date failure retained separately. No image for this source has been deployed.",
+    "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md"
   },
   "preceding_hold": {
     "revision": "20108c58",
@@ -1001,5 +1005,23 @@
     "macro_status": "Succeeded",
     "home_run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e",
     "reason": "New charts preserve observations but still leak confidence metadata and falsely call adjusted/raw price-basis differences stale. Human review rejects the LLM-approved output."
+  },
+  "previous_source_date_development_failure": {
+    "status": "not_accepted",
+    "evidence": "documents/verification/daily-highlight-context-2026-10-17/SOURCE_DATE_QUALITY_REVIEW.md",
+    "scope": "Complete Home succeeded, but personal review rejects financing event dates. Source histories, current narration, API readiness, authenticated retained research and all-33 configuration checks pass; they do not establish research quality.",
+    "macro_execution": "macro-fred-daily-dev-qx4055p",
+    "macro_status": "Succeeded",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15"
+    },
+    "source_inventory_sha256": "acc2ca4effe93a5948ab17525cebc50e5ebe5cc7321a23d156ccd7fd15bf1f1d",
+    "home_execution": "attention-home-next-dev-9dj8enx",
+    "home_run_id": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
+    "home_status": "Succeeded",
+    "home_started_at": "2026-10-18T05:43:47+00:00",
+    "home_finished_at": "2026-10-18T06:22:33+00:00",
+    "reason": "CoreWeave September financing is described as an October 14 announcement. Cited IREN article is May 11 but search evidence assigns October. Shared model review missed both; trace shared acquisition/date provenance before further source changes."
   }
 }
