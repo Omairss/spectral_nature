@@ -1028,3 +1028,7 @@ October 17 calendar correction: I previously treated CPI yoy_pct=4.02 as authori
 
 ### October 17 — consumer baseline is not its required dependency base
 The API packaging contract incorrectly used its actual preincident image as the dependency base even though the reviewed Git source includes the accepted database lifecycle integration. It lacked required `psycopg_pool`. Full packaged imports rejected it before any deployment. Restore the separately recorded, already verified role-specific database-lifecycle dependency image, preserve the actual consumer image as its rollback baseline, and verify all packaged files/imports/dependency metadata.
+
+
+### October 17 — inspect all role dependencies before rebuilding
+After correcting the API pool dependency, the second package check found no installed tokenizer in either API base. The dependency comparison had checked only the pool change, rather than compatibility with the newly shared context boundary. Both packages were rejected before deployment. The shared runtime Dockerfile now installs the exact already-evaluated tokenizer versions without upgrading other packages and caches encoding data for every role. Verify role dependencies and cold accounting explicitly, including required assets, before deployment.

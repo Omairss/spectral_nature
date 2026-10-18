@@ -3,7 +3,12 @@
 # overlay layers and keeps historical application files out of the final image.
 ARG DEPENDENCY_IMAGE
 FROM ${DEPENDENCY_IMAGE} AS dependencies
-RUN python -m pip uninstall -y streamlit && rm -rf /app && mkdir /app
+ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken-cache
+# Install the shared, already-declared tokenizer at the versions evaluated in
+# research workers. Preserve every other pinned dependency and cache its data.
+RUN python -m pip uninstall -y streamlit && rm -rf /app && mkdir /app \
+    && python -m pip install --no-deps tiktoken==0.14.0 regex==2026.9.29 \
+    && python -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
 
 FROM scratch AS runtime
 COPY --from=dependencies / /
@@ -18,7 +23,8 @@ LABEL org.opencontainers.image.revision=$SOURCE_REVISION \
       com.spectral-nature.dependency-image=$DEPENDENCY_IMAGE
 ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     LANG=C.UTF-8 PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 \
-    PIP_NO_CACHE_DIR=1 PYTHONPATH=/app GIT_SHA=$SOURCE_REVISION
+    PIP_NO_CACHE_DIR=1 PYTHONPATH=/app GIT_SHA=$SOURCE_REVISION \
+    TIKTOKEN_CACHE_DIR=/opt/tiktoken-cache
 
 WORKDIR /app
 COPY api ./api
@@ -35,7 +41,6 @@ COPY cache/cache_policy.json ./cache/cache_policy.json
 COPY scripts/sync_robinhood_main.py ./scripts/sync_robinhood_main.py
 
 FROM runtime AS worker
-ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken-cache
 CMD ["python", "-m", "pipeline.jobs.main"]
 
 FROM runtime AS api-next

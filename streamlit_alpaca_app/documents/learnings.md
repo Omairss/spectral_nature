@@ -1124,3 +1124,7 @@ Year-over-year statistics must use observation dates and periods, with the actua
 
 ### October 17 — reconcile dependencies separately from rollback identity
 An actual consumer image establishes its previous behavior and rollback target, not compatibility with all accepted source integrations. The API database lifecycle source requires `psycopg_pool`; use its previously verified API dependency pin and verify complete packaged imports before deployment.
+
+
+### October 17 — shared runtime changes require role-wide dependency checks
+A requirement in requirements.txt does not prove that inherited role images installed it. Moving tokenizer accounting into a shared provider boundary requires every caller role to carry the evaluated tokenizer and its cached encoding. Put that requirement in shared packaging, preserve all unrelated dependency versions, and check token accounting without network access in each packaged role.
