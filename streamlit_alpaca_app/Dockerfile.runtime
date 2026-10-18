@@ -3,6 +3,7 @@
 # overlay layers and keeps historical application files out of the final image.
 ARG DEPENDENCY_IMAGE
 FROM ${DEPENDENCY_IMAGE} AS dependencies
+WORKDIR /
 ENV TIKTOKEN_CACHE_DIR=/opt/tiktoken-cache
 # Install the shared, already-declared tokenizer at the versions evaluated in
 # research workers. Preserve every other pinned dependency and cache its data.

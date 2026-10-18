@@ -1032,3 +1032,5 @@ The API packaging contract incorrectly used its actual preincident image as the 
 
 ### October 17 — inspect all role dependencies before rebuilding
 After correcting the API pool dependency, the second package check found no installed tokenizer in either API base. The dependency comparison had checked only the pool change, rather than compatibility with the newly shared context boundary. Both packages were rejected before deployment. The shared runtime Dockerfile now installs the exact already-evaluated tokenizer versions without upgrading other packages and caches encoding data for every role. Verify role dependencies and cold accounting explicitly, including required assets, before deployment.
+
+The first explicit tokenizer build also attempted pip after removing the inherited `/app` working directory. Pip rejected the deleted current directory. Set dependency-stage `WORKDIR /` before cleanup/installation, while the final application stage remains `/app`. The failed builds were not deployed.
