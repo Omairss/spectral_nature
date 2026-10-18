@@ -1,0 +1,17 @@
+{
+  "role": "worker",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3f60ac09920fe939a6b21cbc0a0c98a546856b93dbfd3297a41ee3ee79f30961",
+  "source_revision": "9c444d169064d5274a243b190a87018706985ea8",
+  "accepted_source_revision": "060c296850ea753223b7c4aef14f519344888e1d",
+  "source_inventory_sha256": "69662df4141e4cb38c30ea88e554126a346c04b71c6e6f1d34f593c10ab8a0ce",
+  "runtime_inventory_sha256": "cbc818d533be7174470db9130353388d178bde4b4d00ef26aabc7a84cc4ff23d",
+  "expected_files": 197,
+  "packaged_files": 197,
+  "complete_git_inventory_matches": true,
+  "dependency_distribution_metadata_matches": true,
+  "preserved_installed_distributions": 93,
+  "retired_streamlit_absent": true,
+  "api_pipeline_broker_imports_passed": true,
+  "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+  "method": "Read-only full filesystem hashes and installed metadata in ACR execution containers; no source extraction or research execution."
+}
