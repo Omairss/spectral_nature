@@ -1,6 +1,6 @@
 # Current-data Home recovery
 
-Status: **complete source-repair DEV run rejected. Production remains on HOLD.** The newest run succeeds mechanically, but seven company results are discarded at caller deadlines and a chart excludes broad credit stress using pre-selloff data. The [October 18 review](../verification/source-evidence-repair-2026-10-18/DEVELOPMENT_REVIEW.md) is the current acceptance decision. The preceding run presented older financing announcements as current events. Production is unchanged. The [complete live review](../verification/daily-highlight-context-2026-10-17/SOURCE_DATE_QUALITY_REVIEW.md) and committed `infra/release_acceptance.json` supersede local acceptance for promotion.
+Status: **complete source-repair DEV run rejected because seven company results were discarded at caller deadlines. Production remains on HOLD.** My separate credit-caption rejection was overstated; its one-day observation lag does not invalidate the comparison, and that wording concern is not an independent release blocker. The [October 18 review](../verification/source-evidence-repair-2026-10-18/DEVELOPMENT_REVIEW.md) is the corrected acceptance decision. The preceding run presented older financing announcements as current events. Production is unchanged by this candidate. The [complete live review](../verification/daily-highlight-context-2026-10-17/SOURCE_DATE_QUALITY_REVIEW.md) and committed `infra/release_acceptance.json` supersede local acceptance for promotion.
 
 ## Current implementation
 

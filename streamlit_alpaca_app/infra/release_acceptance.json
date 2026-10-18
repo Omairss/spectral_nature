@@ -1,6 +1,6 @@
 {
   "status": "held_after_development_quality_failure",
-  "scope": "Source capture/reference contracts verified, but complete DEV execution and public reasoning fail the owner quality condition. Current verified images are not authorized for promotion.",
+  "scope": "Source capture/reference contracts verified, but complete DEV execution discarded seven of twelve company investigations. Current verified images are not authorized for promotion. The corrected credit-caption judgment is not a separate release blocker.",
   "source_revision": "001895073648c1bdde9a9907238b701ca1c0fb08",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
@@ -974,9 +974,9 @@
   },
   "development_acceptance": {
     "status": "not_accepted",
-    "scope": "Normal complete fresh DEV Home and five new charts generated; runtime/data/configuration checks pass, but personal public quality and execution review reject promotion.",
+    "scope": "Normal complete fresh DEV Home and five new charts generated; runtime/data/configuration checks pass, but seven discarded company investigations prevent execution acceptance.",
     "evidence": "documents/verification/source-evidence-repair-2026-10-18/DEVELOPMENT_REVIEW.md",
-    "reason": "Seven of twelve company investigations discarded at 240-second caller deadlines, including IREN. High-yield caption uses 15 October data to exclude a general credit event during 16 October selling.",
+    "reason": "Seven of twelve company investigations discarded at 240-second caller deadlines, including IREN. Credit-caption concern was overstated in the original review and is not an independent release blocker.",
     "images": {
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:a0b15ecc87d2a6835e4c04b2afaedb83f37ec4c71a0117ac4820ec7b7a777fd9",
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:80ca1d3562457158f08989b3cb5c6ed2fdeef73f9b4a0b5a03a5c3260eea3c54"
