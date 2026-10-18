@@ -1,6 +1,6 @@
 # Current-data Home recovery
 
-The simplified candidate is accepted locally for full DEV verification. **Production is unchanged.** Read the [current local review](SHARED_REVIEW_LOCAL_REVIEW.md) and [complete results/source hashes](shared-review-local.json).
+The simplified candidate is deployed to DEV and the complete Home run is in progress. **Production is unchanged.** Read the [current local review](SHARED_REVIEW_LOCAL_REVIEW.md) and [complete results/source hashes](shared-review-local.json).
 
 Writing and review use the existing shared Zopedia reader over retained originals. The separate chart revision loop is removed; the existing shared reviewer corrects the artifact directly. The public-story projection replaces inline private confidence fields. Shared price contracts preserve raw/adjusted basis and observation dates; annual macro changes use calendar comparisons. No new reviewer, financial rule, phrase filter, model setting or larger operation budget.
 
@@ -20,3 +20,7 @@ The normal DEV macro refresh already succeeded; [all 35 series](context-handoff-
 - [Actual historical rollback](../exact-production-recovery-2026-10-16/PRODUCTION_RESTORATION.md) and [source-fidelity comparisons](../behavior-recovery-2026-10-16/source-fidelity.json).
 
 Historical scopes and images do not authorize new source builds or promotions. The committed release acceptance record is authoritative.
+
+## Current DEV execution
+
+`attention-home-next-dev-9dj8enx` started October 18 at 05:43:47 UTC with Home root `0b5a37b3-f0a4-4217-8c33-ff39c14a2d65`, as of 05:44:23 UTC. [Seven image updates](context-handoff-development-deployment.json) and the [full 33-resource audit](context-handoff-development-configuration.json) pass. API revision 42 is ready and [all five signed-in Trading horizons](context-handoff-development-trading.json) render retained research without approvals, orders or regeneration. Complete fresh publication, subjective review and serving checks remain pending.

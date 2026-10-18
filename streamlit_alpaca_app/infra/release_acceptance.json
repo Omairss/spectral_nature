@@ -942,9 +942,17 @@
   "development_acceptance": {
     "status": "pending",
     "evidence": "documents/verification/daily-highlight-context-2026-10-17/SHARED_REVIEW_LOCAL_REVIEW.md",
-    "scope": "Both exact new images and normal complete fresh DEV Home publication must pass personal quality and serving review. Correct fresh macro dataset is reused; its computation/producer are unchanged.",
+    "scope": "Seven image-only updates and all-33 configuration audit pass; API revision 42 ready, all five signed-in Trading horizons render. Complete fresh Home generation and its own new charts are running and remain the promotion condition.",
     "macro_execution": "macro-fred-daily-dev-qx4055p",
-    "macro_status": "Succeeded"
+    "macro_status": "Succeeded",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15"
+    },
+    "source_inventory_sha256": "acc2ca4effe93a5948ab17525cebc50e5ebe5cc7321a23d156ccd7fd15bf1f1d",
+    "home_execution": "attention-home-next-dev-9dj8enx",
+    "home_run_id": "0b5a37b3-f0a4-4217-8c33-ff39c14a2d65",
+    "home_status": "Running"
   },
   "preceding_hold": {
     "revision": "20108c58",

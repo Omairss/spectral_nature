@@ -1,6 +1,6 @@
 {
   "environment": "development",
-  "recorded_at_utc": "2026-10-18T03:58:34.915484+00:00",
+  "recorded_at_utc": "2026-10-18T05:43:49.528174+00:00",
   "resources": 33,
   "image_changes": 7,
   "all_configurations_preserved": true,
@@ -39,11 +39,11 @@
     },
     {
       "name": "sn-api-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15",
       "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
       "image_changed": true,
-      "latest_revision": "sn-api-next-dev--0000041",
-      "ready_revision": "sn-api-next-dev--0000041",
+      "latest_revision": "sn-api-next-dev--0000042",
+      "ready_revision": "sn-api-next-dev--0000042",
       "running_status": "Running"
     },
     {
@@ -159,19 +159,19 @@
     },
     {
       "name": "trading-agent-build-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
       "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
       "image_changed": true
     },
     {
       "name": "macro-fred-daily-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
       "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
       "image_changed": true
     },
     {
       "name": "sn-research-run-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
       "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
       "image_changed": true
     },
@@ -195,7 +195,7 @@
     },
     {
       "name": "attention-home-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
       "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
       "image_changed": true
     },
@@ -207,7 +207,7 @@
     },
     {
       "name": "daily-datapoints-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
       "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
       "image_changed": true
     },
@@ -225,7 +225,7 @@
     },
     {
       "name": "equities-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:619934d0e330fb03dc5930acefbfce53e60136e83df395ce3ceb5d4a6a0b5a0a",
       "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
       "image_changed": true
     },
