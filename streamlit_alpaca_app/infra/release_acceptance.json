@@ -1,13 +1,13 @@
 {
   "status": "accepted_locally",
   "scope": "Shared LLM-owned evidence context through synthesis/review and calendar-correct annual macro comparisons; full accepted Git source for modern API and research consumers. Exact fresh DEV quality and runtime acceptance required before production.",
-  "source_revision": "36385e8c284cbbc9cb74db35cf6c488d318f124b",
+  "source_revision": "544df4314b582828adcc65b8ff7813bb70bf3e06",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
     ".env.example": "411839b19dc8a7f9a5e4586766d414d9856e698b28a4d274a96363fc2dea9d1e",
     "Dockerfile.dev": "4496ca96f4426fd3cb703333846c96d799be16feb087c971049c8214b560a4e7",
-    "Dockerfile.runtime": "e2744b92203b54bf73860f10cd99208612d22ab2b7de8e893018331757e2d6fc",
+    "Dockerfile.runtime": "ab6108a0640adeae8e1bea766b0cc69761dfe73d4cbb6894c2ba0f99d07419a9",
     "Dockerfile.web": "ed11c9da1acd5fa93199ec12e6ab5514fce0410792bce3af878c24cbdac572e3",
     "api/__init__.py": "d263cd3e0682327cdd7596508ae7d7d54ea508e38347b6be13e0997b1fd1da9a",
     "api/feature_requests.py": "a9de6f58dc920cd9f81431d7b606f8fa19ca24261502a66084265df334d24158",
