@@ -1,0 +1,87 @@
+{
+  "status": "passed",
+  "typed_metadata_timestamp_preserved_without_fallback": true,
+  "explicit_row_observation_timestamp_preserved": true,
+  "runtime_file_sha256": "5b8ffafcf8c1f4343597536e23d9cb084930bffb0cb37cb66800db2c3fb4fae3",
+  "datasets": [
+    {
+      "namespace": "development",
+      "dataset": "daily_movers",
+      "metadata_asof": "2026-10-17T06:50:50.100867+00:00",
+      "rows": 999,
+      "columns": [
+        "symbol",
+        "close",
+        "prev_close",
+        "change_pct",
+        "volume",
+        "observed_at_utc"
+      ],
+      "stored_observation_dates": {
+        "observed_at_utc": "2026-10-17 06:51:14.509235+00:00"
+      }
+    },
+    {
+      "namespace": "development",
+      "dataset": "macro_anchor_daily_movers",
+      "metadata_asof": "2026-10-17T06:50:50.100867+00:00",
+      "rows": 573,
+      "columns": [
+        "symbol",
+        "close",
+        "prev_close",
+        "change_pct",
+        "volume",
+        "observed_at_utc"
+      ],
+      "stored_observation_dates": {
+        "observed_at_utc": "2026-10-17 06:51:16.540274+00:00"
+      }
+    },
+    {
+      "namespace": "development",
+      "dataset": "price_history",
+      "metadata_asof": "2026-10-17T06:50:50.100867+00:00",
+      "rows": 1468208,
+      "latest_price_observation": "2026-10-16 04:00:00+00:00",
+      "actual_price_observation_count": 1468208
+    },
+    {
+      "namespace": "production",
+      "dataset": "daily_movers",
+      "metadata_asof": "2026-10-16T20:35:31.151448+00:00",
+      "rows": 999,
+      "columns": [
+        "symbol",
+        "close",
+        "prev_close",
+        "change_pct",
+        "volume"
+      ],
+      "stored_observation_dates": {}
+    },
+    {
+      "namespace": "production",
+      "dataset": "macro_anchor_daily_movers",
+      "metadata_asof": "2026-10-16T20:35:31.151448+00:00",
+      "rows": 586,
+      "columns": [
+        "symbol",
+        "close",
+        "prev_close",
+        "change_pct",
+        "volume"
+      ],
+      "stored_observation_dates": {}
+    },
+    {
+      "namespace": "production",
+      "dataset": "price_history",
+      "metadata_asof": "2026-10-16T20:35:31.151448+00:00",
+      "rows": 1471788,
+      "latest_price_observation": "2026-10-16 04:00:00+00:00",
+      "actual_price_observation_count": 1471788
+    }
+  ],
+  "method": "Read-only current dataset metadata and mover frames; no source refresh, model calls or publication."
+}

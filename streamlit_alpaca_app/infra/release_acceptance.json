@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Complete shared source capture/reference repair and event alignment accepted locally for a full fresh development run; production remains gated on the exact public result.",
-  "source_revision": "810833f8d2dc747002e37948df2b5f7440623a78",
+  "source_revision": "001895073648c1bdde9a9907238b701ca1c0fb08",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
     ".dockerignore": "691868965eb6e21092ba2d5f550d66f9b0fafb5ad8d8aa8ffedaa60ff2ba6a77",
@@ -67,7 +67,7 @@
     "docker-compose.dev.yml": "b34fcd354a6743bbdf3c75b4c98dc49164d15f9eb5b02448d7c51a83f9ecf19d",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "f11d8c8abb66a627b8bc5b047a353d850355290cb28ddd8bd6206ea93b14e155",
+    "pipeline/jobs/attention_home_build.py": "5b8ffafcf8c1f4343597536e23d9cb084930bffb0cb37cb66800db2c3fb4fae3",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "54c816fc1c1802143fb96ac95b5234f12c15f9b2f532fb888d4b8388e3f3516e",
@@ -373,7 +373,7 @@
     "data_access/query_service.py": "8671aab2691759e226844ed3dcf9469b97f147077b97ef6107af10cfb564fc59",
     "pipeline/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "pipeline/jobs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "pipeline/jobs/attention_home_build.py": "f11d8c8abb66a627b8bc5b047a353d850355290cb28ddd8bd6206ea93b14e155",
+    "pipeline/jobs/attention_home_build.py": "5b8ffafcf8c1f4343597536e23d9cb084930bffb0cb37cb66800db2c3fb4fae3",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
     "pipeline/jobs/main.py": "54c816fc1c1802143fb96ac95b5234f12c15f9b2f532fb888d4b8388e3f3516e",
@@ -521,7 +521,7 @@
     "services/llm.py": "Keep valid provider requests and call counts; syntax recovery receives its original messages to retain task/evidence meaning. All three existing transports use the same recovery contract; no provider/model/settings change. Paired actual malformed responses and transport contract checks retained.",
     "services/aql_zopedia_engine.py": "Keep original task/schema-recovery ownership and normal no-record single formatter call. Explicitly permitted invocation-owned records use the existing reader even when context fits; oversized direct calls reuse that same shared recovery. Preserve source restrictions and call type. Mechanical one-call/permitted-read/forbidden-source checks pass; current full chart comparisons and earlier held-out recovery personally reviewed.",
     "services/zopedia_agent.py": "Keep collected originals and complete checkpoint traces; final writing and existing review reuse the existing permitted list/read evidence tools. The LLM selects working context and can reopen original results. Remove whole-container expansion, retain the original question and valid direct artifacts, preserve source permissions and normal planner behavior. Complete coupled Home/chart replay and held-out nonfinancial capacity recovery personally reviewed. No financial rules, new critic, changed model or increased task budget. Preserve capture metadata and distinguish opened-page acquisitions from retained references. Correct interactive reader exchange deadlines: each model request retains its 90-second limit inside unchanged research/synthesis/review phase clocks and whole 240-second candidate budget. Both complete exact-budget probes and existing review succeed after adverse timeout is retained; 14 objective access/client checks pass.",
-    "pipeline/jobs/attention_home_build.py": "Remove stale projection helpers, key whitelists and row caps that erased available units, annual changes, long maturities, weak sectors and signal identities. Existing typed serialization retains complete source records. Replace the accumulated editorial checklist with the exact paid concise task; keep all four immutable identity fields, existing schema/shared critic/600-second budget/materializer/audio/intraday behavior. Complete comparison personally reviewed, adverse experiments rejected and remaining limits recorded; fresh DEV acceptance remains mandatory. Preserve all available search capture fields through both news materializers and native input rows; retain useful unknown-date leads. Existing Home editor, charts, narration and background flow remain unchanged. Source/Parquet contract checks pass; complete fresh public publication remains required.",
+    "pipeline/jobs/attention_home_build.py": "Remove stale projection helpers, key whitelists and row caps that erased available units, annual changes, long maturities, weak sectors and signal identities. Existing typed serialization retains complete source records. Replace the accumulated editorial checklist with the exact paid concise task; keep all four immutable identity fields, existing schema/shared critic/600-second budget/materializer/audio/intraday behavior. Complete comparison personally reviewed, adverse experiments rejected and remaining limits recorded; fresh DEV acceptance remains mandatory. Preserve all available search capture fields through both news materializers and native input rows; retain useful unknown-date leads. Existing Home editor, charts, narration and background flow remain unchanged. Source/Parquet contract checks pass; complete fresh public publication remains required. Align default mover loader with the existing scheduled loader\u2019s typed metadata attribute read; preserve explicit row observation times. Actual-type contract and both namespaces\u2019 latest Friday price observations verified read-only; this is not a scheduled incident cause.",
     "services/llm_execution.py": "Shared full-request token estimate with explicit tokenizer headroom and output reserve, recorded separately from authoritative provider usage. Oversized requests are recorded as not sent and exact provider context errors return capacity feedback to the same LLM-owned reader. No semantic truncation, request-setting or model change. Forced-cap and normal full workflow examined.",
     "compute/fred.py": "Replace annual row offsets with calendar-period/date comparisons; retain actual reference dates/values and missing periods as unknown. Preserve all 35 latest levels and 23,604 observations through normal dashboard finalization. CPI/core match official September release; monthly gaps, leap dates, sorting and frequent as-of comparisons checked. No financial interpretation rule.",
     "Dockerfile.runtime": "Install the exact evaluated tiktoken 0.14.0 / regex 2026.9.29 versions without dependency upgrades and cache cl100k encoding for all Python roles. Previously only worker dependencies carried the declared tokenizer; API checks rejected both incomplete packages before deployment. Preserve all unrelated installed metadata, remove all inherited application files and Streamlit, and verify cold accounting without runtime encoding downloads in each role.",
@@ -960,7 +960,7 @@
   },
   "development_acceptance": {
     "status": "not_accepted",
-    "scope": "All local source/company/event checks complete; final 25-file source not yet deployed. Fresh complete public Home acceptance remains required.",
+    "scope": "Complete source/company/event local review and typed metadata contract accepted; final packages and fresh complete DEV publication remain pending.",
     "evidence": "documents/verification/source-evidence-repair-2026-10-18/README.md",
     "reason": "Complete fresh development publication and exact image verification remain pending."
   },
