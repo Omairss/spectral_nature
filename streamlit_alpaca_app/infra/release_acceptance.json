@@ -860,7 +860,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57": {
+          "source_revision": "dd3920fb3e8992c4ccb21b19a9459cabfd3f06f8",
+          "source_inventory_sha256": "285f03f48bf4f122cf53c891def0d973d9a2b907a90d443160a8b4d75fcaee9d",
+          "runtime_inventory_sha256": "910e086743632d1f673b95d1986071083d5414a37be1a6e52f993fae8c99061d",
+          "evidence": "documents/verification/research-resilience-2026-10-18/packaged-images.json"
+        }
+      },
       "previous_verified_images": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65": {
           "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
@@ -890,7 +897,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104": {
+          "source_revision": "dd3920fb3e8992c4ccb21b19a9459cabfd3f06f8",
+          "source_inventory_sha256": "285f03f48bf4f122cf53c891def0d973d9a2b907a90d443160a8b4d75fcaee9d",
+          "runtime_inventory_sha256": "910e086743632d1f673b95d1986071083d5414a37be1a6e52f993fae8c99061d",
+          "evidence": "documents/verification/research-resilience-2026-10-18/packaged-images.json"
+        }
+      },
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:71532d4f04be1dfcd358339208b258e00cbd5c4c64bd871a24819a7ae0115b15",
@@ -1005,7 +1019,12 @@
     "status": "pending",
     "scope": "One existing learning runtime file replaces hardcoded failure admission with versioned owner-bound episodes assessed by the existing critic. Four complete qualitative probes reviewed; existing critic execution, source permissions and memory writes preserved. Targeted DEV verification required for these new packages.",
     "source_revision": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
-    "evidence": "documents/verification/research-resilience-2026-10-18/README.md"
+    "evidence": "documents/verification/research-resilience-2026-10-18/README.md",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104"
+    },
+    "source_inventory_sha256": "285f03f48bf4f122cf53c891def0d973d9a2b907a90d443160a8b4d75fcaee9d"
   },
   "preceding_hold": {
     "revision": "20108c58",

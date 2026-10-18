@@ -77,3 +77,46 @@ def test_transport_failure_remains_pending_and_is_retried(monkeypatch):
     recovered = zopedia_learning.critique_learning_event(event, thread, [], client, previous=failed, on_pending=lambda: pending.append(True))
     assert recovered["_execution"]["status"] == "completed"
     assert len(calls) == len(pending) == 2
+
+
+def test_learning_job_keeps_other_episodes_after_one_critic_failure(monkeypatch):
+    from contextlib import contextmanager
+
+    class Connection:
+        info = SimpleNamespace(transaction_status=0)
+
+        @contextmanager
+        def cursor(self):
+            yield SimpleNamespace(execute=lambda *args: None, fetchone=lambda: None)
+
+        def commit(self):
+            pass
+
+    monkeypatch.setattr(zopedia_learning, "bootstrap_zopedia_learning_storage", lambda conn: None)
+    monkeypatch.setattr(zopedia_learning, "load_aql_zopedia_llm_client", lambda **kwargs: object())
+    monkeypatch.setattr(zopedia_learning, "_recent_threads", lambda conn, limit: [
+        {"thread_id": "first", "user_key": "owner"}, {"thread_id": "second", "user_key": "owner"},
+    ])
+    monkeypatch.setattr(zopedia_learning, "load_chat_thread", lambda **kwargs: {**_thread(), "thread_id": kwargs["thread_id"]})
+    monkeypatch.setattr(zopedia_learning, "_load_run_payloads_for_thread", lambda thread: [])
+    stored = []
+    monkeypatch.setattr(zopedia_learning, "_persist_learning_event", lambda conn, event, **kwargs: stored.append(deepcopy(event)) or dict(event))
+    updates = []
+    monkeypatch.setattr(zopedia_learning, "_merge_learning_event_metadata", lambda *args: None)
+    monkeypatch.setattr(zopedia_learning, "_update_learning_event_fields", lambda conn, event_id, **fields: updates.append(fields))
+    monkeypatch.setenv("ZOPEDIA_LEARNING_VERIFY_EVALS", "0")
+
+    def critic(event, *args, on_pending, **kwargs):
+        on_pending()
+        if event["thread_id"] == "first":
+            return {"_execution": {"status": "pending", "error": "transport timeout"}}
+        return {"_execution": {"status": "completed"}, "proposed_change_type": "no_change"}
+
+    monkeypatch.setattr(zopedia_learning, "critique_learning_event", critic)
+    result = zopedia_learning.run_zopedia_learning_job(limit=2, conn=Connection())
+    assert result["threads_scanned"] == 2
+    assert result["critiques_pending"] == 1
+    assert result["events_triaged"] == 1
+    assert result["status"] == "partial"
+    assert any(event["thread_id"] == "first" and event["status"] == "critique_pending" for event in stored)
+    assert any(update.get("status") == "reviewed_no_change" for update in updates)

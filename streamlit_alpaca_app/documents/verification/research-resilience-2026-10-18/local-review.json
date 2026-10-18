@@ -154,7 +154,8 @@
     "completed_critique_reuse": true,
     "changed_evidence_invalidates_reuse": true,
     "transport_failure_remains_pending_and_retried": true,
-    "pytest_contract_checks": 3
+    "pytest_contract_checks": 4,
+    "one_critic_failure_does_not_block_other_episodes": true
   },
   "adverse_direct_reader_comparison": {
     "status": "rejected",

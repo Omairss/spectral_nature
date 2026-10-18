@@ -1,0 +1,61 @@
+{
+  "roles": {
+    "worker": {
+      "role": "worker",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "source_revision": "dd3920fb3e8992c4ccb21b19a9459cabfd3f06f8",
+      "accepted_source_revision": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
+      "source_inventory_sha256": "285f03f48bf4f122cf53c891def0d973d9a2b907a90d443160a8b4d75fcaee9d",
+      "runtime_inventory_sha256": "910e086743632d1f673b95d1986071083d5414a37be1a6e52f993fae8c99061d",
+      "expected_files": 197,
+      "packaged_files": 197,
+      "complete_git_inventory_matches": true,
+      "dependency_distribution_metadata_matches": true,
+      "preserved_installed_distributions": 93,
+      "installed_distributions": 93,
+      "declared_tokenizer_additions": {},
+      "token_accounting_without_runtime_download": true,
+      "retired_streamlit_absent": true,
+      "api_pipeline_broker_imports_passed": true,
+      "context_preflight_available": true,
+      "price_basis_roundtrip_in_role_runtime": true,
+      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+      "method": "Read-only file hashes, imports, cold token accounting without downloads, and unchanged baseline distribution metadata plus explicit declared tokenizer additions in ACR execution containers; no source extraction or research execution."
+    },
+    "api-next": {
+      "role": "api-next",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104",
+      "source_revision": "dd3920fb3e8992c4ccb21b19a9459cabfd3f06f8",
+      "accepted_source_revision": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
+      "source_inventory_sha256": "285f03f48bf4f122cf53c891def0d973d9a2b907a90d443160a8b4d75fcaee9d",
+      "runtime_inventory_sha256": "910e086743632d1f673b95d1986071083d5414a37be1a6e52f993fae8c99061d",
+      "expected_files": 197,
+      "packaged_files": 197,
+      "complete_git_inventory_matches": true,
+      "dependency_distribution_metadata_matches": true,
+      "preserved_installed_distributions": 99,
+      "installed_distributions": 101,
+      "declared_tokenizer_additions": {
+        "regex": "2026.9.29",
+        "tiktoken": "0.14.0"
+      },
+      "token_accounting_without_runtime_download": true,
+      "retired_streamlit_absent": true,
+      "api_pipeline_broker_imports_passed": true,
+      "context_preflight_available": true,
+      "price_basis_roundtrip_in_role_runtime": true,
+      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
+      "method": "Read-only file hashes, imports, cold token accounting without downloads, and unchanged baseline distribution metadata plus explicit declared tokenizer additions in ACR execution containers; no source extraction or research execution."
+    }
+  },
+  "runtime_scope": {
+    "previous_runtime_source": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
+    "source": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
+    "runtime_files": 197,
+    "changed_files": [
+      "services/zopedia_learning.py"
+    ],
+    "shared_engine_files_unchanged": true,
+    "home_data_api_broker_runtime_files_unchanged": true
+  }
+}
