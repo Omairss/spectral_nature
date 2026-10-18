@@ -1,6 +1,6 @@
 {
-  "status": "held_after_development_quality_failure",
-  "scope": "Deadline-result correction proved in complete DEV: all twelve company results retained, including available work at expiry. Broader recovery held because the known financing-date error recurs through retained evidence; no further application change added.",
+  "status": "accepted_locally",
+  "scope": "Promote the exact verified DEV images after explicit informed owner acceptance of the known source-date imperfection. Execution/data/configuration verification passed; the date error is recorded, not represented as corrected. Improve resilience separately after promotion.",
   "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
   "review_base_revision": "20108c5837121b7e261c92401130ab284aede57a",
   "files": {
@@ -979,17 +979,18 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "production_authorization": {
-    "status": "condition_not_met_known_source_date_error",
-    "owner_instruction": "Do it. If it works in dev, move to prod",
-    "condition": "Fresh complete development Home and genuinely new highlights match or exceed pre-incident subjective quality, with preserved runtime/configuration and acceptance of the exact image.",
+    "status": "explicit_owner_acceptance_with_known_imperfection",
+    "owner_instruction": "Push to prod. Then, the system has to be resiliant to imperfections like this. A one wrong date shoudln't change the whole analysis. Errors and mistakes are expected. Sources can be bad. Your fucking overcomplicated, fragile designs compound small errors like this",
+    "condition": "Promote the exact previously verified DEV worker/API digests, preserving all consumer configurations. No resilience code change is included in this promotion.",
     "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
-    "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate."
+    "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate.",
+    "prior_condition": "Complete fresh DEV research quality was previously held for a known financing-date error. Owner explicitly accepts promotion with that imperfection and requests subsequent general resilience improvement."
   },
   "development_acceptance": {
-    "status": "not_accepted",
-    "scope": "Deadline-result correction proved in complete DEV: all twelve company results retained, including available work at expiry. Broader recovery held because the known financing-date error recurs through retained evidence; no further application change added.",
+    "status": "accepted",
+    "scope": "Promote the exact verified DEV images after explicit informed owner acceptance of the known source-date imperfection. Execution/data/configuration verification passed; the date error is recorded, not represented as corrected. Improve resilience separately after promotion.",
     "evidence": "documents/verification/source-evidence-repair-2026-10-18/DEADLINE_DEVELOPMENT_REVIEW.md",
     "source_revision": "28e297ec63257bae9ab5d76b9a29b994379f7c1b",
     "images": {
@@ -1006,7 +1007,10 @@
     "deadline_result_status": "accepted",
     "company_results_retained": 12,
     "company_results_skipped": 0,
-    "reason": "Previously identified September CoreWeave financing again represented as an October 14 announcement through an older retained search excerpt. This is not the retracted credit-caption timing objection."
+    "reason": "Previously identified September CoreWeave financing again represented as an October 14 announcement through an older retained search excerpt. This is not the retracted credit-caption timing objection.",
+    "acceptance_basis": "Explicit owner acceptance after disclosure of the known source-date error; original human review and adverse evidence retained.",
+    "known_imperfection": "September financing is described as an October 14 announcement. This remains an acknowledged research error; it does not invalidate the observed credit stress and broader funding analysis.",
+    "accepted_at_utc": "2026-10-18T21:25:31.773199+00:00"
   },
   "preceding_hold": {
     "revision": "20108c58",
