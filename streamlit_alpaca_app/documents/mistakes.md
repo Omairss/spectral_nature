@@ -1041,3 +1041,5 @@ The complete live DEV charts were LLM-approved after six rounds but still emitte
 
 ### October 17 — review instructions can create public caveats
 I incorrectly described historical reviewer wording as a newly introduced recovery change. The actual successful-image function disproves that chronology. I did introduce repeated review beyond the original two passes and relaxed the caption size. Corrected the account, restored the original two passes and 65/180-character request, removed added commentary, and retained the shared evidence/data corrections. Earlier source comparison should have preceded my explanation.
+
+Restoring two chart-review passes and the original concise size alone did not fix quality: one full comparison still excluded rates as a cause. Rejected that pair. Removed the bespoke review/rewrite controller and used the existing shared artifact review; personally read both complete resulting chart sets before accepting local source for a new DEV run.

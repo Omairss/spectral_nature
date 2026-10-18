@@ -1135,3 +1135,5 @@ A critic’s proposed correction is generated analysis, not new source evidence.
 
 ### October 17 — review instructions can create public caveats
 When prose worsens, compare actual historical prompts and control flow before attributing the cause. The earlier working image already had review follow-up language; expanding two review passes into a repeated loop and relaxing the requested caption size changed behavior. Preserve the earlier limits while fixing evidence access, and assess complete outputs rather than adding prohibitions.
+
+A negative issue list handed back through repeated writing can become defensive public prose. Prefer the existing shared review that returns the corrected artifact directly, preserving its analysis and follow-up needs privately; avoid a feature-specific revision controller.

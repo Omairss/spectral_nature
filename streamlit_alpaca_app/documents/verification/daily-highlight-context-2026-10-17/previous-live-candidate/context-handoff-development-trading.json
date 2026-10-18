@@ -1,0 +1,17 @@
+{
+  "environment": "development",
+  "recorded_at_utc": "2026-10-18T04:00:11.515394+00:00",
+  "url": "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io/trading-agent",
+  "signed_in_admin_session_restored": true,
+  "existing_output_asof_display": "10/15/2026, 10:29:48 PM",
+  "horizons_loaded": [
+    "1 Week",
+    "1 Month",
+    "3 Month",
+    "1 Year",
+    "5 Year"
+  ],
+  "method": "Actual browser navigation and each visible horizon button; distinct stored narratives/candidates rendered through the newly ready API.",
+  "approvals_rejections_broker_operations": 0,
+  "new_research_executions": 0
+}

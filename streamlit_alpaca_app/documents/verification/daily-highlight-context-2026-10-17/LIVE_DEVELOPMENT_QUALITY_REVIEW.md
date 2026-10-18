@@ -1,6 +1,6 @@
 # Live development quality review
 
-**Not accepted for production.** The normal complete Home execution published fresh Home `a0bd1515-3ce7-4438-b051-89189f82d43e` and its own five new charts. The [complete served output and reviews](context-handoff-development-publication.json) retain the actual result. Production is unchanged.
+**Not accepted for production.** The normal complete Home execution published fresh Home `a0bd1515-3ce7-4438-b051-89189f82d43e` and its own five new charts. The [complete served output and reviews](previous-live-candidate/context-handoff-development-publication.json) retain the actual result. Production is unchanged.
 
 The six complete stories are clearer and economically useful: CXMT server DRAM, YMTC shipment/share/IPO distinctions, AI funding exposure, Liquidia payment timing and pending label acceptance, Strive’s newly priced $630M preferred and MaxLinear’s rally reversal. The overview separates the midday Nasdaq reading from the dated 999-stock snapshot. The AI rates explanation is a working interpretation, not proof that the rate level cannot matter.
 
@@ -19,3 +19,7 @@ Further source inspection found a second access gap: the dedicated chart review 
 The owner correctly identified unnecessary caveats as a regression. My initial explanation of their chronology was inaccurate: actual-source comparison confirms that the earlier working image already included confidence metadata and reviewer follow-up wording. The confirmed new behavioral changes included expanding the original two review passes into a repeated loop within the ten-minute budget and relaxing the requested caption size. Repeated critique amplified some defensive prose. Restore the original two passes and original 65/180-character output request in the schema; remove extra reviewer commentary. The existing critic receives the original request, exact selected histories and the same evidence reader. No new reviewer, prose filter, financial rule or operation budget is added.
 
 The [mechanical execution/data checks](source-contracts-current.json) verify that explicit price basis survives preparation, Parquet, splitting and concatenation; original numbers remain unchanged; raw quote observation dates survive; normal no-record formatting stays one call; explicitly permitted supplied records can be read; prohibited records remain unavailable. Six existing supplied-evidence contract checks pass. These checks do not grade prose. Two frozen complete-Home-to-chart comparisons are still being personally evaluated before local source acceptance and another full DEV run.
+
+## Current continuation
+
+The two-pass/short-caption trial still failed one complete comparison. The [simplified shared review](SHARED_REVIEW_LOCAL_REVIEW.md) supersedes the feature-specific revision loop: it uses the already-existing Zopedia review to return a corrected artifact directly. Both complete chart comparisons are locally accepted; a new full DEV run remains required. This does not retroactively accept the failed live publication above.

@@ -1,0 +1,79 @@
+# Historical plan — superseded
+
+Use the current canonical plan and committed release acceptance record. This file preserves prior proposals and failed attempts; it is not an implementation or deployment instruction.
+
+# Daily highlight context repair
+
+Updated October 17, 2026. **Current state: the full DEV execution completed, but its chart prose fails human review. Production is held.** The context-size and numerical checks pass. The local correction reuses the published-story projection, carries price-adjustment provenance and gives the existing review the same supplied-evidence reader as generation. No additional critic, phrase bans or financial selection rules.
+
+The [current verification index](../verification/daily-highlight-context-2026-10-17/README.md) and committed `infra/release_acceptance.json` are authoritative. Both packaged roles match all 197 Git runtime files and pass imports and cold tokenizer accounting without downloads. Eight cumulative application/packaging files are reviewed. The API adds the previously accepted pool dependency plus the same evaluated tokenizer versions as workers; unrelated dependency versions remain unchanged. Existing signed-in Trading views retain all five horizons.
+
+The owner authorized promotion of these exact images only after complete DEV quality and runtime acceptance. Current scope includes the modern API and shared research/data workers; frontend and broker images remain fixed. Earlier worker-only scopes and failed image references below are historical, superseded attempts.
+
+## Goal and cause
+
+Restore current-data highlights after the exact per-consumer production rollback. Production has a fresh October 17 brief, audio and intraday histories; its retained five highlights are October 14. The historical chart generator embedded its complete catalog into direct inference with `max_tool_calls=0`. The current production request reached 1,887,304 tokens against a 1,048,576-token limit. Both the actual historical Home image and the earlier successful producer use that same selector: an immutable rollback cannot change this input-size limitation.
+
+Use the existing shared Zopedia supplied-evidence contract. Retain the complete catalog and observations and let the LLM navigate and choose. Synthesis and review must retain access to originals without automatically expanding selected containers into their prompts. Preserve exact plotted observations, the original dedicated chart review/revision, valid-draft retention, configured model and 600-second operation budget. No feature-local model, financial classifier, ticker ranking, phrase filter, added reviewer or semantic admission gate.
+
+## Earlier implementation (superseded)
+
+Source `6c428b3b` changes four runtime files: chart adapter, shared inference syntax recovery, structured-engine request/recovery ownership and shared agent evidence handoff. Syntax/schema recovery carries the original task/evidence. Planner and final-artifact schemas remain separate. The LLM's selected source references resolve through invocation-owned permitted evidence before synthesis. The accepted no-tool Home editorial request and original planner prompt are unchanged. The chart task removes accumulated preferences and prohibitions, retaining purpose and output shape.
+
+Both normal Home and the independent daily-datapoints job call the corrected selector. The complete source also explicitly reconciles the previously accepted database lifecycle/cancellation repair. That earlier rollout excluded the API/Trading consumers. This worker-only scope is superseded by the current shared release at the top of this plan.
+
+## Earlier evaluation and adverse evidence
+
+Preserve frozen original inputs, complete provider requests/results and failed experiments privately. The first navigation attempts produced invalid IDs or repeatedly read metadata without originals. A provider-level schema-validation prototype changed partial-draft/call ownership and was reverted. An added planner paragraph did not establish original reads and was removed before packaging. A temporary direct-prefetch prototype was replaced by the existing evidence-history handoff. Carrying the original task to chart review alone did not restore good prose. These results do not authorize publication or more prompt rules.
+
+The final current-data local replays completed in 201.41/269.01 seconds. Maximum individual requests were 140,297/150,906 tokens. Personally read both complete five-chart outputs and original histories. The production replay improved substantially; the held-out development replay retained an overly categorical Micron interpretation. Local source acceptance permitted narrowly scoped DEV verification, with full fresh-output acceptance still required before production.
+
+Focused mechanical checks passed for transport/context ownership; one outdated fake-Blob fixture was excluded. They do not grade research. Full originals were retained beyond 1,200 observations; the unchanged modern API separately displays at most 1,200 points per highlight. Current caption comparisons lie inside that window.
+
+## Earlier development releases (failed quality)
+
+Build revision `18322b68`, ACR run `cj179`, image `accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe`. In-registry verification matched all 197 runtime files and all 93 installed dependency versions/metadata hashes. The complete application inventory has 312 files. No inherited application source survives the dependency image.
+
+Only `attention-home-next-dev` and `daily-datapoints-next-dev` received that digest. All 33 resource configurations and the other 31 images remain unchanged, including production. The independent chart job succeeded and published five fresh highlights against the earlier DEV brief.
+
+The normal Home execution `attention-home-next-dev-4js1f7n`, root `035fc67f-1315-439f-a72b-a045a4f853a3`, published its own new Home and five charts at 23:35:23 UTC. Its catalog has 516 candidates and 107,971 observations. All 12 ticker enrichments and the public editor completed; two focused investigations timed out, and ticker answer review remains partial. Core publication, visible browser data, audio, actual intraday histories and exact chart data are verified. All five optional page summaries completed; the full job succeeded at 23:42:39 UTC after 40 minutes 18 seconds.
+
+## Failed quality condition and continuation
+
+Read the complete seven-story brief, overview, all five captions and both chart-review feedback rounds. The overview still exposes CPI bookkeeping, IREN excludes rates too broadly, and the Micron caption retains unsupported forecast-cut language despite final feedback. Chart generation success and exact data do not satisfy the owner's full subjective condition. `infra/release_acceptance.json` records development as not accepted and holds new builds/promotions. This candidate changed no production image, Home publication or highlight selection. Existing macro jobs had refreshed upstream provider observations in both namespaces before image validation; that data refresh used their unchanged runtimes and is separate from promoting this candidate.
+
+Preserve the failed output. Next investigate the complete first-draft/critic request, retained evidence and resulting revision at the shared editorial boundary through paired full-output review. Keep interpretation probabilistic and LLM-owned. Do not stack instructions, hardcode a correction for these examples or manually edit published prose.
+
+Production authorization remains conditional: only after a fresh complete development publication matches or exceeds the pre-incident quality bar may the exact DEV digest be promoted to the single Home producer and its existing daily-chart job be executed without changing the permanent template. That condition has not passed. The saved historical rollback remains live.
+
+## Resumed investigation — October 17
+
+Holding production was correct; stopping the authorized investigation at that failed gate was premature. Recovered the exact editor checkpoint read-only, froze original source versions, and compared complete outputs with the active model/customization held fixed.
+
+The source data projection erased available annual inflation changes, units, long Treasury maturities, the weakest sectors and signal identity/value fields. Preserve complete typed records. A navigation-only editor experiment was worse and rejected. A shorter shared critic did not consistently improve both drafts and was rejected. Replace Home's accumulated editorial checklist with the evaluated compact briefing purpose while retaining the original immutable identity fields, schema and critic. The first short-task protocol failure is retained as adverse evidence.
+
+The existing chart review stopped after two rounds while time remained. Continue the existing LLM-owned selection/review within the unchanged total budget and honor its explicit approval while retaining follow-up notes. The already-approved path has identical requests and output; the real failed-draft continuation corrected material claims without repeating acquisition.
+
+Read the [complete local review](../verification/daily-highlight-context-2026-10-17/LOCAL_CONTINUATION_REVIEW.md), including cost increases, remaining weaknesses and rejected experiments. Local source acceptance permits a fresh DEV release, not production. The full fresh DEV Home and its own new highlights must satisfy the owner's subjective condition before promotion. No financial rules or new model roles were introduced.
+
+## Continued full DEV result — held
+
+The `3f60ac…` worker completed `attention-home-next-dev-cdzog4j` in 37 minutes 17 seconds, publishing Home `c3c1b8cb-3648-4892-86b4-f34088f1aeb3` with six stories. The final chart request exceeded the model window again: 1,199,136 tokens against 1,048,576, after navigation succeeded. Old highlights were retained. The overview combines a reported nine-of-eleven sector count with our unweighted sector averages. A follow-up trace established the news origin; the two measures are not established as comparable, so the original numerical-contradiction finding was overstated. [Complete evidence and personal review](../verification/daily-highlight-context-2026-10-17/CONTINUED_DEVELOPMENT_QUALITY_REVIEW.md).
+
+Component comparisons were insufficient: the chart continuation reused the preceding smaller Home rather than the combined enlarged data contract. Hold new builds/promotions. The remaining source work is shared final-context ownership and reconciliation of dated evidence, with full source access and LLM-owned interpretation retained. No financial rules, phrase filters or further prompt accumulation were applied. Production remains on its restored image, eight-story Home and retained October 14 highlights.
+
+## Authorized shared handoff correction
+
+The owner rejected a wider storage/research redesign and authorized the existing-reader repair, followed by DEV and conditional production promotion. Three shared runtime files change: `zopedia_agent.py`, `llm_execution.py`, and `aql_zopedia_engine.py`. Remove final selected-container expansion. Writing/review can reopen invocation originals and collected results through the existing source reader, with LLM-selected working context. Source traces and continuation keep the full results. Direct formatting retains its normal one-call behavior; capacity failure uses that same reader loop. No Home task, financial rule, public writing prompt, model setting, reviewer role or operation budget changes in this correction.
+
+Provider preflight measures the complete request with the already-required cl100k tokenizer, 25% estimation headroom and an output allowance. This is explicitly an estimate; exact provider context rejection returns capacity feedback too. Official DeepSeek's window defaults to the observed 1,048,576; other endpoints declare their capacity through configuration. Preflight rejection is recorded as not sent. Code does not choose which evidence matters.
+
+Local evaluation reuses the exact captured full editor input and original acquisition, runs the existing materializer, and sends the resulting complete Home into chart selection/review. Earlier presentation identities are reconstructed; source evidence is unchanged. Separate nonfinancial cases exercise interpretation and actual context reduction with unrelated retained data. The initial tool envelope unnecessarily regenerated an already-valid direct artifact; preserve valid answers matching the existing caller schema. When moving an oversized stage input behind a reference, keep the original user request visible whenever it fits; preserve the whole request through the reader if it also exceeds capacity. One direct recovery completed but misstated a supplied delivery-mix number; its output is rejected and retained as adverse evidence, not called qualitative acceptance. Keep adverse runs and check the corrected source before release. Current verification is pending; the preceding image hold still applies.
+
+## Calendar calculation exposed by complete replay
+
+The repeated numerical disagreement is partly a source bug. `compute/fred.py` called a fixed number of rows one year. October 2025 is missing from the frozen monthly CPI series, so its September 2026 summary compared August 2025: 4.0233% over thirteen months. September-to-September is 3.7173%. Core CPI is 2.5658% by its matching period, rather than 2.7892%; high-yield spreads changed 0.28 percentage points between the calendar dates, rather than the 0.38 from 252 rows. Earlier acceptance of the stored 4.02% label as annual was wrong. Preserve historical generated outputs as evidence of that error.
+
+Fix the shared numerical source using calendar periods for periodic series and the available observation at the calendar anniversary for frequent series. Missing annual periods remain unknown. Retain the actual reference date and value. All 35 latest levels and every original observation are unchanged. The complete original market contract was reproduced from frozen source frames before regenerating it with the corrected summaries. This is arithmetic and date provenance, with no financial interpretation rule. The four-file correction now also needs the existing `macro-fred-daily-dev` / `macro-fred-daily` producer, alongside the recorded Home/chart targets, so corrected metadata is produced globally. Preserve every other consumer image and configuration. Refresh DEV macro data before the fresh full Home run; production remains conditional on that complete DEV review.
+
+The final [local review](../verification/daily-highlight-context-2026-10-17/CONTEXT_HANDOFF_LOCAL_REVIEW.md) accepts the source for DEV verification. The normal macro finalizer and full combined replay complete with five new exact-history charts. The shared correction also belongs in the modern API and existing research consumers, including the queued executor, so native/chat requests do not retain the old handoff. Review actual predecessor behavior before including each consumer. These source builds explicitly retain the previously DEV-accepted database lifecycle/cancellation integration; promoting them is not an immutable old-image restoration. Held reasoning/Trading-call experiments remain excluded. Preserve frontend and broker images, all settings, schedules, credentials, identities and allocations. Do not run unrelated paid research or broker operations. Production still requires the exact new DEV images and complete subjective/serving acceptance under the owner's latest conditional authorization.

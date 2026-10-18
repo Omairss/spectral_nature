@@ -1,0 +1,226 @@
+{
+  "status": "accepted_for_full_development_verification",
+  "personal_review": "Read all ten complete captions against original chart observations and complete Home context. The rates-cause exclusion, defensive reviewer rebuttals, false stale-price assertion and private confidence flags are absent. Some wording remains plain but imperfect; this is local acceptance, not production acceptance or a universal guarantee.",
+  "source_files": {
+    "Dockerfile.runtime": "ab6108a0640adeae8e1bea766b0cc69761dfe73d4cbb6894c2ba0f99d07419a9",
+    "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
+    "data_access/layer.py": "91d2facf53761b5b939294b1c2abe14451cea9bb151263d7821fbcd63b6c5e34",
+    "pipeline/jobs/attention_home_build.py": "e511a63b0ccaa663ab5e6b1eaf5184d4999b13da8431407c9011e1963e5eb23a",
+    "pipeline/jobs/main.py": "54c816fc1c1802143fb96ac95b5234f12c15f9b2f532fb888d4b8388e3f3516e",
+    "services/alpaca_api.py": "5fe7198b092753364d456b87b7a8836e5b7352686bc401edf1dda693990db101",
+    "services/aql_zopedia_engine.py": "36e798a6122db61ad0b6d96f99c7d3999771de1a3eaff64fcdbef2ea2fe4cfc7",
+    "services/attention_home_1d.py": "d8ad63e4f120ee8815202697c654d3fc45394f797edd779cbf40fa15f07165fe",
+    "services/attention_ticker_snapshots.py": "634ce2f9b67f6d30de1c7ba2a9f1967a19e65f4fc12157d241d6fa5c7a524900",
+    "services/daily_market_datapoints.py": "d23148f9e92df1b100205a7a6e6996804dfe585cfb14bb3fa59a703976cf3f52",
+    "services/llm.py": "2dd6700b0b1266820b4c5e741b4bf6db8a344429422a23cc75116c7bd2144017",
+    "services/llm_execution.py": "4e321b2dbcc72b784f84b05e1abd14f2a6565078f6687547358182d88ec7b3b8",
+    "services/market.py": "93f5cc5981f36d9817ae9f3d7fd316fa54cf057e7655c39f0c6836bf01205123",
+    "services/zopedia_agent.py": "2857f3f0d3a0a965bca11a3ff1205bbd89989d1efc04b710818d82ec9cd9589f"
+  },
+  "application_changes": 14,
+  "model_and_settings": "Same eligible DeepSeek model, thinking mode and active customizations. No changes to provider/model/settings or the existing 600-second operation budget.",
+  "cases": [
+    {
+      "case": "Actual first full DEV Home, retained complete and unchanged",
+      "scope": "Chart selection and existing shared review over this complete frozen Home and its full catalog; earlier acquisition and Home writing reused unchanged.",
+      "published": false,
+      "status": "completed",
+      "seconds": 139.95,
+      "provider_attempts": 15,
+      "selected_ids": [
+        "fred:DGS10",
+        "fred:BAMLH0A0HYM2",
+        "stock:MU:price",
+        "stock:CRWV:price",
+        "stock:CNQ:price"
+      ],
+      "exact_histories_preserved": true,
+      "identity": {
+        "runtime_files": {
+          "services/zopedia_agent.py": "2857f3f0d3a0a965bca11a3ff1205bbd89989d1efc04b710818d82ec9cd9589f",
+          "services/llm_execution.py": "4e321b2dbcc72b784f84b05e1abd14f2a6565078f6687547358182d88ec7b3b8",
+          "services/daily_market_datapoints.py": "d23148f9e92df1b100205a7a6e6996804dfe585cfb14bb3fa59a703976cf3f52",
+          "pipeline/jobs/attention_home_build.py": "e511a63b0ccaa663ab5e6b1eaf5184d4999b13da8431407c9011e1963e5eb23a",
+          "services/aql_zopedia_engine.py": "36e798a6122db61ad0b6d96f99c7d3999771de1a3eaff64fcdbef2ea2fe4cfc7",
+          "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60"
+        },
+        "frozen_home_run": "a0bd1515-3ce7-4438-b051-89189f82d43e",
+        "original_editor_evidence_sha256": "26e90be4552c16fcd113a3219fb07025b8cea883df585432f63725910fff7c70",
+        "catalog_entries": 516,
+        "published": false,
+        "scope": "Complete frozen editor input, normal materializer, resulting full Home to chart selection and review. Earlier acquisition is reused unchanged."
+      },
+      "max_authoritative_input_tokens": 89834,
+      "captions": [
+        {
+          "id": "fred:DGS10",
+          "title": "10-year Treasury yield at 5.10%",
+          "significance": "The 10-year yield was 5.10% on 15 October, near its 5.31% high on 5 October; high long-term rates pressure long-duration technology valuations.",
+          "date": "2026-10-15",
+          "value": 5.1,
+          "price_adjustment": null,
+          "home_run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e"
+        },
+        {
+          "id": "fred:BAMLH0A0HYM2",
+          "title": "High-yield credit spreads remain tight",
+          "significance": "High-yield spreads were 3.23% on 15 October, well below the 4.61% peak in April 2025, so the AI funding scare does not yet show broad credit stress.",
+          "date": "2026-10-15",
+          "value": 3.23,
+          "price_adjustment": null,
+          "home_run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e"
+        },
+        {
+          "id": "stock:MU:price",
+          "title": "Micron falls 28% below June peak",
+          "significance": "Micron's adjusted price was $878.78 on 16 October, down 5.65% that day and 27.7% below its 25 June peak of $1,215.08, as CXMT's server-DRAM plan hit memory shares.",
+          "date": "2026-10-16",
+          "value": 878.78,
+          "price_adjustment": "all",
+          "home_run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e"
+        },
+        {
+          "id": "stock:CRWV:price",
+          "title": "CoreWeave falls 12% on AI debt fears",
+          "significance": "CoreWeave fell 11.89% to $61.40 on 16 October, 66.6% below its 20 June 2025 peak of $183.86; the drop is a direct sign of AI data-center credit and funding fear.",
+          "date": "2026-10-16",
+          "value": 61.395,
+          "price_adjustment": "all",
+          "home_run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e"
+        },
+        {
+          "id": "stock:CNQ:price",
+          "title": "Canadian Natural hits supplied-history high",
+          "significance": "CNQ rose 3.59% to $53.83 on 16 October, the highest in the supplied price history, while technology sold off; the move shows dated rotation into energy.",
+          "date": "2026-10-16",
+          "value": 53.83,
+          "price_adjustment": "all",
+          "home_run_id": "a0bd1515-3ce7-4438-b051-89189f82d43e"
+        }
+      ],
+      "shared_review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "Revised for causal precision and daily relevance. The draft's high-yield and Micron lines implied stronger causation than the evidence supports; I softened them. I also replaced the second Micron chart with an energy price chart to capture the rotation the brief highlights, while keeping Micron's latest operating income in the outline as fundamental context.",
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "A broad energy or consumer-staples sector index series, if available, would test whether the 16 October rotation was sector-wide rather than one stock.",
+          "CoreWeave bond yields or credit spreads would directly test the AI data-center credit-stress channel."
+        ]
+      }
+    },
+    {
+      "case": "Earlier unpublished joint local replay; not production",
+      "scope": "Chart selection and existing shared review over this complete frozen Home and its full catalog; earlier acquisition and Home writing reused unchanged.",
+      "published": false,
+      "status": "completed",
+      "seconds": 103.78,
+      "provider_attempts": 9,
+      "selected_ids": [
+        "fred:BAMLH0A0HYM2",
+        "fred:DGS10",
+        "stock:CRWV:price",
+        "stock:MU:price",
+        "stock:EOG:price"
+      ],
+      "exact_histories_preserved": true,
+      "identity": {
+        "runtime_files": {
+          "services/zopedia_agent.py": "2857f3f0d3a0a965bca11a3ff1205bbd89989d1efc04b710818d82ec9cd9589f",
+          "services/llm_execution.py": "4e321b2dbcc72b784f84b05e1abd14f2a6565078f6687547358182d88ec7b3b8",
+          "services/daily_market_datapoints.py": "d23148f9e92df1b100205a7a6e6996804dfe585cfb14bb3fa59a703976cf3f52",
+          "pipeline/jobs/attention_home_build.py": "e511a63b0ccaa663ab5e6b1eaf5184d4999b13da8431407c9011e1963e5eb23a",
+          "services/aql_zopedia_engine.py": "36e798a6122db61ad0b6d96f99c7d3999771de1a3eaff64fcdbef2ea2fe4cfc7",
+          "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60"
+        },
+        "frozen_home_run": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3",
+        "original_editor_evidence_sha256": "26e90be4552c16fcd113a3219fb07025b8cea883df585432f63725910fff7c70",
+        "catalog_entries": 543,
+        "published": false,
+        "scope": "Complete frozen editor input, normal materializer, resulting full Home to chart selection and review. Earlier acquisition is reused unchanged."
+      },
+      "max_authoritative_input_tokens": 71163,
+      "captions": [
+        {
+          "id": "fred:BAMLH0A0HYM2",
+          "title": "High-yield credit spreads: stress is not broad yet",
+          "significance": "High-yield OAS was 3.23% on 15 October 2026, far below its 4.61% April 2025 peak; through that date, the spread did not point to general credit stress from AI.",
+          "date": "2026-10-15",
+          "value": 3.23,
+          "price_adjustment": null,
+          "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3"
+        },
+        {
+          "id": "fred:DGS10",
+          "title": "10-year Treasury yield: still near 5%",
+          "significance": "The 10-year Treasury yield was 5.10% on 15 October 2026, down from 5.31% on 5 October but still near 5%, a continuing headwind for high-multiple technology shares.",
+          "date": "2026-10-15",
+          "value": 5.1,
+          "price_adjustment": null,
+          "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3"
+        },
+        {
+          "id": "stock:CRWV:price",
+          "title": "CoreWeave: equity gauge of AI funding stress",
+          "significance": "CoreWeave fell 11.89% to $61.395 on 16 October 2026, about 67% below its June 2025 peak, in a 10-13% drop across leveraged AI hosts; it is a live gauge of funding stress.",
+          "date": "2026-10-16",
+          "value": 61.395,
+          "price_adjustment": "all",
+          "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3"
+        },
+        {
+          "id": "stock:MU:price",
+          "title": "Micron: memory supply fear versus record sales",
+          "significance": "Micron fell 5.65% to $878.78 on 16 October 2026, 28% below its June high, despite record $41.5bn quarterly revenue by 2026Q3; the gap is a de-rating on future memory supply.",
+          "date": "2026-10-16",
+          "value": 878.78,
+          "price_adjustment": "all",
+          "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3"
+        },
+        {
+          "id": "stock:EOG:price",
+          "title": "EOG Resources: energy rotation at a record",
+          "significance": "EOG rose 4.24% to $158.06 on 16 October 2026, a record in the series, matching the session's rotation into energy amid oil near $96 and a large US crude draw.",
+          "date": "2026-10-16",
+          "value": 158.06,
+          "price_adjustment": "all",
+          "home_run_id": "c3c1b8cb-3648-4892-86b4-f34088f1aeb3"
+        }
+      ],
+      "shared_review": {
+        "status": "completed",
+        "verdict": "revise",
+        "critique_summary": "The five-chart set is coherent: broad credit, rates, AI infrastructure, memory and energy. Revise the credit point so it does not imply the 15 October spread covers the 16 October equity session. CoreWeave is an equity gauge of funding stress, not a credit spread. Tighten Micron to separate reported revenue from the interpretation that future supply is driving the de-rating.",
+        "confidence": "high",
+        "limitations": [],
+        "unsupported_claims": [],
+        "evidence_gaps": [],
+        "revised_answer_applied": true,
+        "research_requests": [
+          "Get 16 October high-yield OAS and CoreWeave credit default swap or bond yield levels to test whether AI-host stress spread after the equity selloff.",
+          "Track CXMT server DDR5 qualification and NAND contract prices to test whether future memory supply explains the Micron de-rating."
+        ]
+      }
+    }
+  ],
+  "adverse_comparisons": [
+    {
+      "case": "First full DEV publication a0bd1515-3ce7-4438-b051-89189f82d43e",
+      "result": "Rejected: internal confidence language and false stale-price claim; preserved separately."
+    },
+    {
+      "case": "Local comparisons 02 and 03",
+      "result": "Reader/projection changes improve context, but feature-specific review still creates unnecessary caveats or defensive corrections."
+    },
+    {
+      "case": "Local comparison 04 with original two passes and 65/180 size",
+      "result": "One held-out set is coherent; the actual-DEV-Home set still excludes rates as a cause too strongly. Rejected as a complete acceptance pair."
+    }
+  ],
+  "mechanical_contracts": "source-contracts-current.json",
+  "full_development_required": true
+}

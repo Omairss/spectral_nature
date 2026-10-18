@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 import math
 import os
-import time
 from typing import Any
 
 import pandas as pd
@@ -140,81 +139,27 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
             f"Daily brief evidence:\n{serialize_llm_context(context)}\n\n"
             f"Supplied evidence manifest: {json.dumps(service.supplied_evidence_manifest)}"
     )
-    review_schema = {"type": "object", "additionalProperties": False, "properties": {
-        "approved": {"type": "boolean"}, "issues": {"type": "array", "items": {"type": "string"}},
-    }, "required": ["approved", "issues"]}
-    feedback = ""
-    selections = []
-    review_state: dict[str, Any] = {"status": "not_run", "attempts": []}
     try:
         operation_timeout = max(1, int(os.getenv("DAILY_MARKET_DATAPOINTS_TIMEOUT_SECONDS", "600")))
     except ValueError:
         operation_timeout = 600
-    operation_deadline = time.monotonic() + operation_timeout
-    for attempt in range(2):
-        try:
-            initial_evidence = [{"title": "Evidence navigation", **service.supplied_evidence_manifest}]
-            if selections:
-                # Revision owns the same complete originals already reviewed,
-                # rather than purchasing their acquisition again from scratch.
-                initial_evidence.append({"title": "Original histories for the preceding chart draft",
-                                         "charts": [catalog[item["id"]] for item in selections]})
-            result = run_aql_zopedia_structured_agent(
-                query=selection_query + feedback,
-                schema_name="daily_market_datapoints", schema=schema, task="daily_market_datapoints",
-                surface="attention_home.daily_datapoints", service=service,
-                initial_evidence=initial_evidence,
-                request_context={"allow_web": False, "allowed_source_access": ["supplied"]},
-                answer_review_owner="downstream", persist_findings=False, write_policy="none",
-                llm_step_timeout_seconds=remaining_request_timeout(180),
-                run_timeout_seconds=min(remaining_request_timeout(180), max(0.0, operation_deadline - time.monotonic())),
-            )
-            if result.get("status") != "completed":
-                raise RuntimeError("AQL/Zopedia could not complete the daily datapoint selection: " + str(result.get("error") or "incomplete response"))
-            draft = (result.get("payload") or {}).get("datapoints") or []
-            ids = [str(item.get("id") or "") for item in draft if isinstance(item, dict)]
-            if len(ids) != 5 or len(set(ids)) != 5 or any(key not in catalog for key in ids):
-                raise ValueError("Daily datapoints must reference five distinct catalog entries.")
-            if any(not str(item.get(key) or "").strip() for item in draft for key in ("title", "significance")):
-                raise ValueError("Daily datapoints require a title and significance.")
-            selections = draft
-            review = run_aql_zopedia_structured_agent(
-                query=(
-                    "Review this five-chart brief against its exact supplied data and session evidence. "
-                    "Read the selected histories and identify incorrect values, dates, periods, trend descriptions or causes. "
-                    "\n\n"
-                    f"As of: {pd.Timestamp(asof).isoformat()}\nDaily evidence: {serialize_llm_context(context)}\n"
-                    f"Draft: {json.dumps(selections, ensure_ascii=False)}\n"
-                    f"Exact selected charts: {json.dumps([catalog[key] for key in ids], ensure_ascii=False, default=str)}"
-                ),
-                schema_name="daily_market_datapoints_review", schema=review_schema, task="daily_market_datapoints_review",
-                service=service, request_context={"allow_web": False, "allowed_source_access": ["supplied"]},
-                surface="attention_home.daily_datapoints.review", max_tool_calls=0, persist_findings=False, write_policy="none",
-                initial_evidence=[{"original_request": selection_query}],
-                run_timeout_seconds=min(remaining_request_timeout(120), max(0.0, operation_deadline - time.monotonic())),
-            )
-            if review.get("status") != "completed":
-                raise RuntimeError("AQL/Zopedia could not review the daily datapoint selection: " + str(review.get("error") or "incomplete response"))
-            verdict = review.get("payload") or {}
-            review_state["attempts"].append(verdict)
-            if verdict.get("approved") is True:
-                review_state["status"] = "accepted"
-                break
-            review_state["status"] = "needs_follow_up"
-            print(f"[info] daily datapoint semantic review attempt={attempt + 1} issues="
-                  + json.dumps(verdict.get("issues") or [], ensure_ascii=False), flush=True)
-            feedback = (
-                "\n\nConsider these suggested revisions alongside the original sources, "
-                "then improve the draft for the original request.\n"
-                + json.dumps({"previous_draft": selections, "review": verdict}, ensure_ascii=False)
-            )
-        except Exception as exc:
-            if not selections:
-                raise
-            review_state.update(status="incomplete", error=f"{type(exc).__name__}: {exc}")
-            print("[info] daily datapoint review incomplete; valid draft retained: "
-                  + str(review_state["error"])[:1500], flush=True)
-            break
+    result = run_aql_zopedia_structured_agent(
+        query=selection_query,
+        schema_name="daily_market_datapoints", schema=schema, task="daily_market_datapoints",
+        surface="attention_home.daily_datapoints", service=service,
+        initial_evidence=[{"title": "Evidence navigation", **service.supplied_evidence_manifest}],
+        request_context={"allow_web": False, "allowed_source_access": ["supplied"]},
+        persist_findings=False, write_policy="none",
+        llm_step_timeout_seconds=remaining_request_timeout(180),
+        run_timeout_seconds=min(remaining_request_timeout(operation_timeout), operation_timeout),
+    )
+    if result.get("status") != "completed":
+        raise RuntimeError("AQL/Zopedia could not complete the daily datapoint selection: " + str(result.get("error") or "incomplete response"))
+    selections = (result.get("payload") or {}).get("datapoints") or []
+    ids = [str(item.get("id") or "") for item in selections if isinstance(item, dict)]
+    if len(ids) != 5 or len(set(ids)) != 5 or any(key not in catalog for key in ids):
+        raise ValueError("Daily datapoints must reference five distinct catalog entries.")
+    review_state = (result.get("agent_result") or {}).get("quality_review") or {}
     rows = []
     for rank, item in enumerate(selections, 1):
         title = str(item.get("title") or "").strip()

@@ -1,3 +1,5 @@
+> Historical local acceptance for the first packaged candidate. Its full live DEV charts subsequently failed human review. Use the [current local review](SHARED_REVIEW_LOCAL_REVIEW.md) and committed release record.
+
 # Shared context handoff — local review
 
 **Accepted for development verification, not production.** Complete outputs and measurements are in [the local record](context-handoff-local.json). Production still requires a fresh complete DEV publication, API/native compatibility, preserved configuration and acceptance of the exact packaged images.
