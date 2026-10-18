@@ -1,5 +1,7 @@
 # Production restoration and remaining defect
 
+**Historical receipt.** This describes the October 16/17 rollback. The [October 18 production release](../research-resilience-2026-10-18/PRODUCTION.md) supersedes its live-state claims and release holds. Retain the original findings below as dated evidence; do not use them as current deployment instructions.
+
 Recorded October 16 local time / October 17 UTC. **The exact image rollback is complete. Fresh Home is live. Automatic highlight refresh remains broken; overall recovery is not fully complete.**
 
 All nineteen remaining production targets use their own recorded pre-incident immutable images. The three web/API revisions are ready. Eight development counterparts were restored and the normal development brief was personally accepted before production. The [configuration audit](configuration-audit.json) compares all 33 resources: effective settings, identities, credentials, allocation, schedules and four public domains are preserved. The retired APIs/frontend remain deleted. No new application image was built for this rollback.

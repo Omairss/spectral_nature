@@ -1,6 +1,6 @@
 # General learning episodes and research resilience
 
-Status: **targeted DEV acceptance passed; exact-image production promotion authorized by the existing owner instruction**. Production first received the exact verified recovery images under the owner's explicit acceptance of the date imperfection; [promotion record](../source-evidence-repair-2026-10-18/PRODUCTION.md). This subsequent one-file runtime change is not in those initial images.
+Status: **deployed to DEV and production; API revisions are ready and all-resource audits pass.** The exact DEV-accepted worker `1d8a4276` and API `9c28b4c4` are live on all twenty intended DEV/production consumers. [Current production record](PRODUCTION.md). Fresh production Home publication verification is finishing independently.
 
 The existing learning entrypoint only admitted answers matching unavailable-data/debug phrases and a successful tool from a fixed list. A corrected date, mistaken units or a false user correction could not reach the existing LLM critic. Replace that semantic admission with an immutable, owner-bound conversation-episode identity. The same critic receives the original conversation and execution evidence, decides whether there is a lesson or no change, and records its actual diagnosis. Sources, prior answers and corrections are all fallible; the model distinguishes dependent conclusions from independent findings.
 

@@ -22,9 +22,11 @@ Streamlit and Dash are retired. Their code, UI dependencies/tests, launchers, ol
 
 The retired image-backport utility and broker's two-file overlay are archived. Broker packaging now replaces the complete application source too. Held reasoning and Trading-call implementations remain in their held Git checkpoint and retained task archives; they are excluded from the recovery branch.
 
-## Current rollback record
+## Current deployment and rollback evidence
 
-The owner-directed [exact October 16 recovery](../verification/exact-production-recovery-2026-10-16/README.md) records the actual per-consumer production images and restored development counterparts. Consult that live-state record before preparing another release. The earlier rebuilt candidate remains rejected for production quality; its source inventory and image allowlist are not acceptance of the rollback or an accurate current deployment baseline. Preserve newer database/format-recovery work in Git and its held evidence, and review its integration separately before a future release. An intentional historical rollback does not authorize assembling a new source tree from its images.
+The current deployment is the [October 18 production release](../verification/research-resilience-2026-10-18/PRODUCTION.md), using the exact DEV-accepted worker/API digests recorded with their Git source. `infra/release_acceptance.json` and the linked all-resource audit identify the current thirteen production consumers and preserved configurations. Read these records and Azure before preparing another release.
+
+The [October 16 exact recovery](../verification/exact-production-recovery-2026-10-16/README.md) is historical rollback evidence. Its images, incomplete highlight refresh and former holds describe that dated operation, not current deployment authority. Historical snapshots never seed a new application build. Scoped database/Trading work remains preserved and must be reconciled in Git; no other session's source tree or previously held experiment gains acceptance from this deployment.
 
 ## Retirement and retention
 

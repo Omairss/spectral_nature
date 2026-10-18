@@ -1,6 +1,6 @@
 # Shared source evidence repair
 
-Status: **explicitly accepted by the owner for production with the known source-date imperfection; promotion in progress.** The exact verified DEV worker `14257c0c` and API `04f2db03` are being promoted. All twelve company results, six stories, five new highlights, original observations, current narration and serving/configuration checks passed. The known financing-date error remains recorded; the owner accepts this imperfection and requests subsequent general resilience work. See the [current record](DEADLINE_DEVELOPMENT_REVIEW.md).
+Status: **historical source/deadline phase, explicitly accepted by the owner and promoted on October 18.** Its exact images `14257c0c` / `04f2db03` were subsequently superseded by the [current production learning release](../research-resilience-2026-10-18/PRODUCTION.md), whose Home implementation is identical. This folder preserves the known date imperfection, completed draft handoff and prior review judgments; it does not override current deployment authority.
 
 ## Implementation
 

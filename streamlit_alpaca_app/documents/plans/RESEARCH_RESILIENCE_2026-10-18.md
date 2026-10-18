@@ -8,6 +8,6 @@ The deadline handoff is deployed and proved. Existing source preservation and mo
 
 Evaluate personally with the actual financing-date episode, an unrelated evidence correction, a misleading user correction and an ordinary successful conversation. Compare useful analysis under uncertain details, dependent versus independent conclusions, no-change judgments and generality. Mechanical checks cover episode identity and recovery only. No deterministic prose grading.
 
-Status: production images promoted; final runtime/publication verification is running. Resilience change is accepted locally after four complete qualitative reviews and four execution checks; DEV verification follows. It is not included in the initial promotion. See [local evidence](../verification/research-resilience-2026-10-18/README.md).
+Status: the verified learning change is deployed to DEV and production; API revisions and configuration audits pass. The initial production Home generation has returned all twelve company investigations and enrichments and is finishing publication. [Current production record](../verification/research-resilience-2026-10-18/PRODUCTION.md).
 
 Targeted DEV acceptance has passed for the verified learning images, including an actual deployed-worker critique and a subsequent answer using the generated guidance. See [DEV evidence](../verification/research-resilience-2026-10-18/DEVELOPMENT.md). Exact-image production promotion follows under the existing conditional owner instruction. The initial production Home generation continues with identical Home code.

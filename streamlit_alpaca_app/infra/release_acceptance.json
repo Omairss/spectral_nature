@@ -1151,5 +1151,20 @@
       "prior_condition": "Complete fresh DEV research quality was previously held for a known financing-date error. Owner explicitly accepts promotion with that imperfection and requests subsequent general resilience improvement."
     },
     "deployment_evidence": "documents/verification/source-evidence-repair-2026-10-18/PRODUCTION.md"
+  },
+  "production_deployment": {
+    "status": "deployed_and_ready",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:1d8a4276c1467bb759a3c1c87956bda8912dc91ddaf20de5e7cb37eea4c59a57",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104"
+    },
+    "source_revision": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
+    "build_revision": "dd3920fb3e8992c4ccb21b19a9459cabfd3f06f8",
+    "api_revision": "sn-api-next--0000013",
+    "configuration_audit": "documents/verification/research-resilience-2026-10-18/production-configuration-audit.json",
+    "evidence": "documents/verification/research-resilience-2026-10-18/PRODUCTION.md",
+    "publication_verification": "running",
+    "home_execution": "attention-home-build-vna3suq",
+    "home_run_id": "627a7ea2-8d45-4a80-af87-687f03953fac"
   }
 }

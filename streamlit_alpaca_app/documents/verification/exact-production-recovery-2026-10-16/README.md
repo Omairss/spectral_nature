@@ -1,5 +1,7 @@
 # Exact pre-incident release recovery — October 16
 
+**Historical receipt.** This describes the October 16/17 rollback. The [October 18 production release](../research-resilience-2026-10-18/PRODUCTION.md) supersedes its live-state claims and release holds. Retain the original findings below as dated evidence; do not use them as current deployment instructions.
+
 Status: **all nineteen production targets are restored to their recorded pre-incident images, and fresh Home is live.** All 33 resources retain effective configuration and four public domain bindings; web/API revisions are ready. Eight development counterparts were restored first and [personally accepted](DEVELOPMENT_ACCEPTANCE.md). The normal production Home execution succeeded and published its overview, eight stories, narration and 22 intraday histories. **Automatic highlight refresh failed on the historical model-context limit and retained five October 14 highlights; overall recovery remains incomplete there.** See the [production restoration and remaining defect](PRODUCTION_RESTORATION.md). The rebuilt candidate remains rejected and is explicitly blocked for new builds/promotions.
 
 The owner instructed: “Just fucking recover it you shit,” after the proposal to restore each service's recorded pre-incident image, verify current-storage compatibility and research quality in development, promote the same images, regenerate Home and check the real web/native paths. This authorizes the historical rollback procedure; it does not accept the failed rebuilt candidate or a new model/editor design.

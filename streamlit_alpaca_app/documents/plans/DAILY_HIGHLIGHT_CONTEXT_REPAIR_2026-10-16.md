@@ -1,6 +1,6 @@
 # Current-data Home recovery
 
-Status: **owner explicitly authorized production promotion of the verified DEV images with the known date imperfection. Promotion in progress.** The [current record](../verification/source-evidence-repair-2026-10-18/DEADLINE_DEVELOPMENT_REVIEW.md) preserves successful execution/data/configuration verification and the prior adverse review. The source-date error remains acknowledged rather than represented as fixed. Promote the exact DEV digests first; then evaluate general resilience in the existing shared research path, without source-specific patches, added critics or publication gates.
+Status: **recovery and subsequent learning images are deployed to production under explicit owner acceptance.** [Current production record](../verification/research-resilience-2026-10-18/PRODUCTION.md). All twelve company investigations and enrichments returned in the fresh production run; publication, new highlights and narration verification are finishing. The known date imperfection is recorded, without a source-specific patch or new publication rule.
 
 ## Current implementation
 

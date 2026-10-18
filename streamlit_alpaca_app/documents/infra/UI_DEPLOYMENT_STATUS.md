@@ -1,15 +1,13 @@
 # Current frontend/API deployment status
 
-Captured October 16, 2026 during legacy retirement. This records existing live images, not acceptance of the pending backend recovery. The production backend remains affected by the October 16 release regression; see the [recovery record](../verification/behavior-recovery-2026-10-16/README.md).
+Captured October 18, 2026 after the owner-authorized production rollout. [Current production record](../verification/research-resilience-2026-10-18/PRODUCTION.md), [configuration audit](../verification/research-resilience-2026-10-18/production-configuration-audit.json) and committed `infra/release_acceptance.json` are the active release references. All five app revisions are ready.
 
-| Resource | Current role | Image | Ready revision |
+| Resource | Role | Image | Ready revision |
 |---|---|---|---|
-| sn-streamlit-ui | Next.js public site; current domains | `snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a` | `sn-streamlit-ui--0000094` |
-| sn-api-next-dev | Current development FastAPI | `snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4` | `sn-api-next-dev--0000036` |
-| sn-next-ui-dev | Next.js development | `snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a` | `sn-next-ui-dev--0000022` |
-| sn-next-ui | Next.js production alias | `snpipelineacr03130136.azurecr.io/system-reliability-dev-web@sha256:cabfd78f4590d96bc4b6b7c62cd3206885ef2a633963f58e934a55453d02e17a` | `sn-next-ui--0000010` |
-| sn-api-next | Current production FastAPI | `snpipelineacr03130136.azurecr.io/system-reliability-health-v2-api-next@sha256:a9aa26c09f84bf07f01acd9eff55da415894ff1952e3a8589730ff7634fe610f` | `sn-api-next--0000010` |
+| sn-streamlit-ui | Next.js public domains | `snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6` | `sn-streamlit-ui--0000095` |
+| sn-api-next-dev | FastAPI development | `snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104` | `sn-api-next-dev--0000045` |
+| sn-next-ui-dev | Next.js development | `snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6` | `sn-next-ui-dev--0000023` |
+| sn-next-ui | Next.js production alias | `snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6` | `sn-next-ui--0000011` |
+| sn-api-next | FastAPI production | `snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9c28b4c4b3b389a59efb552de33e15961f63fc0369120f2918847e98a5a55104` | `sn-api-next--0000013` |
 
-`sn-streamlit-ui-dev` and `sn-api-dev` are deleted. The owner then approved retiring the old production API `sn-api`; all five remaining apps and 28 jobs retained their exact images/configuration. No recovery image was deployed during this cleanup.
-
-Streamlit/Dash deployment and first-cutover tools are retired. Current release preparation follows the [release policy](RELEASE_SOURCE_POLICY.md). The previous long status history is retained in the verified 30-day documentation archive and in Git; it does not supply current deployment instructions.
+The Next.js images and four public domains are unchanged by this backend/worker rollout. The retired Streamlit/Dash frontend and legacy APIs remain deleted. No native client binary was changed. Earlier deployment snapshots are historical evidence, retained in Git and the verified private 30-day archive; they are not current commands or source baselines.
