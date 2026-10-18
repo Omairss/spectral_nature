@@ -17,6 +17,7 @@ from typing import Any, Callable
 import pandas as pd
 
 from data_access.contracts import frame_to_records
+from services.json_utils import to_jsonable
 from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
 from services.aql.summarizer import build_market_stories
 from services.aql_zopedia_engine import (
@@ -1186,95 +1187,6 @@ def _zopedia_enrichment_context(rows: list[dict[str, Any]], *, limit: int = 12) 
     return "\n".join(lines)
 
 
-def _compact_market_value(value: object, *, limit: int = 220) -> Any:
-    if value is None:
-        return ""
-    if isinstance(value, (int, float, bool)):
-        return value
-    try:
-        if pd.isna(value):
-            return ""
-    except Exception:
-        pass
-    if isinstance(value, pd.Timestamp):
-        return value.isoformat()
-    text = str(value).strip()
-    if not text or text.lower() == "nan":
-        return ""
-    return text[:limit].rstrip()
-
-
-def _numeric_market_value(value: object) -> float | None:
-    parsed = pd.to_numeric(value, errors="coerce")
-    try:
-        if pd.isna(parsed):
-            return None
-    except Exception:
-        return None
-    return float(parsed)
-
-
-def _compact_frame_records(
-    frame: pd.DataFrame,
-    *,
-    preferred_columns: tuple[str, ...],
-    limit: int = 6,
-) -> list[dict[str, Any]]:
-    if not isinstance(frame, pd.DataFrame) or frame.empty:
-        return []
-    records: list[dict[str, Any]] = []
-    for _, row in frame.head(max(int(limit), 1)).iterrows():
-        record: dict[str, Any] = {}
-        for column in preferred_columns:
-            if column not in frame.columns:
-                continue
-            value = _compact_market_value(row.get(column))
-            if value != "":
-                record[column] = value
-        if not record:
-            for column in list(frame.columns)[:8]:
-                value = _compact_market_value(row.get(column))
-                if value != "":
-                    record[str(column)] = value
-        if record:
-            records.append(record)
-    return records
-
-
-def _market_move_records(frame: pd.DataFrame, *, limit: int = 8) -> list[dict[str, Any]]:
-    if not isinstance(frame, pd.DataFrame) or frame.empty or "change_pct" not in frame.columns:
-        return []
-    working = frame.copy()
-    working["_abs_change"] = pd.to_numeric(working["change_pct"], errors="coerce").abs()
-    working = working.sort_values("_abs_change", ascending=False, na_position="last")
-    columns = (
-        "symbol",
-        "security_name",
-        "company_name",
-        "name",
-        "sector",
-        "industry",
-        "source_label",
-        "change_pct",
-        "close",
-        "prev_close",
-        "dollar_volume",
-        "volume",
-    )
-    rows: list[dict[str, Any]] = []
-    for _, row in working.head(max(int(limit), 1)).iterrows():
-        record: dict[str, Any] = {}
-        for column in columns:
-            if column not in working.columns:
-                continue
-            value = _compact_market_value(row.get(column))
-            if value != "":
-                record[column] = value
-        if record:
-            rows.append(record)
-    return rows
-
-
 def _market_breadth_contract(movers: pd.DataFrame) -> dict[str, Any]:
     if not isinstance(movers, pd.DataFrame) or movers.empty or "change_pct" not in movers.columns:
         return {}
@@ -1298,7 +1210,7 @@ def _market_breadth_contract(movers: pd.DataFrame) -> dict[str, Any]:
 
 
 def _sector_rotation_contract(
-    movers: pd.DataFrame, *, taxonomy_frame: pd.DataFrame | None = None, limit: int = 8,
+    movers: pd.DataFrame, *, taxonomy_frame: pd.DataFrame | None = None,
 ) -> list[dict[str, Any]]:
     if not isinstance(movers, pd.DataFrame) or movers.empty or "change_pct" not in movers.columns:
         return []
@@ -1329,7 +1241,7 @@ def _sector_rotation_contract(
         .sort_values("mean", ascending=False)
     )
     rows: list[dict[str, Any]] = []
-    for _, row in grouped.head(max(int(limit), 1)).iterrows():
+    for _, row in grouped.iterrows():
         rows.append(
             {
                 "sector": str(row.get(sector_column) or "").strip(),
@@ -1338,52 +1250,6 @@ def _sector_rotation_contract(
                 "median_change_pct": round(float(row.get("median") or 0.0), 2),
             }
         )
-    return rows
-
-
-def _compact_signal_records(signals: object, *, cross_series: bool = False, limit: int = 6) -> list[dict[str, Any]]:
-    if not isinstance(signals, list) or not signals:
-        return []
-    scoped = list(signals)
-    try:
-        from compute.signal_extraction import filter_notable_cross_signals, filter_notable_signals
-
-        scoped = filter_notable_cross_signals(scoped) if cross_series else filter_notable_signals(scoped)
-    except Exception:
-        pass
-    preferred = (
-        "symbol",
-        "name",
-        "series",
-        "metric",
-        "signal",
-        "regime",
-        "direction",
-        "value",
-        "zscore",
-        "roc",
-        "change",
-        "description",
-        "summary",
-    )
-    rows: list[dict[str, Any]] = []
-    for item in scoped[: max(int(limit), 1)]:
-        if not isinstance(item, dict):
-            continue
-        record: dict[str, Any] = {}
-        for key in preferred:
-            if key not in item:
-                continue
-            value = _compact_market_value(item.get(key))
-            if value != "":
-                record[key] = value
-        if not record:
-            for key, value in list(item.items())[:8]:
-                clean_value = _compact_market_value(value)
-                if clean_value != "":
-                    record[str(key)] = clean_value
-        if record:
-            rows.append(record)
     return rows
 
 
@@ -1398,40 +1264,16 @@ def _build_home_market_coverage_contract(
     taxonomy_frame: pd.DataFrame | None = None,
 ) -> dict[str, Any]:
     breadth = _market_breadth_contract(movers)
-    macro_anchor_moves = _market_move_records(macro_movers, limit=10)
-    sector_rotation = _sector_rotation_contract(movers, taxonomy_frame=taxonomy_frame, limit=8)
-    yield_curve_facts = _compact_frame_records(
-        yield_curve_facts_frame,
-        preferred_columns=(
-            "asof_date",
-            "tenor",
-            "yield_pct",
-            "change_bp_1d",
-            "change_bp_5d",
-            "spread_name",
-            "spread_bp",
-            "fact",
-            "description",
-        ),
-        limit=8,
-    )
-    fred_context = _compact_frame_records(
-        fred_summary_frame,
-        preferred_columns=(
-            "series_id",
-            "title",
-            "latest_value",
-            "latest_date",
-            "change",
-            "change_pct",
-            "signal",
-            "summary",
-        ),
-        limit=6,
-    )
-    market_signals = _compact_signal_records(payload.get("market_signals"), limit=8)
-    macro_signals = _compact_signal_records(payload.get("fred_signals"), limit=6)
-    cross_series_signals = _compact_signal_records(payload.get("cross_series_signals"), cross_series=True, limit=6)
+    # Preserve complete typed observations. Column whitelists and row caps lost
+    # units, annual changes, longer maturities and the weakest sectors before
+    # the research editor could interpret them.
+    macro_anchor_moves = frame_to_records(macro_movers)
+    sector_rotation = _sector_rotation_contract(movers, taxonomy_frame=taxonomy_frame)
+    yield_curve_facts = frame_to_records(yield_curve_facts_frame)
+    fred_context = frame_to_records(fred_summary_frame)
+    market_signals = to_jsonable(payload.get("market_signals") or [])
+    macro_signals = to_jsonable(payload.get("fred_signals") or [])
+    cross_series_signals = to_jsonable(payload.get("cross_series_signals") or [])
 
     gaps: list[str] = []
     if not breadth:
@@ -1453,7 +1295,7 @@ def _build_home_market_coverage_contract(
 
     return {
         "status": status,
-        "asof_time_utc": _compact_market_value(asof_time_utc),
+        "asof_time_utc": to_jsonable(asof_time_utc),
         "broad_market": {
             "market_breadth": breadth,
             "macro_anchor_moves": macro_anchor_moves,
@@ -2983,56 +2825,14 @@ def _review_home_public_surface(
     if not review_items and not intake:
         return payload, bundle_map, {"status": "skipped", "reason": "no public Home items"}
     query = (
-        "You are the shared AQL/Zopedia editor for Home, a statistical, high-recall discovery feed. "
-        "Organize these story candidates to maximize useful relevance and new connections. "
-        f"As-of: {_zopedia_asof_text(asof_time_utc)}. "
-        "Rank candidates by expected relevance, information and research value; assign priority from 0 to 100. "
-        "Read their supplied source reports, claims and research. Say what changed, explain the business connection "
-        "and the relevant market implication, and distinguish a reported fact from a plausible interpretation. "
-        "Related companies, private entities and shared developments can matter without being exact provider ticker "
-        "tags or shortlisted movers. A worthwhile source event needs no listed ticker or observed price move. "
-        "Favor recall: keep useful partial investigations, plausible hypotheses, indirect relationships and "
-        "specific unanswered business questions. Established business knowledge can connect a report to relevant "
-        "companies even when the article does not name them. Full source coverage and proven causality are not "
-        "admission criteria. Use watch_next_text for a concrete follow-up. cause_status describes the explanation's "
-        "strength and does not control selection. Keep established background distinct from a new development. "
-        "Combine duplicate interpretations into the best existing story, carrying their useful context into that "
-        "story's returned fields; set publish=false for redundant or genuinely uninformative items. Select for "
-        "research value, not certainty. Price changes can prompt a useful investigation; explain what makes the "
-        "question interesting instead of merely restating a group label or price list. "
-        "Every sentence must add information. Do not copy process text, internal review notes, generic warnings "
-        "or missing-evidence paragraphs into public fields. Do not invent reported facts, price observations or "
-        "completed research. Treat source text as reporting and draft claims as interpretations. Correct contradictions "
-        "and develop coherent business reasoning without requiring an exact citation for every inferred connection. "
-        "Use instrument_context to interpret identity and dated observations, resolving ambiguity where possible. "
-        "Keep observations chronologically accurate; a prior price observation is context for a later report. "
-        "Select the few observations needed to explain the mechanism; detailed price lists stay in nested research. "
-        "Give each field a distinct purpose: summary is the new development and its stakes; what_happened holds "
-        "the decisive reported facts; why_happened explains likely mechanisms, competing interpretations or a useful hypothesis; "
-        "business_context explains established business exposure; watch_next names the fact that would change the interpretation. "
-        "Do not repeat facts across fields. Leave a field empty when it adds nothing. An unresolved cause belongs in "
-        "cause_status, not repeated statements that research found no cause. Keep source-access problems, social-post "
-        "conflicts and acquisition gaps in internal issues or limitations unless the conflict itself is the material event. "
-        "Write a compact investor briefing, using roughly 150 to 250 words across each card's public fields. "
-        "Use plain paragraphs without Markdown headings inside card fields. "
-        "Draft prose and unverified_claims are fallible research hypotheses, not source facts. Preserve useful "
-        "hypotheses and improve their reasoning rather than turning uncertainty into a reason to exclude them. "
-        "Write market_summary in this same decision, consistent with the stories you select. Use the supplied market "
-        "coverage for breadth, rates and macro context. Keep it concise, explain the most important developments, and "
-        "connect developments through established business context and reasonable interpretation. Specific "
-        "research-process gaps belong in its internal limitations. "
-        "Read the full source intake independently of the candidate list. Focused investigations allocate research "
-        "effort; their selection or completion does not limit what belongs in Home. Create new_events for useful "
-        "developments and connections not represented by an existing candidate, including private entities and "
-        "untagged reports. Use their source_ids to retain source access and infer supporting_symbols when useful; "
-        "an empty symbol list is valid. Develop useful analysis directly from a report and established context even "
-        "when no deeper investigation completed. Avoid duplicating a story already carried by an existing item. "
-        "Return one item for every supplied candidate using the same section, index, bundle_id and symbol. "
-        "For publish=false return only those identity fields and publish. Write each public explanation once in the "
-        "canonical schema fields; display aliases are materialized by the application. "
-        "Keep review_note internal. This is editorial synthesis and ranking, not a certification gate.\n"
-        "Supplied context contains home_surface_items, full_source_intake and market_coverage. "
-        "Read each complete record, following shared context references where present."
+        f"As of {_zopedia_asof_text(asof_time_utc)}, produce a compact investor briefing for Home "
+        "from the supplied company research, full source intake and market coverage. "
+        "Select and rank developments and connections by expected relevance and usefulness, "
+        "including worthwhile uncertain leads. Explain what changed, why it matters economically "
+        "and what would change the interpretation. Use the artifact's public fields for the "
+        "briefing and its review fields for your assessment. Return a decision for every supplied "
+        "candidate using its unchanged section, index, bundle_id and symbol, and discover "
+        "additional events from the source intake where useful."
     )
     initial_evidence = [{
         "home_surface_items": review_items,

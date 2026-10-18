@@ -144,7 +144,9 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
     except ValueError:
         operation_timeout = 600
     operation_deadline = time.monotonic() + operation_timeout
-    for attempt in range(2):
+    attempt = 0
+    while not attempt or time.monotonic() < operation_deadline:
+        attempt += 1
         try:
             initial_evidence = [{"title": "Evidence navigation", **service.supplied_evidence_manifest}]
             if selections:
@@ -192,11 +194,11 @@ def select_daily_market_datapoints(*, home: dict[str, Any], catalog: dict[str, d
                 raise RuntimeError("AQL/Zopedia could not review the daily datapoint selection: " + str(review.get("error") or "incomplete response"))
             verdict = review.get("payload") or {}
             review_state["attempts"].append(verdict)
-            if verdict.get("approved") is True and not verdict.get("issues"):
+            if verdict.get("approved") is True:
                 review_state["status"] = "accepted"
                 break
             review_state["status"] = "needs_follow_up"
-            print(f"[info] daily datapoint semantic review attempt={attempt + 1} issues="
+            print(f"[info] daily datapoint semantic review attempt={attempt} issues="
                   + json.dumps(verdict.get("issues") or [], ensure_ascii=False), flush=True)
             feedback = (
                 "\n\nRevise this exact prior draft against its review. Preserve useful choices and comparisons; "

@@ -37,3 +37,13 @@ Read the complete seven-story brief, overview, all five captions and both chart-
 Preserve the failed output. Next investigate the complete first-draft/critic request, retained evidence and resulting revision at the shared editorial boundary through paired full-output review. Keep interpretation probabilistic and LLM-owned. Do not stack instructions, hardcode a correction for these examples or manually edit published prose.
 
 Production authorization remains conditional: only after a fresh complete development publication matches or exceeds the pre-incident quality bar may the exact DEV digest be promoted to the single Home producer and its existing daily-chart job be executed without changing the permanent template. That condition has not passed. The saved historical rollback remains live.
+
+## Resumed investigation — October 17
+
+Holding production was correct; stopping the authorized investigation at that failed gate was premature. Recovered the exact editor checkpoint read-only, froze original source versions, and compared complete outputs with the active model/customization held fixed.
+
+The source data projection erased available annual inflation changes, units, long Treasury maturities, the weakest sectors and signal identity/value fields. Preserve complete typed records. A navigation-only editor experiment was worse and rejected. A shorter shared critic did not consistently improve both drafts and was rejected. Replace Home's accumulated editorial checklist with the evaluated compact briefing purpose while retaining the original immutable identity fields, schema and critic. The first short-task protocol failure is retained as adverse evidence.
+
+The existing chart review stopped after two rounds while time remained. Continue the existing LLM-owned selection/review within the unchanged total budget and honor its explicit approval while retaining follow-up notes. The already-approved path has identical requests and output; the real failed-draft continuation corrected material claims without repeating acquisition.
+
+Read the [complete local review](../verification/daily-highlight-context-2026-10-17/LOCAL_CONTINUATION_REVIEW.md), including cost increases, remaining weaknesses and rejected experiments. Local source acceptance permits a fresh DEV release, not production. The full fresh DEV Home and its own new highlights must satisfy the owner's subjective condition before promotion. No financial rules or new model roles were introduced.
