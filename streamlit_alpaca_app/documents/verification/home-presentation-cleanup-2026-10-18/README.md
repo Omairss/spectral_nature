@@ -1,6 +1,6 @@
 # Home presentation cleanup — October 18
 
-Status: locally reviewed; packaging and DEV verification follow. Production currently remains on the preceding accepted release.
+Status: locally reviewed and packaged; DEV verification follows. Production currently remains on the preceding accepted release.
 
 The owner requested removal of Home's semantic suppression, preservation of confidence cutoffs, explanation of the learning fields, and cleanup of obsolete vestiges. The completed preceding production recovery was pushed to origin/master at `6b0f93c2` before edits.
 
@@ -15,3 +15,5 @@ The uncalled live-bundle fallback and its private helper graph, unused Home hydr
 The May 17 [Zopedia parity plan](../../architecture/new_features/zopedia/ZOPEDIA_PARITY_COMPLETION_PLAN_2026-05-17.md) specified `forbidden_future_claims` and `required_future_evidence`. Commit `b8ad4c6da0bef36b9dee5efc2fe3e6b6d82c9174` implemented them on May 20. The existing LLM critic supplies their content from the episode; backend code supplies their fixed schema and memory-page headings. Replay presents them as semantic guidance, not phrase matching. This format is explained, not changed, by this task. The owner explicitly permits the existing confidence cutoffs.
 
 The four reviewed learning examples are in [the assessment record](../research-resilience-2026-10-18/local-review.json), and [guidance reuse](../research-resilience-2026-10-18/learning-guidance-reuse.json) shows a later answer. These evaluation records were not published into a user account. Runtime learning events persist in `saa_zopedia_learning_events`; eligible tool-affordance updates can become Zopedia concept pages. There is no dedicated learning-history screen in the current web/native app. Repository `documents/learnings.md` is a separate development log.
+
+A second local replay used twenty earlier Home records with their actual linked bundles. Nineteen projections were identical; Lumentum retained its original model summary/explanation instead of losing it to the vocabulary filter. All six retained event-search functions are AST-identical to the preceding release. Both packages match all 197 runtime files and preserve installed dependency metadata. [Package verification](packaged-images.json).
