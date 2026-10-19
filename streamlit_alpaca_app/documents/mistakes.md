@@ -1,5 +1,13 @@
 # Mistakes — Active Guidelines
 
+## Trading resumption preparation and reasoning — 2026-10-18
+
+- Release gates caught a retired endpoint pathname and a stale duplicate component record before packaging; use the current approved-call route and one component record. Registry verification needs a single encoded command argument, and a job execution override needs the complete supported container template, including its image/environment. Preserve saved templates and classify these as operator rejections, not model failures.
+- I conflated failing to eliminate current valuation errors with failing the framework's readiness bar. The owner clarified that robust, generalized iteration is the goal. Keep the failed model comparisons as evidence, assess whether calls/outcomes/failures are preserved and reviewable, and reserve release blockers for material framework/integration failures rather than requiring perfect predictions.
+- The scoped source-edit helper missed `AnnAssign` and failed before writing; the dependent shell launch still ran, producing old-contract controls. Corrected dependency sequencing and retained their source identities and paid receipts. Do not relabel those outputs as new-contract evidence.
+- The focused research harness twice supplied an invalid run-ID form before inference. It now lets the shared engine generate its documented ID. Its first version also captured source identity after inference; one receipt therefore records a later disk hash. Kept the original outputs, documented the process-loaded source and moved capture before execution.
+- Stronger economics instructions and optional review still left material valuation errors. The reviewer could invent arbitrary invalidation levels or miss its deadline, while source research could write the correct residual-value formula and then ignore it. No candidate was accepted or deployed. Change forecast ownership and evaluate it rather than accumulating example-specific prompt rules. [Full assessment](research/trading-calls/experiments/2026-10-18/ASSESSMENT.md).
+
 ## Legacy frontend mistaken for current scope — 2026-10-16
 
 - I included the retired development Streamlit consumer in recovery because old resource names and instructions still presented it as active. Two undeployed Streamlit images were built. No recovery runtime deployment occurred. Resource existence and stale documents are not acceptance.

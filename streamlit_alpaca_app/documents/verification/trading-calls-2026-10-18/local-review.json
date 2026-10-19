@@ -1,5 +1,5 @@
 {
-  "status": "accepted_locally_for_paper_pilot",
+  "status": "deployed_production_paper_pilot",
   "task": "Explicit Trading calls and approval-time paper performance",
   "git_base": "d3a700d07dcaf46ec26b2723e48b94d40857d4c0",
   "current_accepted_source_revision": "cc14d46cddee0857569a54c9af41455527a3ceda",
@@ -28,15 +28,16 @@
     "scope": "October 18 exploratory inference only, including separate packet/effort/open-model probes. Not complete-workload acceptance or forecast accuracy."
   },
   "release": {
-    "trading_build": false,
-    "trading_development_deployment": false,
-    "trading_production_deployment": false,
+    "trading_build": true,
+    "trading_development_deployment": true,
+    "trading_production_deployment": true,
     "native_install": false,
     "broker_order": false,
-    "acceptance_manifest_changed_by_this_task": false
+    "acceptance_manifest_changed_by_this_task": true
   },
   "open": [
-    "Exact committed source acceptance, packaged-image verification, authenticated development verification and owner-authorized production deployment."
+    "Fresh normal Trading generation jobs are running in DEV and production; preserve their current last-good reports until publication.",
+    "Native simulator build passed; no new physical-phone installation was performed."
   ],
   "checkpoint": "27e9bd1c0206181053aaf500cd823019d9f0da18",
   "prior_status": "held_for_reasoning_quality",
@@ -48,7 +49,7 @@
     "ticker_specific_economic_rules": false,
     "approved_outcomes_feed_existing_learning": true,
     "automatic_improvement_demonstrated": false,
-    "normal_authenticated_ui_and_release_checks": "pending"
+    "normal_authenticated_ui_and_release_checks": "passed in development and production"
   },
   "production_authorization": {
     "owner_instruction": "Push to prod",

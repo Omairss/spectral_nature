@@ -1,6 +1,6 @@
 # Trading paper pilot — October 18–19
 
-Status: accepted locally under the owner’s iterative-framework standard. Production is explicitly authorized by “Push to prod”; exact development-image verification and deployment remain pending.
+Status: deployed to production under “Push to prod,” after local acceptance and exact-image development verification. [Production receipt](PRODUCTION.md). Normal fresh Trading generation is still running; prior reports remain visible until publication.
 
 ## Production release preparation — October 19 UTC
 
