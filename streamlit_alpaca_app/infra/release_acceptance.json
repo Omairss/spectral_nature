@@ -1421,8 +1421,17 @@
     "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/README.md"
   },
   "development_acceptance": {
-    "status": "pending",
-    "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/README.md"
+    "status": "observing",
+    "installed_behavior": "accepted_for_48_hour_observation",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390"
+    },
+    "source_inventory_sha256": "4b767c98b11161728e5eccd5d28da868f1fa5f8c977c7795fc002c4637db27b6",
+    "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/DEVELOPMENT.md",
+    "observation": "documents/verification/deep-cleanup-dev-trial-2026-10-18/trial.json"
   },
   "consumer_contract_reviews": {
     "database_lifecycle": {

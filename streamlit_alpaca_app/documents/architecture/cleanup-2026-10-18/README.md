@@ -1,6 +1,6 @@
 # Codebase cleanup audit — October 18, 2026
 
-The repository has substantial abandoned code, duplicated helpers and inconsistent failure handling. Confirmed dead paths are removed locally. The continuation also removes repeated storage teardown and consolidates JSON transport. Broader storage responsibilities, research execution and HTTP transport remain unfinished.
+The repository has substantial abandoned code, duplicated helpers and inconsistent failure handling. Confirmed dead paths are removed locally. The continuation also removes repeated storage teardown and consolidates JSON transport. The development trial also consolidates Next.js HTTP transport. Broader storage responsibilities and research execution remain unfinished.
 
 ## Coverage
 
@@ -86,7 +86,7 @@ The DAL/shared JSON duplication is resolved. Continue from typed provider and st
 
 ### 5. Put HTTP transport policy at the existing gateway boundary
 
-Many Next.js routes repeat backend fetch, catch and JSON forwarding. Several return HTTP 400 for connection/timeouts/configuration failures and expose the thrown exception text. Python routes also repeat error translation. Consolidate the policy in the existing transport boundary while preserving validation, refresh-cookie rotation, CSRF, status codes, binary audio and streaming. This requires route-contract and authenticated-path review; no frontend behavior was changed here.
+Many Next.js routes repeat backend fetch, catch and JSON forwarding. Several return HTTP 400 for connection/timeouts/configuration failures and expose the thrown exception text. Python routes also repeat error translation. Consolidate the policy in the existing transport boundary while preserving validation, refresh-cookie rotation, CSRF, status codes, binary audio and streaming. The subsequent development trial implements this Next.js boundary consolidation, removes 27 repeated catches and verifies 26 adapter call structures plus thirteen boundary cases. Python route error translation remains future work. See [installed development verification](../../verification/deep-cleanup-dev-trial-2026-10-18/DEVELOPMENT.md).
 
 ### 6. Separate account email presentation from identity operations
 
@@ -126,4 +126,4 @@ Original source and the affected notebooks were archived and hash-verified befor
 
 Those UTC batch names correspond to October 18 locally. Their manifests enforce 30-day retention through the existing cleanup scheduler. They are evidence only and cannot supply a release.
 
-Cleanup changes remain local and uncommitted. This session did not change release acceptance, build an image or deploy. Another session advanced Git to `3af9a21a` and recorded its separate reliability release while this work was active; those changes remain preserved. The pinned audit baseline and pre-continuation archive prevent that moving HEAD from being mistaken for this cleanup's starting source. The complete cleanup request has not been turned into a release claim: deeper active-path work above remains open.
+At the end of the initial local passes, changes were uncommitted and no cleanup release had been built. Subsequent source reconciliation uses the real Git branch `cleanup/dev-trial-20261019`, based on `b948d6f8`, preserving concurrent root-workspace changes. The [development trial](../../verification/deep-cleanup-dev-trial-2026-10-18/README.md) records accepted application source, complete package proofs, all-consumer review, actual dev deployment and the two-day comparison. Production remains unchanged. Deeper active-path work above remains open; development verification does not accept deferred semantic redesign.

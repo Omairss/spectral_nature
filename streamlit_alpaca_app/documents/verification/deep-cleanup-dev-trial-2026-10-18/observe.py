@@ -14,6 +14,7 @@ import time
 import requests
 
 from services.database import database_workload
+from services import llm
 from services.operational_health import _database
 from services.pipeline_store import _azure_management_headers, _blob_service_client
 from services.work_scope import WorkScope
@@ -47,7 +48,13 @@ def observe_database(environment, hours):
     os.environ["PIPELINE_DATASET_NAMESPACE"] = "development" if environment == "development" else ""
     try:
         with database_workload("background"), WorkScope(time.monotonic() + 45).activate():
-            return _database(hours)
+            result = _database(hours)
+            if llm.load_prompt_overrides(force=True):
+                result["reasoning_settings_sha256"] = hashlib.sha256(
+                    json.dumps(llm._PROMPT_OVERRIDES, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            else:
+                result.setdefault("unavailable", {})["reasoning_settings"] = "Overrides unavailable"
+            return result
     except Exception as error:
         return {"scope": environment, "unavailable": {"database": type(error).__name__}}
     finally:
@@ -106,28 +113,42 @@ def main():
             headers, _ = _azure_management_headers()
             executions = (list(executor.map(observe_job, [(row, headers) for row in spec["jobs"]]))
                           if headers else [{"unavailable": "Management identity unavailable"}])
+            failed_executions = [{"job": row["name"], **execution}
+                                 for row in executions for execution in row.get("latest", [])
+                                 if execution["status"] in {"Failed", "Canceled"}
+                                 and execution.get("startTime")
+                                 and datetime.fromisoformat(execution["startTime"]).timestamp() >= start]
             snapshot = {"trial_id": spec["trial_id"], "slot": slot, "observed_at": observed,
                         "candidate": spec["candidate"], "http": http, "database": database,
                         "executions": executions,
+                        "execution_flags": failed_executions,
                         "http_flags": [row for row in http if row.get("status") != row["expected_status"]],
-                        "collection_gaps": {key: value["unavailable"] for key, value in database.items()
-                                            if value.get("unavailable")}}
+                        "collection_gaps": {**{key: value["unavailable"] for key, value in database.items()
+                                               if value.get("unavailable")},
+                                            **{row.get("name", "jobs"): row["unavailable"] for row in executions
+                                               if row.get("unavailable")}}}
             name = f"{prefix}samples/{slot:04d}/{observed}.json"
             container.upload_blob(name, json.dumps(snapshot, default=str), overwrite=False,
+                                  metadata={key: str(len(snapshot[key])) for key in
+                                            ("http_flags", "execution_flags", "collection_gaps")},
                                   timeout=30, connection_timeout=5, read_timeout=30)
             samples += 1
             print(json.dumps({"trial_id": spec["trial_id"], "slot": slot, "blob": name,
                               "http_flags": len(snapshot["http_flags"]),
+                              "execution_flags": len(failed_executions),
                               "collection_gaps": snapshot["collection_gaps"]}), flush=True)
             if spec.get("sample_limit") and samples >= spec["sample_limit"]:
                 return
             time.sleep(max(0, min(start + (slot + 1) * interval, end) - time.time()))
-    slots = {int(blob.name.removeprefix(prefix + "samples/").split("/", 1)[0])
-             for blob in container.list_blobs(name_starts_with=prefix + "samples/")}
+    blobs = list(container.list_blobs(name_starts_with=prefix + "samples/", include=["metadata"]))
+    slots = {int(blob.name.removeprefix(prefix + "samples/").split("/", 1)[0]) for blob in blobs}
     expected = set(range(math.ceil((end - start) / interval)))
     summary = {"trial_id": spec["trial_id"], "status": "observation_complete",
                "started_at": spec["started_at"], "ends_at": spec["ends_at"],
                "missing_slots": sorted(expected - slots), "observed_slots": len(slots),
+               "flagged_observations": {key: [blob.name for blob in blobs
+                                              if (blob.metadata or {}).get(key) != "0"]
+                                        for key in ("http_flags", "execution_flags", "collection_gaps")},
                "database_window": {environment: observe_database(environment, 48)
                                    for environment in spec["frontends"]},
                "promotion": "Requires complete coverage and review; observer never promotes"}

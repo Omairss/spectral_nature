@@ -1,0 +1,168 @@
+{
+  "trial_id": "cleanup-20261019T072248Z",
+  "started_at": "2026-10-19T07:22:48+00:00",
+  "ends_at": "2026-10-21T07:22:48+00:00",
+  "interval_seconds": 900,
+  "candidate": {
+    "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+    "accepted_source_revision": "846eda4a69828aa4e3947be5ae25caf30d0ef78b",
+    "source_inventory_sha256": "4b767c98b11161728e5eccd5d28da868f1fa5f8c977c7795fc002c4637db27b6",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390"
+    }
+  },
+  "frontends": {
+    "development": "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+    "production": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io"
+  },
+  "jobs": [
+    {
+      "name": "universe-builder",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/universe-builder",
+      "environment": "production"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/equities-intraday-preload",
+      "environment": "production"
+    },
+    {
+      "name": "macro-fred-daily",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/macro-fred-daily",
+      "environment": "production"
+    },
+    {
+      "name": "commodities-regime",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/commodities-regime",
+      "environment": "production"
+    },
+    {
+      "name": "options-liquid-universe",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/options-liquid-universe",
+      "environment": "production"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/news-ingest-and-features",
+      "environment": "production"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/entity-taxonomy-refresh",
+      "environment": "production"
+    },
+    {
+      "name": "attention-home-build",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/attention-home-build",
+      "environment": "production"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/fundamentals-quarterly-refresh",
+      "environment": "production"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/company-baseline-prefetch",
+      "environment": "production"
+    },
+    {
+      "name": "trading-agent-build",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/trading-agent-build",
+      "environment": "production"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/zopedia-maintenance",
+      "environment": "production"
+    },
+    {
+      "name": "zopedia-learning",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/zopedia-learning",
+      "environment": "production"
+    },
+    {
+      "name": "system-health",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/system-health",
+      "environment": "production"
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/trading-agent-build-dev",
+      "environment": "development"
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/macro-fred-daily-dev",
+      "environment": "development"
+    },
+    {
+      "name": "sn-research-run-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/sn-research-run-dev",
+      "environment": "development"
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/robinhood-main-sync-dev",
+      "environment": "development"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/robinhood-main-sync-prod",
+      "environment": "production"
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/dataset-refresh-dev",
+      "environment": "development"
+    },
+    {
+      "name": "attention-home-next-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/attention-home-next-dev",
+      "environment": "development"
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/attention-ticker-next-dev",
+      "environment": "development"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/daily-datapoints-next-dev",
+      "environment": "development"
+    },
+    {
+      "name": "technical-history-next-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/technical-history-next-dev",
+      "environment": "development"
+    },
+    {
+      "name": "sn-research-run",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/sn-research-run",
+      "environment": "production"
+    },
+    {
+      "name": "equities-next-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/equities-next-dev",
+      "environment": "development"
+    },
+    {
+      "name": "evidence-index-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/evidence-index-dev",
+      "environment": "development"
+    },
+    {
+      "name": "system-recovery-dev",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/system-recovery-dev",
+      "environment": "development"
+    },
+    {
+      "name": "system-recovery",
+      "id": "/subscriptions/b69da224-4a61-4fc4-a5b2-3bb567436762/resourceGroups/sn-pipeline-rg-03130136/providers/Microsoft.App/jobs/system-recovery",
+      "environment": "production"
+    }
+  ]
+}
