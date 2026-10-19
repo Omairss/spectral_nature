@@ -1206,3 +1206,6 @@ A working backend endpoint and code in Git do not deploy a Next.js feature. The 
 
 ### October 18 — compare an active development workload against a pinned production baseline
 A two-day trial needs exact image/configuration baselines, representative executions and explicit observation coverage. Manual dev producers do not supply a production-like comparison merely by remaining quiet. Keep reasoning/settings fixed when evaluating structural cleanup, run real resource boundaries before packaging, and treat collection gaps as inconclusive. A bounded cloud observer can collect independent of the operator laptop without adding a product fallback layer. See [trial reconnaissance](verification/deep-cleanup-dev-trial-2026-10-18/README.md).
+
+### October 19 — compare the deployed configuration and retained outputs
+A worker fallback database does not establish an API baseline. Match the actual control connection, environment, identity and role dependencies before attributing a difference to source changes. Keep complete projections private; compare transport-encoded values and repeat both old/candidate executions before interpreting a raw hash difference. The cleanup trial preserves both known dev brokerage unavailability and successful retained production-data projection from dev verification jobs.

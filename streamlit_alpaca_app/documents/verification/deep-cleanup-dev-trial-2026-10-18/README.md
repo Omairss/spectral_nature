@@ -45,7 +45,7 @@ Any material repair produces new candidate digests and restarts the complete obs
 
 ## Status
 
-All four verified role images are installed across the fourteen original development consumers. Installed behavior is accepted for observation in [DEVELOPMENT.md](DEVELOPMENT.md). The bounded live window is starting; `trial.json` records exact times, immutable digests and confirmation of the first persisted observation. Production is unchanged.
+All four verified role images are installed across the fourteen original development consumers. Installed behavior is accepted for observation in [DEVELOPMENT.md](DEVELOPMENT.md). The 48-hour cloud observation is running. The first persisted sample has zero HTTP/execution flags and zero collection gaps; `trial.json` records exact times, immutable digests and its Blob receipt. Production is unchanged.
 
 The additional `cleanup-trial-observer-dev` verification consumer is a manual job, using the completely verified candidate worker and existing pipeline identities, registry and secret resolution. It has no recurring schedule, new role grants, product writes or notifications. Its 176,400-second execution limit bounds the 48-hour observation; fixed start/end times survive a restart. The default command refuses to run without the reviewed explicit observation override. HTTP, database aggregates and actual Azure job execution statuses/images are retained in development Blob storage. Its canonical configuration and preservation review are recorded in [observer-definition.json](observer-definition.json). It becomes idle after the run and is retired when the comparison is reviewed.
 

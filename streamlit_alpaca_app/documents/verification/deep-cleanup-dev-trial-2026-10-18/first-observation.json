@@ -1,0 +1,21 @@
+{
+  "kind": "first_live_observation",
+  "trial_id": "cleanup-20261019T072248Z",
+  "slot": 0,
+  "observed_at": "2026-10-19T07:23:26.880935+00:00",
+  "blob": "namespaces/development/verification/cleanup-trial/cleanup-20261019T072248Z/samples/0000/2026-10-19T07:23:26.880935+00:00.json",
+  "metadata": {
+    "collection_gaps": "0",
+    "execution_flags": "0",
+    "http_flags": "0"
+  },
+  "http_requests": 10,
+  "http_flags": [],
+  "execution_flags": [],
+  "collection_gaps": {},
+  "job_resources": 29,
+  "reasoning_settings_sha256": {
+    "development": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4",
+    "production": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+  }
+}

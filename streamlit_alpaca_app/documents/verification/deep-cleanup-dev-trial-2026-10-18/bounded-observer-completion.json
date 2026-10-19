@@ -1,0 +1,26 @@
+{
+  "probe": "bounded-completion",
+  "job": "system-recovery-dev",
+  "execution": "system-recovery-dev-m3v9a7f",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+  "status": "Succeeded",
+  "proof": [
+    {
+      "kind": "bounded_observer_completion",
+      "completion": {
+        "trial_id": "bounded-exit-20261019T072422Z",
+        "status": "observation_complete",
+        "started_at": "2026-10-19T07:24:22.430670+00:00",
+        "ends_at": "2026-10-19T07:26:22.430670+00:00",
+        "missing_slots": [],
+        "observed_slots": 1,
+        "flagged_observations": {
+          "http_flags": [],
+          "execution_flags": [],
+          "collection_gaps": []
+        },
+        "promotion": "Requires complete coverage and review; observer never promotes"
+      }
+    }
+  ]
+}

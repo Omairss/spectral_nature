@@ -1,5 +1,5 @@
 {
-  "status": "starting_observation",
+  "status": "observing",
   "owner_instruction": "Recon everything needed for deeper cleanup and test in dev; compare dev and prod for 2 days, monitor regressions, promote only if none exist.",
   "observation_hours": 48,
   "started_at": "2026-10-19T07:22:48+00:00",
@@ -29,8 +29,22 @@
   "reasoning_changes": false,
   "observer": {
     "job": "cleanup-trial-observer-dev",
-    "status": "not_started",
-    "blob_prefix": "namespaces/development/verification/cleanup-trial/cleanup-20261019T072248Z/"
+    "status": "running_with_persisted_observation",
+    "blob_prefix": "namespaces/development/verification/cleanup-trial/cleanup-20261019T072248Z/",
+    "execution": "cleanup-trial-observer-dev-7oyuy3t",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+    "first_observation": "namespaces/development/verification/cleanup-trial/cleanup-20261019T072248Z/samples/0000/2026-10-19T07:23:26.880935+00:00.json",
+    "bounded_exit_verified": true,
+    "bounded_exit_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/bounded-observer-completion.json"
   },
-  "comparison_status": "pending_48_hour_observation_and_review"
+  "comparison_status": "pending_48_hour_observation_and_review",
+  "initial_reasoning_settings_sha256": {
+    "development": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4",
+    "production": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+  },
+  "first_observation_flags": {
+    "http": 0,
+    "executions": 0,
+    "collection_gaps": 0
+  }
 }
