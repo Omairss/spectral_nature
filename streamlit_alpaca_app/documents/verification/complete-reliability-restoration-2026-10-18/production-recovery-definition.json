@@ -1,0 +1,30 @@
+{
+  "name": "system-recovery",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+  "provisioning_state": "Succeeded",
+  "planned_configuration_sha256": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
+  "canonical_configuration_sha256": "582ca07839e32aaca57ad45e0868cea4509729be10da2b3216a022fcddcf9cf0",
+  "only_server_readback_addition": {
+    "path": "template.containers[0].resources.ephemeralStorage",
+    "value": ""
+  },
+  "all_other_reviewed_configuration_matches": true,
+  "execution_binding": {
+    "name": "system-recovery",
+    "role": "worker",
+    "pipeline_job": "system-recovery",
+    "dataset_namespace": "",
+    "trigger": "Schedule",
+    "cron": "7,22,37,52 * * * *",
+    "environment": {
+      "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
+    }
+  },
+  "managed_environment_matches_health": true,
+  "managed_identity_matches_health": true,
+  "resources": {
+    "cpu": 0.5,
+    "ephemeralStorage": "",
+    "memory": "1Gi"
+  }
+}
