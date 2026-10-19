@@ -46,3 +46,5 @@ Any material repair produces new candidate digests and restarts the complete obs
 ## Status
 
 Preparing source acceptance and development deployment. No cleanup image has been built or deployed yet. The observation window has not started.
+
+The additional `cleanup-trial-observer-dev` verification consumer is a manual job, using the completely verified candidate worker and existing pipeline identities, registry and secret resolution. It has no recurring schedule, new role grants, product writes or notifications. Its 176,400-second execution limit bounds the 48-hour observation; fixed start/end times survive a restart. The default command refuses to run without the reviewed explicit observation override. HTTP, database aggregates and actual Azure job execution statuses/images are retained in development Blob storage. Its canonical configuration and preservation review are recorded in [observer-definition.json](observer-definition.json). It becomes idle after the run and is retired when the comparison is reviewed.

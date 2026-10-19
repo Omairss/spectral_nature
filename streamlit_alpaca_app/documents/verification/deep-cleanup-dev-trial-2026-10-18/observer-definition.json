@@ -1,0 +1,21 @@
+{
+  "name": "cleanup-trial-observer-dev",
+  "kind": "jobs",
+  "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+  "configuration_api_version": "2025-07-01",
+  "configuration_sha256": "53bb353f0f3d61d4267ce77f049c5f505e867485eecddc0b198cac048dceb2c8",
+  "preservation_review": {
+    "status": "accepted",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+    "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/README.md"
+  },
+  "trigger": "Manual",
+  "replica_timeout_seconds": 176400,
+  "replica_retry_limit": 1,
+  "cpu": 0.25,
+  "memory": "0.5Gi",
+  "application_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+  "new_permissions": 0,
+  "notifications": false,
+  "product_writes": false
+}

@@ -1119,3 +1119,5 @@ Corrected the release through the supported web-role gate using unchanged curren
 
 ### October 18 — stop dependent release preparation when a precondition fails
 A pre-commit check used the repository root where it expected the application directory. The shell then continued and committed a local dependency-cache link. Removed that link in Git and recorded local acceptance before any build; the selected source and every role passed the committed release gate. Keep dependent preparation/commit calls in checked sequential operations. The first ARM inventory also required following nextLink to capture all 34 consumers rather than only the first page.
+
+- Cleanup trial operator commands: ARM GET objects are not request schemas. Job start rejected the GET-only volumes field, and identity creation requires empty identity values. Both requests failed without executions or resources; corrected request schemas before the successful starts/create. Keep canonical GET fingerprints separate from request bodies.

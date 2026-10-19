@@ -15,7 +15,7 @@ import requests
 
 from services.database import database_workload
 from services.operational_health import _database
-from services.pipeline_store import _blob_service_client
+from services.pipeline_store import _azure_management_headers, _blob_service_client
 from services.work_scope import WorkScope
 
 
@@ -34,7 +34,7 @@ def observe_http(target):
                                      ("status", "view_date", "as_of", "run_id", "coverage")}
             result["publication"].update(beats=len(payload.get("beats", [])),
                                           datapoints=len(payload.get("daily_datapoints", [])),
-                                          audio=payload.get("summary", {}).get("audio_available"))
+                                          audio=(payload.get("summary") or {}).get("audio_available"))
     except requests.RequestException as error:
         result["unavailable"] = type(error).__name__
     finally:
@@ -53,6 +53,25 @@ def observe_database(environment, hours):
     finally:
         os.environ["APP_TRACK"] = "development"
         os.environ["PIPELINE_DATASET_NAMESPACE"] = "development"
+
+
+def observe_job(target):
+    resource, headers = target
+    result = {"name": resource["name"], "environment": resource["environment"]}
+    try:
+        response = requests.get("https://management.azure.com" + resource["id"] +
+                                "/executions?api-version=2025-07-01", headers=headers, timeout=(5, 20))
+        response.raise_for_status()
+        executions = sorted(response.json()["value"],
+                            key=lambda row: row["properties"].get("startTime", ""), reverse=True)
+        result["latest"] = [{"name": row["name"],
+                             **{key: row["properties"].get(key) for key in ("status", "startTime", "endTime")},
+                             "images": [item["image"] for item in
+                                        row["properties"].get("template", {}).get("containers", [])]}
+                            for row in executions[:5]]
+    except requests.RequestException as error:
+        result["unavailable"] = type(error).__name__
+    return result
 
 
 def main():
@@ -84,8 +103,12 @@ def main():
             http = list(executor.map(observe_http, targets))
             database = {environment: observe_database(environment, 1)
                         for environment in spec["frontends"]}
+            headers, _ = _azure_management_headers()
+            executions = (list(executor.map(observe_job, [(row, headers) for row in spec["jobs"]]))
+                          if headers else [{"unavailable": "Management identity unavailable"}])
             snapshot = {"trial_id": spec["trial_id"], "slot": slot, "observed_at": observed,
                         "candidate": spec["candidate"], "http": http, "database": database,
+                        "executions": executions,
                         "http_flags": [row for row in http if row.get("status") != row["expected_status"]],
                         "collection_gaps": {key: value["unavailable"] for key, value in database.items()
                                             if value.get("unavailable")}}
