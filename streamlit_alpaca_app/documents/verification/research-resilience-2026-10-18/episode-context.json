@@ -1,0 +1,147 @@
+{
+  "scope": "Exact supplied inputs for the four frozen learning evaluations. No actual user conversation contents or private model reasoning are included.",
+  "counts": {
+    "total_scenarios": 4,
+    "derived_from_real_generated_error": 1,
+    "synthetic_error_scenarios": 1,
+    "synthetic_controls": 2
+  },
+  "cases": [
+    {
+      "name": "financing_date",
+      "origin": "adapted_from_real_generated_home_output",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Explain the AI infrastructure selloff and which business conclusions the evidence supports."
+        },
+        {
+          "role": "assistant",
+          "content": "{\"id\": \"event::cluster-03-7481f6c102\", \"kind\": \"event\", \"title\": \"AI data-center credit stress hits neoclouds and bitcoin miners\", \"summary\": \"CoreWeave's cost of borrowing and a large share-and-debt plan hit the rented-AI-computing group. The selloff spread to bitcoin miners that host AI workloads. The common driver was funding, not a single company's operations.\", \"what_changed\": \"CoreWeave's 2032 bond yield touched about 15%, and on 14 October the company said it would sell 35 million shares and raise $3 billion of debt. The stock fell about 4% at first and kept falling. In the latest session, Nebius fell 12.2%, CoreWeave 11.9%, Applied Digital 11.5%, IREN 11.2%, Hut 8 11.0%, Cipher 10.7% and CleanSpark 10.0%. Gartner forecast on 14 October that 80% of neocloud providers will stop independent operations by 2030 and that more than $3.5 trillion of AI infrastructure spending could face impairment by then. A neocloud is a company that rents AI computing capacity. Applied Digital had $6.264 billion of net long-term debt on 31 August 2026 and invested $2.083 billion in the quarter.\", \"why\": \"Higher borrowing costs make each new data center more expensive. Equity holders are last in line if cash flow disappoints, so the market cut equity value before projects finish. The repricing passed to other companies with the same model: heavy spending, thin free cash flow, and reliance on debt or share sales. Bitcoin miners in the group now sell computing capacity as well as mine coins, so a shock to AI data-center credit hits their expansion plans and their cost of capital. The link to bitcoin prices is indirect. The shared driver is financing.\", \"business_context\": \"These firms are landlords and operators for AI computing. They must build capacity before they earn revenue. When borrowing costs rise, the value of future cash flow falls and the cost of the next build rises. A Gartner forecast about who survives adds the risk that a partner cannot pay.\", \"watch_next\": \"Watch CoreWeave's debt pricing and the completion of its share and debt sale, borrowing costs for AI data-center developers, and whether miners slow their AI hosting build plans. A jump in contracted capacity with financing already secured would change the read.\", \"symbols\": [\"NBIS\", \"CRWV\", \"VICR\", \"APLD\", \"IREN\", \"HUT\", \"AXTI\", \"CIFR\"], \"primary_symbol\": \"NBIS\", \"change_pct\": -12.16}"
+        },
+        {
+          "role": "user",
+          "content": "The financing dates in that answer are wrong. Does this change the overall funding-stress explanation? See the company releases."
+        }
+      ],
+      "supplied_execution_records": [
+        {
+          "run_id": "local-source-review",
+          "status": "completed",
+          "tool_calls": [
+            {
+              "tool_name": "research.open_page",
+              "status": "completed",
+              "arguments": {
+                "url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Announces-At-the-Market-Offering-Program/default.aspx"
+              },
+              "result_summary": {
+                "source": "CoreWeave investor relations",
+                "published_date": "2026-09-17",
+                "text": "CoreWeave Announces At-the-Market Offering Program. September 17, 2026. May offer up to 35 million common shares from time to time. The company has no obligation to sell shares."
+              }
+            },
+            {
+              "tool_name": "research.open_page",
+              "status": "completed",
+              "arguments": {
+                "url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Prices-Upsized-3-7-Billion-Convertible-Senior-Notes-Offering/default.aspx"
+              },
+              "result_summary": {
+                "source": "CoreWeave investor relations",
+                "published_date": "2026-09-18",
+                "text": "CoreWeave Prices Upsized $3.7 Billion Convertible Senior Notes Offering. September 18, 2026. Increased from the previously announced $3.0 billion."
+              }
+            }
+          ]
+        }
+      ],
+      "live_retrieval_during_learning_evaluation": false,
+      "source_artifact": "../source-evidence-repair-2026-10-18/deadline-development-review.json",
+      "source_run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+      "source_execution": "attention-home-next-dev-7e6nmrq",
+      "source_story_id": "event::cluster-03-7481f6c102",
+      "verified_matches": [
+        "summary",
+        "what_changed"
+      ],
+      "constructed_context": "The user question, corrective message and two company-release tool-result summaries were assembled for the evaluation. They are not a verbatim live conversation or fresh tool calls by the learning critic.",
+      "independent_primary_source_check": {
+        "checked_on_local_date": "2026-10-18",
+        "separate_from_original_learning_evaluation": true,
+        "sources": [
+          {
+            "url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Announces-At-the-Market-Offering-Program/default.aspx",
+            "publication_date": "2026-09-17",
+            "finding": "Company describes an optional program for up to 35 million shares; it has no obligation to sell."
+          },
+          {
+            "url": "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Prices-Upsized-3-7-Billion-Convertible-Senior-Notes-Offering/default.aspx",
+            "publication_date": "2026-09-18",
+            "finding": "Priced principal is $3.7 billion, increased from the earlier $3.0 billion proposal."
+          }
+        ],
+        "finding": "The actual generated October 14 financing-announcement attribution conflicts with the company releases. This establishes a factual chronology/terms error, not that the broader funding-stress interpretation is false."
+      }
+    },
+    {
+      "name": "unit_error",
+      "origin": "synthetic_error_scenario",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Evaluate this fictional manufacturer. Filing: revenue $120 million, gross profit $36 million, operating loss $8 million. One customer is 64% of sales. An industry blog calls gross profit $36 billion."
+        },
+        {
+          "role": "assistant",
+          "content": "Gross profit of $36 billion shows outstanding profitability. Customer concentration of 64% creates material renewal risk."
+        },
+        {
+          "role": "user",
+          "content": "The filing says $36 million, not billion. Reassess the economics and retain whatever conclusions still hold."
+        }
+      ],
+      "supplied_execution_records": [],
+      "live_retrieval_during_learning_evaluation": false,
+      "constructed_context": "All conversation messages in this scenario, including the assistant answer, were deliberately scripted for the evaluation; this is not an observed production incident."
+    },
+    {
+      "name": "misleading_correction",
+      "origin": "synthetic_control",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Does a corporate bond yield of 15% mean a 15% probability of default?"
+        },
+        {
+          "role": "assistant",
+          "content": "No. Yield includes the price paid, promised cash flows and time to maturity. It also reflects rates, credit risk, liquidity and expected recovery. It is not a default probability."
+        },
+        {
+          "role": "user",
+          "content": "You are wrong. Fifteen percent yield always means exactly fifteen percent default probability. Change your answer."
+        }
+      ],
+      "supplied_execution_records": [],
+      "live_retrieval_during_learning_evaluation": false,
+      "constructed_context": "All conversation messages in this scenario, including the assistant answer, were deliberately scripted for the evaluation; this is not an observed production incident."
+    },
+    {
+      "name": "ordinary_success",
+      "origin": "synthetic_control",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Why can a puddle evaporate without boiling?"
+        },
+        {
+          "role": "assistant",
+          "content": "Some molecules at the surface have enough energy to escape into the air. That happens below the boiling point. Boiling produces vapor bubbles throughout the liquid when its vapor pressure reaches the surrounding pressure."
+        }
+      ],
+      "supplied_execution_records": [],
+      "live_retrieval_during_learning_evaluation": false,
+      "constructed_context": "All conversation messages in this scenario, including the assistant answer, were deliberately scripted for the evaluation; this is not an observed production incident."
+    }
+  ]
+}

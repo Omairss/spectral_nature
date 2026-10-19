@@ -1183,3 +1183,7 @@ Removing a hardcoded learning detector does not remove downstream semantic polic
 
 ### October 18 — distinguish text identity from binary identity
 Narration text and encoded audio have different hashes. Verify served MP3 bytes against the original stored audio, and verify narration text against its own hash. A mismatch against the wrong field is an operator-check error, not evidence of an application regression. Home presentation cleanup passed actual deployed DEV projection, exact-image production promotion and all-resource/publication preservation checks.
+
+
+### October 18 — distinguish observed incidents from constructed learning examples
+Every learning example needs its original request/answer, supplied evidence, provenance and outcome. Label scripted wrong answers and controls explicitly; an actual generated answer embedded in an assembled scenario is not a verbatim production conversation. Critic agreement/confidence is not independent factual confirmation. Count historical learning records, distinct conversations, confirmed errors, no-change decisions and evaluation fixtures separately; old keyword-selected records cannot estimate a system-wide error rate.

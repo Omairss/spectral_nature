@@ -291,5 +291,17 @@
     "accepted_comparison_unique_attempts": 38,
     "rejected_direct_comparison_unique_attempts": 60
   },
-  "learning_source_sha256": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe"
+  "learning_source_sha256": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe",
+  "input_context": {
+    "artifact": "episode-context.json",
+    "counts": {
+      "total_scenarios": 4,
+      "derived_from_real_generated_error": 1,
+      "synthetic_error_scenarios": 1,
+      "synthetic_controls": 2
+    },
+    "interpretation": "Evaluation scenarios, not a production mistake log. One copied real DEV Home error; the remaining three scenarios were scripted. Even the real-error-derived scenario uses an assembled conversation and supplied source summaries. The learning critic performed no live retrieval. A model diagnosis/confidence is not independent factual verification.",
+    "original_output_retained": true,
+    "historical_record_audit": "historical-record-audit.json"
+  }
 }
