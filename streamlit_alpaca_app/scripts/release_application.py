@@ -8,6 +8,7 @@ and development acceptance for the exact images being promoted.
 from __future__ import annotations
 
 import argparse
+import base64
 from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
@@ -52,13 +53,20 @@ def build(args) -> None:
     tag = f"accepted-{args.role}:{release['source_revision'][:12]}"
     args.output.mkdir(parents=True, exist_ok=True, mode=0o700)
     save(args.output / "source.json", release)
+    web = args.role == "web"
+    extra = []
+    if web:
+        files = acceptance()["roles"]["web"]["runtime_files"]
+        encoded = base64.b64encode(json.dumps(files, sort_keys=True, separators=(",", ":")).encode()).decode()
+        extra = ["--build-arg", "WEB_SOURCE_FILES=" + encoded]
     run = azure("acr", "build", "--registry", args.registry, "--resource-group", args.resource_group,
-                "--image", tag, "--file", str(APP / "Dockerfile.runtime"), "--target", args.role,
+                "--image", tag, "--file", str(APP / ("Dockerfile.web" if web else "Dockerfile.runtime")),
+                "--target", "runner" if web else args.role,
                 "--build-arg", f"DEPENDENCY_IMAGE={release['dependency_image']}",
                 "--build-arg", f"SOURCE_REVISION={release['source_revision']}",
                 "--build-arg", f"SOURCE_INVENTORY_SHA256={release['source_inventory_sha256']}",
                 "--build-arg", f"RUNTIME_INVENTORY_SHA256={release['runtime_inventory_sha256']}",
-                "--no-wait", "--no-logs", str(APP))
+                *extra, "--no-wait", "--no-logs", str(APP))
     save(args.output / "build.json", {**release, "tag": tag, "run": run})
     print(json.dumps({"role": args.role, "tag": tag,
                       "run_id": (run or {}).get("runId"), "status": (run or {}).get("status")}))
@@ -152,7 +160,7 @@ def main() -> None:
     parser.add_argument("--registry", default="snpipelineacr03130136")
     commands = parser.add_subparsers(dest="command", required=True)
     package = commands.add_parser("build")
-    package.add_argument("--role", required=True, choices=("worker", "api-next", "broker"))
+    package.add_argument("--role", required=True, choices=("worker", "api-next", "broker", "web"))
     package.add_argument("--output", type=Path, required=True)
     for environment in ("development", "production"):
         deployment = commands.add_parser("deploy-" + environment)

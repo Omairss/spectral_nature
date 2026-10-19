@@ -1,0 +1,11 @@
+# Admin/Health frontend release — October 18
+
+Status: source and release-boundary review complete; local preview and development promotion pending. Production is outside this release.
+
+The database continuation updated API/workers but omitted the matching Next.js frontend. The deployed frontend image `native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6` serves `/admin` but its compiled route manifest has no `/api/admin/health`. A fresh authenticated browser reload also has no Health tab. An older open tab retained the October 16 Health UI/data in browser memory; that cached view was not proof of current deployment.
+
+Current committed Git already contains the Health UI and authenticated API adapter. Compared with the deployed compiled route manifest, it adds exactly the Health API route and removes no route. No frontend application source, API, database, research/model code or unaccepted Trading work is changed for this repair. The current Git frontend retains its session refresh/outage behavior and all existing routes; the additional Health section reads telemetry through the shared API. Eight existing authentication checks and TypeScript checking pass.
+
+The supported release command now packages the web role through `Dockerfile.web`. Its pinned Node dependency supplies no historical application code. Every frontend input is verified against the committed Git manifest before compilation, and every compiled runtime file/symlink is inventoried for subsequent immutable-image verification. Source acceptance uses the web input inventory for this role and preserves the independent Python runtime inventory. Thirteen release provenance/consumer checks pass, including the web build boundary and complete web input inventory.
+
+Only `sn-next-ui-dev` is eligible for this frontend promotion. Preserve its backend binding, identity, cookies/origins, ingress, resource allocation and scaling. The already verified database/API/worker images and all production consumers remain untouched. The [database continuation](../database-lifecycle-2026-10-18/README.md) remains the authority for its completed execution checks; this release closes its frontend gap.

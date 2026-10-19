@@ -84,3 +84,21 @@ def test_asynchronous_template_visibility_is_awaited(release, tmp_path, monkeypa
                                    subscription="subscription", resource_group="group"))
     assert len(patches) == 1
     assert json.loads((tmp_path / "deployment.json").read_text())["targets"][0]["image"] == image
+
+
+def test_web_build_uses_frontend_dockerfile_and_reviewed_frontend_inputs(release, tmp_path, monkeypatch):
+    import base64
+    source = {"source_revision": "a" * 40, "source_inventory_sha256": "complete-source",
+              "runtime_inventory_sha256": "frontend-inputs", "dependency_image": "node@sha256:pinned"}
+    files = {"web/app/api/admin/health/route.ts": "reviewed", "web/package-lock.json": "locked"}
+    monkeypatch.setattr(release, "verify", lambda role: source if role == "web" else pytest.fail("Wrong role"))
+    monkeypatch.setattr(release, "acceptance", lambda: {"roles": {"web": {"runtime_files": files}}})
+    calls = []
+    monkeypatch.setattr(release, "azure", lambda *args: calls.append(args) or {"runId": "build"})
+    release.build(SimpleNamespace(role="web", output=tmp_path, registry="registry", resource_group="group"))
+    command = calls[0]
+    assert command[command.index("--file") + 1].endswith("/Dockerfile.web")
+    assert command[command.index("--target") + 1] == "runner"
+    manifest = next(value.split("=", 1)[1] for value in command if value.startswith("WEB_SOURCE_FILES="))
+    assert json.loads(base64.b64decode(manifest)) == files
+    assert "DEPENDENCY_IMAGE=node@sha256:pinned" in command

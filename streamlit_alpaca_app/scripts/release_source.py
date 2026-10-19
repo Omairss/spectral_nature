@@ -55,6 +55,15 @@ def runtime_inventory(files: dict[str, str]) -> dict[str, str]:
     return {name: digest for name, digest in files.items() if name.startswith(RUNTIME_ROOTS) or name in RUNTIME_FILES}
 
 
+def role_runtime_inventory(accepted: dict, role: str) -> dict[str, str]:
+    if role == "web":
+        selected = {name: digest for name, digest in accepted["files"].items() if name.startswith("web/")}
+        if not selected or accepted["roles"][role].get("runtime_files") != selected:
+            raise ValueError("The web role requires its complete reviewed frontend input inventory.")
+        return selected
+    return accepted["runtime_files"]
+
+
 def verify_target(role: str, target: str) -> dict:
     check_retirement(role)
     accepted = acceptance()
@@ -72,7 +81,7 @@ def verify_image(role: str, image: str) -> dict:
     accepted = acceptance()
     record = accepted.get("roles", {}).get(role, {}).get("accepted_images", {}).get(image)
     fingerprint = hashlib.sha256(json.dumps(accepted["files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
-    runtime = hashlib.sha256(json.dumps(accepted["runtime_files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    runtime = hashlib.sha256(json.dumps(role_runtime_inventory(accepted, role), sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     if not record or record.get("source_inventory_sha256") != fingerprint or record.get("runtime_inventory_sha256") != runtime:
         raise ValueError("Image is not verified for this accepted source and role. Historical rollback requires its separate explicit procedure.")
     return {"role": role, "image": image, **record}
@@ -124,6 +133,7 @@ def verify(role: str) -> dict:
     for name in contract["baseline_images"]:
         if "@sha256:" not in name:
             raise ValueError("Every consumer baseline must identify an immutable image.")
+    runtime = role_runtime_inventory(accepted, role)
     fingerprint = hashlib.sha256(json.dumps(selected, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     return {"source_revision": git("rev-parse", "HEAD").decode().strip(),
             "accepted_source_revision": accepted["source_revision"], "role": role,
