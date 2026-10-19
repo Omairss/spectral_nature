@@ -648,22 +648,6 @@
         "services/trading_call_tracking.py",
         "services/zopedia_learning.py",
         "web/app/trading-agent/page.tsx",
-        "web/app/api/trading-agent/calls/[trackingId]/route.ts"
-      ],
-      "evidence": "documents/verification/trading-calls-2026-10-18/README.md"
-    },
-    {
-      "name": "Trading paper calls, approval tracking and shared outcome review",
-      "status": "accepted",
-      "files": [
-        "api/main.py",
-        "pipeline/jobs/main.py",
-        "services/pipeline_store.py",
-        "services/trading_agent.py",
-        "services/trading_agent_view.py",
-        "services/trading_call_tracking.py",
-        "services/zopedia_learning.py",
-        "web/app/trading-agent/page.tsx",
         "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts"
       ],
       "evidence": "documents/verification/trading-calls-2026-10-18/README.md"
