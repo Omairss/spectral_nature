@@ -3284,24 +3284,23 @@ def run_system_recovery(ctx: JobContext, conn: Any | None = None) -> dict[str, A
     if conn is None:
         raise RuntimeError("Recovery requires a database connection")
     budget = max(5, int(os.getenv("SYSTEM_RECOVERY_BUDGET_SECONDS", "60")))
-    deadline = time.monotonic() + budget
+    started = time.monotonic()
+    deadline = started + budget
     namespace = "system_recovery:" + dataset_namespace()
     manifests = receipts = None
     try:
         with WorkScope(deadline).activate():
             state = read_execution_state(namespace, "manifest_cursor", strict=True) or {}
-            try:
-                with WorkScope(min(deadline, time.monotonic() + budget * 0.4)).activate():
-                    manifests = reconcile_dataset_manifests(conn, offset=int(state.get("offset", 0)), limit=4)
-            except WorkCancelled:
-                conn.rollback()
+            manifests = reconcile_dataset_manifests(conn, offset=int(state.get("offset", 0)), limit=4)
             if manifests is not None:
                 write_execution_state(namespace, "manifest_cursor", {"offset": manifests["next_offset"]})
             receipts = reconcile_provider_attempt_receipts(days=7, limit=25)
     except WorkCancelled:
         conn.rollback()
     complete = bool(manifests and manifests["scan_complete"] and receipts and receipts["scan_complete"])
-    details = {"manifests": manifests, "receipts": receipts, "scan_complete": complete}
+    details = {"manifests": manifests, "receipts": receipts, "scan_complete": complete,
+               "budget_seconds": budget, "elapsed_seconds": round(time.monotonic() - started, 3)}
+    print("[info] recovery=" + json.dumps(details, sort_keys=True), flush=True)
     return {**details, "job_status": "Succeeded" if complete else "Warning",
             "job_message": ("Recovery scan completed." if complete else
                             "Recovery batch completed; remaining durable work resumes in a later batch.")}

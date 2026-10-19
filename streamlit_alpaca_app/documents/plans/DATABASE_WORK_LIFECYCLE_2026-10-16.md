@@ -1,6 +1,6 @@
 # Database work lifecycle and refresh coordination
 
-Status: implementation authorized October 16; local work in progress. Development deployment follows local acceptance. Production is outside this release authorization.
+Status: resumed October 18 against current accepted Git source. Existing lifecycle changes are retained; the remaining recovery-budget fix is locally accepted and proceeds to development verification. Production is outside this continuation authorization. See the [current continuation record](../verification/database-lifecycle-2026-10-18/README.md).
 
 **October 16 source-retirement update:** the owner stopped this task while obsolete release trees were isolated. The complete task directory, eleven-file scoped patch, function ownership, deployment receipts and verification evidence are preserved in the [retirement and resume record](../verification/release-source-retirement-2026-10-16/README.md). Resume the existing implementation by reconciling its scoped changes in Git. Earlier temporary source paths below are historical; do not recreate them or restore a complete old application tree. Existing work and paid research do not need to be restarted for this filesystem change.
 

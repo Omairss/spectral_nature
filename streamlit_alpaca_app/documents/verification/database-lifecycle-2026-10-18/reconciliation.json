@@ -1,0 +1,21 @@
+{
+  "review_base_revision": "98663cd4ef978514f336e7512700264723408c48",
+  "changed_runtime_definitions": [
+    "run_system_recovery"
+  ],
+  "unchanged_definitions_in_main": 103,
+  "preserved_hotfix_and_lifecycle_files": {
+    "services/attention_surface.py": "ad733746e32b528fe07303ee10f7501231c8ae0dc38bf03bba8c013331c892db",
+    "services/aql/summarizer.py": "2c9a9d872d0c7d0db5c4934c053b2ae9c8cbfebb523f53a91607da778d7e1491",
+    "services/attention_live_research.py": "17e2cf624b46b9c6dc63d1c11e44e7142f099a73a342cb1c06ba100e31487d73",
+    "services/zopedia_learning.py": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe",
+    "services/aql_zopedia_engine.py": "73e9ae906288110f9febed06511ab03ab394360a532f52dd79178145b9dbb9fe",
+    "services/aql/pipeline.py": "7d6784a75e9038dec58efa12c49fe606adb30b757fabcc38756fbe689d9e2178",
+    "services/zopedia_agent.py": "c5a8045165b25107fc7745a12746a8cb4e25aae95fd1effad509ae8854fd5abd",
+    "services/database.py": "79d55fa089a01fd2d67d76a388da77242f36c28407e9494b37023ecc88fab151",
+    "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848"
+  },
+  "archive_use": "Read-only historical metadata and function comparison; no historical application source imported or packaged.",
+  "models_and_prompts_changed": false,
+  "production_deployment_authorized": false
+}
