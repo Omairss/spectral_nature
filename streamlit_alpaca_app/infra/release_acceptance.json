@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Owner-approved Trading paper pilot with immutable approval-time performance and completed-outcome feedback through the shared learner; preserve current Home/research/auth/Health/database behavior.",
-  "source_revision": "ab632bdcb776c89b50f7e16995dd7be44ed39701",
+  "source_revision": "5e3e61d14e4ba0a8b3df3f02681101e2feeec69a",
   "review_base_revision": "d3a700d07dcaf46ec26b2723e48b94d40857d4c0",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -262,7 +262,7 @@
     "web/app/api/research-runs/[runId]/events/route.ts": "0874d469c39200703a9f75285788c62efc4467f3bde73cf73a71f056abad63a5",
     "web/app/api/research-runs/[runId]/route.ts": "824d24987168aaf9c54de397d0dc8a2d080f0ae2d44c7472bf81d9fe6e2e5aad",
     "web/app/api/research-runs/route.ts": "190e9e19ff28c4594451fc9bd6d0582ce2f15b63e05b7c8f739b0fc5521a2ad9",
-    "web/app/api/trading-agent/calls/[trackingId]/route.ts": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e",
+    "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e",
     "web/app/api/trading-agent/decisions/route.ts": "99a759da8113d1dc91a0acf3f0ae49b71462f85455efc90cef11658fe620f5dd",
     "web/app/api/trading-agent/route.ts": "1c2c6b68e07f541b613dddd614f82797b1b6b49ac8321b24bc94e1da4f71bd07",
     "web/app/api/visualizations/[name]/route.ts": "fcc3a1b098fa9ee4233ffa1aaae7c8b6743499b3574b2ce78a399d24fa48da78",
@@ -281,7 +281,7 @@
     "web/app/portfolio-performance/page.tsx": "fbaf6d62c06d0f0b06ddb75bc9a3b73185b76f2bcad28eeb357227329852199c",
     "web/app/portfolio/page.tsx": "2dc3c513f466061affa3601069be7c7ef70792411c356d48c656f4a6ce57f659",
     "web/app/stock-investigator/page.tsx": "2875209e58497c67c75471f73d23b3f2751f9f86c80f8b5aa57e84c533eb7cef",
-    "web/app/trading-agent/page.tsx": "ca582981fdc246b43b832218eb074125f6c1e83b928558c8a0f7ae9308537070",
+    "web/app/trading-agent/page.tsx": "77ddb8ecc96fc044f42c61540e7dff9eb4ca13ee6be44051f3c31349286d1b5a",
     "web/app/zopedia/conversations/[conversationId]/page.tsx": "914b4f73e487182d1e7c013a190eda55ff984bf55d9310d7e6af99b4089b3903",
     "web/app/zopedia/page.tsx": "c2cec2b1628f423df67fbc33ff16ab08ff673d6c157a128f32ace6ed5352b541",
     "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
@@ -528,7 +528,7 @@
     "services/trading_call_tracking.py": "New immutable approval ledger, calendar-bound adjusted daily prices, exact benchmark, dated paths, missing-data states, lazy owner detail and idempotent shared-review delivery. Mechanical database/math/publication checks passed.",
     "services/zopedia_learning.py": "General non-chat supplied-evidence episodes join the existing single review budget with immutable enqueue, pending/reuse semantics and retained originals. Conversation hotfix behavior preserved; no new inference controller or deterministic lesson grade. Retrospective outcome review is not accuracy validation.",
     "web/app/trading-agent/page.tsx": "Retain collapsed calls and navigation; show pricing/assumptions/opposing case and lazy dated paper performance rather than current-feed-only history. Personally inspected locally; TypeScript/lint pass.",
-    "web/app/api/trading-agent/calls/[trackingId]/route.ts": "New validated UUID BFF detail through existing authorized backend/session refresh; no-store and owner-scoped backend."
+    "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts": "New validated UUID BFF detail through existing authorized backend/session refresh; no-store and owner-scoped backend."
   },
   "retired_files": [],
   "components": [
@@ -649,6 +649,22 @@
         "services/zopedia_learning.py",
         "web/app/trading-agent/page.tsx",
         "web/app/api/trading-agent/calls/[trackingId]/route.ts"
+      ],
+      "evidence": "documents/verification/trading-calls-2026-10-18/README.md"
+    },
+    {
+      "name": "Trading paper calls, approval tracking and shared outcome review",
+      "status": "accepted",
+      "files": [
+        "api/main.py",
+        "pipeline/jobs/main.py",
+        "services/pipeline_store.py",
+        "services/trading_agent.py",
+        "services/trading_agent_view.py",
+        "services/trading_call_tracking.py",
+        "services/zopedia_learning.py",
+        "web/app/trading-agent/page.tsx",
+        "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts"
       ],
       "evidence": "documents/verification/trading-calls-2026-10-18/README.md"
     }
@@ -909,7 +925,7 @@
         "web/app/api/research-runs/[runId]/events/route.ts": "0874d469c39200703a9f75285788c62efc4467f3bde73cf73a71f056abad63a5",
         "web/app/api/research-runs/[runId]/route.ts": "824d24987168aaf9c54de397d0dc8a2d080f0ae2d44c7472bf81d9fe6e2e5aad",
         "web/app/api/research-runs/route.ts": "190e9e19ff28c4594451fc9bd6d0582ce2f15b63e05b7c8f739b0fc5521a2ad9",
-        "web/app/api/trading-agent/calls/[trackingId]/route.ts": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e",
+        "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e",
         "web/app/api/trading-agent/decisions/route.ts": "99a759da8113d1dc91a0acf3f0ae49b71462f85455efc90cef11658fe620f5dd",
         "web/app/api/trading-agent/route.ts": "1c2c6b68e07f541b613dddd614f82797b1b6b49ac8321b24bc94e1da4f71bd07",
         "web/app/api/visualizations/[name]/route.ts": "fcc3a1b098fa9ee4233ffa1aaae7c8b6743499b3574b2ce78a399d24fa48da78",
@@ -928,7 +944,7 @@
         "web/app/portfolio-performance/page.tsx": "fbaf6d62c06d0f0b06ddb75bc9a3b73185b76f2bcad28eeb357227329852199c",
         "web/app/portfolio/page.tsx": "2dc3c513f466061affa3601069be7c7ef70792411c356d48c656f4a6ce57f659",
         "web/app/stock-investigator/page.tsx": "2875209e58497c67c75471f73d23b3f2751f9f86c80f8b5aa57e84c533eb7cef",
-        "web/app/trading-agent/page.tsx": "ca582981fdc246b43b832218eb074125f6c1e83b928558c8a0f7ae9308537070",
+        "web/app/trading-agent/page.tsx": "77ddb8ecc96fc044f42c61540e7dff9eb4ca13ee6be44051f3c31349286d1b5a",
         "web/app/zopedia/conversations/[conversationId]/page.tsx": "914b4f73e487182d1e7c013a190eda55ff984bf55d9310d7e6af99b4089b3903",
         "web/app/zopedia/page.tsx": "c2cec2b1628f423df67fbc33ff16ab08ff673d6c157a128f32ace6ed5352b541",
         "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
