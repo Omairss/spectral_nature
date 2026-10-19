@@ -1,3 +1,5 @@
+**Historical learning-release receipt.** Current images and deployment authority are in the [Home presentation cleanup](../home-presentation-cleanup-2026-10-18/PRODUCTION.md). Learning source and its evidence remain applicable; older image identifiers below describe that earlier release.
+
 # General learning episodes and research resilience
 
 Status: **deployed to DEV and production; API revisions are ready and all-resource audits pass.** The exact DEV-accepted worker `1d8a4276` and API `9c28b4c4` are live on all twenty intended DEV/production consumers. [Current production record](PRODUCTION.md). Fresh production Home is verified: eight stories, five new highlights, matching original histories/current narration and all twelve company results. Optional page summaries continue independently after core publication.

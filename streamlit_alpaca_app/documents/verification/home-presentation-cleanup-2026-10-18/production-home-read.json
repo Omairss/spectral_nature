@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "current_api_revision": "sn-api-next--0000014",
+  "home_http_status": 200,
+  "run_id": "627a7ea2-8d45-4a80-af87-687f03953fac",
+  "beats": 8,
+  "summary_stories_and_five_highlights_identical_to_previous_publication": true,
+  "home_read_seconds": 1.066,
+  "audio_http_status": 200,
+  "audio_bytes": 1004816,
+  "audio_sha256": "5a4169856943e5269f2b275c314f6bed9ac2e2f922b02ede1402a92e6756b6ad",
+  "audio_matches_previous_publication": true,
+  "scope": "Image-only deployment; existing personally reviewed publication and narration preserved without new research generation."
+}

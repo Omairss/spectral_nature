@@ -13,7 +13,7 @@ Resource group: `sn-pipeline-rg-03130136`. Registry: `snpipelineacr03130136.azur
 
 The production name `sn-streamlit-ui` is historical: it serves Next.js. Do not rename/delete it as a frontend cleanup, because it owns current ingress/domain bindings. The obsolete development resources `sn-streamlit-ui-dev` and `sn-api-dev` are deleted. The legacy production API `sn-api` is also deleted following explicit owner approval. All are outside normal release eligibility; see the [retirement report](../verification/legacy-retirement-2026-10-16/README.md). Do not use them to obtain current application source or environment defaults.
 
-For current revisions/images, read Azure or the [October 18 production receipt](../verification/research-resilience-2026-10-18/PRODUCTION.md). Older sections in deployment history do not describe current runtime ownership.
+For current revisions/images, read Azure or the [October 18 production receipt](../verification/home-presentation-cleanup-2026-10-18/PRODUCTION.md). Older sections in deployment history do not describe current runtime ownership.
 
 ```bash
 bash scripts/show_infra_inventory.sh

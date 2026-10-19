@@ -1,3 +1,5 @@
+**Historical learning-release receipt.** Current images and deployment authority are in the [Home presentation cleanup](../home-presentation-cleanup-2026-10-18/PRODUCTION.md). Learning source and its evidence remain applicable; older image identifiers below describe that earlier release.
+
 # Current production release — October 18
 
 **Deployed and ready.** Worker `1d8a4276` and API `9c28b4c4` are the exact DEV-accepted images from build Git `dd3920fb` / application source `2706e245`. API revision `sn-api-next--0000013` is ready and Running. The [deployment receipt](production-deployment.json) covers thirteen production consumers. The [complete configuration audit](production-configuration-audit.json) preserves all 33 resource configurations, four domains and retired-resource absence. Its twenty image changes count seven DEV plus thirteen production updates. Frontend and broker images remain fixed.

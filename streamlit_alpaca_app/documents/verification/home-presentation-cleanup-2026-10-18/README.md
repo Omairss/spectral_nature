@@ -1,6 +1,6 @@
 # Home presentation cleanup — October 18
 
-Status: locally reviewed, packaged and verified in DEV. Exact-image production promotion follows under the existing conditional owner instruction.
+Status: deployed and verified in DEV and production. [Current production record](PRODUCTION.md).
 
 The owner requested removal of Home's semantic suppression, preservation of confidence cutoffs, explanation of the learning fields, and cleanup of obsolete vestiges. The completed preceding production recovery was pushed to origin/master at `6b0f93c2` before edits.
 

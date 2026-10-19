@@ -1179,3 +1179,7 @@ The owner permits confidence cutoffs and requested removal of Home semantic supp
 
 ### October 18 — follow semantic decisions through persistence and presentation
 Removing a hardcoded learning detector does not remove downstream semantic policy. Trace the episode through storage defaults, lesson representation, memory promotion and actual Home hydration. Existing fixed score/date/theme rules and presentation phrase filters can still reinterpret or suppress model output. Distinguish live callers from uncalled exported helpers, and confirm history before describing an inherited rule as reintroduced. Runtime budgets, schema validation and authorization are separate execution contracts.
+
+
+### October 18 — distinguish text identity from binary identity
+Narration text and encoded audio have different hashes. Verify served MP3 bytes against the original stored audio, and verify narration text against its own hash. A mismatch against the wrong field is an operator-check error, not evidence of an application regression. Home presentation cleanup passed actual deployed DEV projection, exact-image production promotion and all-resource/publication preservation checks.

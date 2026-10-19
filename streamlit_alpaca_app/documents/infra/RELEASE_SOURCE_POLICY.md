@@ -24,7 +24,7 @@ The retired image-backport utility and broker's two-file overlay are archived. B
 
 ## Current deployment and rollback evidence
 
-The current deployment is the [October 18 production release](../verification/research-resilience-2026-10-18/PRODUCTION.md), using the exact DEV-accepted worker/API digests recorded with their Git source. `infra/release_acceptance.json` and the linked all-resource audit identify the current thirteen production consumers and preserved configurations. Read these records and Azure before preparing another release.
+The current deployment is the [October 18 production release](../verification/home-presentation-cleanup-2026-10-18/PRODUCTION.md), using the exact DEV-accepted worker/API digests recorded with their Git source. `infra/release_acceptance.json` and the linked all-resource audit identify the current thirteen production consumers and preserved configurations. Read these records and Azure before preparing another release.
 
 The [October 16 exact recovery](../verification/exact-production-recovery-2026-10-16/README.md) is historical rollback evidence. Its images, incomplete highlight refresh and former holds describe that dated operation, not current deployment authority. Historical snapshots never seed a new application build. Scoped database/Trading work remains preserved and must be reconciled in Git; no other session's source tree or previously held experiment gains acceptance from this deployment.
 

@@ -997,8 +997,15 @@
     "deployment_evidence": "documents/verification/source-evidence-repair-2026-10-18/PRODUCTION.md"
   },
   "production_deployment": {
-    "status": "preceding_release_unchanged",
-    "evidence": "documents/verification/research-resilience-2026-10-18/PRODUCTION.md"
+    "status": "deployed_and_ready",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:6e6dbd9bfdcbe4d85e5dcb2f4d9f66510f62a8fd52e267db0f5ce00e66957ba5"
+    },
+    "api_revision": "sn-api-next--0000014",
+    "evidence": "documents/verification/home-presentation-cleanup-2026-10-18/PRODUCTION.md",
+    "all_33_configurations_preserved": true,
+    "existing_publication_and_narration_preserved": true
   },
   "preceding_home_cleanup_release": {
     "source_revision": "2706e24512e86defe3b92da8e661a5500ad8d8fc",
