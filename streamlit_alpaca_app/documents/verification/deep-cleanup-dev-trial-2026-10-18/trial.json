@@ -14,6 +14,8 @@
     "data_storage_passed": 39,
     "web_boundary_passed": 13,
     "typescript": "passed",
-    "json_adapters_compared": 26
+    "json_adapters_compared": 26,
+    "combined_python_passed": 217,
+    "historical_fixture_deselected": 1
   }
 }
