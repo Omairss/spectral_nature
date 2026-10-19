@@ -30,3 +30,5 @@ The controlled checks made no model calls and did not regenerate research, chang
 ## Source integration
 
 The reviewed branch is merged into the main checkout. [Integration proof](source-integration.json) records exact preservation of all other pipeline text, ten unrelated dirty files and the complete reviewed committed tree. Other sessions' changes in shared documents were retained through exact patch application. No active work was stashed, reset or included in this development image. The newer learning-provenance commit is also retained in the branch history.
+
+The completed isolated Git worktree was removed after integration. Seventy private operator files, including before/after resource definitions and execution logs, were hash-verified and archived outside the checkout in `~/Library/Application Support/SpectralNature/retired-release-sources/20261019T024651Z/database-lifecycle-20261018-operator-receipts.tar.gz`. The existing automatic cleanup retains this completed batch until at least November 18, 2026 UTC. It contains no extracted application source tree; current application source and public evidence remain in Git.
