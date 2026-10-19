@@ -1,0 +1,88 @@
+[
+  {
+    "role": "worker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "source_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+    "accepted_source_revision": "d7d4419495604982f7bc9aa5ac391f4c45e88494",
+    "source_inventory_sha256": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+    "runtime_inventory_sha256": "4f77edfde968de0dc02d75b782ea065104655bffe99509960c725f0d3371afda",
+    "runtime_files": 199,
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "no_inherited_application_files": true,
+    "dependency_distribution_metadata_matches": true,
+    "installed_distributions": 93,
+    "preserved_distributions": 91,
+    "declared_dependency_changes": {
+      "streamlit": "removed",
+      "tiktoken": "0.14.0",
+      "regex": "2026.9.29"
+    },
+    "api_pipeline_broker_imports_passed": true,
+    "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+    "entrypoint_verification": {
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+      "manifest_digest_verified": true,
+      "config_digest_verified": true,
+      "cmd": [
+        "python",
+        "-m",
+        "pipeline.jobs.main"
+      ],
+      "entrypoint": null,
+      "labels": {
+        "com.spectral-nature.dependency-image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+        "com.spectral-nature.runtime-inventory": "4f77edfde968de0dc02d75b782ea065104655bffe99509960c725f0d3371afda",
+        "com.spectral-nature.source-inventory": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+        "org.opencontainers.image.revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3"
+      },
+      "layers": 13
+    },
+    "build_run_id": "cj19j",
+    "verification_run_id": "cj19m"
+  },
+  {
+    "role": "broker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2",
+    "source_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+    "accepted_source_revision": "d7d4419495604982f7bc9aa5ac391f4c45e88494",
+    "source_inventory_sha256": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+    "runtime_inventory_sha256": "4f77edfde968de0dc02d75b782ea065104655bffe99509960c725f0d3371afda",
+    "runtime_files": 199,
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "no_inherited_application_files": true,
+    "dependency_distribution_metadata_matches": true,
+    "installed_distributions": 101,
+    "preserved_distributions": 99,
+    "declared_dependency_changes": {
+      "streamlit": "removed",
+      "tiktoken": "0.14.0",
+      "regex": "2026.9.29"
+    },
+    "api_pipeline_broker_imports_passed": true,
+    "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-broker@sha256:94715ea21911b1441f67cde8dc03d640386adf14453c66df66ba225ea96e5941",
+    "entrypoint_verification": {
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2",
+      "manifest_digest_verified": true,
+      "config_digest_verified": true,
+      "cmd": [
+        "python",
+        "/app/scripts/sync_robinhood_main.py",
+        "--schedule-due",
+        "--limit",
+        "1"
+      ],
+      "entrypoint": null,
+      "labels": {
+        "com.spectral-nature.dependency-image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-broker@sha256:94715ea21911b1441f67cde8dc03d640386adf14453c66df66ba225ea96e5941",
+        "com.spectral-nature.runtime-inventory": "4f77edfde968de0dc02d75b782ea065104655bffe99509960c725f0d3371afda",
+        "com.spectral-nature.source-inventory": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+        "org.opencontainers.image.revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3"
+      },
+      "layers": 13
+    },
+    "build_run_id": "cj19k",
+    "verification_run_id": "cj19m"
+  }
+]

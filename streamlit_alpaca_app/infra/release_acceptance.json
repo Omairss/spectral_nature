@@ -758,7 +758,14 @@
           }
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd": {
+          "source_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+          "source_inventory_sha256": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+          "runtime_inventory_sha256": "4f77edfde968de0dc02d75b782ea065104655bffe99509960c725f0d3371afda",
+          "evidence": "documents/verification/complete-reliability-restoration-2026-10-18/packaged-images.json"
+        }
+      },
       "previous_verified_images": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65": {
           "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
@@ -953,7 +960,14 @@
           "previous_image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2": {
+          "source_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+          "source_inventory_sha256": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+          "runtime_inventory_sha256": "4f77edfde968de0dc02d75b782ea065104655bffe99509960c725f0d3371afda",
+          "evidence": "documents/verification/complete-reliability-restoration-2026-10-18/packaged-images.json"
+        }
+      },
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3"
       ]
