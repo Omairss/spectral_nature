@@ -23,3 +23,7 @@ A fresh reload in the existing authenticated admin session exposes Health and re
 Anonymous `/api/admin/health` now returns **401 instead of 404**, preserving access control. `/admin` and `/health` return 200; Home returns 200 with the exact prior publication, graph, summaries, six beats and daily datapoints. [HTTP checks](http-checks.json).
 
 The [33-resource audit](configuration-audit.json) verifies **one image change**, on `sn-next-ui-dev`, and **zero configuration changes**. Existing API/worker images, all production images, domains, identities, origins, backend binding, allocation and scaling are retained. No model calls, new infrastructure, credential changes or notification sends were initiated. This acceptance covers the missing frontend consumer; it does not certify lower production database utilization or a new research-quality result.
+
+## Integration and cleanup
+
+The reviewed release branch is merged into the main checkout. [Integration proof](source-integration.json) verifies the complete reviewed committed tree, fourteen unrelated dirty files and exact preservation of other sessions' edits in both shared notes files. No active work was stashed, reset or added to the image. The local preview tab and its two owned loopback servers were closed after verification; the actual DEV Admin tab remains open on Health.

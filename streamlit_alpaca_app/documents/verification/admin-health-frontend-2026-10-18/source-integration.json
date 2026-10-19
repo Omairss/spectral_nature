@@ -1,0 +1,41 @@
+{
+  "previous_head": "112fbd846fe26d3b223d1f04285836fe1f6fcc93",
+  "reviewed_branch_head": "4ae8e894f95af6981c7142a0a1ff52c1a621305b",
+  "integration_commit": "ee1d3dee21ca0fe386baa04199208bb194cc9ffb",
+  "committed_tree_matches_reviewed_branch": true,
+  "unrelated_dirty_files_preserved": true,
+  "unrelated_dirty_files_checked": 14,
+  "shared_notes_preserved_exactly": [
+    "streamlit_alpaca_app/documents/learnings.md",
+    "streamlit_alpaca_app/documents/mistakes.md"
+  ],
+  "stashed_or_reset": false,
+  "integrated_files": [
+    "streamlit_alpaca_app/.dockerignore",
+    "streamlit_alpaca_app/Dockerfile.web",
+    "streamlit_alpaca_app/documents/infra/README.md",
+    "streamlit_alpaca_app/documents/infra/RELEASE_SOURCE_POLICY.md",
+    "streamlit_alpaca_app/documents/infra/UI_DEPLOYMENT_STATUS.md",
+    "streamlit_alpaca_app/documents/learnings.md",
+    "streamlit_alpaca_app/documents/mistakes.md",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/README.md",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/authenticated-ui.json",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/configuration-audit.json",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/development-container-metrics.png",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/development-database-metrics.png",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/development-deployment.json",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/development-health.png",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/http-checks.json",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/local-resource-preview.png",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/packaged-image.json",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/previous-frontend-routes.json",
+    "streamlit_alpaca_app/documents/verification/admin-health-frontend-2026-10-18/source-review.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/README.md",
+    "streamlit_alpaca_app/infra/release_acceptance.json",
+    "streamlit_alpaca_app/scripts/release_application.py",
+    "streamlit_alpaca_app/scripts/release_source.py",
+    "streamlit_alpaca_app/tests/test_release_application.py",
+    "streamlit_alpaca_app/tests/test_release_source.py"
+  ],
+  "merge_commit": "d6815e7858bc1b3ca6aa0618389d7607e60fce4f"
+}
