@@ -1,8 +1,8 @@
 # Trading calls and approval tracking
 
-**October 18 owner clarification: accept a general framework for measurable iteration, not perfect current predictions.** The local foundation is suitable for a paper-research pilot; normal end-to-end and release verification remain open. The reasoning experiments did not establish a reliable repair, but their remaining errors alone are not a framework-release veto. No Trading build, deployment or phone installation has been prepared. The separate accepted database continuation is preserved. The old checkpoint and archives remain evidence, never release sources.
+**Current status: deployed to production under the owner’s “Push to prod” instruction after local and exact-image development acceptance.** The framework supports explicit calls, immutable approvals, dated paper outcomes and shared outcome review. Current forecasts need not be perfect; the retained reasoning comparisons remain improvement evidence. Home, research, auth, Health, database hotfixes and other sessions’ work are preserved. [Production verification](../verification/trading-calls-2026-10-18/PRODUCTION.md). Fresh normal Trading generation remains running in DEV/production; no new physical-phone installation was performed.
 
-Status: implementation in progress. Owner request: production iOS request `86043829-96ea-458e-b9ba-81dcfbac7030`, followed by explicit instruction to implement it in chat. [Research index](../research/README.md).
+Owner request: production iOS request `86043829-96ea-458e-b9ba-81dcfbac7030`, followed by explicit implementation and production instructions in chat. [Research index](../research/README.md).
 
 **October 16 source-retirement update:** the owner stopped this task while historical source trees were isolated. Complete outputs, provider records, source variants and eight candidate diffs are retained in the [retirement and resume record](../verification/release-source-retirement-2026-10-16/README.md). Resume the selected task changes in Git and reuse completed research. No old baseline or complete candidate source tree may seed a new release.
 

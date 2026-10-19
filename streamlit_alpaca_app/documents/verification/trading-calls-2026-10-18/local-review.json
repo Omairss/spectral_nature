@@ -2,7 +2,7 @@
   "status": "deployed_production_paper_pilot",
   "task": "Explicit Trading calls and approval-time paper performance",
   "git_base": "d3a700d07dcaf46ec26b2723e48b94d40857d4c0",
-  "current_accepted_source_revision": "cc14d46cddee0857569a54c9af41455527a3ceda",
+  "current_accepted_source_revision": "5e3e61d14e4ba0a8b3df3f02681101e2feeec69a",
   "unrelated_inventory_changes": [],
   "objective_checks": {
     "isolated_postgresql": "passed; schema qa_call_tracking_0598a9b5f1bd dropped",

@@ -1,0 +1,16 @@
+{
+  "kind": "spectral_nature_retired_release_sources",
+  "status": "complete",
+  "completed_at": "2026-10-19T03:50:36.963127+00:00",
+  "expires_at": "2026-11-18T03:50:36.963127+00:00",
+  "archive": "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261019T035036Z/trading-paper-operator-receipts.tar.gz",
+  "archive_sha256": "9903d33922bfa009bec33721c0a9b231eeff7976951567915d40de673937ee86",
+  "original_path": "/tmp/sn-trading-release-20261019",
+  "files_verified": 3594,
+  "application_source_in_git": true,
+  "pending_remote_executions": [
+    "trading-agent-build-dev-fobq3lt",
+    "trading-agent-build-6mz16u9"
+  ],
+  "scope": "Completed deployment/operator receipts and native simulator build. Fresh remote Trading generation is still running and has no dependency on this local folder."
+}
