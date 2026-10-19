@@ -41,6 +41,8 @@ The later global admission/work-scope cancellation, conditional latest-pointer p
 
 ## Required reconciliation
 
+**Subsequent status:** the [complete reliability restoration](../complete-reliability-restoration-2026-10-18/PRODUCTION.md) closed the deployment gaps below. This comparison remains the dated evidence for the omissions and their history.
+
 1. Move universe, fundamentals and scheduled health to the reviewed shared worker implementation after checking their actual commands, dependencies, dataset inputs and failure paths in development. Keep the core behavior established above.
 2. Give the broker sync entrypoint an explicit background database scope, verify its shared store transactions, then package it through the supported broker role. Preserve its cadence and queue contracts.
 3. Configure production-scoped bounded recovery between refreshes, with its own deadline and durable cursor, separate from the health observation budget. Keep manifest/provider receipts recoverable across batches.

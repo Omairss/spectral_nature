@@ -1654,5 +1654,21 @@
       "status": "accepted",
       "evidence": "documents/verification/complete-reliability-restoration-2026-10-18/LOCAL.md"
     }
+  },
+  "production_deployment": {
+    "status": "deployed_and_verified",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2"
+    },
+    "source_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+    "source_inventory_sha256": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+    "evidence": "documents/verification/complete-reliability-restoration-2026-10-18/PRODUCTION.md",
+    "existing_production_jobs_updated": 4,
+    "new_production_jobs": [
+      "system-recovery"
+    ],
+    "existing_configurations_changed": 0,
+    "pending_observation": "Next normal universe/fundamentals/health/broker cycles; read-only execution probes already passed. Maintenance still reports its pre-existing October 16 idle-transaction failure; no full database CPU reduction claim."
   }
 }

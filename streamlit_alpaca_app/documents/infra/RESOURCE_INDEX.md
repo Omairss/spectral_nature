@@ -10,10 +10,11 @@ Resource group: `sn-pipeline-rg-03130136`. Registry: `snpipelineacr03130136.azur
 | FastAPI backend | `sn-api-next-dev` | `sn-api-next` |
 | Research/data jobs | Development targets in the committed acceptance record | Production targets in the committed acceptance record |
 | Broker ingestion | `robinhood-main-sync-dev` | `robinhood-main-sync-prod` |
+| Bounded durable recovery | `system-recovery-dev` (manual) | `system-recovery` (scheduled; 60-second batches) |
 
 The production name `sn-streamlit-ui` is historical: it serves Next.js. Do not rename/delete it as a frontend cleanup, because it owns current ingress/domain bindings. The obsolete development resources `sn-streamlit-ui-dev` and `sn-api-dev` are deleted. The legacy production API `sn-api` is also deleted following explicit owner approval. All are outside normal release eligibility; see the [retirement report](../verification/legacy-retirement-2026-10-16/README.md). Do not use them to obtain current application source or environment defaults.
 
-For current revisions/images, read Azure or the [October 18 production receipt](../verification/home-presentation-cleanup-2026-10-18/PRODUCTION.md). Older sections in deployment history do not describe current runtime ownership.
+For current revisions/images, read Azure, the [Trading release](../verification/trading-calls-2026-10-18/PRODUCTION.md) and the subsequent [reliability restoration](../verification/complete-reliability-restoration-2026-10-18/PRODUCTION.md). Older sections in deployment history do not describe current runtime ownership.
 
 ```bash
 bash scripts/show_infra_inventory.sh

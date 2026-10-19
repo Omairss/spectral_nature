@@ -28,3 +28,7 @@ Require every declared consumer to have an application role. Consumers retained 
 5. Verify actual production source/entrypoints, normal monitoring and bounded recovery execution, public Home/Health behavior and all-resource configuration differences. Record unresolved outcomes explicitly; execution success does not certify database CPU reduction or model reasoning quality.
 
 Completion requires the deployed four consumers to satisfy the reviewed contracts, a working production recovery binding, and preservation of the accepted behavior. The comparison alone does not complete this restoration.
+
+## Completion
+
+The [production verification](../verification/complete-reliability-restoration-2026-10-18/PRODUCTION.md) records restored images on all four jobs, the production recovery binding, actual executions and zero configuration changes to existing resources. Production recovery reconciled seven pending provider receipts and retained its cursor/completion state. The historical maintenance failure and future full scheduled cycles remain observations, rather than being represented as resolved by an image update.

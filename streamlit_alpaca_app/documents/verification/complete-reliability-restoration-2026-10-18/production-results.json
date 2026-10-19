@@ -1,0 +1,170 @@
+{
+  "universe": {
+    "probe": "universe",
+    "job": "universe-builder",
+    "execution": "universe-builder-468g2xk",
+    "container": "universe-builder",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "status": "Succeeded",
+    "report": {
+      "kind": "production_worker_read",
+      "job": "universe-builder",
+      "dataset_namespace": "",
+      "dataset_version_id": "universe_snapshot__20261016T132030Z__486fc342",
+      "admission_classifications": [
+        "background",
+        "background"
+      ],
+      "source_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+      "elapsed_seconds": 1.03
+    }
+  },
+  "fundamentals": {
+    "probe": "fundamentals",
+    "job": "fundamentals-quarterly-refresh",
+    "execution": "fundamentals-quarterly-refresh-i3tl4nl",
+    "container": "fundamentals-quarterly-refresh",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "status": "Succeeded",
+    "report": {
+      "kind": "production_worker_read",
+      "job": "fundamentals-quarterly-refresh",
+      "dataset_namespace": "",
+      "dataset_version_id": "quarterly_fundamentals__20261016T120037Z__e08264fd",
+      "admission_classifications": [
+        "background",
+        "background"
+      ],
+      "source_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+      "elapsed_seconds": 1.102
+    }
+  },
+  "health": {
+    "probe": "health",
+    "job": "system-health",
+    "execution": "system-health-x9qsmfv",
+    "container": "system-health",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "status": "Succeeded",
+    "report": {
+      "kind": "health_read",
+      "home_version": "attention_home_1d__20261018T213019Z__627a7ea2",
+      "job_names": [
+        "attention-home-build",
+        "attention-ticker-snapshot-build",
+        "commodities-regime",
+        "company-baseline-prefetch",
+        "daily-market-datapoints-build",
+        "entity-taxonomy-refresh",
+        "equities-intraday-preload",
+        "fundamentals-quarterly-refresh",
+        "home-repair-publication-resume",
+        "macro-fred-daily",
+        "news-ingest-and-features",
+        "options-liquid-universe",
+        "research-run-execute",
+        "system-health",
+        "trading-agent-build",
+        "trading-call-tracking",
+        "universe-builder",
+        "zopedia-learning",
+        "zopedia-maintenance"
+      ],
+      "trading_rows": 5,
+      "issues": [
+        "pipeline-job-failed-zopedia-maintenance"
+      ],
+      "notification_calls": 0,
+      "database": {
+        "leases": 2,
+        "wait_seconds": 0.1449943960000155,
+        "acquisition_failures": 0,
+        "admission_wait_seconds": 0.0,
+        "admission_waits": 0,
+        "cancellations": 0,
+        "scope": "current_process",
+        "admission_scope": "physical_database",
+        "global_active_limit": 3,
+        "global_background_limit": 1
+      },
+      "elapsed_seconds": 1.528
+    }
+  },
+  "broker": {
+    "probe": "broker",
+    "job": "robinhood-main-sync-prod",
+    "execution": "robinhood-main-sync-prod-meghk98",
+    "container": "robinhood-main-sync-prod",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2",
+    "status": "Succeeded",
+    "report": {
+      "kind": "broker_queue",
+      "admission_classifications": [
+        "background",
+        "background",
+        "background",
+        "background",
+        "background",
+        "background"
+      ],
+      "database": {
+        "leases": 6,
+        "wait_seconds": 0.48091977999996516,
+        "acquisition_failures": 0,
+        "admission_wait_seconds": 0.0,
+        "admission_waits": 0,
+        "cancellations": 0,
+        "scope": "current_process",
+        "admission_scope": "physical_database",
+        "global_active_limit": 3,
+        "global_background_limit": 1
+      },
+      "elapsed_seconds": 0.524
+    }
+  },
+  "recovery": {
+    "probe": "recovery",
+    "job": "system-recovery",
+    "execution": "system-recovery-s2dl6ao",
+    "container": "system-recovery",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "status": "Succeeded",
+    "report": {
+      "kind": "production_recovery",
+      "budget_seconds": 60,
+      "elapsed_seconds": 3.122,
+      "manifests": {
+        "checked": 4,
+        "failed": {},
+        "next_offset": 4,
+        "reconciled": [],
+        "scan_complete": false
+      },
+      "receipts": {
+        "reconciled": 7,
+        "scan_complete": true
+      },
+      "scan_complete": false
+    }
+  },
+  "recovery_durable_read": {
+    "probe": "recovery_durable_read",
+    "job": "system-recovery",
+    "execution": "system-recovery-tt7kxf8",
+    "container": "system-recovery",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "status": "Succeeded",
+    "report": {
+      "kind": "production_recovery_durable_read",
+      "dataset_namespace": "",
+      "provider_settings_scope": "production",
+      "durable_cursor": {
+        "offset": 4
+      },
+      "completion_receipt_status": "Warning",
+      "completion_run_id": "33e68eff-ea18-4939-9a16-b42bce896a02",
+      "completion_components": {},
+      "completion_error": "Recovery batch completed; remaining durable work resumes in a later batch."
+    }
+  }
+}

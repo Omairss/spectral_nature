@@ -1,0 +1,27 @@
+[
+  {
+    "path": "/api/home",
+    "status": 200,
+    "bytes": 1560126,
+    "sha256": "a5b63b86161adaa8b6e4bf58973a8f6448ddcb88c71bc6320ba4dfbdc456d9b8",
+    "complete_home_json_equal_to_before": true
+  },
+  {
+    "path": "/health",
+    "status": 200,
+    "bytes": 15,
+    "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288"
+  },
+  {
+    "path": "/api/admin/health",
+    "status": 401,
+    "bytes": 37,
+    "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9"
+  },
+  {
+    "path": "/api/trading-agent",
+    "status": 401,
+    "bytes": 37,
+    "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9"
+  }
+]

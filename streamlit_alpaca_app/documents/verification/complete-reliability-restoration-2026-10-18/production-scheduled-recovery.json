@@ -1,0 +1,23 @@
+{
+  "name": "system-recovery-29873152",
+  "trigger": "Schedule",
+  "status": "Succeeded",
+  "start_time": "2026-10-19T05:52:00+00:00",
+  "end_time": "2026-10-19T05:52:45+00:00",
+  "report": {
+    "budget_seconds": 60,
+    "elapsed_seconds": 1.158,
+    "manifests": {
+      "checked": 4,
+      "failed": {},
+      "next_offset": 8,
+      "reconciled": [],
+      "scan_complete": false
+    },
+    "receipts": {
+      "reconciled": 0,
+      "scan_complete": true
+    },
+    "scan_complete": false
+  }
+}

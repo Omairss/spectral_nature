@@ -1,0 +1,58 @@
+{
+  "environment": "production",
+  "source_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+  "source_inventory_sha256": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2"
+  },
+  "targets": [
+    {
+      "name": "universe-builder",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+      "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+      "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-health",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+      "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-recovery",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+      "configuration_sha256": "582ca07839e32aaca57ad45e0868cea4509729be10da2b3216a022fcddcf9cf0",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "kind": "jobs",
+      "role": "broker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2",
+      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-10-19T05:48:36.313378+00:00",
+  "job_executions_started": 0
+}
