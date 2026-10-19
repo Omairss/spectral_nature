@@ -1209,3 +1209,6 @@ A two-day trial needs exact image/configuration baselines, representative execut
 
 ### October 19 — compare the deployed configuration and retained outputs
 A worker fallback database does not establish an API baseline. Match the actual control connection, environment, identity and role dependencies before attributing a difference to source changes. Keep complete projections private; compare transport-encoded values and repeat both old/candidate executions before interpreting a raw hash difference. The cleanup trial preserves both known dev brokerage unavailability and successful retained production-data projection from dev verification jobs.
+
+### October 19 — distinguish platform failure from cleanup attribution
+Read execution-specific Azure system events before assigning a job failure to source changes. The cleanup observer found a production learning failure; `DeadlineExceeded` confirms its one-hour platform termination on the unchanged production image. That does not establish why it ran too long or prove candidate workload coverage. Preserve recovered telemetry gaps and idle development producers in the final comparison.

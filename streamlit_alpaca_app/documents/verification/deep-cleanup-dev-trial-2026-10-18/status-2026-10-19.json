@@ -1,0 +1,116 @@
+{
+  "checked_at": "2026-10-19T17:25:49.808158+00:00",
+  "samples": 41,
+  "first": "2026-10-19T07:23:26.880935+00:00",
+  "latest": "2026-10-19T17:22:48.000115+00:00",
+  "slots": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40
+  ],
+  "http_checks": 410,
+  "http_flags": [],
+  "collection_gaps": [
+    {
+      "slot": 27,
+      "at": "2026-10-19T14:07:48.000113+00:00",
+      "gaps": {
+        "macro-fred-daily": "ConnectTimeout"
+      }
+    }
+  ],
+  "unique_failed_executions": [
+    {
+      "job": "zopedia-learning",
+      "name": "zopedia-learning-29873720",
+      "status": "Failed",
+      "startTime": "2026-10-19T15:20:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6"
+      ]
+    }
+  ],
+  "settings_hashes": {
+    "development": [
+      "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+    ],
+    "production": [
+      "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+    ]
+  },
+  "resource_audit": {
+    "resources": 35,
+    "image_drift": [],
+    "configuration_drift": [],
+    "production_baseline_preserved": true
+  },
+  "missing_due_slots": [],
+  "expected_total_slots": 192,
+  "assessment": {
+    "status": "observing",
+    "candidate_regression_demonstrated": false,
+    "production_acceptance": "pending_complete_window_and_workload_review",
+    "reasoning_settings_unchanged": true,
+    "coverage_limit": "Most development producers are manual. Sampled availability and successful index jobs do not establish matched production-like research workload or universal runtime correctness.",
+    "collection_gap": "One ARM job-history read timed out for macro-fred-daily at slot 27; later reads recovered. This is a telemetry gap, not evidence of a failed macro execution."
+  },
+  "production_failure_diagnosis": {
+    "job": "zopedia-learning",
+    "execution": "zopedia-learning-29873720",
+    "reason": "DeadlineExceeded",
+    "configured_replica_timeout_seconds": 3600,
+    "image_is_candidate": false,
+    "platform_events": [
+      {
+        "TimeGenerated": "2026-10-19T16:20:32.8785033Z",
+        "Reason_s": "SawCompletedJob",
+        "Log_s": "Saw completed job: zopedia-learning-29873720, condition: Failed"
+      },
+      {
+        "TimeGenerated": "2026-10-19T16:20:32.8785033Z",
+        "Reason_s": "DeadlineExceeded",
+        "Log_s": "Job 'zopedia-learning' was active longer than specified deadline"
+      }
+    ],
+    "interpretation": "Azure terminated the unchanged production-image execution at its configured one-hour deadline. The logs establish termination reason; they do not establish why learning failed to finish within that time. No cleanup source regression is demonstrated."
+  }
+}

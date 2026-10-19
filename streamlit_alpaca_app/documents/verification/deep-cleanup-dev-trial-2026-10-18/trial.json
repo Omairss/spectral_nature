@@ -46,5 +46,17 @@
     "http": 0,
     "executions": 0,
     "collection_gaps": 0
+  },
+  "latest_review": {
+    "at": "2026-10-19T17:25:49.808158+00:00",
+    "evidence": "status-2026-10-19.json",
+    "status": "observing",
+    "samples": 41,
+    "http_checks": 410,
+    "http_flags": 0,
+    "missing_due_slots": 0,
+    "collection_gaps": 1,
+    "unique_failed_production_executions": 1,
+    "unique_failed_candidate_executions": 0
   }
 }

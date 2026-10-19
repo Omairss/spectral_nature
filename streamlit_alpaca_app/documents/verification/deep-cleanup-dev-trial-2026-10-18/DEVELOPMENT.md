@@ -30,3 +30,9 @@ The bounded observer qualification succeeded and its actual Blob sample was read
 Production authorization remains false until the complete two-day comparison is reviewed against the owner's condition. No production image, configuration or schedule was changed by this trial.
 
 A separate two-minute execution of the same observer completed at its explicit end time and persisted its final completion record. Independent read-back verifies one expected observation slot, no missing slots and no flagged observations. This qualifies the bounded exit and final coverage record; it does not shorten the real 48-hour trial. Only the intended long observation execution remains running.
+
+## October 19, 10:25 a.m. PDT status
+
+[Stored status review](status-2026-10-19.json) covers all 41 due observation slots through 10:22 a.m. PDT: all 410 sampled HTTP responses have expected statuses, no missing slots, and no failed candidate executions observed. All 35 resource images/configurations match the accepted inventory; both reasoning-setting fingerprints remain fixed. This is about ten hours of a 48-hour window, with limited development research workload.
+
+One macro job-history read timed out at 7:07 a.m. PDT and recovered in subsequent observations. The unchanged production `zopedia-learning-29873720` execution failed: Azure system logs explicitly report `DeadlineExceeded` at 9:20 a.m. PDT, after its configured one-hour deadline. The image is the production baseline, not the candidate. This identifies platform termination, not why learning failed to complete. Keep that operational failure and the collection gap visible through final review. Production acceptance remains pending; no promotion or runtime/configuration change was made. The window ends October 21 at 12:22 a.m. PDT.

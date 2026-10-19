@@ -1124,3 +1124,6 @@ A preparation check used the repository root instead of the application director
 GET representations are not mutation schemas: job start rejects `volumes`, identity creation needs empty identity values, and secret references belong to their resource. Correct those request shapes before submission. Two generated comparison probes also failed at compilation due to an extra parenthesis; compile operator programs locally first and retain failed receipts.
 
 A worker fallback database did not establish the API Portfolio baseline. Final probes matched its actual control connection/environment on the secret-owning broker resource. Optional Blob capture initially lacked that job's storage endpoint; use the existing endpoint/authorized identity without new permissions. Short-lived CLI log tokens may disappear after completion, so retain verification Blobs and ARM execution records independently. Keep these operator failures separate from application regressions.
+
+### October 19 — normalize transported metrics in operator analysis
+The first observation-summary calculation compared JSON string values for database durations with integers and raised `TypeError`. Converted transported numeric values before aggregation; no application code or observed runtime result changed.
