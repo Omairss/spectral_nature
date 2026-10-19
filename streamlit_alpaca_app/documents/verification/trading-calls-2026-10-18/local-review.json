@@ -1,0 +1,58 @@
+{
+  "status": "accepted_locally_for_paper_pilot",
+  "task": "Explicit Trading calls and approval-time paper performance",
+  "git_base": "d3a700d07dcaf46ec26b2723e48b94d40857d4c0",
+  "current_accepted_source_revision": "cc14d46cddee0857569a54c9af41455527a3ceda",
+  "unrelated_inventory_changes": [],
+  "objective_checks": {
+    "isolated_postgresql": "passed; schema qa_call_tracking_0598a9b5f1bd dropped",
+    "approval_time_prices_and_calendar": "passed",
+    "publication_order_and_ownership": "passed",
+    "generation_outcome_cutoff": "passed",
+    "focused_pytest": "27 passed",
+    "web_typescript": "passed",
+    "scoped_eslint": "passed",
+    "swift_parse": "passed",
+    "feedback_queue": "passed real isolated PostgreSQL; schema dropped",
+    "native_simulator_build": "passed",
+    "local_web_ui": "personally inspected collapsed/expanded calls and lazy dated performance via isolated loopback fixture"
+  },
+  "quality": "Prior reasoning errors retained as improvement evidence; owner accepts imperfect individual calls in a measurable paper pilot. No runtime model switch or experimental packet path.",
+  "exploratory_inference": {
+    "attempts": 27,
+    "successes": 27,
+    "incomplete_or_failed_attempts": 0,
+    "unpriced_attempts": 0,
+    "estimated_usd_max": 0.543036516,
+    "provider_seconds": 1533.9928280839813,
+    "scope": "October 18 exploratory inference only, including separate packet/effort/open-model probes. Not complete-workload acceptance or forecast accuracy."
+  },
+  "release": {
+    "trading_build": false,
+    "trading_development_deployment": false,
+    "trading_production_deployment": false,
+    "native_install": false,
+    "broker_order": false,
+    "acceptance_manifest_changed_by_this_task": false
+  },
+  "open": [
+    "Exact committed source acceptance, packaged-image verification, authenticated development verification and owner-authorized production deployment."
+  ],
+  "checkpoint": "27e9bd1c0206181053aaf500cd823019d9f0da18",
+  "prior_status": "held_for_reasoning_quality",
+  "owner_acceptance_clarification": "Strong generalized framework for iteration and improvement; current forecasts need not be perfect.",
+  "framework_assessment": {
+    "original_calls_and_assumptions_retained": true,
+    "approval_and_outcome_contracts_verified_locally": true,
+    "failure_isolation_and_replay_supported": true,
+    "ticker_specific_economic_rules": false,
+    "approved_outcomes_feed_existing_learning": true,
+    "automatic_improvement_demonstrated": false,
+    "normal_authenticated_ui_and_release_checks": "pending"
+  },
+  "production_authorization": {
+    "owner_instruction": "Push to prod",
+    "date": "2026-10-18",
+    "scope": "Trading paper pilot and shared application integration; no broker orders"
+  }
+}

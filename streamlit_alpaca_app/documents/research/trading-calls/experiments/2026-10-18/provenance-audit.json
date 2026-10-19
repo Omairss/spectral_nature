@@ -1,0 +1,14 @@
+{
+  "source-asst.json": {
+    "original_receipt_sha256": "ce60c2da3130afc12993921464f55e3961a4e75f81921258f653fb5be33da653",
+    "receipt_disk_source_sha256": "2b177064965690437a6e030f7109eda4ef21eefd8debf66368cfea09e449800d",
+    "process_loaded_source_sha256": "2b177064965690437a6e030f7109eda4ef21eefd8debf66368cfea09e449800d",
+    "limitation": "Original harness captured file identity at completion. During CRGY execution only the system-prompt absolute-direction instruction changed on disk; its loaded ticker query remained the preceding definition. Original output preserved."
+  },
+  "source-crgy.json": {
+    "original_receipt_sha256": "905cc941b1e1068f0e0626c330d8d043f531bab70098cc10c0b5cd08d0731d49",
+    "receipt_disk_source_sha256": "a425a704770d921304fca407cd8ab6e7d1c3aaa66ef242da31dbacbea4ddbae5",
+    "process_loaded_source_sha256": "2b177064965690437a6e030f7109eda4ef21eefd8debf66368cfea09e449800d",
+    "limitation": "Original harness captured file identity at completion. During CRGY execution only the system-prompt absolute-direction instruction changed on disk; its loaded ticker query remained the preceding definition. Original output preserved."
+  }
+}

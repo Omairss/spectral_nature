@@ -1,0 +1,537 @@
+{
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 265.41984679194866,
+  "ticker": "CORZ",
+  "result": [
+    {
+      "ticker": "CORZ",
+      "company_name": "Core Scientific, Inc. - Common Stock",
+      "status": "failed",
+      "answer_markdown": "",
+      "confidence": "low",
+      "limitations": [
+        "Planning stopped: ResearchStepTimeout",
+        "TimeoutError: Final synthesis LLM step timed out after 90s."
+      ],
+      "tool_calls": [
+        {
+          "tool_name": "research.live_event_evidence",
+          "status": "completed",
+          "arguments": {
+            "query": "Core Scientific CORZ news AI data center hosting contract earnings October 2026",
+            "focus_symbols": [
+              "CORZ"
+            ],
+            "max_results": 12,
+            "force_refresh": false
+          },
+          "preview": "research summary with 1 rows; columns=scope, symbol, headline, summary_text, source, published_at, url; sample=[{\"headline\": \"Core Scientific (CORZ) Stock Price, News & Analysis\", \"published_at\": \"\", \"scope\": \"market_event\", \"source\": \"serper\", \"summary_text\": \"Core Scientific, Inc. Schedules Third Quarter Fiscal Year 2026 Earnings Release, Conference Call and Webcast. Form 4 October 14, 2026.\", \"symbol\": \"\", \"url\": \"https://www.stocktitan.net/overview/CORZ/\"}]"
+        },
+        {
+          "tool_name": "research.search_evidence",
+          "status": "failed",
+          "arguments": {
+            "queries": [
+              "Core Scientific CORZ news AI data center hosting contract 2026",
+              "Core Scientific CORZ quarterly results net loss impairment writedown",
+              "Core Scientific stock decline October 2026 catalyst",
+              "Core Scientific converted bitcoin miner HPC hosting revenue backlog"
+            ],
+            "tickers": [
+              "CORZ"
+            ],
+            "max_results": 12
+          },
+          "preview": "research.search_evidence timed out after 45.0s."
+        }
+      ],
+      "evidence_pack_id": "aqlpack::0fc62dbc631439504fc70812",
+      "error": "TimeoutError: Final synthesis LLM step timed out after 90s.",
+      "market_opportunity": {
+        "all_signal_coverage_ratio": 0.8,
+        "all_signal_dataset_count": 10,
+        "all_signal_datasets_json": "[\"attention_candidates_1d\",\"attention_ticker_background_snapshots\",\"correlation_phase_shift_summary\",\"daily_movers\",\"entity_taxonomy_labels\",\"momentum_profiles\",\"price_expectations\",\"quarterly_fundamentals\",\"technical_signals_latest\",\"universe_snapshot\"]",
+        "all_signal_domain_count": 4,
+        "all_signal_domain_scores_json": "{\"event_evidence\":70.8,\"fundamentals\":90.1,\"price_behavior\":82.7,\"relative_dislocation\":71.9}",
+        "all_signal_family_count": 9,
+        "all_signal_family_scores_json": "{\"event_detection\":64.3,\"evidence_quality\":77.4,\"fundamentals\":90.1,\"market_relationship\":73.7,\"momentum\":77.5,\"price_liquidity\":90.4,\"relative_expectation\":70.1,\"technical\":77.1,\"trend_quality\":85.6}",
+        "all_signal_rank": 2,
+        "all_signal_score": 54.8,
+        "all_signal_signal_count": 94,
+        "asof_time_utc": "2026-10-15T20:50:31.789319+00:00",
+        "company_name": "Core Scientific, Inc. - Common Stock",
+        "daily_change_pct": 7.1111111111111125,
+        "daily_move_retrieval_rank": 33.0,
+        "details": "1D +7.1% | 7 Day -9.3% | RoC -0.48 | trend gap 0.22",
+        "direction": "Down / worsening",
+        "horizon_metric_available": true,
+        "horizon_retrieval_rank": 205.0,
+        "momentum_change_retrieval_rank": 802.0,
+        "momentum_roc_score": -0.47986019112296,
+        "opportunity": "Downside pressure",
+        "opportunity_score": 54.8,
+        "retrieval_method": "domain_balanced_all_signal_v1",
+        "retrieval_signal_count": 94,
+        "return_7d_pct": -9.256353937872607,
+        "run_id": "2bb1d253-16bd-49b3-bacc-cbb2f00fe1ca",
+        "scanner_opportunity_score": 31.4,
+        "selected_horizon_col": "return_7d_pct",
+        "selected_horizon_label": "7 Day",
+        "sparkline_3m": "[100.0, 107.01, 92.72, 97.41, 101.88, 94.02, 88.25, 90.06, 83.59, 79.59, 77.8, 72.85, 75.12, 83.65, 80.08, 71.77, 80.3, 80.93, 73.83, 71.37, 74.23, 68.62, 67.04, 64.58]",
+        "symbol": "CORZ",
+        "trend_fit_gap": 0.2174504413580004,
+        "trend_quality_retrieval_rank": 145.0,
+        "close": 14.46
+      },
+      "stock_summary": {},
+      "financials": {
+        "free_cash_flow": -1023798000.0,
+        "fundamentals_period": "2026Q2",
+        "fundamentals_report_date": "2026-06-30",
+        "history": {
+          "free_cash_flow": [
+            {
+              "date": "2024-03-31",
+              "period": "2024Q1",
+              "value": -9140000.0
+            },
+            {
+              "date": "2024-06-30",
+              "period": "2024Q2",
+              "value": -594000.0
+            },
+            {
+              "date": "2024-09-30",
+              "period": "2024Q3",
+              "value": -27684000.0
+            },
+            {
+              "date": "2024-12-31",
+              "period": "2024Q4",
+              "value": -5397000.0
+            },
+            {
+              "date": "2025-03-31",
+              "period": "2025Q1",
+              "value": -129791000.0
+            },
+            {
+              "date": "2025-06-30",
+              "period": "2025Q2",
+              "value": -84838000.0
+            },
+            {
+              "date": "2025-09-30",
+              "period": "2025Q3",
+              "value": -124772000.0
+            },
+            {
+              "date": "2025-12-31",
+              "period": "2025Q4",
+              "value": -119723000.0
+            },
+            {
+              "date": "2026-03-31",
+              "period": "2026Q1",
+              "value": -136319000.0
+            },
+            {
+              "date": "2026-06-30",
+              "period": "2026Q2",
+              "value": -1023798000.0
+            }
+          ],
+          "net_income": [
+            {
+              "date": "2024-03-31",
+              "period": "2024Q1",
+              "value": 210691000.0
+            },
+            {
+              "date": "2024-06-30",
+              "period": "2024Q2",
+              "value": -804896000.0
+            },
+            {
+              "date": "2024-09-30",
+              "period": "2024Q3",
+              "value": -455259000.0
+            },
+            {
+              "date": "2024-12-31",
+              "period": "2024Q4",
+              "value": -388410000.0
+            },
+            {
+              "date": "2025-03-31",
+              "period": "2025Q1",
+              "value": 576251000.0
+            },
+            {
+              "date": "2025-06-30",
+              "period": "2025Q2",
+              "value": -936799000.0
+            },
+            {
+              "date": "2025-09-30",
+              "period": "2025Q3",
+              "value": -146660000.0
+            },
+            {
+              "date": "2025-12-31",
+              "period": "2025Q4",
+              "value": 214150000.0
+            },
+            {
+              "date": "2026-03-31",
+              "period": "2026Q1",
+              "value": -347188000.0
+            },
+            {
+              "date": "2026-06-30",
+              "period": "2026Q2",
+              "value": -1155310000.0
+            }
+          ],
+          "operating_cash_flow": [
+            {
+              "date": "2024-03-31",
+              "period": "2024Q1",
+              "value": -130056000.0
+            },
+            {
+              "date": "2024-06-30",
+              "period": "2024Q2",
+              "value": -107617000.0
+            },
+            {
+              "date": "2024-09-30",
+              "period": "2024Q3",
+              "value": -64251000.0
+            },
+            {
+              "date": "2024-12-31",
+              "period": "2024Q4",
+              "value": -48160000.0
+            },
+            {
+              "date": "2025-03-31",
+              "period": "2025Q1",
+              "value": -45775000.0
+            },
+            {
+              "date": "2025-06-30",
+              "period": "2025Q2",
+              "value": 34734000.0
+            },
+            {
+              "date": "2025-09-30",
+              "period": "2025Q3",
+              "value": 134065000.0
+            },
+            {
+              "date": "2025-12-31",
+              "period": "2025Q4",
+              "value": 153602000.0
+            },
+            {
+              "date": "2026-03-31",
+              "period": "2026Q1",
+              "value": 42084000.0
+            },
+            {
+              "date": "2026-06-30",
+              "period": "2026Q2",
+              "value": -19384000.0
+            }
+          ],
+          "operating_income": [
+            {
+              "date": "2024-03-31",
+              "period": "2024Q1",
+              "value": 60722000.0
+            },
+            {
+              "date": "2024-06-30",
+              "period": "2024Q2",
+              "value": 7434000.0
+            },
+            {
+              "date": "2024-09-30",
+              "period": "2024Q3",
+              "value": -40504000.0
+            },
+            {
+              "date": "2024-12-31",
+              "period": "2024Q4",
+              "value": -25095000.0
+            },
+            {
+              "date": "2025-03-31",
+              "period": "2025Q1",
+              "value": -24677000.0
+            },
+            {
+              "date": "2025-06-30",
+              "period": "2025Q2",
+              "value": -40260000.0
+            },
+            {
+              "date": "2025-09-30",
+              "period": "2025Q3",
+              "value": -65449000.0
+            },
+            {
+              "date": "2025-12-31",
+              "period": "2025Q4",
+              "value": 4568000.0
+            },
+            {
+              "date": "2026-03-31",
+              "period": "2026Q1",
+              "value": -15073000.0
+            },
+            {
+              "date": "2026-06-30",
+              "period": "2026Q2",
+              "value": 20655000.0
+            }
+          ],
+          "revenue": [
+            {
+              "date": "2024-03-31",
+              "period": "2024Q1",
+              "value": 179291000.0
+            },
+            {
+              "date": "2024-06-30",
+              "period": "2024Q2",
+              "value": 141102000.0
+            },
+            {
+              "date": "2024-09-30",
+              "period": "2024Q3",
+              "value": 95354000.0
+            },
+            {
+              "date": "2024-12-31",
+              "period": "2024Q4",
+              "value": 94925000.0
+            },
+            {
+              "date": "2025-03-31",
+              "period": "2025Q1",
+              "value": 79525000.0
+            },
+            {
+              "date": "2025-06-30",
+              "period": "2025Q2",
+              "value": 78628000.0
+            },
+            {
+              "date": "2025-09-30",
+              "period": "2025Q3",
+              "value": 81103000.0
+            },
+            {
+              "date": "2025-12-31",
+              "period": "2025Q4",
+              "value": 79763000.0
+            },
+            {
+              "date": "2026-03-31",
+              "period": "2026Q1",
+              "value": 115244000.0
+            },
+            {
+              "date": "2026-06-30",
+              "period": "2026Q2",
+              "value": 164201000.0
+            }
+          ],
+          "stockholders_equity": [
+            {
+              "date": "2024-03-31",
+              "period": "2024Q1",
+              "value": -318509000.0
+            },
+            {
+              "date": "2024-06-30",
+              "period": "2024Q2",
+              "value": -1083874000.0
+            },
+            {
+              "date": "2024-09-30",
+              "period": "2024Q3",
+              "value": -729395000.0
+            },
+            {
+              "date": "2024-12-31",
+              "period": "2024Q4",
+              "value": -943049000.0
+            },
+            {
+              "date": "2025-03-31",
+              "period": "2025Q1",
+              "value": -181507000.0
+            },
+            {
+              "date": "2025-06-30",
+              "period": "2025Q2",
+              "value": -1064676000.0
+            },
+            {
+              "date": "2025-09-30",
+              "period": "2025Q3",
+              "value": -1127960000.0
+            },
+            {
+              "date": "2025-12-31",
+              "period": "2025Q4",
+              "value": -962740000.0
+            },
+            {
+              "date": "2026-03-31",
+              "period": "2026Q1",
+              "value": -1305686000.0
+            },
+            {
+              "date": "2026-06-30",
+              "period": "2026Q2",
+              "value": -2419356000.0
+            }
+          ],
+          "total_assets": [
+            {
+              "date": "2024-03-31",
+              "period": "2024Q1",
+              "value": 813968000.0
+            },
+            {
+              "date": "2024-06-30",
+              "period": "2024Q2",
+              "value": 761456000.0
+            },
+            {
+              "date": "2024-09-30",
+              "period": "2024Q3",
+              "value": 921851000.0
+            },
+            {
+              "date": "2024-12-31",
+              "period": "2024Q4",
+              "value": 1475946000.0
+            },
+            {
+              "date": "2025-03-31",
+              "period": "2025Q1",
+              "value": 1625371000.0
+            },
+            {
+              "date": "2025-06-30",
+              "period": "2025Q2",
+              "value": 1978052000.0
+            },
+            {
+              "date": "2025-09-30",
+              "period": "2025Q3",
+              "value": 2295980000.0
+            },
+            {
+              "date": "2025-12-31",
+              "period": "2025Q4",
+              "value": 2347644000.0
+            },
+            {
+              "date": "2026-03-31",
+              "period": "2026Q1",
+              "value": 3069564000.0
+            },
+            {
+              "date": "2026-06-30",
+              "period": "2026Q2",
+              "value": 5257493000.0
+            }
+          ],
+          "total_liabilities": [
+            {
+              "date": "2024-03-31",
+              "period": "2024Q1",
+              "value": 1132477000.0
+            },
+            {
+              "date": "2024-06-30",
+              "period": "2024Q2",
+              "value": 1845330000.0
+            },
+            {
+              "date": "2024-09-30",
+              "period": "2024Q3",
+              "value": 1651246000.0
+            },
+            {
+              "date": "2024-12-31",
+              "period": "2024Q4",
+              "value": 2418995000.0
+            },
+            {
+              "date": "2025-03-31",
+              "period": "2025Q1",
+              "value": 1806878000.0
+            },
+            {
+              "date": "2025-06-30",
+              "period": "2025Q2",
+              "value": 3042728000.0
+            },
+            {
+              "date": "2025-09-30",
+              "period": "2025Q3",
+              "value": 3423940000.0
+            },
+            {
+              "date": "2025-12-31",
+              "period": "2025Q4",
+              "value": 3310384000.0
+            },
+            {
+              "date": "2026-03-31",
+              "period": "2026Q1",
+              "value": 4375250000.0
+            },
+            {
+              "date": "2026-06-30",
+              "period": "2026Q2",
+              "value": 7676849000.0
+            }
+          ]
+        },
+        "net_income": -1155310000.0,
+        "net_income_yoy_pct": 23.325281090180503,
+        "operating_cash_flow": -19384000.0,
+        "operating_income": 20655000.0,
+        "revenue": 164201000.0,
+        "revenue_yoy_pct": 108.83273134252431,
+        "source": "quarterly_fundamentals",
+        "stockholders_equity": -2419356000.0,
+        "total_assets": 5257493000.0,
+        "total_liabilities": 7676849000.0
+      },
+      "horizon_keys": [
+        "1w",
+        "1m",
+        "3m",
+        "1y"
+      ],
+      "horizon_labels": [
+        "1 Week",
+        "1 Month",
+        "3 Month",
+        "1 Year"
+      ],
+      "selection_trace": {},
+      "horizon_opportunities": []
+    }
+  ]
+}

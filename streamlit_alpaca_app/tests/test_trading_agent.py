@@ -33,9 +33,8 @@ class FakeTradingLLM:
             "candidates": [
                 {
                     "ticker": "aapl",
-                    "direction": "long",
                     "stance": "long",
-                    "research_status": "supported",
+                    "forecast": {"pricing_assessment": "Contract fixture", "assumptions": [], "opposing_case": "Contract fixture"},
                     "setup": "Breakout continuation",
                     "hypothesis": "Momentum can continue if the market stays supportive.",
                     "evidence": ["Opportunity score is high.", "Technical trend is positive."],
@@ -161,14 +160,14 @@ def test_trading_agent_outcomes_score_matured_and_mark_to_market_calls():
     )
     price_history = pd.DataFrame(
         [
-            {"symbol": "AAPL", "timestamp": "2026-06-01T00:00:00Z", "close": 100.0},
-            {"symbol": "AAPL", "timestamp": "2026-06-08T00:00:00Z", "close": 112.0},
-            {"symbol": "MSFT", "timestamp": "2026-06-22T00:00:00Z", "close": 200.0},
-            {"symbol": "MSFT", "timestamp": "2026-06-24T00:00:00Z", "close": 190.0},
-            {"symbol": "SPY", "timestamp": "2026-06-01T00:00:00Z", "close": 100.0},
-            {"symbol": "SPY", "timestamp": "2026-06-08T00:00:00Z", "close": 103.0},
-            {"symbol": "SPY", "timestamp": "2026-06-22T00:00:00Z", "close": 104.0},
-            {"symbol": "SPY", "timestamp": "2026-06-24T00:00:00Z", "close": 106.0},
+            {"symbol": "AAPL", "timestamp": "2026-06-02T04:00:00Z", "close": 100.0},
+            {"symbol": "AAPL", "timestamp": "2026-06-09T04:00:00Z", "close": 112.0},
+            {"symbol": "MSFT", "timestamp": "2026-06-22T04:00:00Z", "close": 200.0},
+            {"symbol": "MSFT", "timestamp": "2026-06-23T04:00:00Z", "close": 190.0},
+            {"symbol": "SPY", "timestamp": "2026-06-02T04:00:00Z", "close": 100.0},
+            {"symbol": "SPY", "timestamp": "2026-06-09T04:00:00Z", "close": 103.0},
+            {"symbol": "SPY", "timestamp": "2026-06-22T04:00:00Z", "close": 104.0},
+            {"symbol": "SPY", "timestamp": "2026-06-23T04:00:00Z", "close": 106.0},
         ]
     )
 
@@ -490,7 +489,9 @@ def test_shared_research_pool_limit_controls_recall_without_fabricating_candidat
                 "candidates": [
                     {
                         "ticker": ticker,
-                        "direction": "watch",
+                        "stance": "long",
+                        "forecast": {"pricing_assessment": "Contract fixture", "assumptions": [], "opposing_case": "Contract fixture"},
+                        "evidence_limits": [],
                         "setup": f"{ticker} setup",
                         "hypothesis": f"{ticker} evidence may support continuation.",
                         "evidence": [f"{ticker} package completed."],
@@ -535,8 +536,8 @@ def test_shared_research_pool_limit_controls_recall_without_fabricating_candidat
     assert packages["ticker"].tolist() == ["MSFT"]
     assert runs["status"].tolist() == ["error", "ok"]
     assert candidates["ticker"].tolist() == ["MSFT"]
-    assert candidates["stance"].tolist() == ["no_call"]
-    assert candidates["decision_status"].tolist() == ["research_only"]
+    assert candidates["stance"].tolist() == ["long"]
+    assert candidates["decision_status"].tolist() == ["open"]
 
 
 def test_shared_research_pool_ranks_a_complete_horizon_tier_before_cutoff():
@@ -646,7 +647,9 @@ def test_shared_research_excludes_failed_company_from_mixed_horizon_synthesis():
                 "candidates": [
                     {
                         "ticker": "AAPL",
-                        "direction": "watch",
+                        "stance": "long",
+                        "forecast": {"pricing_assessment": "Contract fixture", "assumptions": [], "opposing_case": "Contract fixture"},
+                        "evidence_limits": [],
                         "setup": "AAPL setup",
                         "hypothesis": "Completed evidence supports monitoring.",
                         "evidence": ["AAPL package completed."],

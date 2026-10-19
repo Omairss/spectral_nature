@@ -1,0 +1,164 @@
+{
+  "baseline_revision": "98663cd4ef978514f336e7512700264723408c48",
+  "current_git_revision": "112fbd846fe26d3b223d1f04285836fe1f6fcc93",
+  "changed_inventory_files": [
+    {
+      "path": "api/main.py",
+      "before": "225d147467b2d9076d17f7f62d9b51c4e41eeac4184c3f21ca4dc7aea335f04b",
+      "after": "ded1402231ae6032341ad119f95e4bbe64da352610777cddf0c95e43cb48a984",
+      "owned": true
+    },
+    {
+      "path": "pipeline/jobs/main.py",
+      "before": "54c816fc1c1802143fb96ac95b5234f12c15f9b2f532fb888d4b8388e3f3516e",
+      "after": "45d8f9f654a037f8868cb723f42cd22545e6c92873d54764b70b2e5dfbc3bc8d",
+      "owned": true
+    },
+    {
+      "path": "services/pipeline_store.py",
+      "before": "4b82f1715d0e25e67b9c84948fdebc07d2121c44035bb690b221b5cb490c94e6",
+      "after": "a5ece04e4e56380989a247ed828290f915046f71ff5d1d02b71f2ccab218a486",
+      "owned": true
+    },
+    {
+      "path": "services/trading_agent.py",
+      "before": "5b9f03d009fec4e863db6593c1e6788aba82dd68507853741a04a31ed05aa390",
+      "after": "a425a704770d921304fca407cd8ab6e7d1c3aaa66ef242da31dbacbea4ddbae5",
+      "owned": true
+    },
+    {
+      "path": "services/trading_agent_view.py",
+      "before": "61776927bdd4af78258fe6d6b4158ab8aecd7039cf2ab60681bb6a6b194356ff",
+      "after": "1d9f59a7efdf4b03f164aef6d6c25929e3dbcf4ec92e8429e6eab1d8c4190173",
+      "owned": true
+    },
+    {
+      "path": "web/app/trading-agent/page.tsx",
+      "before": "bd44b82d5f36cee6da0b785f9379e8eb3b4f1c3d9517e98716b28ecc8a86e545",
+      "after": "ca582981fdc246b43b832218eb074125f6c1e83b928558c8a0f7ae9308537070",
+      "owned": true
+    }
+  ],
+  "changed_definitions": {
+    "api/main.py": [
+      "trading_agent_tracked_call",
+      "trading_agent_view"
+    ],
+    "pipeline/jobs/main.py": [
+      "run_equities",
+      "run_trading_call_tracking",
+      "main"
+    ],
+    "services/pipeline_store.py": [
+      "record_trading_agent_action",
+      "_normalize_trading_agent_action"
+    ],
+    "services/trading_agent.py": [
+      "normalize_trading_agent_candidate",
+      "build_trading_agent_outcomes",
+      "_synthesis_prompt_context",
+      "_aql_ticker_query",
+      "_synthesize_trading_agent_suggestions",
+      "_candidate_semantics",
+      "_research_prompt_context",
+      "_candidate_anchor_ts",
+      "_market_observation_for_prompt",
+      "_shared_research_context",
+      "build_trading_agent_context",
+      "_aligned_price_return",
+      "_build_trading_agent_horizon_contexts"
+    ],
+    "services/trading_agent_view.py": [
+      "build_trading_agent_view",
+      "record_trading_agent_decision"
+    ]
+  },
+  "new_runtime_files": [
+    "services/trading_call_tracking.py",
+    "web/app/api/trading-agent/calls/[trackingId]/route.ts"
+  ],
+  "unowned_inventory_changes": [],
+  "acceptance": "Not release acceptance. Scope comparison accompanies behavioral review; current Trading quality is held.",
+  "new_runtime_sha256": {
+    "services/trading_call_tracking.py": "4a38ccfdb872c322f2b1483b4207a3a522d9fb13bad003ee1e7f245da0933a8c",
+    "web/app/api/trading-agent/calls/[trackingId]/route.ts": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e"
+  },
+  "current_accepted_source_revision": "cc14d46cddee0857569a54c9af41455527a3ceda",
+  "changed_against_current_acceptance": [
+    {
+      "path": "api/main.py",
+      "before": "225d147467b2d9076d17f7f62d9b51c4e41eeac4184c3f21ca4dc7aea335f04b",
+      "after": "ded1402231ae6032341ad119f95e4bbe64da352610777cddf0c95e43cb48a984",
+      "owned": true
+    },
+    {
+      "path": "pipeline/jobs/main.py",
+      "before": "4ce6c9c9530141b854b4cfb7fb49768be9284cb4f5df0b2749bc342bb4d69c09",
+      "after": "45d8f9f654a037f8868cb723f42cd22545e6c92873d54764b70b2e5dfbc3bc8d",
+      "owned": true
+    },
+    {
+      "path": "services/pipeline_store.py",
+      "before": "4b82f1715d0e25e67b9c84948fdebc07d2121c44035bb690b221b5cb490c94e6",
+      "after": "a5ece04e4e56380989a247ed828290f915046f71ff5d1d02b71f2ccab218a486",
+      "owned": true
+    },
+    {
+      "path": "services/trading_agent.py",
+      "before": "5b9f03d009fec4e863db6593c1e6788aba82dd68507853741a04a31ed05aa390",
+      "after": "a425a704770d921304fca407cd8ab6e7d1c3aaa66ef242da31dbacbea4ddbae5",
+      "owned": true
+    },
+    {
+      "path": "services/trading_agent_view.py",
+      "before": "61776927bdd4af78258fe6d6b4158ab8aecd7039cf2ab60681bb6a6b194356ff",
+      "after": "1d9f59a7efdf4b03f164aef6d6c25929e3dbcf4ec92e8429e6eab1d8c4190173",
+      "owned": true
+    },
+    {
+      "path": "web/app/trading-agent/page.tsx",
+      "before": "bd44b82d5f36cee6da0b785f9379e8eb3b4f1c3d9517e98716b28ecc8a86e545",
+      "after": "ca582981fdc246b43b832218eb074125f6c1e83b928558c8a0f7ae9308537070",
+      "owned": true
+    }
+  ],
+  "changed_definitions_against_current_head": {
+    "api/main.py": [
+      "trading_agent_tracked_call",
+      "trading_agent_view"
+    ],
+    "pipeline/jobs/main.py": [
+      "main",
+      "run_equities",
+      "run_trading_call_tracking"
+    ],
+    "services/pipeline_store.py": [
+      "_normalize_trading_agent_action",
+      "record_trading_agent_action"
+    ],
+    "services/trading_agent.py": [
+      "_aligned_price_return",
+      "_aql_ticker_query",
+      "_build_trading_agent_horizon_contexts",
+      "_candidate_anchor_ts",
+      "_candidate_semantics",
+      "_market_observation_for_prompt",
+      "_research_prompt_context",
+      "_shared_research_context",
+      "_synthesis_prompt_context",
+      "_synthesize_trading_agent_suggestions",
+      "build_trading_agent_context",
+      "build_trading_agent_outcomes",
+      "normalize_trading_agent_candidate"
+    ],
+    "services/trading_agent_view.py": [
+      "build_trading_agent_view",
+      "record_trading_agent_decision"
+    ]
+  },
+  "preserved_concurrent_changes": [
+    "725caebd documentation",
+    "c090d774 database continuation merged by 0a7c9f2a; run_system_recovery preserved exactly against current HEAD",
+    "112fbd84 documentation-only lifecycle retention record"
+  ]
+}

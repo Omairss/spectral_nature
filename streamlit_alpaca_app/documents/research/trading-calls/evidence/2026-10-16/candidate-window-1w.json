@@ -1,0 +1,186 @@
+{
+  "role": "candidate-window",
+  "horizon": "1w",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 68.46249349997379,
+  "input_sha256": "3753c8838e81e31392d1da29fa4db1da361aa59916cd5207ffaf8fbf08e56ad0",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "directional_price_calls_v3",
+    "regime_read": "The tape on 15 October 2026 shows one-day bounces in beaten-down names and cooling momentum leaders, with rate-sensitive, debt-funded builders under pressure after hot inflation data raised the odds of rate rises. Health care led sectors that day, which supports the one long idea here.",
+    "portfolio_posture": "Three of these ideas bet on continued weakness in cash-burning, financing-dependent companies, so a broad risk-on turn or a dovish rate surprise would hurt them together, while the single long depends on biotech momentum holding.",
+    "candidates": [
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "JBLU",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "At about $3.15, the shares have already fallen 42.3% in three months, so a weak third quarter is partly priced in. The file has no share count or liquidity total, so it cannot show how much of the funding gap the price still reflects.",
+          "assumptions": [
+            "Unit costs keep growing faster than unit revenue in the current quarter; the third quarter is not reported yet, so this is an estimate.",
+            "No new financing, rescue deal or partnership lands before 23 October 2026.",
+            "The 15 October 2026 rise of 4.66% was a one-day bounce, not the start of a turn."
+          ],
+          "opposing_case": "The shares bounced 4.66% on 15 October 2026, revenue grew 14.5% year over year in the quarter ended 30 June 2026, and Susquehanna kept a Neutral rating rather than Sell. A stock near a 52-week low with a Sell rating can re-rate hard on any cost improvement.",
+          "reference_price": 3.145,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "start_at_utc": "2026-10-16T07:16:04.413225+00:00",
+          "end_at_utc": "2026-10-23T07:16:04.413225+00:00"
+        },
+        "setup": "JetBlue fell 20.8% in the week to 15 October 2026 as analysts cut targets, and the last reported quarter shows costs rising faster than revenue.",
+        "hypothesis": "JBLU trades below the last close listed in the 15 October 2026 snapshot, about $3.15, on 23 October 2026, because the reported loss is widening while cash leaves the business. Operating losses, negative free cash flow and a CCC+ credit rating keep sellers in control into the week.",
+        "evidence": [
+          "Market snapshot available 15 October 2026 20:50 UTC: last daily close about $3.15, +4.66% on the day, -20.8% over one week, -29.2% over one month and -42.3% over three months.",
+          "Quarter ended 30 June 2026: revenue $2.697bn, up 14.5% year over year; net loss $247m, about three times the year-earlier $74m; free cash flow -$318m; shareholders' equity $1.587bn.",
+          "S&P Global Ratings lowered JetBlue to CCC+ from B- on 8 June 2026, and analysts cut targets into 14 October 2026, including Susquehanna to $4 and Goldman Sachs to $3.50 with a Sell rating."
+        ],
+        "invalidation": "The short fails if the shares close back above $3.19, the 13 October 2026 close, before 23 October 2026. It also fails if the company announces new funding on terms that clearly protect the balance sheet.",
+        "tail_risks": [
+          "A surprise capital raise, merger or partnership that eases the funding worry and lifts the shares.",
+          "A fall in fuel prices that cuts costs faster than the market expects.",
+          "A sharp rally in low-priced, heavily shorted stocks that lifts JBLU with the group."
+        ],
+        "evidence_limits": [
+          "Third-quarter 2026 results, due on the 27 October 2026 call after this window, will show whether unit cost growth has passed unit revenue growth.",
+          "Total liquidity and the next twelve months of debt maturities, needed to test how long the cash burn can continue.",
+          "The current share count and fuel hedge position, needed to judge dilution risk and cost exposure."
+        ],
+        "suggested_horizon": "1 Week",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "CRGY",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "The last close in the 15 October 2026 snapshot, $12.50, equals the 9 October 2026 offering price for 80 million shares, so that price now acts as a reference point for holders. The file has no purchase price per unit of production and no pro forma per-share cash flow, so the claim that the deal adds value cannot be measured.",
+          "assumptions": [
+            "The offering increases the share count; some of the 80 million shares may be existing shares, so this is uncertain.",
+            "The market keeps treating the share sale as new supply rather than as a funding step.",
+            "Oil and gas prices stay near current levels through 23 October 2026."
+          ],
+          "opposing_case": "The quarter ended 30 June 2026 was strongly cash generative, with revenue of $1.39bn, operating cash flow of $944m and free cash flow of $622m. A KKR affiliate agreed to buy half the offered shares, and the three-month return of +20.66% shows the market rewarded the equity earlier in this period.",
+          "reference_price": 12.5,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "start_at_utc": "2026-10-16T07:16:04.413225+00:00",
+          "end_at_utc": "2026-10-23T07:16:04.413225+00:00"
+        },
+        "setup": "Crescent priced a $1 billion share sale at $12.50 on 9 October 2026 to help fund a $4.2 billion Eagle Ford purchase, and the last snapshot close sits exactly at that price.",
+        "hypothesis": "CRGY stays at or below the last close listed in the 15 October 2026 snapshot, $12.50, on 23 October 2026, so the short earns a negative return. The share sale adds supply and the purchase adds debt before any acquired cash flow arrives.",
+        "evidence": [
+          "Market snapshot available 15 October 2026 20:50 UTC: last daily close $12.50, -2.65% on the day, -7.2% over one week, -11.38% over one month and +20.66% over three months.",
+          "On 8 October 2026 Crescent agreed to buy Devon Energy's Eagle Ford assets for about $4.2bn in cash, and a $1bn Class A offering priced on 9 October 2026 at $12.50 for 80 million shares, with a KKR affiliate buying 40 million.",
+          "Quarter ended 30 June 2026: revenue $1,394.95m, net income $492.77m, operating cash flow $943.99m and shareholders' equity $5,159.59m."
+        ],
+        "invalidation": "The short fails if the shares hold above $12.50 and rise on disclosed deal terms that show higher cash flow per share. It also fails if the company confirms the sale funds the purchase without raising net debt above current levels.",
+        "tail_risks": [
+          "A deal-terms release showing the purchase is strongly accretive per share, which would lift the stock.",
+          "A rise in oil and gas prices that re-rates the whole sector.",
+          "A short squeeze after the offering is placed with committed buyers."
+        ],
+        "evidence_limits": [
+          "The purchase agreement's cash and debt structure, expected close date, and the acquired production and reserves, needed to test the price paid.",
+          "Whether the 80 million shares are newly issued and what the share count becomes, because this sets the dilution.",
+          "Pro forma debt and cash flow per share after the deal, plus the driver of the swing from the 2026Q1 net loss of $419.8m to the 2026Q2 net income of $492.8m."
+        ],
+        "suggested_horizon": "1 Week",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "CORZ",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "At $14.46, the shares have already fallen 35.4% in three months, so some financing stress is priced in. No rent, lease term or counterparty data exists in the file, so the size and timing of future cash flow cannot be valued.",
+          "assumptions": [
+            "Interest rates stay high or rise further during the week.",
+            "No lease with a named counterparty and disclosed rent is signed before 23 October 2026.",
+            "The 15 October 2026 rise was mean reversion, not the start of a re-rating."
+          ],
+          "opposing_case": "Revenue more than doubled to $164.2m in the quarter ended 30 June 2026 with positive operating income of $20.7m and $1.82bn of liquidity, so the business is not failing. The decline follows sector and rate news, and the company has repeatedly obtained large funding, including $3.3bn of notes and $600m of credit facilities.",
+          "reference_price": 14.46,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "start_at_utc": "2026-10-16T07:16:04.413225+00:00",
+          "end_at_utc": "2026-10-23T07:16:04.413225+00:00"
+        },
+        "setup": "Core Scientific rose 7.1% on 15 October 2026 after a 9.3% weekly fall, and the week ahead turns on the cost of the debt that funds its data-center build.",
+        "hypothesis": "The 15 October 2026 bounce fades, so CORZ trades below the last close listed in that snapshot, $14.46, on 23 October 2026. The company must keep borrowing to build, and rising rates raise the cost of that borrowing.",
+        "evidence": [
+          "Market snapshot available 15 October 2026 20:50 UTC: last daily close $14.46, +7.1% on the day, -9.3% over one week and -35.4% over three months.",
+          "Quarter ended 30 June 2026: revenue $164.2m, up about 109% year over year; operating income +$20.7m; free cash flow -$1.02bn, mostly capital spending; shareholders' equity -$2.42bn.",
+          "On 7-8 October 2026 the shares fell about 5% with IREN and TeraWulf as borrowing costs rose, and hot inflation data later raised the odds of rate rises."
+        ],
+        "invalidation": "The short fails if CORZ closes above its recent one-month range high before 23 October 2026. It also fails if the company announces a signed lease with a named counterparty and disclosed rent inside the week.",
+        "tail_risks": [
+          "A broad risk-on turn or a dovish rate surprise that lifts all debt-funded builders.",
+          "A large new lease or cheap financing deal announced inside the week.",
+          "A short squeeze in a heavily traded name that has already fallen sharply."
+        ],
+        "evidence_limits": [
+          "The date and results of the third-quarter 2026 report, which is the next hard check on revenue and cash burn; this is likely a later follow-up, not a within-window event.",
+          "Signed lease terms, meaning the counterparty, rent, length and start date, for the AMD-linked and ERCOT-approved capacity.",
+          "The current cost of new debt compared with the 7.75% rate on the notes raised earlier, because that sets the funding burden."
+        ],
+        "suggested_horizon": "1 Week",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "NVAX",
+        "stance": "long",
+        "forecast": {
+          "pricing_assessment": "The last close in the 15 October 2026 snapshot is $12.82, after a 14.3% week, with reported resistance near $13.385 and support near $7.15. The price already reflects a successful partner cash inflow, and the file has no share count or cash balance to measure how much more it can absorb.",
+          "assumptions": [
+            "Interest in vaccine shares continues through the week.",
+            "The reported Sanofi terms are real and at least partly confirmed inside the window.",
+            "No new share sale is announced before 23 October 2026."
+          ],
+          "opposing_case": "The move looks like a headline and sympathy bid: the FDA page that lists the approval is archived with an 8 July 2026 expiry, no source names Novavax in the NIH cancer-vaccine programme, and revenue fell 79.1% year over year in 2026Q1. A stock with 95% annualised volatility can give back a 14% week quickly.",
+          "reference_price": 12.82,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "start_at_utc": "2026-10-16T07:16:04.413225+00:00",
+          "end_at_utc": "2026-10-23T07:16:04.413225+00:00"
+        },
+        "setup": "Novavax rose 14.3% in the week to 15 October 2026 on reported Sanofi payments and a sector-wide vaccine rally, so the week ahead tests whether that buying holds.",
+        "hypothesis": "NVAX holds above the last close listed in the 15 October 2026 snapshot, $12.82, on 23 October 2026, because sector interest in vaccine names and reported partner cash keep buyers active. The gain fails if the Sanofi terms stay unconfirmed and the extended price rolls over.",
+        "evidence": [
+          "Market snapshot available 15 October 2026 20:50 UTC: last daily close $12.82, +1.3% on the day and +14.3% over one week.",
+          "Quarter ended 31 March 2026: revenue $139.5m, down 79.1% year over year; net loss $9.5m; free cash flow +$6.1m, the first positive reading since 2025Q3; shareholders' equity -$144.8m.",
+          "Reports describe a Sanofi agreement with a $500m upfront payment, up to $700m in future milestones and royalties, and a NIH-backed cancer vaccine initiative that lifted vaccine stocks on 9-10 October 2026."
+        ],
+        "invalidation": "The long fails if the reported Sanofi upfront payment is denied or not paid before 23 October 2026. It also fails if NVAX closes back below its 5 October 2026 prior close of $10.46.",
+        "tail_risks": [
+          "A surprise share sale or convertible issue that dilutes holders.",
+          "Loss of the partner-cash story if the Sanofi terms are not confirmed.",
+          "A fast reversal in biotech momentum or a broad risk-off day."
+        ],
+        "evidence_limits": [
+          "The exact Sanofi upfront amount, milestone schedule and royalty rate, which decide whether the cash story is real.",
+          "Whether Novavax is named as a participant in the NIH personalised cancer vaccine programme.",
+          "The share count, cash balance and any at-the-market sale facility, needed to judge dilution and per-share value."
+        ],
+        "suggested_horizon": "1 Week",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "long"
+      }
+    ],
+    "data_gaps": [
+      "The reported Sanofi agreement with Novavax is not confirmed, including the upfront amount, milestone schedule and payment dates.",
+      "Crescent Energy's purchase terms are not disclosed, including whether the 80 million offered shares are newly issued.",
+      "Signed lease terms for Core Scientific's announced capacity are not disclosed, so expected rent and cash flow cannot be checked."
+    ],
+    "error": ""
+  }
+}

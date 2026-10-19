@@ -1,0 +1,9 @@
+{
+  "attempts": 27,
+  "successes": 27,
+  "incomplete_or_failed_attempts": 0,
+  "unpriced_attempts": 0,
+  "estimated_usd_max": 0.543036516,
+  "provider_seconds": 1533.9928280839813,
+  "scope": "October 18 exploratory inference only, including separate packet/effort/open-model probes. Not complete-workload acceptance or forecast accuracy."
+}

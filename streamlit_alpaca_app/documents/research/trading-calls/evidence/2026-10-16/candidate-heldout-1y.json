@@ -1,0 +1,274 @@
+{
+  "role": "candidate-heldout",
+  "horizon": "1y",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 114.80205975001445,
+  "input_sha256": "42e5e51d4f472c2415c2d82aebe73de72179e9c22bef193439a56211a53f6851",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "probabilistic_price_calls_v3",
+    "regime_read": "Chip and AI-hardware shares are cooling under rising yields: September producer prices rose 6.3% from a year earlier, which lifted rate-hike expectations and pressured semiconductors. Oil near $90 supports energy cash flow, and Brazilian shares had their best day since 2020 after the first round of the presidential election.",
+    "portfolio_posture": "Most of the risk sits in the AI-hardware spending cycle, so a fall in data-center capital spending or a jump in bond yields would hurt several positions at the same time.",
+    "candidates": [
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "MRVL",
+        "stance": "long",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.3,
+              "target_price": 195.0,
+              "assumptions": "Estimate: a 2027 pause in data-center orders cuts fiscal 2028 revenue growth to about 15%, earnings per share land near $4.30 and the multiple falls to about 45 times, giving about $195.",
+              "return_pct": -28.692885744062302
+            },
+            {
+              "case": "base",
+              "probability": 0.45,
+              "target_price": 300.0,
+              "assumptions": "Estimate: fiscal 2028 revenue grows about 25% to near $13 billion, earnings per share reach about $5.50 and a 55 times multiple gives about $300. The dated observation is the $273.465 reference price on 14 October 2026.",
+              "return_pct": 9.703252701442612
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 425.0,
+              "assumptions": "Estimate: custom-chip and optical ramps lift fiscal 2028 earnings per share to about $6.60 and the shares hold a 64 times multiple as targets near $450 come into view, giving about $425.",
+              "return_pct": 55.41294132704368
+            }
+          ],
+          "rationale": "The base case carries the most weight because revenue is growing, but the shares already rose 202.4% in a year, so much of the good news is in the price. The strongest opposing argument is that AI hardware buying leans on borrowed money, and a rate-driven slowdown would cut orders and the multiple at the same time.",
+          "expected_return_pct": 9.611833324191405,
+          "reference_price": 273.465,
+          "reference_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 9.611833324191405,
+          "probability_up": 0.7,
+          "probability_profit": 0.7,
+          "downside_return_pct": -28.692885744062302,
+          "upside_return_pct": 55.41294132704368,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Marvell raised its fiscal 2028 revenue forecast on 6 October 2026 on AI data-center demand, and the shares have risen 202.4% over a year while momentum cools.",
+        "hypothesis": "Custom AI chips and fast optical parts keep selling through 2027, so revenue grows toward the raised fiscal 2028 forecast and the price ends higher in a year. The call fails if a large customer cuts data-center spending or Marvell lowers that forecast.",
+        "evidence": [
+          "On 6 October 2026 Marvell raised its fiscal 2028 revenue forecast and said optical interconnect should grow 60–70% to about $65 billion by 2030.",
+          "BofA repeated Buy with a $365 target on 29 September 2026 and Jefferies raised its target to $450 on 7 October 2026, both above the $273.465 reference price of 14 October 2026.",
+          "First-quarter fiscal 2027 revenue was $2.418 billion, $18.0 million above the mid-point of the 5 March 2026 guidance, so the custom-chip business beat its own plan."
+        ],
+        "invalidation": "A custom AI program moving to a rival, a large cloud buyer cutting 2027 capital spending, or a cut to the fiscal 2028 revenue forecast would disprove this thesis.",
+        "tail_risks": [
+          "Data-center building is partly funded by borrowing, so higher rates or a squeeze on rented-compute firms could cut orders quickly.",
+          "Broadcom competes hard for the same custom AI chip work, and losing one program would remove years of expected revenue.",
+          "Chip shares are already cooling under rising yields, so a market-wide de-rating could lower the price even if revenue grows."
+        ],
+        "evidence_limits": [
+          "How much of the fiscal 2028 revenue target is data-center revenue, and the number and size of custom-chip customers, would show how concentrated the growth is.",
+          "Fiscal 2027 second-quarter revenue, margin and cash flow, plus the next guidance, would confirm whether the AI ramp is on track.",
+          "The 2027 data-center capital-spending plans of the largest cloud buyers would show whether demand can support the raised forecast."
+        ],
+        "suggested_horizon": "1 Year",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "LITE",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.32,
+              "target_price": 600.0,
+              "assumptions": "Estimate: AI capital spending digests in 2027, estimated earnings per share of about $9.90 hold but the multiple falls from about 110 times to about 60 times, giving about $600.",
+              "return_pct": -46.1223830069996
+            },
+            {
+              "case": "base",
+              "probability": 0.48,
+              "target_price": 950.0,
+              "assumptions": "Estimate: fiscal 2027 revenue near $5.2 billion and earnings near $9.90 a share, held at about 95 times, give about $950 as growth slows but does not stop. The dated observation is the $1,113.635 reference price on 14 October 2026.",
+              "return_pct": -14.693773094416029
+            },
+            {
+              "case": "bull",
+              "probability": 0.2,
+              "target_price": 1600.0,
+              "assumptions": "Estimate: the sold-out order book converts and the new factory adds capacity, lifting earnings per share near $12.50 at about 128 times, giving about $1,600.",
+              "return_pct": 43.67364531466773
+            }
+          ],
+          "rationale": "The base case carries the most weight because the business is strong but the price is very high against current sales and earnings, and the average analyst target was only about 1% above the 14 October 2026 price. The strongest opposing argument is that a supplier booked through early 2029 with NVIDIA's backing can raise earnings far faster than the multiple falls.",
+          "expected_return_pct": -13.077444584626019,
+          "reference_price": 1113.635,
+          "reference_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 13.077444584626019,
+          "probability_up": 0.2,
+          "probability_profit": 0.8,
+          "downside_return_pct": -46.1223830069996,
+          "upside_return_pct": 43.67364531466773,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Lumentum says its AI optical parts are sold out through early 2029, yet the shares rose 597% over a year to trade almost exactly at the average analyst target.",
+        "hypothesis": "The price already pays for the sold-out order book, so over the next year the shares are more likely to fall than rise as the multiple narrows or growth slows. The call fails if revenue and margins keep rising fast enough to hold the current valuation.",
+        "evidence": [
+          "Fiscal fourth-quarter 2026 revenue was $1.01 billion, up 109% from a year earlier, and the quarter ended 2026-03-28 produced $118.6 million of free cash flow, the first clearly positive quarter after several weak years.",
+          "Chief Executive Michael Hurlston said on 9 October 2026 that AI optical components are booked through early 2029, and the shares rose about 6–7% that day.",
+          "The average analyst target was $1,128.85 on 1 October 2026, only about 1% above the $1,113.635 reference price, so the targets do not assume a further re-rating."
+        ],
+        "invalidation": "Revenue growth staying near 90% or more with rising margins, or the average analyst target moving clearly above $1,300, would disprove this short.",
+        "tail_risks": [
+          "NVIDIA's $2 billion backing and a new Greensboro factory can add capacity fast, so revenue could beat estimates and drive the shares higher against a short.",
+          "Strong demand for AI optics can keep the shares among the year's best performers, and momentum buying can push the price above today's level.",
+          "A sudden fall in bond yields would lift high-multiple shares sharply and hurt a short position."
+        ],
+        "evidence_limits": [
+          "Fiscal first-quarter 2027 revenue, gross margin and backlog would show whether the sold-out order book is turning into cash.",
+          "Customer concentration and the terms of the fiscal 2026 debt repayment would show how much one buyer's change of plan could hurt.",
+          "Greensboro's production start date and any customer second-source qualification would show how quickly supply catches demand."
+        ],
+        "suggested_horizon": "1 Year",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "CRGY",
+        "stance": "long",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.3,
+              "target_price": 9.5,
+              "assumptions": "Estimate: crude falls toward $65 and more shares are sold to fund the purchase, so earnings per share stay near $1.80 and the shares trade at about 5 times, giving about $9.50.",
+              "return_pct": -26.15623785464438
+            },
+            {
+              "case": "base",
+              "probability": 0.45,
+              "target_price": 14.5,
+              "assumptions": "Estimate: the deal closes, about $140 million of annual savings appear, earnings per share reach about $2.20 and a 6.5 times multiple gives about $14.50. The dated observation is the $12.865 reference price on 14 October 2026.",
+              "return_pct": 12.708900116595423
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 19.0,
+              "assumptions": "Estimate: crude holds near $90, the savings are confirmed, earnings per share reach about $2.40 and the shares trade at about 8 times, giving about $19.00.",
+              "return_pct": 47.68752429071124
+            }
+          ],
+          "rationale": "The base case carries the most weight because the buyer adds acreage next to its own and the business generated $622.0 million of free cash flow in the second quarter, while the recent fall reflects deal and share-sale uncertainty. The strongest opposing argument is that the purchase price is not fully funded, and another share sale would dilute owners further.",
+          "expected_return_pct": 9.794014768752437,
+          "reference_price": 12.865,
+          "reference_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 9.794014768752437,
+          "probability_up": 0.7,
+          "probability_profit": 0.7,
+          "downside_return_pct": -26.15623785464438,
+          "upside_return_pct": 47.68752429071124,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Crescent Energy agreed on 8 October 2026 to buy Devon's Eagle Ford assets for $4.2 billion and sold $1 billion of new shares at $12.50, and the stock has fallen 12.2% over a month.",
+        "hypothesis": "The added Eagle Ford acreage and about $140 million in stated annual cost savings lift cash flow per share over the next year, so the shares end higher. The call fails if Crescent funds the rest of the purchase with more equity or if the third-quarter report shows weak cash flow.",
+        "evidence": [
+          "For the quarter ended 2026-06-30, revenue was $1.395 billion and free cash flow was $622.0 million, after a first quarter with a $419.8 million loss and negative $155.8 million free cash flow, so earnings swing hard between quarters.",
+          "The 8 October 2026 deal buys about 90,000 net Eagle Ford acres for $4.2 billion in cash, and one report cites about $140 million of yearly cost savings.",
+          "The 80 million new shares at $12.50 raised about $1 billion, roughly a quarter of the purchase price, and a KKR affiliate bought 40 million of them."
+        ],
+        "invalidation": "A second equity sale, a weak third-quarter 2026 cash-flow report, or lower oil prices would disprove this thesis.",
+        "tail_risks": [
+          "If the rest of the $4.2 billion comes as debt, interest costs rise on top of $6.85 billion of liabilities and leave less cash for shareholders.",
+          "Crude oil prices near $90 could fall, which would cut cash flow and the value of the new acreage.",
+          "Integrating 90,000 new acres can cost more and take longer than planned, and the stated savings may not appear."
+        ],
+        "evidence_limits": [
+          "How Crescent will fund the remaining purchase price, and the closing date, would settle the main risk to the shares.",
+          "Third-quarter 2026 production, realised prices and free cash flow would test whether the cash generation is durable.",
+          "Company confirmation of the roughly $140 million cost savings would show whether the deal adds value per share."
+        ],
+        "suggested_horizon": "1 Year",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "PBR",
+        "stance": "long",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.3,
+              "target_price": 18.0,
+              "assumptions": "Estimate: Brent falls below $70, earnings per ADS drop to about $3.60 and the payout is cut, and the shares trade at about 5 times, giving about $18.00.",
+              "return_pct": -28.923988153998025
+            },
+            {
+              "case": "base",
+              "probability": 0.45,
+              "target_price": 27.0,
+              "assumptions": "Estimate: oil holds near $80–90, production nears 3 million barrels a day, earnings per ADS stay near $4.00 and the shares hold about 6.75 times, giving about $27.00. The dated observation is the $25.325 reference price on 14 October 2026.",
+              "return_pct": 6.614017769002967
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 35.0,
+              "assumptions": "Estimate: oil stays near $90, production growth and a firm dividend lift earnings per ADS to about $4.40 and the shares trade at about 8 times, giving about $35.00.",
+              "return_pct": 38.20335636722607
+            }
+          ],
+          "rationale": "The base case carries the most weight because production is rising and oil is firm, but the government's control of the board is the largest unknown. The strongest opposing argument is that a state-controlled board can set fuel prices and dividends for political reasons, which can remove shareholder value even when the oil business does well.",
+          "expected_return_pct": 3.849950641658446,
+          "reference_price": 25.325,
+          "reference_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 3.849950641658446,
+          "probability_up": 0.7,
+          "probability_profit": 0.7,
+          "downside_return_pct": -28.923988153998025,
+          "upside_return_pct": 38.20335636722607,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Petrobras is close to 3 million barrels of oil a day and the shares rose 127.7% over a year, while the Brazilian election result leaves the dividend policy open.",
+        "hypothesis": "Production growth near 3 million barrels a day and oil near $90 keep cash flow and the large dividend intact, so the shares end slightly higher in a year. The call fails if oil falls below about $70 or the board cuts the payout.",
+        "evidence": [
+          "On 24 September 2026 the chief executive said Petrobras is close to reaching 3 million barrels of oil a day.",
+          "Two October 2026 filings report an extra oil-bearing interval in the Morpho well off Amapá and add 21 exploration blocks, with bonuses due 2026-12-30.",
+          "Brazilian stocks had their best day since 2020 after Bolsonaro led the first election round, and UBS repeated Buy and raised its target by 23% in September 2026."
+        ],
+        "invalidation": "Brent crude falling below about $70, production failing to cross 3 million barrels a day, or a cut in the dividend would disprove this thesis.",
+        "tail_risks": [
+          "The Brazilian government holds a majority of the voting shares, so a change in fuel-price or investment policy can move cash away from shareholders.",
+          "Crude near $90 rests partly on Middle East supply risk, and a fall in oil prices would cut cash flow and the dividend.",
+          "Some third-party valuations already call the ADS overvalued, and a downgrade on 11 October 2026 warns that the recent rise may not last."
+        ],
+        "evidence_limits": [
+          "The board's next dividend decision would show whether cash returns to shareholders or stays in the company.",
+          "The next production report would show whether output crosses 3 million barrels a day.",
+          "The runoff result and any new fuel-price policy would set the long-term value of the payout."
+        ],
+        "suggested_horizon": "1 Year",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "long"
+      }
+    ],
+    "data_gaps": [
+      "Forward earnings estimates and current share counts for the two AI-hardware companies are unknown, so the price-to-earnings comparisons in the forecasts are estimates.",
+      "The 2027 data-center capital-spending plans of the largest cloud buyers are unknown.",
+      "Petrobras' dividend policy after the Brazilian election, and the closing and funding terms of Crescent's purchase from Devon, are unknown."
+    ],
+    "error": ""
+  }
+}

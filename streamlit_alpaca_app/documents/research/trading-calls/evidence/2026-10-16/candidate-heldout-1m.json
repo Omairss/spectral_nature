@@ -1,0 +1,274 @@
+{
+  "role": "candidate-heldout",
+  "horizon": "1m",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 152.9618080840446,
+  "input_sha256": "0b0287162db14ad9c67fb8a5785c91a0fa3ee982cd3c214bbf2b450de24853bf",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "probabilistic_price_calls_v3",
+    "regime_read": "The one-month backdrop is a strong rise in biotechnology and diagnostics shares together with pressure on AI hardware from higher rate expectations, while crude near $90 in late September 2026 supports energy shares. That mix rewards company-specific events more than one sector direction.",
+    "portfolio_posture": "The book holds two longs — a drug maker that just removed its legal risk and a state oil producer facing an election — against three shorts — a drug-discovery platform that just sold new shares, an AI-optics supplier priced for its best case, and a shale buyer with an unfunded purchase — so the shared bet is company-specific execution.",
+    "candidates": [
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "LQDA",
+        "stance": "long",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.28,
+              "target_price": 20.0,
+              "assumptions": "Estimate: sales growth stops after the third quarter, a discounted share sale of about $150 million adds new shares, and the value falls about 28% from the $27.93 close on 14 October 2026 to $20.00.",
+              "return_pct": -28.392409595417114
+            },
+            {
+              "case": "base",
+              "probability": 0.42,
+              "target_price": 32.0,
+              "assumptions": "Estimate: the third-quarter report confirms sales near the preliminary $222.7 million, the first $175 million installment is paid from cash, and the shares rise about 15% to $32.00, near the level before the patent ruling.",
+              "return_pct": 14.572144647332607
+            },
+            {
+              "case": "bull",
+              "probability": 0.3,
+              "target_price": 42.0,
+              "assumptions": "Estimate: sales keep rising about 20% a quarter, the settlement carries no heavy royalty, and the shares rise about 50% to $42.00.",
+              "return_pct": 50.375939849624054
+            }
+          ],
+          "rationale": "The bull weight is the largest because the legal threat that caused the fall is gone and sales rose in each of the last five quarters, while the bear case needs a funding event that current operating cash flow may not require. The strongest opposing argument is that the $380.7 million of payments is about 2.5 times the $150.7 million of free cash flow over the four quarters to June 2026.",
+          "expected_return_pct": 13.283208020050118,
+          "reference_price": 27.93,
+          "reference_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 13.283208020050118,
+          "probability_up": 0.72,
+          "probability_profit": 0.72,
+          "downside_return_pct": -28.392409595417114,
+          "upside_return_pct": 50.375939849624054,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Liquidia ended all patent litigation with United Therapeutics on 13 October 2026, so the next month tests whether the shares hold the gain they made on that news.",
+        "hypothesis": "Liquidia's sales rose in each of the last five quarters and the legal threat to its only product is gone, so the shares have more room to rise than to fall over the next month. The third-quarter report, due inside this window, is the test.",
+        "evidence": [
+          "The 13 October 2026 global settlement ends all six lawsuits with United Therapeutics and keeps YUTREPIA on sale, removing the court order that could have stopped sales and caused the prior month's 58% fall.",
+          "Preliminary third-quarter YUTREPIA net sales were $222.7 million, above the $171.7 million reported for the second quarter of 2026.",
+          "Payments are a net $380.7 million over 2026 and 2027 plus $60.3 million this month, and second-quarter operating cash flow of $80.2 million shows the near-term installments are coverable if that pace holds."
+        ],
+        "invalidation": "A share sale priced below the market to fund the installments, or a confirmed third-quarter sales figure below the preliminary $222.7 million, would disprove this view.",
+        "tail_risks": [
+          "The settlement may carry a royalty on YUTREPIA sales, which would cut the profit on every future sale.",
+          "A court already found two valid claims infringed, so a later legal or licensing challenge could still limit the product.",
+          "The product's patent position is weaker after the September 2026 ruling, so a rival or generic version could take sales."
+        ],
+        "evidence_limits": [
+          "The full settlement terms — any royalty rate, the licence scope and the conditions on continued sales — are needed to judge the profit left per sale.",
+          "Cash on hand and the share count at 30 September 2026 show whether the January and April 2027 installments need new funding.",
+          "The confirmed third-quarter 2026 report and the stated cash runway show how long the current sales pace can fund the payments."
+        ],
+        "suggested_horizon": "1 Month",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "PBR",
+        "stance": "long",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.28,
+              "target_price": 22.0,
+              "assumptions": "Estimate: the runoff result points to fuel-price intervention and crude slips toward $80, cutting the expected dividend by about a fifth; the shares fall about 13% from the $25.325 close on 14 October 2026 to $22.00.",
+              "return_pct": -13.129318854886474
+            },
+            {
+              "case": "base",
+              "probability": 0.42,
+              "target_price": 26.5,
+              "assumptions": "Estimate: third-quarter output holds near 3 million barrels a day and the dividend is unchanged, so the shares drift about 5% higher from the $25.325 close on 14 October 2026 to $26.50.",
+              "return_pct": 4.639684106614017
+            },
+            {
+              "case": "bull",
+              "probability": 0.3,
+              "target_price": 30.0,
+              "assumptions": "Estimate: a market-friendly runoff outcome and crude near $90 support a higher dividend, lifting the shares about 18% from the $25.325 close to $30.00.",
+              "return_pct": 18.46001974333662
+            }
+          ],
+          "rationale": "The bull weight is modest because firm crude, rising output and a strong sector move support cash flow, but the payout is a board decision under state control and the price already reflects a large gain. The strongest opposing argument is that the shares trade above a value screen's estimate of fair value after a 128% one-year rise, so the good news may already be paid for.",
+          "expected_return_pct": 3.81046396841066,
+          "reference_price": 25.325,
+          "reference_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 3.81046396841066,
+          "probability_up": 0.72,
+          "probability_profit": 0.72,
+          "downside_return_pct": -13.129318854886474,
+          "upside_return_pct": 18.46001974333662,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Petrobras faces two dated events inside the next month, the third-quarter report and Brazil's presidential runoff, and both touch the dividend.",
+        "hypothesis": "Production close to 3 million barrels a day and crude near $90 keep Petrobras cash flow and its large dividend intact through the runoff, so the shares hold their gain.",
+        "evidence": [
+          "On 24 September 2026 the chief executive said Petrobras is close to reaching 3 million barrels of oil a day, which raises the cash that funds the dividend at firm crude prices.",
+          "Bolsonaro led Brazil's first round and Brazilian stocks had their best day since 2020, a market reaction that favors the shares.",
+          "UBS kept a Buy rating and raised its target by 23% in September 2026, while Wall Street Zen downgraded the shares on 11 October 2026 and a value screen called them overvalued."
+        ],
+        "invalidation": "An election outcome that points to fuel-price subsidies or a dividend cut, or Brent crude falling below about $80, would disprove this view.",
+        "tail_risks": [
+          "The government holds a majority of the voting shares, so a policy change can send cash to fuel subsidies instead of dividends.",
+          "The shares have risen about 128% in a year, so any earnings or dividend miss can cause a sharp fall.",
+          "Lower crude prices would cut both cash flow and the dividend."
+        ],
+        "evidence_limits": [
+          "The runoff result and any new fuel-price or capital-allocation policy will decide whether the payout stays intact.",
+          "Third-quarter 2026 production and the board's dividend decision will show whether cash flow covers the payout.",
+          "The Morpho well result off Amapá and the 21 new exploration blocks, with bonuses due 30 December 2026, will show the value of the exploration pipeline."
+        ],
+        "suggested_horizon": "1 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "RXRX",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.42,
+              "target_price": 3.15,
+              "assumptions": "Estimate: the new shares add to the count, third-quarter revenue stays below $10 million, and cash use keeps running near $95 million a quarter; the shares fall about 26% from the $4.25 close on 14 October 2026 to $3.15.",
+              "return_pct": -25.882352941176467
+            },
+            {
+              "case": "base",
+              "probability": 0.36,
+              "target_price": 4.2,
+              "assumptions": "Estimate: the shares settle near the October 2026 offering price and no new cash news arrives, giving about $4.20, roughly flat against the $4.25 close on 14 October 2026.",
+              "return_pct": -1.17647058823529
+            },
+            {
+              "case": "bull",
+              "probability": 0.22,
+              "target_price": 5.6,
+              "assumptions": "Estimate: the clinical updates and the partner milestone prove meaningful, the sector bid continues, and the shares rise about 32% from the $4.25 close to $5.60.",
+              "return_pct": 31.76470588235294
+            }
+          ],
+          "rationale": "The bear weight is the largest because new shares were sold, the reported revenue trend is uneven and the rally came before the news, so the price has more to lose than to gain in one month. The strongest opposing argument is that the sale was oversubscribed and came with fresh clinical and partner news, which can mark the start of a lasting re-rating.",
+          "expected_return_pct": -4.3058823529411745,
+          "reference_price": 4.25,
+          "reference_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 4.3058823529411745,
+          "probability_up": 0.22,
+          "probability_profit": 0.78,
+          "downside_return_pct": -25.882352941176467,
+          "upside_return_pct": 31.76470588235294,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Recursion raised $200 million of new shares on 15 October 2026 after a 33% one-month rise, so the next month tests whether that money and the new clinical news hold the price.",
+        "hypothesis": "The October 2026 share sale lowers each existing share's claim on future profits while revenue stays uneven and cash use stays heavy, so the shares give back part of their one-month gain.",
+        "evidence": [
+          "A $200 million oversubscribed share sale was announced on 15 October 2026 with clinical data updates and a partnership milestone, and selling new shares lowers the value of each existing share.",
+          "Free cash flow was about −$380 million for 2025, close to the −$376 million of 2024, so spending far exceeds cash generated.",
+          "Revenue fell to $5.2 million in the third quarter of 2025 from $26.1 million a year earlier, then jumped to $35.5 million in the fourth quarter, which shows partner payments arrive unevenly."
+        ],
+        "invalidation": "A disclosed clinical result that changes a programme's value, or a partnership payment large enough to fund a year of research, would disprove this view.",
+        "tail_risks": [
+          "A positive clinical readout can lift the shares sharply, because the company has no approved product and each result carries a large share of its value.",
+          "The biotechnology sector rally can continue and carry the shares up with it.",
+          "The new money, if it lasts longer than a year, removes the near-term need for another share sale and weakens the dilution argument."
+        ],
+        "evidence_limits": [
+          "What the 15 October 2026 clinical updates showed — the programme, the trial stage and the result — decides whether the news adds lasting value.",
+          "The cash value of the partnership milestone and the share count after the offering set how much each share is diluted.",
+          "Third-quarter 2026 revenue, the cash balance and the stated runway show how long the new money lasts."
+        ],
+        "suggested_horizon": "1 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "LITE",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.42,
+              "target_price": 870.0,
+              "assumptions": "Estimate: rate pressure and a cautious guide for the December quarter cut the valuation multiple by about a fifth, taking the shares about 22% below the $1,113.64 close on 14 October 2026 to $870.",
+              "return_pct": -21.877455360149423
+            },
+            {
+              "case": "base",
+              "probability": 0.33,
+              "target_price": 1120.0,
+              "assumptions": "Estimate: revenue grows as booked but the multiple stays flat, so the shares hold about 1% above the $1,113.64 close on 14 October 2026 at $1,120.",
+              "return_pct": 0.5715517202674159
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 1340.0,
+              "assumptions": "Estimate: the fiscal first-quarter report beats and repeats the sold-out message, and the shares rise about 20% from the $1,113.64 close to $1,340.",
+              "return_pct": 20.32667795103422
+            }
+          ],
+          "rationale": "The bear weight is the largest because the shares have risen about 597% in a year, the average broker target sits barely above the price, and rising rate expectations are already trimming AI hardware shares. The strongest opposing argument is the order book sold through early 2029, backed by NVIDIA's $2 billion investment, which can keep the shares rising while supply stays short.",
+          "expected_return_pct": -3.9182496958159554,
+          "reference_price": 1113.635,
+          "reference_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 3.9182496958159554,
+          "probability_up": 0.5800000000000001,
+          "probability_profit": 0.42,
+          "downside_return_pct": -21.877455360149423,
+          "upside_return_pct": 20.32667795103422,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Lumentum's shares are up about 597% in a year, and the fiscal first-quarter 2027 report, due in early November, is the first hard test of that price.",
+        "hypothesis": "The price already pays for the sold-out order book, so a modest miss or a cautious guide from the next report cuts the shares more than a beat adds, with rate pressure on AI hardware as the second force.",
+        "evidence": [
+          "The chief executive said on 9 October 2026 that AI optical components are booked through early 2029 and that the company is \"completely sold out, so there's no end in sight.\"",
+          "The average analyst target of $1,128.85 on 1 October 2026 sits only about 1% above the $1,113.64 close on 14 October 2026, so the market already prices the broker view.",
+          "September 2026 producer prices rose 6.3% from a year earlier, which raised rate-hike bets and hit AI hardware shares, and SK Hynix fell the most in seven days since 2008."
+        ],
+        "invalidation": "A fiscal first-quarter 2027 report with revenue above $1.1 billion, a higher gross margin and a repeated sold-out message would disprove this view.",
+        "tail_risks": [
+          "A stronger-than-expected report with raised guidance can lift the shares far above the modelled bull case.",
+          "New long-term contracts or a further customer commitment can extend the sold-out order book and lift the shares.",
+          "A fall in rate expectations would raise the whole AI-hardware group, whatever the company reports."
+        ],
+        "evidence_limits": [
+          "Fiscal first-quarter 2027 revenue, gross margin and whether the sold-out language still holds decide whether the price is justified.",
+          "Backlog size and customer concentration in the fiscal 2026 annual report show how much of the growth is committed by contract.",
+          "Competitor indium phosphide capacity additions and any second-source qualification show how long the shortage can last."
+        ],
+        "suggested_horizon": "1 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      }
+    ],
+    "data_gaps": [
+      "One-month crude oil prices are not established, and the energy calls depend on them.",
+      "The result of Brazil's presidential runoff is not known.",
+      "The path of interest-rate expectations after the September 2026 producer-price report is not known, and AI-hardware shares are sensitive to it."
+    ],
+    "error": ""
+  }
+}
