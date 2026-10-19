@@ -57,3 +57,34 @@ def test_enqueue_due_passes_the_current_bucket_boundary(monkeypatch):
         "due_before": datetime(2026, 10, 7, 14, 0, tzinfo=timezone.utc),
         "reason": "scheduled",
     }
+
+
+def test_sync_cli_uses_background_admission_without_a_pipeline_job_name(monkeypatch):
+    import importlib.util
+    import sys
+    from pathlib import Path
+    from services.database import _workload, database_workload
+
+    path = Path(__file__).parents[1] / "scripts/sync_robinhood_main.py"
+    spec = importlib.util.spec_from_file_location("broker_sync_cli_probe", path)
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    monkeypatch.delenv("PIPELINE_JOB_NAME", raising=False)
+    monkeypatch.setattr(sys, "argv", [str(path), "--environment", "development", "--schedule-due"])
+    observed = []
+    def ready():
+        observed.append(_workload())
+        return True
+    def enqueue(**kwargs):
+        observed.append(_workload())
+        return 0
+    def pending(**kwargs):
+        observed.append(_workload())
+        return []
+    monkeypatch.setattr(cli.robinhood_main_store, "schema_ready", ready)
+    monkeypatch.setattr(cli.robinhood_main_sync, "enqueue_due", enqueue)
+    monkeypatch.setattr(cli.robinhood_main_sync, "run_pending", pending)
+    with database_workload("interactive"):
+        assert cli.main() == 0
+        assert _workload() == "interactive"
+    assert observed == ["background", "background", "background"]

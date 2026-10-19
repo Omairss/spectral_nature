@@ -1,0 +1,37 @@
+{
+  "runtime": [
+    {
+      "name": "database_lifecycle",
+      "roles": ["worker", "api-next", "broker"],
+      "files": ["services/database.py", "services/work_scope.py"],
+      "definitions": {
+        "services/auth_store.py": ["_db_connect"],
+        "services/pipeline_store.py": ["open_database_connection", "latest_dataset_metadata"]
+      }
+    },
+    {
+      "name": "pipeline_publication",
+      "roles": ["worker"],
+      "definitions": {
+        "pipeline/jobs/main.py": ["_db_connection", "_call_with_timeout", "_upload_manifest", "_persist_dataset"],
+        "services/pipeline_store.py": ["publish_dataset_manifest"]
+      }
+    },
+    {
+      "name": "broker_background",
+      "roles": ["broker"],
+      "files": ["scripts/sync_robinhood_main.py"]
+    }
+  ],
+  "production_jobs": [
+    {
+      "name": "system-recovery",
+      "role": "worker",
+      "pipeline_job": "system-recovery",
+      "dataset_namespace": "",
+      "trigger": "Schedule",
+      "cron": "7,22,37,52 * * * *",
+      "environment": {"SYSTEM_RECOVERY_BUDGET_SECONDS": "60"}
+    }
+  ]
+}

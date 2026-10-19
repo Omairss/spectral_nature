@@ -40,6 +40,10 @@ def test_late_consumer_change_prevents_every_patch(release, tmp_path, monkeypatc
 
     def azure(*args):
         assert "patch" not in args, "A late preflight failure must prevent every mutation"
+        if "/jobs?" in args[-1]:
+            return {"value": [{**deepcopy(resource), "name": name} for name in ("first-dev", "last-dev")]}
+        if "/containerApps?" in args[-1]:
+            return {"value": []}
         value = deepcopy(resource)
         if "last-dev" in args[-1]:
             value["properties"]["configuration"]["changed"] = True
@@ -71,11 +75,15 @@ def test_asynchronous_template_visibility_is_awaited(release, tmp_path, monkeypa
 
     def azure(*args):
         value = deepcopy(resource)
+        if "/jobs?" in args[-1]:
+            return {"value": [{**value, "name": "worker-dev"}]}
+        if "/containerApps?" in args[-1]:
+            return {"value": []}
         if "patch" in args:
             patches.append(True)
         else:
             reads.append(True)
-            if len(reads) >= 4:
+            if patches and len(reads) >= 4:
                 value["properties"]["template"]["containers"][0]["image"] = image
         return value
 
@@ -102,3 +110,53 @@ def test_web_build_uses_frontend_dockerfile_and_reviewed_frontend_inputs(release
     manifest = next(value.split("=", 1)[1] for value in command if value.startswith("WEB_SOURCE_FILES="))
     assert json.loads(base64.b64decode(manifest)) == files
     assert "DEPENDENCY_IMAGE=node@sha256:pinned" in command
+
+
+def test_missing_role_prevents_a_partial_release(release, tmp_path, monkeypatch):
+    images = tmp_path / "images.json"
+    images.write_text(json.dumps({"images": {"worker": "registry@sha256:worker"}}))
+    monkeypatch.setattr(release, "acceptance", lambda: {"roles": {
+        "worker": {"development_targets": [{"name": "worker-dev"}]},
+        "broker": {"development_targets": [{"name": "broker-dev"}]}}})
+    monkeypatch.setattr(release, "azure", lambda *args: pytest.fail("Incomplete roles must fail before Azure"))
+    with pytest.raises(ValueError, match="every reviewed deployment role"):
+        release.deploy(SimpleNamespace(images=images, command="deploy-development"))
+
+
+def test_unreviewed_live_consumer_prevents_all_image_changes(release, tmp_path, monkeypatch):
+    image = "registry@sha256:worker"
+    resource = {"name": "worker-dev", "identity": {}, "location": "westus", "properties": {
+        "configuration": {}, "template": {"containers": [{"image": "previous"}]}}}
+    target = {"kind": "jobs", "name": "worker-dev", "previous_image": "previous",
+              "configuration_api_version": release.API_VERSION,
+              "configuration_sha256": release.fingerprint(release.configuration(resource))}
+    images = tmp_path / "images.json"
+    images.write_text(json.dumps({"images": {"worker": image}, "source_inventory_sha256": "reviewed"}))
+    monkeypatch.setattr(release, "acceptance", lambda: {"roles": {"worker": {"development_targets": [target]}}})
+    monkeypatch.setattr(release, "verify", lambda role: {"source_inventory_sha256": "reviewed"})
+    monkeypatch.setattr(release, "verify_image", lambda *args: None)
+    def azure(*args):
+        assert "patch" not in args
+        return {"value": [] if "/containerApps?" in args[-1] else [resource, {**resource, "name": "forgotten-job"}]}
+    monkeypatch.setattr(release, "azure", azure)
+    with pytest.raises(ValueError, match="complete review"):
+        release.deploy(SimpleNamespace(images=images, command="deploy-development", output=tmp_path,
+                                       subscription="subscription", resource_group="group"))
+
+
+def test_matching_hash_cannot_hide_a_recovery_job_pointed_at_development(release, monkeypatch):
+    resource = {"name": "recovery", "identity": {}, "location": "westus", "properties": {
+        "configuration": {"triggerType": "Schedule", "scheduleTriggerConfig": {
+            "cronExpression": "7,22,37,52 * * * *"}}, "template": {"containers": [{"image": "accepted",
+            "env": [{"name": "PIPELINE_JOB_NAME", "value": "system-recovery"},
+                    {"name": "PIPELINE_DATASET_NAMESPACE", "value": "development"}]}]}}}
+    target = {"name": "recovery", "kind": "jobs", "previous_image": "accepted",
+              "configuration_api_version": release.API_VERSION,
+              "configuration_sha256": release.fingerprint(release.configuration(resource)),
+              "execution_binding": {"pipeline_job": "system-recovery", "dataset_namespace": "",
+                                    "trigger": "Schedule", "cron": "7,22,37,52 * * * *"}}
+    accepted = {"roles": {"worker": {"production_targets": [target]}}}
+    monkeypatch.setattr(release, "azure", lambda *args: {"value": [] if "/containerApps?" in args[-1] else [resource]})
+    with pytest.raises(ValueError, match="execution binding changed"):
+        release.preflight_consumers(SimpleNamespace(command="deploy-production", subscription="subscription",
+                                                   resource_group="group"), accepted, {"worker": "accepted"})

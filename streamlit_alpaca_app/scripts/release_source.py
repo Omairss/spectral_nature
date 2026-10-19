@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 from pathlib import Path
@@ -62,6 +63,106 @@ def role_runtime_inventory(accepted: dict, role: str) -> dict[str, str]:
             raise ValueError("The web role requires its complete reviewed frontend input inventory.")
         return selected
     return accepted["runtime_files"]
+
+
+def declared_consumers(accepted: dict) -> dict[str, dict]:
+    consumers = {}
+    for role, contract in accepted["roles"].items():
+        if role not in SUPPORTED_ROLES:
+            raise ValueError(f"Unsupported consumer role: {role}.")
+        for environment in ("development", "production"):
+            for target in contract.get(environment + "_targets", []):
+                name = target["name"]
+                if name in consumers:
+                    raise ValueError(f"Consumer declared more than once: {name}.")
+                consumers[name] = {**target, "role": role, "delivery": "release",
+                                   "environment": environment}
+    for retained in accepted.get("untouched_consumers", []):
+        name = retained["name"]
+        if name in consumers or retained.get("role") not in accepted["roles"]:
+            raise ValueError(f"Retained consumer needs one explicit application role: {name}.")
+        consumers[name] = {**retained, "delivery": "retained"}
+    return consumers
+
+
+def _contract_signature(revision: str, contract: dict) -> dict[str, str]:
+    signature = {}
+    for path in contract.get("files", []):
+        source = git("show", f"{revision}:streamlit_alpaca_app/{path}")
+        value = ast.dump(ast.parse(source), include_attributes=False) if path.endswith(".py") else source.decode()
+        signature["file:" + path] = hashlib.sha256(value.encode()).hexdigest()
+    for path, names in contract.get("definitions", {}).items():
+        source = ast.parse(git("show", f"{revision}:streamlit_alpaca_app/{path}"))
+        definitions = {node.name: node for node in source.body if hasattr(node, "name")}
+        for name in names:
+            if name not in definitions:
+                raise ValueError(f"Required consumer definition is missing: {path}:{name}.")
+            value = ast.dump(definitions[name], include_attributes=False)
+            signature[f"definition:{path}:{name}"] = hashlib.sha256(value.encode()).hexdigest()
+    if not signature:
+        raise ValueError("A consumer contract needs executable source requirements.")
+    return signature
+
+
+def verify_consumer_contracts(accepted: dict) -> None:
+    consumers = declared_consumers(accepted)
+    policy = json.loads(git("show", "HEAD:streamlit_alpaca_app/config/release_contracts.json"))
+    contracts = policy.get("runtime")
+    if not consumers or not contracts:
+        raise ValueError("Complete consumer coverage and shared runtime contracts are required.")
+    if len({contract.get("name") for contract in contracts}) != len(contracts):
+        raise ValueError("Shared runtime contracts must have distinct names.")
+    signatures = {}
+    for contract in contracts:
+        review = accepted.get("consumer_contract_reviews", {}).get(contract.get("name"), {})
+        if (not contract.get("name") or not contract.get("roles") or
+                not set(contract["roles"]).issubset(accepted["roles"]) or
+                review.get("status") != "accepted" or
+                not (APP / review.get("evidence", "")).is_file()):
+            raise ValueError("Each shared runtime contract needs roles and review evidence.")
+        paths = set(contract.get("files", [])) | set(contract.get("definitions", {}))
+        if not paths.issubset(accepted["runtime_files"]):
+            raise ValueError("Consumer requirements must belong to the packaged runtime.")
+        signatures[contract["name"]] = _contract_signature(accepted["source_revision"], contract)
+    for name, consumer in consumers.items():
+        review = consumer.get("preservation_review", {})
+        image = consumer.get("image") or consumer.get("previous_image") or consumer.get("baseline_image")
+        if (review.get("status") != "accepted" or review.get("image") != image or
+                not (APP / review.get("evidence", "")).is_file()):
+            raise ValueError(f"Consumer needs an explicit behavior review: {name}.")
+        if consumer["delivery"] == "release":
+            continue  # Complete role image verification covers the selected source.
+        applicable = [contract for contract in contracts if consumer["role"] in contract["roles"]]
+        if not applicable:
+            continue
+        revision = review.get("source_revision")
+        evidence = APP / review.get("package_evidence", "")
+        if not revision or not evidence.is_file():
+            raise ValueError(f"Retained consumer needs verified image/source evidence: {name}.")
+        proofs = json.loads(evidence.read_text())
+        if not isinstance(proofs, list) or not any(
+            proof.get("image") == image and proof.get("role") == consumer["role"] and
+            proof.get("source_revision") == revision and
+            (proof.get("complete_git_inventory_matches") is True or
+             proof.get("all_packaged_files_checked") is True)
+            for proof in proofs
+        ):
+            raise ValueError(f"Image/source verification does not cover retained consumer: {name}.")
+        for contract in applicable:
+            key = (revision, contract["name"])
+            if key not in signatures:
+                try:
+                    signatures[key] = _contract_signature(revision, contract)
+                except subprocess.CalledProcessError as exc:
+                    raise ValueError(f"Retained consumer lacks {contract['name']}: {name}.") from exc
+            if signatures[key] != signatures[contract["name"]]:
+                raise ValueError(f"Retained consumer lacks accepted {contract['name']}: {name}.")
+    for required in policy.get("production_jobs", []):
+        consumer = consumers.get(required["name"], {})
+        if (consumer.get("role") != required["role"] or consumer.get("kind") != "jobs" or
+                consumer.get("environment") != "production" or
+                consumer.get("execution_binding") != required):
+            raise ValueError(f"Required production execution binding is missing: {required['name']}.")
 
 
 def verify_target(role: str, target: str) -> dict:
@@ -127,6 +228,7 @@ def verify(role: str) -> dict:
             raise ValueError("Missing component verification evidence.")
         if not set(component["files"]).issubset(selected.keys() | retired):
             raise ValueError("Component review references source outside the accepted inventory.")
+    verify_consumer_contracts(accepted)
     contract = accepted["roles"][role]
     if not contract.get("baseline_images") or "@sha256:" not in contract["dependency_image"]:
         raise ValueError("Pin the dependencies and each consumer's previous accepted image.")

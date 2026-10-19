@@ -17,7 +17,7 @@ from pathlib import Path
 import subprocess
 import time
 
-from release_source import APP, acceptance, verify, verify_image
+from release_source import APP, acceptance, declared_consumers, verify, verify_image
 
 API_VERSION = "2025-07-01"
 
@@ -46,6 +46,61 @@ def configuration(resource: dict) -> dict:
 
 def fingerprint(value) -> str:
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def preflight_consumers(args, accepted: dict, images: dict, *, allow_missing: frozenset[str] = frozenset()) -> dict:
+    expected = declared_consumers(accepted)
+    actual = {}
+    actual_kinds = {}
+    for kind in ("containerApps", "jobs"):
+        url = (f"https://management.azure.com/subscriptions/{args.subscription}/resourceGroups/"
+               f"{args.resource_group}/providers/Microsoft.App/{kind}?api-version={API_VERSION}")
+        while url:
+            page = azure("rest", "--method", "get", "--url", url)
+            for resource in page["value"]:
+                if resource["name"] in actual:
+                    raise ValueError("Ambiguous live consumer name across application resources.")
+                actual[resource["name"]] = resource
+                actual_kinds[resource["name"]] = kind
+            url = page.get("nextLink")
+    missing = expected.keys() - actual.keys()
+    other_environment = args.command.removeprefix("deploy-")
+    planned_later = {name for name, consumer in expected.items() if consumer.get("new_resource") and
+                     consumer["delivery"] == "release" and consumer.get("environment") != other_environment}
+    provisionable = {name for name, consumer in expected.items() if consumer.get("new_resource") and
+                     consumer["delivery"] == "release" and consumer.get("environment") == other_environment}
+    if (missing - allow_missing - planned_later or actual.keys() - expected.keys() or
+            allow_missing - provisionable):
+        raise ValueError("Live application consumer inventory differs from its complete review: "
+                         f"missing={sorted(missing)}, added={sorted(actual.keys() - expected.keys())}.")
+    for name, resource in actual.items():
+        review = expected[name]
+        if review.get("kind", "").casefold() != actual_kinds[name].casefold():
+            raise ValueError(f"Consumer application resource kind changed: {name}.")
+        current_image = resource["properties"]["template"]["containers"][0]["image"]
+        baseline = review.get("previous_image") or review.get("image")
+        permitted = {baseline}
+        if review["delivery"] == "release" and review["role"] in images:
+            permitted.add(images[review["role"]])
+            if args.command == "deploy-production" and review.get("environment") == "development":
+                permitted = {images[review["role"]]}
+        if current_image not in permitted:
+            raise ValueError(f"Consumer image changed after review: {name}.")
+        if (review.get("configuration_api_version") != API_VERSION or
+                fingerprint(configuration(resource)) != review.get("configuration_sha256")):
+            raise ValueError(f"Consumer configuration changed after review: {name}.")
+        binding = review.get("execution_binding")
+        if binding:
+            config = resource["properties"]["configuration"]
+            env = {item["name"]: item.get("value") for item in
+                   resource["properties"]["template"]["containers"][0].get("env", [])}
+            if (env.get("PIPELINE_JOB_NAME") != binding["pipeline_job"] or
+                    env.get("PIPELINE_DATASET_NAMESPACE", "") != binding["dataset_namespace"] or
+                    config.get("triggerType") != binding["trigger"] or
+                    (config.get("scheduleTriggerConfig") or {}).get("cronExpression") != binding["cron"] or
+                    any(env.get(key) != value for key, value in binding.get("environment", {}).items())):
+                raise ValueError(f"Required execution binding changed: {name}.")
+    return actual
 
 
 def build(args) -> None:
@@ -85,6 +140,10 @@ def deploy(args) -> None:
                 review.get("source_inventory_sha256") != record["source_inventory_sha256"] or
                 not review.get("evidence") or not (APP / review["evidence"]).is_file()):
             raise ValueError("Production requires owner authorization and development acceptance of these exact images.")
+    required_roles = {role for role, contract in accepted["roles"].items()
+                      if contract.get(environment + "_targets")}
+    if set(record["images"]) != required_roles:
+        raise ValueError("The image record must include every reviewed deployment role.")
     receipts = []
     prepared = []
     # Recheck the complete source and each role before making the first change.
@@ -95,6 +154,7 @@ def deploy(args) -> None:
         if "@sha256:" not in record["images"][role]:
             raise ValueError("Image templates require immutable digests.")
         verify_image(role, record["images"][role])
+    preflight_consumers(args, accepted, record["images"])
     for role, image in record["images"].items():
         for target in accepted["roles"][role].get(environment + "_targets", []):
             kind, name = target["kind"], target["name"]
@@ -106,7 +166,7 @@ def deploy(args) -> None:
             if len(template["containers"]) != 1:
                 raise ValueError(f"Review multiple application containers before changing {name}.")
             previous_image = template["containers"][0]["image"]
-            if previous_image not in {target["previous_image"], image}:
+            if previous_image not in {target.get("previous_image"), image}:
                 raise ValueError(f"{name} no longer has its reviewed prior image; reconcile that consumer before release.")
             if fingerprint(configuration(before)) != target["configuration_sha256"]:
                 raise ValueError(f"{name} configuration changed after review; preserve and reconcile that change first.")
