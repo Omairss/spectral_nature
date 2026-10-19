@@ -1,0 +1,73 @@
+[
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
+    "role": "api-next",
+    "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+    "source_inventory_sha256": "4b767c98b11161728e5eccd5d28da868f1fa5f8c977c7795fc002c4637db27b6",
+    "runtime_inventory_sha256": "e0dfa2d3df65b5a2ec62639a61368c61420a71811097b34c72f91d3715320396",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "runtime_files": 187,
+    "modules_imported": 149,
+    "external_attempts": 0,
+    "dependencies": {
+      "psycopg": "3.3.6",
+      "psycopg_pool": "3.3.3",
+      "pandas": "2.3.3",
+      "numpy": "1.26.4"
+    },
+    "verification_run": "cj19s"
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390",
+    "role": "broker",
+    "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+    "source_inventory_sha256": "4b767c98b11161728e5eccd5d28da868f1fa5f8c977c7795fc002c4637db27b6",
+    "runtime_inventory_sha256": "e0dfa2d3df65b5a2ec62639a61368c61420a71811097b34c72f91d3715320396",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "runtime_files": 187,
+    "modules_imported": 149,
+    "external_attempts": 0,
+    "dependencies": {
+      "psycopg": "3.3.6",
+      "psycopg_pool": "3.3.3",
+      "pandas": "2.3.3",
+      "numpy": "1.26.4"
+    },
+    "verification_run": "cj19t"
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+    "role": "worker",
+    "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+    "source_inventory_sha256": "4b767c98b11161728e5eccd5d28da868f1fa5f8c977c7795fc002c4637db27b6",
+    "runtime_inventory_sha256": "e0dfa2d3df65b5a2ec62639a61368c61420a71811097b34c72f91d3715320396",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "runtime_files": 187,
+    "modules_imported": 149,
+    "external_attempts": 0,
+    "dependencies": {
+      "psycopg": "3.3.6",
+      "psycopg_pool": "3.3.3",
+      "pandas": "2.3.3",
+      "numpy": "1.26.4"
+    },
+    "verification_run": "cj19u"
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
+    "role": "web",
+    "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+    "source_inventory_sha256": "4b767c98b11161728e5eccd5d28da868f1fa5f8c977c7795fc002c4637db27b6",
+    "runtime_inventory_sha256": "1ffdfa469f872bb69348e9486b60e4b2bdff0c912140f47008cecbe6167658c6",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "input_files": 86,
+    "compiled_files": 1703,
+    "symlinks": 0,
+    "node": "v22.23.3",
+    "verification_run": "cj19v"
+  }
+]
