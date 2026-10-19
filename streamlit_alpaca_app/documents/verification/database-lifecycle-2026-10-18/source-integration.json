@@ -1,0 +1,31 @@
+{
+  "previous_head": "725caebdeca15611f257da6c3fc8a2539f4f74e4",
+  "prepared_branch_head": "99864e595a1dc76c8ee06544d7f7d70182296a61",
+  "integration_commit": "c090d7746d416ccbe609355487500f73bf44a872",
+  "committed_tree_matches_reviewed_branch": true,
+  "other_pipeline_text_preserved_exactly": true,
+  "unrelated_dirty_files_preserved": true,
+  "unrelated_dirty_files_checked": 10,
+  "stashed_or_reset": false,
+  "integrated_files": [
+    "streamlit_alpaca_app/documents/learnings.md",
+    "streamlit_alpaca_app/documents/mistakes.md",
+    "streamlit_alpaca_app/documents/plans/DATABASE_WORK_LIFECYCLE_2026-10-16.md",
+    "streamlit_alpaca_app/documents/research/README.md",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-16/README.md",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/README.md",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/configuration-audit.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/development-deployment.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/home-overlap.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/index-observation.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/local-checks.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/normal-recovery.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/packaged-images.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/reconciliation.json",
+    "streamlit_alpaca_app/documents/verification/database-lifecycle-2026-10-18/recovery-overlap.json",
+    "streamlit_alpaca_app/infra/release_acceptance.json",
+    "streamlit_alpaca_app/pipeline/jobs/main.py",
+    "streamlit_alpaca_app/tests/test_timeout_ownership.py"
+  ],
+  "merge_commit": "0a7c9f2ae81ae0c5ade02cab1722665193258e8d"
+}

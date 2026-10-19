@@ -26,3 +26,7 @@ The development release also updates `evidence-index-dev` and `system-recovery-d
 - Scheduled `evidence-index-dev-29872960` succeeded alongside the controlled probe and logged **27,843/27,843 chunks indexed**. [Index observation](index-observation.json).
 
 The controlled checks made no model calls and did not regenerate research, change source permissions, send notifications or alter schedules. The source policy remains enforced. This proves scoped DEV execution, continuation and serving behavior; it does not measure a full production refresh cycle, daily CPU reduction or LLM answer quality. Global permits protect participating database clients' concurrency rather than a guaranteed CPU percentage. Hierarchical summarization remains disabled.
+
+## Source integration
+
+The reviewed branch is merged into the main checkout. [Integration proof](source-integration.json) records exact preservation of all other pipeline text, ten unrelated dirty files and the complete reviewed committed tree. Other sessions' changes in shared documents were retained through exact patch application. No active work was stashed, reset or included in this development image. The newer learning-provenance commit is also retained in the branch history.
