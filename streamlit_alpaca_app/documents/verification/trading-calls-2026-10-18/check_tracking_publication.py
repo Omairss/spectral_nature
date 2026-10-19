@@ -21,7 +21,7 @@ def complete(frame):
  assert tracking.DATASET in published
  events.append('complete')
 def enqueue(frame,calls):
- assert 'complete' in events
+ assert tracking.DATASET in published
  events.append('enqueue')
 with patch.object(tracking,'initialize_tracking'),patch.object(tracking,'approved_calls',return_value=[call]),patch.object(jobs,'load_latest_dataset_frame',return_value=(pd.DataFrame(),None)),patch.object(jobs,'_bars_to_price_history_frame',return_value=prices),patch.object(jobs,'_persist_dataset',side_effect=persist),patch.object(tracking,'pin_entries',side_effect=pin),patch.object(tracking,'complete_calls',side_effect=complete),patch.object(tracking,'enqueue_outcome_reviews',side_effect=enqueue),patch.object(jobs,'_job_progress'):
  fail_publication=True
@@ -35,6 +35,11 @@ with patch.object(tracking,'initialize_tracking'),patch.object(tracking,'approve
  assert abs(outcome.return_pct-10)<1e-8 and outcome.price_dataset_version=='qa-'+tracking.PRICE_DATASET
  assert outcome.status=='matured'
  frame=published[tracking.DATASET]
+ call['completed_at_utc']=ctx.asof
+ events.clear()
+ with patch.object(jobs,'load_latest_dataset_frame',return_value=(frame,None)):
+  jobs.run_trading_call_tracking(ctx,api=API())
+ assert events==['enqueue'],events
  metadata=SimpleNamespace(asof_time_utc='2026-10-27T12:00:00Z')
  def projected(_metadata,columns,symbols=None):return frame[columns]
  with patch.object(tracking,'approved_calls',return_value=[call]):
