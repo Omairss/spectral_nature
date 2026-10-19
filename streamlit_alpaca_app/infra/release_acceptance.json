@@ -1431,8 +1431,14 @@
     "recorded_date": "2026-10-18"
   },
   "development_acceptance": {
-    "status": "pending",
-    "evidence": "documents/verification/complete-reliability-restoration-2026-10-18/DEVELOPMENT.md"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2"
+    },
+    "source_inventory_sha256": "e753fa440dbf09acf548d3609ca26962f4104cb96602e38d7a7e92efc8588c37",
+    "evidence": "documents/verification/complete-reliability-restoration-2026-10-18/DEVELOPMENT.md",
+    "limitations": "No fresh model generation, real broker refresh/order or email delivery; core model/producer/broker/monitoring behavior is preserved by the preceding image comparison and unchanged Git source. Normal production job monitoring remains to be observed."
   },
   "preceding_hold": {
     "revision": "20108c58",

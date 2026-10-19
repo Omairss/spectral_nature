@@ -1,0 +1,13 @@
+# Development acceptance
+
+Accepted exact images built from Git `00560e7c49e00b82e33be7226df1eb58503cb4a3`: worker `3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd`, broker `bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2`. [Complete package verification](packaged-images.json), [image-only deployment](development-deployment.json), [actual execution reports](development-results.json).
+
+Only `system-recovery-dev` and `robinhood-main-sync-dev` templates changed. Both retained identical configurations. Per-execution command overrides exercised installed application code; no application file was replaced.
+
+`system-recovery-dev-0sh8boc` ran the actual pipeline entrypoint for universe, fundamentals and recovery in `qa_reliability_20261019`. Universe generated 20 rows from the market-data path. Fundamentals generated 1,053 rows for three representative symbols using the existing bundled-data path, with upstream refresh disabled for this probe. Both published to the isolated namespace and retained successful completion receipts with matching dataset identities. Recovery checked four manifests, advanced its durable cursor from absent to four in 0.708 seconds, and correctly retained Warning because a full scan remained. All work took 20.708 seconds; zero database acquisition failures were reported.
+
+`system-recovery-dev-fz3ce6u` exercised the monitoring read/evaluation path at the production health job's unchanged 0.25 CPU / 0.5 GiB allocation. It read the existing production Home publication, five Trading rows and current jobs/provider state in 1.467 seconds. It made no incident-state or notification call. It reported the existing `pipeline-job-failed-zopedia-maintenance` condition; a functioning monitor is not evidence that all monitored work is healthy.
+
+`robinhood-main-sync-dev-w0fzp6u` exercised the installed CLI against the real control database using a unique empty QA account environment. It enqueued/processed zero requests, observed six real database acquisitions classified as background, and completed in 0.275 seconds without acquisition failures. No account sync, order, schema migration or credential change occurred.
+
+All three cloud executions succeeded. These checks establish execution, preservation and continuation. They do not certify fresh upstream fundamentals, model reasoning, live brokerage output, email delivery or a reduction in production database CPU. Those unchanged behaviors retain the preceding accepted source/image evidence; the real PostgreSQL cancellation/admission/transaction checks are recorded in [local acceptance](LOCAL.md).

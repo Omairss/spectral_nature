@@ -1,0 +1,133 @@
+{
+  "pipeline": {
+    "probe": "pipeline",
+    "job": "system-recovery-dev",
+    "execution": "system-recovery-dev-0sh8boc",
+    "container": "evidence-index",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "status": "Succeeded",
+    "report": {
+      "kind": "pipeline_publication_recovery",
+      "outputs": {
+        "universe-builder": {
+          "rows": 20,
+          "dataset_version_id": "qa_reliability_20261019__universe_snapshot__20261019T054408Z__6e199cba",
+          "receipt_status": "Succeeded",
+          "datasets": {
+            "universe_snapshot": "qa_reliability_20261019__universe_snapshot__20261019T054408Z__6e199cba"
+          }
+        },
+        "fundamentals-quarterly-refresh": {
+          "rows": 1053,
+          "dataset_version_id": "qa_reliability_20261019__quarterly_fundamentals__20261019T054422Z__6f203712",
+          "receipt_status": "Succeeded",
+          "datasets": {
+            "quarterly_fundamentals": "qa_reliability_20261019__quarterly_fundamentals__20261019T054422Z__6f203712"
+          }
+        }
+      },
+      "cursor_before": null,
+      "cursor_after": {
+        "offset": 4
+      },
+      "recovery_receipt_status": "Warning",
+      "namespace": "qa_reliability_20261019",
+      "database": {
+        "leases": 51,
+        "wait_seconds": 2.62499226299974,
+        "acquisition_failures": 0,
+        "admission_wait_seconds": 0.0,
+        "admission_waits": 0,
+        "cancellations": 0,
+        "scope": "current_process",
+        "admission_scope": "physical_database",
+        "global_active_limit": 3,
+        "global_background_limit": 1
+      },
+      "elapsed_seconds": 20.708
+    }
+  },
+  "health": {
+    "probe": "health",
+    "job": "system-recovery-dev",
+    "execution": "system-recovery-dev-fz3ce6u",
+    "container": "evidence-index",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+    "status": "Succeeded",
+    "report": {
+      "kind": "health_read",
+      "home_version": "attention_home_1d__20261018T213019Z__627a7ea2",
+      "job_names": [
+        "attention-home-build",
+        "attention-ticker-snapshot-build",
+        "commodities-regime",
+        "company-baseline-prefetch",
+        "daily-market-datapoints-build",
+        "entity-taxonomy-refresh",
+        "equities-intraday-preload",
+        "fundamentals-quarterly-refresh",
+        "home-repair-publication-resume",
+        "macro-fred-daily",
+        "news-ingest-and-features",
+        "options-liquid-universe",
+        "research-run-execute",
+        "system-health",
+        "trading-agent-build",
+        "trading-call-tracking",
+        "universe-builder",
+        "zopedia-learning",
+        "zopedia-maintenance"
+      ],
+      "trading_rows": 5,
+      "issues": [
+        "pipeline-job-failed-zopedia-maintenance"
+      ],
+      "notification_calls": 0,
+      "database": {
+        "leases": 2,
+        "wait_seconds": 0.11923418599997149,
+        "acquisition_failures": 0,
+        "admission_wait_seconds": 0.0,
+        "admission_waits": 0,
+        "cancellations": 0,
+        "scope": "current_process",
+        "admission_scope": "physical_database",
+        "global_active_limit": 3,
+        "global_background_limit": 1
+      },
+      "elapsed_seconds": 1.467
+    }
+  },
+  "broker": {
+    "probe": "broker",
+    "job": "robinhood-main-sync-dev",
+    "execution": "robinhood-main-sync-dev-w0fzp6u",
+    "container": "robinhood-main-sync-dev",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:bcf893e2b0d8d5677dc0177fb1098bfa80104d7f70392666390d08436a379ef2",
+    "status": "Succeeded",
+    "report": {
+      "kind": "broker_queue",
+      "admission_classifications": [
+        "background",
+        "background",
+        "background",
+        "background",
+        "background",
+        "background"
+      ],
+      "database": {
+        "leases": 6,
+        "wait_seconds": 0.2561238349999826,
+        "acquisition_failures": 0,
+        "admission_wait_seconds": 0.0,
+        "admission_waits": 0,
+        "cancellations": 0,
+        "scope": "current_process",
+        "admission_scope": "physical_database",
+        "global_active_limit": 3,
+        "global_background_limit": 1
+      },
+      "elapsed_seconds": 0.275
+    }
+  }
+}
