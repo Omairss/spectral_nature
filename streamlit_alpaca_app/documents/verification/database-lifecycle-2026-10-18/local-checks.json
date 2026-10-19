@@ -1,0 +1,13 @@
+{
+  "offline_checks_passed": 28,
+  "seconds": 6.04,
+  "changed_runtime_files": [
+    "pipeline/jobs/main.py"
+  ],
+  "changed_function": "run_system_recovery",
+  "retained_hotfix_contracts": "AQL checkpoint fallback and completed-source preservation pass; Home/learning code byte-identical to current accepted Git.",
+  "source_review": "103 other main.py definitions unchanged; nine protected shared/hotfix files unchanged.",
+  "known_old_probe": "October 16 cursor stayed at four during contention because the manifest phase had only 24 of 60 seconds.",
+  "new_probe": "A 30-second simulated admission wait now advances cursor four to eight within the original total budget.",
+  "paid_model_calls": 0
+}
