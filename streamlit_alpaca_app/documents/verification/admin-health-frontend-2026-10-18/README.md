@@ -27,3 +27,5 @@ The [33-resource audit](configuration-audit.json) verifies **one image change**,
 ## Integration and cleanup
 
 The reviewed release branch is merged into the main checkout. [Integration proof](source-integration.json) verifies the complete reviewed committed tree, fourteen unrelated dirty files and exact preservation of other sessions' edits in both shared notes files. No active work was stashed, reset or added to the image. The local preview tab and its two owned loopback servers were closed after verification; the actual DEV Admin tab remains open on Health.
+
+The clean isolated Git worktree was removed after integration. Twenty-seven private operator files were hash-verified and archived under `~/Library/Application Support/SpectralNature/retired-release-sources/20261019T032407Z/admin-health-frontend-20261018-operator-receipts.tar.gz`. Existing automatic retention preserves this completed batch for at least 30 days, through November 18, 2026 UTC. Current application source and public verification remain in Git; the archive is evidence, not a build source.
