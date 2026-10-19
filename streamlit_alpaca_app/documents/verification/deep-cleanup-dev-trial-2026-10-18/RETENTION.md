@@ -1,0 +1,5 @@
+# Operator receipt retention
+
+Private preparation receipts, ARM before/after configurations, registry logs, source/package proofs, verification commands and the stopped loopback PostgreSQL test cluster are hash-verified in the completed external archive `/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261019T073225Z`. Its compressed archive SHA256 is `f8008b9453a88e229f51acd7ad61f12201adbe0069cc1e558cd283fe35dca5c0`; all 1215 retained files were read back and matched. The existing archive-maintenance command automatically discards this batch after its full 30-day retention, on or after 2026-11-18T07:32:26.809903+00:00. These are evidence, never release inputs.
+
+The active accepted Git worktree remains `/Users/omairs/Documents/code/spectral_nature_cleanup_trial_20261019`, branch `cleanup/dev-trial-20261019`. The cloud observer is independent of local files and continues through the end recorded in `trial.json`. Its observations and completion record are in the development verification Blob prefix in that file. Production remains unchanged.
