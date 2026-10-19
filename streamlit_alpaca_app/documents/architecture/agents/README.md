@@ -22,7 +22,7 @@ Agent-owned state now lives behind `services.agents`:
 ## Docs
 
 - `AGENTIC_SUMMARY_2026-04-13.md`: market-wide homepage summary, search, and hypothesis synthesis
-- `AGENTIC_TICKER_BACKGROUND_TAVILY_2026-04-03.md`: ticker background enrichment and Tavily integration notes
+- [Retired Home fallback](../../verification/home-presentation-cleanup-2026-10-18/README.md): earlier ticker-background/live-bundle instructions are archived; current shared event search remains
 - `DEPENDENCY_GRAPH_INTEGRATION_2026-04-10.md`: JSON-backed dependency graph feature plan
 - `OPEN_KNOWLEDGE_GRAPH_EXPERIMENT_2026-04-12.md`: admin-only open-ended graph generation experiment
 - [RESEARCH_EXPORT_API_2026-04-18.md (archived)](../../verification/legacy-retirement-2026-10-16/README.md): unified research export endpoint and folder structure

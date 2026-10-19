@@ -8,7 +8,7 @@ Boundary rule: Attention owns market activity detection, event grouping, signal 
 
 - `ATTENTION_FEED_IMPLEMENTATION_PLAN.md`: canonical Attention feed stack plan
 - `ATTENTION_FEED_EVENT_REDESIGN_PLAN.md`: event redesign background and product context
-- `ATTENTION_RESEARCH_QUALITY_FIX_2026-04-14.md`: staged fix for generic hypotheses and weak event text
+- [Home presentation contract](../../verification/home-presentation-cleanup-2026-10-18/README.md): model-written research passes through without semantic suppression
 - `ATTENTION_HOME_SUMMARY_SAA_WIRING_2026-04-15.md`: homepage summary evidence through SAA retrieval
 - `ATTENTION_HOME_UI_RUNTIME_FIX_2026-04-15.md`: homepage UI trace and runtime behavior fixes
 - `ATTENTION_FEED_GENERATION_TRACE_AND_OVERINDEXING_2026-05-19.md`: verified end-to-end trace of how each feed item is produced today, plus the root-cause diagnosis of solar/AEHR-style overindexing (selection + scoring artifact, not hardcoding)

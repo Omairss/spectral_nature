@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 import pandas as pd
 
-from ..attention_surface import attention_home_bundle_preview, attention_home_surface_summary, has_causal_language
+from ..attention_surface import attention_home_bundle_preview, attention_home_surface_summary
 from ..elevenlabs_tts import (
     ElevenLabsTTSClient,
     ElevenLabsTTSConfig,
@@ -195,23 +195,6 @@ def attention_mover_card_title(mover: dict[str, object]) -> str:
     return "Mover"
 
 
-def _observed_beat_sentence(preview: Any, fallback: object) -> str:
-    def _preview_get(key: str) -> object:
-        if isinstance(preview, dict):
-            return preview.get(key)
-        return getattr(preview, key, "")
-
-    for value in (
-        _preview_get("what_changed_text"),
-        _preview_get("summary_text"),
-        fallback,
-    ):
-        sentence = _narration_ready_text(value, max_sentences=1)
-        if sentence:
-            return sentence
-    return ""
-
-
 def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> list[dict[str, object]]:
     """Project approved stories verbatim; retain compatibility with older snapshots."""
     beats: list[dict[str, object]] = []
@@ -236,9 +219,6 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
                 preview = attention_home_bundle_preview(item, bundle={})
                 summary = attention_home_surface_summary(preview, is_event=kind == "event")
                 sentence = _coerce_text(item.get("event_title")) if kind == "event" else attention_mover_card_title(item)
-                cause_status = _coerce_text(preview.get("cause_status") if isinstance(preview, dict) else getattr(preview, "cause_status", "")).lower()
-                if kind == "unresolved" or cause_status == "unresolved":
-                    sentence = _observed_beat_sentence(preview, sentence)
                 business_context = _coerce_text(item.get("business_resolution_text") or item.get("business_context_text") or item.get("surface_business_context_text"))
                 what_changed = why = watch_next = ""
             beat = {
@@ -254,32 +234,8 @@ def build_attention_home_narrative_beats(home_payload: dict[str, object]) -> lis
                 "change_pct": item.get("change_pct"),
                 "kind": kind,
             }
-            if reviewed or not _is_low_information_unresolved_beat(beat):
-                beats.append(beat)
+            beats.append(beat)
     return beats
-
-
-def _is_low_information_unresolved_beat(beat: dict[str, object]) -> bool:
-    if _coerce_text(beat.get("kind")) != "unresolved":
-        return False
-    business_context = _coerce_text(beat.get("business_context"))
-    summary = _coerce_text(beat.get("summary"))
-    if business_context:
-        return False
-    if not summary:
-        return True
-    if not has_causal_language(summary):
-        return True
-    lowered = summary.lower()
-    if re.fullmatch(r"[a-z0-9.\-]+ moved (higher|lower|up|down) today\.?", lowered):
-        return True
-    if lowered.endswith(" moved higher today.") or lowered.endswith(" moved lower today."):
-        return True
-    return False
-
-
-def _summary_prompt_beats(beats: list[dict[str, object]]) -> list[dict[str, object]]:
-    return [beat for beat in list(beats or []) if not _is_low_information_unresolved_beat(beat)]
 
 
 def build_attention_home_summary(
@@ -296,8 +252,7 @@ def build_attention_home_summary(
     unresolved_beats = [beat for beat in beats if str(beat.get("kind")) == "unresolved"]
 
     signal_context = _build_signal_context_text(home_payload)
-    prompt_beats = _summary_prompt_beats(beats)
-    llm_result = _llm_home_summary(prompt_beats, signal_context=signal_context)
+    llm_result = _llm_home_summary(beats, signal_context=signal_context)
 
     if llm_result:
         overview_text = _coerce_text(llm_result.get("overview"))
@@ -725,14 +680,6 @@ def _summary_trace_supporting_claims(
             }
         )
     return rows
-
-
-
-
-
-
-
-
 
 
 def build_attention_agentic_summary(

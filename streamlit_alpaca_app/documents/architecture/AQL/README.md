@@ -12,4 +12,4 @@ Boundary rule: AQL may call SAA through `services.saa`, market data through publ
 - `KG_AQL_INTEGRATION_2026-04-25.md`: plan for using the persistent knowledge graph as AQL graph memory, search context, and hypothesis source
 - `KG_AQL_EVAL_REPORT_2026-04-25.md`: offline evaluation of KG read/write proposals against cached summaries and attention feed items
 - `AQL_PACKAGE_REFACTOR.md`: package boundaries and refactor plan
-- `ATTENTION_AQL_CONSOLIDATION_2026-04-24.md`: consolidation plan and implementation status for moving shared Attention logic into AQL and source-owned helpers
+- [Home presentation contract](../../verification/home-presentation-cleanup-2026-10-18/README.md): current projection behavior and retirement of earlier filters/fallbacks

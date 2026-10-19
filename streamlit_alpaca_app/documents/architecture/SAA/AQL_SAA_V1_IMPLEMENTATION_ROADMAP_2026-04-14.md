@@ -5,7 +5,7 @@ Date: 2026-04-14
 Related:
 
 - [AQL + SAA NLP / IR / Agent Architecture](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/architecture/AQL/AQL_NLP_IR_AGENT_ARCHITECTURE_2026-04-14.md)
-- [Attention Research Quality Fix](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/architecture/attention/ATTENTION_RESEARCH_QUALITY_FIX_2026-04-14.md)
+- [Current Home presentation contract](../../verification/home-presentation-cleanup-2026-10-18/README.md)
 - [AQL Evidence Index](/Users/omairs/Documents/code/spectral_nature/streamlit_alpaca_app/documents/architecture/AQL/AQL_EVIDENCE_INDEX_2026-04-14.md)
 
 ## Goal
