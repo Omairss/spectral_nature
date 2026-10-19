@@ -270,10 +270,6 @@ def _read_secret(secret_name: str, vault_url: str) -> dict[str, str]:
         }
 
 
-def _get_secret(secret_name: str) -> str:
-    return str(_read_secret(secret_name, _vault_url()).get("value") or "").strip()
-
-
 @lru_cache(maxsize=256)
 def get_secret_value_from_vault(
     secret_name: str,

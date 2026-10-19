@@ -3,8 +3,6 @@ AQL shared utilities — pure helper functions with no dependencies on other aql
 """
 from __future__ import annotations
 
-import hashlib
-import json
 import math
 import re
 from typing import Any
@@ -12,51 +10,25 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from compute.signal_extraction import _history_correlation_map, _return_series_from_bars
 from ..runtime_policy import source_authority_policy
+from ..common.contracts import GENERIC_GRAPH_BUCKETS
+from ..common.market_activity import (
+    _coerce_float,
+    _coerce_text,
+    _has_causal_language,
+    _looks_like_stat_dump,
+    _move_direction,
+    _normalize_symbol,
+    _safe_list,
+    _text_overlap,
+)
 from .constants import (
-    CAUSAL_LANGUAGE_PATTERNS,
-    GENERIC_GRAPH_BUCKETS,
     IRRELEVANT_NEWS_PATTERNS,
     LOW_SIGNAL_CLAIM_MARKERS,
     LOW_SIGNAL_PHRASES,
-    RATE_TRANSMISSION_PATTERNS,
     RESEARCH_PROVIDER_ERROR_MARKERS,
     YIELD_RELEVANT_TAGS,
 )
-
-
-def _coerce_text(value: object) -> str:
-    text = str(value or "").strip()
-    return "" if text.lower() == "nan" else text
-
-
-def _normalize_symbol(value: object) -> str:
-    return _coerce_text(value).upper()
-
-
-def _safe_list(value: object) -> list[Any]:
-    if value is None:
-        return []
-    if isinstance(value, list):
-        return value
-    if isinstance(value, tuple):
-        return list(value)
-    if isinstance(value, (set, frozenset, pd.Series, pd.Index, np.ndarray)):
-        return list(value)
-    return [value]
-
-
-def _coerce_float(value: object, default: float = math.nan) -> float:
-    try:
-        number = float(value)
-    except Exception:
-        return default
-    return number if np.isfinite(number) else default
-
-
-def _json_dumps(value: Any) -> str:
-    return json.dumps(value, ensure_ascii=False, default=str)
 
 
 def _trim(text: object, limit: int = 220) -> str:
@@ -78,98 +50,6 @@ def _normalized_text(text: object) -> str:
     return re.sub(r"[^a-z0-9]+", " ", _coerce_text(text).lower()).strip()
 
 
-def _token_set(text: object, *, min_len: int = 3) -> set[str]:
-    tokens: set[str] = set()
-    for token in re.split(r"[^a-z0-9]+", _coerce_text(text).lower()):
-        if len(token) >= min_len:
-            tokens.add(token)
-    return tokens
-
-
-def _text_overlap(left: object, right: object) -> float:
-    left_tokens = _token_set(left)
-    right_tokens = _token_set(right)
-    if not left_tokens or not right_tokens:
-        return 0.0
-    return len(left_tokens & right_tokens) / max(len(left_tokens | right_tokens), 1)
-
-
-def _stat_marker_count(text: object) -> int:
-    clean = _coerce_text(text)
-    if not clean:
-        return 0
-    pct = len(re.findall(r"[+\-]?\d+(?:\.\d+)?%", clean))
-    bps = len(re.findall(r"[+\-]?\d+(?:\.\d+)?\s*bps\b", clean.lower()))
-    return pct + bps
-
-
-def _ticker_like_count(text: object) -> int:
-    clean = _coerce_text(text)
-    if not clean:
-        return 0
-    tokens = re.findall(r"\b[A-Z]{2,5}\b", clean)
-    return len(tokens)
-
-
-def _has_causal_language(text: object) -> bool:
-    clean = _coerce_text(text).lower()
-    if not clean:
-        return False
-    return any(re.search(pattern, clean) for pattern in CAUSAL_LANGUAGE_PATTERNS)
-
-
-def _looks_like_stat_dump(text: object) -> bool:
-    clean = _coerce_text(text)
-    if not clean:
-        return False
-    lowered = clean.lower()
-    stat_count = _stat_marker_count(clean)
-    ticker_count = _ticker_like_count(clean)
-    ticker_pct_pairs = len(re.findall(r"\b[A-Z]{2,5}\s*[+\-]\d+(?:\.\d+)?%", clean))
-    if re.search(r"\bup:\b|\bdown:\b", lowered):
-        return True
-    if re.search(
-        r"\b(shares?|stock)\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\s+(?:on\s+)?(today|monday|tuesday|wednesday|thursday|friday)\b",
-        lowered,
-    ):
-        return True
-    if (
-        re.search(
-            r"\b(shares?|stock)\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\b",
-            lowered,
-        )
-        and not _has_causal_language(clean)
-    ):
-        return True
-    if stat_count >= 6:
-        return True
-    if ticker_pct_pairs >= 3:
-        return True
-    if ticker_count >= 4 and stat_count >= 4:
-        return True
-    if ticker_count >= 6 and stat_count >= 3:
-        return True
-    if lowered.count(",") >= 6 and ticker_count >= 4:
-        return True
-    if "treasury yields:" in lowered and stat_count >= 4 and not _has_causal_language(clean):
-        return True
-    return False
-
-
-def _is_yield_only_explanation(text: object) -> bool:
-    clean = _coerce_text(text)
-    if not clean:
-        return False
-    lowered = clean.lower()
-    has_rates_markers = any(
-        token in lowered
-        for token in ("treasury", "yield", "2y", "10y", "30y", "2s10s", "curve", "bps")
-    )
-    if not has_rates_markers:
-        return False
-    return not any(re.search(pattern, lowered) for pattern in RATE_TRANSMISSION_PATTERNS)
-
-
 def _is_low_signal_claim_text(text: object) -> bool:
     clean = _coerce_text(text).lower()
     if not clean:
@@ -179,22 +59,6 @@ def _is_low_signal_claim_text(text: object) -> bool:
     if _is_irrelevant_news_text(clean):
         return True
     return any(marker in clean for marker in LOW_SIGNAL_CLAIM_MARKERS)
-
-
-def _looks_like_generic_market_activity_title(text: object) -> bool:
-    clean = _coerce_text(text).lower()
-    if not clean:
-        return False
-    patterns = (
-        r"\bmoves? sharply today\b",
-        r"\bmoved sharply today\b",
-        r"\bshares?\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\b",
-        r"\brises on today'?s market activity\b",
-        r"\bfalls on today'?s market activity\b",
-        r"\bon today'?s market activity\b",
-        r"\bmarket move today\b",
-    )
-    return any(re.search(pattern, clean) for pattern in patterns)
 
 
 def _compose_surface_summary(what_changed: object, why_text: object, what_else: object = "", *, include_what_else: bool = False) -> str:
@@ -223,19 +87,6 @@ def _source_authority_bucket(source: object, url: object = "") -> tuple[str, int
     if any(token in blob for token in policy.press_tokens):
         return "press", 2
     return "web", 3
-
-
-def _freshness_score(published_at: pd.Timestamp, asof_time_utc: pd.Timestamp) -> float:
-    if pd.isna(published_at):
-        return 0.1
-    age_hours = max((asof_time_utc - published_at).total_seconds() / 3600.0, 0.0)
-    if age_hours <= 24:
-        return 1.0
-    if age_hours <= 72:
-        return 0.75
-    if age_hours <= 7 * 24:
-        return 0.45
-    return 0.15
 
 
 def _is_low_signal(headline: object, snippet: object) -> bool:
@@ -374,50 +225,6 @@ def _candidate_graph_tags(candidate: dict[str, Any]) -> set[str]:
     )
 
 
-def _candidate_claim_entities(candidate: dict[str, Any]) -> list[str]:
-    taxonomy = _candidate_taxonomy_context(candidate)
-    return _merge_text_values(
-        _normalize_symbol(candidate.get("symbol")),
-        candidate.get("company_name"),
-        candidate.get("security_name"),
-        taxonomy.get("industry"),
-        taxonomy.get("peer_group"),
-        taxonomy.get("sector"),
-        candidate.get("macro_exposure_tags"),
-        candidate.get("macro_role_tags"),
-        candidate.get("taxonomy_macro_role_tags"),
-        candidate.get("business_tags"),
-        candidate.get("business_role_tags"),
-        candidate.get("taxonomy_business_role_tags"),
-        candidate.get("commodity_role"),
-        candidate.get("rates_role"),
-        candidate.get("defensive_role"),
-    )
-
-
-def _jaccard(left: set[str], right: set[str]) -> float:
-    if not left or not right:
-        return 0.0
-    overlap = left & right
-    if not overlap:
-        return 0.0
-    return len(overlap) / max(len(left | right), 1)
-
-
-def _move_direction(value: object) -> str:
-    move = _coerce_float(value, 0.0)
-    if move > 0:
-        return "up"
-    if move < 0:
-        return "down"
-    return "flat"
-
-
-def _move_label(value: object) -> str:
-    move = _coerce_float(value, 0.0)
-    return f"{move:+.1f}%"
-
-
 def _evidence_text(snippet: object, headline: object) -> str:
     """Use snippet when present, otherwise fall back to headline so evidence survives chunking."""
     body = _coerce_text(snippet)
@@ -435,40 +242,6 @@ def _search_mention_score(text: str, symbol: str, company_name: str) -> float:
     if company and company in lowered:
         score += 0.45
     return min(score, 1.0)
-
-
-def _claim_authority_rank(item: dict[str, Any]) -> int:
-    rank = _coerce_float(item.get("authority_rank"), math.nan)
-    if math.isfinite(rank):
-        return int(rank)
-    bucket = _coerce_text(item.get("source_authority_bucket") or item.get("authority_bucket")).lower()
-    return {"official": 0, "wire": 1, "press": 2, "web": 3}.get(bucket, 4)
-
-
-def _quality_label(claims: list[dict[str, Any]], cause_status: str) -> tuple[str, str]:
-    same_day = [item for item in claims if bool(item.get("is_same_day"))]
-    strong = [
-        item
-        for item in same_day
-        if float(item.get("causal_score") or 0.0) >= 0.62 and float(item.get("relevance_score") or 0.0) >= 0.6
-    ]
-    authoritative_same_day = [
-        item
-        for item in same_day
-        if _claim_authority_rank(item) <= 2 and float(item.get("relevance_score") or 0.0) >= 0.55
-    ]
-    if cause_status == "supported" and len(strong) >= 2:
-        evidence_quality = "High"
-    elif cause_status == "supported" and (strong or authoritative_same_day):
-        evidence_quality = "Medium"
-    elif claims and min((_claim_authority_rank(item) for item in claims), default=4) <= 2:
-        evidence_quality = "Medium"
-    elif claims:
-        evidence_quality = "Developing"
-    else:
-        evidence_quality = "Low"
-    freshness_quality = "High" if same_day else ("Low" if claims else "Low")
-    return evidence_quality, freshness_quality
 
 
 def _judge_cause_status(claims: list[dict[str, Any]]) -> tuple[str, str]:
@@ -727,40 +500,3 @@ def _sign_from_word(value: object) -> int:
     if normalized in {"negative", "down", "-", "-1", "minus"}:
         return -1
     return 0
-
-
-def _best_why_claim_sentence(claims: list[dict[str, Any]]) -> str:
-    if not claims:
-        return ""
-    ordered = sorted(
-        claims,
-        key=lambda item: (
-            -int(bool(item.get("is_same_day"))),
-            -_coerce_float(item.get("causal_score"), 0.0),
-            -_coerce_float(item.get("confidence_score"), 0.0),
-            -_coerce_float(item.get("relevance_score"), 0.0),
-        ),
-    )
-    scored: list[tuple[float, str]] = []
-    for item in ordered:
-        sentence = _first_sentence(item.get("claim_text"))
-        if not sentence:
-            continue
-        if _is_provider_error_text(sentence) or _is_low_signal_claim_text(sentence):
-            continue
-        score = 0.0
-        if bool(item.get("is_same_day")):
-            score += 2.0
-        if _has_causal_language(sentence):
-            score += 2.0
-        if not _looks_like_stat_dump(sentence):
-            score += 1.0
-        if _is_yield_only_explanation(sentence):
-            score -= 2.0
-        score += _coerce_float(item.get("causal_score"), 0.0)
-        score += 0.5 * _coerce_float(item.get("confidence_score"), 0.0)
-        scored.append((score, sentence))
-    if not scored:
-        return ""
-    scored.sort(key=lambda pair: pair[0], reverse=True)
-    return scored[0][1]

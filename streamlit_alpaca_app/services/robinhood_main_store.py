@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import closing
+
 from datetime import datetime, timedelta, timezone
 import json
 import uuid
@@ -173,12 +175,9 @@ def ensure_schema() -> bool:
     conn = auth_store.open_auth_store_connection()
     if conn is None:
         return False
-    try:
-        with conn:
-            _ensure_schema(conn)
-        return True
-    finally:
-        conn.close()
+    with conn:
+        _ensure_schema(conn)
+    return True
 
 
 def schema_ready() -> bool:
@@ -192,7 +191,7 @@ def schema_ready() -> bool:
         "robinhood_main_resources",
         "robinhood_main_refresh_requests",
     )
-    try:
+    with closing(conn):
         with conn.cursor() as cursor:
             cursor.execute(
                 "SELECT to_regclass(%s) IS NOT NULL, to_regclass(%s) IS NOT NULL, "
@@ -201,8 +200,6 @@ def schema_ready() -> bool:
             )
             row = cursor.fetchone()
         return bool(row and all(bool(value) for value in row))
-    finally:
-        conn.close()
 
 
 def save_snapshot(
@@ -220,11 +217,10 @@ def save_snapshot(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.robinhood_main_snapshots (
                         id, portfolio_id, connection_id, environment,
                         account_summary_json, positions_json, details_json,
@@ -245,16 +241,14 @@ def save_snapshot(
                               account_summary_json, positions_json, details_json,
                               source_updated_at, created_at, updated_at
                     """,
-                    (
-                        uuid.uuid4(), portfolio_id, connection_id, environment,
-                        _json(account_summary), _json(positions), _json(details),
-                        source_updated_at, now, now,
-                    ),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _snapshot_payload(row) or {}
-    finally:
-        conn.close()
+                (
+                    uuid.uuid4(), portfolio_id, connection_id, environment,
+                    _json(account_summary), _json(positions), _json(details),
+                    source_updated_at, now, now,
+                ),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _snapshot_payload(row) or {}
 
 
 def get_snapshot(*, portfolio_id: str, environment: str) -> dict[str, Any] | None:
@@ -262,11 +256,10 @@ def get_snapshot(*, portfolio_id: str, environment: str) -> dict[str, Any] | Non
     if conn is None:
         return None
     schema = auth_store.auth_store_schema_name()
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT id, portfolio_id, connection_id, environment,
                            account_summary_json, positions_json, details_json,
                            source_updated_at, created_at, updated_at
@@ -274,12 +267,10 @@ def get_snapshot(*, portfolio_id: str, environment: str) -> dict[str, Any] | Non
                     WHERE portfolio_id = %s::uuid AND environment = %s
                     LIMIT 1
                     """,
-                    (portfolio_id, environment),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _snapshot_payload(row)
-    finally:
-        conn.close()
+                (portfolio_id, environment),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _snapshot_payload(row)
 
 
 def upsert_series_batch(
@@ -313,43 +304,40 @@ def upsert_series_batch(
     persisted = 0
     batch: list[tuple[Any, ...]] = []
     now = _now_utc()
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                for point in points:
-                    observed_at = point.get("observed_at") or point.get("timestamp")
-                    series_key = str(point.get("series_key") or "").strip()
-                    values = point.get("values") if isinstance(point.get("values"), dict) else {
-                        key: value
-                        for key, value in point.items()
-                        if key not in {"observed_at", "timestamp", "series_key"}
-                    }
-                    if not observed_at or not series_key or not values:
-                        continue
-                    batch.append(
-                        (
-                            portfolio_id,
-                            connection_id,
-                            environment,
-                            series_kind,
-                            series_key,
-                            observed_at,
-                            _json(values),
-                            source_updated_at,
-                            now,
-                            now,
-                        )
+    with conn:
+        with conn.cursor() as cursor:
+            for point in points:
+                observed_at = point.get("observed_at") or point.get("timestamp")
+                series_key = str(point.get("series_key") or "").strip()
+                values = point.get("values") if isinstance(point.get("values"), dict) else {
+                    key: value
+                    for key, value in point.items()
+                    if key not in {"observed_at", "timestamp", "series_key"}
+                }
+                if not observed_at or not series_key or not values:
+                    continue
+                batch.append(
+                    (
+                        portfolio_id,
+                        connection_id,
+                        environment,
+                        series_kind,
+                        series_key,
+                        observed_at,
+                        _json(values),
+                        source_updated_at,
+                        now,
+                        now,
                     )
-                    if len(batch) >= 2_000:
-                        cursor.executemany(statement, batch)
-                        persisted += len(batch)
-                        batch.clear()
-                if batch:
+                )
+                if len(batch) >= 2_000:
                     cursor.executemany(statement, batch)
                     persisted += len(batch)
-        return persisted
-    finally:
-        conn.close()
+                    batch.clear()
+            if batch:
+                cursor.executemany(statement, batch)
+                persisted += len(batch)
+    return persisted
 
 
 def upsert_series_points(
@@ -392,30 +380,27 @@ def get_series_points(
     if start_at is not None:
         clauses.append("observed_at >= %s")
         params.append(start_at)
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT series_key, observed_at, values_json, source_updated_at
                     FROM {schema}.robinhood_main_series_points
                     WHERE {' AND '.join(clauses)}
                     ORDER BY series_key, observed_at
                     """,
-                    tuple(params),
-                )
-                rows = [_row_dict(cursor, row) for row in cursor.fetchall()]
-        return [
-            {
-                "series_key": str(row.get("series_key") or ""),
-                "observed_at": row.get("observed_at"),
-                "values": _json_value(row.get("values_json"), {}),
-                "source_updated_at": row.get("source_updated_at"),
-            }
-            for row in rows
-        ]
-    finally:
-        conn.close()
+                tuple(params),
+            )
+            rows = [_row_dict(cursor, row) for row in cursor.fetchall()]
+    return [
+        {
+            "series_key": str(row.get("series_key") or ""),
+            "observed_at": row.get("observed_at"),
+            "values": _json_value(row.get("values_json"), {}),
+            "source_updated_at": row.get("source_updated_at"),
+        }
+        for row in rows
+    ]
 
 
 def get_series_coverage(
@@ -435,11 +420,10 @@ def get_series_coverage(
     if series_keys:
         clauses.append("series_key = ANY(%s)")
         params.append(series_keys)
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT series_key,
                            MIN(observed_at) AS first_observed_at,
                            MAX(observed_at) AS last_observed_at,
@@ -449,20 +433,18 @@ def get_series_coverage(
                     GROUP BY series_key
                     ORDER BY series_key
                     """,
-                    tuple(params),
-                )
-                rows = [_row_dict(cursor, row) for row in cursor.fetchall()]
-        return {
-            str(row.get("series_key") or ""): {
-                "first_observed_at": row.get("first_observed_at"),
-                "last_observed_at": row.get("last_observed_at"),
-                "point_count": int(row.get("point_count") or 0),
-            }
-            for row in rows
-            if row.get("series_key")
+                tuple(params),
+            )
+            rows = [_row_dict(cursor, row) for row in cursor.fetchall()]
+    return {
+        str(row.get("series_key") or ""): {
+            "first_observed_at": row.get("first_observed_at"),
+            "last_observed_at": row.get("last_observed_at"),
+            "point_count": int(row.get("point_count") or 0),
         }
-    finally:
-        conn.close()
+        for row in rows
+        if row.get("series_key")
+    }
 
 
 def upsert_resource(
@@ -483,11 +465,10 @@ def upsert_resource(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.robinhood_main_resources (
                         id, portfolio_id, connection_id, environment,
                         resource_kind, resource_key, payload_json, status,
@@ -510,16 +491,14 @@ def upsert_resource(
                               resource_kind, resource_key, payload_json, status,
                               source_updated_at, refresh_after, last_error, created_at, updated_at
                     """,
-                    (
-                        uuid.uuid4(), portfolio_id, connection_id, environment,
-                        resource_kind, resource_key, _json(payload), status,
-                        source_updated_at, refresh_after, last_error, now, now,
-                    ),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _resource_payload(row) or {}
-    finally:
-        conn.close()
+                (
+                    uuid.uuid4(), portfolio_id, connection_id, environment,
+                    resource_kind, resource_key, _json(payload), status,
+                    source_updated_at, refresh_after, last_error, now, now,
+                ),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _resource_payload(row) or {}
 
 
 def get_resource(
@@ -549,11 +528,10 @@ def mark_resource_error(
         return False
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.robinhood_main_resources
                     SET status = 'stale',
                         refresh_after = %s,
@@ -564,19 +542,17 @@ def mark_resource_error(
                       AND resource_kind = %s
                       AND resource_key = %s
                     """,
-                    (
-                        retry_after,
-                        str(error or "")[:500],
-                        now,
-                        portfolio_id,
-                        environment,
-                        resource_kind,
-                        resource_key,
-                    ),
-                )
-                return cursor.rowcount == 1
-    finally:
-        conn.close()
+                (
+                    retry_after,
+                    str(error or "")[:500],
+                    now,
+                    portfolio_id,
+                    environment,
+                    resource_kind,
+                    resource_key,
+                ),
+            )
+            return cursor.rowcount == 1
 
 
 def list_resources(
@@ -595,11 +571,10 @@ def list_resources(
     if resource_keys:
         clauses.append("resource_key = ANY(%s)")
         params.append(resource_keys)
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT id, portfolio_id, connection_id, environment,
                            resource_kind, resource_key, payload_json, status,
                            source_updated_at, refresh_after, last_error, created_at, updated_at
@@ -607,12 +582,10 @@ def list_resources(
                     WHERE {' AND '.join(clauses)}
                     ORDER BY resource_key
                     """,
-                    tuple(params),
-                )
-                rows = [_resource_payload(_row_dict(cursor, row)) for row in cursor.fetchall()]
-        return [row for row in rows if row is not None]
-    finally:
-        conn.close()
+                tuple(params),
+            )
+            rows = [_resource_payload(_row_dict(cursor, row)) for row in cursor.fetchall()]
+    return [row for row in rows if row is not None]
 
 
 def enqueue_refresh(
@@ -630,11 +603,10 @@ def enqueue_refresh(
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
     available_at = not_before or now
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT id, user_id, portfolio_id, connection_id, environment,
                            reason, status, requested_at, not_before, started_at,
                            lease_until, completed_at, error, result_summary_json
@@ -646,13 +618,13 @@ def enqueue_refresh(
                     LIMIT 1
                     FOR UPDATE
                     """,
-                    (portfolio_id, environment),
-                )
-                existing = _request_payload(_row_dict(cursor, cursor.fetchone()))
-                if existing:
-                    return existing
-                cursor.execute(
-                    f"""
+                (portfolio_id, environment),
+            )
+            existing = _request_payload(_row_dict(cursor, cursor.fetchone()))
+            if existing:
+                return existing
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.robinhood_main_refresh_requests (
                         id, user_id, portfolio_id, connection_id, environment,
                         reason, status, requested_at, not_before, result_summary_json
@@ -664,15 +636,13 @@ def enqueue_refresh(
                               reason, status, requested_at, not_before, started_at,
                               lease_until, completed_at, error, result_summary_json
                     """,
-                    (
-                        uuid.uuid4(), user_id, portfolio_id, connection_id, environment,
-                        str(reason or "manual")[:64], now, available_at,
-                    ),
-                )
-                row = _request_payload(_row_dict(cursor, cursor.fetchone()))
-        return row or {}
-    finally:
-        conn.close()
+                (
+                    uuid.uuid4(), user_id, portfolio_id, connection_id, environment,
+                    str(reason or "manual")[:64], now, available_at,
+                ),
+            )
+            row = _request_payload(_row_dict(cursor, cursor.fetchone()))
+    return row or {}
 
 
 def latest_refresh(*, portfolio_id: str, environment: str) -> dict[str, Any] | None:
@@ -680,11 +650,10 @@ def latest_refresh(*, portfolio_id: str, environment: str) -> dict[str, Any] | N
     if conn is None:
         return None
     schema = auth_store.auth_store_schema_name()
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT id, user_id, portfolio_id, connection_id, environment,
                            reason, status, requested_at, not_before, started_at,
                            lease_until, completed_at, error, result_summary_json
@@ -693,12 +662,10 @@ def latest_refresh(*, portfolio_id: str, environment: str) -> dict[str, Any] | N
                     ORDER BY requested_at DESC
                     LIMIT 1
                     """,
-                    (portfolio_id, environment),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _request_payload(row)
-    finally:
-        conn.close()
+                (portfolio_id, environment),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _request_payload(row)
 
 
 def enqueue_due_refreshes(
@@ -709,11 +676,10 @@ def enqueue_due_refreshes(
         return 0
     schema = auth_store.auth_store_schema_name()
     linked: list[dict[str, Any]] = []
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT p.id AS portfolio_id,
                            c.id AS connection_id,
                            c.user_id,
@@ -741,11 +707,9 @@ def enqueue_due_refreshes(
                             AND recent.requested_at >= %s
                       )
                     """,
-                    (environment, due_before, due_before),
-                )
-                linked = [_row_dict(cursor, row) for row in cursor.fetchall()]
-    finally:
-        conn.close()
+                (environment, due_before, due_before),
+            )
+            linked = [_row_dict(cursor, row) for row in cursor.fetchall()]
     enqueued = 0
     for item in linked:
         request = enqueue_refresh(
@@ -767,11 +731,10 @@ def claim_next_refresh(*, environment: str, lease_seconds: int = 1800) -> dict[s
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
     lease_until = now + timedelta(seconds=max(60, min(int(lease_seconds), 7200)))
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     WITH candidate AS (
                         SELECT id
                         FROM {schema}.robinhood_main_refresh_requests
@@ -798,12 +761,10 @@ def claim_next_refresh(*, environment: str, lease_seconds: int = 1800) -> dict[s
                               request.started_at, request.lease_until, request.completed_at,
                               request.error, request.result_summary_json
                     """,
-                    (environment, now, now, now, lease_until),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _request_payload(row)
-    finally:
-        conn.close()
+                (environment, now, now, now, lease_until),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _request_payload(row)
 
 
 def finish_refresh(
@@ -815,11 +776,10 @@ def finish_refresh(
         return False
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.robinhood_main_refresh_requests
                     SET status = %s,
                         completed_at = %s,
@@ -828,11 +788,9 @@ def finish_refresh(
                         result_summary_json = %s::jsonb
                     WHERE id = %s::uuid AND status = 'running'
                     """,
-                    (terminal, now, str(error or "")[:500], _json(result_summary or {}), request_id),
-                )
-                return cursor.rowcount == 1
-    finally:
-        conn.close()
+                (terminal, now, str(error or "")[:500], _json(result_summary or {}), request_id),
+            )
+            return cursor.rowcount == 1
 
 
 __all__ = [

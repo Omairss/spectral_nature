@@ -11,7 +11,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from ..attention_macro_signals import _build_macro_relationship_checks
 from ..common.contracts import _MACRO_RELATIONSHIP_CHECK_COLUMNS
 from .constants import (
     LLMClient,
@@ -27,17 +26,17 @@ from .constants import (
 from ..llm import LLMAPIError
 from ..aql_zopedia_engine import load_aql_zopedia_llm_client
 from ._shared import (
-    _coerce_float,
-    _coerce_text,
     _compose_surface_summary,
     _evidence_text,
     _is_provider_error_text,
+    _trim,
+)
+from services.common.market_activity import (
+    _coerce_float,
+    _coerce_text,
     _json_dumps,
     _normalize_symbol,
-    _normalized_text,
     _safe_list,
-    _text_overlap,
-    _trim,
 )
 
 
@@ -844,7 +843,6 @@ def _verify_macro_hypotheses_with_web_evidence(
     tavily_client: object | None,
 ) -> tuple[pd.DataFrame, dict[str, dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     from .collector import _search_query_results
-    from .extractor import _serialize_claims_frame
 
     if not isinstance(hypotheses_frame, pd.DataFrame) or hypotheses_frame.empty:
         return _empty_attention_hypotheses_frame(), {}, [], [], []

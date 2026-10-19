@@ -6,6 +6,7 @@ Use `documents/plans/` for active implementation notes, recovery plans, and shor
 
 ## Map
 
+- [October 18 codebase cleanup audit](cleanup-2026-10-18/README.md): repository inventory, local retirements, verified boundaries and remaining architectural cleanup.
 - `overall/`: app-wide architecture, simplification, signal extraction, universe, and pipeline redesign context
 - `AQL/`: Attention Query Layer ownership, package boundaries, evidence contracts, and AQL consolidation work. Active gateway roadmap: `../plans/V0_6_AQL_ZOPEDIA_GATEWAY_ROADMAP_2026-07-01.md`.
 - `SAA/`: Supporting Analysis Archive retrieval, retention, hybrid search, and SAA rollout phases

@@ -172,33 +172,6 @@ def _company_name_from_map(symbol: str, universe_names: dict[str, str]) -> str:
     return normalized
 
 
-def _price_window(
-    price_history_frame: pd.DataFrame | None,
-    symbol: str,
-    *,
-    asof_time_utc: object | None,
-    lookback_days: int,
-) -> pd.DataFrame:
-    if not isinstance(price_history_frame, pd.DataFrame) or price_history_frame.empty:
-        return pd.DataFrame()
-    if "symbol" not in price_history_frame.columns or "timestamp" not in price_history_frame.columns:
-        return pd.DataFrame()
-    target = _normalize_symbol(symbol)
-    rows = price_history_frame.copy()
-    rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
-    rows = rows[rows["symbol"] == target].copy()
-    if rows.empty:
-        return rows
-    rows["timestamp"] = pd.to_datetime(rows["timestamp"], utc=True, errors="coerce")
-    rows["close"] = pd.to_numeric(rows["close"], errors="coerce")
-    rows = rows.dropna(subset=["timestamp", "close"]).sort_values("timestamp")
-    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
-    if pd.notna(asof_ts):
-        cutoff = asof_ts - pd.Timedelta(days=max(int(lookback_days), 1))
-        rows = rows[(rows["timestamp"] >= cutoff) & (rows["timestamp"] <= asof_ts + pd.Timedelta(days=1))]
-    return rows.reset_index(drop=True)
-
-
 def _price_windows_by_symbol(
     price_history_frame: pd.DataFrame | None,
     symbols: list[str],
@@ -228,52 +201,6 @@ def _price_windows_by_symbol(
 
     grouped = {symbol: rows.reset_index(drop=True) for symbol, rows in frame.groupby("symbol", sort=False)}
     return {symbol: grouped.get(symbol, pd.DataFrame()) for symbol in normalized}
-
-
-def _fundamentals_asof(
-    fundamentals: dict[str, pd.DataFrame],
-    *,
-    asof_time_utc: object | None,
-) -> dict[str, pd.DataFrame]:
-    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce")
-    if pd.isna(asof_ts):
-        return dict(fundamentals or {})
-
-    cutoff = asof_ts.tz_localize(None)
-    out: dict[str, pd.DataFrame] = {}
-    for key in ["income", "balance", "cashflow"]:
-        frame = (fundamentals or {}).get(key, pd.DataFrame())
-        if not isinstance(frame, pd.DataFrame) or frame.empty or "report_date" not in frame.columns:
-            out[key] = frame if isinstance(frame, pd.DataFrame) else pd.DataFrame()
-            continue
-        scoped = frame.copy()
-        scoped["report_date"] = pd.to_datetime(scoped["report_date"], errors="coerce")
-        out[key] = scoped[scoped["report_date"].notna() & (scoped["report_date"] <= cutoff)].reset_index(drop=True)
-    return out
-
-
-def _news_payload_from_frame(news_frame: pd.DataFrame | None, symbol: str, *, limit: int = 6) -> dict[str, object]:
-    if not isinstance(news_frame, pd.DataFrame) or news_frame.empty:
-        return {"articles": pd.DataFrame(), "fallback_summary": None, "source": "pipeline"}
-    target = _normalize_symbol(symbol)
-    rows = news_frame.copy()
-    if "symbols" in rows.columns:
-        rows = rows[rows["symbols"].apply(lambda value: target in set(_symbol_tokens(value)))].copy()
-    elif "symbol" in rows.columns:
-        rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
-        rows = rows[rows["symbol"] == target].copy()
-    else:
-        return {"articles": pd.DataFrame(), "fallback_summary": None, "source": "pipeline"}
-    if rows.empty:
-        return {"articles": pd.DataFrame(), "fallback_summary": None, "source": "pipeline"}
-    if "published_at" in rows.columns:
-        rows["published_at"] = pd.to_datetime(rows["published_at"], utc=True, errors="coerce")
-        rows = rows.sort_values("published_at", ascending=False, na_position="last")
-    subset_cols = [col for col in ["headline", "published_at", "url"] if col in rows.columns]
-    if subset_cols:
-        rows = rows.drop_duplicates(subset=subset_cols, keep="first")
-    keep = [col for col in ["headline", "summary", "description", "published_at", "source", "url", "sentiment", "symbols"] if col in rows.columns]
-    return {"articles": rows[keep].head(limit).reset_index(drop=True), "fallback_summary": None, "source": "pipeline"}
 
 
 def _news_payloads_by_symbol(

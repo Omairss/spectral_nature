@@ -17,7 +17,11 @@ import pandas as pd
 from ..llm import LLMAPIError
 from ..market import COMMODITY_PROXY_METADATA, default_universe_symbols
 from ..saa import build_canonical_document_fields
-from ._shared import _coerce_text, _json_dumps, _normalize_symbol
+from services.common.market_activity import (
+    _coerce_text,
+    _json_dumps,
+    _normalize_symbol,
+)
 
 
 _DATE_LIMIT = 8

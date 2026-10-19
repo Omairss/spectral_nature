@@ -8,13 +8,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ru
   if (rejection) return rejection;
   const { runId } = await context.params;
   if (!validRunId(runId)) return noStoreJson({ error: "Research run not found." }, { status: 404 });
-  try {
-    const response = await authorizedBackendFetch(`/v1/research-runs/${encodeURIComponent(runId)}/cancel`, {
-      method: "POST",
-      body: "{}",
-    });
-    return forwardJson(response, "Research run could not be cancelled.");
-  } catch {
-    return noStoreJson({ error: "Research run could not be cancelled." }, { status: 503 });
-  }
+  const response = await authorizedBackendFetch(`/v1/research-runs/${encodeURIComponent(runId)}/cancel`, {
+    method: "POST",
+    body: "{}",
+  });
+  return forwardJson(response, "Research run could not be cancelled.");
 }

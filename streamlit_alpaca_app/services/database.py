@@ -21,7 +21,7 @@ from typing import Any
 
 from psycopg import InterfaceError
 from psycopg.pq import TransactionStatus
-from psycopg_pool import NullConnectionPool
+from psycopg_pool import NullConnectionPool, PoolTimeout
 
 from services.secrets import postgres_connect_timeout_seconds
 from services.work_scope import check_work, remaining_work_seconds, register_cancellation, work_expired
@@ -191,7 +191,7 @@ class DatabaseSession:
                     check_work()
                     remaining = deadline - time.monotonic()
                     if remaining <= 0:
-                        raise TimeoutError("Database admission wait exceeded its execution budget")
+                        raise PoolTimeout("Database admission wait exceeded its execution budget")
                     conn = self._pool.getconn(timeout=remaining)
                     try:
                         conn.autocommit = True
@@ -307,7 +307,7 @@ class DatabaseSession:
     def pinned_connection(self):
         """Explicit ownership for operations requiring session-level SQL state."""
         with self._lock:
-            conn = self._acquire()
+            self._acquire()
             self._transactions += 1
             try:
                 yield self
@@ -331,22 +331,24 @@ class DatabaseSession:
                 self._release_idle()
 
     def close(self) -> None:
-        with self._lock:
+        """Discard unfinished work and return the physical lease exactly once."""
+        with self._lock, self._cancel_lock:
+            self._closed = True
             if self._connection is not None:
                 conn, self._connection = self._connection, None
+                self._operation = None
                 try:
-                    if not conn.closed and conn.info.transaction_status != TransactionStatus.IDLE:
-                        conn.rollback()
+                    conn.close()
                 finally:
                     self._return_connection(conn)
-            self._closed = True
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type: Any, exc: Any, traceback: Any) -> None:
         try:
-            self.commit() if exc_type is None else self.rollback()
+            if exc_type is None:
+                self.commit()
         finally:
             self.close()
 
@@ -398,10 +400,9 @@ class _DatabaseCursor:
         return self._cursor.copy(*args, **kwargs)
 
 
-def open_database_session(conninfo: str, *, application_name: str = "", connect_timeout: int | None = None,
+def open_database_session(conninfo: str, *, application_name: str = "",
                           statement_timeout_ms: int = 120000, lock_timeout_ms: int = 5000,
                           idle_transaction_timeout_ms: int = 60000, workload: str | None = None) -> DatabaseSession:
-    del connect_timeout  # the shared pool owns its bounded transport timeout
     label = application_name or "spectral:" + (os.getenv("PIPELINE_JOB_NAME") or os.getenv("CONTAINER_APP_NAME") or "app")[:45]
     session = DatabaseSession(_pool(conninfo), application_name=label, statement_timeout_ms=statement_timeout_ms,
                               lock_timeout_ms=lock_timeout_ms, idle_transaction_timeout_ms=idle_transaction_timeout_ms,

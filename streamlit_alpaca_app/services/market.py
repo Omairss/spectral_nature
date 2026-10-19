@@ -21,9 +21,6 @@ from .alpaca_api import AlpacaAPI
 from .dependency_graphs import dependency_graph_edges_frame
 
 
-DEFAULT_UNIVERSE: list[str] = []
-
-
 def _unique_symbols(values: list[str]) -> list[str]:
     out: list[str] = []
     seen: set[str] = set()
@@ -34,11 +31,6 @@ def _unique_symbols(values: list[str]) -> list[str]:
         seen.add(symbol)
         out.append(symbol)
     return out
-
-
-def _humanize_tag(value: object) -> str:
-    text = str(value or "").strip().replace("_", " ")
-    return " ".join(token.capitalize() for token in text.split() if token)
 
 
 def _load_latest_universe_snapshot_symbols(*, limit: int | None = None) -> list[str]:
@@ -139,9 +131,6 @@ def _taxonomy_focus_map(symbols: list[str] | None = None) -> dict[str, list[str]
         ordered[label] = _unique_symbols(grouped[label])
     return ordered
 
-
-BUSINESS_FOCUS_UNIVERSES: dict[str, list[str]] = {}
-BUSINESS_FOCUS_DESCRIPTIONS: dict[str, str] = {}
 
 COMMODITY_PROXY_METADATA: dict[str, dict[str, str]] = {
     "DBC": {

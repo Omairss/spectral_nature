@@ -10,12 +10,7 @@ from typing import Any
 
 import pandas as pd
 
-from ..llm import (
-    EmbeddingClient,
-    JSONLLMClient,
-    get_prompt,
-    register_narrative_prompt,
-)
+from ..llm import JSONLLMClient, register_narrative_prompt
 
 LLMClient = JSONLLMClient
 
@@ -39,34 +34,6 @@ YIELD_RELEVANT_TAGS = {
     "yield",
     "yields",
 }
-CAUSAL_LANGUAGE_PATTERNS = (
-    r"\bbecause\b",
-    r"\bdue to\b",
-    r"\bafter\b",
-    r"\bamid\b",
-    r"\bdriven by\b",
-    r"\bsuggest(?:s|ing)\b",
-    r"\bimply(?:s|ing)\b",
-    r"\btherefore\b",
-    r"\bwhich (?:lifted|helped|pressured|hurt|weighed|boosted)\b",
-    r"\bpressure on\b",
-    r"\bmargins?\b",
-    r"\bdemand\b",
-    r"\binflation\b",
-    r"\binput costs?\b",
-)
-RATE_TRANSMISSION_PATTERNS = (
-    r"\bborrow(?:ing|ed)? costs?\b",
-    r"\bfinanc(?:e|ing|ed)\b",
-    r"\bdiscount rates?\b",
-    r"\bvaluation(?:s)?\b",
-    r"\brisk appetite\b",
-    r"\bcredit conditions?\b",
-    r"\bmargins?\b",
-    r"\bdemand\b",
-    r"\bfuel costs?\b",
-    r"\binput costs?\b",
-)
 RESEARCH_PROVIDER_ERROR_MARKERS = (
     "request failed status=",
     "exceeds your plan's set usage limit",
@@ -97,18 +64,6 @@ IRRELEVANT_NEWS_PATTERNS = (
     r"\binsider\b.*\b(holdings?|transactions?|buys?|sells?)\b",
     r"\bspousal share stakes?\b",
 )
-GENERIC_GRAPH_BUCKETS = {
-    "unknown",
-    "market",
-    "all market",
-    "broad commodity market",
-    "cluster",
-    "macro anchor",
-    "equities",
-    "commodities",
-    "assets",
-}
-
 _MACRO_RELEASE_SCHEMA_VERSION = "macro_release_events_1d.v1"
 _MACRO_CAUSAL_GRAPH_SCHEMA_VERSION = "macro_causal_graph_edges_v1"
 _MACRO_RELATIONSHIP_SCHEMA_VERSION = "macro_relationship_checks_1d.v1"

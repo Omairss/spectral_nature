@@ -1,6 +1,6 @@
 # Active architecture
 
-Updated October 16, 2026. Current ownership; historical source and migration plans do not define release scope.
+Updated October 18, 2026. Current ownership; historical source and migration plans do not define release scope.
 
 | Boundary | Owner | Role |
 |---|---|---|
@@ -17,5 +17,9 @@ Updated October 16, 2026. Current ownership; historical source and migration pla
 Streamlit (`app.py`, `views/`, UI loaders/config/lock and its tools) and the earlier root Dash `src/` are retired. Their archive is outside the checkout; no importable tree or launcher remains. The production resource named `sn-streamlit-ui` hosts Next.js. The application directory name is also historical.
 
 The DAL's former live attention research runtime remains removed. A retained artifact or structured unavailable result is returned on reads; explicit research stays in the shared engine. Current Home scoring and stored-artifact/data-shape compatibility still used by the accepted product remain current behavior, regardless of historical identifiers. Do not replace an active algorithm merely because a variable contains `legacy`.
+
+The [October 18 cleanup audit](cleanup-2026-10-18/README.md) records local retirement of unused AQL/attention facades, the obsolete summary/critique stack and the staggered-source slice adapter. Research/search callers use their AQL implementation owners; dataset slicing belongs directly to `services.pipeline_store`; chat/scratchpad state belongs to `services.agents`. `aql/summarizer.py` now only projects retained stories. These local source changes have not been released.
+
+The local continuation makes `services.database.DatabaseSession` own transaction discard and lease return, removes repeated store teardown, and exposes auth/pipeline connections through their existing public factories. `services.json_utils` owns DAL/view JSON normalization. Factory outages remain optional where already supported; cancellation and unexpected defects propagate. These continuation changes also remain unreleased.
 
 See the [retirement inventory](../verification/legacy-retirement-2026-10-16/README.md), [release policy](../infra/RELEASE_SOURCE_POLICY.md), [regression audit](../verification/release-source-regressions-2026-10-16/README.md) and [recovery state](../verification/behavior-recovery-2026-10-16/README.md).

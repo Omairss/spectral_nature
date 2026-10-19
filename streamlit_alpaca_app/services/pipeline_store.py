@@ -4,7 +4,7 @@ from services.database import open_database_session
 from services.work_scope import check_work, WorkCancelled
 
 from dataclasses import asdict, dataclass, field
-from contextlib import contextmanager, suppress
+from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 from io import BytesIO
 import hashlib
@@ -23,19 +23,10 @@ import uuid
 
 import pandas as pd
 import requests
+from psycopg import OperationalError
+from azure.storage.blob import BlobServiceClient
 
-from .secrets import build_azure_credential, postgres_connect_timeout_seconds, resolve_secret_value
-
-
-try:
-    import psycopg
-except Exception:
-    psycopg = None
-
-try:
-    from azure.storage.blob import BlobServiceClient
-except Exception:
-    BlobServiceClient = None
+from .secrets import build_azure_credential, resolve_secret_value
 
 
 APP_ROOT = Path(__file__).resolve().parents[1]
@@ -658,19 +649,14 @@ def pipeline_store_configured() -> bool:
 
 
 def open_database_connection() -> Any | None:
-    """Open the shared application Postgres connection, or return None."""
+    """Open the application store; unconfigured or unavailable stores return None."""
     conn_str = _postgres_connection_string()
-    if not conn_str or psycopg is None:
+    if not conn_str:
         return None
     try:
-        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
-    except Exception:
+        return open_database_session(conn_str)
+    except OperationalError:
         return None
-
-
-def _db_connect() -> Any | None:
-    """Compatibility alias for older persistence modules."""
-    return open_database_connection()
 
 
 def index_dataset_manifest(conn: Any, manifest: dict[str, Any]) -> None:
@@ -756,8 +742,6 @@ def latest_job_execution_receipt(job_name: str) -> dict[str, Any] | None:
 
 
 def _blob_service_client() -> Any | None:
-    if BlobServiceClient is None:
-        return None
     account_url = _storage_account_url()
     if not account_url:
         return None
@@ -1221,7 +1205,7 @@ def _uncached_latest_dataset_metadata(dataset_name: str) -> PipelineDataset | No
         _write_cached_metadata(dataset_name, manifest_dataset)
         return manifest_dataset
     db_dataset: PipelineDataset | None = None
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is not None:
         try:
             with conn.cursor() as cur:
@@ -1249,10 +1233,7 @@ def _uncached_latest_dataset_metadata(dataset_name: str) -> PipelineDataset | No
         except Exception:
             pass
         finally:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
     if db_dataset is None and manifest_dataset is None:
         manifest_dataset = _latest_manifest_metadata(dataset_name)
@@ -1269,7 +1250,7 @@ def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDatase
     finds the newest ``ready`` version where the asof timestamp is within the
     target calendar day (UTC) or before it.
     """
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return None
     target_end = f"{target_date}T23:59:59.999999+00:00"
@@ -1301,10 +1282,7 @@ def dataset_metadata_asof(dataset_name: str, target_date: str) -> PipelineDatase
     except Exception:
         return None
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def load_dataset_frame_asof(dataset_name: str, target_date: str) -> tuple[pd.DataFrame, PipelineDataset | None]:
@@ -1414,7 +1392,7 @@ def recent_dataset_metadata(dataset_name: str, *, limit: int = 8) -> list[Pipeli
     if not dataset_key:
         return []
     capped_limit = max(1, min(int(limit or 8), 25))
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         latest = latest_dataset_metadata(dataset_key)
         return [latest] if latest is not None else []
@@ -1452,10 +1430,7 @@ def recent_dataset_metadata(dataset_name: str, *, limit: int = 8) -> list[Pipeli
         latest = latest_dataset_metadata(dataset_key)
         return [latest] if latest is not None else []
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def load_recent_dataset_frames(dataset_name: str, *, limit: int = 8,
@@ -1601,7 +1576,7 @@ def record_trading_agent_action(
         return False, "A signed-in owner is required."
     if action_value == "approved" and str(candidate.get("stance") or "").lower() not in {"long", "short"}:
         return False, "Only a directional call can be approved for tracking."
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return False, "Postgres is unavailable, so the Trading Agent action was not logged."
     created_at = datetime.now(timezone.utc)
@@ -1675,16 +1650,9 @@ def record_trading_agent_action(
                                 approved_at=created_at, namespace=dataset_namespace())
         conn.commit()
     except Exception as exc:
-        try:
-            conn.rollback()
-        except Exception:
-            pass
         return False, f"Trading Agent action log failed: {type(exc).__name__}: {exc}"
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
     if action_value == "approved":
         return True, "Candidate approved."
@@ -1693,7 +1661,7 @@ def record_trading_agent_action(
 
 def trading_agent_actions_table(*, limit: int = 500) -> pd.DataFrame:
     columns = list(TRADING_AGENT_ACTION_COLUMNS)
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return pd.DataFrame(columns=columns)
     try:
@@ -1721,10 +1689,7 @@ def trading_agent_actions_table(*, limit: int = 500) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=columns)
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def start_source_refresh_job(source: str) -> tuple[bool, str]:
@@ -1804,7 +1769,7 @@ def latest_job_status_table() -> pd.DataFrame:
     ]
     job_names = sorted(set(SOURCE_JOB_MAP.values()))
 
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is not None:
         rows: list[dict[str, str]] = []
         try:
@@ -1903,10 +1868,7 @@ def latest_job_status_table() -> pd.DataFrame:
             ]
             return pd.DataFrame(rows, columns=columns)
         finally:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
     rows: list[dict[str, str]] = [
         {
             "job_name": job_name,
@@ -1945,7 +1907,7 @@ def job_run_history(*, days: int = 7) -> pd.DataFrame:
         "job_name", "run_id", "status", "start_time_utc", "end_time_utc",
         "error_summary", "progress_stage",
     ]
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return pd.DataFrame(columns=columns)
     try:
@@ -1976,10 +1938,7 @@ def job_run_history(*, days: int = 7) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=columns)
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def dataset_version_history(*, days: int = 7) -> pd.DataFrame:
@@ -1987,7 +1946,7 @@ def dataset_version_history(*, days: int = 7) -> pd.DataFrame:
     columns = [
         "dataset_name", "row_count", "ingested_at_utc", "run_id",
     ]
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return pd.DataFrame(columns=columns)
     try:
@@ -2016,10 +1975,7 @@ def dataset_version_history(*, days: int = 7) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=columns)
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def latest_dataset_status_table() -> pd.DataFrame:
@@ -2032,7 +1988,7 @@ def latest_dataset_status_table() -> pd.DataFrame:
         "run_id",
         "age_hours",
     ]
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return pd.DataFrame(columns=columns)
     try:
@@ -2063,10 +2019,7 @@ def latest_dataset_status_table() -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=columns)
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 _CURRENT_FEED_POINTER_HEALTH_DATASETS: tuple[str, ...] = (
@@ -2085,7 +2038,7 @@ def _latest_db_dataset_metadata_map(dataset_names: list[str]) -> dict[str, Pipel
     names = [str(name).strip() for name in dataset_names if str(name).strip()]
     if not names:
         return {}
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return {}
     try:
@@ -2119,10 +2072,7 @@ def _latest_db_dataset_metadata_map(dataset_names: list[str]) -> dict[str, Pipel
     except Exception:
         return {}
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def _same_dataset_pointer(left: PipelineDataset | None, right: PipelineDataset | None) -> bool:
@@ -2385,7 +2335,7 @@ def record_connector_call(
     metadata_dict = dict(metadata or {})
     safe_metadata = json.dumps(metadata_dict, ensure_ascii=False, sort_keys=True, default=str)
     linked_run_id = _clean_text(metadata_dict.get("run_id")) or _get_env("PIPELINE_RUN_ID")
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return False
     try:
@@ -2417,16 +2367,9 @@ def record_connector_call(
         conn.commit()
         return True
     except Exception:
-        try:
-            conn.rollback()
-        except Exception:
-            pass
         return False
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def connector_call_rollup(*, days: int = 7) -> pd.DataFrame:
@@ -2442,7 +2385,7 @@ def connector_call_rollup(*, days: int = 7) -> pd.DataFrame:
         "last_call_at_utc",
         "last_error_summary",
     ]
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return pd.DataFrame(columns=columns)
     try:
@@ -2498,10 +2441,7 @@ def connector_call_rollup(*, days: int = 7) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=columns)
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 _EXECUTION_SCHEMA_READY: set[tuple[str, str]] = set()
@@ -2534,28 +2474,26 @@ def _ensure_execution_store(conn: Any) -> None:
 
 def read_execution_state(namespace: str, state_key: str, *, strict: bool = False) -> dict[str, Any] | None:
     """Read an owned checkpoint; unavailable persistence is distinct from a hit."""
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         if strict:
             raise RuntimeError("Research execution store is unavailable.")
         return None
-    try:
+    with closing(conn):
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
             cur.execute("SELECT payload FROM aql_zopedia_execution_state WHERE namespace=%s AND state_key=%s",
                         (namespace, state_key))
             row = cur.fetchone()
         return dict(row[0]) if row else None
-    finally:
-        conn.close()
 
 
 def claim_execution_state(namespace: str, state_key: str, *, owner: str, seconds: float) -> bool:
     """Short SQL transaction; a lease never holds a connection during inference."""
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         raise RuntimeError("Research execution store is unavailable.")
-    try:
+    with closing(conn):
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
             cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
@@ -2568,29 +2506,25 @@ def claim_execution_state(namespace: str, state_key: str, *, owner: str, seconds
             claimed = cur.fetchone() is not None
         conn.commit()
         return claimed
-    finally:
-        conn.close()
 
 
 def release_execution_state(namespace: str, state_key: str, *, owner: str) -> None:
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return
-    try:
+    with closing(conn):
         with conn.cursor() as cur:
             cur.execute("""DELETE FROM aql_zopedia_execution_state
                 WHERE namespace=%s AND state_key=%s AND payload->>'owner'=%s""",
                 (namespace, state_key, owner))
         conn.commit()
-    finally:
-        conn.close()
 
 
 def write_execution_state(namespace: str, state_key: str, payload: dict[str, Any], *, immutable: bool = False) -> bool:
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return False
-    try:
+    with closing(conn):
         _ensure_execution_store(conn)
         conflict = "DO NOTHING" if immutable else "DO UPDATE SET payload=excluded.payload,updated_at_utc=now()"
         with conn.cursor() as cur:
@@ -2599,36 +2533,29 @@ def write_execution_state(namespace: str, state_key: str, payload: dict[str, Any
                         (namespace, state_key, json.dumps(payload, ensure_ascii=False, default=str)))
         conn.commit()
         return True
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
 
 
 def read_execution_states(namespace: str, state_keys: list[str]) -> dict[str, dict[str, Any]]:
     if not state_keys:
         return {}
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return {}
-    try:
+    with closing(conn):
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
             cur.execute("SELECT state_key,payload FROM aql_zopedia_execution_state WHERE namespace=%s AND state_key=ANY(%s)",
                         (namespace, state_keys))
             return {row[0]: dict(row[1]) for row in cur.fetchall()}
-    finally:
-        conn.close()
 
 
 def retain_research_checkpoint(*, namespace: str, input_key: str, artifact: dict[str, Any],
                                subject: str, task: str) -> dict[str, Any] | None:
     """Publish an immutable result and its replay/latest pointers atomically."""
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return None
-    try:
+    with closing(conn):
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
             cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
@@ -2646,20 +2573,15 @@ def retain_research_checkpoint(*, namespace: str, input_key: str, artifact: dict
                 DO UPDATE SET payload=excluded.payload,updated_at_utc=now()""", pointers)
         conn.commit()
         return stored
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
 
 
 def write_execution_states(namespace: str, values: dict[str, dict[str, Any]]) -> bool:
     if not values:
         return True
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return False
-    try:
+    with closing(conn):
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
             cur.executemany("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
@@ -2667,8 +2589,6 @@ def write_execution_states(namespace: str, values: dict[str, dict[str, Any]]) ->
                 [(namespace, key, json.dumps(value, ensure_ascii=False, default=str)) for key, value in values.items()])
         conn.commit()
         return True
-    finally:
-        conn.close()
 
 
 def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool = True) -> bool:
@@ -2677,7 +2597,7 @@ def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool =
         return False
     conn = None
     try:
-        conn = _db_connect()
+        conn = open_database_connection()
         if conn is None:
             raise RuntimeError("Provider attempt database is unavailable")
         _ensure_execution_store(conn)
@@ -2697,13 +2617,10 @@ def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool =
         conn.commit()
         return True
     except Exception:
-        if conn is not None:
-            with suppress(Exception):
-                conn.rollback()
+        pass
     finally:
         if conn is not None:
-            with suppress(Exception):
-                conn.close()
+            conn.close()
     if not archive_on_failure:
         return False
     # The archive is independent of Postgres. Keep the full metering receipt,
@@ -2763,10 +2680,10 @@ def reconcile_provider_attempt_receipts(*, days: int = 7, limit: int = 1000) -> 
 def list_research_artifacts(*, namespace: str, subjects: list[str] | None = None,
                             limit: int = 20) -> list[dict[str, Any]]:
     """List latest public research within the caller's declared environment."""
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         raise RuntimeError("Completed investigations store is unavailable")
-    try:
+    with closing(conn):
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
             cur.execute("""SELECT a.payload FROM aql_zopedia_execution_state p
@@ -2776,19 +2693,17 @@ def list_research_artifacts(*, namespace: str, subjects: list[str] | None = None
                 ORDER BY p.updated_at_utc DESC LIMIT %s""",
                         (namespace, namespace + ":latest", subjects or None, subjects or None, min(max(limit, 1), 100)))
             return [dict(row[0]) for row in cur.fetchall()]
-    finally:
-        conn.close()
 
 
 def provider_usage_rollup(*, days: int = 7) -> pd.DataFrame:
     """Attempt-based spend view with explicit unpriced and missing-usage counts."""
     reconciliation = {"scan_complete": None, "deferred": True}
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         frame = pd.DataFrame()
         frame.attrs.update(database_available=False, receipt_reconciliation=reconciliation)
         return frame
-    try:
+    with closing(conn):
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
             cur.execute("""SELECT settings_scope,surface,purpose,provider,reported_model,
@@ -2811,8 +2726,6 @@ def provider_usage_rollup(*, days: int = 7) -> pd.DataFrame:
             frame = pd.DataFrame(cur.fetchall(), columns=columns)
             frame.attrs["receipt_reconciliation"] = reconciliation
             return frame
-    finally:
-        conn.close()
 
 
 
@@ -2904,7 +2817,7 @@ def record_model_call(
         or _get_env("PIPELINE_RUN_ID")
     )
     safe_metadata = json.dumps(metadata_payload, ensure_ascii=False, sort_keys=True, default=str)
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return False
     try:
@@ -2950,16 +2863,9 @@ def record_model_call(
         conn.commit()
         return True
     except Exception:
-        try:
-            conn.rollback()
-        except Exception:
-            pass
         return False
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def model_call_rollup(*, days: int = 7) -> pd.DataFrame:
@@ -2977,7 +2883,7 @@ def model_call_rollup(*, days: int = 7) -> pd.DataFrame:
         "last_call_at_utc",
         "last_error_summary",
     ]
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return pd.DataFrame(columns=columns)
     try:
@@ -3035,10 +2941,7 @@ def model_call_rollup(*, days: int = 7) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=columns)
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def retained_connector_evidence_health(*, days: int = 7) -> pd.DataFrame:
@@ -3051,7 +2954,7 @@ def retained_connector_evidence_health(*, days: int = 7) -> pd.DataFrame:
         "provider_error_rows",
         "last_seen_at_utc",
     ]
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return pd.DataFrame(columns=columns)
     try:
@@ -3109,7 +3012,4 @@ def retained_connector_evidence_health(*, days: int = 7) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=columns)
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()

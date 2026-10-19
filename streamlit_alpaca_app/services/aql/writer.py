@@ -18,17 +18,14 @@ from .constants import (
     SYMBOL_WRITER_SCHEMA,
     YIELD_RELEVANT_TAGS,
 )
-from ._shared import (
+from ._shared import _top_sources
+from services.common.market_activity import (
     _coerce_float,
     _coerce_text,
-    _json_dumps,
     _move_direction,
     _normalize_symbol,
     _safe_list,
-    _tag_tokens,
-    _top_sources,
 )
-from .extractor import _claim_entities
 from .collector import _candidate_subject
 
 SYMBOL_BUNDLE_SYSTEM_PROMPT = register_narrative_prompt(

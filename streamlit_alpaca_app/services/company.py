@@ -337,32 +337,6 @@ def load_recent_news(api: AlpacaAPI, ticker: str, days: int = 14, limit: int = 8
     return _load_cached_news_context(ticker, limit=limit)
 
 
-def _fmt_money(value: float | int | None) -> str:
-    if value is None or pd.isna(value):
-        return "n/a"
-    value = float(value)
-    magnitude = abs(value)
-    if magnitude >= 1_000_000_000:
-        return f"${value / 1_000_000_000:.2f}B"
-    if magnitude >= 1_000_000:
-        return f"${value / 1_000_000:.0f}M"
-    if magnitude >= 1_000:
-        return f"${value / 1_000:.0f}K"
-    return f"${value:.0f}"
-
-
-def _latest_metric(frame: pd.DataFrame, metric: str) -> tuple[float | None, pd.Timestamp | None]:
-    if frame.empty:
-        return None, None
-    rows = frame[frame["metric"] == metric].sort_values("report_date")
-    if rows.empty:
-        return None, None
-    row = rows.iloc[-1]
-    value = pd.to_numeric(row.get("value"), errors="coerce")
-    report_date = pd.to_datetime(row.get("report_date"), errors="coerce")
-    return (None if pd.isna(value) else float(value), report_date)
-
-
 def _matched_business_lenses(symbol: str) -> list[str]:
     target = str(symbol or "").upper().strip()
     if not target:

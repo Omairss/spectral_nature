@@ -5,9 +5,8 @@ from typing import Any
 
 import pandas as pd
 
-from data_access.contracts import frame_to_records, to_jsonable
+from services.json_utils import frame_to_records, to_jsonable, to_list
 from services.auth_service import UserContext
-from services.json_utils import to_list
 from services.pipeline_store import (
     load_latest_dataset_frame,
     load_recent_dataset_frames,

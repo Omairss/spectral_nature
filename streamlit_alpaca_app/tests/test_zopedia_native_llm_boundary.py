@@ -120,34 +120,6 @@ def test_attention_home_job_uses_engine_summary_boundary():
     assert "from services.attention_home_summary import" not in text
 
 
-def test_aql_package_facade_uses_engine_summary_boundary():
-    path = APP_ROOT / "services/aql/__init__.py"
-    text = path.read_text(encoding="utf-8")
-
-    assert "build_aql_zopedia_attention_home_summary_with_trace" in text
-    assert "build_attention_agentic_summary_with_trace," not in text
-
-
-def test_aql_package_facade_calls_engine_runtime(monkeypatch):
-    import services.aql as aql
-
-    calls: list[dict[str, object]] = []
-
-    def _fake_engine(*args, **kwargs):
-        calls.append({"args": args, "kwargs": kwargs})
-        return {"status": "ok", "source": "engine"}, {"aql_zopedia_engine_runs": pd.DataFrame()}
-
-    monkeypatch.setattr(aql, "build_aql_zopedia_attention_home_summary_with_trace", _fake_engine)
-
-    summary, trace = aql.build_attention_agentic_summary_with_trace({"top_events": []}, llm_client=object())
-    compact = aql.build_attention_agentic_summary({"top_events": []}, llm_client=object())
-
-    assert summary["source"] == "engine"
-    assert compact["source"] == "engine"
-    assert "aql_zopedia_engine_runs" in trace
-    assert len(calls) == 2
-
-
 def test_page_and_trading_default_runners_call_engine(monkeypatch):
     from services import aql_zopedia_engine, page_agentic_summary, trading_agent
 

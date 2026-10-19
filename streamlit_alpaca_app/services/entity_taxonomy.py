@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from services.database import open_database_session
+from psycopg import OperationalError
 
 from datetime import datetime, timezone
 import json
@@ -12,13 +13,9 @@ import pandas as pd
 from .llm import JSONLLMClient
 from .pipeline_store import load_latest_dataset_frame
 from .runtime_policy import taxonomy_classifier_policy
-from .secrets import postgres_connect_timeout_seconds, resolve_secret_value
+from .secrets import resolve_secret_value
 
 
-try:
-    import psycopg
-except Exception:
-    psycopg = None
 
 
 LLMClient = JSONLLMClient
@@ -258,15 +255,6 @@ def _asset_class_from_security_type(security_type: object) -> str:
     return "equity"
 
 
-def _commodity_role_from_name(name: object) -> str:
-    lowered = _coerce_text(name).lower()
-    if not lowered:
-        return ""
-    if "oil" in lowered or "brent" in lowered or "wti" in lowered:
-        return "oil"
-    return lowered.replace(" ", "_")
-
-
 def _taxonomy_row(
     symbol: str,
     *,
@@ -462,11 +450,11 @@ def _db_connection() -> Any | None:
         secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
         default_secret_name="postgres-connection-string",
     )
-    if not conn_str or psycopg is None:
+    if not conn_str:
         return None
     try:
-        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
-    except Exception:
+        return open_database_session(conn_str)
+    except OperationalError:
         return None
 
 
@@ -664,10 +652,7 @@ def fetch_entity_taxonomy_frame(symbols: list[str] | None = None) -> pd.DataFram
     except Exception:
         return empty_entity_taxonomy_frame()
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
     return _rows_from_query(rows)
 
 

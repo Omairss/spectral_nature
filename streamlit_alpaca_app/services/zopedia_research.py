@@ -15,7 +15,7 @@ from typing import Any
 import pandas as pd
 
 from data_access.layer import DataAccessLayer
-from services.attention_agentic import search_symbol_news_payload
+from services.aql.collector import search_symbol_news_payload
 from services.attention_live_research import search_market_event_news_payload
 from services.llm import get_config_param, get_prompt, register_config_param, register_narrative_prompt, remaining_request_timeout
 from services.zopedia_resolver import resolve_zopedia

@@ -267,10 +267,10 @@ def llm_settings_scope() -> str:
 
 def save_prompt_override_changes(changes: dict[str, str | None]) -> bool:
     """Commit only submitted keys. Empty scoped values mean reset to code default."""
-    from .pipeline_store import _db_connect
+    from .pipeline_store import open_database_connection
 
     scope = llm_settings_scope()
-    conn = _db_connect()
+    conn = open_database_connection()
     if conn is None:
         return False
     try:
@@ -290,8 +290,6 @@ def save_prompt_override_changes(changes: dict[str, str | None]) -> bool:
         return True
     except Exception:
         return False
-    finally:
-        conn.close()
 
 
 def load_prompt_overrides(*, force: bool = False) -> bool:
@@ -307,9 +305,9 @@ def load_prompt_overrides(*, force: bool = False) -> bool:
             _PROMPT_OVERRIDES.clear()
             _OVERRIDES_LOADED = False
             _OVERRIDES_SCOPE = scope
-        from .pipeline_store import _db_connect
+        from .pipeline_store import open_database_connection
 
-        conn = _db_connect()
+        conn = open_database_connection()
         if conn is None:
             _OVERRIDES_LOADED = False
             return False
@@ -334,8 +332,6 @@ def load_prompt_overrides(*, force: bool = False) -> bool:
         except Exception:
             _OVERRIDES_LOADED = False
             return False
-        finally:
-            conn.close()
 
 
 def apply_narrative_style(system_prompt: str) -> str:

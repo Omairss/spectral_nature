@@ -1224,98 +1224,6 @@ def build_attention_event_candidates_1d(
     return out[CANDIDATE_COLUMNS].copy()
 
 
-def _enriched_context_payloads(
-    candidates: pd.DataFrame,
-    *,
-    news_payloads: dict[str, dict[str, Any]] | None = None,
-    context_payloads: dict[str, dict[str, Any]] | None = None,
-    asof_time_utc: object | None = None,
-) -> dict[str, dict[str, Any]]:
-    out: dict[str, dict[str, Any]] = {}
-    asof_ts = pd.to_datetime(asof_time_utc, utc=True, errors="coerce") if asof_time_utc is not None else pd.NaT
-    for _, row in candidates.iterrows():
-        symbol = _normalize_symbol(row.get("symbol"))
-        current = dict((context_payloads or {}).get(symbol) or {})
-        evidence_rows = _symbol_evidence_rows(
-            symbol,
-            news_payloads=news_payloads,
-            context_payloads=context_payloads,
-            asof_time_utc=asof_ts if pd.notna(asof_ts) else None,
-        )
-        current_rows = _current_evidence_rows(evidence_rows, asof_time_utc=asof_ts) if pd.notna(asof_ts) else []
-        if current_rows:
-            best = current_rows[0]
-            if _is_low_signal_text(current.get("llm_why_now")):
-                current["llm_why_now"] = _coerce_text(best.get("summary") or best.get("headline"))
-            if not _coerce_text(current.get("llm_summary_text")):
-                current["llm_summary_text"] = _coerce_text(best.get("summary") or best.get("headline"))
-            if not _coerce_text(current.get("llm_headline")):
-                current["llm_headline"] = _coerce_text(best.get("headline"))
-            if not _coerce_text(current.get("llm_source_line")):
-                current["llm_source_line"] = _coerce_text(best.get("source"))
-        out[symbol] = current
-    return out
-
-
-def _candidate_feed_for_events(candidates: pd.DataFrame, generated_at_utc: str) -> pd.DataFrame:
-    if candidates.empty:
-        return pd.DataFrame()
-    rows: list[dict[str, Any]] = []
-    for _, row in candidates.iterrows():
-        rows.append(
-            {
-                "event_id": _coerce_text(row.get("candidate_id")) or f"evt-{_normalize_symbol(row.get('symbol')).lower()}",
-                "asof_time_utc": generated_at_utc,
-                "entity_id": _normalize_symbol(row.get("symbol")),
-                "direction": _coerce_text(row.get("direction")),
-                "observed_value": _coerce_float(row.get("change_pct")),
-                "attention_score": _coerce_float(row.get("candidate_score")),
-                "severity_score": _coerce_float(row.get("severity_score")) if np.isfinite(_coerce_float(row.get("severity_score"))) else _coerce_float(row.get("candidate_score")),
-                "title": _coerce_text(row.get("headline")) or f"{_normalize_symbol(row.get('symbol'))} moved sharply today",
-                "subtitle": "Today vs expectation",
-                "horizon": "1d",
-                "peer_group_name": _coerce_text(row.get("peer_group_name")) or _coerce_text(row.get("sector")) or "Market",
-                "source_label": _coerce_text(row.get("source_label")) or "Market",
-                "story_text": _coerce_text(row.get("what_changed_text")),
-                "why_now_text": _coerce_text(row.get("why_now_text")),
-            }
-        )
-    return pd.DataFrame(rows)
-
-
-def _event_impacts_rows(
-    top_events: list[dict[str, Any]],
-    candidate_lookup: dict[str, dict[str, Any]],
-) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    for event in top_events:
-        event_id = _coerce_text(event.get("market_event_id"))
-        drivers = {_normalize_symbol(item) for item in list(event.get("driver_symbols") or []) if _normalize_symbol(item)}
-        beneficiaries = {_normalize_symbol(item) for item in list(event.get("beneficiary_symbols") or []) if _normalize_symbol(item)}
-        supporting = [_normalize_symbol(item) for item in list(event.get("supporting_symbols") or []) if _normalize_symbol(item)]
-        for symbol in supporting:
-            candidate = candidate_lookup.get(symbol, {})
-            if symbol in drivers:
-                impact_role = "driver"
-            elif symbol in beneficiaries:
-                impact_role = "beneficiary"
-            else:
-                impact_role = "affected"
-            rows.append(
-                {
-                    "market_event_id": event_id,
-                    "symbol": symbol,
-                    "impact_role": impact_role,
-                    "direction": _coerce_text(candidate.get("direction")),
-                    "change_pct": candidate.get("change_pct"),
-                    "sector": candidate.get("sector"),
-                    "industry": candidate.get("industry"),
-                    "bundle_id": f"symbol::{symbol}",
-                }
-            )
-    return rows
-
-
 def build_attention_home_1d(
     daily_movers: pd.DataFrame,
     *,
@@ -1333,7 +1241,7 @@ def build_attention_home_1d(
     load_search_clients: bool = False,
     search_clients: list[Any] | tuple[Any, ...] | None = None,
 ) -> dict[str, Any]:
-    from .attention_agentic import build_bottom_up_attention_home
+    from .aql.pipeline import build_bottom_up_attention_home
 
     return build_bottom_up_attention_home(
         daily_movers,
@@ -1360,7 +1268,7 @@ def build_attention_research_bundle(
     news_payloads: dict[str, dict[str, Any]] | None = None,
     context_payloads: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    from .attention_agentic import build_bottom_up_attention_bundle
+    from .aql.pipeline import build_bottom_up_attention_bundle
 
     normalized_bundle_id = _coerce_text(bundle_id)
     agentic_bundle = build_bottom_up_attention_bundle(normalized_bundle_id, home_payload)

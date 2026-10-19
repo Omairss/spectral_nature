@@ -15,17 +15,10 @@ import zipfile
 from typing import Any
 
 import pandas as pd
+from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
 
 from .saa import storage as saa_storage
 from .secrets import build_azure_credential
-
-
-try:
-    from azure.storage.blob import BlobServiceClient, generate_blob_sas, BlobSasPermissions
-except Exception:
-    BlobServiceClient = None  # type: ignore[assignment,misc]
-    generate_blob_sas = None  # type: ignore[assignment]
-    BlobSasPermissions = None  # type: ignore[assignment,misc]
 
 
 # ---------------------------------------------------------------------------
@@ -405,8 +398,6 @@ def _load_summaries_for_documents(documents_df: pd.DataFrame) -> dict[str, dict[
 
 
 def _blob_service_client() -> Any | None:
-    if BlobServiceClient is None:
-        return None
     account_url = (os.getenv("AZURE_STORAGE_ACCOUNT_URL") or "").strip()
     if not account_url:
         return None

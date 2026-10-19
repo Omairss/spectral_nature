@@ -556,51 +556,6 @@ def _is_source_backed_memory_source(source: object) -> bool:
     return any(clean.startswith(prefix) for prefix in SOURCE_BACKED_MEMORY_SOURCE_PREFIXES)
 
 
-def _clean_business_fact_text(value: object, *, limit: int = 520) -> str:
-    text = " ".join(_coerce_text(value).split())
-    if not text:
-        return ""
-    text = re.sub(r"\s+Source:\s+.+?$", "", text).strip()
-    if ": " in text:
-        prefix, rest = text.split(": ", 1)
-        prefix_lower = prefix.lower()
-        title_markers = (
-            "424b",
-            "annual report",
-            "culture",
-            "financials",
-            "open positions",
-            "reports",
-            "reviews",
-            "working at",
-        )
-        label_markers = ("business lens", "company background")
-        if prefix_lower.startswith(label_markers) or any(marker in prefix_lower for marker in title_markers):
-            text = rest.strip()
-    if len(text) <= limit:
-        return text
-    return text[: max(int(limit), 20) - 3].rstrip(" ,;:") + "..."
-
-
-def _clean_company_name_for_display(value: object) -> str:
-    text = _coerce_text(value)
-    if not text:
-        return ""
-    text = re.sub(
-        r"\s+-\s+.*?\b(common stock|capital stock|ordinary shares|ordinary share|adr|ads|depositary shares?)\b.*$",
-        "",
-        text,
-        flags=re.IGNORECASE,
-    )
-    text = re.sub(
-        r"\b(class\s+[a-z]\s+)?(common stock|capital stock|ordinary shares?|depositary shares?)\b.*$",
-        "",
-        text,
-        flags=re.IGNORECASE,
-    )
-    return text.strip(" ,-") or _coerce_text(value)
-
-
 def _matching_zopedia_pages(frame: pd.DataFrame | None, *, symbol: str, company_name: str, query: str, limit: int = 5) -> list[dict[str, Any]]:
     if not isinstance(frame, pd.DataFrame) or frame.empty:
         return []

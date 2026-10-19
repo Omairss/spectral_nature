@@ -5,6 +5,8 @@ module never starts research, changes schemas, or interprets narrative quality.
 """
 from __future__ import annotations
 
+from contextlib import closing
+
 from concurrent.futures import Future, ThreadPoolExecutor, wait, FIRST_COMPLETED
 from datetime import datetime, timedelta, timezone
 import os
@@ -15,7 +17,7 @@ from typing import Any, Callable
 
 import requests
 
-from data_access.contracts import to_jsonable
+from services.json_utils import to_jsonable
 from services.llm import llm_settings_scope
 from services.pipeline_store import dataset_namespace, open_database_connection
 from services.secrets import build_azure_credential
@@ -113,7 +115,7 @@ def _database(hours: int) -> dict:
     if conn is None:
         return {**result, "unavailable": {"database": "Connection unavailable"}}
     result["server_name"] = str(conn.info.host).split(".", 1)[0]
-    try:
+    with closing(conn):
         with conn.pinned_connection():
             deadline = time.monotonic() + 18.0
             for name, (query, params) in queries.items():
@@ -132,8 +134,6 @@ def _database(hours: int) -> dict:
                     conn.rollback()
                     result[name] = []
                     result.setdefault("unavailable", {})[name] = type(exc).__name__
-    finally:
-        conn.close()
     return to_jsonable(result)
 
 

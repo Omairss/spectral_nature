@@ -6,7 +6,8 @@ from urllib.parse import urlparse
 
 import pandas as pd
 
-from data_access.contracts import ResolvedPayload, frame_to_records, to_jsonable
+from data_access.contracts import ResolvedPayload
+from services.json_utils import frame_to_records, to_jsonable
 from data_access.query_service import QueryService
 
 

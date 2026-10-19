@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from compute.analytics import performance_table
-from data_access.contracts import frame_to_records, to_jsonable
+from services.json_utils import frame_to_records, to_jsonable
 from data_access.query_service import QueryService
 from services import robinhood_main, robinhood_main_analytics
 from services.auth_service import UserContext

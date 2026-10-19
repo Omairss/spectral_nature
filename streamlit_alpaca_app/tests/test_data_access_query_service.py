@@ -15,7 +15,7 @@ if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
 from data_access.contracts import DataProvenance, QueryRequest, ResolvedPayload
-from data_access.contracts import frame_to_records
+from services.json_utils import frame_to_records
 from data_access.layer import DataAccessLayer
 from data_access.query_service import QueryService
 from presentation.plotly import render_chart_model
@@ -1511,7 +1511,7 @@ def test_data_access_layer_recent_news_falls_back_to_attention_web_search_news(m
 @pytest.mark.parametrize("materialized_only", [False, True])
 def test_research_reads_do_not_construct_model_or_search_clients(monkeypatch, materialized_only):
     import services.llm as llm
-    import services.attention_agentic as attention
+    from services.aql import collector, pipeline
     import data_access.layer as layer
 
     def forbidden(*args, **kwargs):
@@ -1519,8 +1519,8 @@ def test_research_reads_do_not_construct_model_or_search_clients(monkeypatch, ma
 
     monkeypatch.setattr(llm, "load_llm_client", forbidden)
     monkeypatch.setattr(llm, "load_embedding_client", forbidden)
-    monkeypatch.setattr(attention, "search_symbol_news_payload", forbidden)
-    monkeypatch.setattr(attention, "build_bottom_up_attention_artifacts", forbidden)
+    monkeypatch.setattr(collector, "search_symbol_news_payload", forbidden)
+    monkeypatch.setattr(pipeline, "build_bottom_up_attention_artifacts", forbidden)
     monkeypatch.setattr(layer, "pipeline_store_configured", lambda: False)
     monkeypatch.setenv("ATTENTION_SYMBOL_BUNDLE_PRECOMPUTED_ONLY", "false")
     dal = DataAccessLayer(materialized_only=materialized_only)

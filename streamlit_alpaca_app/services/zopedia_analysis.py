@@ -18,7 +18,7 @@ import uuid
 import numpy as np
 import pandas as pd
 
-from data_access.contracts import frame_to_records, to_jsonable
+from services.json_utils import frame_to_records, to_jsonable
 from data_access.query_service import QueryService
 from services.saa.storage import _db_connection
 

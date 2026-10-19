@@ -10,7 +10,8 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from data_access.contracts import QueryRequest, to_jsonable
+from data_access.contracts import QueryRequest
+from services.json_utils import to_jsonable
 from data_access.query_service import QueryService
 from presentation.plotly import render_chart_model
 

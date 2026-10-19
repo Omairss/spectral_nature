@@ -23,7 +23,11 @@ from ..llm import (
     register_narrative_prompt,
     get_prompt,
 )
-from ._shared import _coerce_text, _normalize_symbol, _safe_list
+from services.common.market_activity import (
+    _coerce_text,
+    _normalize_symbol,
+    _safe_list,
+)
 from .evidence_index import parse_json_list
 from .evidence_pack import materialize_research_artifacts
 

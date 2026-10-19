@@ -802,10 +802,7 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
         raise
     finally:
         if own_conn:
-            try:
-                db_conn.close()
-            except Exception:
-                pass
+            db_conn.close()
 
 
 def replay_learning_eval(eval_case_path: str, *, run_agent: bool = False) -> dict[str, Any]:

@@ -5,7 +5,7 @@
       "roles": ["worker", "api-next", "broker"],
       "files": ["services/database.py", "services/work_scope.py"],
       "definitions": {
-        "services/auth_store.py": ["_db_connect"],
+        "services/auth_store.py": ["open_auth_store_connection"],
         "services/pipeline_store.py": ["open_database_connection", "latest_dataset_metadata"]
       }
     },

@@ -1,0 +1,5423 @@
+{
+  "summary": {
+    "baseline_revision": "ec086715302dd97b737c95f961f4d1c04380143d",
+    "review_date_local": "2026-10-18",
+    "scope": "Structural inventory covers tracked source; caller and dependency review supports the recorded removals. This is not a claim of human line-by-line review or complete architectural remediation.",
+    "source_files_inventoried": 377,
+    "python_functions_before": 4970,
+    "python_functions_after": 4821,
+    "broad_handlers_before": 799,
+    "broad_handlers_after": 706,
+    "simple_broad_handler_bodies_after": 300,
+    "archives": [
+      "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261019T040740Z",
+      "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261019T040840Z",
+      "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261019T054059Z"
+    ],
+    "first_pass": {
+      "python_functions_after": 4792,
+      "broad_handlers_after": 775,
+      "simple_broad_handler_bodies_after": 356,
+      "runtime_definitions_removed": 127,
+      "runtime_definitions_unchanged": 2901,
+      "runtime_definitions_changed": 20,
+      "diff": {
+        "files": 59,
+        "added": 167,
+        "deleted": 8004
+      }
+    },
+    "broad_handler_definition": "Bare handlers or handlers naming Exception/BaseException directly, matching the first-pass count; tuple catches are not included.",
+    "current_head_observed": "3af9a21a3841b4866fd3c7a32cf13d4712617a09",
+    "concurrent_integration": "Other-session commits advanced Git after the pinned baseline. Current file metrics include those retained changes; only archived before/after runtime deltas below are attributed to this continuation.",
+    "second_pass": {
+      "runtime_before": {
+        "functions": 3267,
+        "broad_handlers": 747,
+        "simple_broad_handler_bodies": 347,
+        "lines": 102841
+      },
+      "runtime_after": {
+        "functions": 3261,
+        "broad_handlers": 677,
+        "simple_broad_handler_bodies": 291,
+        "lines": 102359
+      },
+      "retained_definitions_structurally_compared": 3286,
+      "unexpected_structure_changes": 0,
+      "close_suppression_blocks_removed": 51,
+      "redundant_rollback_blocks_removed": 10,
+      "pure_finalizers_converted_to_contexts": 74,
+      "redundant_outer_closing_contexts_removed": 56,
+      "redundant_close_finalizers_removed": 5,
+      "connection_factory_boundaries_narrowed": 7,
+      "forwarding_aliases_removed": 2,
+      "serializer_definitions_removed": 4,
+      "focused_checks_passed": 178,
+      "live_database_checks_skipped": 4,
+      "historical_fixture_deselected": 1,
+      "runtime_modules_imported_without_external_attempts": 149,
+      "fundamental_rows_replayed_identically": 3000,
+      "additional_broker_error_checks_passed": 9,
+      "unique_focused_checks_passed": 187
+    },
+    "runtime_definition_comparison": "Top-level function ASTs against the pinned baseline. Class methods are outside this list and covered by the continuation structural comparison; removed DAL methods are recorded separately.",
+    "runtime_definitions_removed": 132,
+    "runtime_definitions_changed": 153,
+    "runtime_definitions_unchanged": 2603,
+    "runtime_definitions_added": 0,
+    "development_trial": {
+      "branch": "cleanup/dev-trial-20261019",
+      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/README.md",
+      "http_route_catches_removed": 27,
+      "http_json_adapters_compared": 26,
+      "web_boundary_checks_passed": 13,
+      "real_database_lifecycle_checks_passed": 57,
+      "live_database_checks_skipped": 0,
+      "status": "preparing_development"
+    }
+  },
+  "files": [
+    {
+      "path": "streamlit_alpaca_app/api/__init__.py",
+      "status": "unchanged",
+      "lines_before": 2,
+      "lines_after": 2,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/api/feature_requests.py",
+      "status": "unchanged",
+      "lines_before": 127,
+      "lines_after": 127,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/api/main.py",
+      "status": "unchanged",
+      "lines_before": 1407,
+      "lines_after": 1407,
+      "functions_before": 70,
+      "functions_after": 70,
+      "broad_handlers_before": 25,
+      "broad_handlers_after": 25,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/__init__.py",
+      "status": "unchanged",
+      "lines_before": 93,
+      "lines_after": 93,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/analytics.py",
+      "status": "unchanged",
+      "lines_before": 178,
+      "lines_after": 178,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/anomalies.py",
+      "status": "changed",
+      "lines_before": 1564,
+      "lines_after": 1557,
+      "functions_before": 48,
+      "functions_after": 47,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_signed_percent_text"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/event_study.py",
+      "status": "unchanged",
+      "lines_before": 206,
+      "lines_after": 206,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/fred.py",
+      "status": "unchanged",
+      "lines_before": 576,
+      "lines_after": 576,
+      "functions_before": 16,
+      "functions_after": 16,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/fundamentals.py",
+      "status": "unchanged",
+      "lines_before": 428,
+      "lines_after": 428,
+      "functions_before": 16,
+      "functions_after": 16,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/ownership.py",
+      "status": "unchanged",
+      "lines_before": 87,
+      "lines_after": 87,
+      "functions_before": 5,
+      "functions_after": 5,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/portfolio.py",
+      "status": "unchanged",
+      "lines_before": 173,
+      "lines_after": 173,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/signal_extraction.py",
+      "status": "unchanged",
+      "lines_before": 741,
+      "lines_after": 741,
+      "functions_before": 31,
+      "functions_after": 31,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/signals.py",
+      "status": "unchanged",
+      "lines_before": 248,
+      "lines_after": 248,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/compute/treasury_yields.py",
+      "status": "unchanged",
+      "lines_before": 231,
+      "lines_after": 231,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/__init__.py",
+      "status": "unchanged",
+      "lines_before": 27,
+      "lines_after": 27,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/contracts.py",
+      "status": "changed",
+      "lines_before": 238,
+      "lines_after": 189,
+      "functions_before": 14,
+      "functions_after": 11,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_jsonable_scalar",
+        "frame_to_records",
+        "to_jsonable"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/layer.py",
+      "status": "changed",
+      "lines_before": 3278,
+      "lines_after": 3183,
+      "functions_before": 100,
+      "functions_after": 95,
+      "broad_handlers_before": 4,
+      "broad_handlers_after": 4,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_dates_match_filters",
+        "_key_contains_any",
+        "_query_tokens"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/query_registry.py",
+      "status": "changed",
+      "lines_before": 1135,
+      "lines_after": 1136,
+      "functions_before": 63,
+      "functions_after": 63,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/query_service.py",
+      "status": "changed",
+      "lines_before": 233,
+      "lines_after": 234,
+      "functions_before": 14,
+      "functions_after": 14,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/research/hierarchical-summarization/evidence/2026-10-15/experiment-harness.py",
+      "status": "unchanged",
+      "lines_before": 106,
+      "lines_after": 106,
+      "functions_before": 5,
+      "functions_after": 5,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/research/trading-calls/experiments/2026-10-18/replay.py",
+      "status": "unchanged",
+      "lines_before": 74,
+      "lines_after": 74,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/research/trading-calls/experiments/2026-10-18/source_replay.py",
+      "status": "unchanged",
+      "lines_before": 66,
+      "lines_after": 66,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/verification/trading-calls-2026-10-18/check_feedback_database.py",
+      "status": "unchanged",
+      "lines_before": 38,
+      "lines_after": 38,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/verification/trading-calls-2026-10-18/check_tracking_database.py",
+      "status": "unchanged",
+      "lines_before": 64,
+      "lines_after": 64,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/verification/trading-calls-2026-10-18/check_tracking_math.py",
+      "status": "unchanged",
+      "lines_before": 37,
+      "lines_after": 37,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/verification/trading-calls-2026-10-18/check_tracking_publication.py",
+      "status": "unchanged",
+      "lines_before": 55,
+      "lines_after": 55,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/documents/verification/trading-calls-2026-10-18/review_feedback.py",
+      "status": "unchanged",
+      "lines_before": 20,
+      "lines_after": 20,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/App/AppEnvironment.swift",
+      "status": "unchanged",
+      "lines_before": 17,
+      "lines_after": 17
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/App/AppSession.swift",
+      "status": "unchanged",
+      "lines_before": 131,
+      "lines_after": 131
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/App/ResearchActivityStore.swift",
+      "status": "unchanged",
+      "lines_before": 162,
+      "lines_after": 162
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/App/RootView.swift",
+      "status": "unchanged",
+      "lines_before": 110,
+      "lines_after": 110
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Core/Security/KeychainTokenStore.swift",
+      "status": "unchanged",
+      "lines_before": 55,
+      "lines_after": 55
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AnalysisCharts.swift",
+      "status": "unchanged",
+      "lines_before": 417,
+      "lines_after": 417
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/AttentionCharts.swift",
+      "status": "unchanged",
+      "lines_before": 206,
+      "lines_after": 206
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/MarkdownView.swift",
+      "status": "unchanged",
+      "lines_before": 158,
+      "lines_after": 158
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/PeripheralScatterSelection.swift",
+      "status": "unchanged",
+      "lines_before": 94,
+      "lines_after": 94
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/SankeyChart.swift",
+      "status": "unchanged",
+      "lines_before": 162,
+      "lines_after": 162
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ScatterPlot.swift",
+      "status": "unchanged",
+      "lines_before": 411,
+      "lines_after": 411
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/WorkbenchDesign.swift",
+      "status": "unchanged",
+      "lines_before": 559,
+      "lines_after": 559
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Auth/AccountLink.swift",
+      "status": "unchanged",
+      "lines_before": 31,
+      "lines_after": 31
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Auth/LoginView.swift",
+      "status": "unchanged",
+      "lines_before": 178,
+      "lines_after": 178
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Home/HomeView.swift",
+      "status": "unchanged",
+      "lines_before": 320,
+      "lines_after": 320
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketReturnAnalysis.swift",
+      "status": "unchanged",
+      "lines_before": 130,
+      "lines_after": 130
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Markets/MarketsView.swift",
+      "status": "unchanged",
+      "lines_before": 160,
+      "lines_after": 160
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioListsView.swift",
+      "status": "unchanged",
+      "lines_before": 247,
+      "lines_after": 247
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Portfolio/PortfolioView.swift",
+      "status": "unchanged",
+      "lines_before": 359,
+      "lines_after": 359
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift",
+      "status": "unchanged",
+      "lines_before": 544,
+      "lines_after": 544
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/AdminView.swift",
+      "status": "unchanged",
+      "lines_before": 493,
+      "lines_after": 493
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/AttentionGraphView.swift",
+      "status": "unchanged",
+      "lines_before": 176,
+      "lines_after": 176
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/FeatureRequestsView.swift",
+      "status": "unchanged",
+      "lines_before": 225,
+      "lines_after": 225
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/InvestigatorView.swift",
+      "status": "unchanged",
+      "lines_before": 218,
+      "lines_after": 218
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/MacroView.swift",
+      "status": "unchanged",
+      "lines_before": 205,
+      "lines_after": 205
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/OptionsView.swift",
+      "status": "unchanged",
+      "lines_before": 225,
+      "lines_after": 225
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/TradingView.swift",
+      "status": "unchanged",
+      "lines_before": 313,
+      "lines_after": 313
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIClient.swift",
+      "status": "unchanged",
+      "lines_before": 266,
+      "lines_after": 266
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift",
+      "status": "unchanged",
+      "lines_before": 286,
+      "lines_after": 286
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/JSONValue.swift",
+      "status": "unchanged",
+      "lines_before": 87,
+      "lines_after": 87
+    },
+    {
+      "path": "streamlit_alpaca_app/ios_app/SpectralNatureMVP/SpectralNatureMVP/SpectralNatureMVPApp.swift",
+      "status": "unchanged",
+      "lines_before": 14,
+      "lines_after": 14
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/__init__.py",
+      "status": "unchanged",
+      "lines_before": 0,
+      "lines_after": 0,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/__init__.py",
+      "status": "unchanged",
+      "lines_before": 0,
+      "lines_after": 0,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "status": "changed",
+      "lines_before": 3639,
+      "lines_after": 2993,
+      "functions_before": 107,
+      "functions_after": 94,
+      "broad_handlers_before": 29,
+      "broad_handlers_after": 28,
+      "simple_broad_handler_bodies_after": 9,
+      "removed_definitions": [
+        "_compact_zopedia_tool_evidence",
+        "_group_synthesis_limit",
+        "_group_synthesis_source_items",
+        "_group_synthesis_timeout_seconds",
+        "_review_zopedia_enrichment_payload",
+        "_review_zopedia_market_summary_payload",
+        "_revise_zopedia_enrichment_payload",
+        "_revise_zopedia_market_summary_payload",
+        "_run_zopedia_market_summary",
+        "_synthesize_group_contexts_with_zopedia",
+        "_zopedia_enrichment_llm_retries",
+        "_zopedia_enrichment_quality_revisions",
+        "_zopedia_market_summary_quality_revisions"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_ticker_snapshot_build.py",
+      "status": "unchanged",
+      "lines_before": 119,
+      "lines_after": 119,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/daily_market_datapoints_build.py",
+      "status": "unchanged",
+      "lines_before": 24,
+      "lines_after": 24,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/main.py",
+      "status": "changed",
+      "lines_before": 3529,
+      "lines_after": 3464,
+      "functions_before": 111,
+      "functions_after": 110,
+      "broad_handlers_before": 65,
+      "broad_handlers_after": 58,
+      "simple_broad_handler_bodies_after": 6,
+      "removed_definitions": [
+        "_db_dataset_is_fresh"
+      ],
+      "changed_definitions": [
+        "_db_connection",
+        "main",
+        "run_equities"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/namespace_refresh.py",
+      "status": "unchanged",
+      "lines_before": 223,
+      "lines_after": 223,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/presentation/__init__.py",
+      "status": "unchanged",
+      "lines_before": 4,
+      "lines_after": 4,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/presentation/plotly.py",
+      "status": "unchanged",
+      "lines_before": 99,
+      "lines_after": 99,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/presentation/visualization_artifacts.py",
+      "status": "changed",
+      "lines_before": 191,
+      "lines_after": 185,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/check_workbench_data.py",
+      "status": "unchanged",
+      "lines_before": 76,
+      "lines_after": 76,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/cleanup_retired_releases.py",
+      "status": "unchanged",
+      "lines_before": 52,
+      "lines_after": 52,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/collect_historical_corpus.py",
+      "status": "unchanged",
+      "lines_before": 152,
+      "lines_after": 152,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/company_business_memory_probe.py",
+      "status": "unchanged",
+      "lines_before": 418,
+      "lines_after": 418,
+      "functions_before": 11,
+      "functions_after": 11,
+      "broad_handlers_before": 8,
+      "broad_handlers_after": 8,
+      "simple_broad_handler_bodies_after": 5
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/company_business_stack_probe.py",
+      "status": "unchanged",
+      "lines_before": 547,
+      "lines_after": 547,
+      "functions_before": 16,
+      "functions_after": 16,
+      "broad_handlers_before": 7,
+      "broad_handlers_after": 7,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/docker_dev.sh",
+      "status": "unchanged",
+      "lines_before": 51,
+      "lines_after": 51
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/docker_entrypoint.sh",
+      "status": "unchanged",
+      "lines_before": 8,
+      "lines_after": 8
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/eval_critique_harness.py",
+      "status": "removed",
+      "lines_before": 339,
+      "lines_after": 0,
+      "functions_before": 5,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_format_block",
+        "_load_cached_home_payload",
+        "_print_section",
+        "main"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/initialize_dataset_namespace.py",
+      "status": "unchanged",
+      "lines_before": 16,
+      "lines_after": 16,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/load_local_env.sh",
+      "status": "unchanged",
+      "lines_before": 44,
+      "lines_after": 44
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/migrate_control_store.py",
+      "status": "unchanged",
+      "lines_before": 281,
+      "lines_after": 281,
+      "functions_before": 9,
+      "functions_after": 9,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/query_db.sh",
+      "status": "unchanged",
+      "lines_before": 134,
+      "lines_after": 134
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/release_application.py",
+      "status": "changed",
+      "lines_before": 175,
+      "lines_after": 235,
+      "functions_before": 7,
+      "functions_after": 8,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "deploy"
+      ],
+      "added_definitions": [
+        "preflight_consumers"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/release_source.py",
+      "status": "changed",
+      "lines_before": 166,
+      "lines_after": 268,
+      "functions_before": 10,
+      "functions_after": 13,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "verify"
+      ],
+      "added_definitions": [
+        "_contract_signature",
+        "declared_consumers",
+        "verify_consumer_contracts"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/run_api_local.sh",
+      "status": "unchanged",
+      "lines_before": 17,
+      "lines_after": 17
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/run_query.py",
+      "status": "changed",
+      "lines_before": 68,
+      "lines_after": 69,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/scan_secrets.sh",
+      "status": "unchanged",
+      "lines_before": 93,
+      "lines_after": 93
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/setup_email_delivery_azure.sh",
+      "status": "unchanged",
+      "lines_before": 482,
+      "lines_after": 482
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/show_infra_inventory.sh",
+      "status": "unchanged",
+      "lines_before": 390,
+      "lines_after": 390
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/sync_robinhood_main.py",
+      "status": "changed",
+      "lines_before": 44,
+      "lines_after": 46,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "main"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/zopedia_product_eval.py",
+      "status": "unchanged",
+      "lines_before": 1036,
+      "lines_after": 1036,
+      "functions_before": 25,
+      "functions_after": 25,
+      "broad_handlers_before": 10,
+      "broad_handlers_after": 10,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/scripts/zopedia_question_probe.py",
+      "status": "unchanged",
+      "lines_before": 320,
+      "lines_after": 320,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/__init__.py",
+      "status": "unchanged",
+      "lines_before": 1,
+      "lines_after": 1,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/admin_security_status.py",
+      "status": "unchanged",
+      "lines_before": 650,
+      "lines_after": 650,
+      "functions_before": 29,
+      "functions_after": 29,
+      "broad_handlers_before": 3,
+      "broad_handlers_after": 3,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/admin_view.py",
+      "status": "changed",
+      "lines_before": 121,
+      "lines_after": 121,
+      "functions_before": 5,
+      "functions_after": 5,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agent_tools.py",
+      "status": "unchanged",
+      "lines_before": 2045,
+      "lines_after": 2045,
+      "functions_before": 49,
+      "functions_after": 49,
+      "broad_handlers_before": 14,
+      "broad_handlers_after": 14,
+      "simple_broad_handler_bodies_after": 12
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/__init__.py",
+      "status": "unchanged",
+      "lines_before": 69,
+      "lines_after": 69,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "status": "changed",
+      "lines_before": 939,
+      "lines_after": 885,
+      "functions_before": 20,
+      "functions_after": 20,
+      "broad_handlers_before": 32,
+      "broad_handlers_after": 16,
+      "simple_broad_handler_bodies_after": 15,
+      "changed_definitions": [
+        "_blob_service_client",
+        "_db_connection",
+        "append_chat_message",
+        "bootstrap_chat_log",
+        "count_chat_sessions",
+        "create_chat_thread",
+        "list_chat_sessions",
+        "list_chat_threads",
+        "load_chat_session",
+        "load_chat_thread",
+        "log_chat_session"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/research_runs.py",
+      "status": "unchanged",
+      "lines_before": 1194,
+      "lines_after": 1194,
+      "functions_before": 37,
+      "functions_after": 37,
+      "broad_handlers_before": 11,
+      "broad_handlers_after": 11,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/research_session.py",
+      "status": "unchanged",
+      "lines_before": 808,
+      "lines_after": 808,
+      "functions_before": 38,
+      "functions_after": 38,
+      "broad_handlers_before": 11,
+      "broad_handlers_after": 11,
+      "simple_broad_handler_bodies_after": 5
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/scratchpad.py",
+      "status": "unchanged",
+      "lines_before": 115,
+      "lines_after": 115,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/all_signal_ranker.py",
+      "status": "unchanged",
+      "lines_before": 700,
+      "lines_after": 700,
+      "functions_before": 23,
+      "functions_after": 23,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/alpaca_api.py",
+      "status": "unchanged",
+      "lines_before": 613,
+      "lines_after": 613,
+      "functions_before": 30,
+      "functions_after": 30,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/analytics.py",
+      "status": "removed",
+      "lines_before": 53,
+      "lines_after": 0,
+      "functions_before": 2,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "build_metric_bar",
+        "build_portfolio_vs_benchmarks_fig"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/api_auth.py",
+      "status": "unchanged",
+      "lines_before": 418,
+      "lines_after": 418,
+      "functions_before": 25,
+      "functions_after": 25,
+      "broad_handlers_before": 3,
+      "broad_handlers_after": 3,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/__init__.py",
+      "status": "changed",
+      "lines_before": 132,
+      "lines_after": 30,
+      "functions_before": 2,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "build_attention_agentic_summary",
+        "build_attention_agentic_summary_with_trace"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_agentic.py",
+      "status": "removed",
+      "lines_before": 48,
+      "lines_after": 0,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "status": "changed",
+      "lines_before": 766,
+      "lines_after": 502,
+      "functions_before": 54,
+      "functions_after": 33,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_best_why_claim_sentence",
+        "_candidate_claim_entities",
+        "_claim_authority_rank",
+        "_coerce_float",
+        "_coerce_text",
+        "_freshness_score",
+        "_has_causal_language",
+        "_is_yield_only_explanation",
+        "_jaccard",
+        "_json_dumps",
+        "_looks_like_generic_market_activity_title",
+        "_looks_like_stat_dump",
+        "_move_direction",
+        "_move_label",
+        "_normalize_symbol",
+        "_quality_label",
+        "_safe_list",
+        "_stat_marker_count",
+        "_text_overlap",
+        "_ticker_like_count",
+        "_token_set"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/assembler.py",
+      "status": "changed",
+      "lines_before": 922,
+      "lines_after": 797,
+      "functions_before": 16,
+      "functions_after": 10,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_cohort_direction_word",
+        "_cohort_member_move_text",
+        "_cohort_shared_label_text",
+        "_cohort_shared_title_labels",
+        "_cohort_subject",
+        "_cohort_title_subject"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/business_model_stack.py",
+      "status": "changed",
+      "lines_before": 2886,
+      "lines_after": 2845,
+      "functions_before": 96,
+      "functions_after": 92,
+      "broad_handlers_before": 9,
+      "broad_handlers_after": 8,
+      "simple_broad_handler_bodies_after": 3,
+      "removed_definitions": [
+        "_business_slot_max_tool_calls",
+        "_business_slot_max_workers",
+        "_fresh_llm_client_like",
+        "_payload_confidence"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/chat_log.py",
+      "status": "removed",
+      "lines_before": 8,
+      "lines_after": 0,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/clusterer.py",
+      "status": "changed",
+      "lines_before": 262,
+      "lines_after": 252,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/collector.py",
+      "status": "changed",
+      "lines_before": 766,
+      "lines_after": 761,
+      "functions_before": 16,
+      "functions_after": 16,
+      "broad_handlers_before": 3,
+      "broad_handlers_after": 3,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/config.py",
+      "status": "changed",
+      "lines_before": 318,
+      "lines_after": 318,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 1,
+      "changed_definitions": [
+        "_load_attention_macro_signal_profile"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/constants.py",
+      "status": "changed",
+      "lines_before": 452,
+      "lines_after": 407,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/critique.py",
+      "status": "removed",
+      "lines_before": 371,
+      "lines_after": 0,
+      "functions_before": 4,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_featured_symbols",
+        "_judge_user_prompt",
+        "critique_home_summary",
+        "judge_revise_summary"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/entities.py",
+      "status": "removed",
+      "lines_before": 24,
+      "lines_after": 0,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/events.py",
+      "status": "changed",
+      "lines_before": 591,
+      "lines_after": 595,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/evidence_index.py",
+      "status": "changed",
+      "lines_before": 363,
+      "lines_after": 367,
+      "functions_before": 14,
+      "functions_after": 14,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/evidence_pack.py",
+      "status": "unchanged",
+      "lines_before": 398,
+      "lines_after": 398,
+      "functions_before": 12,
+      "functions_after": 12,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "status": "changed",
+      "lines_before": 691,
+      "lines_after": 277,
+      "functions_before": 20,
+      "functions_after": 8,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_candidate_entity_tokens",
+        "_claim_evidence_grounded",
+        "_claim_has_recent_dated_evidence",
+        "_claim_reads_like_current_move_cause",
+        "_extract_claims",
+        "_grounding_tokens",
+        "_normalized_grounding_text",
+        "_numeric_markers",
+        "_parse_json_list",
+        "_rank_chunk_score",
+        "_rank_evidence_chunks",
+        "_token_overlap_score"
+      ],
+      "changed_definitions": [
+        "_documents_from_search_results"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/macro.py",
+      "status": "changed",
+      "lines_before": 1098,
+      "lines_after": 1096,
+      "functions_before": 29,
+      "functions_after": 29,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1,
+      "changed_definitions": [
+        "_verify_macro_hypotheses_with_web_evidence"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/news_business_resolution.py",
+      "status": "changed",
+      "lines_before": 1440,
+      "lines_after": 1395,
+      "functions_before": 54,
+      "functions_after": 52,
+      "broad_handlers_before": 5,
+      "broad_handlers_after": 5,
+      "simple_broad_handler_bodies_after": 3,
+      "removed_definitions": [
+        "_clean_business_fact_text",
+        "_clean_company_name_for_display"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/pipeline.py",
+      "status": "changed",
+      "lines_before": 997,
+      "lines_after": 987,
+      "functions_before": 16,
+      "functions_after": 16,
+      "broad_handlers_before": 9,
+      "broad_handlers_after": 9,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/scratchpad.py",
+      "status": "removed",
+      "lines_before": 8,
+      "lines_after": 0,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "status": "changed",
+      "lines_before": 975,
+      "lines_after": 71,
+      "functions_before": 32,
+      "functions_after": 3,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_build_signal_context_text",
+        "_enrich_result_pages",
+        "_ensure_sentence",
+        "_env_int",
+        "_is_seeking_alpha_result",
+        "_join_human",
+        "_llm_home_summary",
+        "_looks_fragmentary_text",
+        "_narration_ready_text",
+        "_normalize_text",
+        "_page_enrichment_priority",
+        "_resolve_summary_search_clients",
+        "_result_text_length",
+        "_retrieve_summary_evidence_chunks",
+        "_sentence_fragment",
+        "_split_sentences",
+        "_summary_asof_time",
+        "_summary_candidate",
+        "_summary_run_id",
+        "_summary_trace_supporting_claims",
+        "_summary_trace_top_sources",
+        "_trim_text",
+        "_unique_symbols",
+        "apply_display_limits",
+        "attach_attention_home_summary_audio",
+        "build_attention_agentic_summary",
+        "build_attention_agentic_summary_with_trace",
+        "build_attention_home_summary",
+        "build_attention_home_summary_payload"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/writer.py",
+      "status": "changed",
+      "lines_before": 479,
+      "lines_after": 476,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql_zopedia_engine.py",
+      "status": "changed",
+      "lines_before": 909,
+      "lines_after": 834,
+      "functions_before": 21,
+      "functions_after": 18,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 3,
+      "removed_definitions": [
+        "_attention_home_engine_query",
+        "_engine_trace_frame",
+        "build_aql_zopedia_attention_home_summary_with_trace"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql_zopedia_gateway.py",
+      "status": "unchanged",
+      "lines_before": 260,
+      "lines_after": 260,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 3,
+      "broad_handlers_after": 3,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention/__init__.py",
+      "status": "removed",
+      "lines_before": 35,
+      "lines_after": 0,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_agentic.py",
+      "status": "removed",
+      "lines_before": 54,
+      "lines_after": 0,
+      "functions_before": 1,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_context_llm.py",
+      "status": "unchanged",
+      "lines_before": 481,
+      "lines_after": 481,
+      "functions_before": 11,
+      "functions_after": 11,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_graph_network.py",
+      "status": "unchanged",
+      "lines_before": 1632,
+      "lines_after": 1632,
+      "functions_before": 42,
+      "functions_after": 42,
+      "broad_handlers_before": 4,
+      "broad_handlers_after": 4,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_graph_topology.py",
+      "status": "unchanged",
+      "lines_before": 631,
+      "lines_after": 631,
+      "functions_before": 21,
+      "functions_after": 21,
+      "broad_handlers_before": 3,
+      "broad_handlers_after": 3,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_1d.py",
+      "status": "changed",
+      "lines_before": 1479,
+      "lines_after": 1387,
+      "functions_before": 45,
+      "functions_after": 42,
+      "broad_handlers_before": 4,
+      "broad_handlers_after": 4,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_candidate_feed_for_events",
+        "_enriched_context_payloads",
+        "_event_impacts_rows"
+      ],
+      "changed_definitions": [
+        "build_attention_home_1d",
+        "build_attention_research_bundle"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_summary.py",
+      "status": "removed",
+      "lines_before": 41,
+      "lines_after": 0,
+      "functions_before": 2,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "build_attention_agentic_summary",
+        "build_attention_agentic_summary_with_trace"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_live_research.py",
+      "status": "unchanged",
+      "lines_before": 173,
+      "lines_after": 173,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_macro_signals.py",
+      "status": "unchanged",
+      "lines_before": 125,
+      "lines_after": 125,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_market_events.py",
+      "status": "unchanged",
+      "lines_before": 641,
+      "lines_after": 641,
+      "functions_before": 31,
+      "functions_after": 31,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_materialized.py",
+      "status": "unchanged",
+      "lines_before": 252,
+      "lines_after": 252,
+      "functions_before": 13,
+      "functions_after": 13,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_signal_graph.py",
+      "status": "unchanged",
+      "lines_before": 136,
+      "lines_after": 136,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_surface.py",
+      "status": "unchanged",
+      "lines_before": 135,
+      "lines_after": 135,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_ticker_snapshots.py",
+      "status": "changed",
+      "lines_before": 876,
+      "lines_after": 803,
+      "functions_before": 33,
+      "functions_after": 30,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 1,
+      "removed_definitions": [
+        "_fundamentals_asof",
+        "_news_payload_from_frame",
+        "_price_window"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_service.py",
+      "status": "unchanged",
+      "lines_before": 1728,
+      "lines_after": 1728,
+      "functions_before": 79,
+      "functions_after": 79,
+      "broad_handlers_before": 18,
+      "broad_handlers_after": 18,
+      "simple_broad_handler_bodies_after": 18
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "status": "changed",
+      "lines_before": 2688,
+      "lines_after": 2606,
+      "functions_before": 57,
+      "functions_after": 56,
+      "broad_handlers_before": 16,
+      "broad_handlers_after": 14,
+      "simple_broad_handler_bodies_after": 3,
+      "changed_definitions": [
+        "accept_invite",
+        "auth_store_configured",
+        "bootstrap_admin",
+        "clear_failed_login",
+        "create_agent_api_key",
+        "create_session",
+        "delete_pending_invite",
+        "ensure_auth_schema",
+        "get_access_admin_dashboard",
+        "get_active_portfolio_membership",
+        "get_active_user_by_email",
+        "get_agent_api_key_by_hash",
+        "get_app_setting",
+        "get_pending_invite_by_token_hash",
+        "get_user_context_for_session",
+        "get_user_for_login",
+        "has_users",
+        "insert_invite",
+        "issue_password_reset",
+        "list_agent_api_keys",
+        "list_pending_invites",
+        "list_users",
+        "open_auth_store_connection",
+        "password_reset_token_valid",
+        "record_access_event",
+        "record_failed_login",
+        "reserve_password_reset_request",
+        "reset_password",
+        "revoke_agent_api_key",
+        "revoke_session",
+        "revoke_user_sessions",
+        "set_app_setting",
+        "update_pending_invite"
+      ],
+      "removed_definitions": [
+        "_db_connect"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_credentials.py",
+      "status": "unchanged",
+      "lines_before": 54,
+      "lines_after": 54,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "status": "changed",
+      "lines_before": 1203,
+      "lines_after": 1134,
+      "functions_before": 28,
+      "functions_after": 28,
+      "broad_handlers_before": 4,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1,
+      "changed_definitions": [
+        "cancel_order_ticket",
+        "consume_oauth_flow",
+        "consume_order_ticket",
+        "create_oauth_flow",
+        "create_order_ticket",
+        "disconnect_connection",
+        "ensure_brokerage_mcp_schema",
+        "finish_audit_event",
+        "finish_oauth_flow",
+        "finish_order_ticket",
+        "get_client_registration",
+        "get_connection",
+        "get_connection_by_id",
+        "get_portfolio_brokerage",
+        "get_portfolio_snapshot",
+        "mark_connection_error",
+        "save_connection_tokens",
+        "save_direct_connection",
+        "save_portfolio_snapshot",
+        "set_portfolio_brokerage",
+        "start_audit_event",
+        "update_connection_catalog",
+        "upsert_client_registration"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/common/__init__.py",
+      "status": "unchanged",
+      "lines_before": 7,
+      "lines_after": 7,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/common/company_identity.py",
+      "status": "unchanged",
+      "lines_before": 51,
+      "lines_after": 51,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/common/contracts.py",
+      "status": "unchanged",
+      "lines_before": 110,
+      "lines_after": 110,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/common/hypothesis.py",
+      "status": "unchanged",
+      "lines_before": 145,
+      "lines_after": 145,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/common/market_activity.py",
+      "status": "changed",
+      "lines_before": 315,
+      "lines_after": 299,
+      "functions_before": 24,
+      "functions_after": 23,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1,
+      "removed_definitions": [
+        "_looks_like_generic_market_activity_title"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/common/news_freshness.py",
+      "status": "unchanged",
+      "lines_before": 134,
+      "lines_after": 134,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/company.py",
+      "status": "changed",
+      "lines_before": 681,
+      "lines_after": 655,
+      "functions_before": 25,
+      "functions_after": 23,
+      "broad_handlers_before": 4,
+      "broad_handlers_after": 4,
+      "simple_broad_handler_bodies_after": 2,
+      "removed_definitions": [
+        "_fmt_money",
+        "_latest_metric"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/company_baseline.py",
+      "status": "unchanged",
+      "lines_before": 135,
+      "lines_after": 135,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/config.py",
+      "status": "unchanged",
+      "lines_before": 83,
+      "lines_after": 83,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/daily_market_datapoints.py",
+      "status": "unchanged",
+      "lines_before": 175,
+      "lines_after": 175,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/data_cache.py",
+      "status": "unchanged",
+      "lines_before": 569,
+      "lines_after": 569,
+      "functions_before": 52,
+      "functions_after": 52,
+      "broad_handlers_before": 8,
+      "broad_handlers_after": 8,
+      "simple_broad_handler_bodies_after": 5
+    },
+    {
+      "path": "streamlit_alpaca_app/services/database.py",
+      "status": "changed",
+      "lines_before": 414,
+      "lines_after": 415,
+      "functions_before": 34,
+      "functions_after": 34,
+      "broad_handlers_before": 4,
+      "broad_handlers_after": 4,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "open_database_session"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/dependency_graphs.py",
+      "status": "unchanged",
+      "lines_before": 276,
+      "lines_after": 276,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/edgar.py",
+      "status": "unchanged",
+      "lines_before": 694,
+      "lines_after": 694,
+      "functions_before": 25,
+      "functions_after": 25,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/elevenlabs_tts.py",
+      "status": "unchanged",
+      "lines_before": 153,
+      "lines_after": 153,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/emailer.py",
+      "status": "unchanged",
+      "lines_before": 226,
+      "lines_after": 226,
+      "functions_before": 12,
+      "functions_after": 12,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/services/entity_extraction.py",
+      "status": "unchanged",
+      "lines_before": 493,
+      "lines_after": 493,
+      "functions_before": 19,
+      "functions_after": 19,
+      "broad_handlers_before": 4,
+      "broad_handlers_after": 4,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/entity_taxonomy.py",
+      "status": "changed",
+      "lines_before": 1314,
+      "lines_after": 1299,
+      "functions_before": 40,
+      "functions_after": 39,
+      "broad_handlers_before": 7,
+      "broad_handlers_after": 4,
+      "simple_broad_handler_bodies_after": 2,
+      "removed_definitions": [
+        "_commodity_role_from_name"
+      ],
+      "changed_definitions": [
+        "_db_connection",
+        "fetch_entity_taxonomy_frame"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/feature_requests.py",
+      "status": "unchanged",
+      "lines_before": 193,
+      "lines_after": 193,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/fred.py",
+      "status": "unchanged",
+      "lines_before": 657,
+      "lines_after": 657,
+      "functions_before": 32,
+      "functions_after": 32,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/fundamentals.py",
+      "status": "unchanged",
+      "lines_before": 60,
+      "lines_after": 60,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/historical_corpus.py",
+      "status": "unchanged",
+      "lines_before": 802,
+      "lines_after": 802,
+      "functions_before": 41,
+      "functions_after": 41,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/historical_training.py",
+      "status": "unchanged",
+      "lines_before": 301,
+      "lines_after": 301,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/home_view.py",
+      "status": "unchanged",
+      "lines_before": 382,
+      "lines_after": 382,
+      "functions_before": 13,
+      "functions_after": 13,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/services/homepage_support.py",
+      "status": "unchanged",
+      "lines_before": 84,
+      "lines_after": 84,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/json_utils.py",
+      "status": "changed",
+      "lines_before": 80,
+      "lines_after": 54,
+      "functions_before": 4,
+      "functions_after": 3,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_jsonable_scalar"
+      ],
+      "changed_definitions": [
+        "frame_to_records",
+        "to_jsonable",
+        "to_list"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "status": "changed",
+      "lines_before": 2328,
+      "lines_after": 2288,
+      "functions_before": 62,
+      "functions_after": 61,
+      "broad_handlers_before": 21,
+      "broad_handlers_after": 13,
+      "simple_broad_handler_bodies_after": 10,
+      "removed_definitions": [
+        "_embedding_scores"
+      ],
+      "changed_definitions": [
+        "_db_connect",
+        "_load_db_records",
+        "commit_knowledge_graph_review",
+        "knowledge_graph_runtime_status",
+        "knowledge_graph_store_configured",
+        "list_recent_knowledge_graph_commits"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph_proposals.py",
+      "status": "unchanged",
+      "lines_before": 452,
+      "lines_after": 452,
+      "functions_before": 18,
+      "functions_after": 18,
+      "broad_handlers_before": 4,
+      "broad_handlers_after": 4,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/llm.py",
+      "status": "changed",
+      "lines_before": 1368,
+      "lines_after": 1364,
+      "functions_before": 57,
+      "functions_after": 57,
+      "broad_handlers_before": 14,
+      "broad_handlers_after": 14,
+      "simple_broad_handler_bodies_after": 1,
+      "changed_definitions": [
+        "load_prompt_overrides",
+        "save_prompt_override_changes"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/llm_context.py",
+      "status": "unchanged",
+      "lines_before": 130,
+      "lines_after": 130,
+      "functions_before": 9,
+      "functions_after": 9,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/llm_execution.py",
+      "status": "unchanged",
+      "lines_before": 572,
+      "lines_after": 572,
+      "functions_before": 25,
+      "functions_after": 25,
+      "broad_handlers_before": 7,
+      "broad_handlers_after": 7,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/market.py",
+      "status": "changed",
+      "lines_before": 1153,
+      "lines_after": 1142,
+      "functions_before": 36,
+      "functions_after": 35,
+      "broad_handlers_before": 11,
+      "broad_handlers_after": 11,
+      "simple_broad_handler_bodies_after": 5,
+      "removed_definitions": [
+        "_humanize_tag"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/market_activity_shared.py",
+      "status": "removed",
+      "lines_before": 4,
+      "lines_after": 0,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/market_data/__init__.py",
+      "status": "unchanged",
+      "lines_before": 71,
+      "lines_after": 71,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/market_opportunity.py",
+      "status": "unchanged",
+      "lines_before": 419,
+      "lines_after": 419,
+      "functions_before": 13,
+      "functions_after": 13,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/market_view.py",
+      "status": "unchanged",
+      "lines_before": 66,
+      "lines_after": 66,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/operational_health.py",
+      "status": "changed",
+      "lines_before": 296,
+      "lines_after": 296,
+      "functions_before": 12,
+      "functions_after": 12,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 3,
+      "changed_definitions": [
+        "_database"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/options.py",
+      "status": "unchanged",
+      "lines_before": 385,
+      "lines_after": 385,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/page_agentic_summary.py",
+      "status": "unchanged",
+      "lines_before": 749,
+      "lines_after": 749,
+      "functions_before": 25,
+      "functions_after": 25,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/services/page_browsing.py",
+      "status": "unchanged",
+      "lines_before": 767,
+      "lines_after": 767,
+      "functions_before": 30,
+      "functions_after": 30,
+      "broad_handlers_before": 17,
+      "broad_handlers_after": 17,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_slices.py",
+      "status": "removed",
+      "lines_before": 66,
+      "lines_after": 0,
+      "functions_before": 3,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_filter_frame",
+        "_full_scan_row_limit",
+        "load_latest_dataset_frame_slice"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "status": "changed",
+      "lines_before": 3115,
+      "lines_after": 3015,
+      "functions_before": 114,
+      "functions_after": 113,
+      "broad_handlers_before": 77,
+      "broad_handlers_after": 54,
+      "simple_broad_handler_bodies_after": 45,
+      "changed_definitions": [
+        "_blob_service_client",
+        "_latest_db_dataset_metadata_map",
+        "_uncached_latest_dataset_metadata",
+        "claim_execution_state",
+        "connector_call_rollup",
+        "dataset_metadata_asof",
+        "dataset_version_history",
+        "job_run_history",
+        "latest_dataset_status_table",
+        "latest_job_status_table",
+        "list_research_artifacts",
+        "model_call_rollup",
+        "open_database_connection",
+        "provider_usage_rollup",
+        "read_execution_state",
+        "read_execution_states",
+        "recent_dataset_metadata",
+        "record_connector_call",
+        "record_model_call",
+        "record_provider_attempt",
+        "record_trading_agent_action",
+        "release_execution_state",
+        "retain_research_checkpoint",
+        "retained_connector_evidence_health",
+        "trading_agent_actions_table",
+        "write_execution_state",
+        "write_execution_states"
+      ],
+      "removed_definitions": [
+        "_db_connect"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/portfolio_view.py",
+      "status": "changed",
+      "lines_before": 251,
+      "lines_after": 251,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/research_export.py",
+      "status": "changed",
+      "lines_before": 502,
+      "lines_after": 493,
+      "functions_before": 17,
+      "functions_after": 17,
+      "broad_handlers_before": 12,
+      "broad_handlers_after": 11,
+      "simple_broad_handler_bodies_after": 9,
+      "changed_definitions": [
+        "_blob_service_client"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main.py",
+      "status": "unchanged",
+      "lines_before": 3601,
+      "lines_after": 3601,
+      "functions_before": 113,
+      "functions_after": 113,
+      "broad_handlers_before": 19,
+      "broad_handlers_after": 19,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_analytics.py",
+      "status": "unchanged",
+      "lines_before": 672,
+      "lines_after": 672,
+      "functions_before": 17,
+      "functions_after": 17,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "status": "changed",
+      "lines_before": 855,
+      "lines_after": 813,
+      "functions_before": 26,
+      "functions_after": 26,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1,
+      "changed_definitions": [
+        "claim_next_refresh",
+        "enqueue_due_refreshes",
+        "enqueue_refresh",
+        "ensure_schema",
+        "finish_refresh",
+        "get_series_coverage",
+        "get_series_points",
+        "get_snapshot",
+        "latest_refresh",
+        "list_resources",
+        "mark_resource_error",
+        "save_snapshot",
+        "schema_ready",
+        "upsert_resource",
+        "upsert_series_batch"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_sync.py",
+      "status": "unchanged",
+      "lines_before": 88,
+      "lines_after": 88,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_mcp.py",
+      "status": "unchanged",
+      "lines_before": 1234,
+      "lines_after": 1234,
+      "functions_before": 46,
+      "functions_after": 46,
+      "broad_handlers_before": 12,
+      "broad_handlers_after": 12,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/runtime_policy.py",
+      "status": "unchanged",
+      "lines_before": 458,
+      "lines_after": 458,
+      "functions_before": 13,
+      "functions_after": 13,
+      "broad_handlers_before": 3,
+      "broad_handlers_after": 3,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/__init__.py",
+      "status": "unchanged",
+      "lines_before": 103,
+      "lines_after": 103,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/semantic_index.py",
+      "status": "unchanged",
+      "lines_before": 326,
+      "lines_after": 326,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/storage.py",
+      "status": "changed",
+      "lines_before": 2417,
+      "lines_after": 2402,
+      "functions_before": 55,
+      "functions_after": 55,
+      "broad_handlers_before": 18,
+      "broad_handlers_after": 14,
+      "simple_broad_handler_bodies_after": 12,
+      "changed_definitions": [
+        "_blob_service_client",
+        "_db_connection",
+        "persist_agent_research_evidence"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "status": "changed",
+      "lines_before": 4408,
+      "lines_after": 4360,
+      "functions_before": 108,
+      "functions_after": 108,
+      "broad_handlers_before": 36,
+      "broad_handlers_after": 20,
+      "simple_broad_handler_bodies_after": 12,
+      "changed_definitions": [
+        "apply_zopedia_typed_mutation",
+        "ingest_zopedia_source",
+        "list_zopedia_change_proposals",
+        "list_zopedia_folder_pages",
+        "list_zopedia_folders",
+        "list_zopedia_maintenance_reports",
+        "list_zopedia_mutation_audits",
+        "load_zopedia_mutation_audit",
+        "load_zopedia_page",
+        "persist_zopedia_change_proposals",
+        "persist_zopedia_maintenance_snapshot",
+        "persist_zopedia_mutation_audits",
+        "persist_zopedia_pages",
+        "rollback_zopedia_mutation",
+        "run_zopedia_maintenance",
+        "search_zopedia_pages"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/secrets.py",
+      "status": "changed",
+      "lines_before": 407,
+      "lines_after": 403,
+      "functions_before": 18,
+      "functions_after": 17,
+      "broad_handlers_before": 10,
+      "broad_handlers_after": 10,
+      "simple_broad_handler_bodies_after": 6,
+      "removed_definitions": [
+        "_get_secret"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/seeking_alpha_access.py",
+      "status": "unchanged",
+      "lines_before": 864,
+      "lines_after": 864,
+      "functions_before": 39,
+      "functions_after": 39,
+      "broad_handlers_before": 22,
+      "broad_handlers_after": 22,
+      "simple_broad_handler_bodies_after": 10
+    },
+    {
+      "path": "streamlit_alpaca_app/services/signal_catalog.py",
+      "status": "unchanged",
+      "lines_before": 1062,
+      "lines_after": 1062,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/signals.py",
+      "status": "unchanged",
+      "lines_before": 209,
+      "lines_after": 209,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/simfin_refresh.py",
+      "status": "unchanged",
+      "lines_before": 165,
+      "lines_after": 165,
+      "functions_before": 5,
+      "functions_after": 5,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/stock_view.py",
+      "status": "changed",
+      "lines_before": 199,
+      "lines_after": 200,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/system_health.py",
+      "status": "unchanged",
+      "lines_before": 549,
+      "lines_after": 549,
+      "functions_before": 21,
+      "functions_after": 21,
+      "broad_handlers_before": 3,
+      "broad_handlers_after": 3,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/technicals.py",
+      "status": "removed",
+      "lines_before": 100,
+      "lines_after": 0,
+      "functions_before": 2,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "add_indicators",
+        "build_technical_figure"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/trading_agent.py",
+      "status": "changed",
+      "lines_before": 2658,
+      "lines_after": 2646,
+      "functions_before": 75,
+      "functions_after": 73,
+      "broad_handlers_before": 14,
+      "broad_handlers_after": 14,
+      "simple_broad_handler_bodies_after": 4,
+      "removed_definitions": [
+        "_format_metric",
+        "_looks_like_timeout_error"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/trading_agent_view.py",
+      "status": "changed",
+      "lines_before": 232,
+      "lines_after": 231,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/trading_call_tracking.py",
+      "status": "unchanged",
+      "lines_before": 344,
+      "lines_after": 344,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/treasury_yields.py",
+      "status": "unchanged",
+      "lines_before": 141,
+      "lines_after": 141,
+      "functions_before": 5,
+      "functions_after": 5,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/universe.py",
+      "status": "unchanged",
+      "lines_before": 277,
+      "lines_after": 277,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/web_research.py",
+      "status": "unchanged",
+      "lines_before": 719,
+      "lines_after": 719,
+      "functions_before": 22,
+      "functions_after": 22,
+      "broad_handlers_before": 6,
+      "broad_handlers_after": 6,
+      "simple_broad_handler_bodies_after": 2
+    },
+    {
+      "path": "streamlit_alpaca_app/services/work_scope.py",
+      "status": "unchanged",
+      "lines_before": 100,
+      "lines_after": 100,
+      "functions_before": 11,
+      "functions_after": 11,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_agent.py",
+      "status": "changed",
+      "lines_before": 4311,
+      "lines_after": 4249,
+      "functions_before": 70,
+      "functions_after": 69,
+      "broad_handlers_before": 25,
+      "broad_handlers_after": 25,
+      "simple_broad_handler_bodies_after": 9,
+      "removed_definitions": [
+        "_append_trajectory_monitor_call"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_analysis.py",
+      "status": "changed",
+      "lines_before": 1407,
+      "lines_after": 1407,
+      "functions_before": 43,
+      "functions_after": 43,
+      "broad_handlers_before": 13,
+      "broad_handlers_after": 13,
+      "simple_broad_handler_bodies_after": 9
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_learning.py",
+      "status": "changed",
+      "lines_before": 858,
+      "lines_after": 855,
+      "functions_before": 27,
+      "functions_after": 27,
+      "broad_handlers_before": 9,
+      "broad_handlers_after": 8,
+      "simple_broad_handler_bodies_after": 4,
+      "changed_definitions": [
+        "run_zopedia_learning_job"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_presentation.py",
+      "status": "unchanged",
+      "lines_before": 257,
+      "lines_after": 257,
+      "functions_before": 13,
+      "functions_after": 13,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_research.py",
+      "status": "changed",
+      "lines_before": 1773,
+      "lines_after": 1773,
+      "functions_before": 41,
+      "functions_after": 41,
+      "broad_handlers_before": 11,
+      "broad_handlers_after": 11,
+      "simple_broad_handler_bodies_after": 3
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_resolver.py",
+      "status": "unchanged",
+      "lines_before": 544,
+      "lines_after": 544,
+      "functions_before": 12,
+      "functions_after": 12,
+      "broad_handlers_before": 3,
+      "broad_handlers_after": 3,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_runtime.py",
+      "status": "unchanged",
+      "lines_before": 56,
+      "lines_after": 56,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 1,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_view.py",
+      "status": "unchanged",
+      "lines_before": 200,
+      "lines_after": 200,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 2,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 1
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/conftest.py",
+      "status": "unchanged",
+      "lines_before": 9,
+      "lines_after": 9,
+      "functions_before": 0,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_admin_security_status.py",
+      "status": "unchanged",
+      "lines_before": 177,
+      "lines_after": 177,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_agent_tools.py",
+      "status": "unchanged",
+      "lines_before": 482,
+      "lines_after": 482,
+      "functions_before": 32,
+      "functions_after": 32,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_all_signal_ranker.py",
+      "status": "unchanged",
+      "lines_before": 180,
+      "lines_after": 180,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_anomalies.py",
+      "status": "unchanged",
+      "lines_before": 601,
+      "lines_after": 601,
+      "functions_before": 12,
+      "functions_after": 12,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_api_auth.py",
+      "status": "unchanged",
+      "lines_before": 119,
+      "lines_after": 119,
+      "functions_before": 5,
+      "functions_after": 5,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_api_v1.py",
+      "status": "unchanged",
+      "lines_before": 545,
+      "lines_after": 545,
+      "functions_before": 27,
+      "functions_after": 27,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_aql_critique.py",
+      "status": "removed",
+      "lines_before": 447,
+      "lines_after": 0,
+      "functions_before": 16,
+      "functions_after": 0,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "_coerce_list",
+        "_install_runtime_helper_stub",
+        "_summary_fixture",
+        "test_agentic_summary_applies_critique_to_summary_text",
+        "test_critique_dedupes_repeated_tool_calls",
+        "test_critique_handles_unknown_tool",
+        "test_critique_returns_issues_after_tool_use",
+        "test_critique_skipped_when_disabled",
+        "test_judge_dedupes_repeated_sections",
+        "test_judge_returns_none_with_no_issues",
+        "test_judge_returns_revised_summary"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_aql_search_acquisition.py",
+      "status": "unchanged",
+      "lines_before": 84,
+      "lines_after": 84,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_aql_zopedia_gateway.py",
+      "status": "unchanged",
+      "lines_before": 117,
+      "lines_after": 117,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_attention_price_session.py",
+      "status": "unchanged",
+      "lines_before": 49,
+      "lines_after": 49,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_auth_service.py",
+      "status": "unchanged",
+      "lines_before": 790,
+      "lines_after": 790,
+      "functions_before": 42,
+      "functions_after": 42,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_auth_store.py",
+      "status": "changed",
+      "lines_before": 493,
+      "lines_after": 494,
+      "functions_before": 31,
+      "functions_after": 31,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "test_auth_readiness_does_not_run_schema_migrations",
+        "test_get_access_admin_dashboard_filters_selected_user_and_hydrates_activity",
+        "test_list_pending_invites_distinguishes_store_outage_from_empty_list",
+        "test_list_users_aliases_users_table_and_merges_session_stats",
+        "test_list_users_distinguishes_store_outage_from_empty_directory",
+        "test_password_reset_reservation_locks_counts_and_inserts_in_one_transaction",
+        "test_password_reset_reservation_rejects_recipient_or_source_limit",
+        "test_session_restore_filters_inactive_users"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_business_model_stack.py",
+      "status": "unchanged",
+      "lines_before": 379,
+      "lines_after": 379,
+      "functions_before": 15,
+      "functions_after": 15,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_chat_log.py",
+      "status": "unchanged",
+      "lines_before": 36,
+      "lines_after": 36,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_company_baseline.py",
+      "status": "unchanged",
+      "lines_before": 86,
+      "lines_after": 86,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_compute_modules.py",
+      "status": "unchanged",
+      "lines_before": 200,
+      "lines_after": 200,
+      "functions_before": 13,
+      "functions_after": 13,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_config_security.py",
+      "status": "unchanged",
+      "lines_before": 48,
+      "lines_after": 48,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_daily_datapoint_lineage.py",
+      "status": "unchanged",
+      "lines_before": 24,
+      "lines_after": 24,
+      "functions_before": 1,
+      "functions_after": 1,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_data_access_layer_momentum_profiles.py",
+      "status": "unchanged",
+      "lines_before": 74,
+      "lines_after": 74,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_data_access_query_service.py",
+      "status": "changed",
+      "lines_before": 2557,
+      "lines_after": 2557,
+      "functions_before": 82,
+      "functions_after": 82,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "test_research_reads_do_not_construct_model_or_search_clients"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_database_publication.py",
+      "status": "changed",
+      "lines_before": 126,
+      "lines_after": 126,
+      "functions_before": 14,
+      "functions_after": 14,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "test_publication_and_cached_reads_remain_available_without_sql",
+        "test_usage_read_does_not_start_backlog_recovery"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_database_work_lifecycle.py",
+      "status": "changed",
+      "lines_before": 205,
+      "lines_after": 369,
+      "functions_before": 11,
+      "functions_after": 26,
+      "broad_handlers_before": 1,
+      "broad_handlers_after": 2,
+      "simple_broad_handler_bodies_after": 0,
+      "added_definitions": [
+        "store_factory",
+        "test_broker_reads_only_ignore_missing_tables_and_return_lease_once",
+        "test_database_admission_timeout_uses_connection_failure_contract",
+        "test_failed_commit_is_not_retried_and_discards_lease",
+        "test_failed_pool_return_is_not_repeated_by_close",
+        "test_session_context_returns_lease_once_and_preserves_outcome",
+        "test_store_factories_only_convert_connection_outages_to_unavailable",
+        "test_unused_session_close_does_not_acquire_a_lease"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_dependency_graphs.py",
+      "status": "unchanged",
+      "lines_before": 59,
+      "lines_after": 59,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_emailer.py",
+      "status": "unchanged",
+      "lines_before": 178,
+      "lines_after": 178,
+      "functions_before": 14,
+      "functions_after": 14,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_entity_extraction.py",
+      "status": "unchanged",
+      "lines_before": 92,
+      "lines_after": 92,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_entity_taxonomy.py",
+      "status": "unchanged",
+      "lines_before": 461,
+      "lines_after": 461,
+      "functions_before": 18,
+      "functions_after": 18,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_event_study.py",
+      "status": "unchanged",
+      "lines_before": 142,
+      "lines_after": 142,
+      "functions_before": 11,
+      "functions_after": 11,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_evidence_projection_lifecycle.py",
+      "status": "unchanged",
+      "lines_before": 104,
+      "lines_after": 104,
+      "functions_before": 7,
+      "functions_after": 7,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_feature_requests.py",
+      "status": "unchanged",
+      "lines_before": 134,
+      "lines_after": 134,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_harness_contracts.py",
+      "status": "unchanged",
+      "lines_before": 203,
+      "lines_after": 203,
+      "functions_before": 14,
+      "functions_after": 14,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_knowledge_graph.py",
+      "status": "unchanged",
+      "lines_before": 282,
+      "lines_after": 282,
+      "functions_before": 12,
+      "functions_after": 12,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_llm_deepseek.py",
+      "status": "unchanged",
+      "lines_before": 305,
+      "lines_after": 305,
+      "functions_before": 21,
+      "functions_after": 21,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_llm_execution.py",
+      "status": "changed",
+      "lines_before": 493,
+      "lines_after": 493,
+      "functions_before": 55,
+      "functions_after": 55,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "test_completed_research_unavailability_is_not_an_empty_discovery_result",
+        "test_provider_receipts_survive_database_outage_and_reconcile_once"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_llm_settings.py",
+      "status": "changed",
+      "lines_before": 129,
+      "lines_after": 129,
+      "functions_before": 17,
+      "functions_after": 17,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "store",
+        "test_failed_initial_load_can_retry"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_market_opportunity.py",
+      "status": "unchanged",
+      "lines_before": 225,
+      "lines_after": 225,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_module_boundaries.py",
+      "status": "changed",
+      "lines_before": 65,
+      "lines_after": 61,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_news_business_resolution.py",
+      "status": "unchanged",
+      "lines_before": 520,
+      "lines_after": 520,
+      "functions_before": 10,
+      "functions_after": 10,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_news_freshness.py",
+      "status": "unchanged",
+      "lines_before": 21,
+      "lines_after": 21,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_operational_health.py",
+      "status": "unchanged",
+      "lines_before": 145,
+      "lines_after": 145,
+      "functions_before": 13,
+      "functions_after": 13,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_opportunity_identity.py",
+      "status": "unchanged",
+      "lines_before": 24,
+      "lines_after": 24,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_ownership.py",
+      "status": "unchanged",
+      "lines_before": 60,
+      "lines_after": 60,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_page_agentic_summary.py",
+      "status": "unchanged",
+      "lines_before": 292,
+      "lines_after": 292,
+      "functions_before": 15,
+      "functions_after": 15,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_page_browsing.py",
+      "status": "unchanged",
+      "lines_before": 545,
+      "lines_after": 545,
+      "functions_before": 38,
+      "functions_after": 38,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_pipeline_jobs.py",
+      "status": "unchanged",
+      "lines_before": 2277,
+      "lines_after": 2277,
+      "functions_before": 93,
+      "functions_after": 93,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_pipeline_store.py",
+      "status": "changed",
+      "lines_before": 936,
+      "lines_after": 909,
+      "functions_before": 79,
+      "functions_after": 78,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "test_pipeline_slice_compatibility_boundary_refuses_large_legacy_artifact"
+      ],
+      "changed_definitions": [
+        "test_latest_dataset_metadata_falls_back_to_manifest_when_db_unavailable",
+        "test_latest_dataset_metadata_prefers_db_without_blob_listing",
+        "test_latest_dataset_metadata_uses_local_metadata_cache",
+        "test_latest_dataset_metadata_uses_newer_latest_manifest_when_db_is_stale",
+        "test_latest_dataset_metadata_uses_stable_latest_manifest_before_listing",
+        "test_latest_dataset_pointer_drift_reports_db_manifest_mismatch",
+        "test_load_latest_dataset_frame_reads_parquet_via_manifest_fallback",
+        "test_record_connector_call_skips_when_not_runtime",
+        "test_record_connector_call_writes_event_when_enabled",
+        "test_record_model_call_promotes_metadata_run_id",
+        "test_record_trading_agent_approval_preserves_execution_contract"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_portfolio_view.py",
+      "status": "unchanged",
+      "lines_before": 51,
+      "lines_after": 51,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_provider_attempt_receipts.py",
+      "status": "unchanged",
+      "lines_before": 44,
+      "lines_after": 44,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_release_application.py",
+      "status": "changed",
+      "lines_before": 104,
+      "lines_after": 162,
+      "functions_before": 7,
+      "functions_after": 11,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "test_asynchronous_template_visibility_is_awaited",
+        "test_late_consumer_change_prevents_every_patch"
+      ],
+      "added_definitions": [
+        "test_matching_hash_cannot_hide_a_recovery_job_pointed_at_development",
+        "test_missing_role_prevents_a_partial_release",
+        "test_unreviewed_live_consumer_prevents_all_image_changes"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_release_source.py",
+      "status": "changed",
+      "lines_before": 128,
+      "lines_after": 199,
+      "functions_before": 12,
+      "functions_after": 16,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "checkout",
+        "test_complete_accepted_inventory_is_required",
+        "test_web_role_uses_complete_frontend_inventory"
+      ],
+      "added_definitions": [
+        "test_compatible_retained_source_still_requires_the_actual_image_proof",
+        "test_production_recovery_binding_cannot_be_omitted_from_consumer_review",
+        "test_retained_consumer_requires_review_even_when_its_image_is_unchanged",
+        "test_verified_old_image_cannot_silently_miss_a_new_shared_contract"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_research_session.py",
+      "status": "unchanged",
+      "lines_before": 100,
+      "lines_after": 100,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_robinhood_main.py",
+      "status": "unchanged",
+      "lines_before": 892,
+      "lines_after": 892,
+      "functions_before": 60,
+      "functions_after": 60,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_robinhood_main_local_data.py",
+      "status": "unchanged",
+      "lines_before": 471,
+      "lines_after": 471,
+      "functions_before": 14,
+      "functions_after": 14,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_robinhood_main_sync.py",
+      "status": "changed",
+      "lines_before": 59,
+      "lines_after": 90,
+      "functions_before": 6,
+      "functions_after": 10,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "added_definitions": [
+        "test_sync_cli_uses_background_admission_without_a_pipeline_job_name"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_robinhood_mcp.py",
+      "status": "unchanged",
+      "lines_before": 354,
+      "lines_after": 354,
+      "functions_before": 19,
+      "functions_after": 19,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_runtime_policy.py",
+      "status": "unchanged",
+      "lines_before": 56,
+      "lines_after": 56,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_saa_storage.py",
+      "status": "changed",
+      "lines_before": 655,
+      "lines_after": 656,
+      "functions_before": 25,
+      "functions_after": 25,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "changed_definitions": [
+        "test_db_connection_uses_generated_deployment_vault"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_secrets.py",
+      "status": "unchanged",
+      "lines_before": 113,
+      "lines_after": 113,
+      "functions_before": 8,
+      "functions_after": 8,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_services.py",
+      "status": "changed",
+      "lines_before": 5867,
+      "lines_after": 5190,
+      "functions_before": 224,
+      "functions_after": 200,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_claims",
+        "test_build_attention_agentic_summary_with_trace_returns_materializable_frames",
+        "test_build_attention_home_summary_drops_fragmentary_ellipsis_text",
+        "test_build_market_stories_and_summary_cover_all_daily_market_sections",
+        "test_fallback_claims_from_chunks_rank_best_evidence_first",
+        "test_fallback_claims_from_chunks_skip_provider_error_chunks",
+        "test_fallback_event_writer_non_rates_prefers_mechanism_claim_over_yield_stat_dump",
+        "test_fallback_event_writer_rates_event_can_include_yield_context",
+        "test_plan_summary_research_uses_llm_queries",
+        "test_supporting_claims_from_results_enrich_seeking_alpha_pages",
+        "test_verify_hypothesis_heuristic_fallback_with_no_claims",
+        "test_verify_hypothesis_heuristic_fallback_with_strong_claims"
+      ],
+      "changed_definitions": [
+        "test_attach_attention_home_summary_audio_embeds_base64_metadata",
+        "test_augment_candidate_frame_preserves_upstream_peer_group_and_merges_tags",
+        "test_candidate_context_documents_adds_treasury_yield_summary_for_rates_names",
+        "test_candidate_context_documents_uses_headline_when_news_summary_missing",
+        "test_chunk_source_documents_attach_searchable_metadata",
+        "test_chunk_source_documents_skip_low_signal_analyst_rating_snippets",
+        "test_documents_from_search_results_attach_index_metadata",
+        "test_documents_from_search_results_prefer_provider_text_and_retain_payload",
+        "test_documents_from_search_results_skip_provider_error_rows",
+        "test_documents_from_search_results_uses_headline_when_snippet_missing",
+        "test_graph_edges_connect_same_industry_without_tag_overlap",
+        "test_graph_edges_use_explicit_upstream_peer_groups_without_tags",
+        "test_graph_edges_use_history_correlation_when_graph_signal_is_sparse",
+        "test_graph_edges_use_shared_macro_roles_when_taxonomy_is_broad",
+        "test_hypothesis_verify_agent_tool_invocation",
+        "test_recompute_attention_candidate_graph_prefers_effective_taxonomy_fields",
+        "test_recompute_attention_candidate_graph_uses_price_history_for_sparse_pairs",
+        "test_search_query_results_can_retain_provider_payload_and_provider_text",
+        "test_search_query_results_skips_tavily_when_serp_is_relevant",
+        "test_search_query_results_uses_tavily_rag_fallback_when_serp_is_irrelevant",
+        "test_verify_hypothesis_llm_returns_structured_verdict",
+        "test_write_event_bundle_replaces_market_activity_recap_what_happened_with_directional_summary",
+        "test_write_event_bundle_uses_mechanism_first_prompt_and_rich_payload"
+      ],
+      "added_definitions": [
+        "test_build_market_stories_covers_all_daily_market_sections"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_signal_catalog.py",
+      "status": "unchanged",
+      "lines_before": 80,
+      "lines_after": 80,
+      "functions_before": 4,
+      "functions_after": 4,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_structured_response_recovery.py",
+      "status": "unchanged",
+      "lines_before": 159,
+      "lines_after": 159,
+      "functions_before": 16,
+      "functions_after": 16,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_supplied_evidence.py",
+      "status": "unchanged",
+      "lines_before": 81,
+      "lines_after": 81,
+      "functions_before": 6,
+      "functions_after": 6,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_system_health.py",
+      "status": "unchanged",
+      "lines_before": 50,
+      "lines_after": 50,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_timeout_ownership.py",
+      "status": "unchanged",
+      "lines_before": 154,
+      "lines_after": 154,
+      "functions_before": 11,
+      "functions_after": 11,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_trading_agent.py",
+      "status": "unchanged",
+      "lines_before": 698,
+      "lines_after": 698,
+      "functions_before": 23,
+      "functions_after": 23,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_web_research.py",
+      "status": "unchanged",
+      "lines_before": 201,
+      "lines_after": 201,
+      "functions_before": 13,
+      "functions_after": 13,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_zopedia_agent.py",
+      "status": "unchanged",
+      "lines_before": 1662,
+      "lines_after": 1662,
+      "functions_before": 86,
+      "functions_after": 86,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_zopedia_analysis.py",
+      "status": "unchanged",
+      "lines_before": 285,
+      "lines_after": 285,
+      "functions_before": 20,
+      "functions_after": 20,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_zopedia_learning.py",
+      "status": "unchanged",
+      "lines_before": 122,
+      "lines_after": 122,
+      "functions_before": 11,
+      "functions_after": 11,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_zopedia_learning_evals.py",
+      "status": "unchanged",
+      "lines_before": 51,
+      "lines_after": 51,
+      "functions_before": 2,
+      "functions_after": 2,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_zopedia_memory.py",
+      "status": "unchanged",
+      "lines_before": 621,
+      "lines_after": 621,
+      "functions_before": 32,
+      "functions_after": 32,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_zopedia_native_llm_boundary.py",
+      "status": "changed",
+      "lines_before": 250,
+      "lines_after": 222,
+      "functions_before": 20,
+      "functions_after": 17,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "removed_definitions": [
+        "test_aql_package_facade_calls_engine_runtime",
+        "test_aql_package_facade_uses_engine_summary_boundary"
+      ]
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_zopedia_presentation.py",
+      "status": "unchanged",
+      "lines_before": 57,
+      "lines_after": 57,
+      "functions_before": 3,
+      "functions_after": 3,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_zopedia_research.py",
+      "status": "unchanged",
+      "lines_before": 188,
+      "lines_after": 188,
+      "functions_before": 12,
+      "functions_after": 12,
+      "broad_handlers_before": 0,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/admin/page.tsx",
+      "status": "unchanged",
+      "lines_before": 141,
+      "lines_after": 141
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/admin/health/route.ts",
+      "status": "changed",
+      "lines_before": 16,
+      "lines_after": 12
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/admin/invites/route.ts",
+      "status": "changed",
+      "lines_before": 23,
+      "lines_after": 19
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/admin/llm/route.ts",
+      "status": "changed",
+      "lines_before": 18,
+      "lines_after": 15
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/admin/password-resets/route.ts",
+      "status": "changed",
+      "lines_before": 19,
+      "lines_after": 15
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/admin/route.ts",
+      "status": "changed",
+      "lines_before": 15,
+      "lines_after": 10
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/auth/account/[action]/route.ts",
+      "status": "changed",
+      "lines_before": 42,
+      "lines_after": 43
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/auth/csrf/route.ts",
+      "status": "unchanged",
+      "lines_before": 7,
+      "lines_after": 7
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/auth/login/route.ts",
+      "status": "changed",
+      "lines_before": 48,
+      "lines_after": 48
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/auth/logout/route.ts",
+      "status": "unchanged",
+      "lines_before": 23,
+      "lines_after": 23
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/auth/session/route.ts",
+      "status": "unchanged",
+      "lines_before": 17,
+      "lines_after": 17
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/datasets/[name]/route.ts",
+      "status": "changed",
+      "lines_before": 45,
+      "lines_after": 41
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/feature-requests/[requestId]/messages/route.ts",
+      "status": "changed",
+      "lines_before": 21,
+      "lines_after": 16
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/feature-requests/[requestId]/route.ts",
+      "status": "changed",
+      "lines_before": 13,
+      "lines_after": 9
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/feature-requests/route.ts",
+      "status": "changed",
+      "lines_before": 29,
+      "lines_after": 20
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/home/audio/route.ts",
+      "status": "unchanged",
+      "lines_before": 29,
+      "lines_after": 29
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/home/route.ts",
+      "status": "unchanged",
+      "lines_before": 20,
+      "lines_after": 20
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/investigator/[ticker]/route.ts",
+      "status": "changed",
+      "lines_before": 23,
+      "lines_after": 18
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/market-lenses/route.ts",
+      "status": "changed",
+      "lines_before": 12,
+      "lines_after": 7
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/portfolio/opportunities/route.ts",
+      "status": "changed",
+      "lines_before": 15,
+      "lines_after": 11
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/portfolio/route.ts",
+      "status": "changed",
+      "lines_before": 17,
+      "lines_after": 12
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/research-conversations/[conversationId]/route.ts",
+      "status": "changed",
+      "lines_before": 13,
+      "lines_after": 9
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/research-conversations/route.ts",
+      "status": "changed",
+      "lines_before": 13,
+      "lines_after": 9
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/research-runs/[runId]/cancel/route.ts",
+      "status": "changed",
+      "lines_before": 20,
+      "lines_after": 16
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/research-runs/[runId]/events/route.ts",
+      "status": "changed",
+      "lines_before": 18,
+      "lines_after": 14
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/research-runs/[runId]/route.ts",
+      "status": "changed",
+      "lines_before": 14,
+      "lines_after": 10
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/research-runs/route.ts",
+      "status": "changed",
+      "lines_before": 51,
+      "lines_after": 43
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/trading-agent/approved-calls/[trackingId]/route.ts",
+      "status": "changed",
+      "lines_before": 13,
+      "lines_after": 9
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/trading-agent/decisions/route.ts",
+      "status": "changed",
+      "lines_before": 24,
+      "lines_after": 20
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/trading-agent/route.ts",
+      "status": "changed",
+      "lines_before": 12,
+      "lines_after": 7
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/visualizations/[name]/route.ts",
+      "status": "changed",
+      "lines_before": 30,
+      "lines_after": 26
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/zopedia/pages/route.ts",
+      "status": "changed",
+      "lines_before": 14,
+      "lines_after": 10
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/zopedia/sources/upload/route.ts",
+      "status": "unchanged",
+      "lines_before": 40,
+      "lines_after": 40
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/api/zopedia/workspace/route.ts",
+      "status": "changed",
+      "lines_before": 18,
+      "lines_after": 14
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/broad-economy/page.tsx",
+      "status": "unchanged",
+      "lines_before": 346,
+      "lines_after": 346
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/globals.css",
+      "status": "unchanged",
+      "lines_before": 1092,
+      "lines_after": 1092
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/health/route.ts",
+      "status": "unchanged",
+      "lines_before": 5,
+      "lines_after": 5
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/layout.tsx",
+      "status": "unchanged",
+      "lines_before": 22,
+      "lines_after": 22
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/login/login-form.tsx",
+      "status": "unchanged",
+      "lines_before": 93,
+      "lines_after": 93
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/login/page.tsx",
+      "status": "unchanged",
+      "lines_before": 19,
+      "lines_after": 19
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/market-explorer/page.tsx",
+      "status": "unchanged",
+      "lines_before": 127,
+      "lines_after": 127
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/options/page.tsx",
+      "status": "unchanged",
+      "lines_before": 156,
+      "lines_after": 156
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/page.tsx",
+      "status": "unchanged",
+      "lines_before": 159,
+      "lines_after": 159
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/portfolio-performance/page.tsx",
+      "status": "unchanged",
+      "lines_before": 85,
+      "lines_after": 85
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/portfolio/page.tsx",
+      "status": "unchanged",
+      "lines_before": 107,
+      "lines_after": 107
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/stock-investigator/page.tsx",
+      "status": "unchanged",
+      "lines_before": 346,
+      "lines_after": 346
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/trading-agent/page.tsx",
+      "status": "unchanged",
+      "lines_before": 157,
+      "lines_after": 157
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/zopedia/conversations/[conversationId]/page.tsx",
+      "status": "unchanged",
+      "lines_before": 6,
+      "lines_after": 6
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/zopedia/page.tsx",
+      "status": "unchanged",
+      "lines_before": 267,
+      "lines_after": 267
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/zopedia/runs/[runId]/page.tsx",
+      "status": "unchanged",
+      "lines_before": 6,
+      "lines_after": 6
+    },
+    {
+      "path": "streamlit_alpaca_app/web/app/zopedia/runs/[runId]/research-run-view.tsx",
+      "status": "unchanged",
+      "lines_before": 182,
+      "lines_after": 182
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/admin/llm-settings.module.css",
+      "status": "unchanged",
+      "lines_before": 471,
+      "lines_after": 471
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/admin/llm-settings.tsx",
+      "status": "unchanged",
+      "lines_before": 74,
+      "lines_after": 74
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/admin/operational-health.module.css",
+      "status": "unchanged",
+      "lines_before": 12,
+      "lines_after": 12
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/admin/operational-health.tsx",
+      "status": "unchanged",
+      "lines_before": 135,
+      "lines_after": 135
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/agent-rail.tsx",
+      "status": "unchanged",
+      "lines_before": 116,
+      "lines_after": 116
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/attention-ticker-card.tsx",
+      "status": "unchanged",
+      "lines_before": 43,
+      "lines_after": 43
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/icons.tsx",
+      "status": "unchanged",
+      "lines_before": 60,
+      "lines_after": 60
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/markdown.tsx",
+      "status": "unchanged",
+      "lines_before": 26,
+      "lines_after": 26
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/portfolio-lists.tsx",
+      "status": "unchanged",
+      "lines_before": 89,
+      "lines_after": 89
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/shell-nav.tsx",
+      "status": "unchanged",
+      "lines_before": 68,
+      "lines_after": 68
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/visualizations/data-plot.tsx",
+      "status": "unchanged",
+      "lines_before": 40,
+      "lines_after": 40
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/visualizations/plotly-renderer.tsx",
+      "status": "unchanged",
+      "lines_before": 107,
+      "lines_after": 107
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/visualizations/price-context-chart.tsx",
+      "status": "unchanged",
+      "lines_before": 68,
+      "lines_after": 68
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/visualizations/trend-chart.tsx",
+      "status": "unchanged",
+      "lines_before": 33,
+      "lines_after": 33
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/visualizations/visualization.tsx",
+      "status": "unchanged",
+      "lines_before": 48,
+      "lines_after": 48
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/workbench-shell.tsx",
+      "status": "unchanged",
+      "lines_before": 73,
+      "lines_after": 73
+    },
+    {
+      "path": "streamlit_alpaca_app/web/components/workbook.tsx",
+      "status": "unchanged",
+      "lines_before": 85,
+      "lines_after": 85
+    },
+    {
+      "path": "streamlit_alpaca_app/web/eslint.config.mjs",
+      "status": "unchanged",
+      "lines_before": 9,
+      "lines_after": 9
+    },
+    {
+      "path": "streamlit_alpaca_app/web/lib/client/api.ts",
+      "status": "unchanged",
+      "lines_before": 64,
+      "lines_after": 64
+    },
+    {
+      "path": "streamlit_alpaca_app/web/lib/client/portfolio.ts",
+      "status": "unchanged",
+      "lines_before": 29,
+      "lines_after": 29
+    },
+    {
+      "path": "streamlit_alpaca_app/web/lib/client/session.ts",
+      "status": "unchanged",
+      "lines_before": 44,
+      "lines_after": 44
+    },
+    {
+      "path": "streamlit_alpaca_app/web/lib/server/auth.ts",
+      "status": "changed",
+      "lines_before": 123,
+      "lines_after": 107
+    },
+    {
+      "path": "streamlit_alpaca_app/web/lib/server/backend.ts",
+      "status": "changed",
+      "lines_before": 87,
+      "lines_after": 95
+    },
+    {
+      "path": "streamlit_alpaca_app/web/lib/server/http.ts",
+      "status": "changed",
+      "lines_before": 27,
+      "lines_after": 43
+    },
+    {
+      "path": "streamlit_alpaca_app/web/lib/types.ts",
+      "status": "unchanged",
+      "lines_before": 279,
+      "lines_after": 279
+    },
+    {
+      "path": "streamlit_alpaca_app/web/next-env.d.ts",
+      "status": "unchanged",
+      "lines_before": 7,
+      "lines_after": 7
+    },
+    {
+      "path": "streamlit_alpaca_app/web/next.config.ts",
+      "status": "unchanged",
+      "lines_before": 28,
+      "lines_after": 28
+    },
+    {
+      "path": "streamlit_alpaca_app/web/proxy.ts",
+      "status": "unchanged",
+      "lines_before": 39,
+      "lines_after": 39
+    },
+    {
+      "path": "streamlit_alpaca_app/web/tests/auth-boundary.test.mjs",
+      "status": "changed",
+      "lines_before": 189,
+      "lines_after": 265
+    },
+    {
+      "path": "streamlit_alpaca_app/tests/test_json_utils.py",
+      "status": "added",
+      "lines_before": 0,
+      "lines_after": 64,
+      "functions_before": 0,
+      "broad_handlers_before": 0,
+      "functions_after": 4,
+      "broad_handlers_after": 0,
+      "simple_broad_handler_bodies_after": 0,
+      "added_definitions": [
+        "test_container_conversion_keeps_scalar_values_and_rejects_unknown_objects",
+        "test_dataframes_and_query_responses_use_the_same_boundary",
+        "test_missing_and_nonfinite_values_are_json_null",
+        "test_nested_data_values_have_one_strict_json_representation"
+      ]
+    }
+  ],
+  "removed_runtime_class_methods": [
+    {
+      "path": "streamlit_alpaca_app/data_access/layer.py",
+      "name": "DataAccessLayer._company_identity_from_materialized"
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/layer.py",
+      "name": "DataAccessLayer._try_pipeline_identity_frame"
+    }
+  ],
+  "first_pass_changed_runtime_definitions": [
+    {
+      "path": "streamlit_alpaca_app/data_access/layer.py",
+      "name": "DataAccessLayer"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/main.py",
+      "name": "_db_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/main.py",
+      "name": "run_equities"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "_blob_service_client"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "_db_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/config.py",
+      "name": "_load_attention_macro_signal_profile"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_documents_from_search_results"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/macro.py",
+      "name": "_verify_macro_hypotheses_with_web_evidence"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_1d.py",
+      "name": "build_attention_home_1d"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_1d.py",
+      "name": "build_attention_research_bundle"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "_db_connect"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "auth_store_configured"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/entity_taxonomy.py",
+      "name": "_db_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "_db_connect"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "knowledge_graph_store_configured"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "_blob_service_client"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "open_database_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/research_export.py",
+      "name": "_blob_service_client"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/storage.py",
+      "name": "_blob_service_client"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/storage.py",
+      "name": "_db_connection"
+    }
+  ],
+  "changed_runtime_definitions": [
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/main.py",
+      "name": "_db_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/main.py",
+      "name": "main"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/main.py",
+      "name": "run_equities"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "_blob_service_client"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "_db_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "append_chat_message"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "bootstrap_chat_log"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "count_chat_sessions"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "create_chat_thread"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "list_chat_sessions"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "list_chat_threads"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "load_chat_session"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "load_chat_thread"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/agents/chat_log.py",
+      "name": "log_chat_session"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/config.py",
+      "name": "_load_attention_macro_signal_profile"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_documents_from_search_results"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/macro.py",
+      "name": "_verify_macro_hypotheses_with_web_evidence"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_1d.py",
+      "name": "build_attention_home_1d"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_1d.py",
+      "name": "build_attention_research_bundle"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "accept_invite"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "auth_store_configured"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "bootstrap_admin"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "clear_failed_login"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "create_agent_api_key"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "create_session"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "delete_pending_invite"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "ensure_auth_schema"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "get_access_admin_dashboard"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "get_active_portfolio_membership"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "get_active_user_by_email"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "get_agent_api_key_by_hash"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "get_app_setting"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "get_pending_invite_by_token_hash"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "get_user_context_for_session"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "get_user_for_login"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "has_users"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "insert_invite"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "issue_password_reset"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "list_agent_api_keys"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "list_pending_invites"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "list_users"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "open_auth_store_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "password_reset_token_valid"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "record_access_event"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "record_failed_login"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "reserve_password_reset_request"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "reset_password"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "revoke_agent_api_key"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "revoke_session"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "revoke_user_sessions"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "set_app_setting"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "update_pending_invite"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "cancel_order_ticket"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "consume_oauth_flow"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "consume_order_ticket"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "create_oauth_flow"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "create_order_ticket"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "disconnect_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "ensure_brokerage_mcp_schema"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "finish_audit_event"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "finish_oauth_flow"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "finish_order_ticket"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "get_client_registration"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "get_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "get_connection_by_id"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "get_portfolio_brokerage"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "get_portfolio_snapshot"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "mark_connection_error"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "save_connection_tokens"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "save_direct_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "save_portfolio_snapshot"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "set_portfolio_brokerage"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "start_audit_event"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "update_connection_catalog"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/brokerage_mcp_store.py",
+      "name": "upsert_client_registration"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/database.py",
+      "name": "open_database_session"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/entity_taxonomy.py",
+      "name": "_db_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/entity_taxonomy.py",
+      "name": "fetch_entity_taxonomy_frame"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/json_utils.py",
+      "name": "frame_to_records"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/json_utils.py",
+      "name": "to_jsonable"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/json_utils.py",
+      "name": "to_list"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "_db_connect"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "_load_db_records"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "commit_knowledge_graph_review"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "knowledge_graph_runtime_status"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "knowledge_graph_store_configured"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "list_recent_knowledge_graph_commits"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/llm.py",
+      "name": "load_prompt_overrides"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/llm.py",
+      "name": "save_prompt_override_changes"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/operational_health.py",
+      "name": "_database"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "_blob_service_client"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "_latest_db_dataset_metadata_map"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "_uncached_latest_dataset_metadata"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "claim_execution_state"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "connector_call_rollup"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "dataset_metadata_asof"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "dataset_version_history"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "job_run_history"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "latest_dataset_status_table"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "latest_job_status_table"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "list_research_artifacts"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "model_call_rollup"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "open_database_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "provider_usage_rollup"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "read_execution_state"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "read_execution_states"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "recent_dataset_metadata"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "record_connector_call"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "record_model_call"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "record_provider_attempt"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "record_trading_agent_action"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "release_execution_state"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "retain_research_checkpoint"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "retained_connector_evidence_health"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "trading_agent_actions_table"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "write_execution_state"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "write_execution_states"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/research_export.py",
+      "name": "_blob_service_client"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "claim_next_refresh"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "enqueue_due_refreshes"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "enqueue_refresh"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "ensure_schema"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "finish_refresh"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "get_series_coverage"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "get_series_points"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "get_snapshot"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "latest_refresh"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "list_resources"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "mark_resource_error"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "save_snapshot"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "schema_ready"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "upsert_resource"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/robinhood_main_store.py",
+      "name": "upsert_series_batch"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/storage.py",
+      "name": "_blob_service_client"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/storage.py",
+      "name": "_db_connection"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/storage.py",
+      "name": "persist_agent_research_evidence"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "apply_zopedia_typed_mutation"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "ingest_zopedia_source"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "list_zopedia_change_proposals"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "list_zopedia_folder_pages"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "list_zopedia_folders"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "list_zopedia_maintenance_reports"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "list_zopedia_mutation_audits"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "load_zopedia_mutation_audit"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "load_zopedia_page"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "persist_zopedia_change_proposals"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "persist_zopedia_maintenance_snapshot"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "persist_zopedia_mutation_audits"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "persist_zopedia_pages"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "rollback_zopedia_mutation"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "run_zopedia_maintenance"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/saa/zopedia.py",
+      "name": "search_zopedia_pages"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_learning.py",
+      "name": "run_zopedia_learning_job"
+    }
+  ],
+  "removed_runtime_definitions": [
+    {
+      "path": "streamlit_alpaca_app/compute/anomalies.py",
+      "name": "_signed_percent_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/contracts.py",
+      "name": "_jsonable_scalar"
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/contracts.py",
+      "name": "frame_to_records"
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/contracts.py",
+      "name": "to_jsonable"
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/layer.py",
+      "name": "_dates_match_filters"
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/layer.py",
+      "name": "_key_contains_any"
+    },
+    {
+      "path": "streamlit_alpaca_app/data_access/layer.py",
+      "name": "_query_tokens"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_compact_zopedia_tool_evidence"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_group_synthesis_limit"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_group_synthesis_source_items"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_group_synthesis_timeout_seconds"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_review_zopedia_enrichment_payload"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_review_zopedia_market_summary_payload"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_revise_zopedia_enrichment_payload"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_revise_zopedia_market_summary_payload"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_run_zopedia_market_summary"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_synthesize_group_contexts_with_zopedia"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_zopedia_enrichment_llm_retries"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_zopedia_enrichment_quality_revisions"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/attention_home_build.py",
+      "name": "_zopedia_market_summary_quality_revisions"
+    },
+    {
+      "path": "streamlit_alpaca_app/pipeline/jobs/main.py",
+      "name": "_db_dataset_is_fresh"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/analytics.py",
+      "name": "build_metric_bar"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/analytics.py",
+      "name": "build_portfolio_vs_benchmarks_fig"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/__init__.py",
+      "name": "build_attention_agentic_summary"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/__init__.py",
+      "name": "build_attention_agentic_summary_with_trace"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_best_why_claim_sentence"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_candidate_claim_entities"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_claim_authority_rank"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_coerce_float"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_coerce_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_freshness_score"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_has_causal_language"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_is_yield_only_explanation"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_jaccard"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_json_dumps"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_looks_like_generic_market_activity_title"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_looks_like_stat_dump"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_move_direction"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_move_label"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_normalize_symbol"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_quality_label"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_safe_list"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_stat_marker_count"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_text_overlap"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_ticker_like_count"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/_shared.py",
+      "name": "_token_set"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/assembler.py",
+      "name": "_cohort_direction_word"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/assembler.py",
+      "name": "_cohort_member_move_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/assembler.py",
+      "name": "_cohort_shared_label_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/assembler.py",
+      "name": "_cohort_shared_title_labels"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/assembler.py",
+      "name": "_cohort_subject"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/assembler.py",
+      "name": "_cohort_title_subject"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/business_model_stack.py",
+      "name": "_business_slot_max_tool_calls"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/business_model_stack.py",
+      "name": "_business_slot_max_workers"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/business_model_stack.py",
+      "name": "_fresh_llm_client_like"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/business_model_stack.py",
+      "name": "_payload_confidence"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/critique.py",
+      "name": "_featured_symbols"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/critique.py",
+      "name": "_judge_user_prompt"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/critique.py",
+      "name": "critique_home_summary"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/critique.py",
+      "name": "judge_revise_summary"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_candidate_entity_tokens"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_claim_evidence_grounded"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_claim_has_recent_dated_evidence"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_claim_reads_like_current_move_cause"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_extract_claims"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_grounding_tokens"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_normalized_grounding_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_numeric_markers"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_parse_json_list"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_rank_chunk_score"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_rank_evidence_chunks"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/extractor.py",
+      "name": "_token_overlap_score"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/news_business_resolution.py",
+      "name": "_clean_business_fact_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/news_business_resolution.py",
+      "name": "_clean_company_name_for_display"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_build_signal_context_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_enrich_result_pages"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_ensure_sentence"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_env_int"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_is_seeking_alpha_result"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_join_human"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_llm_home_summary"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_looks_fragmentary_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_narration_ready_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_normalize_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_page_enrichment_priority"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_resolve_summary_search_clients"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_result_text_length"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_retrieve_summary_evidence_chunks"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_sentence_fragment"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_split_sentences"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_summary_asof_time"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_summary_candidate"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_summary_run_id"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_summary_trace_supporting_claims"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_summary_trace_top_sources"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_trim_text"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "_unique_symbols"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "apply_display_limits"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "attach_attention_home_summary_audio"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "build_attention_agentic_summary"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "build_attention_agentic_summary_with_trace"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "build_attention_home_summary"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql/summarizer.py",
+      "name": "build_attention_home_summary_payload"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql_zopedia_engine.py",
+      "name": "_attention_home_engine_query"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql_zopedia_engine.py",
+      "name": "_engine_trace_frame"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/aql_zopedia_engine.py",
+      "name": "build_aql_zopedia_attention_home_summary_with_trace"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_1d.py",
+      "name": "_candidate_feed_for_events"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_1d.py",
+      "name": "_enriched_context_payloads"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_1d.py",
+      "name": "_event_impacts_rows"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_summary.py",
+      "name": "build_attention_agentic_summary"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_home_summary.py",
+      "name": "build_attention_agentic_summary_with_trace"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_ticker_snapshots.py",
+      "name": "_fundamentals_asof"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_ticker_snapshots.py",
+      "name": "_news_payload_from_frame"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/attention_ticker_snapshots.py",
+      "name": "_price_window"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/auth_store.py",
+      "name": "_db_connect"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/common/market_activity.py",
+      "name": "_looks_like_generic_market_activity_title"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/company.py",
+      "name": "_fmt_money"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/company.py",
+      "name": "_latest_metric"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/entity_taxonomy.py",
+      "name": "_commodity_role_from_name"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/json_utils.py",
+      "name": "_jsonable_scalar"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/knowledge_graph.py",
+      "name": "_embedding_scores"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/market.py",
+      "name": "_humanize_tag"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_slices.py",
+      "name": "_filter_frame"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_slices.py",
+      "name": "_full_scan_row_limit"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_slices.py",
+      "name": "load_latest_dataset_frame_slice"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/pipeline_store.py",
+      "name": "_db_connect"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/secrets.py",
+      "name": "_get_secret"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/technicals.py",
+      "name": "add_indicators"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/technicals.py",
+      "name": "build_technical_figure"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/trading_agent.py",
+      "name": "_format_metric"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/trading_agent.py",
+      "name": "_looks_like_timeout_error"
+    },
+    {
+      "path": "streamlit_alpaca_app/services/zopedia_agent.py",
+      "name": "_append_trajectory_monitor_call"
+    }
+  ],
+  "added_runtime_definitions": []
+}

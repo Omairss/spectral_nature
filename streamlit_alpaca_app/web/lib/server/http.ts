@@ -9,13 +9,29 @@ export function noStoreJson(body: unknown, init: ResponseInit = {}) {
 }
 
 export async function forwardJson(response: Response, fallback: string) {
-  let payload: unknown = { error: fallback };
+  let payload: unknown;
   try {
     payload = await response.json();
   } catch {
-    payload = { error: fallback };
+    return noStoreJson({ error: fallback }, { status: response.ok ? 502 : response.status });
   }
   return noStoreJson(payload, { status: response.status });
+}
+
+export async function readJsonBody(request: Request, maxBytes = 16_384): Promise<unknown> {
+  const declaredLength = Number(request.headers.get("content-length") || 0);
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    return noStoreJson({ error: "Request body is too large." }, { status: 413 });
+  }
+  try {
+    const text = await request.text();
+    if (Buffer.byteLength(text, "utf8") > maxBytes) {
+      return noStoreJson({ error: "Request body is too large." }, { status: 413 });
+    }
+    return JSON.parse(text);
+  } catch {
+    return noStoreJson({ error: "Request body must be valid JSON." }, { status: 400 });
+  }
 }
 
 export function validRunId(value: string) {

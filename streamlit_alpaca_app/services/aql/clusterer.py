@@ -12,21 +12,11 @@ import pandas as pd
 from compute.signal_extraction import _history_correlation_map
 from ..attention_signal_graph import _graph_edges
 from ..runtime_policy import attention_graph_policy
-from ._shared import (
-    _augment_candidate_frame,
-    _clean_cluster_label,
+from ._shared import _augment_candidate_frame
+from services.common.market_activity import (
     _coerce_float,
     _coerce_text,
-    _dominant_cluster_label,
-    _event_title_from_cluster,
-    _humanize_cluster_tag,
-    _informative_graph_label,
-    _json_dumps,
-    _merge_text_values,
     _normalize_symbol,
-    _safe_list,
-    _tag_tokens,
-    _top_symbol_label,
 )
 from .extractor import _claim_map_from_frame
 

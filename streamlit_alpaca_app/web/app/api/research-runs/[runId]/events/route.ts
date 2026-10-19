@@ -7,12 +7,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ run
   if (!validRunId(runId)) return noStoreJson({ error: "Research run not found." }, { status: 404 });
   const parsed = Number(request.nextUrl.searchParams.get("after_sequence") || 0);
   const after = Number.isFinite(parsed) ? Math.max(Math.min(Math.floor(parsed), 1_000_000_000), 0) : 0;
-  try {
-    const response = await authorizedBackendFetch(
-      `/v1/research-runs/${encodeURIComponent(runId)}/events?after_sequence=${after}`,
-    );
-    return forwardJson(response, "Research events are unavailable.");
-  } catch {
-    return noStoreJson({ error: "Research events are unavailable." }, { status: 503 });
-  }
+  const response = await authorizedBackendFetch(
+    `/v1/research-runs/${encodeURIComponent(runId)}/events?after_sequence=${after}`,
+  );
+  return forwardJson(response, "Research events are unavailable.");
 }

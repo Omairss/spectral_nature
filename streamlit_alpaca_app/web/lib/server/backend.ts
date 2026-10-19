@@ -31,13 +31,21 @@ export async function backendFetch(path: string, options: BackendOptions = {}) {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
   if (typeof init.body === "string" && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
-  return fetch(`${backendBaseUrl()}${path}`, {
-    ...init,
-    headers,
-    cache: init.cache || "no-store",
-    redirect: "error",
-    signal: AbortSignal.timeout(timeoutMs),
-  });
+  const url = `${backendBaseUrl()}${path}`;
+  const deadline = AbortSignal.timeout(timeoutMs);
+  try {
+    return await fetch(url, {
+      ...init,
+      headers,
+      cache: init.cache || "no-store",
+      redirect: "error",
+      signal: deadline,
+    });
+  } catch {
+    return Response.json({ error: deadline.aborted ? "Service request timed out." : "Service is unavailable." }, {
+      status: deadline.aborted ? 504 : 503,
+    });
+  }
 }
 
 export async function authorizedBackendFetch(path: string, options: BackendOptions = {}) {

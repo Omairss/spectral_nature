@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { backendError, backendFetch } from "@/lib/server/backend";
-import { readJsonBody, setAuthCookies, validateMutation } from "@/lib/server/auth";
-import { noStoreJson } from "@/lib/server/http";
+import { setAuthCookies, validateMutation } from "@/lib/server/auth";
+import { readJsonBody, noStoreJson } from "@/lib/server/http";
 
 type LoginPayload = {
   access_token?: string;
@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
   if (rejection) return rejection;
   try {
     const body = await readJsonBody(request);
-    if (!body || typeof body !== "object") throw new Error("Email and password are required.");
+    if (body instanceof Response) return body;
+    if (!body || typeof body !== "object") return noStoreJson({ error: "Email and password are required." }, { status: 400 });
     const email = String((body as Record<string, unknown>).email || "").trim().toLowerCase();
     const password = String((body as Record<string, unknown>).password || "");
     if (!email || !password || email.length > 320 || password.length > 1024) {
@@ -41,8 +42,7 @@ export async function POST(request: NextRequest) {
       refresh_token_expires_at: payload.refresh_token_expires_at,
     });
     return noStoreJson({ authenticated: true, context: payload.context || null });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Sign in failed.";
-    return noStoreJson({ error: message }, { status: 400 });
+  } catch {
+    return noStoreJson({ error: "Sign in failed." }, { status: 502 });
   }
 }

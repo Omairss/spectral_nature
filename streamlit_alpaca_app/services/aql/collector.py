@@ -23,32 +23,27 @@ from ..web_research import (
     load_serper_config,
     search_client_provider,
 )
-from .constants import (
-    LLMClient,
-    PLANNER_SCHEMA,
-    SEARCH_RELEVANCE_SCHEMA,
-    SEARCH_ROUTER_SCHEMA,
-)
+from .constants import LLMClient, SEARCH_RELEVANCE_SCHEMA, SEARCH_ROUTER_SCHEMA
 from ._shared import (
-    _coerce_float,
-    _coerce_text,
     _display_excerpt,
     _evidence_text,
-    _freshness_score,
     _is_irrelevant_news_text,
     _is_low_signal,
     _is_provider_error_text,
-    _jaccard,
-    _json_dumps,
     _latest_yield_facts,
-    _normalize_symbol,
-    _safe_list,
     _search_mention_score,
     _source_authority_bucket,
     _tag_tokens,
     _trim,
-    _yield_context_relevant,
     _yield_fact_summary_text,
+)
+from services.common.market_activity import (
+    _coerce_float,
+    _coerce_text,
+    _jaccard,
+    _json_dumps,
+    _normalize_symbol,
+    _safe_list,
 )
 
 

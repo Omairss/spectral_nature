@@ -1,0 +1,95 @@
+{
+  "observed_at": "2026-10-19T06:30:48.281738+00:00",
+  "requests": [
+    {
+      "name": "sn-next-ui-dev",
+      "path": "/",
+      "status": 200,
+      "seconds": 1.791,
+      "bytes": 1476411,
+      "sha256": "9606878e42b25cf6f977039855693f6be3545f891317b1722a29364b80d3afac",
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "path": "/api/home",
+      "status": 200,
+      "seconds": 0.964,
+      "bytes": 1161968,
+      "sha256": "e50f8777c0d636360bce105cdff1df471c78cb680ca0923e28d3278e211aa4ad",
+      "cache_control": "public, max-age=30, stale-while-revalidate=120"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "path": "/api/auth/session",
+      "status": 200,
+      "seconds": 0.182,
+      "bytes": 23,
+      "sha256": "3e58c6fcf10a31770582814c2babfd1ff71bb1a72cae32cdb1c1a428f406d47f",
+      "cache_control": "no-store"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "path": "/api/admin/health",
+      "status": 401,
+      "seconds": 0.192,
+      "bytes": 37,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "cache_control": "no-store"
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "path": "/api/trading-agent",
+      "status": 401,
+      "seconds": 0.189,
+      "bytes": 37,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "cache_control": "no-store"
+    },
+    {
+      "name": "sn-next-ui",
+      "path": "/",
+      "status": 200,
+      "seconds": 2.312,
+      "bytes": 2049968,
+      "sha256": "dc4ad5ce9f6d00fe9d1ca8e8d2b7ebb5faf414bc31b9c47889dc87c27654030b",
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate"
+    },
+    {
+      "name": "sn-next-ui",
+      "path": "/api/home",
+      "status": 200,
+      "seconds": 1.101,
+      "bytes": 1560126,
+      "sha256": "a5b63b86161adaa8b6e4bf58973a8f6448ddcb88c71bc6320ba4dfbdc456d9b8",
+      "cache_control": "public, max-age=30, stale-while-revalidate=120"
+    },
+    {
+      "name": "sn-next-ui",
+      "path": "/api/auth/session",
+      "status": 200,
+      "seconds": 0.191,
+      "bytes": 23,
+      "sha256": "3e58c6fcf10a31770582814c2babfd1ff71bb1a72cae32cdb1c1a428f406d47f",
+      "cache_control": "no-store"
+    },
+    {
+      "name": "sn-next-ui",
+      "path": "/api/admin/health",
+      "status": 401,
+      "seconds": 0.187,
+      "bytes": 37,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "cache_control": "no-store"
+    },
+    {
+      "name": "sn-next-ui",
+      "path": "/api/trading-agent",
+      "status": 401,
+      "seconds": 0.193,
+      "bytes": 37,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "cache_control": "no-store"
+    }
+  ]
+}

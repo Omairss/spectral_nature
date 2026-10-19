@@ -1,20 +1,184 @@
 """Execution/transaction contracts; these tests do not assess LLM prose."""
 import multiprocessing
+import importlib
 import os
 import threading
 import time
 import uuid
+from types import SimpleNamespace
 
 import psycopg
 import pytest
+from psycopg_pool import PoolTimeout
 
-from services.database import open_database_session, _close_pools
+from services import database
+from services.database import DatabaseSession, open_database_session, _close_pools
 from services.work_scope import WorkScope, WorkCancelled, check_work, register_cancellation
 
 
 class _DatabaseBinding(str):
     def __repr__(self):
         return "<database binding>"
+
+
+class _Lease:
+    def __init__(self, *, commit_error=None):
+        self.closed = False
+        self.info = SimpleNamespace(transaction_status=psycopg.pq.TransactionStatus.INTRANS)
+        self.events = []
+        self.commit_error = commit_error
+
+    def commit(self):
+        self.events.append("commit")
+        if self.commit_error:
+            raise self.commit_error
+        self.info.transaction_status = psycopg.pq.TransactionStatus.IDLE
+
+    def rollback(self):
+        raise AssertionError("Discarding a lease must not perform another network operation")
+
+    def close(self):
+        self.events.append("close")
+        self.closed = True
+
+
+@pytest.mark.parametrize("failure", [None, ValueError("query failed"), KeyboardInterrupt()])
+def test_session_context_returns_lease_once_and_preserves_outcome(failure):
+    returned = []
+    lease = _Lease()
+    session = DatabaseSession(SimpleNamespace(putconn=returned.append), application_name="test")
+    session._connection = lease
+    try:
+        with session:
+            if failure is not None:
+                session._permit = 2
+                session._operation = object()
+                raise failure
+    except BaseException as error:
+        assert error is failure
+    else:
+        assert failure is None
+    session.close()
+    assert session.closed and session._connection is None
+    assert session._operation is None and session._permit is None
+    assert returned == [lease]
+    assert lease.events == (["commit"] if failure is None else ["close"])
+
+
+def test_failed_commit_is_not_retried_and_discards_lease():
+    failure = psycopg.OperationalError("connection lost")
+    lease = _Lease(commit_error=failure)
+    returned = []
+    session = DatabaseSession(SimpleNamespace(putconn=returned.append), application_name="test")
+    session._connection = lease
+    with pytest.raises(psycopg.OperationalError) as raised, session:
+        pass
+    assert raised.value is failure
+    assert lease.events == ["commit", "close"]
+    assert session.closed and returned == [lease]
+
+
+def test_failed_pool_return_is_not_repeated_by_close():
+    returned = []
+    lease = _Lease()
+
+    def reject(connection):
+        returned.append(connection)
+        raise ValueError("pool ownership error")
+
+    session = DatabaseSession(SimpleNamespace(putconn=reject), application_name="test")
+    session._connection = lease
+    with pytest.raises(ValueError, match="pool ownership error"):
+        session.close()
+    session.close()
+    assert session.closed and returned == [lease]
+    assert lease.events == ["close"]
+
+
+def test_unused_session_close_does_not_acquire_a_lease():
+    session = DatabaseSession(SimpleNamespace(), application_name="test")
+    session.close()
+    session.close()
+    assert session.closed
+
+
+@pytest.fixture(params=[
+    ("services.auth_store", "open_auth_store_connection"),
+    ("services.pipeline_store", "open_database_connection"),
+    ("services.agents.chat_log", "_db_connection"),
+    ("services.entity_taxonomy", "_db_connection"),
+    ("services.knowledge_graph", "_db_connect"),
+    ("services.saa.storage", "_db_connection"),
+    ("pipeline.jobs.main", "_db_connection"),
+])
+def store_factory(request, monkeypatch):
+    module_name, factory_name = request.param
+    module = importlib.import_module(module_name)
+    if hasattr(module, "_postgres_connection_string"):
+        monkeypatch.setattr(module, "_postgres_connection_string", lambda: "test-binding")
+    else:
+        monkeypatch.setattr(module, "resolve_secret_value", lambda *a, **kw: "test-binding")
+    if module_name == "pipeline.jobs.main":
+        monkeypatch.setattr(module, "_call_with_timeout", lambda label, seconds, fn: fn())
+        monkeypatch.setattr(module.time, "sleep", lambda seconds: None)
+    return module, getattr(module, factory_name)
+
+
+@pytest.mark.parametrize("error_type", [psycopg.OperationalError, PoolTimeout, psycopg.ProgrammingError, ValueError, WorkCancelled])
+def test_store_factories_only_convert_connection_outages_to_unavailable(store_factory, monkeypatch, error_type):
+    module, factory = store_factory
+    failure = error_type("boundary failure")
+
+    def fail(*args, **kwargs):
+        raise failure
+
+    monkeypatch.setattr(module, "open_database_session", fail)
+    if isinstance(failure, psycopg.OperationalError):
+        assert factory() is None
+    else:
+        with pytest.raises(error_type) as raised:
+            factory()
+        assert raised.value is failure
+
+
+def test_database_admission_timeout_uses_connection_failure_contract(monkeypatch):
+    monkeypatch.setenv("POSTGRES_ACQUIRE_TIMEOUT_SECONDS", "1")
+    times = iter([0, 2, 2])
+    monkeypatch.setattr(database.time, "monotonic", lambda: next(times))
+    session = DatabaseSession(SimpleNamespace(), application_name="test", workload="interactive")
+    with pytest.raises(PoolTimeout):
+        session._acquire()
+    assert session._connection is None
+
+
+@pytest.mark.parametrize("reader,params", [
+    ("get_connection", {"user_id": "user", "provider": "broker", "resource_url": "resource", "environment": "test"}),
+    ("get_connection_by_id", {"connection_id": "connection", "environment": "test"}),
+    ("get_portfolio_snapshot", {"portfolio_id": "portfolio", "environment": "test"}),
+])
+@pytest.mark.parametrize("error_type", [psycopg.errors.UndefinedTable, psycopg.OperationalError, ValueError])
+def test_broker_reads_only_ignore_missing_tables_and_return_lease_once(monkeypatch, reader, params, error_type):
+    from services import brokerage_mcp_store as store
+
+    failure = error_type("read failure")
+    lease = _Lease()
+    returned = []
+
+    def fail(*args, **kwargs):
+        raise failure
+
+    lease.cursor = fail
+    session = DatabaseSession(SimpleNamespace(putconn=returned.append), application_name="test")
+    session._connection = lease
+    monkeypatch.setattr(store.auth_store, "open_auth_store_connection", lambda: session)
+    if error_type is psycopg.errors.UndefinedTable:
+        assert getattr(store, reader)(**params) is None
+    else:
+        with pytest.raises(error_type) as raised:
+            getattr(store, reader)(**params)
+        assert raised.value is failure
+    assert session.closed and returned == [lease]
+    assert lease.events == ["close"]
 
 
 def test_expired_scope_rejects_new_work():

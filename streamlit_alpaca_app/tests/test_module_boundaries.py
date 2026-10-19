@@ -35,10 +35,6 @@ FORBIDDEN_PATTERNS = {
 }
 
 ALLOWED_FILES = {
-    SERVICE_ROOT / "aql" / "chat_log.py",
-    SERVICE_ROOT / "aql" / "scratchpad.py",
-    SERVICE_ROOT / "aql" / "entities.py",
-    SERVICE_ROOT / "market_activity_shared.py",
     SERVICE_ROOT / "market_data" / "__init__.py",
 }
 

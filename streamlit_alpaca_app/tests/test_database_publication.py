@@ -67,7 +67,7 @@ def test_concurrent_publication_never_replaces_newer_generation(blobs):
 
 def test_publication_and_cached_reads_remain_available_without_sql(blobs, monkeypatch):
     store.publish_dataset_manifest(manifest(4))
-    monkeypatch.setattr(store, "_db_connect", lambda: pytest.fail("Published serving tried SQL"))
+    monkeypatch.setattr(store, 'open_database_connection', lambda: pytest.fail("Published serving tried SQL"))
     store._metadata_cache_path("qa_publication").unlink()
     blobs.reads = 0
 
@@ -93,7 +93,7 @@ def test_cross_environment_publication_is_rejected(blobs):
 
 def test_usage_read_does_not_start_backlog_recovery(monkeypatch):
     monkeypatch.setattr(store, "reconcile_provider_attempt_receipts", lambda **_: pytest.fail("Read started recovery"))
-    monkeypatch.setattr(store, "_db_connect", lambda: None)
+    monkeypatch.setattr(store, 'open_database_connection', lambda: None)
     result = store.provider_usage_rollup()
     assert result.empty and result.attrs["receipt_reconciliation"]["deferred"]
 

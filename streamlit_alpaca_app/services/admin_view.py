@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from data_access.contracts import frame_to_records, to_jsonable
+from services.json_utils import frame_to_records, to_jsonable
 from services import api_auth, auth_service, auth_store
 from services.llm import (
     NARRATIVE_STYLE_RULE, get_active_narrative_style_rule, llm_settings_scope,

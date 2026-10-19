@@ -6,7 +6,8 @@ from typing import Any, Callable
 import pandas as pd
 
 from compute.portfolio import normalize_timeseries_view
-from data_access.contracts import ChartModel, ChartTraceModel, ResolvedPayload, frame_to_records
+from data_access.contracts import ChartModel, ChartTraceModel, ResolvedPayload
+from services.json_utils import frame_to_records
 
 DatasetHandler = Callable[[Any, dict[str, Any]], ResolvedPayload]
 ChartHandler = Callable[[Any, dict[str, Any]], ResolvedPayload]

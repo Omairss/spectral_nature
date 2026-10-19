@@ -17,22 +17,20 @@ from compute.treasury_yields import build_treasury_yield_facts_1d, build_treasur
 from data_access.layer import DataAccessLayer
 from services.alpaca_api import AlpacaAPI
 from services import company as company_module
-from services import attention_agentic as attention_agentic_module
-from services.attention_agentic import build_bottom_up_attention_artifacts
+from services.aql import _shared as aql_shared, collector as aql_collector, extractor as aql_extractor, writer as aql_writer
+from services.aql.pipeline import build_bottom_up_attention_artifacts
+from services.aql.clusterer import recompute_attention_candidate_graph
+from services.attention_signal_graph import _graph_edges
+from compute.signal_extraction import _history_correlation_map
 from services.attention_home_1d import (
     build_attention_entity_master,
     build_attention_event_candidates_1d,
     build_attention_home_1d,
     build_attention_research_bundle,
 )
-from services.runtime_policy import attention_candidate_policy
-from services.aql import (
-    attach_attention_home_summary_audio,
-    build_attention_agentic_summary,
-    build_attention_agentic_summary_with_trace,
-    build_market_stories,
-    build_attention_home_summary,
-)
+from services.runtime_policy import attention_candidate_policy, attention_graph_policy
+from services.aql.summarizer import build_market_stories
+from services.aql_zopedia_engine import attach_aql_zopedia_summary_audio as attach_attention_home_summary_audio
 from services.aql.assembler import build_observed_cohort_event_bundles
 from services.attention_market_events import build_attention_market_events
 from services.company import build_attention_news_narrative, build_company_description, load_recent_news, summarize_recent_news
@@ -1646,124 +1644,6 @@ def test_build_attention_research_bundle_sorts_source_authority_and_aggregates_s
     assert bundle["related_symbols"][0]["symbol"] in {"BNO", "USO", "UAL"}
 
 
-def test_fallback_event_writer_non_rates_prefers_mechanism_claim_over_yield_stat_dump():
-    cluster_rows = pd.DataFrame(
-        [
-            {
-                "symbol": "USO",
-                "change_pct": 5.95,
-                "candidate_score": 92.0,
-                "abs_change_pct": 5.95,
-                "sector": "Energy",
-                "industry": "Oil & Gas",
-                "macro_exposure_tags": ["oil"],
-                "business_tags": [],
-            },
-            {
-                "symbol": "UAL",
-                "change_pct": -4.61,
-                "candidate_score": 88.0,
-                "abs_change_pct": 4.61,
-                "sector": "Industrials",
-                "industry": "Airlines",
-                "macro_exposure_tags": ["travel"],
-                "business_tags": ["travel_mobility"],
-            },
-        ]
-    )
-    retained_claims = [
-        {
-            "claim_text": (
-                "US Treasury yields showed mixed moves with front-end rates falling and long-end yields rising: "
-                "the 2Y dropped 8 bps to 3.88% while the 10Y rose 2 bps to 4.44% and the 30Y rose 5 bps to 4.98%."
-            ),
-            "is_same_day": True,
-            "causal_score": 0.20,
-            "confidence_score": 0.80,
-            "relevance_score": 0.80,
-        },
-        {
-            "claim_text": (
-                "Crude rose on supply-risk headlines, which raised expected jet fuel costs and pressured airline "
-                "margin assumptions while supporting energy cash-flow expectations."
-            ),
-            "is_same_day": True,
-            "causal_score": 0.92,
-            "confidence_score": 0.87,
-            "relevance_score": 0.91,
-        },
-    ]
-    yield_facts = {
-        "ust_2y": 3.88,
-        "ust_10y": 4.44,
-        "ust_30y": 4.98,
-        "ust_2y_1d_bps": -8.0,
-        "ust_10y_1d_bps": 2.0,
-        "ust_30y_1d_bps": 5.0,
-        "curve_2s10s": 0.56,
-        "curve_2s10s_1d_bps": 10.0,
-    }
-
-    bundle = attention_agentic_module._fallback_event_writer(
-        "Airlines lower, Energy higher",
-        cluster_rows,
-        retained_claims,
-        yield_facts=yield_facts,
-        event_type="oil",
-    )
-
-    why_text = bundle["why_happened_text"].lower()
-    assert "fuel" in why_text or "margin" in why_text
-    assert "2y" not in why_text
-    assert "2s10s" not in why_text
-
-
-def test_fallback_event_writer_rates_event_can_include_yield_context():
-    cluster_rows = pd.DataFrame(
-        [
-            {
-                "symbol": "TLT",
-                "change_pct": 1.6,
-                "candidate_score": 91.0,
-                "abs_change_pct": 1.6,
-                "sector": "Fixed Income",
-                "industry": "Treasury ETF",
-                "macro_exposure_tags": ["rates"],
-                "business_tags": [],
-            },
-            {
-                "symbol": "IEF",
-                "change_pct": 0.8,
-                "candidate_score": 84.0,
-                "abs_change_pct": 0.8,
-                "sector": "Fixed Income",
-                "industry": "Treasury ETF",
-                "macro_exposure_tags": ["rates"],
-                "business_tags": [],
-            },
-        ]
-    )
-    yield_facts = {
-        "ust_2y": 3.88,
-        "ust_10y": 4.44,
-        "ust_2y_1d_bps": -8.0,
-        "ust_10y_1d_bps": 2.0,
-        "curve_2s10s": 0.56,
-        "curve_2s10s_1d_bps": 10.0,
-    }
-
-    bundle = attention_agentic_module._fallback_event_writer(
-        "Rates higher",
-        cluster_rows,
-        [],
-        yield_facts=yield_facts,
-        event_type="rates",
-    )
-    why_text = bundle["why_happened_text"].lower()
-    assert "bps" not in why_text
-    assert "yields" in why_text
-
-
 def test_write_event_bundle_replaces_market_activity_recap_what_happened_with_directional_summary():
     cluster_rows = pd.DataFrame(
         [
@@ -1816,7 +1696,7 @@ def test_write_event_bundle_replaces_market_activity_recap_what_happened_with_di
                 "background_context_text": "",
             }
 
-    bundle = attention_agentic_module._write_event_bundle(
+    bundle = aql_writer._write_event_bundle(
         "Airlines lower, Energy higher",
         cluster_rows,
         retained_claims,
@@ -1928,7 +1808,7 @@ def test_write_event_bundle_uses_mechanism_first_prompt_and_rich_payload():
                 "background_context_text": "",
             }
 
-    bundle = attention_agentic_module._write_event_bundle(
+    bundle = aql_writer._write_event_bundle(
         "Oil lower while airlines rebound",
         cluster_rows,
         retained_claims,
@@ -1959,7 +1839,7 @@ def test_write_event_bundle_uses_mechanism_first_prompt_and_rich_payload():
 
 def test_documents_from_search_results_skip_provider_error_rows():
     candidate = {"candidate_id": "candidate::HOOD", "symbol": "HOOD"}
-    docs = attention_agentic_module._documents_from_search_results(
+    docs = aql_extractor._documents_from_search_results(
         candidate,
         [
             {
@@ -1997,7 +1877,7 @@ def test_documents_from_search_results_skip_provider_error_rows():
 def test_documents_from_search_results_uses_headline_when_snippet_missing():
     candidate = {"candidate_id": "candidate::BMY", "symbol": "BMY"}
     title = "Bristol-Myers Squibb reports positive late-stage trial data"
-    docs = attention_agentic_module._documents_from_search_results(
+    docs = aql_extractor._documents_from_search_results(
         candidate,
         [
             {
@@ -2028,7 +1908,7 @@ def test_documents_from_search_results_attach_index_metadata(monkeypatch):
         lambda text, tickers, source_kind, llm_client: (["clinical_trial"], []),
     )
     candidate = {"candidate_id": "candidate::BMY", "symbol": "BMY"}
-    docs = attention_agentic_module._documents_from_search_results(
+    docs = aql_extractor._documents_from_search_results(
         candidate,
         [
             {
@@ -2107,7 +1987,7 @@ def test_search_query_results_uses_tavily_rag_fallback_when_serp_is_irrelevant()
 
     tavily = _TavilyClient()
     router_llm = _RouterLLM()
-    request_rows, result_rows = attention_agentic_module._search_query_results(
+    request_rows, result_rows = aql_collector._search_query_results(
         "IRDM stock move today",
         candidate_id="candidate::IRDM",
         symbol="IRDM",
@@ -2163,7 +2043,7 @@ def test_search_query_results_skips_tavily_when_serp_is_relevant():
             }
 
     tavily = _TavilyClient()
-    request_rows, result_rows = attention_agentic_module._search_query_results(
+    request_rows, result_rows = aql_collector._search_query_results(
         "IRDM stock move today",
         candidate_id="candidate::IRDM",
         symbol="IRDM",
@@ -2213,7 +2093,7 @@ def test_search_query_results_can_retain_provider_payload_and_provider_text():
                 "reason": "Use Tavily fallback.",
             }
 
-    request_rows, result_rows = attention_agentic_module._search_query_results(
+    request_rows, result_rows = aql_collector._search_query_results(
         "copper AI supply chain demand",
         candidate_id="candidate::summary",
         symbol="",
@@ -2236,47 +2116,8 @@ def test_search_query_results_can_retain_provider_payload_and_provider_text():
     assert row["query_text"] == "copper AI supply chain demand"
 
 
-def test_fallback_claims_from_chunks_skip_provider_error_chunks():
-    chunks = pd.DataFrame(
-        [
-            {
-                "chunk_id": "chunk::1",
-                "title": "tavily error",
-                "display_excerpt": "Tavily request failed status=432: {\"detail\":{\"error\":\"This request exceeds your plan's set usage limit.\"}}",
-                "chunk_text": "Tavily request failed status=432: {\"detail\":{\"error\":\"This request exceeds your plan's set usage limit.\"}}",
-                "published_at": pd.Timestamp("2026-03-31T00:00:00Z"),
-                "authority_rank": 3,
-                "source_authority_bucket": "web",
-                "source_provider": "tavily",
-            },
-            {
-                "chunk_id": "chunk::2",
-                "title": "Customer balances grew",
-                "display_excerpt": "Customer balances grew faster than expected, which improved revenue expectations for the brokerage platform.",
-                "chunk_text": "Customer balances grew faster than expected, which improved revenue expectations for the brokerage platform.",
-                "published_at": pd.Timestamp("2026-03-31T00:00:00Z"),
-                "authority_rank": 1,
-                "source_authority_bucket": "wire",
-                "source_provider": "Reuters",
-            },
-        ]
-    )
-
-    claims = attention_agentic_module._fallback_claims_from_chunks(
-        {"symbol": "HOOD", "macro_exposure_tags": []},
-        chunks,
-        run_id="run-1",
-        asof_time_utc=pd.Timestamp("2026-03-31T02:00:00Z"),
-        hypotheses=[{"kind": "company_specific"}],
-    )
-
-    assert len(claims) == 1
-    assert claims[0]["source"] == "Reuters"
-    assert "usage limit" not in claims[0]["claim_text"].lower()
-
-
 def test_documents_from_search_results_prefer_provider_text_and_retain_payload():
-    docs = attention_agentic_module._documents_from_search_results(
+    docs = aql_extractor._documents_from_search_results(
         {"candidate_id": "candidate::summary", "symbol": "", "company_name": "Market Activity"},
         [
             {
@@ -2310,7 +2151,7 @@ def test_documents_from_search_results_prefer_provider_text_and_retain_payload()
 
 
 def test_chunk_source_documents_skip_low_signal_analyst_rating_snippets():
-    chunks = attention_agentic_module._chunk_source_documents(
+    chunks = aql_extractor._chunk_source_documents(
         [
             {
                 "candidate_id": "candidate::BSX",
@@ -2338,53 +2179,6 @@ def test_chunk_source_documents_skip_low_signal_analyst_rating_snippets():
     assert "analyst ratings page" not in chunks.iloc[0]["chunk_text"].lower()
 
 
-def test_fallback_claims_from_chunks_rank_best_evidence_first():
-    chunks = pd.DataFrame(
-        [
-            {
-                "chunk_id": "chunk::old",
-                "title": "Old background note",
-                "display_excerpt": "Background context from last week with little new signal.",
-                "chunk_text": "Background context from last week with little new signal.",
-                "published_at": pd.Timestamp("2026-03-25T00:00:00Z"),
-                "authority_rank": 3,
-                "source_authority_bucket": "web",
-                "source_provider": "Blog",
-                "query_text": "Treasury yields airlines oil moving today why",
-                "mentioned_tickers_json": "[]",
-                "event_tags_json": "[]",
-                "raw_text_origin": "snippet",
-            },
-            {
-                "chunk_id": "chunk::fresh",
-                "title": "Treasury yields ease as oil falls and airlines rally",
-                "display_excerpt": "Same-day coverage said lower yields and easing supply-risk lifted airlines while oil-linked assets fell.",
-                "chunk_text": "Same-day coverage said lower yields and easing supply-risk lifted airlines while oil-linked assets fell.",
-                "published_at": pd.Timestamp("2026-04-03T10:00:00Z"),
-                "authority_rank": 1,
-                "source_authority_bucket": "wire",
-                "source_provider": "Reuters",
-                "query_text": "Treasury yields airlines oil moving today why",
-                "mentioned_tickers_json": json.dumps(["UAL", "USO"]),
-                "event_tags_json": json.dumps(["macro", "sector_rotation"]),
-                "raw_text_origin": "provider_text",
-            },
-        ]
-    )
-
-    claims = attention_agentic_module._fallback_claims_from_chunks(
-        {"symbol": "", "company_name": "Market Activity"},
-        chunks,
-        run_id="run-1",
-        asof_time_utc=pd.Timestamp("2026-04-03T12:00:00Z"),
-        hypotheses=[{"kind": "cross_market"}],
-    )
-
-    assert claims
-    assert claims[0]["source"] == "Reuters"
-    assert "lower yields" in claims[0]["claim_text"].lower()
-
-
 def test_chunk_source_documents_attach_searchable_metadata(monkeypatch):
     import services.aql.evidence_index as _evi
     monkeypatch.setattr(
@@ -2392,7 +2186,7 @@ def test_chunk_source_documents_attach_searchable_metadata(monkeypatch):
         "_llm_extract_tags",
         lambda text, tickers, source_kind, llm_client: (["geopolitics"], ["oil"]),
     )
-    chunks = attention_agentic_module._chunk_source_documents(
+    chunks = aql_extractor._chunk_source_documents(
         [
             {
                 "candidate_id": "candidate::USO",
@@ -3400,10 +3194,7 @@ def test_azure_openai_v1_config_does_not_default_api_version(monkeypatch):
     assert config.temperature == 1.0
 
 
-def test_build_market_stories_and_summary_cover_all_daily_market_sections(monkeypatch):
-    from services.aql import summarizer as aql_summarizer
-
-    monkeypatch.setattr(aql_summarizer, "_llm_home_summary", lambda *args, **kwargs: None)
+def test_build_market_stories_covers_all_daily_market_sections():
     payload = {
         "top_events": [
             {
@@ -3437,17 +3228,8 @@ def test_build_market_stories_and_summary_cover_all_daily_market_sections(monkey
     }
 
     stories = build_market_stories(payload)
-    summary = build_attention_home_summary(payload)
 
     assert [s["kind"] for s in stories] == ["event", "mover", "unresolved"]
-    assert summary["event_count"] == 1
-    assert summary["must_read_count"] == 1
-    assert summary["unresolved_count"] == 1
-    assert "**Events**" in summary["summary_text"]
-    assert "**Movers**" in summary["summary_text"]
-    assert "**Unresolved**" in summary["summary_text"]
-    assert "- " in summary["summary_text"]
-    assert summary["featured_symbols"][:5] == ["USO", "UAL", "TLT", "AAOI", "APGE"]
 
 
 def test_load_elevenlabs_tts_config_uses_env_settings(monkeypatch):
@@ -3467,99 +3249,8 @@ def test_load_elevenlabs_tts_config_uses_env_settings(monkeypatch):
     assert config.timeout_seconds == 45
 
 
-def test_build_attention_home_summary_drops_fragmentary_ellipsis_text(monkeypatch):
-    from services.aql import summarizer as aql_summarizer
-
-    monkeypatch.setattr(aql_summarizer, "_llm_home_summary", lambda *args, **kwargs: None)
-    payload = {
-        "top_events": [],
-        "must_read_movers": [
-            {
-                "bundle_id": "symbol::XYZ",
-                "headline": "XYZ rallies on stronger demand signals",
-                "symbol": "XYZ",
-                "surface_summary_text": "The stock has been...",
-                "what_changed_text": "XYZ rose 11% today versus a 1.2% 20-day baseline.",
-                "why_now_text": "Same-day coverage pointed to stronger demand and better order momentum.",
-                "cause_status": "supported",
-            },
-            {
-                "bundle_id": "symbol::ABC",
-                "headline": "ABC extends a sharp move",
-                "symbol": "ABC",
-                "surface_summary_text": "ent surge excessive....",
-                "what_changed_text": "ABC rose 9% today versus a 1.0% 20-day baseline.",
-                "why_now_text": "Positioning and late-session buying pressure appear to be reinforcing the move.",
-                "cause_status": "continuation",
-            },
-        ],
-        "unresolved_large_moves": [],
-    }
-
-    stories = build_market_stories(payload)
-    summary = build_attention_home_summary(payload)
-
-    assert len(stories) == 2
-    assert "..." not in summary["summary_text"]
-    assert "..." not in summary["audio_text"]
-    assert "The stock has been" not in summary["summary_text"]
-    assert "ent surge excessive" not in summary["summary_text"]
-    assert "stronger demand" in summary["summary_text"].lower()
-    assert "late-session buying pressure" in summary["audio_text"].lower()
-
-
-def test_plan_summary_research_uses_llm_queries():
-    from services.aql.collector import _plan_summary_research
-
-    class FakeLLMClient:
-        def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict):
-            assert schema_name == "attention_research_plan"
-            assert "home_payload" in user_prompt
-            return {
-                "research_subjects": [{"subject": "market activity", "role": "primary"}],
-                "hypotheses": [{"kind": "cross_market", "text": "A shared rates and risk narrative may connect market activity."}],
-                "queries": [
-                    {
-                        "query": "stocks Treasury yields airlines oil moving today why",
-                        "rationale": "Connect the main cross-market moves with one macro query.",
-                    },
-                    {
-                        "query": "market sector rotation today growth defensives rates",
-                        "rationale": "Check whether factor rotation is the cleaner explanation.",
-                    },
-                ],
-                "official_routes": ["news"],
-                "priority_entities": ["TLT", "USO", "UAL"],
-                "evidence_budget": 6,
-            }
-
-    payload = {
-        "top_events": [
-            {
-                "event_title": "Energy and airlines are repricing together",
-                "why_happened_text": "Market activity tied the move to easing supply-risk and lower fuel pressure.",
-                "supporting_symbols": ["USO", "UAL", "TLT"],
-            }
-        ],
-        "must_read_movers": [
-            {
-                "headline": "AAOI moved sharply higher",
-                "symbol": "AAOI",
-                "why_now_text": "Fresh demand commentary sharpened the bull case.",
-            }
-        ],
-    }
-
-    queries = _plan_summary_research(payload, llm_client=FakeLLMClient())
-
-    assert queries == [
-        "stocks Treasury yields airlines oil moving today why",
-        "market sector rotation today growth defensives rates",
-    ]
-
-
 def test_verify_hypothesis_llm_returns_structured_verdict():
-    from services.aql.summarizer import verify_hypothesis
+    from services.common.hypothesis import verify_hypothesis
 
     class FakeLLMClient:
         def generate_json(self, *, system_prompt, user_prompt, schema_name, schema):
@@ -3594,305 +3285,10 @@ def test_verify_hypothesis_llm_returns_structured_verdict():
     assert result["reasoning"]
 
 
-def test_verify_hypothesis_heuristic_fallback_with_strong_claims():
-    from services.common.hypothesis import _heuristic_verification
-
-    claims = [
-        {"claim_text": "Claim A", "confidence_score": 0.75, "is_same_day": True},
-        {"claim_text": "Claim B", "confidence_score": 0.65, "is_same_day": True},
-        {"claim_text": "Claim C", "confidence_score": 0.60, "is_same_day": False},
-    ]
-    result = _heuristic_verification("Some hypothesis", claims)
-    assert result["verdict"] == "supported"
-    assert len(result["supporting_claims"]) <= 3
-    assert result["gap_queries"] == []
-
-
-def test_verify_hypothesis_heuristic_fallback_with_no_claims():
-    from services.common.hypothesis import _heuristic_verification
-
-    result = _heuristic_verification("Some hypothesis", [])
-    assert result["verdict"] == "unsupported"
-    assert result["confidence"] == "low"
-    assert result["gap_queries"] == []
-
-
-def test_build_attention_agentic_summary_adds_hypothesis_from_search_backed_claims(monkeypatch):
-    from services.aql import summarizer as aql_summarizer
-    from services import aql_zopedia_engine as aql_zopedia_engine_module
-
-    payload = {
-        "run_id": "summary-test-run",
-        "generated_at_utc": "2026-03-24T18:00:00Z",
-        "top_events": [
-            {
-                "bundle_id": "event-1",
-                "event_title": "Energy and airlines are repricing together",
-                "what_happened_text": "Oil-linked instruments fell sharply while airlines and duration rallied.",
-                "why_happened_text": "Market activity tied the move to easing supply-risk and lower fuel pressure.",
-                "affected_assets_summary_text": "Airlines and bonds both caught a bid.",
-                "supporting_symbols": ["USO", "UAL", "TLT"],
-            }
-        ],
-        "must_read_movers": [
-            {
-                "bundle_id": "symbol::AAPL",
-                "symbol": "AAPL",
-                "headline": "Apple moves sharply today",
-                "what_changed_text": "AAPL rose 4.2% today.",
-                "why_now_text": "Investors are reacting to stronger checkout commentary.",
-                "what_else_moved_text": "Related names also moved today.",
-                "cause_status": "supported",
-            }
-        ],
-        "unresolved_large_moves": [],
-    }
-
-    class FakeLLMClient:
-        def __init__(self):
-            self.calls: list[str] = []
-
-        def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict):
-            self.calls.append(schema_name)
-            if schema_name == "attention_research_plan":
-                return {
-                    "research_subjects": [{"subject": "market activity", "role": "primary"}],
-                    "hypotheses": [{"kind": "cross_market", "text": "A shared rates and fuel narrative may connect market activity."}],
-                    "queries": [
-                        {
-                            "query": "stocks Treasury yields airlines oil moving today why",
-                            "rationale": "Connect the cross-market moves with one macro query.",
-                        },
-                        {
-                            "query": "fuel prices airlines duration stocks today narrative",
-                            "rationale": "Check whether lower fuel costs and lower yields explain the mix.",
-                        },
-                    ],
-                    "official_routes": ["news"],
-                    "priority_entities": ["USO", "UAL", "TLT", "AAPL"],
-                    "evidence_budget": 6,
-                }
-            if schema_name == "attention_search_relevance":
-                return {"relevant_indices": [0], "reason": "The result is directly about the market-wide driver."}
-            if schema_name == "attention_home_hypothesis":
-                return {
-                    "hypothesis": "Lower yields and easing supply-risk appear to be the common thread, helping duration and fuel-sensitive names while pressuring oil-linked exposure.",
-                }
-            if schema_name == "hypothesis_verification":
-                return {
-                    "verdict": "supported",
-                    "confidence": "medium",
-                    "supporting_claims": ["Lower yields lifted airlines."],
-                    "contradicting_claims": [],
-                    "gap_queries": [],
-                    "reasoning": "Claims align with hypothesis.",
-                }
-            raise AssertionError(f"unexpected schema {schema_name}")
-
-    class FakeTavilyClient:
-        def __init__(self):
-            self.calls: list[tuple[str, int, str]] = []
-
-        def search(self, query: str, *, max_results: int, topic: str):
-            self.calls.append((query, max_results, topic))
-            return [
-                WebSearchResult(
-                    provider="tavily",
-                    title="Treasury yields ease as oil pulls back and airlines rally",
-                    url=f"https://example.com/{len(self.calls)}",
-                    snippet="",
-                    source="Reuters",
-                    reported_date="2026-03-24T17:30:00Z",
-                )
-            ]
-
-    class FakeEmbeddingClient:
-        def __init__(self):
-            self.config = type("Cfg", (), {"embedding_model": "test-embedding"})()
-
-        def generate_embeddings(self, texts):
-            return [[1.0, 0.0] for _ in texts]
-
-    llm_client = FakeLLMClient()
-    tavily_client = FakeTavilyClient()
-    monkeypatch.setattr(
-        aql_summarizer,
-        "browse_page",
-        lambda url, max_text_chars: {
-            "url": url,
-            "final_url": url,
-            "title": "Reuters market wrap",
-            "excerpt": "Reuters said lower yields and easing supply-risk lifted airlines and other duration-sensitive parts of market activity.",
-            "text": (
-                "Reuters said lower yields and easing supply-risk lifted airlines and other duration-sensitive parts of market activity. "
-                "Oil-linked assets weakened as supply-risk eased."
-            ),
-            "mode": "http",
-            "warning": "",
-        },
-    )
-    # This test asserts the exact LLM-call sequence for the research/synth/verify
-    # path. The critique+judge layer adds extra calls — covered by its own tests.
-    monkeypatch.setattr(
-        aql_summarizer,
-        "critique_home_summary",
-        lambda **kw: {"issues": [], "tool_calls": [], "skipped": True},
-    )
-    monkeypatch.setattr(aql_zopedia_engine_module, "get_config_param", lambda key: 0)
-
-    summary = build_attention_agentic_summary(
-        payload,
-        llm_client=llm_client,
-        embedding_client=FakeEmbeddingClient(),
-        search_clients=[None, tavily_client],
-    )
-
-    assert summary["hypothesis"].startswith("Lower yields and easing supply-risk")
-    assert "**Market Hypothesis**" in summary["summary_text"]
-    assert "Market hypothesis:" in summary["audio_text"]
-    assert summary["event_count"] == 1
-    assert summary["must_read_count"] == 1
-    assert summary["research_queries"] == [
-        "stocks Treasury yields airlines oil moving today why",
-        "fuel prices airlines duration stocks today narrative",
-    ]
-    assert summary["top_sources"]
-    assert summary["supporting_claims"]
-    assert tavily_client.calls[0][2] == "news"
-    assert llm_client.calls == [
-        "attention_research_plan",
-        "attention_search_relevance",
-        "attention_search_relevance",
-        "attention_claims",
-        "attention_home_hypothesis",
-        "hypothesis_verification",
-    ]
-
-
-def test_build_attention_agentic_summary_with_trace_returns_materializable_frames(monkeypatch):
-    from services.aql import summarizer as aql_summarizer
-
-    payload = {
-        "run_id": "summary-test-run",
-        "generated_at_utc": "2026-03-24T18:00:00Z",
-        "top_events": [
-            {
-                "bundle_id": "event-1",
-                "event_title": "Energy and airlines are repricing together",
-                "what_happened_text": "Oil-linked instruments fell sharply while airlines and duration rallied.",
-                "why_happened_text": "Market activity tied the move to easing supply-risk and lower fuel pressure.",
-                "affected_assets_summary_text": "Airlines and bonds both caught a bid.",
-                "supporting_symbols": ["USO", "UAL", "TLT"],
-            }
-        ],
-        "must_read_movers": [],
-        "unresolved_large_moves": [],
-    }
-
-    class FakeLLMClient:
-        def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict):
-            del system_prompt, user_prompt, schema
-            if schema_name == "attention_research_plan":
-                return {
-                    "research_subjects": [{"subject": "market activity", "role": "primary"}],
-                    "hypotheses": [{"kind": "cross_market", "text": "A shared rates and fuel narrative may connect market activity."}],
-                    "queries": [{"query": "stocks Treasury yields airlines oil moving today why", "rationale": "Connect market activity."}],
-                    "official_routes": ["news"],
-                    "priority_entities": ["USO", "UAL", "TLT"],
-                    "evidence_budget": 6,
-                }
-            if schema_name == "attention_search_relevance":
-                return {"relevant_indices": [0], "reason": "Directly relevant."}
-            if schema_name == "attention_home_hypothesis":
-                return {"hypothesis": "Lower yields and easing supply-risk appear to be the common thread."}
-            if schema_name == "hypothesis_verification":
-                return {
-                    "verdict": "supported",
-                    "confidence": "medium",
-                    "supporting_claims": ["Lower yields lifted airlines while oil fell."],
-                    "contradicting_claims": [],
-                    "gap_queries": [],
-                    "reasoning": "Multiple same-day claims link rates and fuel narrative.",
-                }
-            raise AssertionError(f"unexpected schema {schema_name}")
-
-    class FakeTavilyClient:
-        def search(self, query: str, *, max_results: int, topic: str):
-            del query, max_results, topic
-            return [
-                WebSearchResult(
-                    provider="tavily",
-                    title="Treasury yields ease as oil pulls back and airlines rally",
-                    url="https://example.com/summary-trace",
-                    snippet="",
-                    source="Reuters",
-                    reported_date="2026-03-24T17:30:00Z",
-                )
-            ]
-
-    class FakeEmbeddingClient:
-        def __init__(self):
-            self.config = type("Cfg", (), {"embedding_model": "test-embedding"})()
-
-        def generate_embeddings(self, texts):
-            return [[1.0, 0.0] for _ in texts]
-
-    monkeypatch.setattr(
-        aql_summarizer,
-        "browse_page",
-        lambda url, max_text_chars: {
-            "url": url,
-            "final_url": url,
-            "title": "Reuters market wrap",
-            "excerpt": "Fresh market coverage said lower yields and easing supply-risk lifted airlines while oil-linked assets fell.",
-            "text": (
-                "Fresh market coverage said lower yields and easing supply-risk lifted airlines while oil-linked assets fell. "
-                "That same-day cross-market move linked duration and fuel-sensitive groups."
-            ),
-            "mode": "http",
-            "warning": "",
-        },
-    )
-    monkeypatch.setattr(
-        aql_summarizer,
-        "critique_home_summary",
-        lambda **kw: {"issues": [], "tool_calls": [], "skipped": True},
-    )
-
-    summary, trace = build_attention_agentic_summary_with_trace(
-        payload,
-        llm_client=FakeLLMClient(),
-        embedding_client=FakeEmbeddingClient(),
-        search_clients=[None, FakeTavilyClient()],
-    )
-
-    assert summary["hypothesis"].startswith("Lower yields and easing supply-risk")
-    assert summary["verification"]["verdict"] == "supported"
-    assert summary["verification"]["confidence"] == "medium"
-    assert len(summary["verification"]["supporting_claims"]) >= 1
-    assert summary["verification"]["reasoning"]
-    assert summary["top_sources"]
-    assert summary["supporting_claims"]
-    assert not trace["attention_hypothesis_verification"].empty
-    assert trace["attention_hypothesis_verification"]["verdict"].iloc[0] == "supported"
-    assert not trace["attention_search_requests"].empty
-    assert not trace["attention_search_results"].empty
-    assert not trace["attention_source_documents"].empty
-    assert not trace["attention_evidence_chunks"].empty
-    assert not trace["attention_claims"].empty
-    assert trace["attention_search_results"]["research_scope"].astype(str).eq("home_summary").all()
-    assert "mentioned_commodities_json" in trace["attention_evidence_chunks"].columns
-    assert "retrieval_rank" in trace["attention_evidence_chunks"].columns
-    assert "provider_payload_json" in trace["attention_search_results"].columns
-    assert "page_text" in trace["attention_search_results"].columns
-    assert trace["attention_search_results"]["page_text"].fillna("").str.contains("same-day cross-market move").any()
-    assert trace["attention_evidence_chunks"]["embedding_model"].fillna("").eq("test-embedding").any()
-
-
 def test_hypothesis_verify_agent_tool_invocation(monkeypatch):
     """hypothesis.verify is callable as an agent tool and returns a structured verdict."""
     from services.agent_tools import invoke_tool, build_tool_catalog, is_hypothesis_tool
-    from services.aql.summarizer import verify_hypothesis as _verify_fn
+    from services.common.hypothesis import verify_hypothesis as _verify_fn
 
     assert is_hypothesis_tool("hypothesis.verify")
     assert not is_hypothesis_tool("research.retained_context")
@@ -3936,81 +3332,8 @@ def test_hypothesis_verify_agent_tool_invocation(monkeypatch):
     assert "hypothesis_verification" in result["provenance"]["datasets"]
 
 
-def test_supporting_claims_from_results_enrich_seeking_alpha_pages(monkeypatch):
-    from services.aql import summarizer as aql_summarizer
-
-    payload = {
-        "run_id": "summary-test-run",
-        "generated_at_utc": "2026-03-24T18:00:00Z",
-    }
-
-    class FakeLLMClient:
-        def generate_json(self, *, system_prompt: str, user_prompt: str, schema_name: str, schema: dict):
-            del system_prompt, user_prompt, schema
-            if schema_name == "attention_search_relevance":
-                return {"relevant_indices": [0]}
-            raise AssertionError(f"unexpected schema {schema_name}")
-
-    class FakeTavilyClient:
-        def search(self, query: str, *, max_results: int, topic: str):
-            del query, max_results, topic
-            return [
-                WebSearchResult(
-                    provider="tavily",
-                    title="Seeking Alpha says AI infrastructure demand is supporting copper",
-                    url="https://seekingalpha.com/news/123456",
-                    snippet="Short snippet only.",
-                    source="Seeking Alpha",
-                    reported_date="2026-03-24T17:30:00Z",
-                )
-            ]
-
-    monkeypatch.setattr(
-        aql_summarizer,
-        "browse_page",
-        lambda url, max_text_chars: {
-            "url": url,
-            "final_url": url,
-            "title": "Seeking Alpha article",
-            "excerpt": "AI infrastructure demand is lifting copper and related supply chain commentary.",
-            "text": (
-                "AI infrastructure demand is lifting copper and related supply chain commentary. "
-                "The article says data-center buildouts are raising demand expectations across the chain."
-            ),
-            "mode": "seeking_alpha_authenticated",
-            "warning": "",
-        },
-    )
-
-    claims = aql_summarizer._supporting_claims_from_results(
-        payload,
-        queries=["copper AI supply chain"],
-        llm_client=FakeLLMClient(),
-        search_clients=[None, FakeTavilyClient()],
-    )
-
-    assert claims
-    assert any("AI infrastructure demand is lifting copper" in item["claim_text"] for item in claims)
-
-
 def test_attach_attention_home_summary_audio_embeds_base64_metadata(monkeypatch):
-    from services.aql import summarizer as aql_summarizer
-
-    monkeypatch.setattr(aql_summarizer, "_llm_home_summary", lambda *args, **kwargs: None)
-    summary_payload = build_attention_home_summary(
-        {
-            "must_read_movers": [
-                {
-                    "bundle_id": "symbol::XYZ",
-                    "headline": "XYZ rallies on stronger demand signals",
-                    "symbol": "XYZ",
-                    "what_changed_text": "XYZ rose 11% today versus a 1.2% 20-day baseline.",
-                    "why_now_text": "Same-day coverage pointed to stronger demand and better order momentum.",
-                    "cause_status": "supported",
-                }
-            ]
-        }
-    )
+    summary_payload = {"audio_text": "Demand and order momentum improved."}
 
     class FakeTTSClient:
         def __init__(self):
@@ -4495,7 +3818,7 @@ def test_candidate_context_documents_adds_treasury_yield_summary_for_rates_names
         ]
     )
 
-    docs = attention_agentic_module._candidate_context_documents(
+    docs = aql_collector._candidate_context_documents(
         candidate,
         news_payloads={},
         context_payloads={},
@@ -4539,7 +3862,7 @@ def test_candidate_context_documents_uses_headline_when_news_summary_missing():
             )
         }
     }
-    docs = attention_agentic_module._candidate_context_documents(
+    docs = aql_collector._candidate_context_documents(
         candidate,
         news_payloads=news_payloads,
         context_payloads={},
@@ -4780,7 +4103,7 @@ def test_augment_candidate_frame_preserves_upstream_peer_group_and_merges_tags()
         ]
     )
 
-    out = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    out = aql_shared._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
     row = out.iloc[0]
 
     assert row["peer_group_id"] == "commodity_role:oil_supply_shock"
@@ -4809,8 +4132,8 @@ def test_graph_edges_connect_same_industry_without_tag_overlap():
         ]
     )
 
-    candidates = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
-    edges = attention_agentic_module._graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
+    candidates = aql_shared._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    edges = _graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
 
     assert len(edges) == 1
     row = edges.iloc[0]
@@ -4846,8 +4169,8 @@ def test_graph_edges_use_explicit_upstream_peer_groups_without_tags():
         ]
     )
 
-    candidates = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
-    edges = attention_agentic_module._graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
+    candidates = aql_shared._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    edges = _graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
 
     assert len(edges) == 1
     row = edges.iloc[0]
@@ -4883,8 +4206,8 @@ def test_graph_edges_use_shared_macro_roles_when_taxonomy_is_broad():
         ]
     )
 
-    candidates = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
-    edges = attention_agentic_module._graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
+    candidates = aql_shared._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    edges = _graph_edges(candidates, claim_map={}, run_id="run-123", asof_time_utc=asof)
 
     assert len(edges) == 1
     row = edges.iloc[0]
@@ -4921,7 +4244,7 @@ def test_recompute_attention_candidate_graph_prefers_effective_taxonomy_fields()
         ]
     )
 
-    candidates, edges = attention_agentic_module.recompute_attention_candidate_graph(
+    candidates, edges = recompute_attention_candidate_graph(
         frame,
         claims_frame=pd.DataFrame(),
         run_id="run-123",
@@ -4990,13 +4313,13 @@ def test_graph_edges_use_history_correlation_when_graph_signal_is_sparse():
         lookback_days=180,
     )
 
-    candidates = attention_agentic_module._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
-    history_corr_map = attention_agentic_module._history_correlation_map(
+    candidates = aql_shared._augment_candidate_frame(frame, asof_time_utc=asof, run_id="run-123")
+    history_corr_map = _history_correlation_map(
         bars_by_symbol,
         ["AAA", "BBB"],
-        min_observations=attention_agentic_module.attention_graph_policy().history_corr_min_observations,
+        min_observations=attention_graph_policy().history_corr_min_observations,
     )
-    edges = attention_agentic_module._graph_edges(
+    edges = _graph_edges(
         candidates,
         claim_map={},
         history_correlation_map=history_corr_map,
@@ -5036,7 +4359,7 @@ def test_recompute_attention_candidate_graph_uses_price_history_for_sparse_pairs
     returns = [0.011, -0.004, 0.009, -0.006, 0.013, -0.003, 0.008, -0.005] * 12
     price_history = _price_history_frame_for_returns({"AAA": 100.0, "BBB": 57.0}, returns)
 
-    candidates, edges = attention_agentic_module.recompute_attention_candidate_graph(
+    candidates, edges = recompute_attention_candidate_graph(
         frame,
         claims_frame=pd.DataFrame(),
         price_history_frame=price_history,

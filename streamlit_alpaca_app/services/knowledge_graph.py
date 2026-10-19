@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from services.database import open_database_session
+from psycopg import OperationalError
 
 from datetime import datetime, timezone
 import json
@@ -22,7 +23,7 @@ import plotly.graph_objects as go
 
 from .dependency_graphs import load_dependency_graph_payloads
 from .llm import LLMAPIError, load_embedding_client
-from .secrets import postgres_connect_timeout_seconds, resolve_secret_value
+from .secrets import resolve_secret_value
 from .web_research import (
     SerpAPISearchClient,
     TavilySearchClient,
@@ -33,10 +34,6 @@ from .web_research import (
 from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
 
-try:
-    import psycopg
-except Exception:
-    psycopg = None
 
 
 APP_ROOT = Path(__file__).resolve().parents[1]
@@ -235,16 +232,16 @@ def _postgres_connection_string() -> str:
 
 
 def knowledge_graph_store_configured() -> bool:
-    return bool(_postgres_connection_string() and psycopg is not None)
+    return bool(_postgres_connection_string())
 
 
 def _db_connect() -> Any | None:
     conn_str = _postgres_connection_string()
-    if not conn_str or psycopg is None:
+    if not conn_str:
         return None
     try:
-        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
-    except Exception:
+        return open_database_session(conn_str)
+    except OperationalError:
         return None
 
 
@@ -653,10 +650,7 @@ def _load_db_records() -> tuple[list[dict[str, Any]], list[dict[str, Any]], list
     except Exception:
         return [], [], []
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def _assemble_snapshot(
@@ -769,10 +763,7 @@ def knowledge_graph_runtime_status() -> dict[str, Any]:
         except Exception:
             store_ready = False
         finally:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
     llm_client = load_aql_zopedia_llm_client(surface="knowledge_graph.status")
     embedding_client = load_embedding_client()
     tavily_ready = load_tavily_config() is not None
@@ -853,27 +844,6 @@ def _document_context_score(query: str, node_id: str, node: dict[str, Any]) -> t
     phrase_bonus = 0.1 if query_clean and query_clean in document_clean else 0.0
     score = min(0.84, 0.42 + (recall * 0.32) + (min(precision, 0.2)) + phrase_bonus)
     return float(score), ", ".join(sorted(overlap))
-
-
-def _embedding_scores(query: str, candidates: list[dict[str, Any]]) -> dict[str, float]:
-    embedding_client = load_embedding_client()
-    if embedding_client is None or not candidates:
-        return {}
-    texts = [query] + [str(item.get("matched_alias") or item.get("canonical_label") or item.get("node_id") or "") for item in candidates]
-    try:
-        vectors = embedding_client.generate_embeddings(texts)
-    except Exception:
-        return {}
-    if len(vectors) != len(texts):
-        return {}
-    query_vec = vectors[0]
-    scores: dict[str, float] = {}
-    for item, vector in zip(candidates, vectors[1:]):
-        node_id = _clean(item.get("node_id"))
-        if not node_id:
-            continue
-        scores[node_id] = max(scores.get(node_id, 0.0), (_cosine_similarity(query_vec, vector) + 1.0) / 2.0)
-    return scores
 
 
 # Content and embedding-space identity, never just the set of node IDs.
@@ -1962,16 +1932,9 @@ def commit_knowledge_graph_review(
             "delta": normalized,
         }
     except Exception as exc:
-        try:
-            conn.rollback()
-        except Exception:
-            pass
         return {"ok": False, "message": f"{type(exc).__name__}: {exc}"}
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def list_recent_knowledge_graph_commits(*, limit: int = 8) -> pd.DataFrame:
@@ -1996,10 +1959,7 @@ def list_recent_knowledge_graph_commits(*, limit: int = 8) -> pd.DataFrame:
     except Exception:
         return pd.DataFrame(columns=["commit_id", "query_text", "summary", "created_by", "created_at"])
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def _component_packed_layout(graph: nx.Graph) -> dict[str, tuple[float, float]]:

@@ -1,0 +1,19 @@
+{
+  "status": "preparing_development",
+  "owner_instruction": "Recon everything needed for deeper cleanup and test in dev; compare dev and prod for 2 days, monitor regressions, promote only if none exist.",
+  "observation_hours": 48,
+  "started_at": null,
+  "ends_at": null,
+  "source_revision": null,
+  "images": {},
+  "production_promoted": false,
+  "production_baseline_observed_at": "2026-10-19T06:24:37.163706+00:00",
+  "local_checks": {
+    "database_lifecycle_passed": 57,
+    "live_postgres_skipped": 0,
+    "data_storage_passed": 39,
+    "web_boundary_passed": 13,
+    "typescript": "passed",
+    "json_adapters_compared": 26
+  }
+}

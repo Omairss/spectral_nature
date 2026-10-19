@@ -17,7 +17,7 @@ Agent-owned state now lives behind `services.agents`:
 - `services.agents.read_summary`
 - `services.agents.verify_hypothesis`
 
-`services.aql.chat_log` and `services.aql.scratchpad` are compatibility shims only. New code must not import them.
+The unused `services.aql.chat_log` and `services.aql.scratchpad` shims were retired locally in the [October 18 cleanup](../cleanup-2026-10-18/README.md). Import their owners in `services.agents` directly.
 
 ## Docs
 

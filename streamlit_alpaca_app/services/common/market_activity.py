@@ -13,7 +13,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .contracts import CAUSAL_LANGUAGE_PATTERNS, GENERIC_GRAPH_BUCKETS, RATE_TRANSMISSION_PATTERNS
+from .contracts import CAUSAL_LANGUAGE_PATTERNS, GENERIC_GRAPH_BUCKETS
 
 
 def _coerce_text(value: object) -> str:
@@ -125,22 +125,6 @@ def _looks_like_stat_dump(text: object) -> bool:
     if "treasury yields:" in lowered and stat_count >= 4 and not _has_causal_language(clean):
         return True
     return False
-
-
-def _looks_like_generic_market_activity_title(text: object) -> bool:
-    clean = _coerce_text(text).lower()
-    if not clean:
-        return False
-    patterns = (
-        r"\bmoves? sharply today\b",
-        r"\bmoved sharply today\b",
-        r"\bshares?\s+(rose|fell|gained|dropped|surged|slid|jumped|plunged)\s+[+\-]?\d+(?:\.\d+)?%\b",
-        r"\brises on today'?s market activity\b",
-        r"\bfalls on today'?s market activity\b",
-        r"\bon today'?s market activity\b",
-        r"\bmarket move today\b",
-    )
-    return any(re.search(pattern, clean) for pattern in patterns)
 
 
 def _merge_text_values(*values: object) -> list[str]:

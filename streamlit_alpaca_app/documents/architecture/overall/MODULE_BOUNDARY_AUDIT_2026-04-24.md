@@ -1,5 +1,7 @@
 # Module Boundary Audit (2026-04-24)
 
+Historical audit. The [October 18 cleanup](../cleanup-2026-10-18/README.md) supersedes the compatibility-shim and duplicated-helper status below; the current product architecture is in the [active map](../ACTIVE_MAP.md).
+
 This audit summarizes the first parallel boundary review for independent modules.
 
 ## AQL And SAA

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
-from types import SimpleNamespace
 
 import pandas as pd
 from services import secrets
@@ -185,14 +184,15 @@ def test_db_connection_uses_generated_deployment_vault(monkeypatch, tmp_path):
 
     def fake_connect(conn_str: str, **kwargs):
         captured_connect["conn_str"] = conn_str
-        captured_connect["connect_timeout"] = kwargs.get("connect_timeout")
         captured_connect["application_name"] = kwargs.get("application_name")
-        captured_connect["options"] = kwargs.get("options")
+        captured_connect["statement_timeout_ms"] = kwargs.get("statement_timeout_ms")
+        captured_connect["lock_timeout_ms"] = kwargs.get("lock_timeout_ms")
+        captured_connect["idle_transaction_timeout_ms"] = kwargs.get("idle_transaction_timeout_ms")
         return "db-connection"
 
     monkeypatch.setattr(secrets, "APP_ROOT", tmp_path)
     monkeypatch.setattr(secrets, "_read_secret", fake_read_secret)
-    monkeypatch.setattr(storage, "psycopg", SimpleNamespace(connect=fake_connect))
+    monkeypatch.setattr(storage, "open_database_session", fake_connect)
     monkeypatch.delenv("DEPLOYMENT_ENV_FILE", raising=False)
     monkeypatch.delenv("POSTGRES_CONNECTION_STRING", raising=False)
     monkeypatch.delenv("POSTGRES_CONNECTION_STRING_SECRET", raising=False)
@@ -212,9 +212,10 @@ def test_db_connection_uses_generated_deployment_vault(monkeypatch, tmp_path):
     }
     assert captured_connect == {
         "conn_str": "postgres://example",
-        "connect_timeout": 5,
         "application_name": "spectral_nature_saa",
-        "options": "-c statement_timeout=30000 -c lock_timeout=5000 -c idle_in_transaction_session_timeout=60000",
+        "statement_timeout_ms": 30000,
+        "lock_timeout_ms": 5000,
+        "idle_transaction_timeout_ms": 60000,
     }
 
 

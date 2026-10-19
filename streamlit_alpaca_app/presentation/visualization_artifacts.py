@@ -4,14 +4,8 @@ import hashlib
 import json
 from typing import Any
 
-from data_access.contracts import (
-    ChartModel,
-    DataProvenance,
-    DatasetArtifact,
-    DatasetColumn,
-    VisualizationArtifact,
-    to_jsonable,
-)
+from data_access.contracts import ChartModel, DataProvenance, DatasetArtifact, DatasetColumn, VisualizationArtifact
+from services.json_utils import to_jsonable
 from presentation.plotly import render_chart_model
 
 

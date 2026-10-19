@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { readJsonBody, validateMutation } from "@/lib/server/auth";
+import { validateMutation } from "@/lib/server/auth";
 import { authorizedBackendFetch } from "@/lib/server/backend";
-import { forwardJson, noStoreJson } from "@/lib/server/http";
+import { readJsonBody, forwardJson, noStoreJson } from "@/lib/server/http";
 
 const WORKBENCH_DATASETS = new Set([
   "fred_dashboard",
@@ -27,19 +27,15 @@ export async function POST(request: NextRequest, context: { params: Promise<{ na
   if (!WORKBENCH_DATASETS.has(name)) {
     return noStoreJson({ error: "Dataset is unavailable." }, { status: 404 });
   }
-  try {
-    const body = await readJsonBody(request, 24_576);
-    if (!isPlainObject(body) || (body.params !== undefined && !isPlainObject(body.params))) {
-      return noStoreJson({ error: "Dataset parameters must be an object." }, { status: 400 });
-    }
-    const response = await authorizedBackendFetch(`/v1/dataset/${encodeURIComponent(name)}`, {
-      method: "POST",
-      body: JSON.stringify({ params: body.params || {} }),
-      timeoutMs: name === "fred_dashboard" ? 60_000 : 45_000,
-    });
-    return forwardJson(response, "Dataset could not be loaded.");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Dataset could not be loaded.";
-    return noStoreJson({ error: message }, { status: 400 });
+  const body = await readJsonBody(request, 24_576);
+  if (body instanceof Response) return body;
+  if (!isPlainObject(body) || (body.params !== undefined && !isPlainObject(body.params))) {
+    return noStoreJson({ error: "Dataset parameters must be an object." }, { status: 400 });
   }
+  const response = await authorizedBackendFetch(`/v1/dataset/${encodeURIComponent(name)}`, {
+    method: "POST",
+    body: JSON.stringify({ params: body.params || {} }),
+    timeoutMs: name === "fred_dashboard" ? 60_000 : 45_000,
+  });
+  return forwardJson(response, "Dataset could not be loaded.");
 }

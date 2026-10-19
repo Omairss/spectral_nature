@@ -10,14 +10,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ tic
   }
   const rawDays = Number(request.nextUrl.searchParams.get("days") || 365);
   const days = Number.isFinite(rawDays) ? Math.min(720, Math.max(60, Math.round(rawDays))) : 365;
-  try {
-    const response = await authorizedBackendFetch(
-      `/v1/investigator/${encodeURIComponent(ticker)}?days=${days}`,
-      { timeoutMs: 45_000 },
-    );
-    return forwardJson(response, "Stock Investigator data could not be loaded.");
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Stock Investigator data could not be loaded.";
-    return noStoreJson({ error: message }, { status: 400 });
-  }
+  const response = await authorizedBackendFetch(
+    `/v1/investigator/${encodeURIComponent(ticker)}?days=${days}`,
+    { timeoutMs: 45_000 },
+  );
+  return forwardJson(response, "Stock Investigator data could not be loaded.");
 }

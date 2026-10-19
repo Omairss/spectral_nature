@@ -77,20 +77,6 @@ _P_TOOL_RESULT_SUMMARY_ITEMS = register_config_param(
     default=8,
     description="Max summary items to include per tool result",
 )
-_P_TOOL_HISTORY_PER_TOOL_LIMIT = register_config_param(
-    "Agent tool history per-tool limit",
-    group="Zopedia",
-    default=3000,
-    description="Max chars per tool result in the tool call history shown to the planner",
-)
-_P_BOOTSTRAP_TOOL_CALLS = register_config_param(
-    "Agent bootstrap tool calls",
-    group="Zopedia",
-    default=0,
-    description=(
-        "Legacy deterministic evidence-call budget. Defaults to 0 so the LLM planner owns tool choice."
-    ),
-)
 _P_USER_PREVIEW_LIMIT = register_config_param(
     "Agent user preview limit",
     group="Zopedia",
@@ -119,12 +105,6 @@ _P_TRAJECTORY_MONITOR_MAX_RESTARTS = register_config_param(
     group="Zopedia",
     default=2,
     description="Maximum corrective restarts one agent run can receive from the trajectory monitor.",
-)
-_P_TRAJECTORY_MONITOR_TIMEOUT_SECONDS = register_config_param(
-    "Agent trajectory monitor timeout seconds",
-    group="Zopedia",
-    default=45,
-    description="Maximum seconds a trajectory monitor check may spend before letting the planner continue.",
 )
 _P_POST_ANSWER_MEMORY_ENABLED = register_config_param(
     "Agent post-answer memory enabled",
@@ -2446,48 +2426,6 @@ def _normalized_trajectory_monitor_result(
     normalized["decision"] = decision
     normalized["off_contract_signals"] = off_contract_signals
     return normalized, decision
-
-
-def _append_trajectory_monitor_call(
-    tool_calls: list[dict[str, Any]],
-    *,
-    monitor_result: dict[str, Any],
-    restart_count: int,
-) -> None:
-    decision = _clean(monitor_result.get("decision")).lower() or "double_down"
-    reason = _clean(monitor_result.get("reason"))
-    corrective = _clean(monitor_result.get("corrective_instruction"))
-    off_contract = [
-        _clean(item) for item in list(monitor_result.get("off_contract_signals") or []) if _clean(item)
-    ]
-    gaps = [_clean(item) for item in list(monitor_result.get("evidence_gaps") or []) if _clean(item)]
-    lines = [
-        f"Trajectory monitor decision: {decision}.",
-        f"Reason: {reason}." if reason else "",
-        f"Corrective instruction: {corrective}." if corrective else "",
-    ]
-    if off_contract:
-        lines.append("Off-contract signals: " + "; ".join(off_contract[:5]) + ".")
-    if gaps:
-        lines.append("Evidence gaps: " + "; ".join(gaps[:5]) + ".")
-    context = "\n".join(line for line in lines if line)
-    tool_calls.append(
-        {
-            "tool_call_id": f"agtc_monitor_{restart_count}",
-            "tool_name": "trajectory.monitor",
-            "arguments": {"decision": decision, "restart_count": restart_count},
-            "status": "completed",
-            "error": None,
-            "result_summary": {
-                "preview_text": context,
-                "user_preview": _truncate(context, limit=int(get_config_param(_P_USER_PREVIEW_LIMIT))),
-                "llm_context_text": context,
-                "result_type": "trajectory_monitor",
-                "provenance": {"source": "aql_zopedia_trajectory_monitor"},
-                "preview": {"kind": "text", "chars": len(context)},
-            },
-        }
-    )
 
 
 def _has_memory_candidate(

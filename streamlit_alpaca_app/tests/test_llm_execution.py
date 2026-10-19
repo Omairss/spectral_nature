@@ -279,7 +279,7 @@ def test_provider_receipts_survive_database_outage_and_reconcile_once(monkeypatc
         def point(self, name, receipt): pointers[self.root+'/'+name] = receipt; return self.root+'/'+name
         def get(self, receipt): return objects[receipt['object']]
     monkeypatch.setattr(pipeline_store, "ImmutableBlobArchive", Archive)
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: None)
     event = {'attempt_id': 'attempt', 'root_run_id': 'research', 'settings_scope': 'development',
              'started_at_utc': datetime.now(timezone.utc), 'usage': {'prompt_tokens': 101, 'completion_tokens': 17}}
     assert pipeline_store.record_provider_attempt(event)
@@ -295,7 +295,7 @@ def test_provider_receipts_survive_database_outage_and_reconcile_once(monkeypatc
 
 
 def test_completed_research_unavailability_is_not_an_empty_discovery_result(monkeypatch):
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: None)
     with pytest.raises(RuntimeError, match="unavailable"):
         pipeline_store.list_research_artifacts(namespace="research_artifact:development:public_company_research")
 

@@ -9,7 +9,8 @@ from typing import Any
 
 import pandas as pd
 
-from data_access.contracts import QueryRequest, QueryResponse, QueryValidationError, ResolvedPayload, frame_to_records
+from data_access.contracts import QueryRequest, QueryResponse, QueryValidationError, ResolvedPayload
+from services.json_utils import frame_to_records
 from data_access.layer import DataAccessLayer
 from data_access.query_registry import CHART_CAPABILITIES, CHART_SPECS, DATASET_CAPABILITIES, DATASET_SPECS, ParamSpec
 

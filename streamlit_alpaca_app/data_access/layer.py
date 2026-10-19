@@ -32,7 +32,6 @@ from services.attention_materialized import (
 )
 from services.company_baseline import deserialize_company_baseline_frame
 from services.company import load_asset_metadata, load_recent_news
-from services.common.company_identity import clean_company_display_name
 from services.config import AppConfig, load_config
 from services.common.news_freshness import coerce_article_published_at, is_recent_for_attention
 from services.data_cache import (
@@ -45,7 +44,6 @@ from services.data_cache import (
     dataset_scope,
 )
 from services.fred import load_fred_api_key, load_fred_dashboard
-from services.aql.evidence_index import parse_json_list
 from services.market import load_price_history, scan_commodity_regimes, scan_correlation_phase_shifts, scan_daily_movers, scan_event_significance, scan_momentum_profiles
 from services.options import analyze_option_candidates, load_option_chain, load_option_surface, select_option_surface_window
 from services.pipeline_store import (
@@ -56,7 +54,7 @@ from services.pipeline_store import (
     pipeline_store_configured,
     start_source_refresh_job,
 )
-from services.pipeline_slices import load_latest_dataset_frame_slice
+from services.pipeline_store import load_latest_dataset_frame_slice
 from services.saa import load_retained_document, load_retained_document_metadata, search_retained_documents, search_retained_evidence_chunks
 from services.treasury_yields import TreasuryYieldError, load_treasury_yield_curve
 from services.universe import build_liquidity_ranked_equity_universe
@@ -134,49 +132,6 @@ def _provider_display_label(value: object) -> str:
     if "serpapi" in lowered or "serp api" in lowered:
         return "SerpApi"
     return text
-
-
-def _query_tokens(value: object) -> list[str]:
-    tokens = [token for token in re.split(r"[^a-z0-9]+", _coerce_text(value).lower()) if len(token) >= 2]
-    return _dedupe_text_items(tokens)
-
-
-def _key_contains_any(value: object, targets: list[str]) -> bool:
-    haystack = _coerce_text(value)
-    if not haystack or not targets:
-        return False
-    return any(f"|{target}|" in haystack for target in targets)
-
-
-def _dates_match_filters(
-    row: pd.Series,
-    *,
-    exact_dates: list[str],
-    start_date: pd.Timestamp | None,
-    end_date: pd.Timestamp | None,
-) -> bool:
-    candidates = parse_json_list(row.get("mentioned_dates_json"))
-    published_date = _coerce_text(row.get("published_date"))
-    primary_date = _coerce_text(row.get("primary_date"))
-    if published_date:
-        candidates.append(published_date)
-    if primary_date:
-        candidates.append(primary_date)
-    candidates = _dedupe_text_items(candidates)
-    if exact_dates and not any(item in exact_dates for item in candidates):
-        return False
-    if start_date is None and end_date is None:
-        return True
-    for value in candidates:
-        parsed = pd.to_datetime(value, utc=True, errors="coerce")
-        if pd.isna(parsed):
-            continue
-        if start_date is not None and parsed < start_date:
-            continue
-        if end_date is not None and parsed > end_date:
-            continue
-        return True
-    return False
 
 
 def _is_relevant_bundle_news_item(item: dict[str, Any] | None) -> bool:
@@ -609,48 +564,6 @@ class DataAccessLayer:
         if frame.empty:
             return None
         return frame, details
-
-    def _try_pipeline_identity_frame(self, dataset_name: str) -> tuple[pd.DataFrame, dict[str, Any]] | None:
-        if not pipeline_store_configured():
-            return None
-        frame, details = self._pipeline_frame(dataset_name)
-        if frame.empty and not details:
-            return None
-        return frame, details
-
-    def _company_identity_from_materialized(self, ticker: str) -> dict[str, str]:
-        target = str(ticker or "").upper().strip()
-        if not target:
-            return {}
-
-        for dataset_name in ("company_baselines", "us_equity_listings", "universe_snapshot"):
-            materialized = self._try_pipeline_identity_frame(dataset_name)
-            if materialized is None:
-                continue
-            frame, _ = materialized
-            if not isinstance(frame, pd.DataFrame) or frame.empty:
-                continue
-            symbol_column = ""
-            for candidate in ("symbol", "ticker", "entity_id"):
-                if candidate in frame.columns:
-                    symbol_column = candidate
-                    break
-            if not symbol_column:
-                continue
-            name_columns = [column for column in ("company_name", "security_name", "name", "display_name") if column in frame.columns]
-            if not name_columns:
-                continue
-            rows = frame.copy()
-            rows[symbol_column] = rows[symbol_column].astype(str).str.upper().str.strip()
-            match = rows[rows[symbol_column] == target].head(1)
-            if match.empty:
-                continue
-            row = match.iloc[0]
-            for column in name_columns:
-                name = clean_company_display_name(row.get(column)) or _coerce_text(row.get(column))
-                if name:
-                    return {"symbol": target, "name": name, "source_dataset": dataset_name}
-        return {}
 
     def _try_pipeline_frames(
         self,
@@ -3221,14 +3134,6 @@ class DataAccessLayer:
 # ---------------------------------------------------------------------------
 # Historical homepage replay
 # ---------------------------------------------------------------------------
-
-_HOMEPAGE_REPLAY_DATASETS = (
-    "attention_home_1d",
-    "attention_ticker_snapshots_1d",
-    "attention_research_bundles",
-    "attention_ticker_background_snapshots",
-)
-
 
 def resolve_homepage_asof(target_date: str) -> dict[str, Any]:
     """Load a complete homepage payload for a past date.

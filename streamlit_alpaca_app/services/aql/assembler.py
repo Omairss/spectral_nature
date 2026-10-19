@@ -13,31 +13,23 @@ import numpy as np
 import pandas as pd
 
 from ._shared import (
-    _augment_candidate_frame,
+    _document_importance_map,
+    _importance_label,
+    _judge_cause_status,
+    _top_sources,
+)
+from services.common.market_activity import (
     _coerce_float,
     _coerce_text,
-    _compose_surface_summary,
-    _document_importance_map,
-    _freshness_score,
-    _importance_label,
-    _json_dumps,
-    _judge_cause_status,
     _move_direction,
     _normalize_symbol,
     _quality_label,
     _safe_list,
-    _top_sources,
-    _yield_context_relevant,
 )
 from .writer import _write_symbol_bundle, _write_event_bundle, _cluster_uses_yield_context, _infer_event_type
-from .clusterer import _taxonomy_horizon_trends, _cluster_candidates
-from ._shared import (
-    _dominant_cluster_label,
-    _event_title_from_cluster,
-    _tag_tokens,
-)
-from .extractor import _claim_entities, _serialize_claims_frame
-from .collector import _latest_yield_facts
+from .clusterer import _taxonomy_horizon_trends
+from ._shared import _event_title_from_cluster, _tag_tokens
+from .extractor import _claim_entities
 from .constants import LLMClient
 
 
@@ -151,123 +143,6 @@ def _cohort_group_keys(row: pd.Series) -> list[tuple[str, str]]:
     for column in ("peer_group_name", "industry", "sector"):
         add(column, row.get(column))
     return keys
-
-
-def _cohort_direction_word(direction: str) -> str:
-    if direction == "down":
-        return "fell"
-    if direction == "up":
-        return "rose"
-    return "moved"
-
-
-def _cohort_subject(label: str) -> str:
-    clean = _coerce_text(label)
-    if not clean:
-        return "Related stocks"
-    if clean.isupper() and len(clean) <= 4:
-        return f"{clean}-linked stocks"
-    return f"{clean} stocks"
-
-
-def _cohort_member_move_text(rows: pd.DataFrame, *, limit: int = 5) -> str:
-    parts: list[str] = []
-    ranked = rows.sort_values(["candidate_score", "abs_change_pct"], ascending=[False, False], na_position="last")
-    for _, row in ranked.head(max(int(limit), 1)).iterrows():
-        symbol = _normalize_symbol(row.get("symbol"))
-        move = _coerce_float(row.get("change_pct"))
-        if not symbol or not np.isfinite(move):
-            continue
-        parts.append(f"{symbol} {move:+.1f}%")
-    if not parts:
-        return ""
-    if len(parts) == 1:
-        return parts[0]
-    if len(parts) == 2:
-        return f"{parts[0]} and {parts[1]}"
-    return f"{', '.join(parts[:-1])}, and {parts[-1]}"
-
-
-def _cohort_shared_label_text(rows: pd.DataFrame, *, limit: int = 6) -> str:
-    counts: dict[str, int] = {}
-    for _, row in rows.iterrows():
-        labels: set[str] = set()
-        for column in ("macro_exposure_tags", "macro_role_tags", "business_tags", "business_role_tags", "industry", "peer_group_name"):
-            for value in _cohort_values(row.get(column)):
-                label = _cohort_label(value)
-                if label:
-                    labels.add(label)
-        for label in labels:
-            counts[label] = counts.get(label, 0) + 1
-    ranked = [
-        label
-        for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
-        if count >= 2
-    ][: max(int(limit), 1)]
-    if not ranked:
-        return ""
-    if len(ranked) == 1:
-        return ranked[0]
-    if len(ranked) == 2:
-        return f"{ranked[0]} and {ranked[1]}"
-    return f"{', '.join(ranked[:-1])}, and {ranked[-1]}"
-
-
-def _cohort_shared_title_labels(
-    rows: pd.DataFrame,
-    *,
-    fallback_label: str,
-    fallback_kind: str,
-    limit: int = 3,
-) -> list[str]:
-    fallback = _cohort_label(fallback_label)
-    counts: dict[str, int] = {}
-    for _, row in rows.iterrows():
-        labels: set[str] = set()
-        for column in (
-            "macro_exposure_tags",
-            "macro_role_tags",
-            "business_tags",
-            "business_role_tags",
-            "industry",
-            "peer_group_name",
-        ):
-            for value in _cohort_values(row.get(column)):
-                label = _cohort_label(value)
-                if label:
-                    labels.add(label)
-        for label in labels:
-            counts[label] = counts.get(label, 0) + 1
-
-    ranked = [
-        label
-        for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))
-        if count >= 2 and label != fallback
-    ]
-    if ranked:
-        return ranked[: max(int(limit), 1)]
-    if fallback:
-        return [fallback]
-    return []
-
-
-def _cohort_title_subject(rows: pd.DataFrame, *, fallback_label: str, fallback_kind: str) -> str:
-    labels = _cohort_shared_title_labels(
-        rows,
-        fallback_label=fallback_label,
-        fallback_kind=fallback_kind,
-    )
-    if not labels:
-        return _cohort_subject(fallback_label)
-    if fallback_kind != "sector" and len(labels) == 1 and labels[0] == _cohort_label(fallback_label):
-        return _cohort_subject(fallback_label)
-    if len(labels) == 1:
-        phrase = labels[0]
-    elif len(labels) == 2:
-        phrase = f"{labels[0]} and {labels[1]}"
-    else:
-        phrase = f"{', '.join(labels[:-1])}, and {labels[-1]}"
-    return f"{phrase} stocks"
 
 
 def build_observed_cohort_event_bundles(

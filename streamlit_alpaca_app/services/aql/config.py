@@ -285,7 +285,7 @@ def _default_attention_macro_signal_profile() -> dict[str, Any]:
 
 def _load_attention_macro_signal_profile() -> dict[str, Any]:
     # Import _coerce_text here to avoid circular import; it's a simple pure function
-    from ._shared import _coerce_text
+    from services.common.market_activity import _coerce_text
 
     defaults = _default_attention_macro_signal_profile()
     configured_path = _coerce_text(os.getenv("ATTENTION_MACRO_SIGNAL_PROFILE_PATH"))

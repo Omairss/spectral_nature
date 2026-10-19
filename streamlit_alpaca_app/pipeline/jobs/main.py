@@ -79,22 +79,7 @@ from services.page_agentic_summary import (
     build_page_agentic_summary,
     build_unavailable_page_agentic_summary,
 )
-from services.pipeline_store import (
-    SYMBOL_HASH_PARTITION_BUCKETS,
-    SYMBOL_HASH_PARTITION_STRATEGY,
-    dataset_blob_path,
-    dataset_namespace,
-    dataset_storage_name,
-    dataset_version_id_for_namespace,
-    load_latest_dataset_frame,
-    load_recent_dataset_frames,
-    load_dataset_frame,
-    recent_dataset_metadata,
-    dataset_input_versions,
-    read_execution_state,
-    write_execution_state,
-    symbol_partition_bucket,
-)
+from services.pipeline_store import SYMBOL_HASH_PARTITION_BUCKETS, SYMBOL_HASH_PARTITION_STRATEGY, dataset_blob_path, dataset_namespace, dataset_storage_name, dataset_version_id_for_namespace, load_latest_dataset_frame, load_dataset_frame, recent_dataset_metadata, dataset_input_versions, read_execution_state, write_execution_state, symbol_partition_bucket
 from services.saa import (
     apply_zopedia_typed_mutation,
     bootstrap_saa_storage,
@@ -115,24 +100,11 @@ from services.trading_agent import (
 from services.universe import build_liquidity_ranked_equity_universe, load_us_equity_listings
 from services.zopedia_learning import run_zopedia_learning_job as run_zopedia_learning_service
 
-try:
-    from services.signals import build_signal_frame, summarize_signal_frame
-except Exception:
-    build_signal_frame = None
-    summarize_signal_frame = None
+from compute.signals import build_signal_frame, summarize_signal_frame
 
 
-try:
-    from azure.identity import DefaultAzureCredential
-    from azure.storage.blob import BlobServiceClient
-except Exception:
-    DefaultAzureCredential = None
-    BlobServiceClient = None
 
-try:
-    import psycopg
-except Exception:
-    psycopg = None
+import psycopg
 
 
 @dataclass(frozen=True)
@@ -234,9 +206,6 @@ def _db_connection(*, workload: str | None = None) -> Any | None:
         if not conn_str:
             print("[warn] postgres connection string unavailable; continuing without db sink")
             return None
-        if psycopg is None:
-            print("[warn] psycopg unavailable; continuing without db sink")
-            return None
         for attempt in range(3):
             remaining = deadline - time.monotonic()
             if remaining < 2:
@@ -244,7 +213,6 @@ def _db_connection(*, workload: str | None = None) -> Any | None:
             try:
                 conn = open_database_session(
                     conn_str,
-                    connect_timeout=min(postgres_connect_timeout_seconds(), int(remaining)),
                     application_name=f"spectral_pipeline:{(os.getenv('PIPELINE_JOB_NAME') or 'unknown')[:45]}",
                     workload=workload,
                 )
@@ -270,7 +238,7 @@ def _db_connection(*, workload: str | None = None) -> Any | None:
     except _PipelineStepTimeout as exc:
         print(f"[warn] postgres startup timed out; continuing without db sink: {exc}", flush=True)
         return None
-    except Exception as exc:
+    except psycopg.OperationalError as exc:
         print(f"[warn] postgres connection unavailable; continuing without db sink: {exc}", flush=True)
         return None
 
@@ -587,28 +555,6 @@ def _make_stdout_zopedia_progress_callback(*, scope: str):
 def _db_upsert_dataset_version(conn: Any, manifest: dict, ctx: JobContext) -> None:
     from services.pipeline_store import index_dataset_manifest
     index_dataset_manifest(conn, manifest)
-
-
-def _db_dataset_is_fresh(conn: Any, dataset_name: str, max_age_hours: float) -> bool:
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT MAX(ingested_at_utc)
-                FROM dataset_versions
-                WHERE dataset_name = %s AND status = 'ready'
-                """,
-                (dataset_storage_name(dataset_name),),
-            )
-            row = cur.fetchone()
-    except Exception:
-        return False
-
-    latest = row[0] if row else None
-    if latest is None:
-        return False
-    age_hours = (_utc_now() - latest).total_seconds() / 3600.0
-    return age_hours < max_age_hours
 
 
 def _blob_client() -> Any | None:
@@ -1931,36 +1877,31 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
         technical_history = pd.DataFrame()
         technical_latest = pd.DataFrame()
         _job_progress(ctx, conn, stage="technical_signals", message="Building technical signal derivatives.", progress_pct=58.0)
-        if build_signal_frame is not None and summarize_signal_frame is not None:
-            technical_history_parts: list[pd.DataFrame] = []
-            technical_latest_rows: list[dict[str, object]] = []
-            for symbol in symbols:
-                raw_frame = bars.get(symbol, pd.DataFrame())
-                if raw_frame.empty:
-                    continue
-                signal_frame = build_signal_frame(raw_frame)
-                if signal_frame.empty:
-                    continue
-                signal_chunk = signal_frame.copy()
-                signal_chunk["symbol"] = symbol
-                technical_history_parts.append(signal_chunk)
-
-                latest_summary = summarize_signal_frame(signal_frame)
-                if latest_summary:
-                    latest_summary["symbol"] = symbol
-                    latest_summary["asof_time_utc"] = pd.to_datetime(signal_frame["timestamp"].max(), utc=True, errors="coerce")
-                    technical_latest_rows.append(latest_summary)
-
-            technical_history = pd.concat(technical_history_parts, ignore_index=True) if technical_history_parts else pd.DataFrame()
-            # Concatenation owns the full history now. Do not retain a second
-            # full history as per-symbol frames throughout serialization.
-            technical_history_parts.clear()
-            technical_latest = pd.DataFrame(technical_latest_rows)
-            _persist_dataset("technical_signal_history", technical_history, ctx, conn)
-            del technical_history
-            _persist_dataset("technical_signals_latest", technical_latest, ctx, conn)
-        else:
-            print("[warn] signals module unavailable; skipping technical derivatives preload")
+        technical_history_parts: list[pd.DataFrame] = []
+        technical_latest_rows: list[dict[str, object]] = []
+        for symbol in symbols:
+            raw_frame = bars.get(symbol, pd.DataFrame())
+            if raw_frame.empty:
+                continue
+            signal_frame = build_signal_frame(raw_frame)
+            if signal_frame.empty:
+                continue
+            signal_chunk = signal_frame.copy()
+            signal_chunk["symbol"] = symbol
+            technical_history_parts.append(signal_chunk)
+            latest_summary = summarize_signal_frame(signal_frame)
+            if latest_summary:
+                latest_summary["symbol"] = symbol
+                latest_summary["asof_time_utc"] = pd.to_datetime(signal_frame["timestamp"].max(), utc=True, errors="coerce")
+                technical_latest_rows.append(latest_summary)
+        technical_history = pd.concat(technical_history_parts, ignore_index=True) if technical_history_parts else pd.DataFrame()
+        # Concatenation owns the full history now. Do not retain a second
+        # full history as per-symbol frames throughout serialization.
+        technical_history_parts.clear()
+        technical_latest = pd.DataFrame(technical_latest_rows)
+        _persist_dataset("technical_signal_history", technical_history, ctx, conn)
+        del technical_history
+        _persist_dataset("technical_signals_latest", technical_latest, ctx, conn)
 
         try:
             _job_progress(ctx, conn, stage="attention_derivatives", message="Building attention and anomaly datasets.", progress_pct=72.0)
@@ -3467,10 +3408,7 @@ def main() -> None:
             )
         except Exception as exc:
             print(f"[warn] failed to initialize postgres tracking: {exc}")
-            try:
-                db_conn.close()
-            except Exception:
-                pass
+            db_conn.close()
             db_conn = None
 
     status = "Succeeded"
@@ -3517,10 +3455,7 @@ def main() -> None:
                 _db_mark_job_end(db_conn, ctx, status=status, error_summary=error_summary)
             except Exception as exc:
                 print(f"[warn] failed to finalize postgres run status: {exc}")
-            try:
-                db_conn.close()
-            except Exception:
-                pass
+            db_conn.close()
 
     print("[info] completed")
 

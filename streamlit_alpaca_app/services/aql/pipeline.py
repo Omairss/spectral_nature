@@ -4,11 +4,9 @@ AQL pipeline — top-level orchestration for bottom-up attention artifact genera
 from __future__ import annotations
 
 from services.work_scope import WorkScope
-from services.llm import llm_request_deadline
 
 import hashlib
 import json
-import math
 import os
 import queue
 import threading
@@ -23,38 +21,31 @@ import pandas as pd
 
 from compute.signal_extraction import _history_correlation_map
 from ..attention_signal_graph import _graph_edges
+from ..attention_macro_signals import _build_macro_relationship_checks
 from ..runtime_policy import attention_graph_policy
 from ..json_utils import to_jsonable
-from ..llm import llm_request_deadline
+from ..llm import EmbeddingClient, llm_request_deadline
 from .constants import (
     AgenticAttentionArtifacts,
     DEFAULT_PROMPT_VERSION,
     DEFAULT_WRITER_MODEL,
-    EmbeddingClient,
     LLMClient,
 )
 from ._shared import (
     _augment_candidate_frame,
+    _latest_yield_facts,
+    _yield_context_relevant,
+)
+from services.common.market_activity import (
     _coerce_float,
     _coerce_text,
     _json_dumps,
-    _latest_yield_facts,
     _normalize_symbol,
-    _yield_context_relevant,
 )
 from .config import _load_attention_macro_signal_profile
 from . import config as _aql_config
-from .collector import (
-    _candidate_company_name,
-    _candidate_context_documents,
-    _peer_candidates,
-    research_attention_candidate,
-)
-from .extractor import (
-    _chunk_source_documents,
-    _documents_from_search_results,
-    _serialize_claims_frame,
-)
+from .collector import _candidate_context_documents, _peer_candidates, research_attention_candidate
+from .extractor import _chunk_source_documents, _serialize_claims_frame
 from .evidence_index import annotate_source_documents
 from .evidence_pack import materialize_research_artifacts
 from .events import research_source_events
@@ -64,7 +55,6 @@ from .macro import (
     _apply_macro_diagnostics_to_release_bundles,
     _build_attention_hypotheses_from_relationship_checks,
     _build_attention_macro_context_frame,
-    _build_macro_relationship_checks,
     _build_macro_release_events,
     _empty_attention_hypotheses_frame,
     _empty_attention_macro_context_frame,

@@ -14,6 +14,7 @@ Storage layout:
 from __future__ import annotations
 
 from services.database import open_database_session
+from psycopg import OperationalError
 
 import hashlib
 import json
@@ -22,18 +23,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from services.secrets import build_azure_credential, postgres_connect_timeout_seconds, resolve_secret_value
+from azure.storage.blob import BlobServiceClient
 
-
-try:
-    import psycopg
-except Exception:
-    psycopg = None
-
-try:
-    from azure.storage.blob import BlobServiceClient
-except Exception:
-    BlobServiceClient = None
+from services.secrets import build_azure_credential, resolve_secret_value
 
 
 # ---------------------------------------------------------------------------
@@ -46,17 +38,15 @@ def _db_connection() -> Any | None:
         secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
         default_secret_name="postgres-connection-string",
     )
-    if not conn_str or psycopg is None:
+    if not conn_str:
         return None
     try:
-        return open_database_session(conn_str, connect_timeout=postgres_connect_timeout_seconds())
-    except Exception:
+        return open_database_session(conn_str)
+    except OperationalError:
         return None
 
 
 def _blob_service_client() -> Any | None:
-    if BlobServiceClient is None:
-        return None
     account_url = (os.getenv("AZURE_STORAGE_ACCOUNT_URL") or "").strip()
     if not account_url:
         return None
@@ -254,10 +244,7 @@ def bootstrap_chat_log(conn: Any | None = None) -> bool:
         return False
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -397,16 +384,9 @@ def log_chat_session(
         conn.commit()
         return True
     except Exception:
-        try:
-            conn.rollback()
-        except Exception:
-            pass
         return False
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -464,18 +444,10 @@ def create_chat_thread(
             "updated_at": now.isoformat(),
         }
     except Exception:
-        if own_conn:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
         return None
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def append_chat_message(
@@ -602,18 +574,10 @@ def append_chat_message(
             "created_at": now.isoformat(),
         }
     except Exception:
-        if own_conn:
-            try:
-                conn.rollback()
-            except Exception:
-                pass
         return None
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def list_chat_threads(
@@ -659,10 +623,7 @@ def list_chat_threads(
         return []
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def load_chat_thread(
@@ -730,10 +691,7 @@ def load_chat_thread(
         return None
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -763,10 +721,7 @@ def load_chat_session(run_id: str) -> dict[str, Any] | None:
         except Exception:
             pass
         finally:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
     if blob_path:
         payload = _read_blob_json(blob_path)
@@ -810,10 +765,7 @@ def load_chat_session(run_id: str) -> dict[str, Any] | None:
     except Exception:
         return None
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def list_chat_sessions(
@@ -885,10 +837,7 @@ def list_chat_sessions(
     except Exception:
         return []
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 def count_chat_sessions(
@@ -920,10 +869,7 @@ def count_chat_sessions(
     except Exception:
         return 0
     finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
+        conn.close()
 
 
 __all__ = [

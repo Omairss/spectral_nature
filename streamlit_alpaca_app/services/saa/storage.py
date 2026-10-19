@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from contextlib import closing
+
 from services.database import open_database_session
+from psycopg import OperationalError
 
 from datetime import datetime, timezone
 import hashlib
@@ -12,20 +15,10 @@ from typing import Any, Callable
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 import pandas as pd
+from azure.storage.blob import BlobServiceClient
 
 from services.llm import load_embedding_client, remaining_request_timeout
-from services.secrets import build_azure_credential, postgres_connect_timeout_seconds, resolve_secret_value
-
-
-try:
-    import psycopg
-except Exception:
-    psycopg = None
-
-try:
-    from azure.storage.blob import BlobServiceClient
-except Exception:
-    BlobServiceClient = None
+from services.secrets import build_azure_credential, resolve_secret_value
 
 
 UploadBytesFn = Callable[[str, bytes, str], None]
@@ -329,8 +322,6 @@ def build_canonical_document_fields(row: dict[str, Any]) -> dict[str, str]:
 
 
 def _blob_service_client() -> Any | None:
-    if BlobServiceClient is None:
-        return None
     account_url = (os.getenv("AZURE_STORAGE_ACCOUNT_URL") or "").strip()
     if not account_url:
         return None
@@ -366,7 +357,7 @@ def _db_connection() -> Any | None:
         secret_name_env="POSTGRES_CONNECTION_STRING_SECRET",
         default_secret_name="postgres-connection-string",
     )
-    if not conn_str or psycopg is None:
+    if not conn_str:
         return None
 
     def _timeout_ms(name: str, default_seconds: int) -> int:
@@ -379,13 +370,12 @@ def _db_connection() -> Any | None:
     try:
         return open_database_session(
             conn_str,
-            connect_timeout=postgres_connect_timeout_seconds(),
             application_name="spectral_nature_saa",
             statement_timeout_ms=_timeout_ms('SAA_POSTGRES_STATEMENT_TIMEOUT_SECONDS', _DEFAULT_DB_STATEMENT_TIMEOUT_SECONDS),
             lock_timeout_ms=_timeout_ms('SAA_POSTGRES_LOCK_TIMEOUT_SECONDS', _DEFAULT_DB_LOCK_TIMEOUT_SECONDS),
             idle_transaction_timeout_ms=_timeout_ms('SAA_POSTGRES_IDLE_TRANSACTION_TIMEOUT_SECONDS', _DEFAULT_DB_IDLE_TRANSACTION_TIMEOUT_SECONDS),
         )
-    except Exception:
+    except OperationalError:
         return None
 
 
@@ -1239,7 +1229,7 @@ def persist_agent_research_evidence(
         conn.close()
         return pd.DataFrame()
 
-    try:
+    with closing(conn):
         return persist_retained_evidence_chunks(
             "agent_research",
             pd.DataFrame(rows),
@@ -1248,11 +1238,6 @@ def persist_agent_research_evidence(
             asof_time_utc=now,
             conn=conn,
         )
-    finally:
-        try:
-            conn.close()
-        except Exception:
-            pass
 
 
 def _frame_from_retained_chunk_rows(rows: list[tuple[Any, ...]]) -> pd.DataFrame:

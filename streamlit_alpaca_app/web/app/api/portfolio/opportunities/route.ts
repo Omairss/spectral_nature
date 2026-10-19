@@ -7,9 +7,5 @@ export async function GET(request: NextRequest) {
   if (!["1D", "1W", "1M", "3M", "YTD", "1Y", "5Y", "ALL"].includes(period)) {
     return noStoreJson({ error: "Portfolio period is invalid." }, { status: 400 });
   }
-  try {
-    return forwardJson(await authorizedBackendFetch(`/v1/portfolio/opportunities?period=${encodeURIComponent(period)}`, { timeoutMs: 45_000 }), "List analytics are unavailable.");
-  } catch {
-    return noStoreJson({ error: "List analytics are unavailable." }, { status: 503 });
-  }
+  return forwardJson(await authorizedBackendFetch(`/v1/portfolio/opportunities?period=${encodeURIComponent(period)}`, { timeoutMs: 45_000 }), "List analytics are unavailable.");
 }

@@ -8,73 +8,47 @@ import numpy as np
 import pandas as pd
 
 
-def _jsonable_scalar(value: Any) -> Any:
-    if value is None:
-        return None
-    if isinstance(value, (str, int, float, bool)):
-        if isinstance(value, float) and not np.isfinite(value):
-            return None
-        return value
-    if isinstance(value, (datetime, date)):
-        return value.isoformat()
-    if isinstance(value, pd.Timestamp):
-        if pd.isna(value):
-            return None
-        return value.isoformat()
-    if isinstance(value, pd.Timedelta):
-        return value.isoformat()
-    if isinstance(value, np.generic):
-        return _jsonable_scalar(value.item())
-    try:
-        if pd.isna(value):
-            return None
-    except Exception:
-        pass
-    return value
-
-
 def to_jsonable(value: Any) -> Any:
+    """Normalize supported data values recursively for JSON transport."""
     if isinstance(value, pd.DataFrame):
         return frame_to_records(value)
-    if isinstance(value, pd.Series):
-        return [_jsonable_scalar(item) for item in value.tolist()]
-    if isinstance(value, np.ndarray):
-        return [to_jsonable(item) for item in value.tolist()]
+    if isinstance(value, (pd.Series, pd.Index, np.ndarray)):
+        return to_jsonable(value.tolist())
     if is_dataclass(value):
-        return {key: to_jsonable(item) for key, item in asdict(value).items()}
+        return to_jsonable(asdict(value))
     if isinstance(value, dict):
         return {str(key): to_jsonable(item) for key, item in value.items()}
-    if isinstance(value, (list, tuple, set)):
+    if isinstance(value, (list, tuple, set, frozenset)):
         return [to_jsonable(item) for item in value]
-    return _jsonable_scalar(value)
+    if pd.api.types.is_scalar(value) and pd.isna(value):
+        return None
+    if isinstance(value, np.generic):
+        return to_jsonable(value.item())
+    if isinstance(value, float) and not np.isfinite(value):
+        return None
+    if isinstance(value, (datetime, date, pd.Timedelta)):
+        return value.isoformat()
+    return value
 
 
 def to_list(value: Any) -> list[Any]:
     """Convert common container-like values without relying on truthiness."""
-    if value is None:
-        return []
     if isinstance(value, list):
         return value
-    if isinstance(value, (tuple, set)):
+    if isinstance(value, pd.DataFrame):
+        return frame_to_records(value)
+    if isinstance(value, (tuple, set, frozenset)):
         return list(value)
-    if isinstance(value, pd.Series):
-        return value.tolist()
-    if isinstance(value, pd.Index):
-        return value.tolist()
-    if isinstance(value, np.ndarray):
+    if isinstance(value, (pd.Series, pd.Index, np.ndarray)):
         converted = value.tolist()
         return converted if isinstance(converted, list) else [converted]
-    jsonable = to_jsonable(value)
-    return jsonable if isinstance(jsonable, list) else []
+    return []
 
 
 def frame_to_records(frame: pd.DataFrame) -> list[dict[str, Any]]:
     if frame is None or frame.empty:
         return []
-    records: list[dict[str, Any]] = []
-    for row in frame.to_dict(orient="records"):
-        records.append({str(key): to_jsonable(value) for key, value in row.items()})
-    return records
+    return [to_jsonable(row) for row in frame.to_dict(orient="records")]
 
 
 __all__ = ["frame_to_records", "to_jsonable", "to_list"]

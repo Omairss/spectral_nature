@@ -41,7 +41,7 @@ class Store:
 def store(monkeypatch):
     db = Store()
     monkeypatch.setenv('APP_TRACK', 'development')
-    monkeypatch.setattr(pipeline_store, '_db_connect', db.connect)
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', db.connect)
     monkeypatch.setattr(llm, '_PROMPT_OVERRIDES', {})
     monkeypatch.setattr(llm, '_OVERRIDES_LOADED', False)
     monkeypatch.setattr(llm, '_OVERRIDES_SCOPE', '')
@@ -76,7 +76,7 @@ def test_failed_write_does_not_change_active_state(store):
 
 def test_failed_initial_load_can_retry(monkeypatch, store):
     with monkeypatch.context() as patch:
-        patch.setattr(pipeline_store, '_db_connect', lambda: None)
+        patch.setattr(pipeline_store, 'open_database_connection', lambda: None)
         assert not llm.load_prompt_overrides(force=True)
     assert llm.load_prompt_overrides(force=True)
     assert llm._PROMPT_OVERRIDES['shared_prompt'] == 'legacy'

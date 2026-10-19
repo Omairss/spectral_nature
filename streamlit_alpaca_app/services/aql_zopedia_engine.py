@@ -10,7 +10,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable
 
-import pandas as pd
 from jsonschema import Draft202012Validator
 
 from .aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
@@ -787,79 +786,6 @@ def run_aql_zopedia_page_summary_agent(
     )
 
 
-def _attention_home_engine_query(
-    *,
-    home_payload: dict[str, Any],
-    summary_payload: dict[str, Any],
-) -> str:
-    return (
-        "Use the shared AQL/Zopedia evidence path to verify and enrich this scheduled Attention homepage summary. "
-        "Search retained evidence and Zopedia memory when useful, read relevant pages, use local market/macro datasets first, "
-        "and identify meaningful evidence gaps. Do not write a new homepage article unless the evidence materially changes the summary. "
-        "Return the strongest evidence-backed assessment.\n\n"
-        "Draft summary JSON:\n"
-        f"{_compact_json(summary_payload, limit=7000)}\n\n"
-        "Attention home payload JSON:\n"
-        f"{_compact_json(home_payload, limit=10000)}"
-    )
-
-
-def _engine_trace_frame(agent_result: dict[str, Any], *, research_scope: str) -> pd.DataFrame:
-    evidence_pack = agent_result.get("aql_evidence_pack") if isinstance(agent_result, dict) else {}
-    if not isinstance(evidence_pack, dict):
-        evidence_pack = {}
-    return pd.DataFrame(
-        [
-            {
-                "run_id": _clean(agent_result.get("run_id")),
-                "research_scope": research_scope,
-                "engine_task": _clean((agent_result.get("engine") or {}).get("task"))
-                if isinstance(agent_result.get("engine"), dict)
-                else "",
-                "status": _clean(agent_result.get("status")),
-                "confidence": _clean(agent_result.get("confidence")),
-                "evidence_pack_id": _clean(agent_result.get("aql_evidence_pack_id")),
-                "tool_call_count": len(list(agent_result.get("tool_calls") or [])),
-                "zopedia_page_count": len(list(evidence_pack.get("zopedia_pages") or [])),
-                "retained_chunk_count": len(list(evidence_pack.get("retained_chunks") or [])),
-                "live_evidence_count": len(list(evidence_pack.get("live_evidence") or [])),
-                "citation_count": len(list(evidence_pack.get("citations") or [])),
-                "limitations_json": json.dumps(list(agent_result.get("limitations") or []), ensure_ascii=True, default=str),
-            }
-        ]
-    )
-
-
-def build_aql_zopedia_attention_home_summary_with_trace(
-    home_payload: dict[str, Any],
-    *,
-    llm_client: ZopediaLLMClient | None,
-    embedding_client: Any | None = None,
-    search_clients: list[Any] | None = None,
-    max_search_queries: int = 5,
-    max_chars: int = 1400,
-    query_service: Any | None = None,
-) -> tuple[dict[str, Any], dict[str, pd.DataFrame]]:
-    """Compatibility adapter to the single homepage research operation."""
-    from .aql.summarizer import build_attention_agentic_summary_with_trace
-
-    if llm_client is None:
-        return {
-            "headline": "Market Summary",
-            "summary_text": "",
-            "summary_status": "unavailable",
-        }, {}
-    return build_attention_agentic_summary_with_trace(
-        home_payload,
-        llm_client=llm_client,
-        embedding_client=embedding_client,
-        search_clients=search_clients,
-        max_search_queries=max_search_queries,
-        max_chars=max_chars,
-        query_service=query_service,
-    )
-
-
 def attach_aql_zopedia_summary_audio(
     summary_payload: dict[str, object],
     *,
@@ -899,7 +825,6 @@ def attach_aql_zopedia_summary_audio(
 
 __all__ = [
     "attach_aql_zopedia_summary_audio",
-    "build_aql_zopedia_attention_home_summary_with_trace",
     "load_aql_zopedia_llm_client",
     "parse_aql_zopedia_structured_answer",
     "resolve_aql_zopedia_followup_query",

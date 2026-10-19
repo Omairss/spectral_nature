@@ -824,13 +824,6 @@ def _candidate_id(
     return f"tag_{digest}"
 
 
-def _format_metric(value: object, *, suffix: str = "") -> str:
-    parsed = pd.to_numeric(pd.Series([value]), errors="coerce").iloc[0]
-    if pd.isna(parsed):
-        return ""
-    return f"{float(parsed):.2f}{suffix}"
-
-
 def _fallback_direction(value: object) -> str:
     raw = _clean(value).lower()
     if raw in {"long", "short", "avoid", "watch"}:
@@ -1818,11 +1811,6 @@ def _looks_like_transient_transport_error(text: object) -> bool:
 def _looks_like_empty_model_response(text: object) -> bool:
     lowered = _clean(text).lower()
     return "returned empty content" in lowered or "empty model response" in lowered
-
-
-def _looks_like_timeout_error(text: object) -> bool:
-    lowered = _clean(text).lower()
-    return "timeout" in lowered or "timed out" in lowered or "exceeded" in lowered
 
 
 def _safe_error_text(text: object, *, fallback: str = "The model rejected the generated research prompt.") -> str:

@@ -15,7 +15,7 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 if str(APP_ROOT) not in sys.path:
     sys.path.insert(0, str(APP_ROOT))
 
-from services import pipeline_slices, pipeline_store
+from services import pipeline_store
 
 
 class _FakeDownload:
@@ -136,7 +136,7 @@ def test_record_model_call_promotes_metadata_run_id(monkeypatch):
 
     monkeypatch.setenv("AQL_ZOPEDIA_MODEL_TELEMETRY_ENABLED", "1")
     monkeypatch.delenv("PIPELINE_RUN_ID", raising=False)
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: _Conn())
     monkeypatch.setattr(pipeline_store, "_ensure_model_call_events_table", lambda conn: None)
 
     assert pipeline_store.record_model_call(
@@ -241,7 +241,7 @@ def test_record_trading_agent_approval_preserves_execution_contract(monkeypatch)
         def close(self):
             captured["closed"] = True
 
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: _Conn())
 
     ok, message = pipeline_store.record_trading_agent_action(
         candidate={
@@ -296,7 +296,7 @@ def test_record_connector_call_writes_event_when_enabled(monkeypatch):
     monkeypatch.setenv("CONNECTOR_TELEMETRY_ENABLED", "true")
     monkeypatch.setenv("PIPELINE_JOB_NAME", "news-ingest-and-features")
     monkeypatch.setenv("PIPELINE_RUN_ID", "run-1")
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: _Conn())
 
     ok = pipeline_store.record_connector_call(
         provider="Tavily",
@@ -327,7 +327,7 @@ def test_record_connector_call_skips_when_not_runtime(monkeypatch):
     monkeypatch.delenv("CONNECTOR_TELEMETRY_ENABLED", raising=False)
     monkeypatch.delenv("PIPELINE_JOB_NAME", raising=False)
     monkeypatch.delenv("APP_TRACK", raising=False)
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: called.update(db=True))
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: called.update(db=True))
 
     ok = pipeline_store.record_connector_call(provider="serpapi", operation="search", status="success")
 
@@ -394,7 +394,7 @@ def test_latest_dataset_metadata_falls_back_to_manifest_when_db_unavailable(monk
         manifest_path: json.dumps(manifest).encode("utf-8"),
     }
 
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: None)
     monkeypatch.setattr(pipeline_store, "_blob_service_client", lambda: _FakeBlobServiceClient(payloads, blob_items))
 
     metadata = pipeline_store.latest_dataset_metadata("attention_feed")
@@ -437,7 +437,7 @@ def test_latest_dataset_metadata_prefers_db_without_blob_listing(monkeypatch, tm
             pass
 
     monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: _Conn())
     monkeypatch.setattr(pipeline_store, "_read_blob_json", lambda path: None)
     monkeypatch.setattr(
         pipeline_store,
@@ -492,7 +492,7 @@ def test_latest_dataset_metadata_uses_newer_latest_manifest_when_db_is_stale(mon
             pass
 
     monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: _Conn())
     monkeypatch.setattr(
         pipeline_store,
         "_read_blob_json",
@@ -550,7 +550,7 @@ def test_latest_dataset_pointer_drift_reports_db_manifest_mismatch(monkeypatch):
         def close(self):
             pass
 
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: _Conn())
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: _Conn())
     monkeypatch.setattr(
         pipeline_store,
         "_read_blob_json",
@@ -657,7 +657,7 @@ def test_latest_dataset_metadata_uses_stable_latest_manifest_before_listing(monk
     }
 
     monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: None)
     monkeypatch.setattr(
         pipeline_store,
         "_read_blob_json",
@@ -708,7 +708,7 @@ def test_load_latest_dataset_frame_reads_parquet_via_manifest_fallback(monkeypat
         data_path: parquet_buffer.getvalue(),
     }
 
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: None)
     monkeypatch.setattr(pipeline_store, "_blob_service_client", lambda: _FakeBlobServiceClient(payloads, blob_items))
 
     loaded, metadata = pipeline_store.load_latest_dataset_frame("attention_feed")
@@ -739,7 +739,7 @@ def test_latest_dataset_metadata_uses_local_metadata_cache(monkeypatch, tmp_path
 
     monkeypatch.setattr(pipeline_store, "PIPELINE_CACHE_ROOT", tmp_path)
     monkeypatch.setattr(pipeline_store, "PIPELINE_METADATA_CACHE_SECONDS", 3600)
-    monkeypatch.setattr(pipeline_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(pipeline_store, 'open_database_connection', lambda: None)
     monkeypatch.setattr(pipeline_store, "_blob_service_client", lambda: _FakeBlobServiceClient(payloads, blob_items))
 
     first = pipeline_store.latest_dataset_metadata("attention_feed")
@@ -855,33 +855,6 @@ def test_load_latest_dataset_frame_slice_refuses_large_unpartitioned_scan(monkey
     )
 
     frame, resolved_metadata = pipeline_store.load_latest_dataset_frame_slice(
-        "technical_signal_history",
-        filters={"symbol": "AAPL"},
-    )
-
-    assert resolved_metadata == metadata
-    assert frame.empty
-
-
-def test_pipeline_slice_compatibility_boundary_refuses_large_legacy_artifact(monkeypatch):
-    metadata = pipeline_store.PipelineDataset(
-        dataset_name="technical_signal_history",
-        dataset_version_id="technical_signal_history__legacy",
-        blob_path="datasets/technical_signal_history/full.parquet",
-        asof_time_utc="2026-10-02T00:00:00Z",
-        ingested_at_utc="2026-10-02T00:05:00Z",
-        row_count=1_500_000,
-    )
-    monkeypatch.delattr(pipeline_store, "load_latest_dataset_frame_slice")
-    monkeypatch.setattr(pipeline_store, "latest_dataset_metadata", lambda dataset_name: metadata)
-    monkeypatch.setattr(pipeline_store, "_read_local_frame_cache", lambda resolved: None)
-    monkeypatch.setattr(
-        pipeline_store,
-        "load_latest_dataset_frame",
-        lambda dataset_name: (_ for _ in ()).throw(AssertionError("large legacy artifact must not be read")),
-    )
-
-    frame, resolved_metadata = pipeline_slices.load_latest_dataset_frame_slice(
         "technical_signal_history",
         filters={"symbol": "AAPL"},
     )

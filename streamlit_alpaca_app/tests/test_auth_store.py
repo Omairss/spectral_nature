@@ -71,7 +71,7 @@ def test_auth_store_fails_closed_when_control_secret_is_configured_but_unavailab
 
 def test_auth_readiness_does_not_run_schema_migrations(monkeypatch):
     fake_conn = _FakeConnection(_FakeCursor())
-    monkeypatch.setattr(auth_store, "_db_connect", lambda: fake_conn)
+    monkeypatch.setattr(auth_store, 'open_auth_store_connection', lambda: fake_conn)
     monkeypatch.setattr(auth_store, "_auth_schema_ready_on_connection", lambda conn: conn is fake_conn)
     monkeypatch.setattr(
         auth_store,
@@ -173,6 +173,7 @@ class _FakeConnection:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> bool:
+        self.close()
         return False
 
     def cursor(self) -> _FakeCursor:
@@ -185,7 +186,7 @@ class _FakeConnection:
 def test_password_reset_reservation_locks_counts_and_inserts_in_one_transaction(monkeypatch):
     cursor = _SequencedCursor([{}, {}, {"rows": [(2, 19)]}, {}])
     connection = _FakeConnection(cursor)
-    monkeypatch.setattr(auth_store, "_db_connect", lambda: connection)
+    monkeypatch.setattr(auth_store, 'open_auth_store_connection', lambda: connection)
     assert auth_store.reserve_password_reset_request(email="User@Example.com", requested_ip="source")
     assert all("pg_advisory_xact_lock" in call[0] for call in cursor.executed[:2])
     assert "INSERT INTO" in cursor.executed[-1][0]
@@ -197,7 +198,7 @@ def test_password_reset_reservation_rejects_recipient_or_source_limit(monkeypatc
     for counts in ((3, 0), (0, 20)):
         cursor = _SequencedCursor([{}, {}, {"rows": [counts]}])
         connection = _FakeConnection(cursor)
-        monkeypatch.setattr(auth_store, "_db_connect", lambda: connection)
+        monkeypatch.setattr(auth_store, 'open_auth_store_connection', lambda: connection)
         assert not auth_store.reserve_password_reset_request(email="user@example.com", requested_ip="source")
         assert not any("INSERT INTO" in call[0] for call in cursor.executed)
 
@@ -206,7 +207,7 @@ def test_list_users_aliases_users_table_and_merges_session_stats(monkeypatch):
     fake_cursor = _FakeCursor()
     fake_conn = _FakeConnection(fake_cursor)
 
-    monkeypatch.setattr(auth_store, "_db_connect", lambda: fake_conn)
+    monkeypatch.setattr(auth_store, 'open_auth_store_connection', lambda: fake_conn)
     monkeypatch.setattr(auth_store, "_schema_name", lambda: "app_access")
     monkeypatch.setattr(auth_store, "_now_utc", lambda: datetime(2026, 4, 11, 18, 30, tzinfo=timezone.utc))
     monkeypatch.setattr(auth_store, "_active_membership_for_user", lambda cursor, user_id: None)
@@ -239,7 +240,7 @@ def test_list_users_aliases_users_table_and_merges_session_stats(monkeypatch):
 
 
 def test_list_users_distinguishes_store_outage_from_empty_directory(monkeypatch):
-    monkeypatch.setattr(auth_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(auth_store, 'open_auth_store_connection', lambda: None)
 
     try:
         auth_store.list_users()
@@ -250,7 +251,7 @@ def test_list_users_distinguishes_store_outage_from_empty_directory(monkeypatch)
 
 
 def test_list_pending_invites_distinguishes_store_outage_from_empty_list(monkeypatch):
-    monkeypatch.setattr(auth_store, "_db_connect", lambda: None)
+    monkeypatch.setattr(auth_store, 'open_auth_store_connection', lambda: None)
 
     try:
         auth_store.list_pending_invites()
@@ -265,7 +266,7 @@ def test_session_restore_filters_inactive_users(monkeypatch):
     cursor = _SequencedCursor([{"columns": ["session_id"], "rows": []}])
     fake_conn = _FakeConnection(cursor)  # type: ignore[arg-type]
 
-    monkeypatch.setattr(auth_store, "_db_connect", lambda: fake_conn)
+    monkeypatch.setattr(auth_store, 'open_auth_store_connection', lambda: fake_conn)
     monkeypatch.setattr(auth_store, "_schema_name", lambda: "app_access")
     monkeypatch.setattr(auth_store, "_now_utc", lambda: now)
 
@@ -457,7 +458,7 @@ def test_get_access_admin_dashboard_filters_selected_user_and_hydrates_activity(
     )
     fake_conn = _FakeConnection(cursor)
 
-    monkeypatch.setattr(auth_store, "_db_connect", lambda: fake_conn)
+    monkeypatch.setattr(auth_store, 'open_auth_store_connection', lambda: fake_conn)
     monkeypatch.setattr(auth_store, "_schema_name", lambda: "app_access")
     monkeypatch.setattr(auth_store, "_now_utc", lambda: now)
     monkeypatch.setattr(auth_store, "_ensure_schema", lambda conn: None)

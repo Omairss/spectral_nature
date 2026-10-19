@@ -1478,10 +1478,7 @@ def persist_zopedia_pages(
             _upsert_zopedia_page_records(conn, records)
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
     return frame
 
 
@@ -1705,10 +1702,7 @@ def search_zopedia_pages(
         )
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def load_zopedia_page(*, page_id: str, conn: Any | None = None, include_debug_sources: bool = False) -> dict[str, Any]:
@@ -1739,10 +1733,7 @@ def load_zopedia_page(*, page_id: str, conn: Any | None = None, include_debug_so
         return dict(frame.iloc[0].to_dict()) if not frame.empty else {}
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def list_zopedia_pages(*, limit: int = 30, conn: Any | None = None) -> pd.DataFrame:
@@ -1858,10 +1849,7 @@ def list_zopedia_folders(
         return pd.DataFrame(rows, columns=list(ZOPEDIA_FOLDER_COLUMNS))
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def list_zopedia_folder_pages(
@@ -1920,10 +1908,7 @@ def list_zopedia_folder_pages(
         return frame
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def zopedia_page_neighborhood(*, page_id: str, depth: int = 1, conn: Any | None = None) -> dict[str, Any]:
@@ -2919,10 +2904,7 @@ def persist_zopedia_maintenance_snapshot(
         return out
     finally:
         if own_conn and db_conn is not None:
-            try:
-                db_conn.close()
-            except Exception:
-                pass
+            db_conn.close()
 
 
 def run_zopedia_maintenance(
@@ -2960,10 +2942,7 @@ def run_zopedia_maintenance(
         raise
     finally:
         if own_conn and db_conn is not None:
-            try:
-                db_conn.close()
-            except Exception:
-                pass
+            db_conn.close()
 
 
 def list_zopedia_maintenance_reports(
@@ -3004,10 +2983,7 @@ def list_zopedia_maintenance_reports(
         return pd.DataFrame(rows, columns=list(ZOPEDIA_MAINTENANCE_REPORT_COLUMNS))
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def _retained_document_text(document: dict[str, Any] | None, *, limit: int) -> str:
@@ -3227,10 +3203,7 @@ def persist_zopedia_change_proposals(
             conn.commit()
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
     return frame
 
 
@@ -3288,10 +3261,7 @@ def list_zopedia_change_proposals(
         return pd.DataFrame(rows, columns=columns)
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def _snapshot_pages(rows: list[dict[str, Any]] | tuple[dict[str, Any], ...]) -> list[dict[str, Any]]:
@@ -3482,10 +3452,7 @@ def persist_zopedia_mutation_audits(
             conn.commit()
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
     return frame
 
 
@@ -3534,10 +3501,7 @@ def list_zopedia_mutation_audits(
         return pd.DataFrame(rows, columns=list(ZOPEDIA_MUTATION_AUDIT_COLUMNS))
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def load_zopedia_mutation_audit(*, mutation_id: str, conn: Any | None = None) -> dict[str, Any]:
@@ -3572,10 +3536,7 @@ def load_zopedia_mutation_audit(*, mutation_id: str, conn: Any | None = None) ->
         return dict(frame.iloc[0].to_dict()) if not frame.empty else {}
     finally:
         if own_conn:
-            try:
-                conn.close()
-            except Exception:
-                pass
+            conn.close()
 
 
 def prepare_zopedia_mutation_rollback_pages(
@@ -3701,10 +3662,7 @@ def rollback_zopedia_mutation(
         }
     finally:
         if own_conn and db_conn is not None:
-            try:
-                db_conn.close()
-            except Exception:
-                pass
+            db_conn.close()
 
 
 def _zopedia_mutation_review_proposal(
@@ -3968,10 +3926,7 @@ def apply_zopedia_typed_mutation(
         }
     finally:
         if own_conn and db_conn is not None:
-            try:
-                db_conn.close()
-            except Exception:
-                pass
+            db_conn.close()
 
 
 _ZOPEDIA_SOURCE_SCHEMA: dict[str, Any] = {
@@ -4198,10 +4153,7 @@ def ingest_zopedia_source(
             db_conn.commit()
     finally:
         if own_conn and db_conn is not None:
-            try:
-                db_conn.close()
-            except Exception:
-                pass
+            db_conn.close()
     return {
         "status": "stored" if rows else "empty",
         "pages": rows,

@@ -243,10 +243,6 @@ def _business_agent_prefetch_timeout_seconds() -> int:
     return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_AGENT_PREFETCH_TIMEOUT_SECONDS", default, minimum=30)
 
 
-def _business_slot_max_tool_calls() -> int:
-    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_SLOT_MAX_TOOL_CALLS", 16, minimum=1)
-
-
 def _business_research_plan_max_tool_calls() -> int:
     return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_RESEARCH_PLAN_MAX_TOOL_CALLS", 10, minimum=1)
 
@@ -257,10 +253,6 @@ def _business_stack_max_tool_calls() -> int:
 
 def _business_search_max_workers() -> int:
     return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_SEARCH_MAX_WORKERS", 64, minimum=1)
-
-
-def _business_slot_max_workers() -> int:
-    return _env_positive_int("ZOPEDIA_TICKER_BUSINESS_SLOT_MAX_WORKERS", 4, minimum=1)
 
 
 def _business_research_open_pages_per_query() -> int:
@@ -386,19 +378,6 @@ TICKER_BUSINESS_MODEL_STACK_SCHEMA: dict[str, Any] = {
         "slot_gaps": {"type": "array", "items": {"type": "string"}},
     },
     "required": ["resolved_company_name", "business_story_markdown", "confidence", "slot_gaps"],
-}
-
-BUSINESS_MODEL_SLOT_VERDICT_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "slot": {"type": "string"},
-        "verdict_markdown": {"type": "string"},
-        "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
-        "evidence_refs": {"type": "array", "items": {"type": "string"}},
-        "data_gaps": {"type": "array", "items": {"type": "string"}},
-    },
-    "required": ["slot", "verdict_markdown", "confidence", "evidence_refs", "data_gaps"],
 }
 
 BUSINESS_MODEL_RESEARCH_QUERY_PLAN_SCHEMA: dict[str, Any] = {
@@ -897,18 +876,6 @@ def _fresh_search_clients_like(
             return client
 
     return _fresh(serp_client), _fresh(tavily_client)
-
-
-def _fresh_llm_client_like(llm_client: Any | None) -> Any | None:
-    if llm_client is None:
-        return None
-    config = getattr(llm_client, "config", None)
-    if config is None:
-        return llm_client
-    try:
-        return llm_client.__class__(config)
-    except Exception:
-        return llm_client
 
 
 def _research_rows_for_symbol(frame: pd.DataFrame | None, symbol: str) -> list[dict[str, Any]]:
@@ -1554,14 +1521,6 @@ def _agent_result_evidence_ref(result: dict[str, Any], *, slot: str = "") -> str
     if slot:
         return f"aql_zopedia_agent::{slot}"
     return f"aql_zopedia_agent::{anchor}" if anchor else "aql_zopedia_agent"
-
-
-def _payload_confidence(payload: dict[str, Any], result: dict[str, Any]) -> str:
-    confidence = _coerce_text(payload.get("confidence")).lower()
-    if not confidence:
-        agent_result = result.get("agent_result") if isinstance(result.get("agent_result"), dict) else {}
-        confidence = _coerce_text(agent_result.get("confidence")).lower() if isinstance(agent_result, dict) else ""
-    return _normalized_business_confidence(confidence, default="medium")
 
 
 def _normalized_business_confidence(value: object, *, default: str = "low") -> str:

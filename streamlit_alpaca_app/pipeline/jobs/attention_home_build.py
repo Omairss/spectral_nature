@@ -16,9 +16,9 @@ from typing import Any, Callable
 
 import pandas as pd
 
-from data_access.contracts import frame_to_records
-from services.json_utils import to_jsonable
-from services.attention_agentic import build_bottom_up_attention_artifacts, search_symbol_news_payload
+from services.json_utils import frame_to_records, to_jsonable, to_list
+from services.aql.pipeline import build_bottom_up_attention_artifacts
+from services.aql.collector import search_symbol_news_payload
 from services.aql.summarizer import build_market_stories
 from services.aql_zopedia_engine import (
     attach_aql_zopedia_summary_audio as attach_attention_home_summary_audio,
@@ -42,7 +42,6 @@ from services.common.news_freshness import (
 )
 from services.elevenlabs_tts import ElevenLabsTTSAPIError
 from services.knowledge_graph_proposals import build_attention_knowledge_graph_proposals
-from services.json_utils import to_list
 from services.llm import LLMAPIError, load_embedding_client, llm_request_deadline
 from services.entity_taxonomy import business_focus_label_from_taxonomy_row
 from services.market_opportunity import build_market_opportunity_feed, build_materialized_market_opportunity_feeds
@@ -226,20 +225,6 @@ def _has_symbol_inputs(frame: pd.DataFrame) -> bool:
 _MANDATORY_DATASETS = ("price_history",)
 
 # Datasets that are useful but the build can degrade gracefully without.
-_OPTIONAL_DATASETS = (
-    "positions_snapshot",
-    "attention_feed",
-    "commodity_attention_feed",
-    "news_articles",
-    "attention_context_bundle",
-    "edgar_filings",
-    "fred_summary",
-    "yield_curve_facts_1d",
-    "universe_snapshot",
-    "entity_taxonomy_labels",
-)
-
-
 def _validate_mandatory_datasets(
     load_fn: LoadFrameFn,
     dataset_names: tuple[str, ...],
@@ -516,32 +501,12 @@ def _zopedia_enrichment_max_workers() -> int:
     return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_MAX_WORKERS", 4)
 
 
-def _zopedia_market_summary_quality_revisions() -> int:
-    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_MARKET_SUMMARY_QUALITY_REVISIONS", 2), 4)
-
-
-def _zopedia_enrichment_quality_revisions() -> int:
-    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_QUALITY_REVISIONS", 1), 4)
-
-
-def _zopedia_enrichment_llm_retries() -> int:
-    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_LLM_RETRIES", 1), 5)
-
-
 def _zopedia_agent_max_tool_calls() -> int:
     return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_AGENT_MAX_TOOL_CALLS", 8), 40)
 
 
 def _home_surface_quality_timeout_seconds() -> int:
     return _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS", 600)
-
-
-def _group_synthesis_timeout_seconds() -> int:
-    return _env_positive_int("ATTENTION_HOME_GROUP_SYNTHESIS_TIMEOUT_SECONDS", 240)
-
-
-def _group_synthesis_limit() -> int:
-    return _env_positive_int("ATTENTION_HOME_GROUP_SYNTHESIS_LIMIT", 8)
 
 
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
@@ -597,60 +562,6 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
             ],
         }},
     }, "required": ["issues", "market_summary", "items", "new_events"],
-}
-
-
-_GROUP_SYNTHESIS_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "accepted": {"type": "boolean"},
-        "issues": {"type": "array", "items": {"type": "string"}},
-        "items": {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {
-                    "section": {
-                        "type": "string",
-                        "enum": ["top_events", "must_read_movers", "unresolved_large_moves"],
-                    },
-                    "index": {"type": "integer"},
-                    "bundle_id": {"type": "string"},
-                    "event_title": {"type": "string"},
-                    "headline": {"type": "string"},
-                    "what_happened_text": {"type": "string"},
-                    "why_happened_text": {"type": "string"},
-                    "affected_assets_summary_text": {"type": "string"},
-                    "business_context_text": {"type": "string"},
-                    "watch_next_text": {"type": "string"},
-                    "cause_status": {
-                        "type": "string",
-                        "enum": ["supported", "partial", "unresolved"],
-                    },
-                    "confidence_label": {"type": "string"},
-                    "synthesis_note": {"type": "string"},
-                },
-                "required": [
-                    "section",
-                    "index",
-                    "bundle_id",
-                    "event_title",
-                    "headline",
-                    "what_happened_text",
-                    "why_happened_text",
-                    "affected_assets_summary_text",
-                    "business_context_text",
-                    "watch_next_text",
-                    "cause_status",
-                    "confidence_label",
-                    "synthesis_note",
-                ],
-            },
-        },
-    },
-    "required": ["accepted", "issues", "items"],
 }
 
 
@@ -769,29 +680,6 @@ def _zopedia_enrichment_failure_categories(
     return ordered
 
 
-def _compact_zopedia_tool_evidence(tool_calls: list[Any], *, limit: int = 8) -> list[dict[str, Any]]:
-    rows: list[dict[str, Any]] = []
-    for tool_call in list(tool_calls or []):
-        if not isinstance(tool_call, dict):
-            continue
-        summary = tool_call.get("result_summary") if isinstance(tool_call.get("result_summary"), dict) else {}
-        text = str(summary.get("llm_context_text") or summary.get("preview_text") or "").strip()
-        links = summary.get("source_links") if isinstance(summary.get("source_links"), list) else []
-        rows.append(
-            {
-                "tool_name": str(tool_call.get("tool_name") or ""),
-                "status": str(tool_call.get("status") or ""),
-                "arguments": tool_call.get("arguments") if isinstance(tool_call.get("arguments"), dict) else {},
-                "evidence_text": text[:4000],
-                "source_links": links[:5],
-                "provenance": summary.get("provenance") if isinstance(summary.get("provenance"), dict) else {},
-            }
-        )
-        if len(rows) >= max(int(limit), 1):
-            break
-    return rows
-
-
 def _cap_zopedia_confidence(confidence: object, limitations: list[Any]) -> str:
     normalized = str(confidence or "low").strip().lower()
     if normalized not in {"low", "medium", "high"}:
@@ -818,31 +706,6 @@ def _zopedia_asof_text(asof_time_utc: object) -> str:
         return ts.isoformat()
     except Exception:
         return str(asof_time_utc or "").strip()
-
-
-_ZOPEDIA_ENRICHMENT_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "answer_markdown": {"type": "string"},
-        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-        "limitations": {"type": "array", "items": {"type": "string"}},
-    },
-    "required": ["answer_markdown", "confidence", "limitations"],
-}
-
-
-_ZOPEDIA_ENRICHMENT_REVIEW_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "accepted": {"type": "boolean"},
-        "issues": {"type": "array", "items": {"type": "string"}},
-        "revision_instruction": {"type": "string"},
-        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-    },
-    "required": ["accepted", "issues", "revision_instruction", "confidence"],
-}
 
 
 def _build_zopedia_enrichment_query(symbol: str, *, asof_text: str) -> str:
@@ -878,121 +741,6 @@ def _build_zopedia_enrichment_query(symbol: str, *, asof_text: str) -> str:
         "Skip any section where you have nothing substantive to say. "
         "Keep the total answer under 200 words."
     )
-
-
-def _review_zopedia_enrichment_payload(
-    *,
-    symbol: str,
-    original_query: str,
-    draft_payload: dict[str, Any],
-    timeout_seconds: int,
-) -> dict[str, Any]:
-    review_query = (
-        "You are a Zopedia/AQL quality monitor. Review every sentence in answer_markdown one by one. "
-        "A sentence fails if its main point is that company-specific news, a catalyst, direct evidence, source evidence, "
-        "or a driver is missing, not found, absent, unclear, unavailable, or unconfirmed. A sentence also fails if it "
-        "contrasts the supported driver against missing company-specific evidence; for example, a sentence that says a "
-        "move points to sector momentum rather than company-specific news is still a missing-evidence sentence. "
-        "A short What To Watch sentence is allowed when it names the next concrete evidence to monitor in affirmative "
-        "language, without saying that evidence is missing, absent, unavailable, unclear, unconfirmed, or needs confirmation. "
-        "Limitations can contain evidence gaps; "
-        "answer_markdown cannot. Accept only if every answer sentence is an affirmative supported business, sector, peer, "
-        "policy, financing, commodity, or macro claim. Numerical claims, dates, analyst targets, financial figures, "
-        "and large percentage moves require clear support in the draft context; reject any precise figure that looks "
-        "implausible, scale-confused, or unexplained by the supplied evidence. Use draft evidence_trace as source support; "
-        "do not require inline citation syntax in answer_markdown when evidence_trace supports the claim. Also reject raw tool-output scaffolding, "
-        "unsupported precise causes, and drafts where technical price action is the core thesis. If it fails, list the failing sentences and one "
-        "revision instruction.\n\n"
-        f"Ticker: {symbol}\n\n"
-        "Original task:\n"
-        f"{original_query}\n\n"
-        "Draft JSON:\n"
-        f"{json.dumps(draft_payload, ensure_ascii=True, sort_keys=True, default=str)}"
-    )
-    result = _call_with_timeout(
-        f"zopedia-enrich-review-{symbol}",
-        timeout_seconds,
-        lambda: run_aql_zopedia_structured_agent(
-            query=review_query,
-            schema_name="attention_ticker_enrichment_review",
-            schema=_ZOPEDIA_ENRICHMENT_REVIEW_SCHEMA,
-            task="attention_ticker_enrichment_review",
-            surface="attention_home.zopedia_ticker_enrichment_review",
-            max_tool_calls=0,
-            persist_findings=False,
-        ),
-    )
-    if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
-        return {
-            "accepted": False,
-            "issues": [str((result or {}).get("error") or "Zopedia quality monitor did not complete.")],
-            "revision_instruction": "Revise the ticker enrichment to comply with the evidence contract.",
-            "confidence": "low",
-        }
-    payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
-    return {
-        "accepted": bool(payload.get("accepted")),
-        "issues": [str(item).strip() for item in list(payload.get("issues") or []) if str(item).strip()][:8],
-        "revision_instruction": str(payload.get("revision_instruction") or "").strip(),
-        "confidence": str(payload.get("confidence") or "low").strip() or "low",
-    }
-
-
-def _revise_zopedia_enrichment_payload(
-    *,
-    symbol: str,
-    original_query: str,
-    draft_payload: dict[str, Any],
-    review: dict[str, Any],
-    timeout_seconds: int,
-) -> dict[str, Any]:
-    revision_query = (
-        "Revise this Attention ticker enrichment through the Zopedia/AQL quality contract. "
-        "Use only the supplied original task and draft JSON; do not add new facts or fabricate missing sources. "
-        "Preserve grounded business, sector, peer, customer, supplier, policy, financing, commodity, or macro mechanisms. "
-        "Remove unsupported precision, raw tool scaffolding, and body text about evidence that was not found. If the "
-        "supported read is broad sector/peer momentum, write that directly and keep ticker-specific source limitations "
-        "inside limitations. If the draft lacks enough substantive support for an investor-facing explanation, return "
-        "one concise What To Watch sentence naming the next concrete evidence target in affirmative monitoring language. "
-        "Do not use 'confirm', 'verify', 'check whether', 'unclear', 'unconfirmed', 'missing', or 'not found' in "
-        "answer_markdown; keep the exact evidence gap in limitations.\n\n"
-        f"Ticker: {symbol}\n\n"
-        "Quality monitor review JSON:\n"
-        f"{json.dumps(review, ensure_ascii=True, sort_keys=True, default=str)}\n\n"
-        "Original task:\n"
-        f"{original_query}\n\n"
-        "Draft JSON:\n"
-        f"{json.dumps(draft_payload, ensure_ascii=True, sort_keys=True, default=str)}"
-    )
-    result = _call_with_timeout(
-        f"zopedia-enrich-quality-{symbol}",
-        timeout_seconds,
-        lambda: run_aql_zopedia_structured_agent(
-            query=revision_query,
-            schema_name="attention_ticker_enrichment_quality",
-            schema=_ZOPEDIA_ENRICHMENT_SCHEMA,
-            task="attention_ticker_enrichment_quality",
-            surface="attention_home.zopedia_ticker_enrichment_quality",
-            max_tool_calls=0,
-            persist_findings=False,
-        ),
-    )
-    if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
-        return {
-            "answer_markdown": "",
-            "confidence": "low",
-            "limitations": [],
-            "_status": "failed_quality_review",
-        }
-    payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
-    if not str(payload.get("answer_markdown") or "").strip():
-        return {
-            "answer_markdown": "",
-            "confidence": str(payload.get("confidence") or "low").strip() or "low",
-            "limitations": [],
-            "_status": "failed_quality_review",
-        }
-    return dict(payload)
 
 
 def _run_single_zopedia_enrichment(
@@ -1043,29 +791,6 @@ def _run_single_zopedia_enrichment(
 
 
 ZOPEDIA_MARKET_SUMMARY_KEY = "__MARKET_SUMMARY__"
-_ZOPEDIA_MARKET_SUMMARY_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "answer_markdown": {"type": "string"},
-        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-        "limitations": {"type": "array", "items": {"type": "string"}},
-    },
-    "required": ["answer_markdown", "confidence", "limitations"],
-}
-_ZOPEDIA_MARKET_SUMMARY_REVIEW_SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "additionalProperties": False,
-    "properties": {
-        "accepted": {"type": "boolean"},
-        "issues": {"type": "array", "items": {"type": "string"}},
-        "revision_instruction": {"type": "string"},
-        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-    },
-    "required": ["accepted", "issues", "revision_instruction", "confidence"],
-}
-
-
 def _plain_audio_text_from_markdown(markdown: object) -> str:
     text = str(markdown or "").strip()
     if not text:
@@ -1379,204 +1104,6 @@ def _build_market_summary_query(
             for section in ("top_events", "must_read_movers", "unresolved_large_moves") for item in payload.get(section, [])
         ], ensure_ascii=False, default=str)
     )
-
-
-def _review_zopedia_market_summary_payload(
-    *,
-    original_query: str,
-    draft_payload: dict[str, Any],
-    timeout_seconds: int,
-) -> dict[str, Any]:
-    review_query = (
-        "You are the Zopedia/AQL quality monitor for an Attention market summary. "
-        "Decide whether the draft can be shown to an investor. Use only the supplied original evidence prompt and draft. "
-        "Accept only if answer_markdown: explains supported drivers from the evidence, keeps uncertainty and evidence gaps "
-        "inside limitations rather than body prose, distinguishes proxy evidence from direct data, avoids unsupported "
-        "company-name expansion, uses the market coverage contract before single-name anomalies when broad-market fields "
-        "are present, and does not overstate stale or inferred drivers. If it fails, list concrete issues and "
-        "write one revision instruction that would make it publishable.\n\n"
-        "Original evidence prompt:\n"
-        f"{original_query}\n\n"
-        "Draft JSON:\n"
-        f"{json.dumps(draft_payload, ensure_ascii=True, sort_keys=True, default=str)}"
-    )
-    result = _call_with_timeout(
-        "zopedia-market-summary-review",
-        timeout_seconds,
-        lambda: run_aql_zopedia_structured_agent(
-            query=review_query,
-            schema_name="attention_market_summary_review",
-            schema=_ZOPEDIA_MARKET_SUMMARY_REVIEW_SCHEMA,
-            task="attention_market_summary_review",
-            surface="attention_home.zopedia_market_summary_review",
-            max_tool_calls=0,
-            run_timeout_seconds=timeout_seconds,
-            persist_findings=False,
-        ),
-    )
-    if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
-        return {
-            "accepted": False,
-            "issues": [str((result or {}).get("error") or "Zopedia quality monitor did not complete.")],
-            "revision_instruction": "Revise the summary to comply with the evidence contract.",
-            "confidence": "low",
-        }
-    payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
-    return {
-        "accepted": bool(payload.get("accepted")),
-        "issues": [str(item).strip() for item in list(payload.get("issues") or []) if str(item).strip()][:8],
-        "revision_instruction": str(payload.get("revision_instruction") or "").strip(),
-        "confidence": str(payload.get("confidence") or "low").strip() or "low",
-    }
-
-
-def _revise_zopedia_market_summary_payload(
-    *,
-    original_query: str,
-    draft_payload: dict[str, Any],
-    review: dict[str, Any],
-    timeout_seconds: int,
-) -> dict[str, Any]:
-    revision_query = (
-        "Revise this Attention market summary through the Zopedia/AQL quality contract. "
-        "Use only the supplied original evidence prompt and draft JSON. Preserve grounded facts, remove unsupported "
-        "claims, and tighten wording. A valid final answer names supported drivers, treats ETF/proxy evidence as "
-        "proxy evidence, does not expand tickers into company names unless the evidence supplied that name, and never "
-        "uses body prose about missing drivers, catalysts, company news, macro data, or evidence. Start with the supplied "
-        "market coverage contract when it contains broad-market fields; do not let ticker anomalies substitute for a market recap. Answer markdown should "
-        "contain positive supported claims only; evidence gaps belong in limitations. If a claim cannot be written "
-        "positively from evidence, omit the claim rather than explaining the absence.\n\n"
-        "Quality monitor review JSON:\n"
-        f"{json.dumps(review, ensure_ascii=True, sort_keys=True, default=str)}\n\n"
-        "Original evidence prompt:\n"
-        f"{original_query}\n\n"
-        "Draft JSON:\n"
-        f"{json.dumps(draft_payload, ensure_ascii=True, sort_keys=True, default=str)}"
-    )
-    result = _call_with_timeout(
-        "zopedia-market-summary-quality",
-        timeout_seconds,
-        lambda: run_aql_zopedia_structured_agent(
-            query=revision_query,
-            schema_name="attention_market_summary_quality",
-            schema=_ZOPEDIA_MARKET_SUMMARY_SCHEMA,
-            task="attention_market_summary_quality",
-            surface="attention_home.zopedia_market_summary_quality",
-            max_tool_calls=0,
-            persist_findings=False,
-        ),
-    )
-    if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
-        return {
-            "answer_markdown": "",
-            "confidence": "low",
-            "limitations": [],
-            "_status": "failed_quality_review",
-        }
-    payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
-    if not str(payload.get("answer_markdown") or "").strip():
-        return {
-            "answer_markdown": "",
-            "confidence": "low",
-            "limitations": [],
-            "_status": "failed_quality_review",
-        }
-    return dict(payload)
-
-
-def _run_zopedia_market_summary(
-    payload: dict[str, Any],
-    *,
-    timeout_seconds: int,
-    enrichment_rows: list[dict[str, Any]] | None = None,
-    asof_time_utc: object = None,
-) -> dict[str, Any]:
-    query = _build_market_summary_query(payload, enrichment_rows=enrichment_rows, asof_time_utc=asof_time_utc)
-    try:
-        deadline = time.monotonic() + timeout_seconds
-        result = run_aql_zopedia_structured_agent(
-            query=query, schema_name="attention_market_summary", schema=_ZOPEDIA_MARKET_SUMMARY_SCHEMA,
-            task="attention_market_summary", surface="attention_home.zopedia_market_summary",
-            force_refresh=True, max_tool_calls=0, run_timeout_seconds=timeout_seconds / 2,
-            persist_findings=False, write_policy="none",
-        )
-        payload_result = result.get("payload") if isinstance(result.get("payload"), dict) else {}
-        agent_result = result.get("agent_result") if isinstance(result.get("agent_result"), dict) else {}
-        quality_review: dict[str, Any] = {"status": "not_run"}
-        if str(result.get("status") or agent_result.get("status") or "") == "completed" and str(payload_result.get("answer_markdown") or "").strip():
-            reviews: list[dict[str, Any]] = []
-            current_review = _review_zopedia_market_summary_payload(
-                original_query=query,
-                draft_payload=payload_result,
-                timeout_seconds=max(deadline - time.monotonic(), 0),
-            )
-            current_review["status"] = "reviewed"
-            current_review["revision_attempt"] = 0
-            reviews.append(dict(current_review))
-            for attempt in range(1, _zopedia_market_summary_quality_revisions() + 1):
-                if bool(current_review.get("accepted")):
-                    break
-                payload_result = _revise_zopedia_market_summary_payload(
-                    original_query=query,
-                    draft_payload=payload_result,
-                    review=current_review,
-                    timeout_seconds=max(deadline - time.monotonic(), 0),
-                )
-                current_review = _review_zopedia_market_summary_payload(
-                    original_query=query,
-                    draft_payload=payload_result,
-                    timeout_seconds=max(deadline - time.monotonic(), 0),
-                )
-                current_review["status"] = "reviewed_after_revision"
-                current_review["revision_attempt"] = attempt
-                reviews.append(dict(current_review))
-            quality_review = {
-                "status": "accepted" if bool(current_review.get("accepted")) else "failed_quality_review",
-                "reviews": reviews,
-            }
-            if not bool(current_review.get("accepted")):
-                payload_result = {
-                    "answer_markdown": "",
-                    "confidence": "low",
-                    "limitations": [],
-                    "_status": "failed_quality_review",
-                }
-        answer_markdown = str(payload_result.get("answer_markdown") or "")
-        status = str(payload_result.get("_status") or result.get("status") or agent_result.get("status") or "unknown")
-        limitations = list(payload_result.get("limitations") or [])
-        if _looks_like_failed_zopedia_synthesis_answer(answer_markdown):
-            answer_markdown = ""
-            status = "failed_synthesis"
-        row = {
-            "symbol": ZOPEDIA_MARKET_SUMMARY_KEY,
-            "status": status,
-            "answer_markdown": answer_markdown,
-            "confidence": str(payload_result.get("confidence") or agent_result.get("confidence") or ""),
-            "limitations_json": json.dumps(limitations),
-            "tool_calls_json": json.dumps([
-                {
-                    "tool_name": str(tc.get("tool_name") or ""),
-                    "status": str(tc.get("status") or ""),
-                }
-                for tc in list(agent_result.get("tool_calls") or [])
-                if isinstance(tc, dict)
-            ]),
-            "quality_review_json": json.dumps(quality_review),
-            "model": str(agent_result.get("model") or ""),
-        }
-        return _attach_market_summary_audio(row)
-    except Exception as exc:
-        return {
-            "symbol": ZOPEDIA_MARKET_SUMMARY_KEY,
-            "status": "failed",
-            "answer_markdown": "",
-            "confidence": "",
-            "limitations_json": json.dumps([f"{type(exc).__name__}: {exc}"]),
-            "tool_calls_json": "[]",
-            "quality_review_json": "{}",
-            "model": "",
-            "error_summary": f"{type(exc).__name__}: {exc}",
-        }
 
 
 def _build_zopedia_enrichment_frame(
@@ -2476,98 +2003,6 @@ def _attach_zopedia_enrichment_to_payload(
     return updated_payload, updated_bundle_map
 
 
-def _group_synthesis_source_items(
-    payload: dict[str, Any],
-    bundle_map: dict[str, dict[str, Any]],
-    *,
-    limit: int,
-) -> list[dict[str, Any]]:
-    items: list[dict[str, Any]] = []
-    for section in ["top_events", "must_read_movers", "unresolved_large_moves"]:
-        for index, raw_item in enumerate(list((payload or {}).get(section) or [])):
-            if not isinstance(raw_item, dict):
-                continue
-            item = dict(raw_item)
-            bundle_id = str(item.get("bundle_id") or "").strip()
-            bundle = dict(bundle_map.get(bundle_id) or {}) if bundle_id else {}
-            if not _is_group_event_item(item, bundle):
-                continue
-            symbols = _supporting_symbols_for_group_item(item, bundle)
-            member_contexts = list(item.get("member_zopedia_contexts") or bundle.get("member_zopedia_contexts") or [])
-            business_contexts = list(item.get("business_contexts") or bundle.get("business_contexts") or [])
-            items.append(
-                {
-                    "section": section,
-                    "index": index,
-                    "bundle_id": bundle_id,
-                    "event_title": _plain_business_text(
-                        item.get("event_title") or item.get("headline") or bundle.get("event_title") or bundle.get("headline"),
-                        limit=220,
-                    ),
-                    "what_happened_text": _plain_business_text(
-                        item.get("what_happened_text") or bundle.get("what_happened_text"),
-                        limit=700,
-                    ),
-                    "why_happened_text": _plain_business_text(
-                        item.get("why_happened_text") or bundle.get("why_happened_text"),
-                        limit=700,
-                    ),
-                    "affected_assets_summary_text": _plain_business_text(
-                        item.get("affected_assets_summary_text") or bundle.get("affected_assets_summary_text"),
-                        limit=700,
-                    ),
-                    "business_context_text": _plain_business_text(
-                        item.get("business_context_text")
-                        or item.get("surface_business_context_text")
-                        or bundle.get("business_context_text")
-                        or bundle.get("surface_business_context_text"),
-                        limit=700,
-                    ),
-                    "watch_next_text": _plain_business_text(item.get("watch_next_text") or bundle.get("watch_next_text"), limit=500),
-                    "cause_status": str(item.get("cause_status") or bundle.get("cause_status") or "").strip(),
-                    "confidence_label": str(item.get("confidence_label") or bundle.get("confidence_label") or "").strip(),
-                    "event_type": str(item.get("event_type") or bundle.get("event_type") or "").strip(),
-                    "observed_cohort": bool(item.get("observed_cohort") or bundle.get("observed_cohort")),
-                    "direction": str(item.get("direction") or bundle.get("direction") or "").strip(),
-                    "change_pct": item.get("change_pct") if item.get("change_pct") is not None else bundle.get("change_pct"),
-                    "supporting_symbols": symbols[:8],
-                    "source_evidence": list(bundle.get("evidence") or []),
-                    "observed_members": list(bundle.get("observed_members") or bundle.get("related_symbols") or []),
-                    "member_zopedia_contexts": [
-                        {
-                            "symbol": str(context.get("symbol") or "").upper().strip(),
-                            "context_text": _plain_business_text(context.get("context_text"), limit=900),
-                        }
-                        for context in member_contexts[:6]
-                        if isinstance(context, dict) and _plain_business_text(context.get("context_text"), limit=900)
-                    ],
-                    "business_contexts": [
-                        {
-                            "symbol": str(context.get("symbol") or "").upper().strip(),
-                            "business_context_text": _plain_business_text(context.get("business_context_text"), limit=700),
-                            "business_resolution_text": _plain_business_text(context.get("business_resolution_text"), limit=700),
-                            "business_stack_text": _plain_business_text(context.get("business_stack_text"), limit=700),
-                        }
-                        for context in business_contexts[:6]
-                        if isinstance(context, dict)
-                    ],
-                    "claims": [
-                        {
-                            "claim_text": _plain_business_text(claim.get("claim_text"), limit=260),
-                            "source": _plain_business_text(claim.get("source"), limit=120),
-                            "is_same_day": bool(claim.get("is_same_day")),
-                            "freshness_class": str(claim.get("freshness_class") or "").strip(),
-                        }
-                        for claim in list(bundle.get("claims") or [])[:8]
-                        if isinstance(claim, dict)
-                    ],
-                }
-            )
-            if len(items) >= max(int(limit), 1):
-                return items
-    return items
-
-
 def _apply_group_synthesis_items(
     payload: dict[str, Any],
     bundle_map: dict[str, dict[str, Any]],
@@ -2649,87 +2084,6 @@ def _apply_group_synthesis_items(
             items.append(item)
         updated_payload[section] = items
     return updated_payload, updated_bundle_map, {"changed": changed, "skipped": skipped}
-
-
-def _synthesize_group_contexts_with_zopedia(
-    payload: dict[str, Any],
-    bundle_map: dict[str, dict[str, Any]],
-    *,
-    llm_client: Any | None,
-    timeout_seconds: int,
-) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, Any]]:
-    source_items = _group_synthesis_source_items(payload, bundle_map, limit=_group_synthesis_limit())
-    if not source_items:
-        return payload, bundle_map, {"status": "skipped", "reason": "no_group_items", "changed": 0, "skipped": 0}
-    if llm_client is None:
-        return payload, bundle_map, {
-            "status": "skipped",
-            "reason": "llm_unavailable",
-            "source_item_count": len(source_items),
-            "changed": 0,
-            "skipped": 0,
-        }
-
-    query = (
-        "Synthesize group-level Home attention research from supplied cohort metadata, member Zopedia context, "
-        "business-context rows, collected source evidence, observed members and claims. Each supplied item is one group event. Return one item for every supplied "
-        "item with the same section, index, and bundle_id.\n\n"
-        "Write one coherent group narrative. Do not paste or concatenate member answers. Do not include markdown "
-        "headings, bullets, or section labels inside any returned text field. Do not copy ticker-level subtitles such "
-        "as What Changed, Business Context, Most Likely Driver, or What To Watch into returned fields. Use plain "
-        "sentences only.\n\n"
-        "If the member context supports a common driver, put the causal chain in why_happened_text and set "
-        "cause_status=supported or partial according to evidence strength. If there is no common supported driver, "
-        "leave why_happened_text empty, set cause_status=partial, keep business_context_text focused on why the "
-        "cohort belongs together, and write a concrete watch_next_text evidence target. Do not invent causes. "
-        "Do not describe missing evidence in business_context_text.\n\n"
-        "Consider shared developments from the supplied event research before treating a numerical group as a separate story. "
-        "Do not manufacture an explanation from taxonomy labels. Describe a useful business connection or a specific follow-up question.\n\n"
-        "Shared source-event research:\n"
-        f"{json.dumps([{key: bundle.get(key) for key in ('event_title', 'what_happened_text', 'why_happened_text', 'business_context_text', 'supporting_symbols', 'claims', 'evidence')} for bundle in bundle_map.values() if bundle.get('source_event')], default=str)}\n"
-        "Group synthesis source items:\n"
-        f"{json.dumps(source_items, ensure_ascii=True, sort_keys=True, default=str)}"
-    )
-    result = _call_with_timeout(
-        "attention-home-group-synthesis",
-        timeout_seconds,
-        lambda: run_aql_zopedia_structured_agent(
-            query=query,
-            schema_name="attention_home_group_synthesis",
-            schema=_GROUP_SYNTHESIS_SCHEMA,
-            task="attention_home_group_synthesis",
-            surface="attention_home.group_synthesis",
-            max_tool_calls=0,
-            llm_client=llm_client,
-            persist_findings=False,
-        ),
-    )
-    if not isinstance(result, dict) or str(result.get("status") or "") != "completed":
-        return payload, bundle_map, {
-            "status": "failed",
-            "reason": str((result or {}).get("error") or "unknown error"),
-            "changed": 0,
-            "skipped": 0,
-        }
-    synthesis_payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
-    if not bool(synthesis_payload.get("accepted")):
-        return payload, bundle_map, {
-            "status": "rejected",
-            "issues": [str(item).strip() for item in list(synthesis_payload.get("issues") or []) if str(item).strip()][:8],
-            "changed": 0,
-            "skipped": 0,
-        }
-    updated_payload, updated_bundle_map, counts = _apply_group_synthesis_items(
-        payload,
-        bundle_map,
-        list(synthesis_payload.get("items") or []),
-    )
-    return updated_payload, updated_bundle_map, {
-        "status": "completed",
-        "issues": [str(item).strip() for item in list(synthesis_payload.get("issues") or []) if str(item).strip()][:8],
-        "source_item_count": len(source_items),
-        **counts,
-    }
 
 
 def _apply_home_surface_quality_items(

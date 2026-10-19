@@ -768,13 +768,6 @@ def _next_best_action(anomaly_type: str, entity_id: str, horizon: str) -> str:
     return f"Open Market Opportunity for {entity_id} and compare observed vs expected behavior."
 
 
-def _signed_percent_text(value: Any) -> str:
-    numeric = float(pd.to_numeric(value, errors="coerce"))
-    if not np.isfinite(numeric):
-        return "n/a"
-    return f"{numeric:+.2f}%"
-
-
 def _build_attention_story(row: pd.Series) -> str:
     entity_id = str(row.get("entity_id") or "").strip().upper()
     horizon = str(row.get("horizon") or "").strip()

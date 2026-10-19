@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+
 from datetime import datetime, timezone
 import json
 import uuid
 from typing import Any
+
+from psycopg.errors import UndefinedTable
 
 from . import auth_store
 
@@ -228,12 +231,9 @@ def ensure_brokerage_mcp_schema() -> bool:
     conn = auth_store.open_auth_store_connection()
     if conn is None:
         return False
-    try:
-        with conn:
-            _ensure_schema(conn)
-        return True
-    finally:
-        conn.close()
+    with conn:
+        _ensure_schema(conn)
+    return True
 
 
 def get_client_registration(*, provider: str, resource_url: str, redirect_uri: str) -> dict[str, Any] | None:
@@ -241,24 +241,21 @@ def get_client_registration(*, provider: str, resource_url: str, redirect_uri: s
     if conn is None:
         return None
     schema = auth_store.auth_store_schema_name()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT id, provider, resource_url, redirect_uri, client_id,
                            client_info_json, oauth_metadata_json, created_at, updated_at
                     FROM {schema}.brokerage_mcp_clients
                     WHERE provider = %s AND resource_url = %s AND redirect_uri = %s
                     LIMIT 1
                     """,
-                    (provider, resource_url, redirect_uri),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row)
-    finally:
-        conn.close()
+                (provider, resource_url, redirect_uri),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row)
 
 
 def upsert_client_registration(
@@ -275,12 +272,11 @@ def upsert_client_registration(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.brokerage_mcp_clients (
                         id, provider, resource_url, redirect_uri, client_id,
                         client_info_json, oauth_metadata_json, created_at, updated_at
@@ -293,15 +289,13 @@ def upsert_client_registration(
                     RETURNING id, provider, resource_url, redirect_uri, client_id,
                               client_info_json, oauth_metadata_json, created_at, updated_at
                     """,
-                    (
-                        uuid.uuid4(), provider, resource_url, redirect_uri, client_id,
-                        json.dumps(client_info), json.dumps(oauth_metadata), now, now,
-                    ),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row) or {}
-    finally:
-        conn.close()
+                (
+                    uuid.uuid4(), provider, resource_url, redirect_uri, client_id,
+                    json.dumps(client_info), json.dumps(oauth_metadata), now, now,
+                ),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row) or {}
 
 
 def create_oauth_flow(
@@ -326,12 +320,11 @@ def create_oauth_flow(
     now = _now_utc()
     connection_id = uuid.uuid4()
     flow_id = uuid.uuid4()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.brokerage_connections (
                         id, user_id, provider, resource_url, environment, client_registration_id,
                         status, created_at, updated_at
@@ -344,22 +337,22 @@ def create_oauth_flow(
                         updated_at = EXCLUDED.updated_at
                     RETURNING id
                     """,
-                    (
-                        connection_id, user_id, provider, resource_url, environment,
-                        client_registration_id, "authorizing", now, now,
-                    ),
-                )
-                connection_id = cursor.fetchone()[0]
-                cursor.execute(
-                    f"""
+                (
+                    connection_id, user_id, provider, resource_url, environment,
+                    client_registration_id, "authorizing", now, now,
+                ),
+            )
+            connection_id = cursor.fetchone()[0]
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_oauth_flows
                     SET status = %s, updated_at = %s
                     WHERE user_id = %s::uuid AND provider = %s AND environment = %s AND status = %s
                     """,
-                    ("superseded", now, user_id, provider, environment, "pending"),
-                )
-                cursor.execute(
-                    f"""
+                ("superseded", now, user_id, provider, environment, "pending"),
+            )
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.brokerage_oauth_flows (
                         id, connection_id, user_id, client_registration_id,
                         provider, resource_url, environment, redirect_uri, issuer,
@@ -378,17 +371,15 @@ def create_oauth_flow(
                               authorization_endpoint, token_endpoint, status,
                               expires_at, created_at, updated_at
                     """,
-                    (
-                        flow_id, connection_id, user_id, client_registration_id,
-                        provider, resource_url, environment, redirect_uri, issuer,
-                        authorization_endpoint, token_endpoint, state_hash,
-                        code_verifier_ciphertext, "pending", expires_at, now, now,
-                    ),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row) or {}
-    finally:
-        conn.close()
+                (
+                    flow_id, connection_id, user_id, client_registration_id,
+                    provider, resource_url, environment, redirect_uri, issuer,
+                    authorization_endpoint, token_endpoint, state_hash,
+                    code_verifier_ciphertext, "pending", expires_at, now, now,
+                ),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row) or {}
 
 
 def consume_oauth_flow(*, state_hash: str, user_id: str, environment: str) -> dict[str, Any] | None:
@@ -397,12 +388,11 @@ def consume_oauth_flow(*, state_hash: str, user_id: str, environment: str) -> di
         return None
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_oauth_flows
                     SET status = %s, updated_at = %s
                     WHERE state_hash = %s
@@ -416,12 +406,10 @@ def consume_oauth_flow(*, state_hash: str, user_id: str, environment: str) -> di
                               code_verifier_ciphertext, status, expires_at,
                               created_at, updated_at
                     """,
-                    ("consuming", now, state_hash, user_id, environment, "pending", now),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row)
-    finally:
-        conn.close()
+                ("consuming", now, state_hash, user_id, environment, "pending", now),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row)
 
 
 def finish_oauth_flow(*, flow_id: str, status: str, error: str = "") -> None:
@@ -430,22 +418,19 @@ def finish_oauth_flow(*, flow_id: str, status: str, error: str = "") -> None:
         return
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_oauth_flows
                     SET status = %s, error = NULLIF(%s, ''),
                         completed_at = CASE WHEN %s = 'completed' THEN %s ELSE completed_at END,
                         updated_at = %s
                     WHERE id = %s::uuid
                     """,
-                    (status, error[:1000], status, now, now, flow_id),
-                )
-    finally:
-        conn.close()
+                (status, error[:1000], status, now, now, flow_id),
+            )
 
 
 def save_connection_tokens(
@@ -462,12 +447,11 @@ def save_connection_tokens(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_connections
                     SET access_token_ciphertext = %s,
                         refresh_token_ciphertext = NULLIF(%s, ''),
@@ -481,15 +465,13 @@ def save_connection_tokens(
                         updated_at = %s
                     WHERE id = %s::uuid
                     """,
-                    (
-                        access_token_ciphertext, refresh_token_ciphertext, token_type,
-                        scope, token_expires_at, "connected", now, now, connection_id,
-                    ),
-                )
-                if int(cursor.rowcount or 0) != 1:
-                    raise RuntimeError("Brokerage connection was not found.")
-    finally:
-        conn.close()
+                (
+                    access_token_ciphertext, refresh_token_ciphertext, token_type,
+                    scope, token_expires_at, "connected", now, now, connection_id,
+                ),
+            )
+            if int(cursor.rowcount or 0) != 1:
+                raise RuntimeError("Brokerage connection was not found.")
 
 
 def save_direct_connection(
@@ -511,12 +493,11 @@ def save_direct_connection(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.brokerage_connections (
                         id, user_id, provider, resource_url, environment,
                         status, access_token_ciphertext, refresh_token_ciphertext,
@@ -549,17 +530,15 @@ def save_direct_connection(
                               server_info_json, connected_at, last_verified_at,
                               created_at, updated_at
                     """,
-                    (
-                        uuid.uuid4(), user_id, provider, resource_url, environment,
-                        "connected", access_token_ciphertext, refresh_token_ciphertext,
-                        device_token_ciphertext, token_type, scope, token_expires_at,
-                        json.dumps(server_info or {}), now, now, now, now,
-                    ),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row) or {}
-    finally:
-        conn.close()
+                (
+                    uuid.uuid4(), user_id, provider, resource_url, environment,
+                    "connected", access_token_ciphertext, refresh_token_ciphertext,
+                    device_token_ciphertext, token_type, scope, token_expires_at,
+                    json.dumps(server_info or {}), now, now, now, now,
+                ),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row) or {}
 
 
 def get_connection(
@@ -601,12 +580,8 @@ def get_connection(
                 )
                 row = _row_dict(cursor, cursor.fetchone())
         return _payload(row)
-    except Exception as exc:
-        if str(getattr(exc, "sqlstate", "") or "") == "42P01":
-            return None
-        raise
-    finally:
-        conn.close()
+    except UndefinedTable:
+        return None
 
 
 def get_connection_by_id(*, connection_id: str, environment: str) -> dict[str, Any] | None:
@@ -634,12 +609,8 @@ def get_connection_by_id(*, connection_id: str, environment: str) -> dict[str, A
                 )
                 row = _row_dict(cursor, cursor.fetchone())
         return _payload(row)
-    except Exception as exc:
-        if str(getattr(exc, "sqlstate", "") or "") == "42P01":
-            return None
-        raise
-    finally:
-        conn.close()
+    except UndefinedTable:
+        return None
 
 
 def save_portfolio_snapshot(
@@ -659,12 +630,11 @@ def save_portfolio_snapshot(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.brokerage_portfolio_snapshots (
                         id, portfolio_id, connection_id, provider, environment,
                         account_summary_json, positions_json, timeseries_json, details_json,
@@ -687,17 +657,15 @@ def save_portfolio_snapshot(
                               account_summary_json, positions_json, timeseries_json, details_json,
                               source_updated_at, created_at, updated_at
                     """,
-                    (
-                        uuid.uuid4(), portfolio_id, connection_id, provider, environment,
-                        json.dumps(account_summary), json.dumps(positions), json.dumps(timeseries),
-                        json.dumps(details or {}),
-                        source_updated_at, now, now,
-                    ),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row) or {}
-    finally:
-        conn.close()
+                (
+                    uuid.uuid4(), portfolio_id, connection_id, provider, environment,
+                    json.dumps(account_summary), json.dumps(positions), json.dumps(timeseries),
+                    json.dumps(details or {}),
+                    source_updated_at, now, now,
+                ),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row) or {}
 
 
 def get_portfolio_snapshot(*, portfolio_id: str, environment: str) -> dict[str, Any] | None:
@@ -721,12 +689,8 @@ def get_portfolio_snapshot(*, portfolio_id: str, environment: str) -> dict[str, 
                 )
                 row = _row_dict(cursor, cursor.fetchone())
         return _payload(row)
-    except Exception as exc:
-        if str(getattr(exc, "sqlstate", "") or "") == "42P01":
-            return None
-        raise
-    finally:
-        conn.close()
+    except UndefinedTable:
+        return None
 
 
 def get_portfolio_brokerage(*, portfolio_id: str) -> dict[str, Any] | None:
@@ -737,23 +701,20 @@ def get_portfolio_brokerage(*, portfolio_id: str) -> dict[str, Any] | None:
     if conn is None:
         return None
     schema = auth_store.auth_store_schema_name()
-    try:
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     SELECT id, slug, name, brokerage_source,
                            brokerage_account_ref, status, updated_at
                     FROM {schema}.portfolios
                     WHERE id = %s::uuid AND status = %s
                     LIMIT 1
                     """,
-                    (normalized_id, "active"),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row)
-    finally:
-        conn.close()
+                (normalized_id, "active"),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row)
 
 
 def set_portfolio_brokerage(
@@ -772,12 +733,11 @@ def set_portfolio_brokerage(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.portfolios
                     SET brokerage_source = %s,
                         brokerage_account_ref = NULLIF(%s, ''),
@@ -786,14 +746,12 @@ def set_portfolio_brokerage(
                     RETURNING id, slug, name, brokerage_source,
                               brokerage_account_ref, status, updated_at
                     """,
-                    (normalized_source, normalized_ref, now, normalized_id, "active"),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-                if not row:
-                    raise ValueError("Active portfolio was not found.")
-        return _payload(row) or {}
-    finally:
-        conn.close()
+                (normalized_source, normalized_ref, now, normalized_id, "active"),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+            if not row:
+                raise ValueError("Active portfolio was not found.")
+    return _payload(row) or {}
 
 
 def update_connection_catalog(
@@ -807,12 +765,11 @@ def update_connection_catalog(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_connections
                     SET tool_catalog_json = %s::jsonb,
                         server_info_json = %s::jsonb,
@@ -822,10 +779,8 @@ def update_connection_catalog(
                         updated_at = %s
                     WHERE id = %s::uuid
                     """,
-                    (json.dumps(tools), json.dumps(server_info), "connected", now, now, connection_id),
-                )
-    finally:
-        conn.close()
+                (json.dumps(tools), json.dumps(server_info), "connected", now, now, connection_id),
+            )
 
 
 def mark_connection_error(*, connection_id: str, error: str, status: str = "error") -> None:
@@ -834,20 +789,17 @@ def mark_connection_error(*, connection_id: str, error: str, status: str = "erro
         return
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_connections
                     SET status = %s, last_error = %s, updated_at = %s
                     WHERE id = %s::uuid
                     """,
-                    (status, error[:1000], now, connection_id),
-                )
-    finally:
-        conn.close()
+                (status, error[:1000], now, connection_id),
+            )
 
 
 def disconnect_connection(
@@ -862,12 +814,11 @@ def disconnect_connection(
         return False
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_connections
                     SET status = %s,
                         access_token_ciphertext = NULL,
@@ -881,12 +832,12 @@ def disconnect_connection(
                         updated_at = %s
                     WHERE user_id = %s::uuid AND provider = %s AND resource_url = %s AND environment = %s
                     """,
-                    ("disconnected", now, now, user_id, provider, resource_url, environment),
-                )
-                disconnected = int(cursor.rowcount or 0) == 1
-                if disconnected:
-                    cursor.execute(
-                        f"""
+                ("disconnected", now, now, user_id, provider, resource_url, environment),
+            )
+            disconnected = int(cursor.rowcount or 0) == 1
+            if disconnected:
+                cursor.execute(
+                    f"""
                         UPDATE {schema}.brokerage_order_tickets
                         SET status = %s, error = %s, completed_at = %s
                         WHERE user_id = %s::uuid
@@ -894,19 +845,17 @@ def disconnect_connection(
                           AND environment = %s
                           AND status = %s
                         """,
-                        (
-                            "expired",
-                            "Robinhood connection was disconnected.",
-                            now,
-                            user_id,
-                            provider,
-                            environment,
-                            "reviewed",
-                        ),
-                    )
-                return disconnected
-    finally:
-        conn.close()
+                    (
+                        "expired",
+                        "Robinhood connection was disconnected.",
+                        now,
+                        user_id,
+                        provider,
+                        environment,
+                        "reviewed",
+                    ),
+                )
+            return disconnected
 
 
 def start_audit_event(
@@ -926,12 +875,11 @@ def start_audit_event(
     schema = auth_store.auth_store_schema_name()
     audit_id = str(uuid.uuid4())
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.brokerage_mcp_audit_events (
                         id, connection_id, user_id, provider, environment, tool_name, intent,
                         candidate_id, request_summary_json, status, started_at
@@ -940,14 +888,12 @@ def start_audit_event(
                         NULLIF(%s, ''), %s::jsonb, %s, %s
                     )
                     """,
-                    (
-                        audit_id, connection_id, user_id, provider, environment, tool_name,
-                        intent, candidate_id, json.dumps(request_summary), "started", now,
-                    ),
-                )
-        return audit_id
-    finally:
-        conn.close()
+                (
+                    audit_id, connection_id, user_id, provider, environment, tool_name,
+                    intent, candidate_id, json.dumps(request_summary), "started", now,
+                ),
+            )
+    return audit_id
 
 
 def finish_audit_event(
@@ -962,12 +908,11 @@ def finish_audit_event(
         return
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_mcp_audit_events
                     SET status = %s,
                         result_summary_json = %s::jsonb,
@@ -975,10 +920,8 @@ def finish_audit_event(
                         completed_at = %s
                     WHERE id = %s::uuid
                     """,
-                    (status, json.dumps(result_summary or {}), error[:1000], now, audit_id),
-                )
-    finally:
-        conn.close()
+                (status, json.dumps(result_summary or {}), error[:1000], now, audit_id),
+            )
 
 
 def create_order_ticket(
@@ -1000,12 +943,11 @@ def create_order_ticket(
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
     ticket_id = str(uuid.uuid4())
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_order_tickets
                     SET status = %s, completed_at = %s
                     WHERE user_id = %s::uuid
@@ -1013,10 +955,10 @@ def create_order_ticket(
                       AND environment = %s
                       AND status = %s
                     """,
-                    ("expired", now, user_id, provider, environment, "reviewed"),
-                )
-                cursor.execute(
-                    f"""
+                ("expired", now, user_id, provider, environment, "reviewed"),
+            )
+            cursor.execute(
+                f"""
                     INSERT INTO {schema}.brokerage_order_tickets (
                         id, connection_id, user_id, provider, environment,
                         review_tool_name, execution_tool_name, arguments_hash,
@@ -1029,26 +971,24 @@ def create_order_ticket(
                               review_tool_name, execution_tool_name, arguments_hash,
                               ref_id, request_summary_json, status, expires_at, created_at
                     """,
-                    (
-                        ticket_id,
-                        connection_id,
-                        user_id,
-                        provider,
-                        environment,
-                        review_tool_name,
-                        execution_tool_name,
-                        arguments_hash,
-                        ref_id,
-                        json.dumps(request_summary),
-                        "reviewed",
-                        expires_at,
-                        now,
-                    ),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row) or {}
-    finally:
-        conn.close()
+                (
+                    ticket_id,
+                    connection_id,
+                    user_id,
+                    provider,
+                    environment,
+                    review_tool_name,
+                    execution_tool_name,
+                    arguments_hash,
+                    ref_id,
+                    json.dumps(request_summary),
+                    "reviewed",
+                    expires_at,
+                    now,
+                ),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row) or {}
 
 
 def consume_order_ticket(
@@ -1065,12 +1005,11 @@ def consume_order_ticket(
         raise RuntimeError("Application database is unavailable.")
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_order_tickets
                     SET status = %s, confirmed_at = %s
                     WHERE id = %s::uuid
@@ -1085,22 +1024,20 @@ def consume_order_ticket(
                               ref_id, request_summary_json, status, expires_at,
                               created_at, confirmed_at
                     """,
-                    (
-                        "executing",
-                        now,
-                        ticket_id,
-                        user_id,
-                        provider,
-                        environment,
-                        arguments_hash,
-                        "reviewed",
-                        now,
-                    ),
-                )
-                row = _row_dict(cursor, cursor.fetchone())
-        return _payload(row)
-    finally:
-        conn.close()
+                (
+                    "executing",
+                    now,
+                    ticket_id,
+                    user_id,
+                    provider,
+                    environment,
+                    arguments_hash,
+                    "reviewed",
+                    now,
+                ),
+            )
+            row = _row_dict(cursor, cursor.fetchone())
+    return _payload(row)
 
 
 def cancel_order_ticket(
@@ -1115,12 +1052,11 @@ def cancel_order_ticket(
         return False
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_order_tickets
                     SET status = %s, completed_at = %s
                     WHERE id = %s::uuid
@@ -1129,11 +1065,9 @@ def cancel_order_ticket(
                       AND environment = %s
                       AND status = %s
                     """,
-                    ("expired", now, ticket_id, user_id, provider, environment, "reviewed"),
-                )
-                return int(cursor.rowcount or 0) == 1
-    finally:
-        conn.close()
+                ("expired", now, ticket_id, user_id, provider, environment, "reviewed"),
+            )
+            return int(cursor.rowcount or 0) == 1
 
 
 def finish_order_ticket(
@@ -1150,12 +1084,11 @@ def finish_order_ticket(
         return
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
-    try:
-        with conn:
-            _ensure_schema(conn)
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    f"""
+    with conn:
+        _ensure_schema(conn)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                f"""
                     UPDATE {schema}.brokerage_order_tickets
                     SET status = %s,
                         result_summary_json = %s::jsonb,
@@ -1163,17 +1096,15 @@ def finish_order_ticket(
                         completed_at = %s
                     WHERE id = %s::uuid AND status = %s
                     """,
-                    (
-                        status,
-                        json.dumps(result_summary or {}),
-                        error[:1000],
-                        now,
-                        ticket_id,
-                        "executing",
-                    ),
-                )
-    finally:
-        conn.close()
+                (
+                    status,
+                    json.dumps(result_summary or {}),
+                    error[:1000],
+                    now,
+                    ticket_id,
+                    "executing",
+                ),
+            )
 
 
 __all__ = [

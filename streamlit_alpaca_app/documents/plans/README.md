@@ -48,6 +48,8 @@ Use the docs as follows:
 
 ## Reliability and Mistake Prevention
 
+- [Codebase deep cleanup](CODEBASE_DEEP_CLEAN_2026-10-18.md): repository audit, verified local retirements and the remaining storage, execution, semantic-contract and transport cleanup.
+
 - [Database work lifecycle and refresh coordination](DATABASE_WORK_LIFECYCLE_2026-10-16.md): cancellation ownership, shared database admission, publication caching, incremental projection and bounded independent recovery.
 
 - `V0_5_ROADMAP_2026-06-22.md`: v0.5 priority consolidation across pipeline simplification, Zopedia retrieval, company memory, hardcode cleanup, attention scoring, and module boundaries

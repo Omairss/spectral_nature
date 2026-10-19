@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
-import { clearAuthCookies, readJsonBody, setAuthCookies, validateMutation } from "@/lib/server/auth";
+import { clearAuthCookies, setAuthCookies, validateMutation } from "@/lib/server/auth";
 import { backendError, backendFetch } from "@/lib/server/backend";
-import { noStoreJson } from "@/lib/server/http";
+import { readJsonBody, noStoreJson } from "@/lib/server/http";
 
 const actions = {
   invite: { path: "/v1/auth/invites/accept", fields: ["invite_token", "first_name", "last_name", "display_name", "password"] },
@@ -17,6 +17,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ac
   const definition = actions[action as keyof typeof actions];
   try {
     const raw = await readJsonBody(request);
+    if (raw instanceof Response) return raw;
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) return noStoreJson({ error: "Request is invalid." }, { status: 400 });
     const input = raw as Record<string, unknown>;
     const body = Object.fromEntries(definition.fields.map((key) => [key, input[key] ?? ""]));

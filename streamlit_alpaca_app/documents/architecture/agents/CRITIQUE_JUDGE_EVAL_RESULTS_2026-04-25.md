@@ -1,5 +1,7 @@
 # Critique + Judge — Eval Results (2026-04-25)
 
+Historical evaluation evidence. The old summary/critique implementation, its harness and its obsolete tests were retired locally in the [October 18 cleanup](../cleanup-2026-10-18/README.md). The observations below describe the April implementation and are retained unchanged.
+
 ## What was tested
 
 Real LLM (gpt-5.3, Azure OpenAI) + real `QueryService` running against the

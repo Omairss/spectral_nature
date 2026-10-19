@@ -105,19 +105,3 @@ export async function validateMutation(request: NextRequest): Promise<NextRespon
   }
   return null;
 }
-
-export async function readJsonBody(request: NextRequest, maxBytes = 16_384): Promise<unknown> {
-  const declaredLength = Number(request.headers.get("content-length") || 0);
-  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
-    throw new Error("Request body is too large.");
-  }
-  const text = await request.text();
-  if (Buffer.byteLength(text, "utf8") > maxBytes) {
-    throw new Error("Request body is too large.");
-  }
-  try {
-    return JSON.parse(text);
-  } catch {
-    throw new Error("Request body must be valid JSON.");
-  }
-}
