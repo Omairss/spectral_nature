@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "git_sha": "fc1e0e6db6ca29a3e4a9090183e00caeb924d8c7",
+  "source_hashes": {
+    "services/attention_surface.py": "ad733746e32b528fe07303ee10f7501231c8ae0dc38bf03bba8c013331c892db",
+    "services/attention_live_research.py": "17e2cf624b46b9c6dc63d1c11e44e7142f099a73a342cb1c06ba100e31487d73",
+    "services/aql/summarizer.py": "2c9a9d872d0c7d0db5c4934c053b2ae9c8cbfebb523f53a91607da778d7e1491",
+    "services/zopedia_learning.py": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe"
+  },
+  "projected_stories": 8,
+  "beats": 8,
+  "full_projection_sha256": "8da45aaf5e23704036e5fbb18f5f3e9b2b5d9edf916c15bf6992a54fd847c0ad",
+  "matches_personally_reviewed_local_output": true,
+  "confidence_and_learning_source_unchanged": true,
+  "research_or_knowledge_writes": 0,
+  "execution": "attention-home-next-dev-dhoj9k5",
+  "execution_status": "Succeeded",
+  "start": "2026-10-19T00:40:17+00:00",
+  "end": "2026-10-19T00:41:02+00:00",
+  "saved_job_template_unchanged": true
+}

@@ -860,19 +860,21 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "production_authorization": {
-    "status": "existing_conditional_instruction_satisfied_for_learning_change",
-    "owner_instruction": "Do it. If it works in dev, move to prod",
-    "condition": "Targeted learning verification passed in DEV: exact packages, live worker critique, preserved source/write permissions, four complete qualitative cases, learned-guidance replay and all-resource configuration audit. Promote these exact digests.",
-    "additional_scope_instruction": "As long as the whole thing is powered by LLMs and is probabilitic/ML/generalizable system it is fine. No hardcoding rules.",
-    "earlier_quality_condition": "Fresh complete DEV output matches or exceeds the pre-incident subjective research quality gate.",
-    "prior_condition": "Complete fresh DEV research quality was previously held for a known financing-date error. Owner explicitly accepts promotion with that imperfection and requests subsequent general resilience improvement.",
-    "latest_direct_instruction": "Push to prod. Then, the system has to be resiliant to imperfections like this."
+    "owner_instruction": "Do it. If it works in dev, move to prod.",
+    "scope": "Continuing owner-directed Home recovery: remove presentation suppression, keep confidence cutoffs and retire uncalled predecessors. Exact DEV-accepted images only.",
+    "evidence": "documents/verification/home-presentation-cleanup-2026-10-18/DEVELOPMENT.md"
   },
   "development_acceptance": {
-    "status": "pending",
-    "evidence": "documents/verification/home-presentation-cleanup-2026-10-18/README.md"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:6e6dbd9bfdcbe4d85e5dcb2f4d9f66510f62a8fd52e267db0f5ce00e66957ba5"
+    },
+    "source_inventory_sha256": "71b9a4fbfd07e6621c5066202b429e911b5f3c9c897bc6c1774960725f30497a",
+    "evidence": "documents/verification/home-presentation-cleanup-2026-10-18/DEVELOPMENT.md",
+    "scope": "Actual deployed eight-story projection matches personally reviewed local output; source hashes, API readiness, existing Home read and all-resource config audit pass."
   },
   "preceding_hold": {
     "revision": "20108c58",

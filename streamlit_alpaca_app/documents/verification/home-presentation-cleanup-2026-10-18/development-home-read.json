@@ -1,0 +1,8 @@
+{
+  "status": "available",
+  "run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+  "beats": 6,
+  "current_api_revision": "sn-api-next-dev--0000046",
+  "public_home_http_status": 200,
+  "scope": "Existing materialized DEV Home read; no new research generated."
+}

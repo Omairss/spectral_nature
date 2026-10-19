@@ -1,0 +1,9 @@
+# DEV acceptance — October 18
+
+Accepted for exact-image production promotion. All seven reviewed DEV consumers use the verified worker `8b783d36` / API `6e6dbd9b`. API `sn-api-next-dev--0000046` is ready and Running. [All-resource audit](development-configuration-audit.json) preserves every configuration across all 33 resources and all four domain bindings; only the seven intended image templates changed.
+
+Actual installed-worker execution `attention-home-next-dev-dhoj9k5` succeeded. It imported the installed projection and summary code without any source overlay, received frozen display fields from eight real public stories, and reproduced the complete personally reviewed local projection hash exactly. All eight reviewed beats remain available. It checked the three changed file hashes and the byte-identical learning service. No inference, research publication or knowledge write ran. The per-execution command left the saved job template unchanged. [Worker result](development-projection-result.json).
+
+The current DEV public Home read returned HTTP 200 with its existing six-story materialized publication. This task did not regenerate that publication, replace source data or run a new research-quality experiment. Model prompts, models, budgets and confidence cutoffs are unchanged. Personal reading of the eight projected stories and the earlier twenty-record linked-bundle comparison established the requested content preservation before packaging. [Public read](development-home-read.json).
+
+The owner's earlier explicit instruction, “Do it. If it works in dev, move to prod,” covers this continuing Home recovery correction. The latest requested scope is removal of Home suppression, preservation of confidence cutoffs and cleanup of predecessor vestiges. Promote only these exact accepted images; source/write permissions, frontend, broker and schedules remain unchanged.
