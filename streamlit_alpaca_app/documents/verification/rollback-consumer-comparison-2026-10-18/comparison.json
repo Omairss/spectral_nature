@@ -724,5 +724,72 @@
     "New downstream fundamental_snapshots_by_symbol helper absent from the fundamentals producer; its existing producer/loaders are preserved",
     "Missing news/calendar helpers unused by these job dispatch paths"
   ],
-  "scope_limit": "Complete code and deployment-wiring comparison of these four jobs; no new product workflow, broker action, SQL stress load, LLM evaluation or production deployment. Does not certify repository-wide feature equivalence or current database utilization."
+  "scope_limit": "Complete code and deployment-wiring comparison of these four jobs; no new product workflow, broker action, SQL stress load, LLM evaluation or production deployment. Does not certify repository-wide feature equivalence or current database utilization.",
+  "history": {
+    "original_reliability_release": {
+      "worker-after": {
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "source_evidence_sha256": "c9fefe6aca7070af7c178ee098933cbb805d7edec2926705dd361a3c562d76bf",
+        "managed_database_owner_present": true,
+        "global_admission_present": false,
+        "work_scope_module_present": false,
+        "separate_system_recovery_entrypoint_present": false,
+        "main_retains_completion_receipt": true,
+        "conditional_manifest_publisher_present": false
+      },
+      "broker-after": {
+        "image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-broker@sha256:741ef70b2d3e2e3eaea9947289faf9f8a20e1b012655baf37e9ca3b9ea7a910d",
+        "source_evidence_sha256": "9d92b26c9fdeae419e50f45a83ef1cdf5879eef8b6bff29055ade38fce721824",
+        "managed_database_owner_present": true,
+        "global_admission_present": false,
+        "work_scope_module_present": false,
+        "separate_system_recovery_entrypoint_present": false,
+        "main_retains_completion_receipt": true,
+        "conditional_manifest_publisher_present": false
+      }
+    },
+    "rollback_template_replacement_times": [
+      {
+        "name": "universe-builder",
+        "recorded_at_utc": "2026-10-17T04:41:18.964806+00:00",
+        "recorded_at_pacific": "2026-10-16T21:41:18.964806-07:00",
+        "replaced_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "restored_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df"
+      },
+      {
+        "name": "fundamentals-quarterly-refresh",
+        "recorded_at_utc": "2026-10-17T04:42:28.784414+00:00",
+        "recorded_at_pacific": "2026-10-16T21:42:28.784414-07:00",
+        "replaced_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "restored_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e"
+      },
+      {
+        "name": "system-health",
+        "recorded_at_utc": "2026-10-17T04:43:12.401521+00:00",
+        "recorded_at_pacific": "2026-10-16T21:43:12.401521-07:00",
+        "replaced_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-worker@sha256:3b42593f8d7111bb31b65afb70d8f2e0bfbbceeaf0287d5b6444b2155a9bab6d",
+        "restored_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff"
+      },
+      {
+        "name": "robinhood-main-sync-prod",
+        "recorded_at_utc": "2026-10-17T04:43:21.114022+00:00",
+        "recorded_at_pacific": "2026-10-16T21:43:21.114022-07:00",
+        "replaced_image": "snpipelineacr03130136.azurecr.io/system-reliability-dev-broker@sha256:741ef70b2d3e2e3eaea9947289faf9f8a20e1b012655baf37e9ca3b9ea7a910d",
+        "restored_image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3"
+      }
+    ],
+    "removed_by_rollback": [
+      "Pooled/transaction-owned database connection layer on all four consumers",
+      "Durable job completion receipts on the three pipeline workers",
+      "Recoverable post-Blob SQL indexing failure handling on universe/fundamentals"
+    ],
+    "followup_changes_not_present_in_original_release_and_not_rolled_out_to_these_four": [
+      "Global background/interactive admission",
+      "Work-scope SQL cancellation",
+      "Conditional latest-pointer publication",
+      "Blob-first metadata reads"
+    ],
+    "separate_production_recovery_executor": "Never configured in the reviewed live job inventory; earlier reliability release performed bulk recovery within health instead. The later separate entrypoint is bound only to manual development recovery.",
+    "timestamp_meaning": "Recorded image-template update times, not independently measured request/transaction cutover times."
+  }
 }

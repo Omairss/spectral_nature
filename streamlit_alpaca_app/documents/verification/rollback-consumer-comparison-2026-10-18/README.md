@@ -31,6 +31,14 @@ Thirty-five selected whole-file/function preservation checks match. The dependen
 
 **A broker image replacement alone is insufficient.** The current broker script has no explicit background database scope; neither its current deployment environment nor the accepted broker Docker stage sets `PIPELINE_JOB_NAME`. The new database owner consequently defaults that process to interactive. Its entrypoint must identify sync as background work when adopting the managed database owner, preserving the existing cadence and duplicate exclusion.
 
+## When the differences arose
+
+The exact rollback receipt records the four image-template replacements on **October 16 Pacific time**: universe at **21:41:19**, fundamentals at **21:42:29**, scheduled health at **21:43:12**, and Robinhood sync at **21:43:21**. The UTC date is October 17. These are recorded deployment update times, rather than independently measured transaction cutovers. [Original receipt](../exact-production-recovery-2026-10-16/production-deployment.json).
+
+The pooled database connection owner was in the original reliability images and was removed by those replacements. Durable job-completion receipts were also present in the three pipeline workers; recoverable SQL-index failure handling was present in the universe/fundamentals publication path. Those capabilities were removed from the templates by the rollback and remain absent in these four retained images.
+
+The later global admission/work-scope cancellation, conditional latest-pointer publication and Blob-first metadata reads were **not in the original reliability images**. They belong to the follow-up lifecycle repair and never reached these four consumers through the subsequent production releases. They are deployment omissions, rather than capabilities that disappeared in that rollback. The earlier health worker performed bulk recovery inline; the replacement independent bounded recovery entrypoint never acquired a configured production job. [Historical development repair](../database-lifecycle-2026-10-16/README.md). The machine-readable comparison records the original-image proof and this classification separately.
+
 ## Required reconciliation
 
 1. Move universe, fundamentals and scheduled health to the reviewed shared worker implementation after checking their actual commands, dependencies, dataset inputs and failure paths in development. Keep the core behavior established above.
