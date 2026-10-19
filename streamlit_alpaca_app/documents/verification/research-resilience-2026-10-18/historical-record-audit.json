@@ -1,0 +1,81 @@
+{
+  "recorded_at_utc": "2026-10-19T02:17:32.735907+00:00",
+  "scope": "Read-only audit of historical learning records, not a production mistake rate. No raw user conversations or private model reasoning are included.",
+  "record_count": 8,
+  "distinct_conversations": 6,
+  "by_environment": [
+    {
+      "environment": "development",
+      "records": 1,
+      "conversations": 1
+    },
+    {
+      "environment": "production",
+      "records": 3,
+      "conversations": 2
+    },
+    {
+      "environment": "unrecorded",
+      "records": 4,
+      "conversations": 3
+    }
+  ],
+  "by_trigger": [
+    {
+      "trigger": "implementation_vocabulary_exposed",
+      "records": 5
+    },
+    {
+      "trigger": "tool_path_later_succeeded",
+      "records": 3
+    }
+  ],
+  "by_status_and_proposal": [
+    {
+      "status": "verified",
+      "proposal": "tool_affordance_memory",
+      "records": 2
+    },
+    {
+      "status": "reviewed_no_change",
+      "proposal": "no_change",
+      "records": 1
+    },
+    {
+      "status": "review_pending",
+      "proposal": "planner_contract",
+      "records": 1
+    },
+    {
+      "status": "critique_pending",
+      "proposal": "tool_affordance_memory",
+      "records": 1
+    },
+    {
+      "status": "safe_update_applied",
+      "proposal": "tool_affordance_memory",
+      "records": 1
+    },
+    {
+      "status": "regressed",
+      "proposal": "tool_affordance_memory",
+      "records": 1
+    },
+    {
+      "status": "eval_generated",
+      "proposal": "planner_contract",
+      "records": 1
+    }
+  ],
+  "last_updated_at": "2026-10-16 19:45:37.714869+00:00",
+  "shared_old_correction_summary_count": 8,
+  "distinct_old_correction_summaries": 1,
+  "interpretation": [
+    "Eight stored event records are not eight independently confirmed mistakes. The same thread can produce multiple records.",
+    "Only three records are explicitly associated with production threads; one is development and four lack environment metadata.",
+    "The old detector selected only unavailable/debug-vocabulary patterns, so their observed frequency is selection-biased.",
+    "A no-change reassessment rejects the vocabulary-cause premise for a missing follow-up answer.",
+    "All eight historical records share the old canned correction summary; this is inherited templating, not eight independently derived lessons.",
+    "The four local learning scenarios are separate from these database records; one is derived from a real DEV output, one scripts a fictional error, two are scripted controls."
+  ]
+}

@@ -2,6 +2,10 @@
 
 # General learning episodes and research resilience
 
+## Evaluation provenance
+
+This is a four-scenario evaluation, not a production error inventory. The financing case copies the actual summary/what-changed fields from DEV Home root `972a1ceb-47bc-4eb0-9bad-2d8bc690102b`; its conversation framing and company-release result summaries were assembled as inputs. The manufacturer example scripts a fictional wrong answer. The misleading correction and physics answer are scripted controls. No live source lookup or knowledge write occurred during these evaluations. [Exact supplied context](episode-context.json). The model’s raw output is preserved, including wording that could imply it opened a page during this review; those page-result summaries were already supplied.
+
 Status: **deployed to DEV and production; API revisions are ready and all-resource audits pass.** The exact DEV-accepted worker `1d8a4276` and API `9c28b4c4` are live on all twenty intended DEV/production consumers. [Current production record](PRODUCTION.md). Fresh production Home is verified: eight stories, five new highlights, matching original histories/current narration and all twelve company results. Optional page summaries continue independently after core publication.
 
 The existing learning entrypoint only admitted answers matching unavailable-data/debug phrases and a successful tool from a fixed list. A corrected date, mistaken units or a false user correction could not reach the existing LLM critic. Replace that semantic admission with an immutable, owner-bound conversation-episode identity. The same critic receives the original conversation and execution evidence, decides whether there is a lesson or no change, and records its actual diagnosis. Sources, prior answers and corrections are all fallible; the model distinguishes dependent conclusions from independent findings.

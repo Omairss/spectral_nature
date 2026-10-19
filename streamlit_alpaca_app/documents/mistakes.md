@@ -1092,3 +1092,7 @@ The learning change neutralized new episodes but left `_persist_learning_event` 
 
 ### October 18 — wrong identity in an operator audio check
 During post-rollout verification I compared MP3 bytes with the recorded narration-text SHA256. The check failed despite the same 1,004,816 audio bytes being served. Read the original capture, decoded its stored audio and verified exact byte equality; corrected only the private operator check. Production API 14, all 33 configurations, eight stories, five highlights and original narration passed. No runtime patch or additional inference was added.
+
+
+### October 18 — learning examples lacked explicit input provenance
+I described the manufacturer unit-error learning without making clear that I had scripted both the fictional question and the wrong assistant answer. The financing example copied a real DEV Home output, but its conversation framing and source-result summaries were assembled for evaluation too. Added the exact supplied inputs and origin labels beside the untouched critic outputs. A read-only database audit found eight historical records across six threads (three production-tagged, one development-tagged, four unrecorded); these are not eight confirmed mistakes or a measured failure rate. No application, inference, knowledge or production mutation was made during this audit.
