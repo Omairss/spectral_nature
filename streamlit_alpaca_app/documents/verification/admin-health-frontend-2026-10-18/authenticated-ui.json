@@ -1,0 +1,20 @@
+{
+  "alerts": [],
+  "authenticated_admin_screen": true,
+  "checked_at_utc": "2026-10-19T03:17:31.077Z",
+  "displayed_chart_titles": [
+    "LLM tokens",
+    "Database CPU (%)",
+    "Database memory (%)",
+    "Server connections",
+    "Rejected connections"
+  ],
+  "health_summary": "RECORDED HTTP ATTEMPTS\n2,710\nFAILED ATTEMPTS\n13\nINPUT TOKENS\n69,967,506\nOUTPUT TOKENS\n3,839,762\nCACHED INPUT TOKENS\n24,263,165\nUSAGE UNKNOWN\n51\nKNOWN COST ESTIMATE (USD, UPPER)\n9.46\nUNPRICED ATTEMPTS\n1,595",
+  "health_tab_present": true,
+  "loading": false,
+  "observed_metadata": [
+    "development · observed 10/18/2026, 8:16:30 PM · receipts: database",
+    "sn-pg-03130136 · observed 10/18/2026, 8:15:07 PM"
+  ],
+  "selected_resource": "sn-pg-03130136"
+}

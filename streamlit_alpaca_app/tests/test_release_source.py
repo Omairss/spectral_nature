@@ -106,3 +106,23 @@ def test_retired_role_cannot_be_authorized_by_a_manifest(checkout):
     save()
     with pytest.raises(ValueError, match="Retired or unsupported"):
         release.verify("streamlit")
+
+
+def test_web_role_uses_complete_frontend_inventory(checkout):
+    import hashlib
+    release, record, commit, save = checkout
+    (release.APP / "web").mkdir()
+    (release.APP / "web/page.tsx").write_text("export default function Page() { return null; }\n")
+    revision = commit()
+    record.update(source_revision=revision, review_base_revision=revision, files=release.inventory())
+    record["roles"]["web"] = {**record["roles"]["worker"], "runtime_files": {
+        name: digest for name, digest in record["files"].items() if name.startswith("web/")}}
+    save()
+    checked = release.verify("web")
+    assert checked["runtime_files"] == 1
+    expected = hashlib.sha256(json.dumps(record["roles"]["web"]["runtime_files"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    assert checked["runtime_inventory_sha256"] == expected
+    record["roles"]["web"]["runtime_files"] = {}
+    save()
+    with pytest.raises(ValueError, match="complete reviewed frontend"):
+        release.verify("web")

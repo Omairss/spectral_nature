@@ -2,7 +2,7 @@
 
 Read the [release-source policy](RELEASE_SOURCE_POLICY.md) before building or changing a runtime. The product frontend is Next.js. The [resource index](RESOURCE_INDEX.md) identifies the actual frontend, API and worker owners; Azure names inherited from Streamlit do not identify their current framework.
 
-`scripts/release_source.py` checks the committed acceptance record. `scripts/release_application.py build --role worker|api-next|broker --output PATH` packages the accepted Python source. Its `deploy-development` command accepts verified immutable images and changes only the reviewed development image templates, preserving settings, secrets, allocation and schedules. It does not start jobs or deploy to production. See `--help` for required arguments.
+`scripts/release_source.py` checks the committed acceptance record. `scripts/release_application.py build --role worker|api-next|broker|web --output PATH` packages the accepted Git source. The web role uses `Dockerfile.web`, verifies its complete input inventory before compilation and retains a compiled-file inventory for image verification. Its `deploy-development` command accepts verified immutable images and changes only the reviewed development image templates, preserving settings, secrets, allocation and schedules. It does not start jobs or deploy to production. See `--help` for required arguments.
 
 `Dockerfile.web` packages the existing Next.js frontend when an accepted frontend change requires it. Backend recovery does not require a frontend rebuild. Source acceptance and image registration must cover that role before any web promotion.
 

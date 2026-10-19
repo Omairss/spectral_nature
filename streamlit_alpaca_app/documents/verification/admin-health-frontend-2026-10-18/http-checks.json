@@ -1,0 +1,30 @@
+[
+  {
+    "path": "/health",
+    "http_status": 200,
+    "seconds": 0.185
+  },
+  {
+    "path": "/admin",
+    "http_status": 200,
+    "seconds": 0.291
+  },
+  {
+    "path": "/api/admin/health",
+    "http_status": 401,
+    "seconds": 0.241
+  },
+  {
+    "path": "/api/admin",
+    "http_status": 401,
+    "seconds": 0.216
+  },
+  {
+    "path": "/api/home",
+    "http_status": 200,
+    "seconds": 1.093,
+    "publication_preserved": true,
+    "run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "beats": 6
+  }
+]

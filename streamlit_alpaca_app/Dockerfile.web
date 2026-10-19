@@ -1,21 +1,66 @@
-FROM node:22-alpine AS dependencies
+ARG DEPENDENCY_IMAGE
+FROM ${DEPENDENCY_IMAGE} AS dependencies
 
 WORKDIR /app
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
 
-FROM node:22-alpine AS builder
+FROM ${DEPENDENCY_IMAGE} AS builder
 
 ENV NEXT_TELEMETRY_DISABLED=1
 WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY web/ ./
-RUN npm run build
-
-FROM node:22-alpine AS runner
-
 ARG SOURCE_REVISION
-LABEL org.opencontainers.image.revision=$SOURCE_REVISION
+ARG SOURCE_INVENTORY_SHA256
+ARG RUNTIME_INVENTORY_SHA256
+ARG WEB_SOURCE_FILES
+# Verify every frontend input before Next generates types or compiled output.
+RUN node -e '\
+    const fs = require("fs"), crypto = require("crypto"); \
+    const expected = JSON.parse(Buffer.from(process.env.WEB_SOURCE_FILES, "base64").toString()); \
+    const actual = {}; \
+    function walk(dir) { for (const item of fs.readdirSync(dir, {withFileTypes:true})) { \
+      if (item.name === "node_modules" || item.name === ".next" || item.name.endsWith(".tsbuildinfo")) continue; \
+      const path = dir === "." ? item.name : dir + "/" + item.name; \
+      if (item.isDirectory()) walk(path); \
+      else if (item.isFile()) actual["web/" + path] = crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex"); \
+      else throw Error("Unexpected frontend input type: " + path); \
+    }} \
+    walk("."); \
+    const canonical = value => JSON.stringify(Object.fromEntries(Object.keys(value).sort().map(key => [key, value[key]]))); \
+    const differences = [...new Set([...Object.keys(actual), ...Object.keys(expected)])].filter(path => actual[path] !== expected[path]); \
+    if (differences.length) throw Error("Unreviewed frontend inputs: " + differences.join(", ")); \
+    const digest = crypto.createHash("sha256").update(canonical(expected)).digest("hex"); \
+    if (digest !== process.env.RUNTIME_INVENTORY_SHA256) throw Error("Frontend inventory fingerprint differs"); \
+    fs.writeFileSync("web-source.json", JSON.stringify({source_revision:process.env.SOURCE_REVISION, \
+      source_inventory_sha256:process.env.SOURCE_INVENTORY_SHA256, runtime_inventory_sha256:digest, files:expected}));'
+RUN npm run build
+# Retain the compiled build inventory so image verification can cover every file.
+RUN node -e '\
+    const fs = require("fs"), crypto = require("crypto"); \
+    const files = {}, symlinks = {}; \
+    function walk(root, dir, prefix) { for (const item of fs.readdirSync(root + (dir ? "/" + dir : ""), {withFileTypes:true})) { \
+      const path = dir ? dir + "/" + item.name : item.name; \
+      const absolute = root + "/" + path, name = prefix + path; \
+      if (item.isDirectory()) walk(root, path, prefix); \
+      else if (item.isSymbolicLink()) symlinks[name] = fs.readlinkSync(absolute); \
+      else if (item.isFile()) files[name] = crypto.createHash("sha256").update(fs.readFileSync(absolute)).digest("hex"); \
+      else throw Error("Unexpected compiled output type: " + name); \
+    }} \
+    walk(".next/standalone", "", ""); walk(".next/static", "", ".next/static/"); \
+    fs.writeFileSync("web-release.json", JSON.stringify({source:JSON.parse(fs.readFileSync("web-source.json")), files, symlinks}));'
+
+FROM ${DEPENDENCY_IMAGE} AS runner
+
+ARG DEPENDENCY_IMAGE
+ARG SOURCE_REVISION
+ARG SOURCE_INVENTORY_SHA256
+ARG RUNTIME_INVENTORY_SHA256
+LABEL org.opencontainers.image.revision=$SOURCE_REVISION \
+      com.spectral-nature.source-inventory=$SOURCE_INVENTORY_SHA256 \
+      com.spectral-nature.runtime-inventory=$RUNTIME_INVENTORY_SHA256 \
+      com.spectral-nature.dependency-image=$DEPENDENCY_IMAGE
 ENV GIT_SHA=$SOURCE_REVISION
 
 ENV NODE_ENV=production \
@@ -27,6 +72,7 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 spectral && adduser --system --uid 1001 --ingroup spectral nextjs
 COPY --from=builder --chown=nextjs:spectral /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:spectral /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:spectral /app/web-release.json ./web-release.json
 
 USER nextjs
 EXPOSE 3000

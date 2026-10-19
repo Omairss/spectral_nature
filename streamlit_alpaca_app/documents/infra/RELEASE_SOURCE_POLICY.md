@@ -22,6 +22,8 @@ Streamlit and Dash are retired. Their code, UI dependencies/tests, launchers, ol
 
 The retired image-backport utility and broker's two-file overlay are archived. Broker packaging now replaces the complete application source too. Held reasoning and Trading-call implementations remain in their held Git checkpoint and retained task archives; they are excluded from the recovery branch.
 
+The same supported release command builds the `web` role through `Dockerfile.web`. Its dependency is a pinned official Node image. Verify the complete Git frontend input inventory before Next.js generates types or compiled output, then retain and verify every compiled runtime file/symlink against the build inventory. Record the input fingerprint, source revision, compiled-file proof and immutable digest together. The web-role input inventory remains distinct from the Python runtime inventory. Verify the actual freshly loaded authenticated screen; a cached open tab and an available backend endpoint do not establish that a frontend feature was deployed.
+
 ## Current deployment and rollback evidence
 
 The current deployment is the [October 18 production release](../verification/home-presentation-cleanup-2026-10-18/PRODUCTION.md), using the exact DEV-accepted worker/API digests recorded with their Git source. `infra/release_acceptance.json` and the linked all-resource audit identify the current thirteen production consumers and preserved configurations. Read these records and Azure before preparing another release.

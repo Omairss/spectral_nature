@@ -1,0 +1,15 @@
+{
+  "source_revision": "7b6d676d05e9d6375394427c0c110a1320889119",
+  "review_base_revision": "112fbd846fe26d3b223d1f04285836fe1f6fcc93",
+  "changed_frontend_application_files": [],
+  "frontend_input_files": 85,
+  "python_runtime_files_preserved": 197,
+  "added_route": "/api/admin/health",
+  "removed_routes": [],
+  "authentication_checks_passed": 8,
+  "release_boundary_checks_passed": 13,
+  "typescript": "passed",
+  "target": "sn-next-ui-dev",
+  "production_authorized": false,
+  "consumer_configurations_reviewed": 33
+}
