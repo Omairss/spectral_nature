@@ -1,0 +1,13 @@
+# Development acceptance — Trading paper pilot
+
+Accepted for the owner-approved iterative paper pilot. The exact worker/API/web digests in [images.json](images.json) passed complete packaged-file verification against the reviewed committed Git source. Python roles each contain 198 declared files with no inherited application tree or retired Streamlit package. Web verifies 86 Git inputs and all 1,703 compiled runtime files.
+
+All ten intended DEV templates updated: eight workers, modern API and Next.js. [Deployment](development-deployment.json), [33-resource audit](development-configuration-audit.json). Every resource configuration is preserved; all production images remain unchanged. Modern API revision 48 is ready/running; frontend revision 25 is Healthy, RunningAtMaxScale with 100% traffic at its unchanged one-replica maximum.
+
+A fresh reload in the existing authenticated admin session shows Calls/Paper performance and collapsed legacy calls; no old watch call becomes directional. The existing approved call appears independently of the latest generation feed. The actual price-only execution `trading-agent-build-dev-p7wi10v` succeeded, publishing 20 adjusted price rows and one completed call outcome. The selected owner call lazily loads a dated call/SPY return chart, return/excess/drawdown and entry/target/last-price dates. Personal visual inspection confirms the graph renders and differs from the isolated local fixture. No new approval or broker transaction was submitted for verification.
+
+The completed publication delivered one retained episode to the existing learner with status detected and namespace development. [Runtime review evidence](feedback-runtime.json). The shared critic was also exercised through its actual open-model runtime, with complete original evidence and output personally reviewed; that development fixture is explicitly synthetic and establishes no investment accuracy.
+
+Anonymous Trading/detail/Health adapters return 401. Home is HTTP 200 and its entire JSON response SHA256 remains exactly `9d21eb772e7c43da5fd5c9c6369b294d2fb28e904504df6bc8402a15549b6e8c`; production Home remains unchanged too. [HTTP observations](development-http.json).
+
+Normal Trading generation `trading-agent-build-dev-fobq3lt` is running through the existing shared company-research/horizon workflow. This acceptance covers the deployed application, actual price/outcome publication, owner-specific serving, feedback delivery and the locally reviewed v3 comparisons. It does not claim that this pending fresh generation has completed, that forecast errors are eliminated, or that return improvement is demonstrated. The owner’s standard permits imperfect calls in a measurable framework.
