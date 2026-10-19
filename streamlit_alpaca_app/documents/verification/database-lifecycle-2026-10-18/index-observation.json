@@ -1,0 +1,9 @@
+{
+  "execution": "evidence-index-dev-29872960",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
+  "cloud_status": "Succeeded",
+  "started_at": "2026-10-19T02:40:00+00:00",
+  "ended_at": "2026-10-19T02:41:06+00:00",
+  "log_observation": "Indexed evidence: 27843/27843 chunks.",
+  "new_inference_experiment": false
+}

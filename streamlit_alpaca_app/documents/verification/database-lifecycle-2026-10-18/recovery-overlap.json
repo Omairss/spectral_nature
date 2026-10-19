@@ -1,0 +1,65 @@
+{
+  "execution": "system-recovery-dev-yo4d2d2",
+  "status": "Succeeded",
+  "result": {
+    "after": {
+      "offset": 8
+    },
+    "before": {
+      "offset": 4
+    },
+    "cancellation_result": [
+      "QueryCanceled"
+    ],
+    "cancellation_seconds": 0.055,
+    "cancelled_sql_worker_ended": true,
+    "database_stats": {
+      "acquisition_failures": 0,
+      "admission_scope": "physical_database",
+      "admission_wait_seconds": 31.24963579400014,
+      "admission_waits": 3,
+      "cancellations": 1,
+      "global_active_limit": 3,
+      "global_background_limit": 1,
+      "leases": 68,
+      "pools": [
+        {
+          "connections_ms": 8019,
+          "connections_num": 156,
+          "pool_available": 0,
+          "pool_max": 2,
+          "pool_min": 0,
+          "pool_size": 0,
+          "requests_num": 156,
+          "requests_waiting": 0
+        }
+      ],
+      "scope": "current_process",
+      "wait_seconds": 35.04521298200052
+    },
+    "elapsed_seconds": 37.398,
+    "holder_ended": true,
+    "interactive_seconds_while_background_held": 0.121,
+    "model_calls": 0,
+    "recovery": {
+      "budget_seconds": 60,
+      "elapsed_seconds": 36.613,
+      "job_message": "Recovery batch completed; remaining durable work resumes in a later batch.",
+      "job_status": "Warning",
+      "manifests": {
+        "checked": 4,
+        "failed": {},
+        "next_offset": 8,
+        "reconciled": [],
+        "scan_complete": false
+      },
+      "receipts": {
+        "reconciled": 25,
+        "scan_complete": false
+      },
+      "scan_complete": false
+    }
+  },
+  "fixture_program_sha256": "9914a67456b292714a7f6e294772ed713570033bb56bd13b524109d382a316f2",
+  "fixture": "Real SQL capacity hold around installed handler; separate scoped active SQL cancellation; no application files replaced."
+}

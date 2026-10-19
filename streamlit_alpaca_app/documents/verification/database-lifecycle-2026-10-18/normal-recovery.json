@@ -1,0 +1,20 @@
+{
+  "execution": "system-recovery-dev-ot8wi1l",
+  "status": "Succeeded",
+  "result": {
+    "budget_seconds": 60,
+    "elapsed_seconds": 4.409,
+    "manifests": {
+      "checked": 4,
+      "failed": {},
+      "next_offset": 12,
+      "reconciled": [],
+      "scan_complete": false
+    },
+    "receipts": {
+      "reconciled": 25,
+      "scan_complete": false
+    },
+    "scan_complete": false
+  }
+}
