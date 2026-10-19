@@ -1,0 +1,15 @@
+{
+  "recorded_at_utc": "2026-10-19T05:56:50.395188+00:00",
+  "head_before": "93849f4cbec08c6b964c04b31ff5f4cadacefca6",
+  "integrated_runtime_commit": "f10dbaf23117935040364a3067330234577d935c",
+  "preexisting_uncommitted_paths_checked": 121,
+  "byte_and_deletion_matches": 120,
+  "paths_changed_during_observation_outside_release": [
+    "streamlit_alpaca_app/tests/test_database_work_lifecycle.py"
+  ],
+  "restoration_commit_paths_overlapping_preexisting_uncommitted_work": [],
+  "concurrent_current_versions_preserved_without_reset": true,
+  "source_build_revision": "00560e7c49e00b82e33be7226df1eb58503cb4a3",
+  "concurrent_changes_deployed": false,
+  "interpretation": "One or more files may continue changing in the active cleanup session. The restoration commits modify none of the pre-existing dirty paths; do not revert a concurrent change to force the earlier snapshot hash."
+}
