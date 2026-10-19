@@ -691,7 +691,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577": {
+          "source_revision": "46e604cad4c6713105d66708bfc6a03db18dd324",
+          "source_inventory_sha256": "07555f2e8ba57a4ab21e0f688f5f75615531ac37f2f0fa7ef9c2d5bfe850f2ad",
+          "runtime_inventory_sha256": "e1dcb5a97e0057fc8c8180018237bccd407f04e98e201f10eddd137d14f60978",
+          "evidence": "documents/verification/database-lifecycle-2026-10-18/packaged-images.json"
+        }
+      },
       "previous_verified_images": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65": {
           "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
@@ -721,7 +728,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:1cba5594ecbb4d9bd87d12840b84802da792ae944cb042cce57e1a72bb8c46a3": {
+          "source_revision": "46e604cad4c6713105d66708bfc6a03db18dd324",
+          "source_inventory_sha256": "07555f2e8ba57a4ab21e0f688f5f75615531ac37f2f0fa7ef9c2d5bfe850f2ad",
+          "runtime_inventory_sha256": "e1dcb5a97e0057fc8c8180018237bccd407f04e98e201f10eddd137d14f60978",
+          "evidence": "documents/verification/database-lifecycle-2026-10-18/packaged-images.json"
+        }
+      },
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a",
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:331ebec942d117d681cf518f5e615852446c2b0f26582515eb1e21bdd508dc44",
