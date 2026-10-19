@@ -815,7 +815,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6": {
+          "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+          "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+          "runtime_inventory_sha256": "4ed5528cc2f8ee22f82b6404cf0c338e5d73eca4cdb5f8bbb20f9342c3ffccfe",
+          "evidence": "documents/verification/trading-calls-2026-10-18/packaged-images.json"
+        }
+      },
       "previous_verified_images": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65": {
           "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
@@ -851,7 +858,14 @@
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f1b58d382c271b91889eee3f97a367b8f40e242d84ad961928636a6862fc8827": {
+          "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+          "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+          "runtime_inventory_sha256": "4ed5528cc2f8ee22f82b6404cf0c338e5d73eca4cdb5f8bbb20f9342c3ffccfe",
+          "evidence": "documents/verification/trading-calls-2026-10-18/packaged-images.json"
+        }
+      },
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a",
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:1cba5594ecbb4d9bd87d12840b84802da792ae944cb042cce57e1a72bb8c46a3",
@@ -970,7 +984,14 @@
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:91730986547ca814a857528f7ca6d536dcf75b03db694ed9ed4a3f8b0679033d",
         "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6"
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5e4bfe16c2f70cd2d2a71089958d403b993238a4f1526b80c45559d0450449f2": {
+          "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+          "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+          "runtime_inventory_sha256": "b6b857ed5b152af7eb69e5fc4895ece601cc62efbe49b9a6939174def706e8cd",
+          "evidence": "documents/verification/trading-calls-2026-10-18/packaged-images.json"
+        }
+      },
       "development_targets": [
         {
           "name": "sn-next-ui-dev",

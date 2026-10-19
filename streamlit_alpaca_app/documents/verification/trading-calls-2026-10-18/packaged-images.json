@@ -1,0 +1,41 @@
+[
+  {
+    "runtime_inventory_sha256": "4ed5528cc2f8ee22f82b6404cf0c338e5d73eca4cdb5f8bbb20f9342c3ffccfe",
+    "runtime_files": 198,
+    "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+    "all_packaged_files_checked": true,
+    "retired_streamlit_absent": true,
+    "role": "worker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6",
+    "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+    "build_run_id": "cj196",
+    "verification_method": "Execute immutable image in registry without application credentials; hash complete packaged filesystem against accepted Git/runtime inventory",
+    "no_inherited_application_files": true
+  },
+  {
+    "runtime_inventory_sha256": "4ed5528cc2f8ee22f82b6404cf0c338e5d73eca4cdb5f8bbb20f9342c3ffccfe",
+    "runtime_files": 198,
+    "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+    "all_packaged_files_checked": true,
+    "retired_streamlit_absent": true,
+    "role": "api-next",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f1b58d382c271b91889eee3f97a367b8f40e242d84ad961928636a6862fc8827",
+    "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+    "build_run_id": "cj198",
+    "verification_method": "Execute immutable image in registry without application credentials; hash complete packaged filesystem against accepted Git/runtime inventory",
+    "no_inherited_application_files": true
+  },
+  {
+    "role": "web",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5e4bfe16c2f70cd2d2a71089958d403b993238a4f1526b80c45559d0450449f2",
+    "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+    "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+    "runtime_inventory_sha256": "b6b857ed5b152af7eb69e5fc4895ece601cc62efbe49b9a6939174def706e8cd",
+    "runtime_files": 1703,
+    "source_files": 86,
+    "layers": 9,
+    "all_layer_digests_verified": true,
+    "no_inherited_application_files": true,
+    "build_run_id": "cj197"
+  }
+]
