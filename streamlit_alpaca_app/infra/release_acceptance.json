@@ -809,16 +809,6 @@
       "name": "technical-history-next-dev",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
       "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca"
-    },
-    {
-      "name": "evidence-index-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
-      "configuration_sha256": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc"
-    },
-    {
-      "name": "system-recovery-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
-      "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329"
     }
   ],
   "retired_consumers": [
@@ -841,7 +831,16 @@
   "production_authorized": false,
   "production_authorization": {},
   "development_acceptance": {
-    "status": "pending"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:1cba5594ecbb4d9bd87d12840b84802da792ae944cb042cce57e1a72bb8c46a3"
+    },
+    "source_revision": "46e604cad4c6713105d66708bfc6a03db18dd324",
+    "source_inventory_sha256": "07555f2e8ba57a4ab21e0f688f5f75615531ac37f2f0fa7ef9c2d5bfe850f2ad",
+    "runtime_inventory_sha256": "e1dcb5a97e0057fc8c8180018237bccd407f04e98e201f10eddd137d14f60978",
+    "evidence": "documents/verification/database-lifecycle-2026-10-18/README.md",
+    "scope": "Scoped database recovery, cancellation, interactive headroom, Home serving and unchanged configurations; not a new research quality or frontend acceptance."
   },
   "preceding_hold": {
     "revision": "20108c58",

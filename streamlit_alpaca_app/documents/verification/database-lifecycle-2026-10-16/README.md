@@ -1,6 +1,6 @@
 # Database lifecycle and refresh coordination — October 16
 
-Status: locally accepted; final development rollout/verification in progress. Production is outside this repair authorization.
+Status: historical October 16 evidence. The interrupted repair was reconciled with newer accepted Git source and verified in development on October 18. Use the [current continuation record](../database-lifecycle-2026-10-18/README.md) for current images and results. Production is outside this repair authorization.
 
 [Implementation plan](../../plans/DATABASE_WORK_LIFECYCLE_2026-10-16.md) · [Research index](../../research/README.md) · [Preceding production failures](../../research/system-reliability/PRODUCTION_FAILURES_2026-10-16.md)
 

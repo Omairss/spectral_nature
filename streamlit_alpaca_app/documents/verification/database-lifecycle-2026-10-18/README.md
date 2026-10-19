@@ -1,6 +1,6 @@
 # Database lifecycle continuation — October 18
 
-Status: accepted locally; development packaging/verification in progress. No production promotion is authorized for this continuation.
+Status: accepted locally and verified in development. No production promotion is authorized for this continuation.
 
 [Plan](../../plans/DATABASE_WORK_LIFECYCLE_2026-10-16.md) · [Current production Home/research behavior](../home-presentation-cleanup-2026-10-18/PRODUCTION.md) · [Source policy](../../infra/RELEASE_SOURCE_POLICY.md)
 
@@ -15,3 +15,14 @@ The only runtime change is `run_system_recovery` in `pipeline/jobs/main.py`. All
 Local checks cover a 30-second capacity wait followed by cursor advancement, expired continuation reads/writes, cancellation propagation and the newer retained-research checkpoint behavior. These are execution/storage checks, not LLM-quality acceptance. Completed model experiments are reused; this continuation adds no paid model evaluation.
 
 The development release also updates `evidence-index-dev` and `system-recovery-dev` from their older reviewed worker image to the current accepted Git application. Their launch commands, namespace, identity, resources and triggers are retained. The current production images/configuration remain separate from this development acceptance.
+
+## Development evidence
+
+- [Packaged source](packaged-images.json): worker `58f5eaa6` and API `1cba5594`, built from Git `46e604ca`. All 197 application files in each immutable image match the accepted runtime inventory; no inherited application files or retired Streamlit package remain.
+- [Deployment](development-deployment.json) and [all-resource audit](configuration-audit.json): eight worker targets and the modern API updated. All 33 resource configurations are preserved; untargeted images, including every production image, are unchanged. API revision `sn-api-next-dev--0000047` is Healthy, ready and running at its existing one-replica maximum.
+- [Real overlap/cancellation probe](recovery-overlap.json): a 30-second background SQL hold forced recovery past its former 24-second cutoff. The durable cursor advanced **4 → 8**, checking four manifests without failures and draining 25 provider receipts in **36.613 seconds**, within the existing 60-second deadline. Interactive SQL completed in **0.121 seconds** while background capacity was occupied. Explicit scope cancellation stopped a separate active SQL worker in **0.055 seconds**; both test workers ended and the pool had no outstanding work connections.
+- [Normal job continuation](normal-recovery.json): saved job entrypoint `system-recovery-dev-ot8wi1l` succeeded, resumed from eight and advanced to **12** in **4.409 seconds**. The four-manifest and 25-receipt limits are retained. `scan_complete: false` records remaining durable work rather than pretending the whole backlog is empty.
+- [Home overlap reads](home-overlap.json): twelve HTTP 200 reads, including the actual capacity hold, retained the exact publication, summaries, graph, six beats and daily datapoints. Twenty additional rollout reads also returned HTTP 200. The existing DEV frontend's `/api/admin/health` route returns 404; its base Admin endpoint returns 401 anonymously. Frontend source/image is unchanged by this worker/API release, so these observations do not establish live Admin/Health acceptance.
+- Scheduled `evidence-index-dev-29872960` succeeded alongside the controlled probe and logged **27,843/27,843 chunks indexed**. [Index observation](index-observation.json).
+
+The controlled checks made no model calls and did not regenerate research, change source permissions, send notifications or alter schedules. The source policy remains enforced. This proves scoped DEV execution, continuation and serving behavior; it does not measure a full production refresh cycle, daily CPU reduction or LLM answer quality. Global permits protect participating database clients' concurrency rather than a guaranteed CPU percentage. Hierarchical summarization remains disabled.
