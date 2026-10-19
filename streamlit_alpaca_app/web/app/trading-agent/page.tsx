@@ -127,7 +127,7 @@ function ApprovedCallPerformance({calls, unavailable}: {calls: TrackedCall[]; un
   useEffect(() => {
     const controller = new AbortController();
     if (!identity) return () => controller.abort();
-    void fetch(`/api/trading-agent/calls/${encodeURIComponent(identity)}`, {cache: "no-store", signal: controller.signal}).then(async (response) => {
+    void fetch(`/api/trading-agent/approved-calls/${encodeURIComponent(identity)}`, {cache: "no-store", signal: controller.signal}).then(async (response) => {
       if (!response.ok) throw new Error(await responseError(response, "Call tracking is unavailable."));
       const value = await response.json() as TrackedCall;
       if (!controller.signal.aborted) {setDetail(value); setError("");}
