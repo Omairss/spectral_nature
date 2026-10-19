@@ -1190,3 +1190,6 @@ Every learning example needs its original request/answer, supplied evidence, pro
 
 ### October 18 — recovery uses the caller's remaining budget
 Database admission waits belong inside the complete execution deadline. An arbitrary phase fraction can consume a recovery phase while the caller still has useful time available. Keep bounded, idempotent batches and a durable cursor; let them use the remaining total budget. Record actual progress and elapsed time so a successful cloud execution cannot be mistaken for completion of the whole scan. Preserve current accepted source through a real isolated Git worktree when other sessions are editing shared modules.
+
+### October 18 — release every consumer needed by the requested feature
+A working backend endpoint and code in Git do not deploy a Next.js feature. The frontend's compiled route manifest and freshly loaded authenticated page must contain its adapter and control. An old open tab can retain removed JavaScript, data and UI for days; reload before using it as live acceptance. Preserve unrelated work by reviewing the complete current Git frontend and releasing through the same source/consumer gate, rather than treating a required missing consumer as an unrelated limitation.
