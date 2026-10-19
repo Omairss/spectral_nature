@@ -1,0 +1,728 @@
+{
+  "observed_at_utc": "2026-10-19T04:32:25.609434+00:00",
+  "status": "comparison_complete",
+  "accepted_production_build_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+  "application_mutations": false,
+  "production_changes": false,
+  "model_calls": 0,
+  "source_files_verified_across_four_images": 560,
+  "method": "Read exact deployed image entrypoints and all Python-file hashes in four isolated registry tasks, without application imports or credentials; verify retained source evidence, compare accepted production Git definitions and reachable helpers, inspect live job wiring/history.",
+  "jobs": [
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
+      "registry_verification_run": "cj19g",
+      "source_files_verified": 127,
+      "source_mismatches": 0,
+      "historical_source_evidence_sha256": "c3ec051f996bba282bf573973635a1045f5c79edd83f477fe563ff52c5c45874",
+      "source_verification": {
+        "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
+        "manifest_digest_verified": true,
+        "config_digest_verified": true,
+        "cmd": [
+          "python",
+          "-m",
+          "pipeline.jobs.main"
+        ],
+        "entrypoint": null,
+        "working_dir": "/app"
+      },
+      "effective_command_override": null,
+      "effective_args_override": null,
+      "job_environment": {
+        "PIPELINE_JOB_NAME": "fundamentals-quarterly-refresh"
+      },
+      "trigger": "Schedule",
+      "schedule": {
+        "cronExpression": "0 12 * * 1-5",
+        "parallelism": 1,
+        "replicaCompletionCount": 1
+      },
+      "replica_timeout_seconds": 3600,
+      "core_preservation": [
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "run_fundamentals",
+          "deployed_ast_sha256": "3c6ac4ce47dd17f71af1ed9cc9de0c60595cc0458ca96866e49e493592cc3eba",
+          "accepted_ast_sha256": "3c6ac4ce47dd17f71af1ed9cc9de0c60595cc0458ca96866e49e493592cc3eba",
+          "same": true,
+          "deployed_line": 1617,
+          "accepted_line": 1713
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_resolve_fundamentals_symbols",
+          "deployed_ast_sha256": "759811f4e6803c85545c3a65d6da700a4e253cb7852d4d3a8694798d19c37230",
+          "accepted_ast_sha256": "759811f4e6803c85545c3a65d6da700a4e253cb7852d4d3a8694798d19c37230",
+          "same": true,
+          "deployed_line": 1591,
+          "accepted_line": 1687
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_build_quarterly_fundamentals_snapshot",
+          "deployed_ast_sha256": "47d1810e8932d27547ea05cdc7a4ff1062c56f7c984c17f2fd85a3b0fd3bde24",
+          "accepted_ast_sha256": "47d1810e8932d27547ea05cdc7a4ff1062c56f7c984c17f2fd85a3b0fd3bde24",
+          "same": true,
+          "deployed_line": 1578,
+          "accepted_line": 1674
+        },
+        {
+          "path": "services/fundamentals.py",
+          "deployed_sha256": "7fe7900992c223eb042c3816878a38b1e61c87f85bb6d912a17bb8ce4a0a3217",
+          "accepted_sha256": "7fe7900992c223eb042c3816878a38b1e61c87f85bb6d912a17bb8ce4a0a3217",
+          "same": true
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_normalized",
+          "deployed_ast_sha256": "9007f8177969ce4dcbb068aa52d200c1c07af3fcdbea809675ebaf5c75283549",
+          "accepted_ast_sha256": "9007f8177969ce4dcbb068aa52d200c1c07af3fcdbea809675ebaf5c75283549",
+          "same": true,
+          "deployed_line": 37,
+          "accepted_line": 40
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_ticker_aliases",
+          "deployed_ast_sha256": "3964b048ca89d304a8880d71fdfacaee9d8009f5bf8f086e815cd0ccad64a255",
+          "accepted_ast_sha256": "3964b048ca89d304a8880d71fdfacaee9d8009f5bf8f086e815cd0ccad64a255",
+          "same": true,
+          "deployed_line": 41,
+          "accepted_line": 44
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_candidate_data_dirs",
+          "deployed_ast_sha256": "7af3983426413d5d016c8edc6613e43c0c76499e47351f312ea3374c058e66bc",
+          "accepted_ast_sha256": "7af3983426413d5d016c8edc6613e43c0c76499e47351f312ea3374c058e66bc",
+          "same": true,
+          "deployed_line": 55,
+          "accepted_line": 58
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_statement_path",
+          "deployed_ast_sha256": "a9c15be2f08bd8214a67efb5ec95225e3c44a24255dc70b4de2ab3168356b7aa",
+          "accepted_ast_sha256": "a9c15be2f08bd8214a67efb5ec95225e3c44a24255dc70b4de2ab3168356b7aa",
+          "same": true,
+          "deployed_line": 84,
+          "accepted_line": 87
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_load_statement",
+          "deployed_ast_sha256": "49bfc454243668423a4dc6d8ec2d51f2539ba9dfc6ed46d43f106e18442bdca4",
+          "accepted_ast_sha256": "49bfc454243668423a4dc6d8ec2d51f2539ba9dfc6ed46d43f106e18442bdca4",
+          "same": true,
+          "deployed_line": 96,
+          "accepted_line": 98
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_resolve_column",
+          "deployed_ast_sha256": "d32b74bce2eda9394b83071c7b81dd542fa1509e2e1b9a1f8fc6d0bc032d1e55",
+          "accepted_ast_sha256": "d32b74bce2eda9394b83071c7b81dd542fa1509e2e1b9a1f8fc6d0bc032d1e55",
+          "same": true,
+          "deployed_line": 112,
+          "accepted_line": 113
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_quarterly_rows",
+          "deployed_ast_sha256": "dce0bc68989956f0c5c10848eeb36f23d93cbf47f6a171d88a14ada89ce77c73",
+          "accepted_ast_sha256": "dce0bc68989956f0c5c10848eeb36f23d93cbf47f6a171d88a14ada89ce77c73",
+          "same": true,
+          "deployed_line": 126,
+          "accepted_line": 127
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_build_metric_frame",
+          "deployed_ast_sha256": "d3ca3fb584152135befcb2aeeb0b19d9c35e377045ab998b6a5759a87d3f124d",
+          "accepted_ast_sha256": "d3ca3fb584152135befcb2aeeb0b19d9c35e377045ab998b6a5759a87d3f124d",
+          "same": true,
+          "deployed_line": 143,
+          "accepted_line": 144
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_statement_to_long",
+          "deployed_ast_sha256": "232b005556352e03708404667d24a28cabe3b3ebec6c674d99ee7ef7ba00ebf9",
+          "accepted_ast_sha256": "232b005556352e03708404667d24a28cabe3b3ebec6c674d99ee7ef7ba00ebf9",
+          "same": true,
+          "deployed_line": 159,
+          "accepted_line": 159
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "load_quarterly_fundamentals",
+          "deployed_ast_sha256": "cd9ae68fb0baaa9c0b17b0a326743634f51bb0621384875c43526842fe9c5cd8",
+          "accepted_ast_sha256": "cd9ae68fb0baaa9c0b17b0a326743634f51bb0621384875c43526842fe9c5cd8",
+          "same": true,
+          "deployed_line": 186,
+          "accepted_line": 186
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "share_count_asof",
+          "deployed_ast_sha256": "686f7fc0c26c9da89a6dfc5f734f1e5260ee8ee3b85d5cff81975ba036dec04e",
+          "accepted_ast_sha256": "686f7fc0c26c9da89a6dfc5f734f1e5260ee8ee3b85d5cff81975ba036dec04e",
+          "same": true,
+          "deployed_line": 198,
+          "accepted_line": 198
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "_best_share_count_from_rows",
+          "deployed_ast_sha256": "929cb390aa71e6b0e0a5d3e65878ed67899e863c9404e5585cc1a06fb11253ee",
+          "accepted_ast_sha256": "929cb390aa71e6b0e0a5d3e65878ed67899e863c9404e5585cc1a06fb11253ee",
+          "same": true,
+          "deployed_line": 216,
+          "accepted_line": 216
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "share_counts_asof",
+          "deployed_ast_sha256": "f1813741bbd97893748205decdeefb68c5fa5c5338e66ad0e125f14b9d4712f4",
+          "accepted_ast_sha256": "f1813741bbd97893748205decdeefb68c5fa5c5338e66ad0e125f14b9d4712f4",
+          "same": true,
+          "deployed_line": 249,
+          "accepted_line": 249
+        },
+        {
+          "path": "compute/fundamentals.py",
+          "definition": "latest_share_count",
+          "deployed_ast_sha256": "b5ab1e8bdb455e79d9bb6feacd65aa47b4708915d1a8d79b5da9f8198c53cd03",
+          "accepted_ast_sha256": "b5ab1e8bdb455e79d9bb6feacd65aa47b4708915d1a8d79b5da9f8198c53cd03",
+          "same": true,
+          "deployed_line": 310,
+          "accepted_line": 310
+        },
+        {
+          "path": "services/simfin_refresh.py",
+          "definition": "load_simfin_api_key",
+          "deployed_ast_sha256": "b4baff07c203e17b2a04f76434a540a14b7080e2be85b6027e4e625a0898e3a1",
+          "accepted_ast_sha256": "b4baff07c203e17b2a04f76434a540a14b7080e2be85b6027e4e625a0898e3a1",
+          "same": true,
+          "deployed_line": 25,
+          "accepted_line": 25
+        },
+        {
+          "path": "services/simfin_refresh.py",
+          "definition": "simfin_refresh_configured",
+          "deployed_ast_sha256": "d41ccef2361368c03ab95337f9c5428a4c31a4da6cbc2da2e1776e062ae54e47",
+          "accepted_ast_sha256": "d41ccef2361368c03ab95337f9c5428a4c31a4da6cbc2da2e1776e062ae54e47",
+          "same": true,
+          "deployed_line": 71,
+          "accepted_line": 71
+        },
+        {
+          "path": "services/simfin_refresh.py",
+          "definition": "simfin_data_dir",
+          "deployed_ast_sha256": "59aae5efcb597187a7ad85963e422eee9a6d2bd9a8acbc46b86c1c0a9cc5c561",
+          "accepted_ast_sha256": "59aae5efcb597187a7ad85963e422eee9a6d2bd9a8acbc46b86c1c0a9cc5c561",
+          "same": true,
+          "deployed_line": 75,
+          "accepted_line": 75
+        },
+        {
+          "path": "services/simfin_refresh.py",
+          "definition": "refresh_simfin_quarterly_cache",
+          "deployed_ast_sha256": "203d4fb28ed1f15fb408a97664d89cf059276e90c5f990765dbc094422d62bdc",
+          "accepted_ast_sha256": "203d4fb28ed1f15fb408a97664d89cf059276e90c5f990765dbc094422d62bdc",
+          "same": true,
+          "deployed_line": 83,
+          "accepted_line": 83
+        },
+        {
+          "path": "services/simfin_refresh.py",
+          "definition": "build_quarterly_fundamentals_frame",
+          "deployed_ast_sha256": "ea8d63b745ac290afb88636beffb517752f5c4d4ae6a02476166fa63609b78e0",
+          "accepted_ast_sha256": "ea8d63b745ac290afb88636beffb517752f5c4d4ae6a02476166fa63609b78e0",
+          "same": true,
+          "deployed_line": 123,
+          "accepted_line": 122
+        }
+      ],
+      "has_managed_database_module": false,
+      "has_work_scope_module": false,
+      "recent_executions": [
+        {
+          "name": "fundamentals-quarterly-refresh-29869200",
+          "status": "Succeeded",
+          "start": "2026-10-16T12:00:00+00:00",
+          "end": "2026-10-16T12:07:58+00:00"
+        },
+        {
+          "name": "fundamentals-quarterly-refresh-29867760",
+          "status": "Succeeded",
+          "start": "2026-10-15T12:00:00+00:00",
+          "end": "2026-10-15T12:09:09+00:00"
+        },
+        {
+          "name": "fundamentals-quarterly-refresh-jq0lbh1",
+          "status": "Succeeded",
+          "start": "2026-10-14T17:32:59+00:00",
+          "end": "2026-10-14T17:42:57+00:00"
+        },
+        {
+          "name": "fundamentals-quarterly-refresh-29866320",
+          "status": "Succeeded",
+          "start": "2026-10-14T12:00:00+00:00",
+          "end": "2026-10-14T12:08:29+00:00"
+        }
+      ],
+      "reliability_differences": [
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_db_connection",
+          "deployed_ast_sha256": "131079590b7525181ed31b9d63caededca70dfa1e1670ebf6d2979b82ef7daa3",
+          "accepted_ast_sha256": "afd231e3e04a46bc4b5ef14c9d0ade49bc2d9a43d1fbb01cc544d88cfb2e2191",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_call_with_timeout",
+          "deployed_ast_sha256": "deec59f9c30f325c167905de481d4a0498f387e4d5fbc85752954c0e604530dd",
+          "accepted_ast_sha256": "08dc7f61140b1e4e8a2142b01962dbe8db566b3cecfbea4569a599f726cf73ee",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "main",
+          "deployed_ast_sha256": "c07eeec3d490cef2e01e87f35348911881758fc1fba55d6459e11929ef0aa0a3",
+          "accepted_ast_sha256": "ebba1789f9f18775ed4c4eaf4e1db578ab67349a6acb9243702393a07cb45b20",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_upload_manifest",
+          "deployed_ast_sha256": "de97210b228ce32fd9541fcb1c41456b6170f7ed533f4ad5d893edfd85211cea",
+          "accepted_ast_sha256": "c9b469565780ca7f86f3fd9e3a345c65edbdf8ccebd971f427a9aaaa554d4b85",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_persist_dataset",
+          "deployed_ast_sha256": "e07b8cfa0517d510d6f2ce3c45cff28bf745a39299f11c7f7a69a3daed6f3b3b",
+          "accepted_ast_sha256": "0bf7055a4b305112dfad5edd1f0c7a77a0a94237ccb3e07940cae52ba71f9a39",
+          "same": false
+        }
+      ]
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "registry_verification_run": "cj19h",
+      "source_files_verified": 158,
+      "source_mismatches": 0,
+      "historical_source_evidence_sha256": "a444cb7599b9b0d020e75a1618af2a4a1497ac38f444dc0651144db66cc8f995",
+      "source_verification": {
+        "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+        "manifest_digest_verified": true,
+        "config_digest_verified": true,
+        "cmd": [
+          "python",
+          "/app/scripts/sync_robinhood_main.py",
+          "--schedule-due",
+          "--limit",
+          "1"
+        ],
+        "entrypoint": null,
+        "working_dir": "/app"
+      },
+      "effective_command_override": null,
+      "effective_args_override": null,
+      "job_environment": {},
+      "trigger": "Schedule",
+      "schedule": {
+        "cronExpression": "0 * * * *",
+        "parallelism": 1,
+        "replicaCompletionCount": 1
+      },
+      "replica_timeout_seconds": 2400,
+      "core_preservation": [
+        {
+          "path": "scripts/sync_robinhood_main.py",
+          "deployed_sha256": "dca80937e170dc945ae145393fc605c1fe9ceb099007b0a2f44420e5186636e2",
+          "accepted_sha256": "dca80937e170dc945ae145393fc605c1fe9ceb099007b0a2f44420e5186636e2",
+          "same": true
+        },
+        {
+          "path": "services/robinhood_main_sync.py",
+          "deployed_sha256": "9d759f52e1b823a3c982ef95413fe9eaf66a54704f46dd0b40c3f7915666ead1",
+          "accepted_sha256": "9d759f52e1b823a3c982ef95413fe9eaf66a54704f46dd0b40c3f7915666ead1",
+          "same": true
+        },
+        {
+          "path": "services/robinhood_main_store.py",
+          "deployed_sha256": "e493492423cebd8cc9c560219285628d71acf8d4fe38f8596e536bba97cfc200",
+          "accepted_sha256": "e493492423cebd8cc9c560219285628d71acf8d4fe38f8596e536bba97cfc200",
+          "same": true
+        },
+        {
+          "path": "services/brokerage_mcp_store.py",
+          "deployed_sha256": "e42dbc473ab3867e2a15ca2f4ed30d222c1cc68a778f4c67dae96e83664a2e88",
+          "accepted_sha256": "e42dbc473ab3867e2a15ca2f4ed30d222c1cc68a778f4c67dae96e83664a2e88",
+          "same": true
+        }
+      ],
+      "has_managed_database_module": false,
+      "has_work_scope_module": false,
+      "recent_executions": [
+        {
+          "name": "robinhood-main-sync-prod-29873040",
+          "status": "Succeeded",
+          "start": "2026-10-19T04:00:00+00:00",
+          "end": "2026-10-19T04:00:57+00:00"
+        },
+        {
+          "name": "robinhood-main-sync-prod-29872980",
+          "status": "Succeeded",
+          "start": "2026-10-19T03:00:00+00:00",
+          "end": "2026-10-19T03:00:45+00:00"
+        },
+        {
+          "name": "robinhood-main-sync-prod-29872920",
+          "status": "Succeeded",
+          "start": "2026-10-19T02:00:00+00:00",
+          "end": "2026-10-19T02:00:55+00:00"
+        },
+        {
+          "name": "robinhood-main-sync-prod-29872860",
+          "status": "Succeeded",
+          "start": "2026-10-19T01:00:00+00:00",
+          "end": "2026-10-19T01:00:35+00:00"
+        }
+      ],
+      "reliability_differences": [
+        {
+          "path": "services/auth_store.py",
+          "definition": "_db_connect",
+          "deployed_ast_sha256": "c2aa1ecaeb5968b7c54901ff5c08e5a5d6347861bc377f09ff03eb84bf17e106",
+          "accepted_ast_sha256": "f5d61358feb3e4c9ece468c6d713f257d6469bee2fe580615e361979fca750fa",
+          "same": false
+        }
+      ]
+    },
+    {
+      "name": "system-health",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
+      "registry_verification_run": "cj19f",
+      "source_files_verified": 148,
+      "source_mismatches": 0,
+      "historical_source_evidence_sha256": "3707d85a09a80af314086c316fb506be6ed029424be6dc16381a8086f9d6a142",
+      "source_verification": {
+        "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
+        "manifest_digest_verified": true,
+        "config_digest_verified": true,
+        "cmd": [
+          "python",
+          "-m",
+          "pipeline.jobs.main"
+        ],
+        "entrypoint": null,
+        "working_dir": "/app"
+      },
+      "effective_command_override": null,
+      "effective_args_override": null,
+      "job_environment": {
+        "PIPELINE_JOB_NAME": "system-health"
+      },
+      "trigger": "Schedule",
+      "schedule": {
+        "cronExpression": "*/15 * * * *",
+        "parallelism": 1,
+        "replicaCompletionCount": 1
+      },
+      "replica_timeout_seconds": 300,
+      "core_preservation": [
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "run_system_health",
+          "deployed_ast_sha256": "aa8c2c6de1043a1d2abf983f824f82c15c0787d183d97a3ca70c25f8e51b1f12",
+          "accepted_ast_sha256": "aa8c2c6de1043a1d2abf983f824f82c15c0787d183d97a3ca70c25f8e51b1f12",
+          "same": true,
+          "deployed_line": 3237,
+          "accepted_line": 3319
+        },
+        {
+          "path": "services/system_health.py",
+          "deployed_sha256": "3075ac581364cb7007415bac1a5f921f5e5cdb2bd7ce1b1b2c24c6658ee1445b",
+          "accepted_sha256": "3075ac581364cb7007415bac1a5f921f5e5cdb2bd7ce1b1b2c24c6658ee1445b",
+          "same": true
+        },
+        {
+          "path": "services/emailer.py",
+          "deployed_sha256": "ba8a05edab2f687d61ff100b729be10d7374ee7df4a97154d32efab43bbed04f",
+          "accepted_sha256": "ba8a05edab2f687d61ff100b729be10d7374ee7df4a97154d32efab43bbed04f",
+          "same": true
+        }
+      ],
+      "has_managed_database_module": false,
+      "has_work_scope_module": false,
+      "recent_executions": [
+        {
+          "name": "system-health-29873070",
+          "status": "Succeeded",
+          "start": "2026-10-19T04:30:00+00:00",
+          "end": "2026-10-19T04:30:35+00:00"
+        },
+        {
+          "name": "system-health-29873055",
+          "status": "Succeeded",
+          "start": "2026-10-19T04:15:00+00:00",
+          "end": "2026-10-19T04:15:38+00:00"
+        },
+        {
+          "name": "system-health-29873040",
+          "status": "Succeeded",
+          "start": "2026-10-19T04:00:00+00:00",
+          "end": "2026-10-19T04:00:40+00:00"
+        },
+        {
+          "name": "system-health-29873025",
+          "status": "Succeeded",
+          "start": "2026-10-19T03:45:00+00:00",
+          "end": "2026-10-19T03:45:42+00:00"
+        }
+      ],
+      "reliability_differences": [
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_db_connection",
+          "deployed_ast_sha256": "131079590b7525181ed31b9d63caededca70dfa1e1670ebf6d2979b82ef7daa3",
+          "accepted_ast_sha256": "afd231e3e04a46bc4b5ef14c9d0ade49bc2d9a43d1fbb01cc544d88cfb2e2191",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_call_with_timeout",
+          "deployed_ast_sha256": "deec59f9c30f325c167905de481d4a0498f387e4d5fbc85752954c0e604530dd",
+          "accepted_ast_sha256": "08dc7f61140b1e4e8a2142b01962dbe8db566b3cecfbea4569a599f726cf73ee",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "main",
+          "deployed_ast_sha256": "ed4e84000251ce7fd5c99dc7fd7c41be8e91d7730f43ebc69147570ebcbf784a",
+          "accepted_ast_sha256": "ebba1789f9f18775ed4c4eaf4e1db578ab67349a6acb9243702393a07cb45b20",
+          "same": false
+        },
+        {
+          "path": "services/pipeline_store.py",
+          "definition": "latest_dataset_metadata",
+          "deployed_ast_sha256": "68528210d3d53298035e79c5fdf597ec569f698177c7561e852e91d824702c66",
+          "accepted_ast_sha256": "07a362f1a6b3de53c54727289a021cfdcd48971c7d79cf9ab5bfcb5cf5dc2be0",
+          "same": false
+        }
+      ]
+    },
+    {
+      "name": "universe-builder",
+      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "registry_verification_run": "cj19e",
+      "source_files_verified": 127,
+      "source_mismatches": 0,
+      "historical_source_evidence_sha256": "01aad673f517ec181032f730b91497ff7bd145e414d77f17b0c480069c241817",
+      "source_verification": {
+        "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+        "manifest_digest_verified": true,
+        "config_digest_verified": true,
+        "cmd": [
+          "python",
+          "-m",
+          "pipeline.jobs.main"
+        ],
+        "entrypoint": null,
+        "working_dir": "/app"
+      },
+      "effective_command_override": null,
+      "effective_args_override": null,
+      "job_environment": {
+        "PIPELINE_JOB_NAME": "universe-builder"
+      },
+      "trigger": "Schedule",
+      "schedule": {
+        "cronExpression": "20 13 * * 1-5",
+        "parallelism": 1,
+        "replicaCompletionCount": 1
+      },
+      "replica_timeout_seconds": 3600,
+      "core_preservation": [
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "run_universe_builder",
+          "deployed_ast_sha256": "68f07a99a8c461be9e55aa367961eb1716534d3505fb16308b9cd9eedb8fd74c",
+          "accepted_ast_sha256": "68f07a99a8c461be9e55aa367961eb1716534d3505fb16308b9cd9eedb8fd74c",
+          "same": true,
+          "deployed_line": 3027,
+          "accepted_line": 3237
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_build_equity_universe_snapshot",
+          "deployed_ast_sha256": "4e5edbd99b22bc08260571f2a7346266a3a97697290a20c93bcb714c8b4ccd82",
+          "accepted_ast_sha256": "4e5edbd99b22bc08260571f2a7346266a3a97697290a20c93bcb714c8b4ccd82",
+          "same": true,
+          "deployed_line": 1174,
+          "accepted_line": 1266
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_load_latest_equity_universe_snapshot",
+          "deployed_ast_sha256": "e15dc98bd161ec4a938f603b94b61b2543bc32470919dcee532d3cddc487c5e0",
+          "accepted_ast_sha256": "e15dc98bd161ec4a938f603b94b61b2543bc32470919dcee532d3cddc487c5e0",
+          "same": true,
+          "deployed_line": 1138,
+          "accepted_line": 1230
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_equity_universe_target_size",
+          "deployed_ast_sha256": "cbc79bdf1531a38043f56ac94cd8a8da31dd54b0954388e7a0f4fe7da610626f",
+          "accepted_ast_sha256": "cbc79bdf1531a38043f56ac94cd8a8da31dd54b0954388e7a0f4fe7da610626f",
+          "same": true,
+          "deployed_line": 1120,
+          "accepted_line": 1212
+        },
+        {
+          "path": "services/universe.py",
+          "deployed_sha256": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
+          "accepted_sha256": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
+          "same": true
+        }
+      ],
+      "has_managed_database_module": false,
+      "has_work_scope_module": false,
+      "recent_executions": [
+        {
+          "name": "universe-builder-29869280",
+          "status": "Succeeded",
+          "start": "2026-10-16T13:20:00+00:00",
+          "end": "2026-10-16T13:20:56+00:00"
+        },
+        {
+          "name": "universe-builder-29867840",
+          "status": "Succeeded",
+          "start": "2026-10-15T13:20:00+00:00",
+          "end": "2026-10-15T13:20:58+00:00"
+        },
+        {
+          "name": "universe-builder-29866400",
+          "status": "Succeeded",
+          "start": "2026-10-14T13:20:00+00:00",
+          "end": "2026-10-14T13:21:02+00:00"
+        },
+        {
+          "name": "universe-builder-29864960",
+          "status": "Succeeded",
+          "start": "2026-10-13T13:20:00+00:00",
+          "end": "2026-10-13T13:21:00+00:00"
+        }
+      ],
+      "reliability_differences": [
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_db_connection",
+          "deployed_ast_sha256": "131079590b7525181ed31b9d63caededca70dfa1e1670ebf6d2979b82ef7daa3",
+          "accepted_ast_sha256": "afd231e3e04a46bc4b5ef14c9d0ade49bc2d9a43d1fbb01cc544d88cfb2e2191",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_call_with_timeout",
+          "deployed_ast_sha256": "deec59f9c30f325c167905de481d4a0498f387e4d5fbc85752954c0e604530dd",
+          "accepted_ast_sha256": "08dc7f61140b1e4e8a2142b01962dbe8db566b3cecfbea4569a599f726cf73ee",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "main",
+          "deployed_ast_sha256": "c07eeec3d490cef2e01e87f35348911881758fc1fba55d6459e11929ef0aa0a3",
+          "accepted_ast_sha256": "ebba1789f9f18775ed4c4eaf4e1db578ab67349a6acb9243702393a07cb45b20",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_upload_manifest",
+          "deployed_ast_sha256": "de97210b228ce32fd9541fcb1c41456b6170f7ed533f4ad5d893edfd85211cea",
+          "accepted_ast_sha256": "c9b469565780ca7f86f3fd9e3a345c65edbdf8ccebd971f427a9aaaa554d4b85",
+          "same": false
+        },
+        {
+          "path": "pipeline/jobs/main.py",
+          "definition": "_persist_dataset",
+          "deployed_ast_sha256": "e07b8cfa0517d510d6f2ce3c45cff28bf745a39299f11c7f7a69a3daed6f3b3b",
+          "accepted_ast_sha256": "0bf7055a4b305112dfad5edd1f0c7a77a0a94237ccb3e07940cae52ba71f9a39",
+          "same": false
+        }
+      ]
+    }
+  ],
+  "broker_existing_service_definitions_preserved": 84,
+  "broker_existing_service_definitions_changed": [],
+  "recovery_bindings": [
+    {
+      "name": "system-recovery-dev",
+      "pipeline_job_name": "system-recovery",
+      "dataset_namespace": "development",
+      "trigger": "Manual"
+    }
+  ],
+  "production_recovery_binding_present": false,
+  "findings": [
+    {
+      "name": "Database admission and cancellation are absent from all four retained images",
+      "affected_jobs": [
+        "universe-builder",
+        "fundamentals-quarterly-refresh",
+        "system-health",
+        "robinhood-main-sync-prod"
+      ],
+      "basis": "Direct psycopg.connect in the dispatched main connection owner or broker auth_store._db_connect; neither services/database.py nor services/work_scope.py exists in the images.",
+      "impact": "These clients bypass the shared transaction permits and work-scope cancellation; protected interactive concurrency is therefore not enforced across every participating producer. CPU impact is not measured."
+    },
+    {
+      "name": "Universe and fundamentals retain older publication and completion paths",
+      "affected_jobs": [
+        "universe-builder",
+        "fundamentals-quarterly-refresh"
+      ],
+      "basis": "_upload_manifest overwrites latest.json directly; _persist_dataset propagates SQL-index failure after the Blob write; main lacks durable job completion receipt.",
+      "impact": "They lack conditional advancement of the latest pointer and explicit recovery/Warning handling for SQL-index failure after a committed Blob publication."
+    },
+    {
+      "name": "Scheduled health retains SQL-dependent metadata reads and older completion handling",
+      "affected_jobs": [
+        "system-health"
+      ],
+      "basis": "services/system_health.py and services/emailer.py match the accepted code, but imported pipeline_store.latest_dataset_metadata still reads SQL on a cold metadata miss even when the stable Blob manifest is present; main has raw database connections and no durable completion receipt.",
+      "impact": "Monitoring coverage is preserved, while observation still adds avoidable SQL dependency and lacks the newer completion outbox."
+    },
+    {
+      "name": "Production recovery entrypoint has no configured production job",
+      "affected_jobs": [
+        "system-health"
+      ],
+      "basis": "The only accepted runtime call sites for the manifest and provider-receipt reconcilers are run_system_recovery; the only live job binding is manual system-recovery-dev with namespace development.",
+      "impact": "Production has no configured periodic executor for the new bounded recovery entrypoint. This does not establish a count of pending receipts or lost publications."
+    },
+    {
+      "name": "Broker upgrade also requires explicit background workload scope",
+      "affected_jobs": [
+        "robinhood-main-sync-prod"
+      ],
+      "basis": "The accepted broker script and its stores contain no database_workload scope; the accepted Dockerfile broker stage and current ARM environment set no PIPELINE_JOB_NAME. services.database._workload defaults such a process to interactive.",
+      "impact": "Replacing only the broker image with the current accepted source would add managed connections but would classify scheduled sync work as interactive."
+    }
+  ],
+  "excluded_from_feature_loss_claims": [
+    "Uncalled Home/Trading/research/UI implementations present in older worker trees",
+    "New API-only portfolio_data_status helper absent from the broker worker",
+    "New downstream fundamental_snapshots_by_symbol helper absent from the fundamentals producer; its existing producer/loaders are preserved",
+    "Missing news/calendar helpers unused by these job dispatch paths"
+  ],
+  "scope_limit": "Complete code and deployment-wiring comparison of these four jobs; no new product workflow, broker action, SQL stress load, LLM evaluation or production deployment. Does not certify repository-wide feature equivalence or current database utilization."
+}

@@ -1,0 +1,10 @@
+{
+  "archive": "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261019T043601Z/rollback-consumer-comparison-20261018-operator-receipts.tar.gz",
+  "sha256": "c320dba62010b9dec5e37c578a87dd999ea25631712bf55b8565802ad647a1fd",
+  "files": 10,
+  "completed_at": "2026-10-19T04:36:01.200597+00:00",
+  "expires_at": "2026-11-18T04:36:01.200597+00:00",
+  "content_verified": true,
+  "original_operator_directory_removed": true,
+  "automatic_cleanup": "Existing daily archive cleanup retains completed batches for at least 30 days."
+}
