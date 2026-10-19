@@ -1,0 +1,178 @@
+{
+  "role": "candidate-direction-heldout",
+  "horizon": "1m",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 188.9494998329901,
+  "input_sha256": "0b0287162db14ad9c67fb8a5785c91a0fa3ee982cd3c214bbf2b450de24853bf",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "directional_price_calls_v3",
+    "regime_read": "Biotechnology and diagnostics shares led the past month, with peers up roughly 35% to 86%, while higher rate expectations pressured AI hardware shares in mid-October 2026. Energy shares found support from crude oil near $90 a barrel and from a surprise first-round result in Brazil's presidential election.",
+    "portfolio_posture": "The ideas share two main risks: a cooling of the biotechnology momentum wave, and a reversal in crude oil or in AI-hardware demand.",
+    "candidates": [
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "PBR",
+        "stance": "long",
+        "forecast": {
+          "pricing_assessment": "The reference close of $25.325 follows a 19.5% one-month gain, so momentum and the election surprise are already in the price. Upside at this horizon depends on crude oil holding near $90 and on production moving toward the 3 million barrels a day the chief executive described on 24 September 2026.",
+          "assumptions": [
+            "Crude oil stays near $90 a barrel through the horizon.",
+            "Oil production keeps rising toward 3 million barrels a day.",
+            "The Brazilian runoff election does not lead to fuel-price or dividend changes that take cash away from shareholders."
+          ],
+          "opposing_case": "Third-party valuation checks flag the ADS as overvalued, and Wall Street Zen downgraded the stock on 11 October 2026. A state-controlled board can also change fuel prices or the dividend at any time, which would send cash to other uses.",
+          "reference_price": 25.325,
+          "reference_snapshot_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Petrobras is worth researching now because firm crude prices, production growth and a Brazilian election surprise lifted the shares 19.5% in a month, and the runoff result can change dividend policy.",
+        "hypothesis": "Petrobras can keep rising over the next month as production moves toward 3 million barrels a day and crude oil holds near $90. A market-friendly runoff result would lower the risk that politics directs cash away from shareholders.",
+        "evidence": [
+          "24 September 2026: the chief executive said Petrobras is close to 3 million barrels of oil a day ([Benzinga](https://www.benzinga.com/news/26/09/61976755/petrobras-ceo-speaking-rog-e-2026-says-company-close-reaching-3m-barrels-day-oil-production)).",
+          "Brazilian stocks had their best day since 2020 after Bolsonaro led the first round of the presidential vote ([Benzinga](https://www.benzinga.com/etfs/specialty-etfs/26/10/62164301/brazil-stocks-best-day-since-2020-bolsonaro-first-round-ewz)); crude traded near $90 on Hormuz risk ([Benzinga](https://www.benzinga.com/markets/equities/26/09/61561373/energy-stocks-rally-crude-90-iran-hormuz-strikes)).",
+          "UBS kept a Buy rating and raised its price target by 23% in September 2026 ([Benzinga](https://www.benzinga.com/news/26/09/61944093/ubs-maintains-buy-petrobras-brasileiro-raises-price-target-23))."
+        ],
+        "invalidation": "Oil falling back toward the low $80s, a miss on the 3 million barrel a day target, or a dividend cut would disprove this call.",
+        "tail_risks": [
+          "The Brazilian runoff goes against market expectations and the shares give back the election gain.",
+          "Crude oil falls sharply if the Hormuz risk fades.",
+          "The overvaluation flags and the 11 October 2026 downgrade pull the price lower."
+        ],
+        "evidence_limits": [
+          "Whether production actually crosses 3 million barrels a day, and when, because the dividend depends on that cash flow.",
+          "The board's next dividend decision and any change to fuel-price policy after the runoff.",
+          "Whether Brent holds above about $80 a barrel, because a lower price would cut cash flow."
+        ],
+        "suggested_horizon": "1 Month",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "CRGY",
+        "stance": "long",
+        "forecast": {
+          "pricing_assessment": "The reference close of $12.865 is close to the $12.50 price of the 80 million shares sold on 9 October 2026, so the added shares look largely reflected. Post-deal analyst targets of $17 to $20 leave upside only if Crescent funds the rest of the $4.2 billion purchase without another large share sale.",
+          "assumptions": [
+            "Crescent funds the remaining purchase price mainly with debt it can service, and does not sell another large block of shares.",
+            "Oil prices hold near current levels and the third-quarter 2026 report shows cash flow close to the second quarter.",
+            "The reported cost savings of about $140 million a year appear in later results."
+          ],
+          "opposing_case": "The deal adds debt on top of $6.85 billion of liabilities, and the 80 million new shares lower each existing owner's claim on the business. Cash flow is uneven: free cash flow was negative $155.8 million in the first quarter of 2026 and $622.0 million in the second.",
+          "reference_price": 12.865,
+          "reference_snapshot_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Crescent is worth researching now because it agreed on 8 October 2026 to buy Devon's Eagle Ford assets for $4.2 billion and sold $1 billion of new shares the next day, and the stock has fallen 12.2% in a month.",
+        "hypothesis": "Crescent can recover over the next month as the market absorbs the share sale and the Devon acreage adds oil fields next to its own. The added cost savings and post-deal analyst targets of $17 to $20 suggest the sellers valued the deal more harshly than the buyers did.",
+        "evidence": [
+          "8 October 2026: Devon Energy agreed to sell its Eagle Ford assets to Crescent for $4.2 billion in cash, covering about 90,000 net acres ([Reuters](https://www.reuters.com/legal/transactional/devon-energy-sell-eagle-ford-assets-crescent-energy-42-billion-2026-10-08/)).",
+          "9 October 2026: Crescent priced 80 million Class A shares at $12.50 each to raise about $1 billion, and a KKR affiliate bought 40 million of them ([StockTitan](https://www.stocktitan.net/news/CRGY/crescent-energy-company-announces-pricing-of-public-offering-of-omfbd0521ooo.html)).",
+          "Quarter ended 30 June 2026: revenue $1.395 billion, net income $492.8 million and free cash flow $622.0 million, after a first quarter with a $419.8 million loss."
+        ],
+        "invalidation": "Another large share sale, a third-quarter 2026 report with weak free cash flow, or a fall in oil prices would disprove this call.",
+        "tail_risks": [
+          "Crescent sells more shares or borrows at a cost that pushes free cash flow below zero.",
+          "The third-quarter 2026 report shows lower production, weaker prices or higher costs than the second quarter.",
+          "Oil prices fall and reduce the value of the new Eagle Ford acreage."
+        ],
+        "evidence_limits": [
+          "How Crescent will fund the remaining part of the $4.2 billion price, and when the deal closes.",
+          "Third-quarter 2026 production, realized prices and free cash flow.",
+          "Company confirmation of the roughly $140 million a year cost-saving figure."
+        ],
+        "suggested_horizon": "1 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "LITE",
+        "stance": "long",
+        "forecast": {
+          "pricing_assessment": "The reference close of $1,113.635 sits just below the average analyst target of $1,128.85 set on 1 October 2026, so the market already pays for much of the good news. Upside at this horizon depends on the fiscal first-quarter 2027 report, which I estimate will come in early November 2026, confirming the booked orders and lifting margins.",
+          "assumptions": [
+            "The fiscal first-quarter 2027 report meets or beats expectations and the company keeps saying orders are sold out.",
+            "Data-centre buyers keep ordering optical parts even as rate expectations rise.",
+            "No competitor adds enough capacity to change the supply balance before the horizon ends."
+          ],
+          "opposing_case": "The shares are up about 597% in a year, so the price already pays for the booked orders, and rising rate-hike bets hit AI hardware in October 2026. SK Hynix had its worst seven-day drop since 2008, and Gartner warned that 80% of neoclouds may stop independent operations by 2030.",
+          "reference_price": 1113.635,
+          "reference_snapshot_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Lumentum is worth researching now because on 9 October 2026 the chief executive said AI optical parts are sold out through early 2029, and the next earnings report falls inside this horizon.",
+        "hypothesis": "Lumentum can keep rising over the next month if the fiscal first-quarter 2027 report confirms the booked orders and shows higher margins. Orders booked through early 2029 give the company more revenue visibility than most AI hardware suppliers.",
+        "evidence": [
+          "9 October 2026: chief executive Michael Hurlston said AI optical components are booked through early 2029 — \"We are completely sold out, so there's no end in sight\" — and the stock rose about 6% to 7% ([Yahoo Finance](https://finance.yahoo.com/technology/ai/articles/lumentum-ai-optical-components-sold-112901568.html)).",
+          "Quarter ended 28 March 2026: revenue $808.4 million, up 90% from a year earlier, operating income $175.6 million and free cash flow $118.6 million, the first clearly positive free-cash-flow quarter after several weak years.",
+          "12 August 2026: fiscal fourth-quarter 2026 revenue was about $1.01 billion, up 109% from a year earlier and above consensus, and the stock rose about 14.9% that day ([TradingKey](https://www.tradingkey.com/news/market-movers/262100076-market-movers-lite-20260812))."
+        ],
+        "invalidation": "A fiscal first-quarter 2027 report with slower orders, lower gross margin or guidance below expectations would disprove this call, as would any end to the sold-out statement.",
+        "tail_risks": [
+          "The fiscal first-quarter 2027 report disappoints and the stock gives back the recent gain.",
+          "Higher rate expectations keep pressing AI hardware shares lower.",
+          "A large customer delays or cancels orders, or a competitor adds enough capacity to end the shortage."
+        ],
+        "evidence_limits": [
+          "Fiscal first-quarter 2027 revenue, gross margin and whether the sold-out language still holds.",
+          "Order book size and customer concentration in the fiscal 2026 annual report.",
+          "Capacity additions by competitors and any move by a large buyer to qualify a second supplier."
+        ],
+        "suggested_horizon": "1 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "LQDA",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "The reference close of $27.93 is the last close the snapshot observed, recorded at 05:55 UTC on 14 October 2026, before the reported 26% jump on the settlement news that same day. After that jump the relief looks largely priced, so the next move depends on how the company pays the installments.",
+          "assumptions": [
+            "Cash on hand plus operating cash flow is not enough to cover the payments due within weeks, so Liquidia raises new debt or sells shares.",
+            "YUTREPIA sales do not grow fast enough in the fourth quarter to cover the payments from operations alone.",
+            "The market moves from relief about the settlement to the cost of it."
+          ],
+          "opposing_case": "Quarterly revenue rose from $8.8 million in the second quarter of 2025 to $171.7 million in the second quarter of 2026, with preliminary third-quarter 2026 product sales of $222.7 million. Free cash flow was already positive at $69.0 million in the second quarter of 2026, so the company may pay from operations and the shares may keep recovering.",
+          "reference_price": 27.93,
+          "reference_snapshot_as_of": "2026-10-14T05:55:36.031874+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Liquidia is worth researching now because on 13 October 2026 it settled all patent lawsuits with United Therapeutics, which removed the risk of a court order to stop YUTREPIA sales.",
+        "hypothesis": "The settlement removed the risk of a sales ban, but it also moved a large cash bill into the near term. The shares can fall over the next month if Liquidia must borrow or sell shares to pay about $235 million due within weeks.",
+        "evidence": [
+          "13 October 2026: Liquidia announced a global settlement of all six pending lawsuits with United Therapeutics and said YUTREPIA sales continue without interruption ([Liquidia press release](https://www.liquidia.com/news-releases/news-release-details/liquidia-announces-global-settlement-resolving-all-pending)); Reuters reported a 26% share jump on 14 October 2026 ([Reuters](https://www.reuters.com/legal/litigation/liquidia-surges-after-381-million-settlement-with-united-therapeutics-lung-2026-10-14/)).",
+          "Payments: a net $380.7 million across 2026 and 2027 — $175 million within 30 business days, then two payments of $72.7 million — plus $60.3 million this month to parties in the antitrust case ([TradingView](https://in.tradingview.com/news/benzinga:cf71ece01094b:0-liquidia-corporation-stock-is-trending-in-after-hours-following-united-therapeutics-settlement-what-you-should-know/)).",
+          "Quarter ended 30 June 2026: revenue $171.7 million, net income $74.7 million and operating cash flow $80.2 million, against total liabilities of $326.8 million before the settlement."
+        ],
+        "invalidation": "The company pays the installments from cash and operations without selling shares or borrowing, and YUTREPIA sales keep rising each quarter.",
+        "tail_risks": [
+          "A new share sale is priced higher than expected and the market treats it as a sign of strength.",
+          "The biotechnology momentum wave keeps lifting the shares regardless of the cash cost.",
+          "Insurance or another party covers part of the $380.7 million, which reduces the cash need."
+        ],
+        "evidence_limits": [
+          "The cash balance and share count at 30 September 2026, which decide whether the company needs new money.",
+          "The full settlement terms, including any royalty on YUTREPIA sales or limits on the licence.",
+          "The dated third-quarter 2026 report and a confirmed YUTREPIA sales figure."
+        ],
+        "suggested_horizon": "1 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      }
+    ],
+    "data_gaps": [
+      "The cash balance and share count at 30 September 2026 are not known for Liquidia, so its ability to pay the settlement installments cannot be measured.",
+      "The contents of Recursion's 15 October 2026 clinical data updates and partner milestone are not described.",
+      "The funding plan for the rest of Crescent's $4.2 billion Devon purchase is not disclosed."
+    ],
+    "error": ""
+  }
+}

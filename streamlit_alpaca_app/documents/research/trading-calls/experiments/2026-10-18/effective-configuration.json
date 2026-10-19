@@ -1,0 +1,8 @@
+{
+  "requested_model": "deepseek-reasoner",
+  "thinking_mode": "enabled",
+  "configured_effort": "",
+  "system_prompt_override_active": false,
+  "active_system_prompt_sha256": "1f5156a5cba5f5e149e13f9504f7c89f9933c62f076a51742fa61255e7f16072",
+  "source_default_system_prompt_sha256": "1f5156a5cba5f5e149e13f9504f7c89f9933c62f076a51742fa61255e7f16072"
+}

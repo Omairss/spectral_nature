@@ -1,0 +1,130 @@
+{
+  "role": "baseline",
+  "horizon": "5y",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 92.68858941597864,
+  "input_sha256": "256009b0b46722bbdf70b5bb43c9cd45c5979cc8ffb73cbad9ce87ec3a443696",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "plain_investor_research_v2",
+    "regime_read": "Momentum in the recent leaders is cooling, and several beaten-down shares bounce for only one day; the broad market has no clear direction. The economic backdrop is not established.",
+    "portfolio_posture": "Favour balance-sheet strength over price momentum, and treat the one supported call, Bank of America, as modest rather than decisive.",
+    "candidates": [
+      {
+        "ticker": "BAC",
+        "direction": "long",
+        "stance": "long",
+        "research_status": "supported",
+        "setup": "Bank of America fell about 4.7% on 14 October 2026 after its third-quarter report, even though the core bank grew, so the price may reflect the one-off charge and weak trading more than the franchise.",
+        "hypothesis": "Over five years, the core franchise should keep compounding: net interest income rose 8% and wealth management revenue rose 13% in the third quarter of 2026, and management guides to net interest income growth of 8% or more in 2027. The regulatory charge and the bond losses are costs, not a broken business, so continued buybacks and dividends can raise value per share.",
+        "evidence": [
+          "Third-quarter 2026 revenue net of interest expense was $30.0 billion, up 3% from a year earlier, with net interest income up 8% and wealth management revenue up 13%; both the spread engine and the fee engine grew.",
+          "Average loans rose 6% to $1.23 trillion and net charge-offs were 44 basis points of loans, better than 47 basis points a year earlier, so credit quality improved while the loan book grew.",
+          "The bank returned $8.3 billion to shareholders in the quarter, $2.2 billion of dividends and $6.0 billion of buybacks, and raised the quarterly dividend 14% to $0.32 in July 2026."
+        ],
+        "invalidation": "Net interest income growth misses the 8% target, for example if the Federal Reserve cuts rates instead of raising them, or net charge-offs rise above 44 basis points, or the bank cuts its buyback.",
+        "tail_risks": [
+          "Compliance remediation could cost more than the announced penalties, which total about $1.96 billion from FinCEN, the OCC and OFAC, or it could bring a business restriction such as an asset cap.",
+          "The unrealized loss on the debt-securities portfolio, more than $109 billion in the third quarter of 2026, could become a realized loss if the bank sells, which would limit capital flexibility.",
+          "Weak capital markets could persist: fixed income trading fell 17% and investment banking fees fell 11% in the third quarter of 2026."
+        ],
+        "evidence_limits": [
+          "The exact remediation deadlines and any business restrictions in the FinCEN consent order, because they decide whether the charge is one-off or recurring.",
+          "The interest-rate sensitivity disclosure and the exact 2027 net interest income guidance, because the 8% target assumes three rate rises by June 2027.",
+          "Third-quarter 2026 credit detail by portfolio, especially card delinquency and commercial real estate, because credit quality is the main support for the thesis."
+        ],
+        "suggested_horizon": "5 years",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "JBLU",
+        "direction": "avoid",
+        "stance": "no_call",
+        "research_status": "avoid",
+        "setup": "JetBlue shares reached fresh lows in October 2026 and third-quarter results are due on 27 October 2026, so the gap between costs and pricing is about to be tested.",
+        "hypothesis": "Over five years, JetBlue keeps spending more cash than it earns, so equity keeps shrinking and any recovery is diluted by new financing. Until unit revenue growth beats unit cost growth, the case for owning the shares is not supported.",
+        "evidence": [
+          "Revenue rose about 14.5% to $2.697 billion in the quarter ending 30 June 2026, but the net loss widened to $247 million from $74 million a year earlier, so cost growth ran ahead of pricing.",
+          "Free cash flow was -$318 million and has been negative in every quarter shown from the quarter ending 31 December 2024 onward; shareholders' equity fell from $2.641 billion at that date to $1.587 billion at 30 June 2026.",
+          "S&P Global Ratings lowered JetBlue to CCC+ from B- on 8 June 2026, citing elevated fuel costs and high leverage, and Goldman Sachs cut its target to $3.50 with a Sell rating before 14 October 2026."
+        ],
+        "invalidation": "Two consecutive quarters with unit revenue growth above unit cost growth and positive free cash flow, or new financing on ordinary terms, would show the cautious case is wrong.",
+        "tail_risks": [
+          "A sharp fall in fuel prices would narrow the loss faster than expected.",
+          "A large cut in capacity could lift revenue per seat and close the gap with unit costs.",
+          "New funding on cheap terms would remove the near-term liquidity pressure."
+        ],
+        "evidence_limits": [
+          "Third-quarter 2026 unit revenue against unit cost, due 27 October 2026, because that comparison decides whether the loss is narrowing.",
+          "Total liquidity and the debt maturities due in the next twelve months, because they show how long the cash burn can continue without a share sale.",
+          "The fuel hedge position and the current share count, because a hedge payout or a share issue would change the loss per share."
+        ],
+        "suggested_horizon": "5 years",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "NVAX",
+        "direction": "avoid",
+        "stance": "no_call",
+        "research_status": "avoid",
+        "setup": "Novavax rose 28.3% over the month to 15 October 2026 on a reported Sanofi partnership payment and a sector-wide cancer-vaccine rally, while its own revenue fell sharply.",
+        "hypothesis": "Over five years, Novavax has no product line that reverses a 79.1% fall in revenue and negative shareholders' equity. The reported Sanofi upfront payment and royalties would extend the runway, but they would not rebuild the commercial base.",
+        "evidence": [
+          "Revenue was $139.5 million in the quarter ending 31 March 2026, down 79.1% from a year earlier; shareholders' equity was -$144.8 million and liabilities of $1,187.9 million exceeded assets of $1,043.2 million.",
+          "Free cash flow turned positive at $6.1 million in that quarter, the first positive reading since the quarter ending 30 September 2025, and the net loss narrowed to $9.5 million; this is the main fact against the cautious view.",
+          "The price is up 62.6% over three months and down 92.3% over five years, and the reported drivers are a possible Sanofi agreement, an archived FDA page, and a National Institutes of Health cancer-vaccine programme that does not name Novavax."
+        ],
+        "invalidation": "Confirmation and receipt of the Sanofi upfront and milestone payments, or a second quarter of positive free cash flow, would show the cautious case is wrong.",
+        "tail_risks": [
+          "A confirmed Sanofi payment of $500 million upfront plus milestones and royalties would fund the business without new equity.",
+          "A named role in the National Institutes of Health cancer-vaccine programme would create a new, funded revenue line.",
+          "The shares carry 95% annualised volatility, so a squeeze could lift the price far above business value."
+        ],
+        "evidence_limits": [
+          "The exact Sanofi terms, including the upfront amount, the milestone schedule, the royalty rate and the 2026 triggers, because they decide whether cash arrives without new equity.",
+          "The cash and short-term investments balance, the share count, and any at-the-market or other share issuance, because they set how long Novavax can fund itself.",
+          "Whether Novavax is named in the National Institutes of Health personalised cancer vaccine programme, because a real role would be a funded product line rather than a sympathy move."
+        ],
+        "suggested_horizon": "5 years",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "DELL",
+        "direction": "watch",
+        "stance": "no_call",
+        "research_status": "watch",
+        "setup": "Dell fell 11.4% on 14 October 2026 after a Barclays downgrade and about 6.6% more on 15 October, after a five-year gain of about 876%, so the debate has moved from demand to profit quality.",
+        "hypothesis": "The five-year outcome turns on whether AI servers earn a durable margin, which Dell does not disclose, so the record demand for its equipment does not settle the direction. Memory prices rising 10-15% for DRAM and 15-20% for NAND in the fourth quarter of 2026 lift revenue and costs together, so growth alone is not evidence of profit.",
+        "evidence": [
+          "Revenue was $46.971 billion in the quarter ending 31 July 2026, up 58%, with AI-optimised servers at $16.401 billion, about 35% of revenue, and the infrastructure group's operating margin up 620 basis points to 15.0%.",
+          "Dell reported $60.9 billion of AI orders, a record $95 billion AI backlog, and raised full-year guidance to about $192 billion of revenue with about $74 billion of AI revenue.",
+          "Operating cash flow under accounting rules fell 13% to $2.225 billion in the quarter ending 31 July 2026 while revenue rose 58%, and the roughly 5% AI server margin is a Barclays estimate, not a figure Dell reports."
+        ],
+        "invalidation": "Disclosure of a stable AI server margin with memory cost pass-through holding, or a fall in the $95 billion AI backlog, would settle the direction and end this no-call.",
+        "tail_risks": [
+          "Memory contract prices rising 10-15% for DRAM and 15-20% for NAND in the fourth quarter of 2026 could squeeze profit if Dell cannot pass the cost on.",
+          "A price war among hardware builders of AI servers would cut the margin on the fastest-growing product line.",
+          "Shareholders' equity was -$2.47 billion at 31 January 2026, which leaves little cushion if the hardware cycle turns."
+        ],
+        "evidence_limits": [
+          "Dell's own AI server gross margin, because it decides whether 58% revenue growth adds profit.",
+          "Unit volumes against average selling prices, because they separate real volume growth from memory cost pass-through.",
+          "Whether the $95 billion AI backlog converts at the same margin as older servers, because backlog value alone does not set profit."
+        ],
+        "suggested_horizon": "5 years",
+        "confidence": "medium",
+        "narrative_contract_version": "plain_investor_research_v2"
+      }
+    ],
+    "data_gaps": [
+      "The path of United States interest rates through 2027 is unknown, and Bank of America's net interest income guidance depends on three rate increases by June 2027.",
+      "The path of memory chip contract prices is unknown, and it drives both Dell's revenue and its costs.",
+      "Fuel prices and airline unit costs for 2027 are unknown, and they decide whether JetBlue's loss narrows."
+    ],
+    "error": ""
+  }
+}

@@ -2032,6 +2032,12 @@ def run_equities(ctx: JobContext, conn: Any | None = None) -> None:
     except AlpacaAPIError as exc:
         print(f"[error] equities preload failed: {exc}")
 
+    try:
+        run_trading_call_tracking(ctx, conn, api=api)
+    except Exception as exc:
+        ctx.degraded_components["trading_call_tracking"] = type(exc).__name__
+        print(f"[warn] approved-call price refresh failed: {type(exc).__name__}: {exc}")
+
 
 def run_fred(ctx: JobContext, conn: Any | None = None) -> None:
     _job_progress(ctx, conn, stage="starting", message="Starting FRED and Treasury yield preload.", progress_pct=1.0)
@@ -2676,6 +2682,58 @@ def run_attention_ticker_snapshots(ctx: JobContext, conn: Any | None = None) -> 
 def run_daily_datapoints(ctx: JobContext, conn: Any | None = None) -> None:
     run_daily_market_datapoints_build(ctx, conn, persist_dataset_fn=_persist_dataset, job_progress_fn=_job_progress, load_materialized_frame_fn=_load_latest_materialized_frame)
 
+
+
+
+def run_trading_call_tracking(ctx: JobContext, conn: Any | None = None, *, api: AlpacaAPI | None = None) -> None:
+    """Price refresh for approved calls; never waits for or starts inference."""
+    from services import trading_call_tracking as tracking
+    tracking.initialize_tracking()
+    calls = tracking.approved_calls()
+    if not calls:
+        return
+    previous, _ = load_latest_dataset_frame(tracking.DATASET)
+    previous_ids = set(previous.get("tracking_id", pd.Series(dtype=str)).astype(str))
+    active = [item for item in calls if not item.get("completed_at_utc") or item["tracking_id"] not in previous_ids]
+    if not active:
+        # Retry publication-to-review delivery even when all calls have matured.
+        tracking.enqueue_outcome_reviews(previous, calls)
+        return
+    if api is None:
+        config = _alpaca_config()
+        if config is None:
+            raise RuntimeError("Alpaca price data is unavailable for approved-call tracking.")
+        api = AlpacaAPI(config)
+    symbols = sorted({item["ticker"] for item in active} | {"SPY"})
+    start = min(pd.Timestamp(item["approved_at_utc"]) for item in active).to_pydatetime()
+    calendar = api.get_market_calendar(
+        start=pd.Timestamp(start).tz_convert("America/New_York").date().isoformat(),
+        end=(pd.Timestamp(ctx.asof).tz_convert("America/New_York") + pd.Timedelta(days=14)).date().isoformat(),
+    )
+    trading_days = [row["date"] for row in calendar]
+    # A fresh adjusted window keeps the entry and mark on the same corporate-
+    # action basis. The general incremental cache can contain older adjustments.
+    bars = api.get_stock_bars(symbols, start=start, end=ctx.asof, timeframe="1Day", feed="iex", adjustment="all")
+    prices = _bars_to_price_history_frame(bars)
+    version = ""
+    if not prices.empty:
+        _persist_dataset(tracking.PRICE_DATASET, prices, ctx, conn)
+        version = ctx.published_datasets[tracking.PRICE_DATASET]
+    outcomes, entries = tracking.build_approved_outcomes(
+        calls=calls, prices=prices, previous=previous, as_of=ctx.asof, price_version=version, trading_days=trading_days,
+    )
+    pinned = tracking.pin_entries(entries)
+    if pinned != entries:
+        for item in calls:
+            if item["tracking_id"] in pinned:
+                item["entry_payload"] = pinned[item["tracking_id"]]
+        outcomes, _ = tracking.build_approved_outcomes(
+            calls=calls, prices=prices, previous=previous, as_of=ctx.asof, price_version=version, trading_days=trading_days,
+        )
+    _persist_dataset(tracking.DATASET, outcomes, ctx, conn)
+    tracking.complete_calls(outcomes)
+    tracking.enqueue_outcome_reviews(outcomes, calls)
+    _job_progress(ctx, conn, stage="approved_call_tracking", message=f"Updated {len(outcomes)} approved paper calls.")
 
 
 
@@ -3377,6 +3435,7 @@ def main() -> None:
         "attention-ticker-snapshot-build": run_attention_ticker_snapshots,
         "daily-market-datapoints-build": run_daily_datapoints,
         "trading-agent-build": run_trading_agent,
+        "trading-call-tracking": run_trading_call_tracking,
         "entity-taxonomy-refresh": run_entity_taxonomy,
         "company-baseline-prefetch": run_company_baselines,
         "fundamentals-quarterly-refresh": run_fundamentals,

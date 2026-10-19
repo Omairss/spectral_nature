@@ -1,0 +1,130 @@
+{
+  "role": "baseline",
+  "horizon": "3m",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 145.8002377920202,
+  "input_sha256": "50e2510ce9cd725567fd0c63c3c23e6840b48072cfa9f62c96196373c71642c0",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "plain_investor_research_v2",
+    "regime_read": "The broad market backdrop over the next three months is not clear from the evidence. Two threads are visible: hot inflation and rising Treasury yields are pressuring debt-funded AI and data-center names, while a vaccine-sector bid and the December 2026 start of the NIH cancer-vaccine programme are lifting vaccine shares.",
+    "portfolio_posture": "Keep position sizes small and let the two pending reports, JetBlue on 27 October 2026 and Moderna on 6 November 2026, decide direction before adding risk.",
+    "candidates": [
+      {
+        "ticker": "JBLU",
+        "direction": "short",
+        "stance": "short",
+        "research_status": "supported",
+        "setup": "JetBlue's shares keep falling because losses widen even as revenue grows, and the third-quarter report on 27 October 2026 is the next hard test.",
+        "hypothesis": "Costs are rising faster than the money JetBlue collects per seat, so cash keeps leaving the business and the shares stay under pressure over the next three months.",
+        "evidence": [
+          "Revenue rose about 14.5% from a year earlier to $2.697bn in the quarter ended 30 June 2026, but the net loss widened to $247m from $74m, which shows costs outrunning pricing.",
+          "Free cash flow was -$318m in that quarter and has been negative in every quarter shown since late 2024, so the airline keeps funding itself from outside.",
+          "S&P lowered JetBlue's credit rating to CCC+ on 8 June 2026, and in the week to 14 October 2026 Susquehanna cut its target to $4 and Goldman Sachs cut to $3.50 with a Sell rating."
+        ],
+        "invalidation": "The 27 October 2026 report shows a narrower loss with unit revenue growing faster than unit cost, or a credit rater lifts the outlook.",
+        "tail_risks": [
+          "A fall in fuel prices or capacity cuts that slow cost growth faster than expected.",
+          "A new share issue or expensive borrowing that management presents as fully funded, which can lift the shares even as it dilutes holders.",
+          "An industry-wide fare or demand recovery that lifts all airlines regardless of JetBlue's own progress."
+        ],
+        "evidence_limits": [
+          "Unit revenue against unit cost in the 27 October 2026 report, because that single comparison decides whether the loss narrows or widens.",
+          "Liquidity and the debt maturing over the next twelve months, because they set how long the cash burn can continue without new funding.",
+          "The fuel hedge position and the current share count, because they fix the cost base and the dilution math."
+        ],
+        "suggested_horizon": "3 months",
+        "confidence": "medium",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "MRNA",
+        "direction": "long",
+        "stance": "long",
+        "research_status": "supported",
+        "setup": "Moderna has risen about 297% over three months on a cancer-vaccine trial win, and its seasonally strongest quarter is reported on 6 November 2026.",
+        "hypothesis": "Moderna enters its strongest selling season with three approved vaccines, a Phase 3 cancer-vaccine win and a newly funded balance sheet, so recent gains can hold through the 6 November 2026 report.",
+        "evidence": [
+          "On 19 August 2026 the Phase 3 INTerpath-001 trial of intismeran autogene with KEYTRUDA met its recurrence-free and distant-metastasis-free survival goals in resected high-risk melanoma, which is the operating fact behind the rally.",
+          "mFLUSIVA won FDA approval on 5 August 2026, giving a third approved product in the fall and winter selling window.",
+          "An upsized convertible offering in August 2026 raised about $2.96bn net, so the company has no near-term funding need."
+        ],
+        "invalidation": "Third-quarter revenue comes in far below the roughly $1bn booked in the same quarter of 2025, or the company cuts its outlook.",
+        "tail_risks": [
+          "A $950m litigation payment and a shrinking COVID vaccine franchise keep consuming cash.",
+          "A regulatory delay or negative review for the melanoma vaccine, which is the reason investors bought the move.",
+          "Momentum unwinds quickly once index-fund buying ends, in a stock already above an overbought reading."
+        ],
+        "evidence_limits": [
+          "Whether Merck has filed for approval of intismeran autogene, because a filing date sets when oncology revenue can begin.",
+          "The interest rate, maturity and conversion price of the August 2026 convertible notes, because they set the future dilution.",
+          "Whether the NIH cancer-vaccine programme, due to start in December 2026, reaches Moderna specifically."
+        ],
+        "suggested_horizon": "3 months",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "CORZ",
+        "direction": "short",
+        "stance": "short",
+        "research_status": "supported",
+        "setup": "Core Scientific fell about 35% over three months as borrowing costs rose for data-center builders, and it must still raise outside money to finish its build-out.",
+        "hypothesis": "Core Scientific funds its data-center build with debt and equity while the build consumes cash, so rising financing costs keep pressure on the shares over the next three months.",
+        "evidence": [
+          "Free cash flow was -$1.02bn in the quarter ended 30 June 2026, mostly capital spending, and liabilities of $7.68bn exceeded assets of $5.26bn, leaving stockholders' equity at -$2.42bn.",
+          "Revenue more than doubled to $164.2m with operating income of $20.7m in the same quarter, so the strain comes from funding the build, not from the operating business.",
+          "The AMD capacity partnership announced on 28 July 2026 covers 500+ MW from 2027, but no signed lease terms, rents or start dates are public, so the bull case rests on contracts not yet shown."
+        ],
+        "invalidation": "Announcements turn into signed leases with named counterparties, disclosed rents and start dates that beat the cost of the new debt, or financing costs fall sharply.",
+        "tail_risks": [
+          "A sharp fall in Treasury yields or a turn in AI-financing sentiment that re-rates the whole data-center group upward.",
+          "New equity or debt raised on terms the market reads as fully funding the build-out.",
+          "Conditional Texas power approvals become firm approvals and remove a build-out obstacle."
+        ],
+        "evidence_limits": [
+          "Signed lease terms, including counterparty, rent, term and start date, for the AMD-backed and other pipeline capacity, because they decide whether the build earns more than its debt cost.",
+          "Third-quarter 2026 results, because they show whether the cash outflow is still growing.",
+          "The CoreWeave deal termination date, because it frames how investors read Core Scientific's strategic options."
+        ],
+        "suggested_horizon": "3 months",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "ASST",
+        "direction": "watch",
+        "stance": "no_call",
+        "research_status": "watch",
+        "setup": "Strive holds 32,773 bitcoin after buying 3,311 coins for about $280m in early October 2026, and it plans a $500m preferred-share sale.",
+        "hypothesis": "Strive adds bitcoin without issuing common shares, so the bitcoin behind each share rises only if bitcoin's return beats the 13-15% dividends paid to preferred holders.",
+        "evidence": [
+          "Strive bought 3,311 bitcoin for about $280m, at roughly $84,500 each, between 5 and 9 October 2026, lifting holdings to 32,773 coins.",
+          "A $500m sale of 5 million SATS preferred shares at $100 each, paying 15%, is announced but not completed, and the existing SATA class pays about 13%, so roughly $75m a year in fixed dividends ranks ahead of the common stock.",
+          "In one August 2026 window, bitcoin holdings grew 5.5% while bitcoin per diluted share grew only 1.3%, so purchases did not reach common holders one for one."
+        ],
+        "invalidation": "Bitcoin per share stops rising, the preferred-share sale is cut or priced on worse terms, or the common stock trades below the value of the bitcoin behind it.",
+        "tail_risks": [
+          "A fall in the bitcoin price, because Strive reports its coins at market value and the common stock carries the preferred dividends.",
+          "Preferred holders rank ahead of common holders for payouts, so weak bitcoin returns send the leftover value to them.",
+          "Any common-share sales to fund purchases would thin the bitcoin behind each share."
+        ],
+        "evidence_limits": [
+          "The current count of common shares outstanding, because bitcoin per share against the share price decides whether the stock is cheap or expensive.",
+          "The source of the money used for the October purchases, because borrowing or new preferred stock changes the risk the common shares carry.",
+          "The pending SATS sale outcome, including size and dividend terms, because it sets how much more bitcoin can be bought."
+        ],
+        "suggested_horizon": "3 months",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      }
+    ],
+    "data_gaps": [
+      "The path of inflation and interest rates over the next three months, which drives both the data-center short and the strength of the vaccine bid.",
+      "Whether the NIH personalised cancer-vaccine programme, due to start in December 2026, names specific companies.",
+      "The bitcoin price direction, because one watchlist name holds bitcoin and reports it at market value."
+    ],
+    "error": ""
+  }
+}

@@ -1,0 +1,92 @@
+[
+  {
+    "environment": "dev",
+    "path": "/health",
+    "status": 200
+  },
+  {
+    "environment": "dev",
+    "path": "/api/home",
+    "status": 200,
+    "sha256": "9d21eb772e7c43da5fd5c9c6369b294d2fb28e904504df6bc8402a15549b6e8c",
+    "top_level_keys": [
+      "status",
+      "view_date",
+      "is_replay",
+      "as_of",
+      "run_id",
+      "summary",
+      "graph",
+      "beats",
+      "daily_datapoints",
+      "daily_datapoints_as_of",
+      "coverage",
+      "provenance"
+    ]
+  },
+  {
+    "environment": "dev",
+    "path": "/api/auth/session",
+    "status": 200
+  },
+  {
+    "environment": "dev",
+    "path": "/api/trading-agent",
+    "status": 401
+  },
+  {
+    "environment": "dev",
+    "path": "/api/trading-agent/approved-calls/00000000-0000-4000-8000-000000000001",
+    "status": 401
+  },
+  {
+    "environment": "dev",
+    "path": "/api/admin/health",
+    "status": 401
+  },
+  {
+    "environment": "prod",
+    "path": "/health",
+    "status": 200
+  },
+  {
+    "environment": "prod",
+    "path": "/api/home",
+    "status": 200,
+    "sha256": "f6acdd8303ff64b46fe92bde625a7ab0fc429a9f76ae06e223b5eab61e809a12",
+    "top_level_keys": [
+      "status",
+      "view_date",
+      "is_replay",
+      "as_of",
+      "run_id",
+      "summary",
+      "graph",
+      "beats",
+      "daily_datapoints",
+      "daily_datapoints_as_of",
+      "coverage",
+      "provenance"
+    ]
+  },
+  {
+    "environment": "prod",
+    "path": "/api/auth/session",
+    "status": 200
+  },
+  {
+    "environment": "prod",
+    "path": "/api/trading-agent",
+    "status": 401
+  },
+  {
+    "environment": "prod",
+    "path": "/api/trading-agent/approved-calls/00000000-0000-4000-8000-000000000001",
+    "status": 401
+  },
+  {
+    "environment": "prod",
+    "path": "/api/admin/health",
+    "status": 401
+  }
+]

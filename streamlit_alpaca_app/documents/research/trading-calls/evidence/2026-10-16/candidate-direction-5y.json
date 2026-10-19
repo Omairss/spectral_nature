@@ -1,0 +1,178 @@
+{
+  "role": "candidate-direction",
+  "horizon": "5y",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 106.30939116695663,
+  "input_sha256": "f758e5367bcf1b0d754023003deb5eea43b16e4dd4ec161430b97e5c0c9d206c",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "directional_price_calls_v3",
+    "regime_read": "Long-running winners are cooling while some beaten-down names bounce for a day, so one strong session does not show a change in direction. The reference prices below are the last daily closes in a market snapshot recorded on 15 October 2026 at 20:50 UTC; the snapshot does not state the trading session date of those closes.",
+    "portfolio_posture": "These ideas share one exposure, the cost of outside money: the three shorts need cash-consuming companies to keep borrowing or selling shares, and the long depends on rate and credit conditions holding.",
+    "candidates": [
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "JBLU",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "At $3.145 the price already assumes the turnaround disappoints, so a short needs the cash drain to continue rather than the first weak quarter. Share count, total debt and liquidity are unknown, so this call rests on the cash-flow trajectory and not on a computed value.",
+          "assumptions": [
+            "Fuel, labour and airport costs keep rising faster than the money collected per seat.",
+            "JetBlue needs new outside money within five years, on terms that burden or dilute the equity.",
+            "The JetForward turnaround does not turn free cash flow positive."
+          ],
+          "opposing_case": "Revenue and unit revenue did grow in the June 2026 quarter, and Susquehanna kept a Neutral rating while the other October analyst moves were target changes, not company forecasts. An airline with a domestic network can cut costs, and one quarter of narrower losses would change the direction.",
+          "reference_price": 3.145,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "JetBlue shows the clearest reported deterioration of these five companies: a wider loss on growing revenue, cash leaving the business every quarter, and a CCC+ credit rating.",
+        "hypothesis": "Over five years, JetBlue's cost growth keeps running ahead of what it collects per seat, so it must raise expensive new money or shrink. New shares or costly debt spread any future profit over more claims, so the equity is worth less than the $3.145 reference close.",
+        "evidence": [
+          "Quarter to 30 June 2026: revenue $2.697B, up about 14.5% from $2.356B a year earlier, but the net loss widened to $247M from $74M, so costs grew faster than prices.",
+          "Free cash flow was negative in every quarter from 2024Q4 to 2026Q2, including -$318M in the June 2026 quarter, and shareholders' equity fell to $1.587B from $2.641B at 2024Q4.",
+          "S&P Global Ratings lowered JetBlue to CCC+ from B- on 8 June 2026; the market snapshot recorded 15 October 2026 shows $3.145, down 79.8% over five years with a 'Down / worsening' pattern."
+        ],
+        "invalidation": "The call fails if a quarterly report shows unit revenue growth above unit cost growth with a narrower loss, or if JetBlue raises cash without issuing shares or paying high rates.",
+        "tail_risks": [
+          "A sharp fall in fuel prices would cut costs and narrow the loss.",
+          "A merger or government rescue would put a floor under the equity and squeeze short sellers.",
+          "A rescue financing priced above $3.145 would cause a sharp bounce."
+        ],
+        "evidence_limits": [
+          "The third-quarter 2026 report on 27 October 2026 will show whether unit revenue or unit cost is winning, which decides the cash direction.",
+          "Total liquidity and the next twelve months of debt maturities will show how long the cash drain can continue without new funding.",
+          "The fuel hedge position and the current share count will show how much cost pressure is already covered."
+        ],
+        "suggested_horizon": "5 Year",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "BAC",
+        "stance": "long",
+        "forecast": {
+          "pricing_assessment": "The market snapshot recorded 15 October 2026 shows $51.68, up 32.0% over five years with an 'Up / cooling' pattern, so the price already treats the bank as sound. The $109B unrealised loss on the debt-securities portfolio and the final compliance bill cannot yet be valued, so this call rests on earnings power rather than a price target.",
+          "assumptions": [
+            "The Federal Reserve does not cut rates far below management's assumption of three 25-basis-point increases through June 2027.",
+            "Compliance remediation stays in the low billions and brings no asset cap or business restriction.",
+            "Credit losses stay near 44 basis points of loans."
+          ],
+          "opposing_case": "Reported earnings fell 17% and revenue was about $570M light on a fully taxable-equivalent basis, while the unrealised loss on the debt-securities portfolio rose above $109B and analysts cut price targets even while keeping Buy ratings. The CEO declined to set a remediation timeline, so a larger or repeated penalty is possible.",
+          "reference_price": 51.68,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Bank of America's third-quarter 2026 report separates a growing core bank from one-off charges, and the $51.68 price lets a five-year buyer collect dividends and buybacks while that core compounds.",
+        "hypothesis": "Over five years, Bank of America grows spread income and fee income and uses dividends, including the 14% raise to $0.32 per share, plus $6.0B of quarterly buybacks to shrink the share count. Per-share value therefore rises even if the loan book grows slowly.",
+        "evidence": [
+          "Third quarter 2026: net interest income $16.4B, up 8%; wealth management revenue $7.1B, up 13%; average loans $1.23T, up 6%; net charge-offs improved to 44 basis points of loans from 47.",
+          "The bank returned $8.3B to shareholders in the quarter, made up of $2.2B of dividends and $6.0B of buybacks, and kept a $40B buyback authorisation.",
+          "Reported net income fell 17% to $6.9B, or $0.91 per diluted share, after a $1.2B regulatory charge; authorities announced FinCEN $1.2B, OCC $750M and OFAC $11.6M penalties on 13 October 2026."
+        ],
+        "invalidation": "The call fails if net interest income growth misses management's guidance, if net charge-offs rise well above 44 basis points, or if regulators impose an asset cap or another business restriction.",
+        "tail_risks": [
+          "An asset cap or business restriction would limit growth and capital return.",
+          "A recession would push credit losses far above today's 44 basis points.",
+          "The $109B bond loss could become a realised loss if securities are sold to meet needs."
+        ],
+        "evidence_limits": [
+          "The FinCEN consent order's remediation deadlines, monitor scope and any business restrictions will decide the final compliance cost.",
+          "Period-end liquidity and stable-funding ratios, plus the June 2026 stress-test result and the current stress capital buffer, will show how much capital can still be returned.",
+          "A product-level comparison of third-quarter 2026 fixed income trading will show whether the weakness is company-specific or common to the sector."
+        ],
+        "suggested_horizon": "5 Year",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "NVAX",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "The five-year record and the negative equity are already in a $12.82 price, so a short needs the financing pressure to persist rather than one weak quarter. The cash balance, share count and the Sanofi payment schedule are unknown, so this call rests on the cash pattern rather than a computed value.",
+          "assumptions": [
+            "Partner and royalty payments do not cover costs over the next five years.",
+            "The NIH-backed cancer vaccine programme does not name Novavax as a supplier or partner.",
+            "Any new funding arrives as equity or as costly debt."
+          ],
+          "opposing_case": "A confirmed $500M upfront plus up to $700M of milestones and royalties from Sanofi would fund the company at almost no cost, and the first positive free cash flow quarter is early evidence against permanent cash burn. Vaccine-sector strength lifted the shares 62.6% over three months, and a partner or buyer could pay a premium for the platform.",
+          "reference_price": 12.82,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Novavax has negative shareholders' equity, revenue down 79% from a year earlier, and a five-year loss of 92.3%, yet the shares rose 28.3% in one month on reported news that is not confirmed.",
+        "hypothesis": "Over five years, Novavax's partner payments and royalties do not cover its costs, so it keeps selling shares or borrowing to survive. That new financing spreads any future profit over more claims, so the equity is worth less than the $12.82 reference close.",
+        "evidence": [
+          "Quarter to 31 March 2026: revenue $139.5M, down 79.1% from a year earlier, operating cash flow -$32.4M, and shareholders' equity -$144.8M against $1,187.9M of liabilities and $1,043.2M of assets.",
+          "Free cash flow of +$6.1M in that quarter was the first positive reading since 2025Q3, and shareholders' equity has been negative in most quarters since late 2021.",
+          "The market snapshot recorded 15 October 2026 shows $12.82, up 1.3% on the day, up 28.3% over one month and down 92.3% over five years; the reported Sanofi terms of a $500M upfront, up to $700M of milestones and royalties are not confirmed."
+        ],
+        "invalidation": "The call fails if the Sanofi upfront is confirmed and paid on schedule, if partner and royalty revenue grows in the next filing, or if free cash flow stays positive for a second quarter.",
+        "tail_risks": [
+          "A confirmed Sanofi payment would remove the near-term financing pressure.",
+          "A takeover at a premium would force short covering.",
+          "A named role in the NIH cancer programme or a strong COVID-19 season would raise revenue expectations."
+        ],
+        "evidence_limits": [
+          "The Sanofi agreement's exact upfront amount, milestone schedule, royalty rate and 2026 triggers will decide whether the cash gap closes.",
+          "The exact FDA action behind the 5-6 October 2026 price move will show whether a new approval extends Nuvaxovid's market; an opened FDA page lists the product as approved but is archived with an 8 July 2026 expiry.",
+          "The current cash and short-term investments, share count and short interest will show how much runway remains and how much of the rally came from a squeeze."
+        ],
+        "suggested_horizon": "5 Year",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "DELL",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "The snapshot recorded 15 October 2026 shows $473.915 after a 875.7% five-year gain, so the price assumes AI server demand keeps compounding and margins hold. Dell's own AI server margin and per-share figures are unknown, so this call rests on profit quality, not on a computed discount.",
+          "assumptions": [
+            "AI server margins stay thin and memory cost increases are not fully passed through to customers.",
+            "Server demand stays cyclical, without a multi-year contracted floor on profit.",
+            "Reported operating cash flow keeps lagging the adjusted free cash flow figure."
+          ],
+          "opposing_case": "Dell reported a record $95B AI backlog, $60.9B of AI orders and raised full-year guidance to about $192B of revenue with about $74B of AI revenue, and the infrastructure group's operating margin rose to 15.0%, up 620 basis points. The October fall followed an analyst opinion, so strong order conversion could reverse the price.",
+          "reference_price": 473.915,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Dell fell 11.4% on 14 October 2026 and about 6.6% more on 15 October after a Barclays downgrade, which changes what investors will pay rather than what Dell earns.",
+        "hypothesis": "Over five years, the profit on AI servers stays thin and memory costs keep rising, so a five-year gain of 875.7% is not supported by cash profit. Building servers is competitive and cyclical, so the shares are worth less than the $473.915 reference close.",
+        "evidence": [
+          "Barclays cut Dell to Equal Weight on 14 October 2026 and lowered its price target to $574 from $603; the shares fell 11.4% that day to about $507 and about 6.6% more on 15 October.",
+          "In the quarter to 31 July 2026, revenue was $46.971B, up 58%, and AI-optimised servers brought in $16.401B, but Dell does not disclose the profit margin on AI servers; the roughly 5% figure is a Barclays estimate.",
+          "Reported operating cash flow fell 13% to $2.225B in that quarter while revenue rose 58%, and contract memory prices were projected to rise 10-15% (DRAM) and 15-20% (NAND) in Q4 2026."
+        ],
+        "invalidation": "The call fails if Dell discloses an AI server margin that supports durable profit, or if the $95B backlog converts into rising adjusted free cash flow while memory cost increases are passed on.",
+        "tail_risks": [
+          "Continued AI orders and backlog conversion would lift profit expectations.",
+          "A memory supply agreement or pass-through pricing would protect margins.",
+          "A wider AI capital-spending boom would keep the shares in favour."
+        ],
+        "evidence_limits": [
+          "Dell's own AI server margin, plus unit and average-selling-price figures, will separate volume growth from cost pass-through.",
+          "The share count and a consistent definition that bridges reported operating cash flow and adjusted free cash flow will show per-share economics.",
+          "The next quarterly report will show whether the 14-15 October 2026 fall reflected positioning before earnings or a change in order trends."
+        ],
+        "suggested_horizon": "5 Year",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      }
+    ],
+    "data_gaps": [
+      "No share counts, market values or total debt figures are available for these companies, so dilution and valuation cannot be checked.",
+      "The trading session date of the closes recorded on 15 October 2026 is not stated, and two separate readings of the same MRNA day move differ by about 0.7 percentage points.",
+      "No interest-rate, credit-spread or sector-level market data is included, so the rate path assumption behind the Bank of America call cannot be tested here."
+    ],
+    "error": ""
+  }
+}

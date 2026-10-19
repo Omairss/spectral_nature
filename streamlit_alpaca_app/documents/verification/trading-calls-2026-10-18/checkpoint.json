@@ -1,0 +1,29 @@
+{
+  "branch": "held/trading-resume-20261019T025845Z",
+  "commit": "27e9bd1c0206181053aaf500cd823019d9f0da18",
+  "base_revision": "112fbd846fe26d3b223d1f04285836fe1f6fcc93",
+  "active_head_after": "112fbd846fe26d3b223d1f04285836fe1f6fcc93",
+  "active_head_unchanged": true,
+  "active_index_unchanged": true,
+  "status": "unaccepted experiment checkpoint, not release source",
+  "common_dirty_notes_excluded": [
+    "documents/learnings.md",
+    "documents/mistakes.md",
+    "documents/research/README.md"
+  ],
+  "checkpoint_paths": [
+    "api/main.py",
+    "pipeline/jobs/main.py",
+    "services/pipeline_store.py",
+    "services/trading_agent.py",
+    "services/trading_agent_view.py",
+    "services/trading_call_tracking.py",
+    "tests/test_trading_agent.py",
+    "web/app/trading-agent/page.tsx",
+    "web/app/api/trading-agent/calls",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/TradingView.swift",
+    "documents/plans/TRADING_CALLS_AND_APPROVAL_TRACKING_2026-10-16.md",
+    "documents/research/trading-calls",
+    "documents/verification/trading-calls-2026-10-18"
+  ]
+}

@@ -1,0 +1,274 @@
+{
+  "role": "candidate-price",
+  "horizon": "5y",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 144.06279020797228,
+  "input_sha256": "f758e5367bcf1b0d754023003deb5eea43b16e4dd4ec161430b97e5c0c9d206c",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "probabilistic_price_calls_v3",
+    "regime_read": "Momentum leaders in the recent market data are cooling while several beaten-down shares bounce on single days, so one strong day is not evidence of a turn. Corteva's quoted price fell about 84% in October 2026 as a mechanical adjustment for the Vylor spin-off, not a business collapse, so past price comparisons for that name are unreliable.",
+    "portfolio_posture": "The book leans short against four businesses priced for high expectations — a cancer platform, an AI hardware cycle, a leveraged airline and a vaccine microcap — and holds one long in a large bank whose earnings and capital return are already reported.",
+    "candidates": [
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "MRNA",
+        "stance": "short",
+        "forecast": {
+          "rationale": "I give the bear case the largest single weight because the price already reflects a successful oncology launch while the current business loses about $800 million a quarter, yet I keep 60% on base and bull because the August 2026 Phase 3 result is real proof the platform works. The strongest argument against me is that an approved personalised cancer vaccine addresses a large market that is hard to copy, and Merck's commercial reach could make Moderna's share far bigger than I assume.",
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.4,
+              "target_price": 70.0,
+              "assumptions": "Estimated. Oncology is delayed past 2031 or fails in wider testing, and the seasonal vaccine business settles near $1.5 billion of yearly revenue while still losing money. The shares return to roughly the $70 level they held before the 19 August 2026 melanoma result, a market value near $28 billion on an estimated 400 million shares.",
+              "return_pct": -70.39418034173575
+            },
+            {
+              "case": "base",
+              "probability": 0.35,
+              "target_price": 185.0,
+              "assumptions": "Estimated. Intismeran autogene reaches the market around 2029 in high-risk melanoma and Moderna's share of its sales builds to about $1 billion a year by 2031, while vaccine revenue steadies near $2 billion. At roughly 18 times that $4 billion revenue base, the market value is about $75 billion, or about $185 a share on an estimated 400 million shares.",
+              "return_pct": -21.7560480460159
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 430.0,
+              "assumptions": "Estimated. The cancer vaccine expands into several tumour types, Moderna's share of sales reaches about $4 billion a year by 2031 and vaccine revenue nears $3 billion. A market value near $170 billion, about 25 times $7 billion of revenue, gives about $430 a share on an estimated 400 million shares.",
+              "return_pct": 81.864320757909
+            }
+          ],
+          "expected_return_pct": -15.306208763322616,
+          "reference_price": 236.44,
+          "reference_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 15.306208763322616,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -70.39418034173575,
+          "upside_return_pct": 81.864320757909,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Moderna's August 2026 Phase 3 win in melanoma has lifted the shares more than seven-fold in a year, so the open question is how much of a future cancer-drug business the $236.44 price already pays for.",
+        "hypothesis": "Over five years, Moderna's personalised cancer vaccine can become a real product, but today's price already pays for that success while the vaccine business shrinks and cash drains. I expect the shares to be worth less in October 2031 than today.",
+        "evidence": [
+          "On 19 August 2026 Merck and Moderna reported that intismeran autogene plus KEYTRUDA met both the recurrence-free survival and distant-metastasis-free survival endpoints in patients with completely resected stage IIB-IV melanoma, the first hard proof that the mRNA cancer approach works in a large trial.",
+          "In the quarter ended 30 June 2026 revenue was $145 million against a net loss of $782 million and free cash flow of -$563 million, so the operating business still spends far more than it earns.",
+          "Moderna priced a convertible note offering in late August 2026, taking outside capital rather than funding growth from its own cash, while stockholders' equity fell from $11.9 billion in 2024Q3 to $6.76 billion in 2026Q2."
+        ],
+        "invalidation": "A regulatory filing for intismeran autogene in 2027 with a clear route to approval, or a return to positive free cash flow on rising vaccine sales, would show the growth is closer than I assume.",
+        "tail_risks": [
+          "A negative regulatory decision, a safety signal, or a failed trial in a wider cancer type removes the main reason for today's share price.",
+          "Competition in COVID, RSV and flu vaccines cuts seasonal revenue faster than costs fall.",
+          "Further equity or convertible issuance dilutes each share's claim on any future profit."
+        ],
+        "evidence_limits": [
+          "Whether Merck has filed for approval of intismeran autogene and for which cancer types, because that sets when the first oncology revenue arrives.",
+          "The coupon, maturity and conversion terms of the August 2026 convertibles, because they decide future dilution.",
+          "The cash effect of the $950 million litigation payment against the guided $4.7-5.2 billion of year-end 2026 cash, because it sets how much runway remains."
+        ],
+        "suggested_horizon": "5 Year",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "BAC",
+        "stance": "long",
+        "forecast": {
+          "rationale": "The base case carries half the weight because capital return and lending growth are already reported facts, while the bear case needs a recession and higher compliance costs at the same time. The strongest opposing argument is that $109 billion of unrealised bond losses and unresolved remediation leave the bank less flexible than its franchise earnings suggest.",
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.25,
+              "target_price": 38.0,
+              "assumptions": "Estimated. A recession pushes net charge-offs above 1.5% of loans and rate cuts shrink the deposit spread, holding earnings near $4.50 a share in 2031. At about 8.5 times those earnings the shares are worth about $38.",
+              "return_pct": -26.470588235294112
+            },
+            {
+              "case": "base",
+              "probability": 0.5,
+              "target_price": 82.0,
+              "assumptions": "Estimated. Buybacks cut the share count about 3% a year and earnings reach about $6.30 a share by 2031. At 13 times earnings the shares are worth about $82.",
+              "return_pct": 58.668730650154814
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 105.0,
+              "assumptions": "Estimated. Deposit spreads stay wide, capital markets fee revenue recovers, and earnings reach about $7.50 a share by 2031. At 14 times earnings the shares are worth about $105.",
+              "return_pct": 103.1733746130031
+            }
+          ],
+          "expected_return_pct": 48.51006191950466,
+          "reference_price": 51.68,
+          "reference_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 48.51006191950466,
+          "probability_up": 0.75,
+          "probability_profit": 0.75,
+          "downside_return_pct": -26.470588235294112,
+          "upside_return_pct": 103.1733746130031,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Bank of America reported strong third-quarter 2026 core results while absorbing a record penalty and a large unrealised bond loss, leaving the shares near $51.68 with attention on the problems rather than the franchise.",
+        "hypothesis": "Over five years, the lending, deposit and wealth franchise should grow profit per share faster than the price implies, because the penalty is a one-time cost and the bond losses are paper losses. I expect the shares to be worth more in October 2031.",
+        "evidence": [
+          "In the third quarter of 2026 net interest income rose 8% to $16.4 billion, wealth management revenue rose 13% to $7.1 billion, and net charge-offs improved to 44 basis points of loans, so the core business is growing and credit is sound.",
+          "The bank returned $8.3 billion to shareholders in that quarter, including $6.0 billion of buybacks, and raised the quarterly dividend 14% to $0.32 a share, which lifts the value of each remaining share.",
+          "On 13 October 2026 United States authorities fined the bank about $1.96 billion in total across FinCEN, the OCC and OFAC over sanctions and Bank Secrecy Act failures, a large but finite cost that core earnings can absorb."
+        ],
+        "invalidation": "A compliance order that caps the bank's assets or restricts whole lines of business, or net interest income growth below management's guidance because rates fall, would break the thesis.",
+        "tail_risks": [
+          "A recession that lifts net charge-offs well above 44 basis points would cut profit and slow buybacks.",
+          "The $109 billion of unrealised bond losses becomes realised if securities must be sold, reducing capital.",
+          "Compliance remediation proves recurring or a monitor restricts business, holding profit below plan for years."
+        ],
+        "evidence_limits": [
+          "The remediation deadlines, monitor scope and any business restrictions in the FinCEN order, because they decide whether the penalty is truly one-time.",
+          "The 2027 net interest income guidance and rate-sensitivity disclosure, because they set the earnings base for the forecast.",
+          "Period-end liquidity and capital ratios, including the stress capital buffer, because they show how much capital can go to buybacks."
+        ],
+        "suggested_horizon": "5 Year",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "JBLU",
+        "stance": "short",
+        "forecast": {
+          "rationale": "The bear case carries the largest weight because the only reported quarter shows costs growing faster than revenue and cash leaving the business, and the credit rating already signals substantial risk. The strongest opposing argument is that revenue and unit revenue are growing, so even a modest slowdown in cost growth could turn free cash flow positive and lift a very cheap share sharply.",
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.45,
+              "target_price": 0.45,
+              "assumptions": "Estimated. Losses continue, the company restructures or issues large amounts of new equity, and existing shares keep only a token claim on a rebuilt airline, leaving the price near $0.45.",
+              "return_pct": -85.69157392686805
+            },
+            {
+              "case": "base",
+              "probability": 0.35,
+              "target_price": 3.1,
+              "assumptions": "Estimated. The JetForward plan narrows the loss through 2027 and the airline earns a small profit by 2029, but the share count grows, so the value per share is roughly unchanged near $3.10.",
+              "return_pct": -1.4308426073131986
+            },
+            {
+              "case": "bull",
+              "probability": 0.2,
+              "target_price": 7.5,
+              "assumptions": "Estimated. Cost growth falls below revenue growth, free cash flow turns positive, and earnings reach about $0.75 a share by 2031. At 10 times those earnings the shares are worth about $7.50.",
+              "return_pct": 138.4737678855326
+            }
+          ],
+          "expected_return_pct": -11.367249602543719,
+          "reference_price": 3.145,
+          "reference_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 11.367249602543719,
+          "probability_up": 0.2,
+          "probability_profit": 0.8,
+          "downside_return_pct": -85.69157392686805,
+          "upside_return_pct": 138.4737678855326,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "JetBlue has fallen about 42% in three months to $3.145 while the last reported quarter showed a wider loss and cash leaving the business, so the shares now price a real chance of restructuring.",
+        "hypothesis": "Over five years, JetBlue must borrow or sell shares on expensive terms to fund continuing losses, which spreads any recovery over more shares or leaves little for current owners. I expect the shares to be worth less in October 2031.",
+        "evidence": [
+          "In the quarter ended 30 June 2026 revenue rose 14.5% to $2.697 billion but the net loss widened to $247 million from $74 million a year earlier, so costs are outrunning pricing.",
+          "Free cash flow was -$318 million in that quarter and has been negative in every quarter from December 2024 onward, while shareholders' equity fell from $2.641 billion at 2024Q4 to $1.587 billion.",
+          "S&P Global Ratings lowered JetBlue to CCC+ from B- on 8 June 2026, a grade that signals substantial credit risk, and analysts cut targets in October 2026, including Goldman Sachs to $3.50 with a Sell rating."
+        ],
+        "invalidation": "Two quarters of positive free cash flow with unit revenue growing faster than unit cost, or a credit-rating upgrade with no new financing, would show the turnaround is working.",
+        "tail_risks": [
+          "Fuel or labour costs rise further, widening losses and forcing expensive new borrowing.",
+          "A share issue to raise cash reduces the value of each existing share.",
+          "A liquidity squeeze or debt restructuring leaves little or no value for shareholders."
+        ],
+        "evidence_limits": [
+          "The third-quarter 2026 report due 27 October 2026, where unit revenue against unit cost shows whether the loss is narrowing.",
+          "Total liquidity and the debt maturity schedule for the next twelve months, which set how long the cash burn can continue.",
+          "The fuel hedge position, because it decides how much of a fuel price rise reaches the income statement."
+        ],
+        "suggested_horizon": "5 Year",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "DELL",
+        "stance": "short",
+        "forecast": {
+          "rationale": "The base case has the largest weight because demand is documented and only the profit margin is unknown, but even that base lands below today's price, which is why the call is short. The strongest opposing argument is that Dell sells a scarce, essential product into a multi-year build-out, so if margins hold, earnings could pass $20 a share well before 2031.",
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.32,
+              "target_price": 165.0,
+              "assumptions": "Estimated. Data-centre spending slows after 2027 and memory costs compress the AI server margin, leaving earnings near $8 a share in the year to January 2032. At about 20 times those earnings the shares are worth about $165.",
+              "return_pct": -65.18362997583955
+            },
+            {
+              "case": "base",
+              "probability": 0.45,
+              "target_price": 340.0,
+              "assumptions": "Estimated. Revenue reaches about $260 billion with a 5% net margin, giving earnings near $19 a share by the year to January 2032. At 18 times earnings the shares are worth about $340.",
+              "return_pct": -28.257176919911796
+            },
+            {
+              "case": "bull",
+              "probability": 0.23,
+              "target_price": 720.0,
+              "assumptions": "Estimated. AI demand keeps compounding, revenue reaches about $310 billion with a 6% net margin, and buybacks lift earnings to about $24 a share. At 30 times earnings the shares are worth about $720.",
+              "return_pct": 51.92597828724559
+            }
+          ],
+          "expected_return_pct": -21.63151620016248,
+          "reference_price": 473.915,
+          "reference_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 21.63151620016248,
+          "probability_up": 0.23,
+          "probability_profit": 0.77,
+          "downside_return_pct": -65.18362997583955,
+          "upside_return_pct": 51.92597828724559,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Barclays cut Dell to Equal Weight on 14 October 2026 and questioned the thin profit on AI servers, and the shares fell about 20% in a month to $473.915 even though the business still reported record AI orders.",
+        "hypothesis": "Over five years, Dell's AI server business grows but earns little profit because the computing parts are bought rather than made, while today's price assumes years of high earnings. I expect the shares to be worth less in October 2031.",
+        "evidence": [
+          "In the quarter ended 31 January 2026 revenue rose 39.5% to $33.379 billion and net income rose 47% to $2.259 billion, so demand is real and profit is still growing.",
+          "Dell reported $60.9 billion of AI orders for that period, a record $95 billion AI backlog, and guided to about $192 billion of yearly revenue with about $74 billion from AI, which supports the growth story.",
+          "Dell does not disclose the profit margin on AI servers and the roughly 5% figure is a Barclays estimate, while contract memory prices were projected to rise 10-15% for DRAM and 15-20% for NAND in the fourth quarter of 2026, squeezing the profit Dell keeps."
+        ],
+        "invalidation": "A disclosed AI server margin that holds near the infrastructure group's 15% operating margin, or earnings above about $22 a share by 2031, would show the growth is far more profitable than I assume.",
+        "tail_risks": [
+          "A slowdown in data-centre spending after the current build-out would cut AI orders and the price investors pay for Dell's earnings.",
+          "Rising memory prices may be passed to customers only in part, compressing the thin profit on AI servers.",
+          "Competition from contract manufacturers and other server makers could take both share and pricing."
+        ],
+        "evidence_limits": [
+          "Dell's own AI server gross margin, because it decides whether record revenue turns into profit.",
+          "Unit volumes or average selling prices, because they separate real growth from higher prices on the same machines.",
+          "The memory price path for 2027 and how much of it Dell can pass through to customers."
+        ],
+        "suggested_horizon": "5 Year",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      }
+    ],
+    "data_gaps": [
+      "No index breadth, credit-spread or volatility readings are available for the market backdrop, so the broad market direction over the next five years is unknown.",
+      "No current share counts or analyst consensus estimates are available for these five companies, so every per-share figure in the forecasts is my own estimate.",
+      "The causes of the recent vaccine-sector rally and of the Sanofi payment reports are not confirmed by company filings."
+    ],
+    "error": ""
+  }
+}

@@ -281,6 +281,15 @@ private struct ApprovedCallPerformanceView: View {
               }
               RuleMark(y: .value("Zero", 0)).foregroundStyle(.secondary.opacity(0.3))
             }.chartForegroundStyleScale(domain: ["Call", benchmark], range: [Theme.teal, Theme.violet])
+              .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 3)) { value in
+                  AxisGridLine()
+                  AxisTick()
+                  AxisValueLabel {
+                    if let date = value.as(Date.self) { Text(Format.observationDay(date)) }
+                  }
+                }
+              }
               .chartYAxisLabel("Return (%)").frame(height: 240)
           }
           if !current.text("entry_date").isEmpty {

@@ -1,8 +1,8 @@
 {
   "status": "accepted_locally",
-  "scope": "Complete the omitted Admin/Health Next.js frontend release in development; preserve accepted application code and all other consumers.",
-  "source_revision": "7b6d676d05e9d6375394427c0c110a1320889119",
-  "review_base_revision": "112fbd846fe26d3b223d1f04285836fe1f6fcc93",
+  "scope": "Owner-approved Trading paper pilot with immutable approval-time performance and completed-outcome feedback through the shared learner; preserve current Home/research/auth/Health/database behavior.",
+  "source_revision": "5e3e61d14e4ba0a8b3df3f02681101e2feeec69a",
+  "review_base_revision": "d3a700d07dcaf46ec26b2723e48b94d40857d4c0",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "411839b19dc8a7f9a5e4586766d414d9856e698b28a4d274a96363fc2dea9d1e",
@@ -11,7 +11,7 @@
     "Dockerfile.web": "030194cc74ce39ca15c327f819a24044432027723865b7d06ddb0edacc4640e5",
     "api/__init__.py": "d263cd3e0682327cdd7596508ae7d7d54ea508e38347b6be13e0997b1fd1da9a",
     "api/feature_requests.py": "a9de6f58dc920cd9f81431d7b606f8fa19ca24261502a66084265df334d24158",
-    "api/main.py": "225d147467b2d9076d17f7f62d9b51c4e41eeac4184c3f21ca4dc7aea335f04b",
+    "api/main.py": "ded1402231ae6032341ad119f95e4bbe64da352610777cddf0c95e43cb48a984",
     "branding/Logo Files/Favicons/Android.png": "bb4425eedbed1dbcf7b8614e614351c4f0e2a64cec70736d5d7bc867d3ad2d6e",
     "branding/Logo Files/Favicons/browser.png": "821dd97504df015b41a0f6e7fcef294ee807b09f78d47e6748eccf5c8b10dbab",
     "branding/Logo Files/Favicons/iPhone.png": "35e9d478dc63f606d99d4af9189ff89427bd18ed8d10298b65134720fae62cb6",
@@ -70,7 +70,7 @@
     "pipeline/jobs/attention_home_build.py": "5b8ffafcf8c1f4343597536e23d9cb084930bffb0cb37cb66800db2c3fb4fae3",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
-    "pipeline/jobs/main.py": "4ce6c9c9530141b854b4cfb7fb49768be9284cb4f5df0b2749bc342bb4d69c09",
+    "pipeline/jobs/main.py": "827cf578c880b022de3645fbe94b8450bfdb4b8677888b2acf949dc013123a23",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
     "presentation/plotly.py": "741a4fc6dfc3d55ddc12fb95a18069ec848803dc1f5f49377ebd34d7b9d73aa8",
@@ -196,7 +196,7 @@
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
     "services/page_browsing.py": "53a2602e454879c3cf3afd921ba886bc3e2dbacd33145b8e4a3e0679f4e4d38a",
     "services/pipeline_slices.py": "208f75f12a2cb9fec6e5b87754d4c1e6cb506b78e79f7e41e6f045d699b361dc",
-    "services/pipeline_store.py": "4b82f1715d0e25e67b9c84948fdebc07d2121c44035bb690b221b5cb490c94e6",
+    "services/pipeline_store.py": "a5ece04e4e56380989a247ed828290f915046f71ff5d1d02b71f2ccab218a486",
     "services/portfolio_view.py": "a10fa72f98fca0005cecf3c516293dfa01e448e54ef573fd44ae513251d58c97",
     "services/research_export.py": "9b1431e0ae7fec623a63c02ddcceac73d8249dba6d71a97b795798d64b0aad86",
     "services/robinhood_main.py": "118febce7cb314a46fa69f1a1500ab25abfc509bbff8b6fed3af25cb48764ac0",
@@ -217,15 +217,16 @@
     "services/stock_view.py": "6eda1c743c29f5577bd2a8b0529c6785df9f687f5119c11c77c121349261e510",
     "services/system_health.py": "3075ac581364cb7007415bac1a5f921f5e5cdb2bd7ce1b1b2c24c6658ee1445b",
     "services/technicals.py": "e78d3eaecd2ce7d3f8614541dc19b4f2a98ca05243781ecb8242e10fd277ae6a",
-    "services/trading_agent.py": "5b9f03d009fec4e863db6593c1e6788aba82dd68507853741a04a31ed05aa390",
-    "services/trading_agent_view.py": "61776927bdd4af78258fe6d6b4158ab8aecd7039cf2ab60681bb6a6b194356ff",
+    "services/trading_agent.py": "a425a704770d921304fca407cd8ab6e7d1c3aaa66ef242da31dbacbea4ddbae5",
+    "services/trading_agent_view.py": "1d9f59a7efdf4b03f164aef6d6c25929e3dbcf4ec92e8429e6eab1d8c4190173",
+    "services/trading_call_tracking.py": "df5cfcdd7784781a0a91ac6ad7c3656ca319b4446564d7a873bdf178511edb5a",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
     "services/zopedia_agent.py": "c5a8045165b25107fc7745a12746a8cb4e25aae95fd1effad509ae8854fd5abd",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
-    "services/zopedia_learning.py": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe",
+    "services/zopedia_learning.py": "d39cb86f07fc98d85063ecf0bd877c824be1604ab008b497647897704788ee03",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
     "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec",
     "services/zopedia_resolver.py": "d3a81502b7db7c11e5131f9874d5d4e37372e45b58b18abbee621ed5fb97d578",
@@ -261,6 +262,7 @@
     "web/app/api/research-runs/[runId]/events/route.ts": "0874d469c39200703a9f75285788c62efc4467f3bde73cf73a71f056abad63a5",
     "web/app/api/research-runs/[runId]/route.ts": "824d24987168aaf9c54de397d0dc8a2d080f0ae2d44c7472bf81d9fe6e2e5aad",
     "web/app/api/research-runs/route.ts": "190e9e19ff28c4594451fc9bd6d0582ce2f15b63e05b7c8f739b0fc5521a2ad9",
+    "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e",
     "web/app/api/trading-agent/decisions/route.ts": "99a759da8113d1dc91a0acf3f0ae49b71462f85455efc90cef11658fe620f5dd",
     "web/app/api/trading-agent/route.ts": "1c2c6b68e07f541b613dddd614f82797b1b6b49ac8321b24bc94e1da4f71bd07",
     "web/app/api/visualizations/[name]/route.ts": "fcc3a1b098fa9ee4233ffa1aaae7c8b6743499b3574b2ce78a399d24fa48da78",
@@ -279,7 +281,7 @@
     "web/app/portfolio-performance/page.tsx": "fbaf6d62c06d0f0b06ddb75bc9a3b73185b76f2bcad28eeb357227329852199c",
     "web/app/portfolio/page.tsx": "2dc3c513f466061affa3601069be7c7ef70792411c356d48c656f4a6ce57f659",
     "web/app/stock-investigator/page.tsx": "2875209e58497c67c75471f73d23b3f2751f9f86c80f8b5aa57e84c533eb7cef",
-    "web/app/trading-agent/page.tsx": "bd44b82d5f36cee6da0b785f9379e8eb3b4f1c3d9517e98716b28ecc8a86e545",
+    "web/app/trading-agent/page.tsx": "77ddb8ecc96fc044f42c61540e7dff9eb4ca13ee6be44051f3c31349286d1b5a",
     "web/app/zopedia/conversations/[conversationId]/page.tsx": "914b4f73e487182d1e7c013a190eda55ff984bf55d9310d7e6af99b4089b3903",
     "web/app/zopedia/page.tsx": "c2cec2b1628f423df67fbc33ff16ab08ff673d6c157a128f32ace6ed5352b541",
     "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
@@ -320,7 +322,7 @@
   "runtime_files": {
     "api/__init__.py": "d263cd3e0682327cdd7596508ae7d7d54ea508e38347b6be13e0997b1fd1da9a",
     "api/feature_requests.py": "a9de6f58dc920cd9f81431d7b606f8fa19ca24261502a66084265df334d24158",
-    "api/main.py": "225d147467b2d9076d17f7f62d9b51c4e41eeac4184c3f21ca4dc7aea335f04b",
+    "api/main.py": "ded1402231ae6032341ad119f95e4bbe64da352610777cddf0c95e43cb48a984",
     "branding/Logo Files/Favicons/Android.png": "bb4425eedbed1dbcf7b8614e614351c4f0e2a64cec70736d5d7bc867d3ad2d6e",
     "branding/Logo Files/Favicons/browser.png": "821dd97504df015b41a0f6e7fcef294ee807b09f78d47e6748eccf5c8b10dbab",
     "branding/Logo Files/Favicons/iPhone.png": "35e9d478dc63f606d99d4af9189ff89427bd18ed8d10298b65134720fae62cb6",
@@ -376,7 +378,7 @@
     "pipeline/jobs/attention_home_build.py": "5b8ffafcf8c1f4343597536e23d9cb084930bffb0cb37cb66800db2c3fb4fae3",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
-    "pipeline/jobs/main.py": "4ce6c9c9530141b854b4cfb7fb49768be9284cb4f5df0b2749bc342bb4d69c09",
+    "pipeline/jobs/main.py": "827cf578c880b022de3645fbe94b8450bfdb4b8677888b2acf949dc013123a23",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
     "presentation/plotly.py": "741a4fc6dfc3d55ddc12fb95a18069ec848803dc1f5f49377ebd34d7b9d73aa8",
@@ -480,7 +482,7 @@
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
     "services/page_browsing.py": "53a2602e454879c3cf3afd921ba886bc3e2dbacd33145b8e4a3e0679f4e4d38a",
     "services/pipeline_slices.py": "208f75f12a2cb9fec6e5b87754d4c1e6cb506b78e79f7e41e6f045d699b361dc",
-    "services/pipeline_store.py": "4b82f1715d0e25e67b9c84948fdebc07d2121c44035bb690b221b5cb490c94e6",
+    "services/pipeline_store.py": "a5ece04e4e56380989a247ed828290f915046f71ff5d1d02b71f2ccab218a486",
     "services/portfolio_view.py": "a10fa72f98fca0005cecf3c516293dfa01e448e54ef573fd44ae513251d58c97",
     "services/research_export.py": "9b1431e0ae7fec623a63c02ddcceac73d8249dba6d71a97b795798d64b0aad86",
     "services/robinhood_main.py": "118febce7cb314a46fa69f1a1500ab25abfc509bbff8b6fed3af25cb48764ac0",
@@ -501,15 +503,16 @@
     "services/stock_view.py": "6eda1c743c29f5577bd2a8b0529c6785df9f687f5119c11c77c121349261e510",
     "services/system_health.py": "3075ac581364cb7007415bac1a5f921f5e5cdb2bd7ce1b1b2c24c6658ee1445b",
     "services/technicals.py": "e78d3eaecd2ce7d3f8614541dc19b4f2a98ca05243781ecb8242e10fd277ae6a",
-    "services/trading_agent.py": "5b9f03d009fec4e863db6593c1e6788aba82dd68507853741a04a31ed05aa390",
-    "services/trading_agent_view.py": "61776927bdd4af78258fe6d6b4158ab8aecd7039cf2ab60681bb6a6b194356ff",
+    "services/trading_agent.py": "a425a704770d921304fca407cd8ab6e7d1c3aaa66ef242da31dbacbea4ddbae5",
+    "services/trading_agent_view.py": "1d9f59a7efdf4b03f164aef6d6c25929e3dbcf4ec92e8429e6eab1d8c4190173",
+    "services/trading_call_tracking.py": "df5cfcdd7784781a0a91ac6ad7c3656ca319b4446564d7a873bdf178511edb5a",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
     "services/zopedia_agent.py": "c5a8045165b25107fc7745a12746a8cb4e25aae95fd1effad509ae8854fd5abd",
     "services/zopedia_analysis.py": "17f31e889544ecd8a1d90bea856857d33a2fe0e44baa8fb5749fd59b29962854",
-    "services/zopedia_learning.py": "ca7367fa27670b7037024bc7ce98bb82b7a0f9433add7e67d5a91fa9ba4fcdfe",
+    "services/zopedia_learning.py": "d39cb86f07fc98d85063ecf0bd877c824be1604ab008b497647897704788ee03",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
     "services/zopedia_research.py": "b3279b6ebd7949fa12ab53a39fe99b0c2eba6262369d2de7661fcf6836dd94ec",
     "services/zopedia_resolver.py": "d3a81502b7db7c11e5131f9874d5d4e37372e45b58b18abbee621ed5fb97d578",
@@ -517,10 +520,15 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    ".dockerignore": "Exclude generated frontend TypeScript cache from the source context.",
-    "Dockerfile.web": "Pin the Node dependency; verify all frontend Git inputs before compilation and inventory compiled runtime output. Preserve standalone startup, non-root user, port and runtime configuration.",
-    "scripts/release_application.py": "Support the web role through the same verified Git build/deployment entrypoint, passing the complete reviewed frontend inventory to its Dockerfile. Python packaging and image-only deployment behavior are retained.",
-    "scripts/release_source.py": "Verify web-role inputs against the complete accepted Git frontend inventory, preserving the independent Python runtime gate and per-role image authorization."
+    "api/main.py": "Owner-authenticated Trading projection and single-call detail; current auth/session, admin checks and all unrelated endpoints preserved.",
+    "pipeline/jobs/main.py": "Price ingestion updates immutable paper-call outcomes and delivers completed evidence to shared review without inference. Existing jobs, recovery remaining-budget fix, research deadlines and publication behavior preserved.",
+    "services/pipeline_store.py": "Atomic owner/environment-bound paper approval with immutable original thesis and retry safety. Existing schema, publication and DB admission behavior preserved.",
+    "services/trading_agent.py": "Explicit directional v3 synthesis with assumptions and opposing case; correct publication-clock diagnostics. Shared research breadth, open model, workload, failure isolation and legacy stored-call semantics preserved. Prior reasoning errors are retained pilot improvement evidence.",
+    "services/trading_agent_view.py": "Retain legacy v2 and v3 calls, owner-isolate approvals and summaries, expose lazy tracking detail independently of current feed availability.",
+    "services/trading_call_tracking.py": "New immutable approval ledger, calendar-bound adjusted daily prices, exact benchmark, dated paths, missing-data states, lazy owner detail and idempotent shared-review delivery. Mechanical database/math/publication checks passed.",
+    "services/zopedia_learning.py": "General non-chat supplied-evidence episodes join the existing single review budget with immutable enqueue, pending/reuse semantics and retained originals. Conversation hotfix behavior preserved; no new inference controller or deterministic lesson grade. Retrospective outcome review is not accuracy validation.",
+    "web/app/trading-agent/page.tsx": "Retain collapsed calls and navigation; show pricing/assumptions/opposing case and lazy dated paper performance rather than current-feed-only history. Personally inspected locally; TypeScript/lint pass.",
+    "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts": "New validated UUID BFF detail through existing authorized backend/session refresh; no-store and owner-scoped backend."
   },
   "retired_files": [],
   "components": [
@@ -627,6 +635,22 @@
         "scripts/release_source.py"
       ],
       "evidence": "documents/verification/admin-health-frontend-2026-10-18/README.md"
+    },
+    {
+      "name": "Trading paper calls, approval tracking and shared outcome review",
+      "status": "accepted",
+      "files": [
+        "api/main.py",
+        "pipeline/jobs/main.py",
+        "services/pipeline_store.py",
+        "services/trading_agent.py",
+        "services/trading_agent_view.py",
+        "services/trading_call_tracking.py",
+        "services/zopedia_learning.py",
+        "web/app/trading-agent/page.tsx",
+        "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts"
+      ],
+      "evidence": "documents/verification/trading-calls-2026-10-18/README.md"
     }
   ],
   "roles": {
@@ -649,57 +673,57 @@
       ],
       "development_targets": [
         {
-          "kind": "jobs",
           "name": "attention-home-next-dev",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
           "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "daily-datapoints-next-dev",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "macro-fred-daily-dev",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
           "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "sn-research-run-dev",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
           "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "trading-agent-build-dev",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
           "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "equities-next-dev",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
           "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "evidence-index-dev",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
           "configuration_sha256": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "system-recovery-dev",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
           "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
           "configuration_api_version": "2025-07-01"
@@ -707,91 +731,98 @@
       ],
       "production_targets": [
         {
-          "kind": "jobs",
           "name": "attention-home-build",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "macro-fred-daily",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "sn-research-run",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "trading-agent-build",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "equities-intraday-preload",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "commodities-regime",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "options-liquid-universe",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "news-ingest-and-features",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "entity-taxonomy-refresh",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "company-baseline-prefetch",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "zopedia-maintenance",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb",
           "configuration_api_version": "2025-07-01"
         },
         {
-          "kind": "jobs",
           "name": "zopedia-learning",
+          "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
           "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6": {
+          "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+          "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+          "runtime_inventory_sha256": "4ed5528cc2f8ee22f82b6404cf0c338e5d73eca4cdb5f8bbb20f9342c3ffccfe",
+          "evidence": "documents/verification/trading-calls-2026-10-18/packaged-images.json"
+        }
+      },
       "previous_verified_images": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:14257c0c790a279f2411c4885c1627180cfbdd2323d28391e0adb9e71fd56b65": {
           "source_revision": "80e8f0fa070f87cbc26a5cb09507a6b146e945f0",
@@ -811,8 +842,8 @@
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
       "development_targets": [
         {
-          "kind": "containerApps",
           "name": "sn-api-next-dev",
+          "kind": "containerApps",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:1cba5594ecbb4d9bd87d12840b84802da792ae944cb042cce57e1a72bb8c46a3",
           "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412",
           "configuration_api_version": "2025-07-01"
@@ -820,14 +851,21 @@
       ],
       "production_targets": [
         {
-          "kind": "containerApps",
           "name": "sn-api-next",
+          "kind": "containerApps",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:6e6dbd9bfdcbe4d85e5dcb2f4d9f66510f62a8fd52e267db0f5ce00e66957ba5",
           "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f1b58d382c271b91889eee3f97a367b8f40e242d84ad961928636a6862fc8827": {
+          "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+          "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+          "runtime_inventory_sha256": "4ed5528cc2f8ee22f82b6404cf0c338e5d73eca4cdb5f8bbb20f9342c3ffccfe",
+          "evidence": "documents/verification/trading-calls-2026-10-18/packaged-images.json"
+        }
+      },
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:04f2db033ff44e50a5548ce90e2f24cde5f4b0fc1e85943bc971bc178aaa5d2a",
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:1cba5594ecbb4d9bd87d12840b84802da792ae944cb042cce57e1a72bb8c46a3",
@@ -885,6 +923,7 @@
         "web/app/api/research-runs/[runId]/events/route.ts": "0874d469c39200703a9f75285788c62efc4467f3bde73cf73a71f056abad63a5",
         "web/app/api/research-runs/[runId]/route.ts": "824d24987168aaf9c54de397d0dc8a2d080f0ae2d44c7472bf81d9fe6e2e5aad",
         "web/app/api/research-runs/route.ts": "190e9e19ff28c4594451fc9bd6d0582ce2f15b63e05b7c8f739b0fc5521a2ad9",
+        "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e",
         "web/app/api/trading-agent/decisions/route.ts": "99a759da8113d1dc91a0acf3f0ae49b71462f85455efc90cef11658fe620f5dd",
         "web/app/api/trading-agent/route.ts": "1c2c6b68e07f541b613dddd614f82797b1b6b49ac8321b24bc94e1da4f71bd07",
         "web/app/api/visualizations/[name]/route.ts": "fcc3a1b098fa9ee4233ffa1aaae7c8b6743499b3574b2ce78a399d24fa48da78",
@@ -903,7 +942,7 @@
         "web/app/portfolio-performance/page.tsx": "fbaf6d62c06d0f0b06ddb75bc9a3b73185b76f2bcad28eeb357227329852199c",
         "web/app/portfolio/page.tsx": "2dc3c513f466061affa3601069be7c7ef70792411c356d48c656f4a6ce57f659",
         "web/app/stock-investigator/page.tsx": "2875209e58497c67c75471f73d23b3f2751f9f86c80f8b5aa57e84c533eb7cef",
-        "web/app/trading-agent/page.tsx": "bd44b82d5f36cee6da0b785f9379e8eb3b4f1c3d9517e98716b28ecc8a86e545",
+        "web/app/trading-agent/page.tsx": "77ddb8ecc96fc044f42c61540e7dff9eb4ca13ee6be44051f3c31349286d1b5a",
         "web/app/zopedia/conversations/[conversationId]/page.tsx": "914b4f73e487182d1e7c013a190eda55ff984bf55d9310d7e6af99b4089b3903",
         "web/app/zopedia/page.tsx": "c2cec2b1628f423df67fbc33ff16ab08ff673d6c157a128f32ace6ed5352b541",
         "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
@@ -942,188 +981,100 @@
         "web/tsconfig.json": "9c73cf280ef044e5b2557572af01310c7bb24a714ec22d1a7bdb85e6f152cb0b"
       },
       "baseline_images": [
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:91730986547ca814a857528f7ca6d536dcf75b03db694ed9ed4a3f8b0679033d",
         "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6"
       ],
       "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:91730986547ca814a857528f7ca6d536dcf75b03db694ed9ed4a3f8b0679033d": {
-          "source_revision": "2171750325f497f539b837c5c0e6551751137d31",
-          "source_inventory_sha256": "842127138aea9b0d9b09ed75c288d9f393b173eda2983222e6027971a5b7f3a8",
-          "runtime_inventory_sha256": "f39d6390836fe9bde5a2190fd854364a48b11cde008195940eb8a07802ccbf4c",
-          "evidence": "documents/verification/admin-health-frontend-2026-10-18/packaged-image.json"
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5e4bfe16c2f70cd2d2a71089958d403b993238a4f1526b80c45559d0450449f2": {
+          "source_revision": "aa43e3d2ef617acfa67616f586149f1c60b4d0e3",
+          "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+          "runtime_inventory_sha256": "b6b857ed5b152af7eb69e5fc4895ece601cc62efbe49b9a6939174def706e8cd",
+          "evidence": "documents/verification/trading-calls-2026-10-18/packaged-images.json"
         }
       },
       "development_targets": [
         {
-          "kind": "containerApps",
           "name": "sn-next-ui-dev",
-          "previous_image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+          "kind": "containerApps",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:91730986547ca814a857528f7ca6d536dcf75b03db694ed9ed4a3f8b0679033d",
           "configuration_sha256": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4",
           "configuration_api_version": "2025-07-01"
         }
       ],
-      "production_targets": []
+      "production_targets": [
+        {
+          "name": "sn-next-ui",
+          "kind": "containerApps",
+          "previous_image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+          "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
+          "configuration_api_version": "2025-07-01"
+        },
+        {
+          "name": "sn-streamlit-ui",
+          "kind": "containerApps",
+          "previous_image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
+          "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
+          "configuration_api_version": "2025-07-01"
+        }
+      ]
     }
   },
   "untouched_consumers": [
     {
-      "name": "attention-home-build",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea"
-    },
-    {
-      "name": "attention-home-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
-      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6"
-    },
-    {
-      "name": "attention-ticker-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
-      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884"
-    },
-    {
-      "name": "commodities-regime",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b"
-    },
-    {
-      "name": "company-baseline-prefetch",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de"
-    },
-    {
-      "name": "daily-datapoints-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
-      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b"
-    },
-    {
-      "name": "dataset-refresh-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
-      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09"
-    },
-    {
-      "name": "entity-taxonomy-refresh",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2"
-    },
-    {
-      "name": "equities-intraday-preload",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505"
-    },
-    {
-      "name": "equities-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
-      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5"
-    },
-    {
-      "name": "evidence-index-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
-      "configuration_sha256": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc"
+      "name": "universe-builder",
+      "kind": "jobs",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
+      "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
+      "configuration_api_version": "2025-07-01"
     },
     {
       "name": "fundamentals-quarterly-refresh",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
-      "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704"
-    },
-    {
-      "name": "macro-fred-daily",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603"
-    },
-    {
-      "name": "macro-fred-daily-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
-      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97"
-    },
-    {
-      "name": "news-ingest-and-features",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00"
-    },
-    {
-      "name": "options-liquid-universe",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae"
-    },
-    {
-      "name": "robinhood-main-sync-dev",
-      "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
-      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3"
-    },
-    {
-      "name": "robinhood-main-sync-prod",
-      "image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
-      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7"
-    },
-    {
-      "name": "sn-api-next",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:6e6dbd9bfdcbe4d85e5dcb2f4d9f66510f62a8fd52e267db0f5ce00e66957ba5",
-      "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0"
-    },
-    {
-      "name": "sn-api-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:1cba5594ecbb4d9bd87d12840b84802da792ae944cb042cce57e1a72bb8c46a3",
-      "configuration_sha256": "65fbd5600c33972a57d429f7b8eec31aa7c49eed3c88cddcd78c840c00ddb412"
-    },
-    {
-      "name": "sn-next-ui",
-      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
-      "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0"
-    },
-    {
-      "name": "sn-research-run",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91"
-    },
-    {
-      "name": "sn-research-run-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
-      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba"
-    },
-    {
-      "name": "sn-streamlit-ui",
-      "image": "snpipelineacr03130136.azurecr.io/native-workbench-web-dev@sha256:ba0aa2bd6912eae732b95f122ac02b1d2cd7a6133b798c58c5691c33176ef0b6",
-      "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06"
+      "kind": "jobs",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:4e63f790e7d4042f9085db66a0019bec1cd639cabfd1eca4860d4354291f699e",
+      "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
+      "configuration_api_version": "2025-07-01"
     },
     {
       "name": "system-health",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
-      "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68"
+      "kind": "jobs",
+      "previous_image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:358c72d7a19544690ea4d4f86048e5f7971b7485fff265fe106553d371ad8cff",
+      "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
+      "configuration_api_version": "2025-07-01"
     },
     {
-      "name": "system-recovery-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
-      "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329"
+      "name": "robinhood-main-sync-dev",
+      "kind": "jobs",
+      "previous_image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+      "configuration_api_version": "2025-07-01"
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "kind": "jobs",
+      "previous_image": "snpipelineacr03130136.azurecr.io/robinhood-main-sync@sha256:2a8e36cdb6d9fc84e2d6fe568d3f6ac2d03f267c8634977e831e0be35c1a16c3",
+      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+      "configuration_api_version": "2025-07-01"
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "kind": "jobs",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+      "configuration_api_version": "2025-07-01"
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "kind": "jobs",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+      "configuration_api_version": "2025-07-01"
     },
     {
       "name": "technical-history-next-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
-      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca"
-    },
-    {
-      "name": "trading-agent-build",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f"
-    },
-    {
-      "name": "trading-agent-build-dev",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:58f5eaa618680e70a436ed1a31303a77fb42e9733af4f05773ba497ee0547577",
-      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad"
-    },
-    {
-      "name": "universe-builder",
-      "image": "snpipelineacr03130136.azurecr.io/stack-parity-prod@sha256:8578f22870521df5daae8326cd3879a9d84226b2149fb22ad8d4963af38016df",
-      "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763"
-    },
-    {
-      "name": "zopedia-learning",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d"
-    },
-    {
-      "name": "zopedia-maintenance",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e",
-      "configuration_sha256": "327fdc372fa9958c852bba689c834b3d7baf6b572a7755a4b61c2048c3e111eb"
+      "kind": "jobs",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d",
+      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+      "configuration_api_version": "2025-07-01"
     }
   ],
   "retired_consumers": [
@@ -1143,18 +1094,21 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
-  "production_authorization": {},
+  "production_authorized": true,
+  "production_authorization": {
+    "owner_instruction": "Push to prod",
+    "date": "2026-10-18",
+    "scope": "Trading paper pilot and integrated current web/API/workers; no broker orders"
+  },
   "development_acceptance": {
     "status": "accepted",
-    "source_revision": "2171750325f497f539b837c5c0e6551751137d31",
-    "source_inventory_sha256": "842127138aea9b0d9b09ed75c288d9f393b173eda2983222e6027971a5b7f3a8",
-    "runtime_inventory_sha256": "f39d6390836fe9bde5a2190fd854364a48b11cde008195940eb8a07802ccbf4c",
     "images": {
-      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:91730986547ca814a857528f7ca6d536dcf75b03db694ed9ed4a3f8b0679033d"
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f1b58d382c271b91889eee3f97a367b8f40e242d84ad961928636a6862fc8827",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5e4bfe16c2f70cd2d2a71089958d403b993238a4f1526b80c45559d0450449f2"
     },
-    "evidence": "documents/verification/admin-health-frontend-2026-10-18/README.md",
-    "scope": "Fresh authenticated Admin/Health screen, live database/container metrics, protected anonymous endpoint, unchanged Home publication and preserved consumers."
+    "source_inventory_sha256": "482478fb6cebbb953186bbf31f368c4442954a2bfda96b54c5b0a2af325e6885",
+    "evidence": "documents/verification/trading-calls-2026-10-18/DEVELOPMENT.md"
   },
   "preceding_hold": {
     "revision": "20108c58",

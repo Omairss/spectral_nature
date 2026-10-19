@@ -1,0 +1,178 @@
+{
+  "role": "candidate-direction",
+  "horizon": "3m",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 104.01277504197787,
+  "input_sha256": "37a0a114ce2a9d0dbc1706961826b5c7c4e037a7aded326e9a674689027cff2f",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "directional_price_calls_v3",
+    "regime_read": "October 2026 shows cooling momentum leaders, financing-heavy data-centre names under pressure from rising borrowing costs, and a sharp vaccine-sector rally built on cancer-vaccine headlines and index flows. Rate direction and sector-flow swings, not company results, set most of these prices inside this window.",
+    "portfolio_posture": "Most of these ideas lean against October's strongest moves, so a broad risk-on rally or a fall in borrowing costs would hurt several of them at the same time.",
+    "candidates": [
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "ASST",
+        "stance": "long",
+        "forecast": {
+          "pricing_assessment": "At the last observed close of $25.635 on 2026-10-15 the price already reflects a large bitcoin-for-preferred accumulation machine, so the next gain must come from adding bitcoin per share rather than from a re-rating. The size of any discount or premium to bitcoin per share cannot be measured, because the share count and the bitcoin price on that date are not in the evidence.",
+          "assumptions": [
+            "The planned $500 million SATS preferred sale completes on the described terms and the money buys more bitcoin.",
+            "Bitcoin trades at or above the roughly $84,500 average purchase price from 5-9 October 2026.",
+            "Preferred dividends take less cash than the bitcoin that the preferred shares buy."
+          ],
+          "opposing_case": "Preferred holders are paid roughly 13% and 15% before common holders receive anything, about $75 million a year, so a flat bitcoin price sends the leftover value to the preferred. Weekly purchase filings also do not reconcile with the reported increase in holdings, and in one August 2026 window bitcoin per diluted share rose only 1.3% while holdings rose 5.5%.",
+          "reference_price": 25.635,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Strive buys bitcoin with preferred stock instead of common stock, so each common share can hold more bitcoin even while the three-month gain slows.",
+        "hypothesis": "Strive completes the planned SATS preferred offering and keeps buying bitcoin, so more bitcoin sits behind each common share by mid-January 2027.",
+        "evidence": [
+          "Strive bought 3,311 bitcoin for about $280 million at roughly $84,500 each between 5 and 9 October 2026, taking holdings to 32,773 bitcoin.",
+          "Strive announced a planned initial public offering of 5 million SATS preferred shares at $100 each to raise $500 million, paying a 15% dividend and ranking behind the existing SATA preferred.",
+          "The last observed close was $25.635 on 2026-10-15, up 3.89% on the day and 107.7% over three months, with the pattern tagged \"Up / cooling\"."
+        ],
+        "invalidation": "The SATS offering is cut or withdrawn, or reported bitcoin per common share stops rising between the 15 October 2026 close and mid-January 2027.",
+        "tail_risks": [
+          "A sharp fall in the bitcoin price, which cuts the treasury value and reported earnings at the same time.",
+          "A funding-market shift that makes the preferred dividend harder to cover.",
+          "Another break in the link between holdings and per-share bitcoin."
+        ],
+        "evidence_limits": [
+          "The missing weekly purchase report and the source of the cash already used for bitcoin.",
+          "The current common share count and bitcoin price on 15 October 2026, to test the discount or premium.",
+          "Whether the SATS offering priced and whether the money went to bitcoin, assets or buybacks."
+        ],
+        "suggested_horizon": "3 Month",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "JBLU",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "At the last observed close of $3.145 on 2026-10-15 the shares already price heavy credit stress, so the short needs the loss to keep widening rather than a fresh collapse. The decisive comparison on 27 October 2026 is unit revenue growth against unit cost growth, not the revenue level.",
+          "assumptions": [
+            "The cost trend of the June 2026 quarter continues into the September 2026 quarter.",
+            "No new borrowing on expensive terms raises liquidity concern before January 2027.",
+            "Fuel prices do not fall enough to close the gap between unit revenue and unit cost."
+          ],
+          "opposing_case": "Revenue and unit revenue both grew in the June 2026 quarter, and the shares sit near 52-week lows with a Sell rating already published, so a slightly better quarter or a fuel-price fall can produce a sharp bounce. Susquehanna kept a Neutral rating, which shows the bearish view is not unanimous.",
+          "reference_price": 3.145,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "JetBlue reports third-quarter results on 27 October 2026 with losses widening, cash leaving the business and its debt rated CCC+.",
+        "hypothesis": "Unit costs keep rising faster than unit revenue into the 27 October 2026 report, so the shares stay weak into mid-January 2027.",
+        "evidence": [
+          "In the quarter ended 30 June 2026 revenue rose about 14.5% to $2.697 billion, but the net loss widened to $247 million from $74 million a year earlier and free cash flow was -$318 million.",
+          "Shareholders' equity fell from $2.641 billion at the end of 2024 to $1.587 billion at 30 June 2026, while total liabilities reached $14.784 billion.",
+          "S&P Global Ratings lowered JetBlue to CCC+ from B- on 8 June 2026, and Susquehanna ($4 from $6) and Goldman Sachs ($3.50 from $4) were among the banks that cut targets in the week to 14 October 2026."
+        ],
+        "invalidation": "The 27 October 2026 report shows a narrower loss with unit revenue growth above unit cost growth, or a credit rater lifts the outlook.",
+        "tail_risks": [
+          "A lower fuel price or a capacity cut that narrows the loss faster than expected.",
+          "A refinancing on better terms than the CCC+ rating implies, which would ease the funding worry.",
+          "A short squeeze in a stock already down 42.3% over three months."
+        ],
+        "evidence_limits": [
+          "Full-year 2026 guidance and any capacity or route changes, which set the cost path for the next two quarters.",
+          "Total liquidity and the debt maturities due in the next twelve months, to test how long the cash burn can run.",
+          "The fuel hedge position and the current share count, which affect the loss per share."
+        ],
+        "suggested_horizon": "3 Month",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "CORZ",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "At the last observed close of $14.46 on 2026-10-15 the shares have already given back more than a third of their three-month value, so the easy part of the de-rating is done. Without lease rents or the cost of the new debt, no floor can be calculated.",
+          "assumptions": [
+            "Borrowing costs stay near or above current levels through mid-January 2027.",
+            "The AMD capacity and the Texas pipeline do not become signed leases with disclosed terms inside this window.",
+            "Liquidity of $1.82 billion reported at 30 June 2026 avoids a distressed capital raise."
+          ],
+          "opposing_case": "Revenue more than doubled year on year to $164.2 million with positive operating income and a 43% gross margin, so the build-out is producing a growing business rather than only spending. The three-month fall tracks sector-wide financing worry, and one rate cut or one signed hyperscaler lease could reverse it quickly.",
+          "reference_price": 14.46,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Core Scientific must borrow heavily to turn its power sites into AI data centres, and the shares fell 35.4% over three months as borrowing costs rose.",
+        "hypothesis": "Funding costs stay high and the announced AI capacity does not become signed, funded leases by mid-January 2027, so the shares stay under pressure.",
+        "evidence": [
+          "Free cash flow was -$1.02 billion in the quarter ended 30 June 2026, mostly build spending, taking total liabilities to $7.68 billion against $5.26 billion of assets and negative equity of $2.42 billion.",
+          "On 2026-10-15 the shares rose 7.11% on the day, but the three-month return was -35.4% and the last observed close was $14.46.",
+          "The company holds conditional ERCOT power approvals for Texas sites from 14 September 2026 and an AMD partnership covering 500+ MW from 2027, and neither discloses rent, counterparty terms or start dates."
+        ],
+        "invalidation": "A signed lease with a named counterparty, disclosed rent, term and start date, at a return above the cost of the new debt, would disprove the short.",
+        "tail_risks": [
+          "A fall in interest rates that lifts debt-funded AI builders across the sector.",
+          "A signed, funded lease or a large equity raise on good terms that removes the financing worry.",
+          "A short squeeze after the 7.1% one-day rise on 15 October 2026."
+        ],
+        "evidence_limits": [
+          "The contracts behind the AMD partnership and the ERCOT approvals, with rents and start dates.",
+          "The Q3 2026 report date and results, which the 28 July 2026 Q2 report makes likely inside this window.",
+          "The date the CoreWeave acquisition ended, which the evidence places in October and conflicts with the July 2025 announcement."
+        ],
+        "suggested_horizon": "3 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "directional_price_calls_v3",
+        "ticker": "CRGY",
+        "stance": "short",
+        "forecast": {
+          "pricing_assessment": "The price sits on the $12.50 offering price, so the market has already repriced the new share count, and further downside depends on pro forma debt and on whether the bought production earns more than the deal costs. Those figures are not disclosed, so this is uncertainty rather than a computed edge.",
+          "assumptions": [
+            "The acquisition closes with debt above today's level and no near-term plan to reduce it.",
+            "The added Eagle Ford production does not lift cash flow per share inside this window.",
+            "Oil and gas prices do not rise enough to make the deal look cheap."
+          ],
+          "opposing_case": "Crescent is a repeat buyer that closed the Vital Energy Permian purchase for about $3.1 billion on 15 December 2025, the deal is reported to carry about $140 million of yearly cost savings, and a KKR affiliate committed to half of the new shares. The pre-deal business produced about $944 million of operating cash flow in the June 2026 quarter.",
+          "reference_price": 12.5,
+          "reference_snapshot_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot"
+        },
+        "setup": "Crescent agreed on 8 October 2026 to buy Devon's Eagle Ford assets for about $4.2 billion in cash and priced $1 billion of new Class A shares at $12.50 on 9 October 2026.",
+        "hypothesis": "The new shares and the cash purchase raise leverage before the added production earns anything, so the shares struggle to hold above the $12.50 offering price into mid-January 2027.",
+        "evidence": [
+          "Crescent agreed on 8 October 2026 to buy Devon's Eagle Ford assets for about $4.2 billion in cash and started a $1 billion Class A share offering the same day, priced on 9 October 2026 at $12.50 for 80 million shares, with a KKR affiliate buying 40 million of them.",
+          "The last observed close was $12.50 on 2026-10-15, down 2.65% on the day, and the three-month return was +20.66%.",
+          "For the quarter ended 30 June 2026, revenue was about $1.39 billion, net income about $493 million and operating cash flow about $944 million, so the pre-deal business generates cash."
+        ],
+        "invalidation": "Disclosure showing pro forma debt held near current levels with per-share cash flow rising after the deal closes, or a share price that holds above the October 2026 high.",
+        "tail_risks": [
+          "A sharp rise in oil and gas prices that revalues the acquired reserves upward.",
+          "A close on better financing terms than expected, which removes the dilution worry.",
+          "A short squeeze around the 80 million new shares and the KKR commitment."
+        ],
+        "evidence_limits": [
+          "The purchase agreement terms: cash against stock, debt financing, close date and conditions.",
+          "The acquired production, reserves and cash flow, to compare the price with other Eagle Ford and Permian deals.",
+          "Pro forma debt, earnings and cash flow per share, and the share count before and after the offering."
+        ],
+        "suggested_horizon": "3 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      }
+    ],
+    "data_gaps": [
+      "Share counts for Strive and Crescent Energy are not in the evidence, so the per-share effect of their share sales cannot be measured.",
+      "Bitcoin's price on 15 October 2026 and Strive's bitcoin per common share are not available, so the premium or discount to the treasury cannot be tested.",
+      "The date the CoreWeave acquisition of Core Scientific ended is unresolved, because the evidence places it in October while the announcement was in July 2025."
+    ],
+    "error": ""
+  }
+}

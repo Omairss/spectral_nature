@@ -26,7 +26,7 @@ The same supported release command builds the `web` role through `Dockerfile.web
 
 ## Current deployment and rollback evidence
 
-The current deployment is the [October 18 production release](../verification/home-presentation-cleanup-2026-10-18/PRODUCTION.md), using the exact DEV-accepted worker/API digests recorded with their Git source. `infra/release_acceptance.json` and the linked all-resource audit identify the current thirteen production consumers and preserved configurations. Read these records and Azure before preparing another release.
+The current deployment is the [October 18–19 Trading paper-pilot release](../verification/trading-calls-2026-10-18/PRODUCTION.md), using the exact DEV-accepted worker/API/web digests recorded with their Git source. It preserves the [October 18 Home/research release](../verification/home-presentation-cleanup-2026-10-18/PRODUCTION.md), database recovery continuation and restored Admin/Health frontend. `infra/release_acceptance.json` and the linked all-resource audit identify the current fifteen production consumers and preserved configurations. Read these records and Azure before preparing another release.
 
 The [October 16 exact recovery](../verification/exact-production-recovery-2026-10-16/README.md) is historical rollback evidence. Its images, incomplete highlight refresh and former holds describe that dated operation, not current deployment authority. Historical snapshots never seed a new application build. Scoped database/Trading work remains preserved and must be reconciled in Git; no other session's source tree or previously held experiment gains acceptance from this deployment.
 

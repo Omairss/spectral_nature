@@ -1,0 +1,217 @@
+{
+  "development_outcome_review_queue": [
+    {
+      "status": "detected",
+      "episodes": 1
+    }
+  ],
+  "qualitative_review_attempts": [
+    {
+      "attempt_id": "llmhttp_bcdb8fb15128411abd187d8b14bae863",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 3350.9561250102706,
+      "usage_json": {
+        "total_tokens": 3374,
+        "prompt_tokens": 3110,
+        "completion_tokens": 264,
+        "prompt_tokens_details": {
+          "cached_tokens": 1408
+        },
+        "prompt_cache_hit_tokens": 1408,
+        "prompt_cache_miss_tokens": 1702,
+        "completion_tokens_details": {
+          "reasoning_tokens": 12
+        }
+      }
+    },
+    {
+      "attempt_id": "llmhttp_d0019bbbac234438b46b9b65779b11ad",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 3211.4642090164125,
+      "usage_json": {
+        "total_tokens": 4142,
+        "prompt_tokens": 3881,
+        "completion_tokens": 261,
+        "prompt_tokens_details": {
+          "cached_tokens": 1920
+        },
+        "prompt_cache_hit_tokens": 1920,
+        "prompt_cache_miss_tokens": 1961,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      }
+    },
+    {
+      "attempt_id": "llmhttp_ea4a2cde5767430f9839f5cd3868770c",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 3293.6118749785237,
+      "usage_json": {
+        "total_tokens": 4724,
+        "prompt_tokens": 4329,
+        "completion_tokens": 395,
+        "prompt_tokens_details": {
+          "cached_tokens": 2560
+        },
+        "prompt_cache_hit_tokens": 2560,
+        "prompt_cache_miss_tokens": 1769,
+        "completion_tokens_details": {
+          "reasoning_tokens": 70
+        }
+      }
+    },
+    {
+      "attempt_id": "llmhttp_07e5a84dafe14ff08930d075e81eabbf",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 3638.8295000069775,
+      "usage_json": {
+        "total_tokens": 11130,
+        "prompt_tokens": 10795,
+        "completion_tokens": 335,
+        "prompt_tokens_details": {
+          "cached_tokens": 2944
+        },
+        "prompt_cache_hit_tokens": 2944,
+        "prompt_cache_miss_tokens": 7851,
+        "completion_tokens_details": {
+          "reasoning_tokens": 16
+        }
+      }
+    },
+    {
+      "attempt_id": "llmhttp_acb4143922534d5e90fbb72bcf13bf41",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 4718.30000000773,
+      "usage_json": {
+        "total_tokens": 11826,
+        "prompt_tokens": 11305,
+        "completion_tokens": 521,
+        "prompt_tokens_details": {
+          "cached_tokens": 9472
+        },
+        "prompt_cache_hit_tokens": 9472,
+        "prompt_cache_miss_tokens": 1833,
+        "completion_tokens_details": {
+          "reasoning_tokens": 124
+        }
+      }
+    },
+    {
+      "attempt_id": "llmhttp_d1e15585c3e64e25af5825a3b683dc40",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 7961.783709004521,
+      "usage_json": {
+        "total_tokens": 13688,
+        "prompt_tokens": 12535,
+        "completion_tokens": 1153,
+        "prompt_tokens_details": {
+          "cached_tokens": 9856
+        },
+        "prompt_cache_hit_tokens": 9856,
+        "prompt_cache_miss_tokens": 2679,
+        "completion_tokens_details": {
+          "reasoning_tokens": 754
+        }
+      }
+    },
+    {
+      "attempt_id": "llmhttp_4fd5d9f9ddd3477d80477ca72504df89",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.research_step",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 10525.204958976246,
+      "usage_json": {
+        "total_tokens": 14962,
+        "prompt_tokens": 13223,
+        "completion_tokens": 1739,
+        "prompt_tokens_details": {
+          "cached_tokens": 11136
+        },
+        "prompt_cache_hit_tokens": 11136,
+        "prompt_cache_miss_tokens": 2087,
+        "completion_tokens_details": {
+          "reasoning_tokens": 373
+        }
+      }
+    },
+    {
+      "attempt_id": "llmhttp_eb89250e768b48a3a6325261d9485d71",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.final_synthesis",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 10688.730624970049,
+      "usage_json": {
+        "total_tokens": 14518,
+        "prompt_tokens": 12782,
+        "completion_tokens": 1736,
+        "prompt_tokens_details": {
+          "cached_tokens": 256
+        },
+        "prompt_cache_hit_tokens": 256,
+        "prompt_cache_miss_tokens": 12526,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1293
+        }
+      }
+    },
+    {
+      "attempt_id": "llmhttp_67e04ee06a9542f4914d9391f5f3459b",
+      "root_run_id": "trading-feedback-review-20261019",
+      "surface": "services.zopedia_learning",
+      "purpose": "agent.answer_judge",
+      "requested_model": "deepseek-reasoner",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "duration_ms": 57160.697415994946,
+      "usage_json": {
+        "total_tokens": 25207,
+        "prompt_tokens": 13508,
+        "completion_tokens": 11699,
+        "prompt_tokens_details": {
+          "cached_tokens": 768
+        },
+        "prompt_cache_hit_tokens": 768,
+        "prompt_cache_miss_tokens": 12740,
+        "completion_tokens_details": {
+          "reasoning_tokens": 10658
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "role": "candidate-tools",
+  "horizon": "5y",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 90.42247570800828,
+  "input_sha256": "256009b0b46722bbdf70b5bb43c9cd45c5979cc8ffb73cbad9ce87ec3a443696",
+  "result": {
+    "status": "error",
+    "regime_read": "",
+    "portfolio_posture": "",
+    "candidates": [],
+    "data_gaps": [],
+    "error": "RuntimeError: ResearchStepTimeout: research planning timed out after 90.0s."
+  }
+}

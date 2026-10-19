@@ -1,0 +1,250 @@
+{
+  "role": "candidate",
+  "horizon": "3m",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 132.03378595900722,
+  "input_sha256": "50e2510ce9cd725567fd0c63c3c23e6840b48072cfa9f62c96196373c71642c0",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "probabilistic_price_calls_v3",
+    "regime_read": "Momentum leaders are cooling, and rate-rise fears are pressing on the companies that must borrow to build, after hot inflation data and rising Treasury yields pushed AI hardware and data-center shares lower in mid-October 2026. The sharpest gains sit in biotechnology, where a government cancer-vaccine programme and index changes drove single-name moves.",
+    "portfolio_posture": "The book is mostly short high-volatility, financing-dependent names, so it carries a shared risk that easier credit or a broad risk-on rally lifts all of them at once.",
+    "candidates": [
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "ASST",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.3,
+              "return_pct": -45.0,
+              "assumptions": "Bitcoin falls about 20% from mid-October 2026 levels and the premium to bitcoin value narrows; the preferred dividend cost is unchanged, so common holders bear most of the fall."
+            },
+            {
+              "case": "base",
+              "probability": 0.45,
+              "return_pct": -12.0,
+              "assumptions": "Bitcoin trades near $85,000 through mid-January 2027, no further large purchase is announced, and the roughly 13% to 15% preferred dividends keep taking value ahead of the common stock."
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "return_pct": 50.0,
+              "assumptions": "Bitcoin rises about 30% and the SATS offering completes, so bitcoin per share grows faster than the dividend cost and the market pays a wider premium to bitcoin value."
+            }
+          ],
+          "rationale": "The bear and bull payoffs are close to symmetric, but the base case leans negative because the preferred dividends take about $75 million a year ahead of the common shares and recent growth did not reach common holders one for one. The strongest opposing argument is that a bitcoin rally would lift the treasury faster than the dividend drag, and this call depends on a bitcoin price path that is not in the evidence.",
+          "expected_return_pct": -6.4,
+          "expected_call_return_pct": 6.4,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -45.0,
+          "upside_return_pct": 50.0,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Strive rose 107.7% in three months while paying for bitcoin with preferred shares, so the next three months test whether common holders still gain bitcoin per share.",
+        "hypothesis": "The common stock should fall over three months because the preferred shares take roughly $75 million a year in fixed dividends before common holders are paid. Bitcoin per share is also growing more slowly than total bitcoin holdings.",
+        "evidence": [
+          "Strive bought 3,311 bitcoin for about $280 million between 5 and 9 October 2026 at an average of about $84,500 per coin, taking holdings to 32,773 bitcoin ([Benzinga](https://benzinga.com/news/26/10/62320971/strive-acquires-3-311-bitcoins-average-price-84-500-bitcoin-oct-5-through-oct-9)).",
+          "A $500 million sale of 15% SATS preferred shares is planned but not completed, while the existing SATA preferred pays about 13%; both rank ahead of the common stock for dividends ([Benzinga](https://benzinga.com/news/26/10/62341031/strive-plans-conduct-initial-public-offering-of-5m-shares-its-15-series-perpetual-sats-preferred-shares), [CoinDesk](https://coindesk.com/markets/2026/10/13/strive-to-ipo-second-preferred-share-class-as-it-looks-to-further-build-bitcoin-treasury)).",
+          "In one August 2026 window holdings grew 5.5% while bitcoin per diluted share grew only 1.3%, so new coins did not reach common holders one for one."
+        ],
+        "invalidation": "The call fails if bitcoin rallies well above the recent purchase price of about $84,500 and the company completes the SATS offering, so bitcoin per share keeps rising faster than the dividend cost.",
+        "tail_risks": [
+          "A sharp bitcoin rally would raise the value of the treasury faster than the dividend drag, and the common stock would rise.",
+          "A completed SATS offering at $100 could be read as a vote of confidence and lift the common shares.",
+          "A 2x daily ASST fund magnifies flow-driven price swings, which can push the price against a short position."
+        ],
+        "evidence_limits": [
+          "Find the missing weekly bitcoin purchase report, because the reported weeks add to about 6,242 bitcoin against a 7,773-coin rise in holdings, and the source of the money already spent is not public.",
+          "Get the current common share count and the bitcoin behind each share after the October purchases, because the gap between the share price and that value decides whether the stock is cheap or expensive.",
+          "Confirm whether the SATS offering priced, because the proceeds decide how much more bitcoin the company can buy."
+        ],
+        "suggested_horizon": "3 months, to mid-January 2027",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "CORZ",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.35,
+              "return_pct": -50.0,
+              "assumptions": "Rate-rise fears continue, no new leases are signed, and the company funds the build with more debt or discounted equity, squeezing the common equity between $7.68 billion of liabilities and construction spending near $1 billion a quarter."
+            },
+            {
+              "case": "base",
+              "probability": 0.4,
+              "return_pct": -10.0,
+              "assumptions": "The third-quarter report shows revenue still growing but a large cash outflow, the stock trades with the data-center group, and no major new financing or lease is announced by mid-January 2027."
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "return_pct": 70.0,
+              "assumptions": "A named customer signs a lease at rent above the cost of debt, or long-term rates fall clearly, and the equity re-rates toward the value of the contracted pipeline."
+            }
+          ],
+          "rationale": "The weights favour the downside because the cash need is fixed and funding depends on credit markets that turned against the group in October, so the equity carries most of the risk. The strongest opposing argument is that the 35% fall has already priced much of the funding worry while revenue is still doubling, and one signed lease would reverse the direction.",
+          "expected_return_pct": -4.0,
+          "expected_call_return_pct": 4.0,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -50.0,
+          "upside_return_pct": 70.0,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Core Scientific fell 35.4% in three months while spending about $1 billion a quarter on AI data-center construction, so the next three months test whether it can keep funding that build.",
+        "hypothesis": "The shares should fall over three months because the company must keep raising debt and equity to fund construction while liabilities of $7.68 billion already exceed $5.26 billion of assets. The common equity absorbs any rise in funding costs.",
+        "evidence": [
+          "Revenue doubled to $164.2 million in the quarter ended 30 June 2026 with operating income of $20.7 million, but free cash flow was about -$1.02 billion as money went into construction, and stockholders' equity was -$2.42 billion ([Q2 2026 results](https://investors.corescientific.com/news-events/press-releases/detail/139/core-scientific-announces-second-quarter-2026-results)).",
+          "Core Scientific fell about 5% on 7-8 October 2026 with IREN and TeraWulf as borrowing costs rose ([24/7 Wall St](https://247wallst.com/investing/2026/10/07/iren-falls-7-as-financing-heavy-data-center-names-sell-off-apart-from-their-sector-fund-terawulf-and-core-scientific-drop-5)), and the Broadcom chief warned that financing costs could slow AI expansion ([Benzinga](https://benzinga.com/markets/tech/26/10/62379402/capital-over-chips-broadcom-ceo-warns-financing-costs-could-slow-ai-expansion)).",
+          "On 14 September 2026 the company reported $600 million of committed credit facilities and conditional Texas power approvals ([StockTitan](https://stocktitan.net/sec-filings/CORZ/8-k-core-scientific-inc-tx-reports-material-event-a86a4bdfb955.html)), so the pipeline is real but not yet leased."
+        ],
+        "invalidation": "The call fails if named colocation leases with disclosed rent and term cover the cost of the new debt, or if the third-quarter report shows free cash flow moving toward breakeven.",
+        "tail_risks": [
+          "A fall in long-term interest rates or narrower credit spreads would lower the cost of new debt and re-rate the whole data-center group higher.",
+          "A signed lease with a large AI customer at rent above the cost of capital would change the funding story.",
+          "The shares are widely traded by momentum funds, so a well-received capital raise or an AI sentiment rebound could lift them sharply against a short position."
+        ],
+        "evidence_limits": [
+          "Get the contracts behind the AMD partnership of 28 July 2026, with named counterparties, rent, term and start dates, because the bull case depends on announced capacity becoming paying leases.",
+          "Get the third-quarter 2026 report, since the second-quarter report came on 28 July 2026, to test whether cash outflow stays near $1 billion a quarter.",
+          "Check the rent the new high-density halls can earn against the 7.75% cost of the $3.3 billion notes, because that gap decides whether the build adds value for shareholders."
+        ],
+        "suggested_horizon": "3 months, to mid-January 2027",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "MRNA",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.3,
+              "return_pct": -35.0,
+              "assumptions": "Third-quarter revenue lands below the roughly $1 billion of the year-earlier quarter, or costs are guided higher, and momentum funds sell, taking the price back toward where it traded before the 19 August 2026 trial result."
+            },
+            {
+              "case": "base",
+              "probability": 0.45,
+              "return_pct": -12.0,
+              "assumptions": "Third-quarter revenue lands near $1 billion, the year-end cash guide of $4.7-5.2 billion holds, and the shares give back part of the October index-driven gain without a change in the business."
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "return_pct": 35.0,
+              "assumptions": "The third-quarter report beats and raises the outlook, or regulators accept a filing for intismeran autogene, so the market prices the cancer line sooner."
+            }
+          ],
+          "rationale": "The weights favour the downside because the two events behind the October gain are dated and finished, while cash outflow and the litigation payment continue, making a partial give-back more likely than a new high. The strongest opposing argument is that the August Phase 3 result changed the company's earnings path, and a good third-quarter report would show the seasonal business can fund it.",
+          "expected_return_pct": -7.15,
+          "expected_call_return_pct": 7.15,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -35.0,
+          "upside_return_pct": 35.0,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Moderna rose about 297% in three months on a positive cancer-trial result, index fund buying and a government cancer-vaccine programme, so the next three months test whether the seasonal vaccine business can carry that price.",
+        "hypothesis": "The shares should fall over three months because the rally's own catalysts are spent. Nasdaq-100 fund buying finished on 9 October 2026 and the cancer-vaccine programme starts in December with no revenue, while the company still burns cash.",
+        "evidence": [
+          "Merck and Moderna reported on 19 August 2026 that a Phase 3 trial of intismeran autogene with KEYTRUDA met its endpoints in resected melanoma, a real operating gain that the price has already captured ([Business Wire](https://businesswire.com/news/home/20260819675697/en/Merck-and-Moderna-Announce-Phase-3-INTerpath-001-Trial-of-Intismeran-Autogene-Plus-KEYTRUDA-Met-Endpoints-of-Recurrence-Free-Survival-RFS-and-Distant-Metastasis-Free-Survival-DMFS-in-Patients-With-Completely-Resected-Stage-IIB-IV-Melanoma)).",
+          "Nasdaq said on 1 October 2026 that MRNA would rejoin the Nasdaq-100 before the open on 9 October, a one-time purchase by index funds ([Stocks Down Under](https://stocksdownunder.com/moderna-stock-surges-nasdaq-100-cancer-vaccine)).",
+          "The quarter ended 30 June 2026 showed revenue of $145 million, a net loss of $782 million and free cash flow of -$563 million, with year-end cash guided to $4.7-5.2 billion from $6.9 billion at 30 June ([StockTitan](https://stocktitan.net/sec-filings/MRNA/8-k-moderna-inc-reports-material-event-e26a8178aec3.html))."
+        ],
+        "invalidation": "The call fails if the 6 November 2026 report shows quarterly revenue near or above the $1 billion of the year-earlier quarter with a raised outlook, or if regulators accept a filing for intismeran autogene before mid-January 2027.",
+        "tail_risks": [
+          "A stronger-than-expected respiratory season would lift vaccine sales above the plan and lift the shares.",
+          "A regulatory filing acceptance or a new positive cancer-vaccine trial result could add a second re-rating.",
+          "The stock is volatile and heavily traded by momentum funds, so a short position can be squeezed quickly after any good news."
+        ],
+        "evidence_limits": [
+          "Get the third-quarter 2026 results on 6 November 2026, because the seasonal step-up decides whether a $1 billion-plus quarter is real.",
+          "Get the coupon, maturity and conversion terms of the $2.6 billion August 2026 convertible notes, because they set the dilution if the shares keep rising.",
+          "Check whether the $950 million litigation payment falls in this window and how it is funded, because it reduces the cash that supports the research pipeline."
+        ],
+        "suggested_horizon": "3 months, to mid-January 2027",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "JBLU",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.35,
+              "return_pct": -45.0,
+              "assumptions": "The third-quarter report widens the loss again and the company raises money through new shares or costly debt, so the value of each existing share falls."
+            },
+            {
+              "case": "base",
+              "probability": 0.45,
+              "return_pct": -12.0,
+              "assumptions": "The third-quarter loss narrows a little on seasonal demand but costs still exceed pricing, and the shares drift lower with the credit rating unchanged at CCC+."
+            },
+            {
+              "case": "bull",
+              "probability": 0.2,
+              "return_pct": 40.0,
+              "assumptions": "Unit revenue grows faster than unit cost and fuel prices fall, so the company shows a path to positive free cash flow without new equity."
+            }
+          ],
+          "rationale": "The weights favour the downside because the reported quarters show revenue growth with a widening loss and the credit rating sits at CCC+, so more of the same is more likely than a turnaround. The strongest opposing argument is that the shares have fallen 42.3% in three months and already price much bad news, and a better-than-expected 27 October report could reverse the move.",
+          "expected_return_pct": -13.149999999999999,
+          "expected_call_return_pct": 13.149999999999999,
+          "probability_up": 0.2,
+          "probability_profit": 0.8,
+          "downside_return_pct": -45.0,
+          "upside_return_pct": 40.0,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "JetBlue fell 42.3% in three months and reports third-quarter results on 27 October 2026, with every reported quarter since late 2024 showing cash leaving the business.",
+        "hypothesis": "The shares should fall over three months because costs grow faster than the money collected per seat. Each quarter of revenue growth still widens the loss, which pushes the company toward another share sale or expensive borrowing.",
+        "evidence": [
+          "Revenue rose about 14.5% to $2.697 billion in the quarter ended 30 June 2026, but the net loss widened to $247 million from $74 million a year earlier and free cash flow was -$318 million.",
+          "Free cash flow was negative in every quarter shown from late 2024, and stockholders' equity fell from $2.641 billion at the end of 2024 to $1.587 billion at 30 June 2026 while total liabilities reached $14.784 billion.",
+          "S&P Global Ratings cut JetBlue to CCC+ from B- on 8 June 2026, citing high fuel costs and sustained high leverage ([DWU Consulting](https://dwuconsulting.com/dwu-ai/jetblue-airways-financial-profile)), and in the week to 14 October 2026 Susquehanna cut its target to $4 and Goldman Sachs went to Sell at $3.50."
+        ],
+        "invalidation": "The call fails if the 27 October 2026 report shows a narrower loss with unit revenue growing faster than unit cost, or if the company funds itself without selling shares or paying high interest.",
+        "tail_risks": [
+          "A fall in jet fuel prices or a capacity cut would slow cost growth faster than expected and narrow the loss.",
+          "A takeover approach or a large refinancing on good terms could lift the shares sharply.",
+          "The stock trades near $3, so one good headline can move it a long way in a day and squeeze a short position."
+        ],
+        "evidence_limits": [
+          "Get the third-quarter 2026 results on 27 October 2026, because unit revenue against unit cost decides whether the loss is narrowing.",
+          "Get total liquidity and the debt due in the next twelve months, because that sets how long the cash burn can continue before new funding.",
+          "Get the current share count and any new share issue, because more shares spread the same profit over more holders."
+        ],
+        "suggested_horizon": "3 months, to mid-January 2027",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      }
+    ],
+    "data_gaps": [
+      "Bitcoin's price path over the next three months, which is the main driver of the Strive call.",
+      "Oil and natural gas prices, which set Crescent Energy's cash flow and the value of the Eagle Ford purchase.",
+      "Expected interest-rate changes at the December 2026 and January 2027 central-bank meetings, which drive the cost of debt for the data-center builder."
+    ],
+    "error": ""
+  }
+}

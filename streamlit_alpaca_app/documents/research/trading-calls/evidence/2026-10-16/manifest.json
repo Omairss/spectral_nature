@@ -1,0 +1,259 @@
+{
+  "status": "held_not_deployed",
+  "model": "deepseek-reasoner",
+  "comparison_engine": "7281e3631a1764cf48c9",
+  "outputs": [
+    {
+      "file": "baseline-1w.json",
+      "role": "baseline",
+      "horizon": "1w",
+      "status": "ok",
+      "seconds": 101.09659308299888,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "feb58d0a6f633d4ba6fe6472d186f1af00765e7c18582b306471ffd20595c243"
+    },
+    {
+      "file": "baseline-3m.json",
+      "role": "baseline",
+      "horizon": "3m",
+      "status": "ok",
+      "seconds": 145.8002377920202,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "50e2510ce9cd725567fd0c63c3c23e6840b48072cfa9f62c96196373c71642c0"
+    },
+    {
+      "file": "baseline-5y.json",
+      "role": "baseline",
+      "horizon": "5y",
+      "status": "ok",
+      "seconds": 92.68858941597864,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "256009b0b46722bbdf70b5bb43c9cd45c5979cc8ffb73cbad9ce87ec3a443696"
+    },
+    {
+      "file": "baseline-heldout-1m.json",
+      "role": "baseline-heldout",
+      "horizon": "1m",
+      "status": "ok",
+      "seconds": 131.6609316659742,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "0b0287162db14ad9c67fb8a5785c91a0fa3ee982cd3c214bbf2b450de24853bf"
+    },
+    {
+      "file": "baseline-heldout-1y.json",
+      "role": "baseline-heldout",
+      "horizon": "1y",
+      "status": "ok",
+      "seconds": 99.6160815830226,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "42e5e51d4f472c2415c2d82aebe73de72179e9c22bef193439a56211a53f6851"
+    },
+    {
+      "file": "candidate-1w.json",
+      "role": "candidate",
+      "horizon": "1w",
+      "status": "ok",
+      "seconds": 98.41762975003803,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "feb58d0a6f633d4ba6fe6472d186f1af00765e7c18582b306471ffd20595c243"
+    },
+    {
+      "file": "candidate-3m.json",
+      "role": "candidate",
+      "horizon": "3m",
+      "status": "ok",
+      "seconds": 132.03378595900722,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "50e2510ce9cd725567fd0c63c3c23e6840b48072cfa9f62c96196373c71642c0"
+    },
+    {
+      "file": "candidate-5y.json",
+      "role": "candidate",
+      "horizon": "5y",
+      "status": "ok",
+      "seconds": 124.53338237502612,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "256009b0b46722bbdf70b5bb43c9cd45c5979cc8ffb73cbad9ce87ec3a443696"
+    },
+    {
+      "file": "candidate-direction-1w.json",
+      "role": "candidate-direction",
+      "horizon": "1w",
+      "status": "ok",
+      "seconds": 74.00622908299556,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "df71fd5b4f83cbf21ea826c6e6fc5931dd360da2be431cea3d19c928dadd91fe"
+    },
+    {
+      "file": "candidate-direction-3m.json",
+      "role": "candidate-direction",
+      "horizon": "3m",
+      "status": "ok",
+      "seconds": 104.01277504197787,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "37a0a114ce2a9d0dbc1706961826b5c7c4e037a7aded326e9a674689027cff2f"
+    },
+    {
+      "file": "candidate-direction-5y.json",
+      "role": "candidate-direction",
+      "horizon": "5y",
+      "status": "ok",
+      "seconds": 106.30939116695663,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "f758e5367bcf1b0d754023003deb5eea43b16e4dd4ec161430b97e5c0c9d206c"
+    },
+    {
+      "file": "candidate-direction-heldout-1m.json",
+      "role": "candidate-direction-heldout",
+      "horizon": "1m",
+      "status": "ok",
+      "seconds": 188.9494998329901,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "0b0287162db14ad9c67fb8a5785c91a0fa3ee982cd3c214bbf2b450de24853bf"
+    },
+    {
+      "file": "candidate-direction-heldout-1y.json",
+      "role": "candidate-direction-heldout",
+      "horizon": "1y",
+      "status": "ok",
+      "seconds": 66.09168691700324,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "42e5e51d4f472c2415c2d82aebe73de72179e9c22bef193439a56211a53f6851"
+    },
+    {
+      "file": "candidate-endpoints-1w.json",
+      "role": "candidate-endpoints",
+      "horizon": "1w",
+      "status": "failed",
+      "seconds": 130.92487562500173,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "feb58d0a6f633d4ba6fe6472d186f1af00765e7c18582b306471ffd20595c243"
+    },
+    {
+      "file": "candidate-heldout-1m.json",
+      "role": "candidate-heldout",
+      "horizon": "1m",
+      "status": "ok",
+      "seconds": 152.9618080840446,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "0b0287162db14ad9c67fb8a5785c91a0fa3ee982cd3c214bbf2b450de24853bf"
+    },
+    {
+      "file": "candidate-heldout-1y.json",
+      "role": "candidate-heldout",
+      "horizon": "1y",
+      "status": "ok",
+      "seconds": 114.80205975001445,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "42e5e51d4f472c2415c2d82aebe73de72179e9c22bef193439a56211a53f6851"
+    },
+    {
+      "file": "candidate-price-1w.json",
+      "role": "candidate-price",
+      "horizon": "1w",
+      "status": "ok",
+      "seconds": 119.91527537500951,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "df71fd5b4f83cbf21ea826c6e6fc5931dd360da2be431cea3d19c928dadd91fe"
+    },
+    {
+      "file": "candidate-price-3m.json",
+      "role": "candidate-price",
+      "horizon": "3m",
+      "status": "ok",
+      "seconds": 237.0594584160135,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "37a0a114ce2a9d0dbc1706961826b5c7c4e037a7aded326e9a674689027cff2f"
+    },
+    {
+      "file": "candidate-price-5y.json",
+      "role": "candidate-price",
+      "horizon": "5y",
+      "status": "ok",
+      "seconds": 144.06279020797228,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "f758e5367bcf1b0d754023003deb5eea43b16e4dd4ec161430b97e5c0c9d206c"
+    },
+    {
+      "file": "candidate-tools-5y.json",
+      "role": "candidate-tools",
+      "horizon": "5y",
+      "status": "error",
+      "seconds": 90.42247570800828,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "256009b0b46722bbdf70b5bb43c9cd45c5979cc8ffb73cbad9ce87ec3a443696"
+    },
+    {
+      "file": "candidate-window-1w.json",
+      "role": "candidate-window",
+      "horizon": "1w",
+      "status": "ok",
+      "seconds": 68.46249349997379,
+      "model": "deepseek-reasoner",
+      "engine": "7281e3631a1764cf48c9",
+      "input_sha256": "3753c8838e81e31392d1da29fa4db1da361aa59916cd5207ffaf8fbf08e56ad0"
+    }
+  ],
+  "experiment_accounting": {
+    "attempts": 27,
+    "statuses": {
+      "success": 25,
+      "failure": 1,
+      "started": 1
+    },
+    "known_estimated_usd_max": 0.238241748,
+    "unpriced_attempts": 2
+  },
+  "original_complete_workload_accounting": {
+    "attempts": 70,
+    "statuses": {
+      "success": 68,
+      "failure": 2
+    },
+    "known_estimated_usd_max": 1.45360548,
+    "unpriced_attempts": 2
+  },
+  "checks": {
+    "math_time_sessions_adjustments": "passed",
+    "real_postgresql_approvals": "passed_before_latest_backfill_refinement_repeat_pending",
+    "publication_and_view_contracts": "passed",
+    "web_types_and_scoped_lint": "passed",
+    "swift_syntax": "passed",
+    "native_build": "not_run_quality_hold",
+    "normal_authenticated_release_path": "not_run_quality_hold"
+  },
+  "source_note": "Root contains concurrent work. These hashes identify local files, not a deployable release. Accepted-source overlays restore the five unrelated pre-existing Trading reasoning changes. Current dev is also receiving a separate database lifecycle release; do not deploy an older engine baseline over it.",
+  "local_source_sha256": {
+    "services/trading_agent.py": "c73d297e4d3dcf74705543715042e9a5f5831e9e39ab15e2d599b1bd2bdf511f",
+    "services/trading_call_tracking.py": "4a38ccfdb872c322f2b1483b4207a3a522d9fb13bad003ee1e7f245da0933a8c",
+    "services/trading_agent_view.py": "1d9f59a7efdf4b03f164aef6d6c25929e3dbcf4ec92e8429e6eab1d8c4190173",
+    "services/pipeline_store.py": "059fcbd733bca327c1a355b916e563e543ba5bf3fc79b9c85786ddf6519b21cc",
+    "services/alpaca_api.py": "f1503f1cc5fe8f9ac6d962f559a079d3c53497c96caaf4439c686c0fa885866c",
+    "pipeline/jobs/main.py": "659c861e6e3f504fb9bd31a74d2c3f43acb73b9c9c28c168a3677a4273eb89fe",
+    "api/main.py": "9fa2498d22bc0c9134a6a0b46266e9faa683c7b49f4c5869199a6ab10beb947c",
+    "views/trading_agent.py": "c2eb3a6aa6f43bbc39b1eada07c45ef6fc1b78162a066e2306f105b8a6cd1956",
+    "web/app/trading-agent/page.tsx": "ca582981fdc246b43b832218eb074125f6c1e83b928558c8a0f7ae9308537070",
+    "web/app/api/trading-agent/calls/[trackingId]/route.ts": "5fb2ad770cbe99bee364508609843b3616e9ee9624c0e41297fdbf349ed4c18e",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Workspaces/TradingView.swift": "bc1227872abb99ce4387f0bcd061b82c25f4874c81774e91e130289d1690e610"
+  }
+}

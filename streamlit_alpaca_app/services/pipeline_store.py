@@ -1576,7 +1576,7 @@ def _bootstrap_trading_agent_actions(conn: Any) -> None:
 def _normalize_trading_agent_action(action: object) -> tuple[str, str]:
     text = str(action or "").strip().lower()
     if text in {"approve", "approved", "place", "placed", "place_requested", "request_place"}:
-        return "place_requested", "logged"
+        return "approved", "pending_entry"
     if text in {"reject", "rejected"}:
         return "rejected", "logged"
     return text or "unknown", "logged"
@@ -1594,8 +1594,13 @@ def record_trading_agent_action(
     if not isinstance(candidate, dict) or not str(candidate.get("candidate_id") or "").strip():
         return False, "Missing Trading Agent candidate id."
     action_value, status_value = _normalize_trading_agent_action(action)
-    if action_value not in {"place_requested", "rejected"}:
+    if action_value not in {"approved", "rejected"}:
         return False, f"Unsupported Trading Agent action: {action}"
+    owner_id = str(requested_by or "").strip()
+    if not owner_id:
+        return False, "A signed-in owner is required."
+    if action_value == "approved" and str(candidate.get("stance") or "").lower() not in {"long", "short"}:
+        return False, "Only a directional call can be approved for tracking."
     conn = _db_connect()
     if conn is None:
         return False, "Postgres is unavailable, so the Trading Agent action was not logged."
@@ -1603,7 +1608,32 @@ def record_trading_agent_action(
     action_id = str(uuid.uuid4())
     try:
         _bootstrap_trading_agent_actions(conn)
+        from .trading_call_tracking import ensure_schema, record_approval
+        ensure_schema(conn)
+        conn.commit()
         with conn.cursor() as cur:
+            identity = json.dumps([dataset_namespace(), owner_id, candidate["candidate_id"]])
+            cur.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s,0))", (identity,))
+            cur.execute("""SELECT action,action_id,created_at_utc,candidate_payload,execution_mode,horizon_key,ticker
+                FROM trading_agent_actions WHERE dataset_namespace=%s AND requested_by=%s AND candidate_id=%s
+                ORDER BY created_at_utc DESC,action_id DESC LIMIT 1""",
+                (dataset_namespace(), owner_id, candidate["candidate_id"]))
+            previous = cur.fetchone()
+            if previous and previous[0] in {"approved", "place_requested"}:
+                if action_value != "approved":
+                    return False, "This call is already approved and tracked."
+                if previous[4] in {"log_only", "paper_tracking"}:
+                    snapshot = previous[3] if isinstance(previous[3], dict) else json.loads(previous[3])
+                    snapshot = {**snapshot, "candidate_id": candidate["candidate_id"]}
+                    snapshot["horizon_key"] = snapshot.get("horizon_key") or previous[5]
+                    snapshot["ticker"] = snapshot.get("ticker") or previous[6]
+                    record_approval(cur, candidate=snapshot, owner_id=owner_id, action_id=previous[1],
+                                    approved_at=previous[2], namespace=dataset_namespace(), source="retained_log_approval")
+                conn.commit()
+                return True, "Candidate approved."
+            if previous and previous[0] == "rejected" and action_value == "rejected":
+                conn.commit()
+                return True, "Candidate rejected."
             cur.execute(
                 """
                 INSERT INTO trading_agent_actions (
@@ -1627,9 +1657,9 @@ def record_trading_agent_action(
                     str(candidate.get("horizon_key") or "").strip() or None,
                     str(candidate.get("ticker") or "").upper().strip() or None,
                     action_value,
-                    "log_only",
+                    "paper_tracking" if action_value == "approved" else "log_only",
                     status_value,
-                    "alpaca",
+                    None,
                     None,
                     json.dumps({}, ensure_ascii=True, sort_keys=True),
                     created_at,
@@ -1640,6 +1670,9 @@ def record_trading_agent_action(
                     dataset_namespace(),
                 ),
             )
+            if action_value == "approved":
+                record_approval(cur, candidate=candidate, owner_id=owner_id, action_id=action_id,
+                                approved_at=created_at, namespace=dataset_namespace())
         conn.commit()
     except Exception as exc:
         try:
@@ -1653,7 +1686,7 @@ def record_trading_agent_action(
         except Exception:
             pass
 
-    if action_value == "place_requested":
+    if action_value == "approved":
         return True, "Candidate approved."
     return True, "Candidate rejected."
 

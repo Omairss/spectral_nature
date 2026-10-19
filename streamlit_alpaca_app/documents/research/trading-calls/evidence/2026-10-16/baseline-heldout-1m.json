@@ -1,0 +1,130 @@
+{
+  "role": "baseline-heldout",
+  "horizon": "1m",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 131.6609316659742,
+  "input_sha256": "0b0287162db14ad9c67fb8a5785c91a0fa3ee982cd3c214bbf2b450de24853bf",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "plain_investor_research_v2",
+    "regime_read": "A biotech and diagnostics momentum wave leads the one-month picture, with peers up roughly 35% to 86% and Iovance raising its 2026 revenue guidance on 29 September 2026. Rate-hike fears after September producer prices rose 6.3% year over year are pressing on AI hardware shares, while crude near $90 supports energy shares.",
+    "portfolio_posture": "Keep the two directional calls small and treat the other two names as research watches, not positions.",
+    "candidates": [
+      {
+        "ticker": "LITE",
+        "direction": "long",
+        "stance": "long",
+        "research_status": "supported",
+        "setup": "Lumentum makes the lasers and optical parts inside AI data-centre networks, and the shares rose 20.2% in the month to 14 October 2026 as its order book filled.",
+        "hypothesis": "Orders booked through early 2029 keep revenue and cash flow rising faster than supply, so the shares can rise further over the next month. The edge is modest because the price already pays for much of this growth.",
+        "evidence": [
+          "Lumentum's fiscal fourth-quarter 2026 revenue was $1.01 billion, up 109% from a year earlier, and the shares rose about 14.9% on 12 August 2026.",
+          "On 9 October 2026 the chief executive said AI optical parts are booked through early 2029, and the shares rose about 6% that day.",
+          "The quarter that ended 28 March 2026 produced free cash flow of $118.6 million, the first clearly positive quarter after several weak years."
+        ],
+        "invalidation": "A change in the sold-out wording, or fiscal first-quarter 2027 revenue or gross margin below the growth the price assumes, would weaken the case.",
+        "tail_risks": [
+          "Rate-hike fears after September producer prices rose 6.3% year over year are already hitting AI hardware shares.",
+          "Customers can build their own laser capacity or qualify a second supplier, which would end the shortage that supports pricing.",
+          "The average analyst price target of $1,128.85 on 1 October 2026 sat below the record closing price."
+        ],
+        "evidence_limits": [
+          "Fiscal first-quarter 2027 revenue and gross margin will show whether demand still runs ahead of supply.",
+          "Order backlog and customer concentration in the fiscal 2026 annual report will show how much growth depends on a few buyers.",
+          "The Greensboro, North Carolina factory timeline and rival laser capacity will show how long the shortage lasts."
+        ],
+        "suggested_horizon": "1 month",
+        "confidence": "medium",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "LQDA",
+        "direction": "long",
+        "stance": "long",
+        "research_status": "supported",
+        "setup": "Liquidia settled every lawsuit with United Therapeutics on 13 October 2026 and kept its lung-disease drug YUTREPIA on the market, which removes the main threat to the business.",
+        "hypothesis": "With the injunction threat gone, fast-growing YUTREPIA sales can cover the settlement payments from operations and lift the shares over the next month. The edge is small because the cash payments are large against the company's equity.",
+        "evidence": [
+          "The 13 October 2026 global settlement resolved all six pending lawsuits and preserves YUTREPIA sales; the shares jumped 26% on 14 October 2026.",
+          "Preliminary third-quarter 2026 YUTREPIA sales were $222.7 million, above second-quarter company revenue of $171.7 million, and second-quarter net income was $74.7 million.",
+          "Liquidia pays United Therapeutics a net $380.7 million in instalments across 2026 and 2027, plus $60.3 million this month to antitrust parties."
+        ],
+        "invalidation": "YUTREPIA quarterly sales stop growing, or the company sells new shares to pay the instalments instead of funding them from operations.",
+        "tail_risks": [
+          "Final settlement terms could add royalties or limits that cut the economics of YUTREPIA.",
+          "The 30 September 2026 court finding that two United Therapeutics patent claims are valid leaves the product's legal position weaker.",
+          "Instalments of $145.4 million fall due in 2027 while spending on the launch stays high."
+        ],
+        "evidence_limits": [
+          "The full settlement terms will show any royalty on YUTREPIA sales and the licence scope in North America.",
+          "Cash and the share count at 30 September 2026 will show whether the instalments can be paid without new borrowing or share sales.",
+          "The dated third-quarter 2026 report will confirm the preliminary sales figure and the cash position."
+        ],
+        "suggested_horizon": "1 month",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "PBR",
+        "direction": "watch",
+        "stance": "no_call",
+        "research_status": "watch",
+        "setup": "Petrobras shares rose 19.5% in the month to 14 October 2026 as crude traded near $90 and the company said it is close to 3 million barrels of oil per day.",
+        "hypothesis": "Firm crude and falling political risk after Brazil's first-round vote can keep the shares rising for another month. Beyond that, the state-controlled board decides fuel prices and dividends, so neither direction has a clear edge.",
+        "evidence": [
+          "On 24 September 2026 the chief executive said Petrobras is close to reaching 3 million barrels of oil per day.",
+          "Two October 2026 filings report an extra oil-bearing interval in the Morpho well off Amapá and 21 new exploration blocks, with bonuses due 30 December 2026.",
+          "Bolsonaro led Brazil's first-round vote, giving Brazilian stocks their best day since 2020, and UBS kept a Buy rating while raising its price target by 23% in September 2026."
+        ],
+        "invalidation": "A dividend cut, a new fuel-price subsidy, or oil falling back toward $80 would break the constructive near-term case.",
+        "tail_risks": [
+          "The unresolved Brazilian runoff can change fuel-price and capital-allocation policy.",
+          "Crude stuck between $80 and $90 would stall cash-flow growth.",
+          "Third-party valuation work calls the ADS overvalued, and Wall Street Zen downgraded it on 11 October 2026."
+        ],
+        "evidence_limits": [
+          "The board's dividend decision will show how much cash reaches shareholders.",
+          "The next production report will show whether output crosses 3 million barrels per day.",
+          "The runoff result and any new fuel-price policy will set the longer-term return case."
+        ],
+        "suggested_horizon": "1 month",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "CRGY",
+        "direction": "watch",
+        "stance": "no_call",
+        "research_status": "watch",
+        "setup": "Crescent Energy agreed on 8 October 2026 to buy Devon Energy's Eagle Ford assets for $4.2 billion and then sold $1 billion of new shares, and the stock fell 12.2% in the month to 14 October 2026.",
+        "hypothesis": "The added Eagle Ford acreage and about $140 million of stated yearly cost savings can raise cash flow once the purchase is funded. Until the funding mix is known, a one-month direction cannot be supported.",
+        "evidence": [
+          "Crescent agreed on 8 October 2026 to buy Devon Energy's Eagle Ford assets for $4.2 billion in cash, covering about 90,000 net acres.",
+          "On 9 October 2026 it priced 80 million Class A shares at $12.50 each to raise about $1 billion, and a KKR affiliate bought half of them.",
+          "Second-quarter 2026 free cash flow was $622.0 million, against negative $155.8 million in the first quarter, so cash generation swings widely."
+        ],
+        "invalidation": "Another share sale, a weak third-quarter report, or lower oil prices would break the mildly bullish case.",
+        "tail_risks": [
+          "Debt used for the rest of the purchase price adds interest costs on top of $6.85 billion of total liabilities.",
+          "The 80 million new shares lower each existing share's claim on profit.",
+          "Quarterly earnings already swing hard, including a $419.8 million loss in the first quarter of 2026."
+        ],
+        "evidence_limits": [
+          "The split between debt and equity for the $4.2 billion will show how much risk the deal adds.",
+          "The closing date will show when the new acreage starts to add production and cash flow.",
+          "Third-quarter 2026 production, realised prices and free cash flow will test whether cash generation holds."
+        ],
+        "suggested_horizon": "1 month",
+        "confidence": "medium",
+        "narrative_contract_version": "plain_investor_research_v2"
+      }
+    ],
+    "data_gaps": [
+      "No current reading for economic growth, jobs or policy interest rates; the September producer-price rise of 6.3% year over year is the only inflation figure available.",
+      "No confirmed third-quarter 2026 results for any candidate, so the current-quarter trend is not yet measurable.",
+      "Whether crude oil holds near $90 after the Hormuz risk is not yet known, and this matters for the two energy names."
+    ],
+    "error": ""
+  }
+}

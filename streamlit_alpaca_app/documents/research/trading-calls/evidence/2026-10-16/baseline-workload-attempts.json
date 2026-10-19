@@ -1,0 +1,3255 @@
+[
+  {
+    "attempt_id": "llmhttp_2dda474f79a54307bdf3d5157096b2c8",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:16:32.566670+00:00",
+    "duration_ms": 8701.01795200003,
+    "usage_json": {
+      "total_tokens": 10352,
+      "prompt_tokens": 9275,
+      "completion_tokens": 1077,
+      "prompt_tokens_details": {
+        "cached_tokens": 1408
+      },
+      "prompt_cache_hit_tokens": 1408,
+      "prompt_cache_miss_tokens": 7867,
+      "completion_tokens_details": {
+        "reasoning_tokens": 618
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "08139f0ac2bcc828317802be115a5c0baf18fd44d4cb5b4891dbca0c73fe347b",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0036609479999999994,
+        "usd_min": 0.0018304739999999997,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "1139d520-1f05-4492-a785-0fdc164e7474"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_d1012efcc0b6421497407556f92b9307",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:16:32.567934+00:00",
+    "duration_ms": 6394.073878999961,
+    "usage_json": {
+      "total_tokens": 8047,
+      "prompt_tokens": 7301,
+      "completion_tokens": 746,
+      "prompt_tokens_details": {
+        "cached_tokens": 1408
+      },
+      "prompt_cache_hit_tokens": 1408,
+      "prompt_cache_miss_tokens": 5893,
+      "completion_tokens_details": {
+        "reasoning_tokens": 389
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "85f900177a9729699ad46c2cc375c72b5713d130b52db6c83f0044dc4d2283ba",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0026715479999999997,
+        "usd_min": 0.0013357739999999999,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "6e658841-b031-4842-9199-88c71bccf75c"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_aed05763bf0f49ab882e0cc92bd4ba6c",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:16:39.154263+00:00",
+    "duration_ms": 6966.563221999991,
+    "usage_json": {
+      "total_tokens": 15159,
+      "prompt_tokens": 14187,
+      "completion_tokens": 972,
+      "prompt_tokens_details": {
+        "cached_tokens": 384
+      },
+      "prompt_cache_hit_tokens": 384,
+      "prompt_cache_miss_tokens": 13803,
+      "completion_tokens_details": {
+        "reasoning_tokens": 862
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "937432ac338e3d4406f8c836fdadd80d00b7f572676d847e5217e078357c39b2",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.005309603999999999,
+        "usd_min": 0.0026548019999999995,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "33cfe6d6-098c-4790-919a-099629d16be1"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_49b03b87c0334b0f8405875a018744d3",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:16:41.376325+00:00",
+    "duration_ms": 4673.519550000037,
+    "usage_json": {
+      "total_tokens": 22160,
+      "prompt_tokens": 21559,
+      "completion_tokens": 601,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 21047,
+      "completion_tokens_details": {
+        "reasoning_tokens": 489
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "76d457d4c814e15a091a4848a55017e5938ca2d4ca9603a5cbc3a353b8024a4e",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.007038371999999999,
+        "usd_min": 0.0035191859999999997,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "97684427-5a7c-441f-92dd-5ce9ea033aa3"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_df64ab031a4941669b9b6c18fc27148f",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:17:17.048133+00:00",
+    "duration_ms": 9860.820235999996,
+    "usage_json": {
+      "total_tokens": 155136,
+      "prompt_tokens": 153887,
+      "completion_tokens": 1249,
+      "prompt_tokens_details": {
+        "cached_tokens": 7168
+      },
+      "prompt_cache_hit_tokens": 7168,
+      "prompt_cache_miss_tokens": 146719,
+      "completion_tokens_details": {
+        "reasoning_tokens": 508
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "5781f91bdc1e8d9c512e97c1e2f37bfba0ac7c3f53024aec2285c99b4af14235",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.045557508000000004,
+        "usd_min": 0.022778754000000002,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "3aa06ffc-0042-47f7-9752-ae1882bbf147"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_54ae43461d6547ada3dfa3a426b33f56",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:17:17.069025+00:00",
+    "duration_ms": 21094.131419000063,
+    "usage_json": {
+      "total_tokens": 148922,
+      "prompt_tokens": 146010,
+      "completion_tokens": 2912,
+      "prompt_tokens_details": {
+        "cached_tokens": 5248
+      },
+      "prompt_cache_hit_tokens": 5248,
+      "prompt_cache_miss_tokens": 140762,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1339
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "05b44ed78e81899d42d8ad32e5c9d3b220e9a34f9c9ad9f60e9f1924c3107b77",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.045754487999999996,
+        "usd_min": 0.022877243999999998,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "fee4a05b-4120-4038-8103-58c7513860bd"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_68e36419cd084ccca386aae961f61da7",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:17:27.113935+00:00",
+    "duration_ms": 7456.74063499996,
+    "usage_json": {
+      "total_tokens": 158806,
+      "prompt_tokens": 157692,
+      "completion_tokens": 1114,
+      "prompt_tokens_details": {
+        "cached_tokens": 151680
+      },
+      "prompt_cache_hit_tokens": 151680,
+      "prompt_cache_miss_tokens": 6012,
+      "completion_tokens_details": {
+        "reasoning_tokens": 238
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "100b78b368b0708d9729e9abc724530bd64dccf4964dab2d4f0a5d4326ec696b",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0040504799999999995,
+        "usd_min": 0.0020252399999999998,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "de1f952d-0b4e-4f04-8265-3cbd7ecb1715"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_8d8252c307f74b87bcde97950f62da5a",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:17:36.825348+00:00",
+    "duration_ms": 9384.454531000074,
+    "usage_json": {
+      "total_tokens": 159561,
+      "prompt_tokens": 158141,
+      "completion_tokens": 1420,
+      "prompt_tokens_details": {
+        "cached_tokens": 155008
+      },
+      "prompt_cache_hit_tokens": 155008,
+      "prompt_cache_miss_tokens": 3133,
+      "completion_tokens_details": {
+        "reasoning_tokens": 510
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "1cd24186968df7d4ba4db177f72d9cac469a7491a658b345b959075d8f7a50d5",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.003573948,
+        "usd_min": 0.001786974,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "56b1e1ad-c11e-48bd-86a3-72c88948bb9a"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_5f7ddd67d7f7423388b3f73065090cf4",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:17:38.274948+00:00",
+    "duration_ms": 4709.447049000005,
+    "usage_json": {
+      "total_tokens": 14795,
+      "prompt_tokens": 14188,
+      "completion_tokens": 607,
+      "prompt_tokens_details": {
+        "cached_tokens": 13824
+      },
+      "prompt_cache_hit_tokens": 13824,
+      "prompt_cache_miss_tokens": 364,
+      "completion_tokens_details": {
+        "reasoning_tokens": 505
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "a1d3cad6880b07d3b5145c525bfc40043883a1e6f72b1afd1129b8c87aa3b598",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.000920544,
+        "usd_min": 0.000460272,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "92480117-8d41-4925-8983-c3ea71da2d64"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_8ab331c249e742faa5c6e8f82ccbd780",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:17:46.669487+00:00",
+    "duration_ms": 5431.394436000005,
+    "usage_json": {
+      "total_tokens": 22333,
+      "prompt_tokens": 21578,
+      "completion_tokens": 755,
+      "prompt_tokens_details": {
+        "cached_tokens": 21120
+      },
+      "prompt_cache_hit_tokens": 21120,
+      "prompt_cache_miss_tokens": 458,
+      "completion_tokens_details": {
+        "reasoning_tokens": 654
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "e79798db5c17163afbec7dd83aeacd7f108c8b7921d939337fd4827899ad5be1",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.00117012,
+        "usd_min": 0.00058506,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "0b0588e4-6e2f-41b4-94fb-63cd90aa162e"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_062940d3e54a4dcc8974b17d4ebefcde",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:18:14.068895+00:00",
+    "duration_ms": 19022.62919799989,
+    "usage_json": {
+      "total_tokens": 189602,
+      "prompt_tokens": 186314,
+      "completion_tokens": 3288,
+      "prompt_tokens_details": {
+        "cached_tokens": 143744
+      },
+      "prompt_cache_hit_tokens": 143744,
+      "prompt_cache_miss_tokens": 42570,
+      "completion_tokens_details": {
+        "reasoning_tokens": 471
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "a882d17df7bb484c769453bbd4e9e318230417d93dac9f13d7c706012428993e",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.017579064,
+        "usd_min": 0.008789532,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "78fd698c-e065-4b86-90c3-fd28e6a2e60f"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_b6b287c9c46f4bc081a5fa7f657ec542",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.final_synthesis",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:18:23.199107+00:00",
+    "duration_ms": 47303.699746000006,
+    "usage_json": {
+      "total_tokens": 206923,
+      "prompt_tokens": 198454,
+      "completion_tokens": 8469,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 197942,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6084
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "c5cb4f2379dc98a2f9b94bf2753c4b94ea0bfcdb08e0363cc29459b8c6c30c90",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.069548472,
+        "usd_min": 0.034774236,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "19896bef-8782-40ae-a83a-b45e5f352f08"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_8de8eb1d1d8842c4b3a6bcbb5c22a9e5",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.answer_judge",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:18:33.268426+00:00",
+    "duration_ms": 51631.94284100007,
+    "usage_json": {
+      "total_tokens": 192967,
+      "prompt_tokens": 184425,
+      "completion_tokens": 8542,
+      "prompt_tokens_details": {
+        "cached_tokens": 640
+      },
+      "prompt_cache_hit_tokens": 640,
+      "prompt_cache_miss_tokens": 183785,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6345
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "2f01ea73cf59b9d79d29b507092e9cbc822b795d12723c411433ec057eb45da5",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.06538974,
+        "usd_min": 0.03269487,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "921eed10-717a-412a-91fd-392a013ce590"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_8e1c7eb001a34fbb99bbf24bfae3053b",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:19:10.736182+00:00",
+    "duration_ms": 7275.987808999957,
+    "usage_json": {
+      "total_tokens": 10171,
+      "prompt_tokens": 9240,
+      "completion_tokens": 931,
+      "prompt_tokens_details": {
+        "cached_tokens": 1664
+      },
+      "prompt_cache_hit_tokens": 1664,
+      "prompt_cache_miss_tokens": 7576,
+      "completion_tokens_details": {
+        "reasoning_tokens": 503
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "c9f2b9de6bcbbd745057504df07d7715f6542d98be90425739db1e45928711fb",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0033999839999999996,
+        "usd_min": 0.0016999919999999998,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "5ef98902-dbb1-4086-b920-870f04086337"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_e6869a4c4f404af3a95b2066b3f73861",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:19:18.120550+00:00",
+    "duration_ms": 5489.865419000012,
+    "usage_json": {
+      "total_tokens": 22072,
+      "prompt_tokens": 21417,
+      "completion_tokens": 655,
+      "prompt_tokens_details": {
+        "cached_tokens": 768
+      },
+      "prompt_cache_hit_tokens": 768,
+      "prompt_cache_miss_tokens": 20649,
+      "completion_tokens_details": {
+        "reasoning_tokens": 553
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "5c4709c5d63ea63cf2aa4bf01f50c2ead02bf1bf48cd6fef78b106a6b0f554b0",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.006985308,
+        "usd_min": 0.003492654,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "19478d46-ea8b-4bf7-8279-4beabd57eaeb"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_3f3a261183184dfea3f3b9415affbb65",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "failure",
+    "started_at_utc": "2026-10-16 07:19:25.502062+00:00",
+    "duration_ms": 23154.87890199995,
+    "usage_json": null,
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "ConnectionError",
+      "input_hash": "06fd095b884298361b8e9a8b9fa6c73a60fac13743a433c8a29a004a732d3ab3",
+      "literal_output": false,
+      "estimated_charge": {
+        "status": "usage_unavailable"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": null
+    }
+  },
+  {
+    "attempt_id": "llmhttp_53a6f591a6fa403a94ef0fe5848a3a58",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.final_synthesis",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:19:47.637185+00:00",
+    "duration_ms": 38201.63207399992,
+    "usage_json": {
+      "total_tokens": 16114,
+      "prompt_tokens": 7697,
+      "completion_tokens": 8417,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 7185,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6393
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "6190991ecfd31794339be9279a4bddae221e52a1f3d7026463ad193629b654b9",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.012258972,
+        "usd_min": 0.006129486,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "b38a2c80-25fa-434b-bdf2-9046a3c6de0d"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_fb908402cb894ca5b4dff6b9179f5222",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:19:51.922712+00:00",
+    "duration_ms": 17784.742522000102,
+    "usage_json": {
+      "total_tokens": 149629,
+      "prompt_tokens": 147057,
+      "completion_tokens": 2572,
+      "prompt_tokens_details": {
+        "cached_tokens": 7168
+      },
+      "prompt_cache_hit_tokens": 7168,
+      "prompt_cache_miss_tokens": 139889,
+      "completion_tokens_details": {
+        "reasoning_tokens": 823
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "0e574998b5241d46be0746545e9156ca95e5ea061bf0a39680fca95c079934ab",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.045096108,
+        "usd_min": 0.022548054,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "5a1eea33-b76b-49c9-9b0f-a3b86909dcd8"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_fc8c0740a4bd40dfb5ecec3cb6279dce",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:20:09.819519+00:00",
+    "duration_ms": 8586.946299000032,
+    "usage_json": {
+      "total_tokens": 22664,
+      "prompt_tokens": 21420,
+      "completion_tokens": 1244,
+      "prompt_tokens_details": {
+        "cached_tokens": 20992
+      },
+      "prompt_cache_hit_tokens": 20992,
+      "prompt_cache_miss_tokens": 428,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1133
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "a026d07f84b078bbdcf5c194dac5c988fbac316498e938f367f21393879e7a81",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.001747152,
+        "usd_min": 0.000873576,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "4e789d1d-13d3-436b-bdc5-5d8a5156a3e9"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_dce9387e86354cfa9e4b15f5567a2b0d",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "zopedia.memory",
+    "purpose": "agent.memory_reflection",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:20:26.604308+00:00",
+    "duration_ms": 32131.258264999928,
+    "usage_json": {
+      "total_tokens": 193188,
+      "prompt_tokens": 186662,
+      "completion_tokens": 6526,
+      "prompt_tokens_details": {
+        "cached_tokens": 384
+      },
+      "prompt_cache_hit_tokens": 384,
+      "prompt_cache_miss_tokens": 186278,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2783
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "daa3fc7a9ab71ec483728d69aa7e9ed8ca9c9d697c677aa940c76700ae45dc0f",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.06371690399999999,
+        "usd_min": 0.031858451999999995,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "3d86b422-a724-4bad-94b3-fe999cc7f234"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_cc0d1c6af6d24a0989020c7f53c0422e",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:20:49.275874+00:00",
+    "duration_ms": 39746.73754399998,
+    "usage_json": {
+      "total_tokens": 205210,
+      "prompt_tokens": 198812,
+      "completion_tokens": 6398,
+      "prompt_tokens_details": {
+        "cached_tokens": 144768
+      },
+      "prompt_cache_hit_tokens": 144768,
+      "prompt_cache_miss_tokens": 54044,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1906
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "f43fe22e4eca230b6853f2adfea111c546d2756c806bc2ed9567f0b9d1d58540",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.024759407999999997,
+        "usd_min": 0.012379703999999998,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "59c12dd2-7bbe-4a10-ad19-07ea376494e6"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_0950aa70ad7b47c6825413fcd121885b",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:20:59.158054+00:00",
+    "duration_ms": 4723.747067999966,
+    "usage_json": {
+      "total_tokens": 5479,
+      "prompt_tokens": 4873,
+      "completion_tokens": 606,
+      "prompt_tokens_details": {
+        "cached_tokens": 1408
+      },
+      "prompt_cache_hit_tokens": 1408,
+      "prompt_cache_miss_tokens": 3465,
+      "completion_tokens_details": {
+        "reasoning_tokens": 234
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "d037c1e014dc6e21338b0844a9af3816b7a4e6a8f52e625b634f99aa13b9c525",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.001775148,
+        "usd_min": 0.000887574,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "18a39f71-93ca-430f-8479-02388e4e0dcf"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_2dfd1acec55f4f78b6d1486abae97a55",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:21:03.985028+00:00",
+    "duration_ms": 8248.686270000007,
+    "usage_json": {
+      "total_tokens": 6578,
+      "prompt_tokens": 5278,
+      "completion_tokens": 1300,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 4766,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1184
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "fc7dcfbcca569cef1da0584258a3385f99e296f44c598fa3fea071dc10cc1841",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0029928719999999997,
+        "usd_min": 0.0014964359999999999,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "22a3134a-d6ed-47b4-805a-914f91777927"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_15d5c60676a74b5a86a474bdf5a81f87",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:21:26.227531+00:00",
+    "duration_ms": 12795.065808999992,
+    "usage_json": {
+      "total_tokens": 138028,
+      "prompt_tokens": 136306,
+      "completion_tokens": 1722,
+      "prompt_tokens_details": {
+        "cached_tokens": 2816
+      },
+      "prompt_cache_hit_tokens": 2816,
+      "prompt_cache_miss_tokens": 133490,
+      "completion_tokens_details": {
+        "reasoning_tokens": 533
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "6fb80b30e5258ace8e9543e23b584f486c805ed18a362c3da0f2fd6722f2f185",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.042130296000000005,
+        "usd_min": 0.021065148000000002,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "e75f1a26-0a62-4253-ae55-58c7ef1e8d57"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_8e6edc5d282f48288fe5983652ecb563",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.answer_judge",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:21:29.319433+00:00",
+    "duration_ms": 44387.43683200005,
+    "usage_json": {
+      "total_tokens": 204832,
+      "prompt_tokens": 197728,
+      "completion_tokens": 7104,
+      "prompt_tokens_details": {
+        "cached_tokens": 640
+      },
+      "prompt_cache_hit_tokens": 640,
+      "prompt_cache_miss_tokens": 197088,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4766
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "b51ca32c43ac190c6c67d58f32eab0bc56ece998065de49214df46bba0b5d9cd",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.06765504,
+        "usd_min": 0.03382752,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "ae26fd34-9f6f-4935-912d-6349833b527c"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_daf0a883e8cc4aab9c4a3181be7e41d2",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:21:39.221704+00:00",
+    "duration_ms": 5979.214197000033,
+    "usage_json": {
+      "total_tokens": 6160,
+      "prompt_tokens": 5292,
+      "completion_tokens": 868,
+      "prompt_tokens_details": {
+        "cached_tokens": 4864
+      },
+      "prompt_cache_hit_tokens": 4864,
+      "prompt_cache_miss_tokens": 428,
+      "completion_tokens_details": {
+        "reasoning_tokens": 750
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "ddcd24019ee524f0be0385b61be0844950f4159cd67600a82c493ee903e6cd3e",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.001199184,
+        "usd_min": 0.000599592,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "5ae82049-f09e-49c3-bf23-ef49a11cb03d"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_2ea8dc6153174fba9f822ff73299b166",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:22:00.688769+00:00",
+    "duration_ms": 24640.760625000097,
+    "usage_json": {
+      "total_tokens": 186224,
+      "prompt_tokens": 182506,
+      "completion_tokens": 3718,
+      "prompt_tokens_details": {
+        "cached_tokens": 134016
+      },
+      "prompt_cache_hit_tokens": 134016,
+      "prompt_cache_miss_tokens": 48490,
+      "completion_tokens_details": {
+        "reasoning_tokens": 929
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "6a37df4f4201235f80be0c9bda6029f37a7901796e0a833cffb26af099d4c2d3",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.019812696,
+        "usd_min": 0.009906348,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "2ca656d7-7738-45c3-a956-24e95f7557c2"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_2c36d2faac5c409cb82b54cbf214a0f3",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "failure",
+    "started_at_utc": "2026-10-16 07:22:13.882855+00:00",
+    "duration_ms": 12874.375420999968,
+    "usage_json": null,
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "ConnectionError",
+      "input_hash": "106af0507e66abad1de9b5a56904eb3240b7cd6742610e91ae335305e3132bdf",
+      "literal_output": false,
+      "estimated_charge": {
+        "status": "usage_unavailable"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": null
+    }
+  },
+  {
+    "attempt_id": "llmhttp_9d1caa6c140d47f48627965d505bad62",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.answer_judge",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:22:25.511145+00:00",
+    "duration_ms": 44054.11785199999,
+    "usage_json": {
+      "total_tokens": 187617,
+      "prompt_tokens": 180774,
+      "completion_tokens": 6843,
+      "prompt_tokens_details": {
+        "cached_tokens": 640
+      },
+      "prompt_cache_hit_tokens": 640,
+      "prompt_cache_miss_tokens": 180134,
+      "completion_tokens_details": {
+        "reasoning_tokens": 5475
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "2b323b0f0498bdf56f70706932771636cdd819b4d92b9263a03ca14d2dbb5c1d",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.062255639999999994,
+        "usd_min": 0.031127819999999997,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "18d19a57-7c32-4c76-8e3c-09d95ecbb152"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_df2fa7f39ef64ef69170123a7e85188c",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.final_synthesis",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:22:25.633365+00:00",
+    "duration_ms": 36073.95221700006,
+    "usage_json": {
+      "total_tokens": 18323,
+      "prompt_tokens": 10846,
+      "completion_tokens": 7477,
+      "prompt_tokens_details": {
+        "cached_tokens": 768
+      },
+      "prompt_cache_hit_tokens": 768,
+      "prompt_cache_miss_tokens": 10078,
+      "completion_tokens_details": {
+        "reasoning_tokens": 5130
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "b4fa943ff96d86cf3077f9c618528b8086fa6580e49f889561f888cf3486d8ff",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.012000407999999999,
+        "usd_min": 0.0060002039999999994,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "15ebd3ae-bafc-4d16-b192-7ba8dd5de279"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_61d393dfdd1a4e1a8e1d491391f1597b",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "zopedia.memory",
+    "purpose": "agent.memory_reflection",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:23:02.007693+00:00",
+    "duration_ms": 43379.226152,
+    "usage_json": {
+      "total_tokens": 207812,
+      "prompt_tokens": 199378,
+      "completion_tokens": 8434,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 198866,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4684
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "157e7802dca926ef065b41ed5fbe76103d42cb746311e5a8ffcac104291b9558",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.06978367199999999,
+        "usd_min": 0.034891835999999996,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "b4f0015e-cf72-4855-b242-c4183f5e39e6"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_256928238f0b47b8a8f72a9ab810b2ed",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:23:09.750187+00:00",
+    "duration_ms": 11543.925347000026,
+    "usage_json": {
+      "total_tokens": 186003,
+      "prompt_tokens": 183688,
+      "completion_tokens": 2315,
+      "prompt_tokens_details": {
+        "cached_tokens": 180864
+      },
+      "prompt_cache_hit_tokens": 180864,
+      "prompt_cache_miss_tokens": 2824,
+      "completion_tokens_details": {
+        "reasoning_tokens": 180
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "14c7edecda55da59b60f950e7908e9c734b8dd5b2134ae87593c9f3980ffdd0d",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.004710384,
+        "usd_min": 0.002355192,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "3d7dece6-802c-44b5-9458-650e5d0905b5"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_0b5444a70cb4402f9f9979f6662ea9f6",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:23:21.422270+00:00",
+    "duration_ms": 15640.371356999935,
+    "usage_json": {
+      "total_tokens": 7942,
+      "prompt_tokens": 5300,
+      "completion_tokens": 2642,
+      "prompt_tokens_details": {
+        "cached_tokens": 4864
+      },
+      "prompt_cache_hit_tokens": 4864,
+      "prompt_cache_miss_tokens": 436,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2532
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "fd1742044ac9fc0fd65380dc12c3e4581d3eca08f0cf6b6eee94b4b182d3527d",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.003330384,
+        "usd_min": 0.001665192,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "1da3dc36-2dae-4681-a123-5889ef7fcac2"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_650384101d484057b77b2fa3530afb7b",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:23:46.193799+00:00",
+    "duration_ms": 6611.355852999964,
+    "usage_json": {
+      "total_tokens": 10194,
+      "prompt_tokens": 9239,
+      "completion_tokens": 955,
+      "prompt_tokens_details": {
+        "cached_tokens": 1408
+      },
+      "prompt_cache_hit_tokens": 1408,
+      "prompt_cache_miss_tokens": 7831,
+      "completion_tokens_details": {
+        "reasoning_tokens": 516
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "d314081e51a94a864939ba7bfd28acdc8fe5e766e28d6ffe4f85cbaa0312dff7",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0035037479999999997,
+        "usd_min": 0.0017518739999999998,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "96682f92-7964-4c72-a819-c24f3f4ef53e"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_3a198e4060c745e281dca730d7fd2812",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:23:51.137762+00:00",
+    "duration_ms": 19525.366797999937,
+    "usage_json": {
+      "total_tokens": 226604,
+      "prompt_tokens": 223108,
+      "completion_tokens": 3496,
+      "prompt_tokens_details": {
+        "cached_tokens": 179456
+      },
+      "prompt_cache_hit_tokens": 179456,
+      "prompt_cache_miss_tokens": 43652,
+      "completion_tokens_details": {
+        "reasoning_tokens": 544
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "de4b175c079062a1896bebb2c9c844ac92ad8f319932372d8f9a88696b784b49",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.018367536,
+        "usd_min": 0.009183768,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "55c82c99-b8b2-4720-99aa-3ef20d1fcb91"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_a43cf1a7bc524c32905d29df568dcd55",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:24:03.673361+00:00",
+    "duration_ms": 29704.516740999905,
+    "usage_json": {
+      "total_tokens": 66504,
+      "prompt_tokens": 61636,
+      "completion_tokens": 4868,
+      "prompt_tokens_details": {
+        "cached_tokens": 7168
+      },
+      "prompt_cache_hit_tokens": 7168,
+      "prompt_cache_miss_tokens": 54468,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2589
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "5e01b5216e46eb5bfe9e384b3e5ea391fee38e567be00badb84aabf919c97d6d",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.022225007999999997,
+        "usd_min": 0.011112503999999999,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "ca71e279-42eb-4a8c-a6e0-764449f1e954"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_89c22bc793954e9a8b45170b31fee5cc",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.final_synthesis",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:24:10.851095+00:00",
+    "duration_ms": 16443.420877000106,
+    "usage_json": {
+      "total_tokens": 7217,
+      "prompt_tokens": 4207,
+      "completion_tokens": 3010,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 3695,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1926
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "012dab942603ab70d8e35eb161cf65fd2096675be14f8732b37b57b0848685a0",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0047235720000000005,
+        "usd_min": 0.0023617860000000003,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "8db56611-cc52-45f8-b293-53a19296a2bd"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_6b122e5d04bb4e3780889b09e2461746",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "zopedia.memory",
+    "purpose": "agent.memory_reflection",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:24:27.626309+00:00",
+    "duration_ms": 38633.82179699988,
+    "usage_json": {
+      "total_tokens": 229809,
+      "prompt_tokens": 221868,
+      "completion_tokens": 7941,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 221356,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4769
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "9ca1e7a6c974255d1c6c02b49726dcb2ba8674b0f888cc58381d68a1422fbe13",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.075939072,
+        "usd_min": 0.037969536,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "6dbcf7e2-d236-4c86-9a3b-b05f7c9ef24c"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_b274e1da142f465aa1489614a527f5e7",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:24:34.861820+00:00",
+    "duration_ms": 42610.834711999814,
+    "usage_json": {
+      "total_tokens": 71711,
+      "prompt_tokens": 64855,
+      "completion_tokens": 6856,
+      "prompt_tokens_details": {
+        "cached_tokens": 59392
+      },
+      "prompt_cache_hit_tokens": 59392,
+      "prompt_cache_miss_tokens": 5463,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3272
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "0052d91c191ec2ad75fd3849bc68ee4c5698a292816b5f2f45df44470bbb849f",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.010222452,
+        "usd_min": 0.005111226,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "aee6d87b-7978-43e2-be04-732324a70632"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_e463cb5f44c04861b465aafa0c9c2fc8",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:25:06.632651+00:00",
+    "duration_ms": 6686.310359000117,
+    "usage_json": {
+      "total_tokens": 9500,
+      "prompt_tokens": 8610,
+      "completion_tokens": 890,
+      "prompt_tokens_details": {
+        "cached_tokens": 1408
+      },
+      "prompt_cache_hit_tokens": 1408,
+      "prompt_cache_miss_tokens": 7202,
+      "completion_tokens_details": {
+        "reasoning_tokens": 494
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "effd7a8918789d3b8ba189e68c75b68588c1d75b67396eda251c19e09f800b82",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0032370479999999997,
+        "usd_min": 0.0016185239999999999,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "b4da0114-b82d-46e6-b66b-ad8afc35a16d"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_33cb24e8e2c5458a9079156deff5761c",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:25:13.424959+00:00",
+    "duration_ms": 4679.306671999939,
+    "usage_json": {
+      "total_tokens": 19824,
+      "prompt_tokens": 19093,
+      "completion_tokens": 731,
+      "prompt_tokens_details": {
+        "cached_tokens": 384
+      },
+      "prompt_cache_hit_tokens": 384,
+      "prompt_cache_miss_tokens": 18709,
+      "completion_tokens_details": {
+        "reasoning_tokens": 612
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "28e1caf2b6aef3c0a8a6ef78ff0875abe9fa0e3761243033afc6ea82ff083618",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.006492204,
+        "usd_min": 0.003246102,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "b44ff7bb-78bb-4dc6-9b49-4fbec2d04f6f"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_b6dc6e5443ed4066976b3e0a6da07469",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.answer_judge",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:25:17.597169+00:00",
+    "duration_ms": 34858.33853500003,
+    "usage_json": {
+      "total_tokens": 69959,
+      "prompt_tokens": 64256,
+      "completion_tokens": 5703,
+      "prompt_tokens_details": {
+        "cached_tokens": 640
+      },
+      "prompt_cache_hit_tokens": 640,
+      "prompt_cache_miss_tokens": 63616,
+      "completion_tokens_details": {
+        "reasoning_tokens": 5044
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "e8d5285622b6f73e20db7cda317c888d7bfe03492e1e10d8ed27f082e1bfbc71",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.02593224,
+        "usd_min": 0.01296612,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "26d303d1-ecaf-4c27-8039-f6890d0c20be"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_ad6a27a1006342fbb93070375922dda0",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:25:49.071508+00:00",
+    "duration_ms": 13138.542403999963,
+    "usage_json": {
+      "total_tokens": 149206,
+      "prompt_tokens": 147142,
+      "completion_tokens": 2064,
+      "prompt_tokens_details": {
+        "cached_tokens": 6528
+      },
+      "prompt_cache_hit_tokens": 6528,
+      "prompt_cache_miss_tokens": 140614,
+      "completion_tokens_details": {
+        "reasoning_tokens": 543
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "c98286456100ce5355ea0c5a0a81f79ad72267bff89a8a32ffc190dc9e415a0a",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.044700168,
+        "usd_min": 0.022350084,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "3a1e59a1-aa66-4342-b6cd-e2e5a94986a3"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_fd41784ed1e748bbb3baf20c72fd55f5",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.answer_judge",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:25:52.571247+00:00",
+    "duration_ms": 3143.6693079999714,
+    "usage_json": {
+      "total_tokens": 1557,
+      "prompt_tokens": 900,
+      "completion_tokens": 657,
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      },
+      "prompt_cache_hit_tokens": 0,
+      "prompt_cache_miss_tokens": 900
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "disabled"
+      },
+      "error_type": "",
+      "input_hash": "679bb941a09fdd61d6be655b7a60215e57e4a1f05a2150bd4556f2051e3e0ba7",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0010584000000000001,
+        "usd_min": 0.0005292000000000001,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": 65536,
+      "provider_request_id": "4873e520-eba5-4dd6-9763-dfefdb54e392"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_515f2a0f3cc84546b0d6b995bda0f4b9",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:25:56.122186+00:00",
+    "duration_ms": 47993.57863399996,
+    "usage_json": {
+      "total_tokens": 75609,
+      "prompt_tokens": 66693,
+      "completion_tokens": 8916,
+      "prompt_tokens_details": {
+        "cached_tokens": 64128
+      },
+      "prompt_cache_hit_tokens": 64128,
+      "prompt_cache_miss_tokens": 2565,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4606
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "206d2c6b5980ac4d73b38e095b28e2cc8adff95c1dffd279393112d64ffda822",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.011853467999999999,
+        "usd_min": 0.0059267339999999995,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "55ea0d07-9cd0-4ab8-a96f-efab26e6bbc4"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_e16d7cdc55e64e28b6fa37d4cb780c02",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:26:02.377440+00:00",
+    "duration_ms": 10827.268377999872,
+    "usage_json": {
+      "total_tokens": 8704,
+      "prompt_tokens": 6913,
+      "completion_tokens": 1791,
+      "prompt_tokens_details": {
+        "cached_tokens": 6400
+      },
+      "prompt_cache_hit_tokens": 6400,
+      "prompt_cache_miss_tokens": 513,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1679
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "83dce784b44f230f18e8ec83fb85a2b17aaf2e7b081517b6adb7f284f7d0cac1",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0023415,
+        "usd_min": 0.00117075,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "93a65c6f-5620-4c98-8b1b-840a13ee6566"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_d2a35580af274e6f9cefe54c2cb31d35",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:26:19.212139+00:00",
+    "duration_ms": 17169.61422400004,
+    "usage_json": {
+      "total_tokens": 201594,
+      "prompt_tokens": 198753,
+      "completion_tokens": 2841,
+      "prompt_tokens_details": {
+        "cached_tokens": 144896
+      },
+      "prompt_cache_hit_tokens": 144896,
+      "prompt_cache_miss_tokens": 53857,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1203
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "de4ffc8c0d76bc9d21c41e3ee5bab2b9d93ec916d706cfea2feea2258a72f271",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.020435676,
+        "usd_min": 0.010217838,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "be891a5d-a15b-41f7-9e20-09079284c42b"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_ae146f949fc04aecb8d99e3fcc5c40cb",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.final_synthesis",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:26:44.343907+00:00",
+    "duration_ms": 13122.496263999892,
+    "usage_json": {
+      "total_tokens": 9785,
+      "prompt_tokens": 7384,
+      "completion_tokens": 2401,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 6872,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1726
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "f9843928bc47771e6c49cf5990d4c92cf8d00078da6347bf443933797449bb82",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.004945872,
+        "usd_min": 0.002472936,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "1ae3a210-2985-493d-9a86-c714341d12d3"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_b894a917237043b8a882bf9cb381f19d",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:26:47.966933+00:00",
+    "duration_ms": 13074.86171000005,
+    "usage_json": {
+      "total_tokens": 258658,
+      "prompt_tokens": 256570,
+      "completion_tokens": 2088,
+      "prompt_tokens_details": {
+        "cached_tokens": 195456
+      },
+      "prompt_cache_hit_tokens": 195456,
+      "prompt_cache_miss_tokens": 61114,
+      "completion_tokens_details": {
+        "reasoning_tokens": 356
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "cdbda267f90c609a6a703c324155077900c0249e15b172c8e12d096100d0041f",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.022012536,
+        "usd_min": 0.011006268,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "ec7d189a-e638-4ef0-a1fb-76abde3910c7"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_57af98bc5e484b9aab318b4113dcee72",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "zopedia.memory",
+    "purpose": "agent.memory_reflection",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:26:57.708446+00:00",
+    "duration_ms": 24608.00475799988,
+    "usage_json": {
+      "total_tokens": 69930,
+      "prompt_tokens": 65122,
+      "completion_tokens": 4808,
+      "prompt_tokens_details": {
+        "cached_tokens": 384
+      },
+      "prompt_cache_hit_tokens": 384,
+      "prompt_cache_miss_tokens": 64738,
+      "completion_tokens_details": {
+        "reasoning_tokens": 1616
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "71faf007796e294209a997c6fbf570d2d8f269fe02ce389b4b4240a8ea0fb93c",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.025193303999999996,
+        "usd_min": 0.012596651999999998,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "85001a75-e3d1-4be2-a15c-278a4c8575c0"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_408905bde7aa4ca5ad2fabcd1b0a51d7",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:27:01.153734+00:00",
+    "duration_ms": 3563.4534469998016,
+    "usage_json": {
+      "total_tokens": 7375,
+      "prompt_tokens": 6922,
+      "completion_tokens": 453,
+      "prompt_tokens_details": {
+        "cached_tokens": 6400
+      },
+      "prompt_cache_hit_tokens": 6400,
+      "prompt_cache_miss_tokens": 522,
+      "completion_tokens_details": {
+        "reasoning_tokens": 349
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "403acc7fc32ec7c515c40258d0130754fd0bcf0afe271aa75ad2724054fa2231",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0007386000000000001,
+        "usd_min": 0.00036930000000000003,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "7c41b05a-d29f-43cc-8aac-fa47c7d455b6"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_b8a0a60759aa49e8b0c42561b2305e92",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.final_synthesis",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:27:13.702395+00:00",
+    "duration_ms": 54536.7665230001,
+    "usage_json": {
+      "total_tokens": 293824,
+      "prompt_tokens": 284136,
+      "completion_tokens": 9688,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 283624,
+      "completion_tokens_details": {
+        "reasoning_tokens": 7733
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "6fdc29a5e6cf5a2d2abb32123e0588d02930d86db93588d9aeac40b9b4c97ddc",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.09671587200000001,
+        "usd_min": 0.048357936000000004,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "64f68faa-0428-4a31-b878-8356a125eaa6"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_433723325b5248bd98f3494fe5e79de6",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:27:22.596989+00:00",
+    "duration_ms": 10813.01957200003,
+    "usage_json": {
+      "total_tokens": 8280,
+      "prompt_tokens": 6785,
+      "completion_tokens": 1495,
+      "prompt_tokens_details": {
+        "cached_tokens": 1408
+      },
+      "prompt_cache_hit_tokens": 1408,
+      "prompt_cache_miss_tokens": 5377,
+      "completion_tokens_details": {
+        "reasoning_tokens": 660
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "3802962a0ebfefd5a9ac59bf0fd3e6a19b5d255e18e935822cda97df2f49423f",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0034155479999999996,
+        "usd_min": 0.0017077739999999998,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "fd82af80-07d0-44cd-8930-c44322ca243e"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_bfc95442f3a846a8b4ef8b61e4c86c20",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:27:33.642334+00:00",
+    "duration_ms": 4942.6059490001535,
+    "usage_json": {
+      "total_tokens": 12851,
+      "prompt_tokens": 12242,
+      "completion_tokens": 609,
+      "prompt_tokens_details": {
+        "cached_tokens": 384
+      },
+      "prompt_cache_hit_tokens": 384,
+      "prompt_cache_miss_tokens": 11858,
+      "completion_tokens_details": {
+        "reasoning_tokens": 483
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "fe499ab4df91b2394301bd084469dbe3417cbd7ff8e4976bad92b8588cbccc25",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.004290504,
+        "usd_min": 0.002145252,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "f3a7a0bb-ff5e-4aa3-ae4e-9833846ea169"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_33c3d57839c0488da8a427cd07966b92",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:27:58.722153+00:00",
+    "duration_ms": 11252.122033999967,
+    "usage_json": {
+      "total_tokens": 142628,
+      "prompt_tokens": 141179,
+      "completion_tokens": 1449,
+      "prompt_tokens_details": {
+        "cached_tokens": 4736
+      },
+      "prompt_cache_hit_tokens": 4736,
+      "prompt_cache_miss_tokens": 136443,
+      "completion_tokens_details": {
+        "reasoning_tokens": 679
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "00a5cb373e7416216920d62f05fd25f76fadc46717255ba731a0f5ce4840534b",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.042700116,
+        "usd_min": 0.021350058,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "a3a97f31-6535-480e-b2eb-9d3f75eb47d4"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_f8a6ae02409b42b1a5c83414f73ba55a",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:28:08.463494+00:00",
+    "duration_ms": 3941.604997000013,
+    "usage_json": {
+      "total_tokens": 6181,
+      "prompt_tokens": 5622,
+      "completion_tokens": 559,
+      "prompt_tokens_details": {
+        "cached_tokens": 2304
+      },
+      "prompt_cache_hit_tokens": 2304,
+      "prompt_cache_miss_tokens": 3318,
+      "completion_tokens_details": {
+        "reasoning_tokens": 319
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "a61d454ec1bc5af5198b3d545dd8bfad5483113e8add4124fe479531126d94a4",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.0016800239999999998,
+        "usd_min": 0.0008400119999999999,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "0a7f9da4-f102-4d67-9618-15fee03decb8"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_88215f0a5a4c4f499351ec1740f7e79b",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:28:12.631798+00:00",
+    "duration_ms": 7008.887520000144,
+    "usage_json": {
+      "total_tokens": 144469,
+      "prompt_tokens": 143337,
+      "completion_tokens": 1132,
+      "prompt_tokens_details": {
+        "cached_tokens": 138752
+      },
+      "prompt_cache_hit_tokens": 138752,
+      "prompt_cache_miss_tokens": 4585,
+      "completion_tokens_details": {
+        "reasoning_tokens": 320
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "d70bb13fd661bbd6205a1b7d634de5ca2055331852f07e4499f13dc48e1f0fd0",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.003566412,
+        "usd_min": 0.001783206,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "577faf8b-c98c-444c-b6fc-075a7b96b00a"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_839b157359db4436ab47e919f46f4689",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:28:20.459441+00:00",
+    "duration_ms": 4842.875698000171,
+    "usage_json": {
+      "total_tokens": 6545,
+      "prompt_tokens": 5909,
+      "completion_tokens": 636,
+      "prompt_tokens_details": {
+        "cached_tokens": 3584
+      },
+      "prompt_cache_hit_tokens": 3584,
+      "prompt_cache_miss_tokens": 2325,
+      "completion_tokens_details": {
+        "reasoning_tokens": 206
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "05b26da717ebefca05d1687b1978fa0864c2a28aee20d2d4fbc45ffbdd3cc140",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.001482204,
+        "usd_min": 0.000741102,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "2a6a57c8-d139-422d-8040-7d5bdf1c9f8a"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_8c02b27196cb43a68c2999958b1268ca",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:28:22.799064+00:00",
+    "duration_ms": 7689.4571919999635,
+    "usage_json": {
+      "total_tokens": 145091,
+      "prompt_tokens": 143878,
+      "completion_tokens": 1213,
+      "prompt_tokens_details": {
+        "cached_tokens": 140672
+      },
+      "prompt_cache_hit_tokens": 140672,
+      "prompt_cache_miss_tokens": 3206,
+      "completion_tokens_details": {
+        "reasoning_tokens": 372
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "ce50499d163bc3419076d4a7dbb5bb9cf52760543dd388bc9a52684dfdca582f",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.003261432,
+        "usd_min": 0.001630716,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "fcd867aa-70d6-42db-a599-7b26efc09843"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_164c497f8aa84175a7c9370861a97b93",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:28:25.416000+00:00",
+    "duration_ms": 3288.263274999963,
+    "usage_json": {
+      "total_tokens": 8407,
+      "prompt_tokens": 7980,
+      "completion_tokens": 427,
+      "prompt_tokens_details": {
+        "cached_tokens": 1536
+      },
+      "prompt_cache_hit_tokens": 1536,
+      "prompt_cache_miss_tokens": 6444,
+      "completion_tokens_details": {
+        "reasoning_tokens": 322
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "5c11229285b7ff44d6fd76c1c12ecf9c959f7be3ea926d2b65b201f0b19a26cc",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.002454816,
+        "usd_min": 0.001227408,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "34dc1e48-527b-4cb5-8547-734f85e34284"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_6e94750a16db449c8881a94158bc2de8",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.final_synthesis",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:28:31.451412+00:00",
+    "duration_ms": 26326.411581999993,
+    "usage_json": {
+      "total_tokens": 147336,
+      "prompt_tokens": 143338,
+      "completion_tokens": 3998,
+      "prompt_tokens_details": {
+        "cached_tokens": 512
+      },
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 142826,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2262
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "5a5f5e8b81939d180ecabf1f2d6cbf10b44f7046154ed489241797b7f760cad4",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.047648472,
+        "usd_min": 0.023824236,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "350423b4-bd91-4a38-a163-6b940e3c59e5"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_71c94a2f07f84a55b00d02e1bfdf2fd2",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:28:46.199937+00:00",
+    "duration_ms": 14387.654427000143,
+    "usage_json": {
+      "total_tokens": 140803,
+      "prompt_tokens": 138904,
+      "completion_tokens": 1899,
+      "prompt_tokens_details": {
+        "cached_tokens": 3712
+      },
+      "prompt_cache_hit_tokens": 3712,
+      "prompt_cache_miss_tokens": 135192,
+      "completion_tokens_details": {
+        "reasoning_tokens": 815
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "a0f6c03b3cdbf80b2d5eb161ee2e4878ba17fcb8c74d27776e17b493aebc2983",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.042858672,
+        "usd_min": 0.021429336,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "98dec0f1-831d-4ac1-afdb-a7afa53f943a"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_e8b78a9081b94f8f9140686ab20599e1",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "research.search_evidence",
+    "purpose": "retrieval.plan.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:29:00.705287+00:00",
+    "duration_ms": 4694.755938999833,
+    "usage_json": {
+      "total_tokens": 8593,
+      "prompt_tokens": 7984,
+      "completion_tokens": 609,
+      "prompt_tokens_details": {
+        "cached_tokens": 7552
+      },
+      "prompt_cache_hit_tokens": 7552,
+      "prompt_cache_miss_tokens": 432,
+      "completion_tokens_details": {
+        "reasoning_tokens": 489
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "d1bd9f01e787a12165fcfce94d81061c9ac0ebae2cdec40ca3261c1f1d815ef2",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.000905712,
+        "usd_min": 0.000452856,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "2096a533-9ebc-4f45-99c3-5e899569289c"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_f49e8351b1da449fb7fb3a1496ce0496",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.research_step",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:29:22.143559+00:00",
+    "duration_ms": 7802.135055000008,
+    "usage_json": {
+      "total_tokens": 186697,
+      "prompt_tokens": 185567,
+      "completion_tokens": 1130,
+      "prompt_tokens_details": {
+        "cached_tokens": 136704
+      },
+      "prompt_cache_hit_tokens": 136704,
+      "prompt_cache_miss_tokens": 48863,
+      "completion_tokens_details": {
+        "reasoning_tokens": 336
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "217d14753fb4714721696c69ed4a01dd5965c3360b406c2ad4b115b337a269cf",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.016835124,
+        "usd_min": 0.008417562,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "eb5cf6e4-e0b2-4ad2-8bbb-3d633afb18c4"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_863d6d0212e0458ea136e8fb5cfb442e",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent",
+    "purpose": "agent.final_synthesis",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:29:30.247084+00:00",
+    "duration_ms": 34379.515652999995,
+    "usage_json": {
+      "total_tokens": 189254,
+      "prompt_tokens": 184117,
+      "completion_tokens": 5137,
+      "prompt_tokens_details": {
+        "cached_tokens": 1408
+      },
+      "prompt_cache_hit_tokens": 1408,
+      "prompt_cache_miss_tokens": 182709,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3466
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "8f1026bc8551fe2149e8dc56c91e9d35462d0d0da0dccba1e017e54fc7a4bbec",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.060985547999999994,
+        "usd_min": 0.030492773999999997,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": null,
+      "artifact_input_id": null,
+      "max_output_tokens": null,
+      "provider_request_id": "166a6489-1551-4d26-aa0e-9ca2ccf16356"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_798273a03a974da89bdcbf0a42af3b7f",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent.synthesis",
+    "purpose": "candidate_synthesis.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:30:04.964879+00:00",
+    "duration_ms": 51854.00929000002,
+    "usage_json": {
+      "total_tokens": 28407,
+      "prompt_tokens": 19925,
+      "completion_tokens": 8482,
+      "prompt_tokens_details": {
+        "cached_tokens": 896
+      },
+      "prompt_cache_hit_tokens": 896,
+      "prompt_cache_miss_tokens": 19029,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6480
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "4c83a33e740750404ac8d72b5a8faeeae2788b1d3157cef4c0ff45ffa07fd74b",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.015892476,
+        "usd_min": 0.007946238,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": "41c06186661e38723d61ac5ed222258d5eeeef7c9553b25b4b3083e33b1871ef",
+      "max_output_tokens": null,
+      "provider_request_id": "39cc4f7d-88c0-4de7-bbf4-d59efd0d91cb"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_ecf887c6037b42f6b2ad0b9f100bad20",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent.synthesis",
+    "purpose": "candidate_synthesis.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:30:57.321026+00:00",
+    "duration_ms": 52109.45645000015,
+    "usage_json": {
+      "total_tokens": 33914,
+      "prompt_tokens": 24941,
+      "completion_tokens": 8973,
+      "prompt_tokens_details": {
+        "cached_tokens": 5120
+      },
+      "prompt_cache_hit_tokens": 5120,
+      "prompt_cache_miss_tokens": 19821,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6393
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "34f74a6b54dc2a7f7ec00c8b637328076e8f311650e81c8be59d0274fb15961c",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.01674462,
+        "usd_min": 0.00837231,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": "434561ea93337249d95b7f97de150c200fa7d3b666c244e0ff81437c421ec71b",
+      "max_output_tokens": null,
+      "provider_request_id": "3813e6f1-6032-4d5c-850f-d00a5a600238"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_a9dd631428d747d6b3fa0273970d63fe",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent.synthesis",
+    "purpose": "candidate_synthesis.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:31:49.855527+00:00",
+    "duration_ms": 78985.08637600002,
+    "usage_json": {
+      "total_tokens": 40932,
+      "prompt_tokens": 27811,
+      "completion_tokens": 13121,
+      "prompt_tokens_details": {
+        "cached_tokens": 896
+      },
+      "prompt_cache_hit_tokens": 896,
+      "prompt_cache_miss_tokens": 26915,
+      "completion_tokens_details": {
+        "reasoning_tokens": 10546
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "04c3925a048a8ee91969b0a1dc2fed463984f5db486adfaa1d071b74d3142094",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.023825076,
+        "usd_min": 0.011912538,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": "7bd1dd9b452938d2f20e81e81f775d6cddd56d864ea326fce3f72c70fe5e3465",
+      "max_output_tokens": null,
+      "provider_request_id": "7486b621-aea3-44a4-92bd-eea828261895"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_4e210a2fb99b41f0a3f5529fdeaaf847",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent.synthesis",
+    "purpose": "candidate_synthesis.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:33:09.252922+00:00",
+    "duration_ms": 70462.94137999984,
+    "usage_json": {
+      "total_tokens": 33905,
+      "prompt_tokens": 22632,
+      "completion_tokens": 11273,
+      "prompt_tokens_details": {
+        "cached_tokens": 896
+      },
+      "prompt_cache_hit_tokens": 896,
+      "prompt_cache_miss_tokens": 21736,
+      "completion_tokens_details": {
+        "reasoning_tokens": 9084
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "5bd3fd390c8b286eea34903c2e44a12f2b5b5fb4d84e51bb87732ea61b8a22dd",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.020053776000000002,
+        "usd_min": 0.010026888000000001,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": "8daa2eaac58ef3cfad0e1ca752ce4f7105f785897447967c63bec454748aa6d1",
+      "max_output_tokens": null,
+      "provider_request_id": "fcad5cd4-b0e3-49c0-a706-bf07182086e0"
+    }
+  },
+  {
+    "attempt_id": "llmhttp_34b234dfd079445c89633d8a465aa5d0",
+    "root_run_id": "6b8d2a57-a6a9-48e3-be0e-552898b037b7",
+    "surface": "trading_agent.synthesis",
+    "purpose": "candidate_synthesis.direct",
+    "provider": "deepseek",
+    "requested_model": "deepseek-reasoner",
+    "status": "success",
+    "started_at_utc": "2026-10-16 07:34:20.121681+00:00",
+    "duration_ms": 86259.12680499982,
+    "usage_json": {
+      "total_tokens": 45354,
+      "prompt_tokens": 30699,
+      "completion_tokens": 14655,
+      "prompt_tokens_details": {
+        "cached_tokens": 896
+      },
+      "prompt_cache_hit_tokens": 896,
+      "prompt_cache_miss_tokens": 29803,
+      "completion_tokens_details": {
+        "reasoning_tokens": 11526
+      }
+    },
+    "metadata_json": {
+      "job_name": "trading-agent-build",
+      "thinking": {
+        "type": "enabled"
+      },
+      "error_type": "",
+      "input_hash": "efbb3d5222b98b7b8dbd287cb98a9228c84537bb0f57073dc7895bb5f82ab381",
+      "literal_output": false,
+      "estimated_charge": {
+        "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+        "status": "estimated",
+        "usd_max": 0.026532275999999997,
+        "usd_min": 0.013266137999999999,
+        "rate_band": "peak_or_holiday",
+        "price_version": "published-prices-verified-2026-10-12"
+      },
+      "inference_effort": null,
+      "input_characters": null,
+      "research_subject": "",
+      "artifact_input_id": "6ba5fa361ab89aa1515845daa781583b34a2dc26cde387622ac525a88d732058",
+      "max_output_tokens": null,
+      "provider_request_id": "f977d1fc-163a-4564-af69-fc40482350fe"
+    }
+  }
+]

@@ -1,0 +1,130 @@
+{
+  "role": "baseline-heldout",
+  "horizon": "1y",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 99.6160815830226,
+  "input_sha256": "42e5e51d4f472c2415c2d82aebe73de72179e9c22bef193439a56211a53f6851",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "plain_investor_research_v2",
+    "regime_read": "Demand for AI hardware is strong, but rising bond yields and higher producer prices are cooling the group's share prices. Biotechnology and diagnostics stocks are the current momentum leaders, so the chip and energy names in this list need their own company-specific support.",
+    "portfolio_posture": "Hold one supported AI-optics position and keep the rest on watch until the funding, order-book and policy questions resolve.",
+    "candidates": [
+      {
+        "ticker": "LITE",
+        "direction": "long",
+        "stance": "long",
+        "research_status": "supported",
+        "setup": "Lumentum supplies the lasers and optical parts inside AI data-center networks, and its order book is the strongest demand signal in this group.",
+        "hypothesis": "Demand for AI optical parts should stay ahead of supply through the next year, so revenue and cash flow should keep rising. The risk is that the share price already pays for that growth.",
+        "evidence": [
+          "Revenue was $808.4 million in the quarter ended 2026-03-31, up about 90% from a year earlier, with operating income of $175.6 million and free cash flow of $118.6 million — the first clearly positive free-cash-flow quarter after several weak years.",
+          "On 2026-10-09 Chief Executive Michael Hurlston said AI optical components are booked through early 2029: \"We are completely sold out, so there's no end in sight,\" and the shares rose about 6–7% that day.",
+          "NVIDIA invested $2 billion, and the company is building a new laser factory in Greensboro, North Carolina."
+        ],
+        "invalidation": "The thesis breaks if the company stops describing its order book as sold out, if backlog or gross margin falls, or if a large customer qualifies a second supplier for its lasers.",
+        "tail_risks": [
+          "Higher bond yields and a 6.3% year-over-year rise in September producer prices are already pressuring AI hardware shares, and a further jump in rates could compress the group's valuations.",
+          "A sold-out order book invites competitors to add laser capacity, and hyperscale buyers may qualify second sources.",
+          "A small number of very large buyers place the orders, so a delay by one of them would cut revenue quickly."
+        ],
+        "evidence_limits": [
+          "Fiscal first-quarter 2027 revenue, gross margin and whether the sold-out order language still holds, which show whether demand is still ahead of supply.",
+          "The size and timing of the Greensboro capacity addition, which sets how fast revenue can grow.",
+          "Whether Coherent is adding competing laser capacity and whether hyperscale buyers are qualifying a second supplier, which would mark the start of price pressure."
+        ],
+        "suggested_horizon": "1 Year",
+        "confidence": "medium",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "MRVL",
+        "direction": "watch",
+        "stance": "no_call",
+        "research_status": "watch",
+        "setup": "Marvell designs custom AI chips and the optical interconnect chips inside data centers, and it raised its fiscal 2028 revenue forecast on 2026-10-06 on AI demand.",
+        "hypothesis": "Marvell should keep gaining from custom AI chip and optical demand over the next year. The shares have already risen about 202%, so the return depends on spending momentum that the price reflects.",
+        "evidence": [
+          "On 2026-10-06 Marvell raised its fiscal 2028 revenue forecast and pointed to AI data-center demand; headlines also reported a $90 billion revenue target by fiscal 2031.",
+          "The company said the optical interconnect industry could grow 60–70% to about $65 billion through 2030; on the same news Ciena rose 13.94% and Lumentum 3.75%.",
+          "Analysts raised targets after the event, with Jefferies moving to $450 on 2026-10-07 and Bank of America repeating Buy at $365 on 2026-09-29."
+        ],
+        "invalidation": "A custom AI chip program moving to Broadcom, a large cloud buyer cutting capital spending, or a cut to the fiscal 2028 forecast would break the case.",
+        "tail_risks": [
+          "Part of the AI buildout is funded with borrowed money, so higher financing costs could slow data-center orders.",
+          "Broadcom competes hard for custom AI silicon and could take share of a large program.",
+          "The wider chip group had a seven-day losing streak into mid-October 2026, so a sector pullback would hit Marvell even if its own orders hold."
+        ],
+        "evidence_limits": [
+          "Fiscal second-quarter 2027 revenue, gross margin and cash flow, plus fiscal third-quarter guidance, to test whether the raised forecast is being met.",
+          "The exact fiscal 2028 target and how much of it is data-center revenue, to judge how much depends on AI.",
+          "Whether the reported Google custom-chip work is confirmed and the status of the Celestial AI purchase, which affect the customer base."
+        ],
+        "suggested_horizon": "1 Year",
+        "confidence": "medium",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "CRGY",
+        "direction": "watch",
+        "stance": "no_call",
+        "research_status": "watch",
+        "setup": "Crescent Energy agreed on 2026-10-08 to buy Devon Energy's Eagle Ford oil assets for $4.2 billion and priced a $1 billion share sale the next day.",
+        "hypothesis": "Adding Eagle Ford acreage next to its own fields and about $140 million in stated cost savings should lift cash flow over the next year. The case depends on how Crescent funds the remaining purchase price, because more debt or more shares would change the value for today's owners.",
+        "evidence": [
+          "The 2026-10-09 share sale priced 80 million Class A shares at $12.50 each, about $1 billion, and a KKR affiliate bought 40 million of them.",
+          "Second-quarter 2026 revenue was $1.395 billion, operating cash flow was $944.0 million and free cash flow was $622.0 million, while first-quarter 2026 free cash flow was negative $155.8 million, so earnings swing widely between quarters.",
+          "Most analyst targets sit between $17 and $20 — Wells Fargo at $20, Truist at $19, UBS at $18 and Evercore ISI at $17 — against the $12.50 offering price, with one sell rating at $12."
+        ],
+        "invalidation": "The thesis breaks if Crescent announces another share sale, if third-quarter 2026 results show weak production or free cash flow, or if oil prices fall.",
+        "tail_risks": [
+          "More debt for the purchase would add interest cost on top of $6.85 billion in total liabilities.",
+          "A weak third-quarter report, or lower oil prices, would cut cash flow.",
+          "A further share sale would dilute today's owners again."
+        ],
+        "evidence_limits": [
+          "How the rest of the $4.2 billion will be split between debt and equity, which decides the risk to today's owners.",
+          "The expected closing date for the Devon purchase, which sets when the added production starts.",
+          "Third-quarter 2026 production, realised prices and free cash flow, and company confirmation of the $140 million savings figure."
+        ],
+        "suggested_horizon": "1 Year",
+        "confidence": "medium",
+        "narrative_contract_version": "plain_investor_research_v2"
+      },
+      {
+        "ticker": "PBR",
+        "direction": "watch",
+        "stance": "no_call",
+        "research_status": "watch",
+        "setup": "Petrobras is Brazil's state-controlled oil producer, and its shares rose on production guidance, new oil finds and a surprise first-round election result.",
+        "hypothesis": "Near term, oil near $90 and production heading toward 3 million barrels a day support cash flow and the large dividend. Over a full year the main driver is political, because the state-controlled board sets fuel prices and dividends and the runoff result is not yet known.",
+        "evidence": [
+          "On 2026-09-24 the chief executive said Petrobras is close to reaching 3 million barrels of oil per day.",
+          "Two October 2026 filings reported an extra oil-bearing interval in the Morpho well off Amapá, with no volume given, and 21 new exploration blocks with bonuses due 2026-12-30.",
+          "Bolsonaro led the first-round vote and Brazilian stocks had their best day since 2020; UBS kept Buy and raised its price target by 23% in September 2026."
+        ],
+        "invalidation": "The thesis breaks if Petrobras does not cross 3 million barrels a day, if the board cuts the dividend, or if the runoff brings a fuel-price policy that takes cash away from shareholders.",
+        "tail_risks": [
+          "State control means a change of government or fuel-price policy can send cash to subsidies instead of dividends.",
+          "Crude staying in the $80–90 range would limit cash-flow growth.",
+          "A valuation reset is possible: one valuation service flags the shares as overvalued and another firm downgraded them on 2026-10-11."
+        ],
+        "evidence_limits": [
+          "The next production report, to see whether output crosses 3 million barrels a day and confirms the growth case.",
+          "The board's next dividend decision, which decides how much cash reaches shareholders.",
+          "The Brazil runoff result and any new fuel-price policy, which decide whether near-term momentum becomes a lasting re-rating."
+        ],
+        "suggested_horizon": "1 Year",
+        "confidence": "low",
+        "narrative_contract_version": "plain_investor_research_v2"
+      }
+    ],
+    "data_gaps": [
+      "No capital-spending plans from the largest cloud buyers for 2027, which decide how long AI hardware demand lasts.",
+      "No reported revenue or cash-flow figure for Marvell's fiscal second quarter of 2027.",
+      "No funding plan for the rest of Crescent Energy's $4.2 billion Eagle Ford purchase."
+    ],
+    "error": ""
+  }
+}

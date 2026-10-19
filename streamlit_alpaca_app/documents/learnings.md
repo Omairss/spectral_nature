@@ -1,5 +1,15 @@
 # Learnings — Active Guidelines
 
+## Trading resumption — 2026-10-18
+
+- Completed paper outcomes are supplied-evidence episodes for the existing learner, with immutable owner/environment identity and no inference in the price job. Preserve decision-time facts separately from outcomes; returns alone cannot establish reasoning quality. Enqueue must retry after publication even when no calls remain active, and production’s empty dataset namespace is a valid boundary.
+- The owner clarified acceptance: a general framework must support honest measurement, recovery and iteration; forecasts need not be perfect now. Do not make eliminating every observed economic error a release criterion for a useful paper pilot. Preserve the failures and distinguish a measurable manual improvement process from an implemented automatic learning loop.
+- Reconcile stopped work definition by definition against the current accepted source. The [preservation review](verification/trading-calls-2026-10-18/preservation-review.json) found no unrelated inventory changes while preserving the deployed Home/research/learning hotfixes and concurrent documentation commit.
+- Explicit direction, optional criticism and correct equations in a research paragraph do not establish correct economics in the final call. Read the entire business-to-common-share argument, time units, opposing case and claimed market expectations. The [paired and focused source probes](research/trading-calls/experiments/2026-10-18/ASSESSMENT.md) remain unaccepted; another same-model reviewer is not an established repair.
+- Keep generation-time research diagnostics and approval-time paper performance separate. Approval freezes an owned thesis and holding convention; completed market-calendar sessions, exact benchmark dates and a consistent adjustment basis protect arithmetic, not forecast accuracy.
+- Capture loaded source/model/engine identity before inference starts. Keep the actual request and failed/late paid attempts; a later disk hash can describe code the running process never loaded.
+- Use the provider's reported model and actual effort metadata. Here `deepseek-reasoner` requests were served by Flash with thinking enabled. A separate default/max/Pro packet comparison retained identical inputs and still showed material errors; more reasoning or an open-model upgrade is not an accepted fix by itself.
+
 ## Current architecture and retirement — 2026-10-16
 
 - Current web ownership is `web/` (Next.js), `api/` (FastAPI), shared services and workers, plus the SwiftUI client. Historical directory/Azure names do not change that architecture. The current architecture map and accepted consumer record precede any release work.

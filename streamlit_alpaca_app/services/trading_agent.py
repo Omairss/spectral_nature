@@ -26,34 +26,34 @@ from .llm import (
 
 
 _TRADING_AGENT_SYSTEM_PROMPT = register_narrative_prompt(
-    name="Trading Agent Experiment",
+    name="Trading Agent Directional Calls",
     file="services/trading_agent.py",
     group="Trading Agent",
     prompt=(
         f"You are the Spectral Nature market research analyst. {NARRATIVE_STYLE_RULE} "
-        "Use only the supplied summaries and evidence. Do not assume access to unseen quotes or news. "
-        "Follow this process: broad economic backdrop, momentum, hypothesis, validation, risk, watchlist candidate. "
-        "Return a ranked market-research watchlist. "
-        "Evaluate upside/watch setups and downside/risk-control setups. Include downside or avoid candidates only when the supplied evidence supports fading momentum or risk-control logic. "
-        "Separate the research classification from the directional call. Use stance='long' or stance='short' when the facts support a reasoned forward-looking thesis for the requested horizon; use stance='no_call' when neither direction has a credible edge. "
-        "Use research_status='supported' only for a directional call, and use watch, avoid, or insufficient_evidence when stance='no_call'. "
-        "State the classification, conditions, and evidence directly. "
-        "An avoid classification means the evidence does not support the upside thesis. "
-        "Write every returned field for an investor, not for an engineer operating the research system. Discuss the company, market move, catalyst, and thesis. "
-        "Use ordinary language and concise sentences. Do not describe database records, rows, tools, storage, retrieval, prompts, provenance machinery, screens, scanner scores, or internal labels in candidate prose. "
-        "Do not say that information was supplied, appeared in an input, or was not in evidence; state what is known or unknown directly. "
-        "Do not repeat a raw metric merely to say it cannot be interpreted; omit it when it has no useful comparison or definition. "
-        "Do not repeat the same fact across setup, hypothesis, evidence, and risks. Keep the market backdrop to two short sentences, portfolio posture to one sentence, "
-        "each candidate prose field to at most two short sentences, and each evidence, risk, or follow-up list to the three most decision-relevant items. "
-        "Keep three concepts separate: evidence is a supported fact; a tail risk is a market or business event that could hurt the thesis; "
-        "and an evidence limit is a forward-looking research question or fact to obtain next. Evidence limits must say what should be learned and why it matters, "
-        "not describe defects in the supplied data or repeat numbers that cannot be interpreted. Missing sources, unavailable filings, and incomplete records are not market risks. "
-        "If the available facts cannot support substantive investor analysis, return no candidate. "
-        "Every candidate needs an invalidation trigger and at least one genuine market or business risk."
+        "Produce ranked, falsifiable share-price calls for the exact requested horizon using the dated company research and market observations. "
+        "Every selected company needs your preferred long or short direction, including close decisions. Confidence describes the strength of the reasoning, not permission to make a call. "
+        "Long predicts a higher share price and short a lower share price over the forecast window, not merely outperformance or underperformance against an index. "
+        "These are research ideas, not existing portfolio holdings or instructions to place orders. "
+        "Explain the business mechanism, what the current share price appears to expect, and what can change those expectations before this horizon ends. "
+        "Separate business quality from purchase price and incremental future changes from developments that have already happened. "
+        "For each call identify the strongest opposing case, the assumptions that decide between the two, and an observable development that would reverse your view. "
+        "Derive the effect on common shareholders from the business economics. For a financing or acquisition, compare assets and cash received with the new debt, senior claims, costs and common shares issued before deciding whether value per common share changes. Gross asset growth alone does not establish common shareholder gains or losses. "
+        "Compare like reporting periods, distinguish operating results from investment and accounting effects, and do not mistake an offering price for a guaranteed stock-price floor. "
+        "A long-term business development is not a near-term price driver without a reason it can change expectations inside the requested horizon. "
+        "Facts must come from the brief. Label forward assumptions as estimates, retain dates and distinguish a market snapshot's availability time from the actual price session date. "
+        "A share price and past return do not reveal the expectations embedded in that price. Where valuation or consensus is unknown, say so and make your directional judgment conditional on explicit assumptions; do not describe those assumptions as established market beliefs. "
+        "Do not invent probabilities, targets or quantities to make a direction sound precise. An invalidation can be an observable business development without an arbitrary price threshold. "
+        "Research execution failure or unresolved identity is a failure, never a neutral forecast or a fabricated call. "
+        "Write ordinary investor language. Each prose field is at most two short sentences; each list has at most three distinct, useful items. "
+        "Evidence states dated facts; risks are events that would hurt this particular long or short call; research next states what to learn and why it could change the call. "
+        "Keep these distinct and avoid repeating the same fact. The backdrop describes the market and shared exposure describes the ideas' common risks, without claiming they are held. "
+        "Discuss companies and markets directly, without narrating records, inputs, tools, missing sources or the app's internal operation."
     ),
 )
 
-TRADING_AGENT_NARRATIVE_CONTRACT_VERSION = "plain_investor_research_v2"
+TRADING_AGENT_NARRATIVE_CONTRACT_VERSION = "directional_price_calls_v3"
+TRADING_AGENT_LEGACY_NARRATIVE_CONTRACTS = {"plain_investor_research_v2"}
 
 _TRADING_AGENT_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -65,20 +65,25 @@ _TRADING_AGENT_SCHEMA: dict[str, Any] = {
         },
         "portfolio_posture": {
             "type": "string",
-            "description": "One short sentence stating the portfolio implication.",
+            "description": "One short sentence explaining shared risks among these ideas. Do not claim they are existing holdings or recite candidate counts.",
         },
         "candidates": {
             "type": "array",
+            "minItems": 1,
             "items": {
                 "type": "object",
                 "additionalProperties": False,
                 "properties": {
                     "ticker": {"type": "string"},
-                    "direction": {"type": "string", "enum": ["long", "short", "watch", "avoid"]},
-                    "stance": {"type": "string", "enum": ["long", "short", "no_call"]},
-                    "research_status": {
-                        "type": "string",
-                        "enum": ["supported", "watch", "avoid", "insufficient_evidence"],
+                    "stance": {"type": "string", "enum": ["long", "short"]},
+                    "forecast": {
+                        "type": "object", "additionalProperties": False,
+                        "properties": {
+                            "pricing_assessment": {"type": "string", "description": "Why the observed share price leaves upside or downside at this horizon. Separate estimates from facts; do not invent a valuation when inputs are unknown. Two short sentences."},
+                            "assumptions": {"type": "array", "maxItems": 3, "items": {"type": "string"}, "description": "The uncertain forward conditions on which the direction depends, stated as assumptions rather than facts."},
+                            "opposing_case": {"type": "string", "description": "The strongest substantive argument for the other direction, including counterevidence. Two short sentences."},
+                        },
+                        "required": ["pricing_assessment", "assumptions", "opposing_case"],
                     },
                     "setup": {
                         "type": "string",
@@ -115,9 +120,8 @@ _TRADING_AGENT_SCHEMA: dict[str, Any] = {
                 },
                 "required": [
                     "ticker",
-                    "direction",
                     "stance",
-                    "research_status",
+                    "forecast",
                     "setup",
                     "hypothesis",
                     "evidence",
@@ -547,6 +551,10 @@ def _market_observation_for_prompt(
         "horizon": selected_label,
         "horizon_return_pct": _prompt_number(opportunity.get(selected_column)) if selected_column else None,
     }
+    price = _prompt_number(opportunity.get("close"))
+    if price is not None and price > 0:
+        payload["reference_price"] = price
+        payload["reference_price_basis"] = "last daily close observed by the market snapshot"
     return {key: value for key, value in payload.items() if value not in ("", None)}
 
 
@@ -616,6 +624,7 @@ def _research_prompt_context(
     return {
         "research_scope": {
             "business_focus": _clean(controls.get("business_filter")),
+            "forecast_windows": context.get("forecast_windows") or [context.get("forecast_window") or {}],
             "selected_horizon": _clean(
                 controls.get("selected_horizon_label") or controls.get("momentum_horizon")
             ),
@@ -654,6 +663,7 @@ def _synthesis_prompt_context(
     return {
         "research_scope": {
             "business_focus": _clean(controls.get("business_filter")),
+            "forecast_window": context.get("forecast_window") or {},
             "selected_horizon": _clean(
                 controls.get("selected_horizon_label") or controls.get("momentum_horizon")
             ),
@@ -833,6 +843,12 @@ def _fallback_direction(value: object) -> str:
 
 
 def _candidate_semantics(candidate: dict[str, Any]) -> tuple[str, str, str]:
+    contract = candidate.get("narrative_contract_version") or _json_object_from_text(candidate.get("candidate_json")).get("narrative_contract_version")
+    if contract == TRADING_AGENT_NARRATIVE_CONTRACT_VERSION:
+        stance = _clean(candidate.get("stance")).lower()
+        if stance not in _TRADING_AGENT_DIRECTION_MULTIPLIER:
+            raise ValueError("A price forecast must choose long or short.")
+        return stance, "forecast", stance
     direction = _fallback_direction(candidate.get("direction"))
     stance = _clean(candidate.get("stance")).lower()
     if stance not in _TRADING_AGENT_STANCES:
@@ -871,7 +887,7 @@ def normalize_trading_agent_candidate(candidate: dict[str, Any]) -> dict[str, An
         for item in to_list(normalized.get("evidence_limits"))
         if _clean(item)
     ][:5]
-    normalized["narrative_contract_version"] = TRADING_AGENT_NARRATIVE_CONTRACT_VERSION
+    normalized["narrative_contract_version"] = normalized.get("narrative_contract_version") or "plain_investor_research_v2"
     return normalized
 
 
@@ -983,6 +999,7 @@ def build_trading_agent_context(
             "daily_move_retrieval_rank",
             "trend_quality_retrieval_rank",
             "sparkline_3m",
+            "close",
             "daily_change_pct",
             horizon_col,
             "horizon_metric_available",
@@ -1086,6 +1103,11 @@ def _build_trading_agent_horizon_contexts(
             research_candidate_limit=research_candidate_limit,
         )
         context["controls"]["generation_mode"] = _clean(generation_mode)
+        start = pd.Timestamp(_utc_iso(asof_time_utc))
+        context["forecast_window"] = {
+            "horizon": spec["label"], "start_utc": start.isoformat(),
+            "end_utc": (start + pd.Timedelta(days=_TRADING_AGENT_HORIZON_DAYS[spec["key"]])).isoformat(),
+        }
         contexts.append((spec, context))
     symbols = list(dict.fromkeys(item["ticker"] for _, context in contexts for item in context["ticker_evidence"]))
     financials = fundamental_snapshots_by_symbol(quarterly_fundamentals, symbols, asof_time_utc=asof_time_utc)
@@ -1247,8 +1269,8 @@ def _prepare_trading_agent_price_history(frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _candidate_anchor_ts(row: pd.Series) -> pd.Timestamp | None:
-    candidate_time = _clean(row.get("asof_time_utc")) or _clean(row.get("generated_at_utc"))
-    return _utc_timestamp(candidate_time)
+    observed = [_utc_timestamp(row.get(key)) for key in ("asof_time_utc", "generated_at_utc")]
+    return max((value for value in observed if value is not None), default=None)
 
 
 def _scoring_direction(*, stance: object, direction: object) -> str:
@@ -1275,8 +1297,8 @@ def _aligned_price_return(
         return pd.NA
     aligned = prices.copy()
     aligned["_bar_day"] = aligned["timestamp"].dt.normalize()
-    entry_candidates = aligned[aligned["_bar_day"] >= entry_day.normalize()]
-    exit_candidates = aligned[aligned["_bar_day"] >= exit_day.normalize()]
+    entry_candidates = aligned[aligned["_bar_day"] == entry_day.normalize()]
+    exit_candidates = aligned[aligned["_bar_day"] == exit_day.normalize()]
     if entry_candidates.empty or exit_candidates.empty:
         return pd.NA
     entry_close = _numeric_or_na(entry_candidates.iloc[0].get("close"))
@@ -1351,7 +1373,9 @@ def build_trading_agent_outcomes(
     if candidate_frame.empty:
         return empty_trading_agent_outcome_frame()
 
-    prepared_prices = _prepare_trading_agent_price_history(price_history)
+    from .trading_call_tracking import completed_daily_prices
+    evaluation_iso = _utc_iso(evaluation_time_utc)
+    prepared_prices = completed_daily_prices(_prepare_trading_agent_price_history(price_history), evaluation_iso)
     prices_by_symbol = {
         str(symbol): symbol_prices.drop(columns=["symbol"]).reset_index(drop=True)
         for symbol, symbol_prices in prepared_prices.groupby("symbol", sort=False)
@@ -1361,7 +1385,6 @@ def build_trading_agent_outcomes(
         benchmark_ticker,
         pd.DataFrame(columns=["timestamp", "close"]),
     ).copy()
-    evaluation_iso = _utc_iso(evaluation_time_utc)
     row_items: list[dict[str, Any]] = []
 
     for _, row in candidate_frame.iterrows():
@@ -1397,13 +1420,15 @@ def build_trading_agent_outcomes(
             outcome_status = "missing_entry"
         elif not ticker_prices.empty:
             ticker_prices["_bar_day"] = ticker_prices["timestamp"].dt.normalize()
-            entry_candidates = ticker_prices[ticker_prices["_bar_day"] >= anchor_day].copy()
+            call_day = anchor_ts.tz_convert("America/New_York").strftime("%Y-%m-%d")
+            entry_candidates = ticker_prices[ticker_prices["session_date"] > call_day].copy()
             if entry_candidates.empty:
                 outcome_status = "missing_entry"
             else:
                 entry = entry_candidates.iloc[0]
                 entry_ts = _maybe_iso(entry.get("timestamp"))
                 entry_close = _numeric_or_na(entry.get("close"))
+                target_ts = (pd.Timestamp(entry.get("session_date")) + pd.Timedelta(days=_horizon_days(row))).tz_localize("America/New_York").tz_convert("UTC").isoformat()
                 future = ticker_prices[ticker_prices["timestamp"] > entry.get("timestamp")].copy()
                 if future.empty:
                     outcome_status = "no_future_bar"
@@ -1832,11 +1857,15 @@ def _aql_ticker_query(context: dict[str, Any], ticker_context: dict[str, Any]) -
         "Zopedia pages and retained context are useful memory when present, but their absence is not a failure; "
         "ground the research with the supplied market observation, company context, filings, fundamentals, recent news, and source search as available. "
         "Develop competing forward-looking bullish and bearish hypotheses for the requested horizons, with the business mechanism, "
-        "supporting facts, assumptions, counterevidence and observable invalidation. State which thesis the facts favor and why, or why neither has an edge. "
+        "supporting facts, assumptions, counterevidence and observable invalidation. State your preferred price direction for each requested horizon and why, even when the balance is close. "
         "This is research, not portfolio allocation or trade execution. An unresolved cause of a past price move, incomplete coverage, "
         "or missing long-term price history does not by itself rule out a useful forward-looking thesis. "
-        "Do not default to watch-only simply because every uncertainty cannot be resolved. "
-        "Keep established facts separate from forecasts and do not invent certainty or a directional edge. "
+        "Uncertainty belongs in the strength of the forecast and its assumptions, not in a refusal to choose. "
+        "Separate established facts from estimated scenarios. Assess what today's price already expects: a good business can still be overpriced. "
+        "Trace the development through operating cash generation, investment needs and financing to the common shareholder's residual claim. Reconcile both sides of a transaction: common equity receives the assets and cash less debt, preferred liquidation claims and other obligations, divided by diluted common shares. Account for the transaction's later income and funding costs over the actual forecast window separately from its starting asset value. "
+        "Compare like reporting periods and distinguish recurring operations from financing and one-off items. A current price and past return alone cannot establish what investors expect; identify whether expectations are measured or your assumption. "
+        "Check whether each invalidation actually opposes its thesis and applies to that horizon. Use a numerical threshold only when its economic basis can be explained. "
+        "Identify the strongest competing mechanism and the observation most likely to change your preferred direction. "
         "Do not exhaust the budget filling every missing source. Verify company identity, "
         "gather high-signal business/current evidence when available, then write what is supported and name exact gaps. "
         "Write for an investor: discuss the company, catalyst, price move, and business facts, not the app or its research machinery. "
@@ -2194,6 +2223,7 @@ def _shared_research_context(
             **research_controls,
         },
         "source_summaries": source_summaries,
+        "forecast_windows": [context.get("forecast_window") or {} for _, context in horizon_contexts],
         "market_opportunity_feed": [
             item.get("market_opportunity")
             for item in ticker_contexts
@@ -2374,24 +2404,18 @@ def _synthesize_trading_agent_suggestions(
     user_prompt = (
         "Investor research brief JSON:\n"
         f"{_compact_json(synthesis_context)}\n\n"
-        "Return the strongest watchlist candidates only, using each company's research findings as its evidence boundary. "
-        "Prefer no candidate over weak evidence. Use only the supplied brief. "
-        "Make your own forward-looking assessment for the exact requested horizon. Earlier watch-only conclusions are not binding; assess their facts and arguments. "
-        "Compare a bullish and bearish mechanism, the likely conditions over this horizon, counterevidence and an observable invalidation. "
-        "Use stance='long' or 'short' and research_status='supported' for a reasoned directional thesis, not a claim of certainty. "
-        "Use stance='no_call' with research_status='watch', 'avoid', or 'insufficient_evidence' when neither direction has a credible edge after that comparison. "
-        "Do not target a quota of calls or manufacture a thesis to fill the list. "
-        "Keep direction as the compatible display label: long or short for supported calls, watch or avoid for no-call classifications. "
-        "Missing historical returns or an unresolved cause of a past move do not alone veto a forward-looking thesis. An unsupported business identity or facts that cannot support a substantive hypothesis do. "
-        "Candidate setup, hypothesis, evidence, invalidation, and tail risks are displayed directly. Rewrite the research; do not copy process language. "
-        "Keep the result brief: setup in one sentence; hypothesis and invalidation in at most two short sentences; no more than three evidence items, three risks, and three follow-up items. "
-        "Evidence must say what happened and why it matters. Tail risks must be market, company, regulatory, financial, or execution events that could hurt the thesis. "
-        "Missing or unverified information is never a tail risk. Put decision-critical follow-up work in evidence_limits as forward-looking questions or facts to obtain next. "
-        "Do not narrate why an input is incomplete and do not repeat an uninterpretable number in evidence_limits. Put broad missing market facts in data_gaps. "
-        "Do not mention records, rows, fields, tools, feeds, packages, storage, source plumbing, the research process, screens, scanner scores, or labels in candidate prose. "
-        "Do not say supplied, input, or in evidence. Translate classifications such as Up / cooling into direct statements such as price momentum is cooling. "
-        "Do not repeat a return series or catalyst in multiple fields. "
-        "Ignore proprietary scanner scores and omit raw numbers that lack a useful label, definition, date, or comparison. Use exact dates from evidence; do not infer weekdays."
+        "Rank up to the existing maximum number of companies as explicit long or short calls for the exact requested horizon. "
+        "Use the dated company facts and market observations; the company reports' conclusions are interpretations to reassess, not additional independent evidence. Earlier reports can describe older prices. "
+        "Earlier watch-only conclusions are not binding. Reassess their facts, pricing and competing arguments and choose your preferred direction even with low confidence. "
+        "Explain the economic path from the dated facts to common-share value and a price change within this horizon. Check the company's earlier conclusions against that path, including the assets and obligations created by financing. "
+        "Where valuation or market expectations cannot be measured, make a conditional directional judgment and say which assumption gives that side the advantage. A past gain or fall alone does not prove that a development is fully priced or that the opposite must happen. "
+        "Use the explicit forecast_window dates. An event after end_utc cannot be this call's within-window trigger or invalidation; distinguish later research follow-up. "
+        "State your critical assumptions and the strongest opposing case in forecast, instead of inventing numerical forecasts when valuation inputs are unknown. "
+        "Hypothesis states the preferred forward outcome, invalidation must oppose that outcome, and tail risks must hurt the chosen position rather than reinforce it. "
+        "Keep the brief concise and substantive: two short sentences per prose field, up to three distinct items per list. "
+        "Missing historical returns or an unresolved explanation for a past move do not alone veto a forward-looking call; failed research and unresolved business identity remain failures. "
+        "Write the backdrop and shared exposures from the calls actually returned, without assuming any are approved or held. "
+        "Retain exact observation dates where known. A snapshot availability timestamp is not the trading session date of the last observed close."
     )
     try:
         from .aql_zopedia_engine import run_aql_zopedia_structured_agent
@@ -2457,7 +2481,8 @@ def _synthesize_trading_agent_suggestions(
             "error": f"{type(exc).__name__}: {exc}",
         }
 
-    allowed_tickers = {_clean(item.get("ticker")).upper() for item in ticker_contexts if _clean(item.get("ticker"))}
+    contexts_by_ticker = {_clean(item.get("ticker")).upper(): item for item in ticker_contexts if _clean(item.get("ticker"))}
+    allowed_tickers = set(contexts_by_ticker)
     candidates: list[dict[str, Any]] = []
     for item in to_list(payload.get("candidates")):
         if not isinstance(item, dict):
@@ -2467,15 +2492,22 @@ def _synthesize_trading_agent_suggestions(
             continue
         if allowed_tickers and ticker not in allowed_tickers:
             continue
-        direction = _clean(item.get("direction")).lower()
-        if direction not in {"long", "short", "watch", "avoid"}:
-            direction = "watch"
+        stance = _clean(item.get("stance")).lower()
+        reference = _market_observation_for_prompt(contexts_by_ticker[ticker].get("market_opportunity"))
+        forecast = {
+            **(item.get("forecast") or {}),
+            "reference_price": reference.get("reference_price"),
+            "reference_snapshot_as_of": reference.get("as_of") or "",
+            "reference_price_basis": reference.get("reference_price_basis") or "",
+            "start_at_utc": (normalized_context.get("forecast_window") or {}).get("start_utc"),
+            "end_at_utc": (normalized_context.get("forecast_window") or {}).get("end_utc"),
+        }
         candidates.append(
             normalize_trading_agent_candidate({
+                "narrative_contract_version": TRADING_AGENT_NARRATIVE_CONTRACT_VERSION,
                 "ticker": ticker,
-                "direction": direction,
-                "stance": _clean(item.get("stance")),
-                "research_status": _clean(item.get("research_status")),
+                "stance": stance,
+                "forecast": forecast,
                 "setup": _clean(item.get("setup")),
                 "hypothesis": _clean(item.get("hypothesis")),
                 "evidence": [_clean(value) for value in to_list(item.get("evidence")) if _clean(value)][:5],

@@ -1,0 +1,250 @@
+{
+  "role": "candidate",
+  "horizon": "1w",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 98.41762975003803,
+  "input_sha256": "feb58d0a6f633d4ba6fe6472d186f1af00765e7c18582b306471ffd20595c243",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "probabilistic_price_calls_v3",
+    "regime_read": "Momentum leaders are cooling, and several one-day bounces sit inside longer declines, while hot inflation data raised the odds of rate rises and pressured financing-heavy names. Health care led sectors on 15 October 2026, so vaccine shares have a bid while debt-funded data-center builders and airlines face cost pressure.",
+    "portfolio_posture": "Common exposure is to high-volatility, single-catalyst names whose direction over the next week is set by sector funding, commodity and policy news rather than by scheduled company results.",
+    "candidates": [
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "NVAX",
+        "stance": "long",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.3,
+              "return_pct": -22.0,
+              "assumptions": "The Sanofi terms stay unconfirmed, the NIH programme names no Novavax role, and the extended price (14-day RSI 68.1, about 90% up its recent channel on 9 October 2026) mean-reverts in a stock with 95% annualised volatility."
+            },
+            {
+              "case": "base",
+              "probability": 0.4,
+              "return_pct": 3.0,
+              "assumptions": "No new company news arrives, partner and royalty revenue holds near the $139.5 million reported for the quarter to 31 March 2026, and the sector bid keeps the price near current levels with normal weekly drift."
+            },
+            {
+              "case": "bull",
+              "probability": 0.3,
+              "return_pct": 25.0,
+              "assumptions": "The reported Sanofi cash is confirmed or paid, or a genuine new FDA action follows the 5-6 October jump, and the vaccine group bid that lifted health care on 15 October 2026 continues for a second week."
+            }
+          ],
+          "rationale": "The bull and bear weights are close because the week's gain rests on reported rather than confirmed company news, and I give the base case the largest weight because momentum usually persists for a few sessions without new information. The strongest opposing argument is that the shares sit near the top of their channel after a 14.3% week, so one unconfirmed catalyst can reverse the move.",
+          "expected_return_pct": 2.1000000000000005,
+          "expected_call_return_pct": 2.1000000000000005,
+          "probability_up": 0.7,
+          "probability_profit": 0.7,
+          "downside_return_pct": -22.0,
+          "upside_return_pct": 25.0,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Novavax rose 14.3% in the seven days to 15 October 2026 on partner-payment reports and a sector-wide vaccine rally, so the coming week tests whether that momentum survives.",
+        "hypothesis": "Reported Sanofi cash and a sector-wide vaccine bid keep this volatile stock rising for another week, because both arrived within the last seven days and are still working through the price. The gain erodes quickly if neither the Sanofi terms nor a new FDA action is confirmed.",
+        "evidence": [
+          "The stock added 14.3% over the seven days to 15 October 2026 and 1.3% on the day, so buyers were still active at the end of the window.",
+          "News on 9-10 October 2026 of an NIH-backed personalised cancer vaccine programme lifted vaccine shares, and health care led sectors on 15 October 2026, which shows a group-level bid rather than a single-name event.",
+          "The reported Sanofi agreement of a $500 million upfront payment, up to $700 million in milestones and royalties on future sales is the largest potential company-specific cash event, and its terms and payment dates are not confirmed."
+        ],
+        "invalidation": "The thesis fails if the Sanofi payment is not confirmed within the week, or if the shares fall back below the $10.46 level that preceded the 5 October 2026 jump.",
+        "tail_risks": [
+          "A financing that issues new shares, because negative stockholders' equity of $144.8 million at 31 March 2026 leaves little room to raise cash without dilution.",
+          "A momentum reversal in a stock with 95% annualised volatility, where one week can erase the whole month's gain.",
+          "A regulatory decision that restricts or withdraws Nuvaxovid, or a broad retreat in vaccine shares."
+        ],
+        "evidence_limits": [
+          "Confirm the exact Sanofi upfront, milestone and royalty terms and their 2026 payment dates, because that cash extends the runway without new share sales.",
+          "Establish whether the October FDA item is a new action or a repeat of the approval archived on 8 July 2026, because a new approval is a genuine company catalyst.",
+          "Find the current cash and short-term investments, the share count and the short interest, because these set how far a squeeze can run and how much dilution a raise would cause."
+        ],
+        "suggested_horizon": "1 Week",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "CORZ",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.4,
+              "return_pct": -18.0,
+              "assumptions": "Borrowing costs stay high and the October financing debate continues, no signed lease with a named customer and disclosed rent appears, and the market keeps marking down the equity of a balance sheet with $7.68 billion of liabilities against $5.26 billion of assets."
+            },
+            {
+              "case": "base",
+              "probability": 0.35,
+              "return_pct": -3.0,
+              "assumptions": "The 15 October 2026 rebound fades and the shares drift lower with the data-center group, while revenue stays near the $164.2 million reported for the quarter to 30 June 2026 and no new contract news arrives."
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "return_pct": 20.0,
+              "assumptions": "The oversold bounce continues, or a signed colocation lease with disclosed rent and a start date, or a credit facility priced below current market rates, changes how the market values the capacity built with the $1.02 billion of June-quarter capital spending."
+            }
+          ],
+          "rationale": "I weight the bear case highest because higher borrowing costs hit this builder's funding plan directly, and the 7.1% day on 15 October inside a 9.3% weekly fall looks like an oversold move rather than a change in the business. The strongest opposing argument is that revenue more than doubled and operating income turned positive, so one signed lease could lift the shares sharply against a short position.",
+          "expected_return_pct": -3.25,
+          "expected_call_return_pct": 3.25,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -18.0,
+          "upside_return_pct": 20.0,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Core Scientific gained 7.1% on 15 October 2026 inside a 9.3% weekly decline, so the next week tests whether that bounce is a recovery or a pause in a financing-driven selloff.",
+        "hypothesis": "Rising borrowing costs keep pressure on this debt-funded data-center builder, so the shares drift lower over the week even after the 15 October bounce. The bounce becomes a recovery if a signed, funded lease or a cheap new credit facility appears.",
+        "evidence": [
+          "The shares lost 9.3% over the seven days to 15 October 2026 and fell with IREN and TeraWulf on 7-8 October 2026 as borrowing costs rose, which shows a sector financing story rather than a company failure.",
+          "Free cash flow was -$1.02 billion in the quarter to 30 June 2026, mostly capital spending on new data-center halls, while liabilities of $7.68 billion exceeded assets of $5.26 billion.",
+          "Revenue more than doubled to $164.2 million in the June 2026 quarter and operating income was positive, which is why the bear case is not settled."
+        ],
+        "invalidation": "A signed colocation lease with a named customer, disclosed rent and a start date, or a new credit facility priced well below current market rates, would disprove the short.",
+        "tail_risks": [
+          "A rate cut or narrower credit spreads that lower the cost of the build-out and lift the shares.",
+          "An earnings report before the week ends that beats expectations on leasing progress.",
+          "A new equity or convertible issue that investors read as securing growth rather than as a rescue."
+        ],
+        "evidence_limits": [
+          "Get the signed contracts behind the AMD partnership and the rest of the pipeline, with named customers, rent and start dates, because unsigned capacity is what separates revenue growth from equity value.",
+          "Learn the third-quarter 2026 report date and the rents and utilization of the new high-density halls, to test whether they cover the cost of the new debt.",
+          "Establish when and why the CoreWeave acquisition ended, because that outcome frames how the market values Core Scientific's capacity."
+        ],
+        "suggested_horizon": "1 Week",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "CRGY",
+        "stance": "long",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.25,
+              "return_pct": -10.0,
+              "assumptions": "The 80 million new shares keep weighing on the price, the $4.2 billion cash purchase is funded with more debt than expected, and oil prices fall, so the shares trade below the $12.50 offering price."
+            },
+            {
+              "case": "base",
+              "probability": 0.4,
+              "return_pct": 1.0,
+              "assumptions": "The shares hold near the $12.50 offering price while the market waits for deal terms and third-quarter results, with the pre-deal business still producing the operating cash flow of about $944 million reported for the quarter to 30 June 2026."
+            },
+            {
+              "case": "bull",
+              "probability": 0.35,
+              "return_pct": 9.0,
+              "assumptions": "Buyers defend the $12.50 offering price, closing details for the Devon Eagle Ford purchase show cash flow per share rising, and oil prices stay firm."
+            }
+          ],
+          "rationale": "The weights favour a small gain because $12.50 is where institutions and a KKR affiliate committed fresh money, and the pre-deal business still generates strong cash flow. The strongest opposing argument is that 80 million new shares plus a $4.2 billion cash purchase may hold the price below the offering level while the deal economics stay undisclosed.",
+          "expected_return_pct": 1.0499999999999998,
+          "expected_call_return_pct": 1.0499999999999998,
+          "probability_up": 0.75,
+          "probability_profit": 0.75,
+          "downside_return_pct": -10.0,
+          "upside_return_pct": 9.0,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Crescent Energy fell 7.2% in the week to 15 October 2026 after pricing a $1 billion share sale to help fund a $4.2 billion cash purchase of Devon's Eagle Ford assets, and the shares now sit at the $12.50 offering price.",
+        "hypothesis": "The $12.50 offering price holds as a floor for the week, because large buyers, including a KKR affiliate, took 80 million shares there and the selling from that sale has largely passed. The floor breaks if the market keeps repricing the larger share count and the added debt.",
+        "evidence": [
+          "Crescent agreed on 8 October 2026 to buy Devon's Eagle Ford assets for about $4.2 billion in cash and priced an $1 billion Class A offering on 9 October 2026 at $12.50 a share, with a KKR affiliate taking 40 million of the 80 million shares.",
+          "The shares closed at $12.84 on 14 October 2026 and fell 2.65% on 15 October 2026, which puts the price back at the offering level.",
+          "The quarter to 30 June 2026 showed revenue of about $1.39 billion, net income of about $493 million and operating cash flow of about $944 million, so the existing business generates cash while the deal is digested."
+        ],
+        "invalidation": "A close below $12.50 that holds for two sessions, or deal terms that raise debt well above current levels without added cash flow per share, would disprove the long.",
+        "tail_risks": [
+          "A fall in crude oil prices that cuts the cash flow used to pay for the acquisition.",
+          "Further share issuance if the cash purchase is not fully funded by the completed offering.",
+          "Closing conditions on the Devon purchase that delay or block the deal, leaving the added share count with no added production."
+        ],
+        "evidence_limits": [
+          "Get the purchase agreement's total consideration, cash-and-debt mix, close date and conditions, because these decide whether the deal earns more than it costs.",
+          "Get the acquired production, reserves and cash flow, so the price can be compared with other Eagle Ford deals.",
+          "Learn whether the 80 million shares are newly issued and what pro forma debt and share count become, because this sets the per-share cash flow."
+        ],
+        "suggested_horizon": "1 Week",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "long"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "JBLU",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.4,
+              "return_pct": -15.0,
+              "assumptions": "Cost growth keeps outrunning fares as it did in the quarter to 30 June 2026, analysts keep cutting targets, and investors reduce risk before the 27 October 2026 report, in a stock with a CCC+ credit rating from 8 June 2026."
+            },
+            {
+              "case": "base",
+              "probability": 0.35,
+              "return_pct": -2.0,
+              "assumptions": "No new company news arrives before the earnings date, jet fuel stays near current levels, and the shares drift sideways-to-lower near their lows on flat capacity."
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "return_pct": 14.0,
+              "assumptions": "The 15 October 2026 bounce of 4.66% continues as money returns to beaten-down travel names, or fuel prices fall enough to change the loss trend before the 27 October report."
+            }
+          ],
+          "rationale": "I put the largest weight on the bear case because the only reported quarter shows costs outrunning fares and the credit and analyst moves all point the same way. The strongest opposing argument is that the shares fell 20.8% in a week and bounced 4.66% on 15 October, so much of the bad news may already be in the price.",
+          "expected_return_pct": -3.2,
+          "expected_call_return_pct": 3.2,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -15.0,
+          "upside_return_pct": 14.0,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "JetBlue fell 20.8% in the week to 15 October 2026 and bounced 4.66% on the day, with third-quarter results due 27 October 2026, making the coming week a pre-earnings holding period.",
+        "hypothesis": "Costs keep rising faster than fares, so the shares drift lower again before the 27 October report, because the last reported quarter showed a widening loss and analysts kept cutting targets into 14 October 2026. The bounce continues if fuel prices fall or the airline cuts capacity.",
+        "evidence": [
+          "Revenue rose about 14.5% to $2.697 billion in the quarter to 30 June 2026, but the net loss widened to $247 million from $74 million a year earlier, which shows costs are outrunning pricing.",
+          "Free cash flow was -$318 million in that quarter and has been negative in every quarter shown since the end of 2024, while shareholders' equity fell to $1.587 billion.",
+          "S&P cut the credit rating to CCC+ on 8 June 2026 and banks cut price targets into 14 October 2026, with Susquehanna at $4 and Goldman Sachs at $3.50 with a Sell rating."
+        ],
+        "invalidation": "A sharp fall in jet fuel prices, news of capacity cuts, or improvement in the credit-rating outlook would disprove the short.",
+        "tail_risks": [
+          "A sharp fall in jet fuel prices, which would cut the largest variable cost and could turn the loss trend quickly.",
+          "A financing that the market reads as securing liquidity, which could trigger a sharp rally as short sellers close positions.",
+          "A merger or takeover approach for a beaten-down airline, which would reprice the shares well above current levels."
+        ],
+        "evidence_limits": [
+          "Learn unit revenue against unit cost in the third-quarter 2026 report due 27 October 2026, because that comparison decides whether the loss narrows or widens.",
+          "Get total liquidity and the debt maturities over the next twelve months, to test how long the cash burn can continue without new funding.",
+          "Get the fuel hedge position and the current share count, because these set how much a fuel move changes the result and how much dilution a raise would cause."
+        ],
+        "suggested_horizon": "1 Week",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      }
+    ],
+    "data_gaps": [
+      "The path of US interest rates and credit spreads over the next week, because these set the cost of the debt that funds data-center construction.",
+      "The direction of crude oil and gas prices, because they set the cash flow that pays for Crescent Energy's acquisition.",
+      "Jet fuel prices and any airline capacity announcements, because they decide whether JetBlue's cost growth slows before its 27 October report."
+    ],
+    "error": ""
+  }
+}

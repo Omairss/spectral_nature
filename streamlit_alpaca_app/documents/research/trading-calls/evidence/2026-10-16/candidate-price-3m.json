@@ -1,0 +1,274 @@
+{
+  "role": "candidate-price",
+  "horizon": "3m",
+  "model": "deepseek-reasoner",
+  "engine": "7281e3631a1764cf48c9",
+  "seconds": 237.0594584160135,
+  "input_sha256": "37a0a114ce2a9d0dbc1706961826b5c7c4e037a7aded326e9a674689027cff2f",
+  "result": {
+    "status": "ok",
+    "narrative_contract_version": "probabilistic_price_calls_v3",
+    "regime_read": "Borrowing costs are rising, which pressures debt-funded data-center and infrastructure names, and the strongest momentum stocks are cooling after large gains. Health care led sectors on 15 October 2026, and one-day bounces in beaten-down names have no company-specific driver behind them.",
+    "portfolio_posture": "The shared exposure is companies that need outside money — new debt, new shares or preferred dividends — in a market where borrowing costs rise, so the calls lean short on those that must keep raising and long on the one that just finished raising.",
+    "candidates": [
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "JBLU",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.32,
+              "target_price": 1.85,
+              "assumptions": "Estimate: the 27 October 2026 report shows a wider loss and another quarter of cash outflow, so new financing is priced on punitive terms, taking the shares about 41% lower to $1.85.",
+              "return_pct": -41.17647058823529
+            },
+            {
+              "case": "base",
+              "probability": 0.44,
+              "target_price": 2.9,
+              "assumptions": "Estimate: the loss narrows slightly but free cash flow stays negative, so the shares sit just below $3.00, about 8% under the $3.145 close of 15 October 2026.",
+              "return_pct": -7.790143084260737
+            },
+            {
+              "case": "bull",
+              "probability": 0.24,
+              "target_price": 4.6,
+              "assumptions": "Estimate: unit revenue grows faster than unit cost, the loss narrows sharply and no new financing is needed, lifting the shares about 46% to $4.60.",
+              "return_pct": 46.26391096979332
+            }
+          ],
+          "rationale": "The bear and base cases carry 76% of the weight because the only reported quarter shows costs outrunning pricing and a CCC+ rating limits how cheaply the company can borrow. The strongest opposing argument is that Goldman Sachs and Susquehanna both hold targets above $3.15, so a modest improvement on 27 October could lift the shares more than a short position can absorb.",
+          "expected_return_pct": -5.500794912559621,
+          "reference_price": 3.145,
+          "reference_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 5.500794912559621,
+          "probability_up": 0.24,
+          "probability_profit": 0.76,
+          "downside_return_pct": -41.17647058823529,
+          "upside_return_pct": 46.26391096979332,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "JetBlue reports third-quarter 2026 results on 27 October 2026, after a run of negative analyst revisions and a credit downgrade.",
+        "hypothesis": "Costs are rising faster than the money collected per seat, so the loss widens even as revenue grows and the company must fund its cash burn with expensive new money. That trend continues into the third quarter.",
+        "evidence": [
+          "Second-quarter 2026 revenue rose about 14.5% to $2.697B, but the net loss widened to $247M from $74M a year earlier, which shows cost growth outrunning pricing.",
+          "Free cash flow was -$318M and has been negative every quarter shown since late 2024, while shareholders' equity fell to $1.587B from $2.641B at the end of 2024.",
+          "S&P Global Ratings lowered JetBlue to CCC+ from B- on 8 June 2026, a grade that signals substantial credit risk, and Susquehanna and Goldman Sachs cut their targets in the days before 15 October 2026."
+        ],
+        "invalidation": "A third-quarter report on 27 October 2026 that shows a narrower loss, unit revenue growth above unit cost growth and no need for new financing would disprove this view.",
+        "tail_risks": [
+          "A fall in jet fuel prices, or capacity cuts that lift fares, would shrink the loss faster than this view assumes.",
+          "Turnaround news at a share price near $3 produces a large percentage bounce.",
+          "A rebound in domestic travel demand would raise revenue per seat without a matching cost increase."
+        ],
+        "evidence_limits": [
+          "Whether unit revenue grew faster than unit cost in the third quarter, because that single comparison decides the direction of the loss.",
+          "Total liquidity and the debt due in the next twelve months, because they show how long the cash burn can continue without new funding.",
+          "The fuel hedge position and the current share count, because both change the size and price of any new share sale."
+        ],
+        "suggested_horizon": "3 Month",
+        "confidence": "medium",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "MRNA",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.35,
+              "target_price": 150.0,
+              "assumptions": "Estimate: third-quarter revenue on 6 November 2026 falls below the $1.02B of the same quarter in 2025, guidance is cut, and the shares fall about 37% from the $236.44 close of 15 October 2026.",
+              "return_pct": -36.558957875148025
+            },
+            {
+              "case": "base",
+              "probability": 0.4,
+              "target_price": 215.0,
+              "assumptions": "Estimate: third-quarter revenue near $1B and a year-end cash figure within the $4.7-5.2B guide, with the shares giving back part of the 297.4% three-month gain to about $215.",
+              "return_pct": -9.067839621045504
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 320.0,
+              "assumptions": "Estimate: a third-quarter beat with raised guidance, plus a regulatory filing acceptance for intismeran autogene before mid-January 2027, lift the shares about 35%.",
+              "return_pct": 35.340889866350864
+            }
+          ],
+          "rationale": "The bear and base cases carry 75% of the weight because a 297.4% three-month gain rests on one trial result and index buying while the company still burns cash. The strongest opposing argument is that a strong seasonal third quarter or an early approval filing would extend a move that has already punished short sellers.",
+          "expected_return_pct": -7.587548638132294,
+          "reference_price": 236.44,
+          "reference_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 7.587548638132294,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -36.558957875148025,
+          "upside_return_pct": 35.340889866350864,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Moderna tripled in three months on a melanoma vaccine result and index buying, and the 6 November 2026 quarterly report is the first hard test of that move.",
+        "hypothesis": "The shares give back part of the gain because the reported business still spends more cash than it earns and the market has already paid for an oncology line that produces no revenue before this deadline.",
+        "evidence": [
+          "The quarter ended 30 June 2026 showed revenue of $145M, a net loss of $782M and free cash flow of -$563M, while the company guided to $4.7-5.2B of year-end cash.",
+          "The August 2026 Phase 3 result for intismeran autogene plus KEYTRUDA met recurrence-free and distant-metastasis-free survival endpoints in completely resected Stage IIB-IV melanoma, and it is the operating fact behind the rally (https://businesswire.com/news/home/20260819675697/en/Merck-and-Moderna-Announce-Phase-3-INTerpath-001-Trial-of-Intismeran-Autogene-Plus-KEYTRUDA-Met-Endpoints-of-Recurrence-Free-Survival-RFS-and-Distant-Metastasis-Free-Survival-DMFS-in-Patients-With-Completely-Resected-Stage-IIB-IV-Melanoma).",
+          "Nasdaq-100 re-entry on 9 October 2026 and a December 2026 start for an NIH-backed cancer-vaccine programme are index buying and sentiment, not revenue."
+        ],
+        "invalidation": "A third-quarter beat with raised guidance on 6 November 2026, or a regulatory filing acceptance for intismeran autogene before mid-January 2027, would disprove this view.",
+        "tail_risks": [
+          "The 6 November 2026 report is binary: a strong seasonal quarter can lift the shares sharply.",
+          "A regulatory submission accepted ahead of schedule would revalue the oncology line at once.",
+          "Index and retail flows have already squeezed short sellers in this stock once."
+        ],
+        "evidence_limits": [
+          "Whether Merck has filed for approval of intismeran autogene, because a filing date sets when oncology revenue can begin.",
+          "The coupon, maturity and conversion terms of the August 2026 convertible notes, because they set future dilution for existing holders.",
+          "The timing and cash effect of the $950M litigation matter, because it falls inside this horizon."
+        ],
+        "suggested_horizon": "3 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "ASST",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.3,
+              "target_price": 13.0,
+              "assumptions": "Estimate: bitcoin falls about 25% from a level near the $84,500 average paid between 5 and 9 October 2026, the treasury is marked down, and the shares trade at no premium to bitcoin per share, giving about $13.",
+              "return_pct": -49.28808269943437
+            },
+            {
+              "case": "base",
+              "probability": 0.45,
+              "target_price": 23.0,
+              "assumptions": "Estimate: bitcoin is roughly flat near $84,500, bitcoin per share rises about 3% from further purchases, and the premium to bitcoin per share narrows, giving about $23 against the $25.635 close of 15 October 2026.",
+              "return_pct": -10.278915545153112
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 38.0,
+              "assumptions": "Estimate: bitcoin rises about 30% and the planned preferred sale adds bitcoin per share faster than it adds dividend cost, lifting the shares about 48%.",
+              "return_pct": 48.23483518626877
+            }
+          ],
+          "rationale": "The bear and base cases carry 75% of the weight because the preferred classes take a fixed 13-15% before common holders and the October purchases were made near the current market price, which leaves the common stock as the residual claim. The strongest opposing argument is that a bitcoin rally, or bitcoin bought without diluting common holders, raises bitcoin per share and lifts the stock sharply.",
+          "expected_return_pct": -7.353228008582018,
+          "reference_price": 25.635,
+          "reference_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 7.353228008582018,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -49.28808269943437,
+          "upside_return_pct": 48.23483518626877,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Strive is a bitcoin treasury company whose shares more than doubled in three months and which now plans a second class of high-dividend preferred stock.",
+        "hypothesis": "The common stock is the last claim on the treasury, so it gives up part of its gain while the preferred classes collect a fixed return and the shares trade at a narrowing premium to the bitcoin behind them.",
+        "evidence": [
+          "Strive bought 3,311 bitcoin at an average of about $84,500 per coin between 5 and 9 October 2026, taking holdings to 32,773 bitcoin (https://benzinga.com/news/26/10/62320971/strive-acquires-3-311-bitcoins-average-price-84-500-bitcoin-oct-5-through-oct-9).",
+          "The company announced a planned sale of 5 million SATS preferred shares at $100 each, a $500M raise paying a 15% dividend and ranking behind the existing SATA preferred (https://coindesk.com/markets/2026/10/13/strive-to-ipo-second-preferred-share-class-as-it-looks-to-further-build-bitcoin-treasury).",
+          "In one August 2026 window, bitcoin holdings rose about 5.5% while bitcoin per diluted share rose only 1.3%, which shows that new issuance did not reach common holders one-for-one."
+        ],
+        "invalidation": "A confirmed funding plan at no discount, or bitcoin well above $84,500 that raises bitcoin per share faster than the preferred dividends cost, would disprove this view.",
+        "tail_risks": [
+          "A sharp bitcoin rally hurts a short position here more than any business event.",
+          "Repricing or withdrawal of the SATS preferred sale would remove the value drain and lift the common stock.",
+          "The 2x ASST fund creates flow-driven squeezes that are unrelated to the company."
+        ],
+        "evidence_limits": [
+          "Bitcoin per common share after the October purchases and the planned raise, because that number shows whether the shares trade below or above the bitcoin behind them.",
+          "The source of the cash already used for the October purchases and the current common share count, because both change the per-share claim.",
+          "The final terms and pricing date of the SATS preferred sale, because the dividend cost decides how much value stays with common holders."
+        ],
+        "suggested_horizon": "3 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      },
+      {
+        "narrative_contract_version": "probabilistic_price_calls_v3",
+        "ticker": "CORZ",
+        "stance": "short",
+        "forecast": {
+          "scenarios": [
+            {
+              "case": "bear",
+              "probability": 0.35,
+              "target_price": 9.5,
+              "assumptions": "Estimate: no signed lease before mid-January 2027 and about $1B of capital spending in the quarter funded by new debt at a higher rate, taking the shares about 34% below the $14.46 close of 15 October 2026.",
+              "return_pct": -34.3015214384509
+            },
+            {
+              "case": "base",
+              "probability": 0.4,
+              "target_price": 13.5,
+              "assumptions": "Estimate: capital spending slows slightly and no large lease is signed, so the shares trade near $13.50, about 7% below the 15 October 2026 close.",
+              "return_pct": -6.6390041493776035
+            },
+            {
+              "case": "bull",
+              "probability": 0.25,
+              "target_price": 20.0,
+              "assumptions": "Estimate: a signed lease with a named customer and disclosed rent, plus stable borrowing costs, revalue the announced 500 MW AMD pipeline and lift the shares about 38%.",
+              "return_pct": 38.31258644536653
+            }
+          ],
+          "rationale": "The bear and base cases carry 75% of the weight because a quarterly cash outflow of about $1B and liabilities above assets mean the equity absorbs the difference between the cost of new money and the return on the new buildings. The strongest opposing argument is that revenue more than doubled and operating income is now positive, so one signed lease would change the story faster than the debt burden can hurt.",
+          "expected_return_pct": -5.082987551867223,
+          "reference_price": 14.46,
+          "reference_as_of": "2026-10-15T20:50:31.789319+00:00",
+          "reference_price_basis": "last daily close observed by the market snapshot",
+          "expected_call_return_pct": 5.082987551867223,
+          "probability_up": 0.25,
+          "probability_profit": 0.75,
+          "downside_return_pct": -34.3015214384509,
+          "upside_return_pct": 38.31258644536653,
+          "basis": "analyst_scenarios"
+        },
+        "setup": "Core Scientific spends about $1B a quarter on AI data-center buildings while its shares fell 35.4% over three months.",
+        "hypothesis": "The equity absorbs the gap between the cost of new borrowing and the return on the new buildings, and the announced capacity is not yet signed rent, so the funding need grows faster than the earnings.",
+        "evidence": [
+          "Second-quarter 2026 revenue was $164.2M, up about 109% from a year earlier, and operating income turned positive at $20.7M, so the operating business is improving.",
+          "Second-quarter 2026 free cash flow was -$1.02B, mostly capital spending, and total liabilities rose to $7.68B from $4.38B at 31 March 2026, against total assets of $5.26B.",
+          "The company reported $600M of committed credit facilities and conditional ERCOT power approvals for Texas data centers on 14 September 2026, so the pipeline is real but not yet leased (https://stocktitan.net/sec-filings/CORZ/8-k-core-scientific-inc-tx-reports-material-event-a86a4bdfb955.html)."
+        ],
+        "invalidation": "A signed lease with a named customer, disclosed rent, term and start date, or a clear fall in borrowing costs, would disprove this view.",
+        "tail_risks": [
+          "A renewed takeover approach for the company, of the kind CoreWeave made in 2025, would force a fast repricing.",
+          "A surprise large lease would revalue the shares before the debt burden can hurt.",
+          "A credit-market closure would block the funding the build-out needs, though it would also deepen the fall."
+        ],
+        "evidence_limits": [
+          "The confirmed date and content of the third-quarter 2026 report, because capital spending and any new lease set the funding need.",
+          "Contracts for the AMD partnership and other pipeline capacity with named counterparties, rent, term and start dates.",
+          "The leasing rent and use of the new high-density halls compared with the interest rate on the new debt."
+        ],
+        "suggested_horizon": "3 Month",
+        "confidence": "low",
+        "research_status": "forecast",
+        "direction": "short"
+      }
+    ],
+    "data_gaps": [
+      "The current bitcoin price and its recent range, which set the value of Strive's treasury.",
+      "The path of interest rates and credit spreads over the next three months, which set the cost of the new borrowing that Core Scientific and Crescent Energy depend on.",
+      "Crude oil and jet fuel prices, which drive Crescent Energy's revenue and JetBlue's costs."
+    ],
+    "error": ""
+  }
+}

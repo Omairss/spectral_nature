@@ -310,6 +310,8 @@ def critique_learning_event(
     for index, run in enumerate(run_payloads or []):
         records[f"run:{index}"] = {"title": f"Research execution {index}", "metadata": {
             "kind": "run", "run_id": run.get("run_id"), "status": run.get("status")}, "content": run}
+    for key, record in (event.get("metadata", {}).get("evidence_records") or {}).items():
+        records[f"source:{key}"] = record
     service = QueryService.from_environment().with_supplied_evidence(records)
     instructions = (
         "You are the Zopedia learning critic. Review the original episode and conversation, then inspect relevant "
@@ -322,6 +324,9 @@ def critique_learning_event(
         "Choose no_change when the evidence does not support a lesson. "
         "Do not invent successful paths, confidence or completed verification. "
         "Future claims/evidence are semantic guidance for review, never literal phrase bans or mandatory tool sequences."
+        " For outcome reviews, distinguish information available at the decision from later observations. A profitable "
+        "outcome does not establish sound reasoning, and a loss does not establish a reasoning error. Account for "
+        "benchmark moves, uncertainty and the original horizon. Do not turn hindsight into a decision-time fact."
     )
     from services.llm import get_active_narrative_style_rule
     config = getattr(llm_client, "config", None)
@@ -377,6 +382,8 @@ def build_regression_eval_case(event: dict[str, Any], critique: dict[str, Any]) 
                             "failed_assumption": critique.get("failed_assumption")},
         "root_cause": root_cause,
         "benchmark_answer_summary": _clean(event.get("correction_summary")),
+        "user_key": _clean(event.get("user_key")),
+        "evidence_records": (event.get("metadata") or {}).get("evidence_records") or {},
     }
 
 
@@ -437,12 +444,11 @@ def build_tool_affordance_update(event: dict[str, Any], critique: dict[str, Any]
     return {"mutation_type": "upsert_pages", "pages": [page], "rationale": "Safe tool-affordance memory from verified chat evidence."}
 
 
-def _persist_learning_event(conn: Any, event: dict[str, Any], *, commit: bool = True) -> dict[str, Any]:
+def _persist_learning_event(conn: Any, event: dict[str, Any], *, commit: bool = True, insert_only: bool = False) -> dict[str, Any]:
     timestamp = _utc_now()
     event_id = _clean(event.get("event_id")) or _event_id(event.get("thread_id"), event.get("original_question"))
     with conn.cursor() as cur:
-        cur.execute(
-            """
+        statement = """
             INSERT INTO saa_zopedia_learning_events (
                 event_id, user_key, thread_id, status, severity, trigger_type, root_cause,
                 original_question, failed_claim, correction_summary, successful_path_json,
@@ -473,11 +479,14 @@ def _persist_learning_event(conn: Any, event: dict[str, Any], *, commit: bool = 
                 confidence = EXCLUDED.confidence,
                 updated_at_utc = EXCLUDED.updated_at_utc,
                 metadata_json = EXCLUDED.metadata_json
-            """,
+            """
+        if insert_only:
+            statement = statement.split("ON CONFLICT")[0] + "ON CONFLICT (event_id) DO NOTHING"
+        cur.execute(statement,
             {
                 "event_id": event_id,
                 "user_key": _clean(event.get("user_key")) or "default",
-                "thread_id": _clean(event.get("thread_id")),
+                "thread_id": _clean(event.get("thread_id")) or None,
                 "status": _clean(event.get("status")) or "detected",
                 "severity": _clean(event.get("severity")) or "medium",
                 "trigger_type": _clean(event.get("trigger_type")) or "user_rescue",
@@ -571,24 +580,57 @@ def apply_safe_learning_update(
     return result if isinstance(result, dict) else {"status": "unknown"}
 
 
-def _recent_threads(conn: Any, *, limit: int) -> list[dict[str, str]]:
+def enqueue_learning_episode(conn: Any, *, user_key: str, namespace: str, source_id: str,
+                             question: str, evidence_records: dict[str, Any]) -> str:
+    """Retain a non-conversation episode without resetting a completed review.
+
+    The producer bootstraps storage once per batch and owns the transaction.
+    Identity fixes the source in its environment and owner; retries cannot rewrite it.
+    """
+    from services.pipeline_store import normalize_dataset_namespace
+    namespace = normalize_dataset_namespace(namespace)
+    if not all(_clean(value) for value in (user_key, source_id, question)) or not evidence_records:
+        raise ValueError("A learning episode requires an owner, source and original evidence.")
+    event = {"event_id": _event_id(namespace, user_key, source_id), "user_key": user_key,
+             "status": "detected", "severity": "unassessed", "trigger_type": "outcome_episode",
+             "root_cause": "unassessed", "original_question": question,
+             "metadata": {"namespace": namespace, "source_id": source_id, "evidence_records": evidence_records}}
+    _persist_learning_event(conn, event, commit=False, insert_only=True)
+    return event["event_id"]
+
+
+def _recent_threads(conn: Any, *, limit: int) -> list[dict[str, Any]]:
+    from services.pipeline_store import dataset_namespace
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT t.thread_id, t.user_key
-            FROM saa_zopedia_chat_threads t
-            LEFT JOIN LATERAL (
+            SELECT thread_id, user_key, episode FROM (
+              SELECT t.thread_id, t.user_key, NULL::jsonb AS episode,
+                     pending.retry_at, t.updated_at AS observed_at
+              FROM saa_zopedia_chat_threads t
+              LEFT JOIN LATERAL (
                 SELECT min(e.updated_at_utc) AS retry_at FROM saa_zopedia_learning_events e
                 WHERE e.thread_id=t.thread_id AND e.status IN ('critique_pending','review_pending')
-            ) pending ON true
-            WHERE t.status <> 'deleted'
-            ORDER BY (pending.retry_at IS NOT NULL) DESC, pending.retry_at ASC NULLS LAST, t.updated_at DESC
+              ) pending ON true
+              WHERE t.status <> 'deleted'
+              UNION ALL
+              SELECT e.thread_id, e.user_key, jsonb_build_object(
+                  'event_id', e.event_id, 'user_key', e.user_key, 'original_question', e.original_question,
+                  'trigger_type', e.trigger_type, 'metadata', e.metadata_json),
+                  e.updated_at_utc, e.created_at_utc
+              FROM saa_zopedia_learning_events e
+              WHERE e.thread_id IS NULL AND e.metadata_json->>'namespace'=%s
+                AND e.metadata_json ? 'evidence_records'
+                AND e.status IN ('detected','critique_pending','review_pending','eval_generated','memory_updated','proposal_created')
+            ) inputs
+            ORDER BY (retry_at IS NOT NULL) DESC, retry_at ASC NULLS LAST, observed_at DESC
             LIMIT %s
             """,
-            (max(int(limit), 1),),
+            (dataset_namespace(), max(int(limit), 1)),
         )
         rows = cur.fetchall()
-    return [{"thread_id": _clean(row[0]), "user_key": _clean(row[1]) or "default"} for row in rows]
+    return [{"thread_id": _clean(row[0]), "user_key": _clean(row[1]) or "default",
+             "episode": _json_dict(row[2])} for row in rows]
 
 
 def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[str, Any]:
@@ -633,12 +675,16 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
         db_conn.commit()
         for row in threads:
             summary["threads_scanned"] += 1
-            thread = load_chat_thread(thread_id=row["thread_id"], user_key=row["user_key"], conn=db_conn)
-            db_conn.commit()
-            if not thread:
-                continue
-            run_payloads = _load_run_payloads_for_thread(thread)
-            events = detect_learning_events_from_payload(thread, user_key=row["user_key"], run_payloads=run_payloads)
+            thread, run_payloads = None, []
+            if row.get("episode"):
+                events = [row["episode"]]
+            else:
+                thread = load_chat_thread(thread_id=row["thread_id"], user_key=row["user_key"], conn=db_conn)
+                db_conn.commit()
+                if not thread:
+                    continue
+                run_payloads = _load_run_payloads_for_thread(thread)
+                events = detect_learning_events_from_payload(thread, user_key=row["user_key"], run_payloads=run_payloads)
             summary["events_detected"] += len(events)
             for event in events:
                 with db_conn.cursor() as cur:
@@ -769,9 +815,19 @@ def replay_learning_eval(eval_case_path: str, *, run_agent: bool = False) -> dic
         return {"status": "loaded", "eval_case": payload}
     from services.aql_zopedia_engine import run_aql_zopedia_agent
 
+    records = payload.get("evidence_records") or {}
+    context = {"task_context": {"learning_review_guidance": payload.get("review_guidance") or {}},
+               "user_key": _clean(payload.get("user_key"))}
+    if records:
+        # An outcome episode is a retrospective review, never a historical
+        # forecast scored against information acquired after the decision.
+        context.update(allow_web=False, allowed_source_access=["supplied"])
+        context["task_context"]["review_mode"] = "retrospective reasoning review; not forecast-accuracy validation"
     result = run_aql_zopedia_agent(
         query=_clean(payload.get("question")),
-        request_context={"task_context": {"learning_review_guidance": payload.get("review_guidance") or {}}},
+        request_context=context,
+        service=QueryService.from_environment().with_supplied_evidence(records) if records else None,
+        initial_evidence=[{"title": "Evidence navigation", "records": list(records)}] if records else None,
         task="learning_eval_replay",
         surface="zopedia.learning",
         max_tool_calls=8,
