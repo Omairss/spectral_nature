@@ -2,7 +2,7 @@
   "status": "accepted_locally",
   "scope": "Complete the omitted Admin/Health Next.js frontend release in development; preserve accepted application code and all other consumers.",
   "source_revision": "7b6d676d05e9d6375394427c0c110a1320889119",
-  "review_base_revision": "112fbd84",
+  "review_base_revision": "112fbd846fe26d3b223d1f04285836fe1f6fcc93",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "411839b19dc8a7f9a5e4586766d414d9856e698b28a4d274a96363fc2dea9d1e",
@@ -1146,7 +1146,15 @@
   "production_authorized": false,
   "production_authorization": {},
   "development_acceptance": {
-    "status": "pending"
+    "status": "accepted",
+    "source_revision": "2171750325f497f539b837c5c0e6551751137d31",
+    "source_inventory_sha256": "842127138aea9b0d9b09ed75c288d9f393b173eda2983222e6027971a5b7f3a8",
+    "runtime_inventory_sha256": "f39d6390836fe9bde5a2190fd854364a48b11cde008195940eb8a07802ccbf4c",
+    "images": {
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:91730986547ca814a857528f7ca6d536dcf75b03db694ed9ed4a3f8b0679033d"
+    },
+    "evidence": "documents/verification/admin-health-frontend-2026-10-18/README.md",
+    "scope": "Fresh authenticated Admin/Health screen, live database/container metrics, protected anonymous endpoint, unchanged Home publication and preserved consumers."
   },
   "preceding_hold": {
     "revision": "20108c58",
