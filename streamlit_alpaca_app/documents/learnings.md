@@ -1187,3 +1187,6 @@ Narration text and encoded audio have different hashes. Verify served MP3 bytes 
 
 ### October 18 — distinguish observed incidents from constructed learning examples
 Every learning example needs its original request/answer, supplied evidence, provenance and outcome. Label scripted wrong answers and controls explicitly; an actual generated answer embedded in an assembled scenario is not a verbatim production conversation. Critic agreement/confidence is not independent factual confirmation. Count historical learning records, distinct conversations, confirmed errors, no-change decisions and evaluation fixtures separately; old keyword-selected records cannot estimate a system-wide error rate.
+
+### October 18 — recovery uses the caller's remaining budget
+Database admission waits belong inside the complete execution deadline. An arbitrary phase fraction can consume a recovery phase while the caller still has useful time available. Keep bounded, idempotent batches and a durable cursor; let them use the remaining total budget. Record actual progress and elapsed time so a successful cloud execution cannot be mistaken for completion of the whole scan. Preserve current accepted source through a real isolated Git worktree when other sessions are editing shared modules.
