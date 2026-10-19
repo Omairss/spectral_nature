@@ -1175,3 +1175,7 @@ Verify inference in the worker role that owns its credentials and execution. A p
 
 ### October 18 — preserve model text through Home projection
 The owner permits confidence cutoffs and requested removal of Home semantic suppression. Presentation must preserve model-written summaries and explanations rather than interpret unresolved status, vocabulary, punctuation or overlap as reasons to erase text. Remove the corresponding unresolved-beat admission in summary preparation too. Archive uncalled predecessor implementations and superseded design instructions so they cannot become restoration targets. Learning-critic guidance fields originated in the May 17 plan/May 20 implementation; evaluated guidance records are distinct from production learning history and developer notes.
+
+
+### October 18 — follow semantic decisions through persistence and presentation
+Removing a hardcoded learning detector does not remove downstream semantic policy. Trace the episode through storage defaults, lesson representation, memory promotion and actual Home hydration. Existing fixed score/date/theme rules and presentation phrase filters can still reinterpret or suppress model output. Distinguish live callers from uncalled exported helpers, and confirm history before describing an inherited rule as reintroduced. Runtime budgets, schema validation and authorization are separate execution contracts.

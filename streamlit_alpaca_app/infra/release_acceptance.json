@@ -519,7 +519,7 @@
   "reviewed_changes": {
     "services/attention_surface.py": "Remove status/word/punctuation/overlap admission and canned intensity rewriting; preserve original summaries/explanations. Retire unused rebalance/batch hydration APIs. Eight actual full story projections personally read; exact reviewed beat fields and metadata preserved.",
     "services/aql/summarizer.py": "Remove secondary unresolved-beat admission and title rewrite; pass all published beats to existing LLM summary. Existing model/prompt/budgets/audio formats unchanged; eight reviewed beats preserved verbatim.",
-    "services/attention_live_research.py": "Retire uncalled live-bundle predecessor and dependent heuristic graph. Retain the five event-search callables and schema unchanged. Existing current search/supplied-evidence checks and consumer imports pass."
+    "services/attention_live_research.py": "Retire uncalled live-bundle predecessor and dependent heuristic graph. Retain the six event-search callables and schema unchanged. Existing current search/supplied-evidence checks and consumer imports pass."
   },
   "retired_files": [],
   "components": [
