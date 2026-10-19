@@ -1,0 +1,36 @@
+{
+  "fixture": "Earlier accepted Home records with their actual linked bundles; historical captured input, not a new publication.",
+  "records": 20,
+  "unchanged": 19,
+  "changes": [
+    {
+      "bundle_id": "symbol::LITE",
+      "before": {
+        "surface_summary_text": "Lumentum fell 5.36% in the latest session. Applied Optoelectronics fell 9.8% on the same day, and optical names were reported to have suffered dot-com-era drops. The iShares Semiconductor ETF was on a nine-session losing run.",
+        "surface_what_changed_text": "Lumentum fell 5.36% in the latest session. Applied Optoelectronics fell 9.8% on the same day, and optical names were reported to have suffered dot-com-era drops. The iShares Semiconductor ETF was on a nine-session losing run.",
+        "surface_why_text": "",
+        "surface_what_else_moved_text": "Lumentum makes lasers and optical components. Applied Optoelectronics is the closest comparable; the group supplies data-centre and telecom networks.",
+        "surface_cause_status": "unresolved",
+        "surface_evidence_quality": "Low",
+        "surface_freshness_quality": "Low",
+        "surface_source_summary": "Yahoo Finance",
+        "surface_confidence_label": "Developing",
+        "surface_business_context_text": "Lumentum's revenue depends on data-centre and telecom network spending, which is set by a small number of large cloud buyers that also buy optical modules from its peers."
+      },
+      "after": {
+        "surface_summary_text": "Lumentum fell 5.4% to $823.01 as optical networking shares dropped sharply. The question is whether AI data-centre demand is slowing or a crowded trade is unwinding.",
+        "surface_what_changed_text": "Lumentum fell 5.36% in the latest session. Applied Optoelectronics fell 9.8% on the same day, and optical names were reported to have suffered dot-com-era drops. The iShares Semiconductor ETF was on a nine-session losing run.",
+        "surface_why_text": "Optical components are levered to how fast cloud companies build AI data centres, so any sign of a pause in capital spending hits the group hard. A single session cannot separate a demand slowdown from a valuation reset in a crowded trade, and both fit the published accounts.",
+        "surface_what_else_moved_text": "Lumentum makes lasers and optical components. Applied Optoelectronics is the closest comparable; the group supplies data-centre and telecom networks.",
+        "surface_cause_status": "unresolved",
+        "surface_evidence_quality": "Low",
+        "surface_freshness_quality": "Low",
+        "surface_source_summary": "Yahoo Finance",
+        "surface_confidence_label": "Developing",
+        "surface_business_context_text": "Lumentum's revenue depends on data-centre and telecom network spending, which is set by a small number of large cloud buyers that also buy optical modules from its peers."
+      }
+    }
+  ],
+  "review": "The one changed result preserves Lumentum\u2019s model-written summary and explanation rather than suppressing it because it discusses competing explanations. No new prose was generated.",
+  "six_retained_search_functions_ast_identical": true
+}
