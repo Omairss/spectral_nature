@@ -1669,6 +1669,7 @@
       "system-recovery"
     ],
     "existing_configurations_changed": 0,
-    "pending_observation": "Next normal universe/fundamentals/health/broker cycles; read-only execution probes already passed. Maintenance still reports its pre-existing October 16 idle-transaction failure; no full database CPU reduction claim."
+    "pending_observation": "Next ordinary universe/fundamentals refreshes. Maintenance still reports its pre-existing October 16 idle-transaction failure; no full database CPU reduction claim.",
+    "ordinary_health_and_broker_cycles": "Both 06:00 UTC scheduled executions succeeded; production-normal-cycles.json records their outcomes."
   }
 }

@@ -1,0 +1,11 @@
+{
+  "archive": "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261019T060303Z/complete-reliability-restoration-20261018-operator-receipts.tar.gz",
+  "sha256": "fbce14090d7932330776d96cab8bdba1ca7489541c159c98e13328a904e1f7f3",
+  "files": 109,
+  "completed_at": "2026-10-19T06:03:03.152494+00:00",
+  "expires_at": "2026-11-18T06:03:03.152494+00:00",
+  "content_verified": true,
+  "original_operator_directory_removed": true,
+  "application_source_tree_archived": false,
+  "automatic_cleanup": "Existing loaded daily LaunchAgent com.spectral-nature.retired-release-cleanup; installed script matches tracked script; retains each completed batch for at least 30 days."
+}
