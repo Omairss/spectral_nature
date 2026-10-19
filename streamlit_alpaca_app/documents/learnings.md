@@ -1203,3 +1203,6 @@ Database admission waits belong inside the complete execution deadline. An arbit
 
 ### October 18 — release every consumer needed by the requested feature
 A working backend endpoint and code in Git do not deploy a Next.js feature. The frontend's compiled route manifest and freshly loaded authenticated page must contain its adapter and control. An old open tab can retain removed JavaScript, data and UI for days; reload before using it as live acceptance. Preserve unrelated work by reviewing the complete current Git frontend and releasing through the same source/consumer gate, rather than treating a required missing consumer as an unrelated limitation.
+
+### October 18 — compare an active development workload against a pinned production baseline
+A two-day trial needs exact image/configuration baselines, representative executions and explicit observation coverage. Manual dev producers do not supply a production-like comparison merely by remaining quiet. Keep reasoning/settings fixed when evaluating structural cleanup, run real resource boundaries before packaging, and treat collection gaps as inconclusive. A bounded cloud observer can collect independent of the operator laptop without adding a product fallback layer. See [trial reconnaissance](verification/deep-cleanup-dev-trial-2026-10-18/README.md).
