@@ -830,7 +830,8 @@ def _analysis_tools() -> list[dict[str, Any]]:
             "name": "analysis.run_python",
             "description": (
                 "Run bounded pandas/numpy/scipy/scikit-learn analysis over approved Spectral Nature "
-                "datasets or small inline tables. Use this for EDA, statistical checks, regressions, "
+                "datasets, inline tables or self-contained numerical calculations. Analytical input data is preserved in full "
+                "within a 128 MiB estimated-frame input allocation; only display previews are shortened. Use this for EDA, statistical checks, regressions, "
                 "clustering, classification, feature importance, or other quantitative analysis that "
                 "needs computation beyond direct dataset lookup. Provide dataset_refs that name QueryService "
                 "datasets plus typed params, or inline_datasets for user-uploaded tabular data. "
@@ -871,7 +872,7 @@ def _analysis_tools() -> list[dict[str, Any]]:
                         },
                     },
                     "timeout_seconds": {"type": "integer"},
-                    "max_rows": {"type": "integer"},
+                    "max_rows": {"type": "integer", "minimum": 1, "description": "Optional explicit input admission bound. Omit to use all rows within the byte allocation. Oversized input is rejected rather than sampled."},
                 },
                 "required": ["objective", "code"],
                 "additionalProperties": False,
@@ -1313,7 +1314,7 @@ def _run_analysis_payload(*, service: QueryService, args: dict[str, Any]) -> dic
         dataset_refs=list(args.get("dataset_refs") or []),
         inline_datasets=list(args.get("inline_datasets") or []),
         timeout_seconds=_int_arg(args.get("timeout_seconds"), default=zopedia_analysis.DEFAULT_TIMEOUT_SECONDS),
-        max_rows=_int_arg(args.get("max_rows"), default=zopedia_analysis.MAX_DATASET_ROWS),
+        max_rows=args.get("max_rows"),
     )
     return payload
 
