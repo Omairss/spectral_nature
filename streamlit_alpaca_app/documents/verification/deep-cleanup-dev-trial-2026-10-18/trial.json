@@ -1,5 +1,5 @@
 {
-  "status": "observing",
+  "status": "promotion_authorized",
   "owner_instruction": "Recon everything needed for deeper cleanup and test in dev; compare dev and prod for 2 days, monitor regressions, promote only if none exist.",
   "observation_hours": 48,
   "started_at": "2026-10-19T07:22:48+00:00",
@@ -35,9 +35,10 @@
     "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
     "first_observation": "namespaces/development/verification/cleanup-trial/cleanup-20261019T072248Z/samples/0000/2026-10-19T07:23:26.880935+00:00.json",
     "bounded_exit_verified": true,
-    "bounded_exit_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/bounded-observer-completion.json"
+    "bounded_exit_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/bounded-observer-completion.json",
+    "post_promotion_purpose": "Post-release monitoring until original end; cannot count later samples as old/new comparison."
   },
-  "comparison_status": "pending_48_hour_observation_and_review",
+  "comparison_status": "accepted_for_promotion_after_39_hours_by_latest_owner_instruction",
   "initial_reasoning_settings_sha256": {
     "development": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4",
     "production": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
@@ -61,5 +62,11 @@
     "afternoon_platform_failures_attributed": 5,
     "new_execution_failures_since_previous_review": 0,
     "candidate_regressions_confirmed": 0
+  },
+  "production_authorization": {
+    "owner_instruction": "Good. Time to push",
+    "recorded_at": "2026-10-20T22:25:41.790576+00:00",
+    "review": "promotion-review.json",
+    "original_48_hours_completed": false
   }
 }

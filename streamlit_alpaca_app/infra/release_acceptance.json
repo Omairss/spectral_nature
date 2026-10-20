@@ -1414,15 +1414,19 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "production_authorization": {
-    "status": "awaiting_development_and_48_hour_review",
-    "owner_instruction": "Recon everything needed for the deeper cleanup and test in dev. Compare dev and prod for 2 days and monitor regressions; promote only if none exist.",
-    "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/README.md"
+    "status": "authorized",
+    "owner_instruction": "Good. Time to push",
+    "recorded_at": "2026-10-20T22:25:41.790576+00:00",
+    "context": "Immediate promotion requested after the disclosed approximately 39-hour status and coverage limits.",
+    "observation_hours_before_promotion": 39.03,
+    "original_observation_hours": 48,
+    "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/promotion-review.json"
   },
   "development_acceptance": {
-    "status": "observing",
-    "installed_behavior": "accepted_for_48_hour_observation",
+    "status": "accepted",
+    "installed_behavior": "accepted_with_recorded_coverage_limits",
     "images": {
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
@@ -1431,7 +1435,14 @@
     },
     "source_inventory_sha256": "4b767c98b11161728e5eccd5d28da868f1fa5f8c977c7795fc002c4637db27b6",
     "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/DEVELOPMENT.md",
-    "observation": "documents/verification/deep-cleanup-dev-trial-2026-10-18/trial.json"
+    "observation": "documents/verification/deep-cleanup-dev-trial-2026-10-18/trial.json",
+    "observation_hours_before_promotion": 39.03,
+    "coverage_limits": [
+      "Most development producer jobs remain manual and do not supply a production-like sustained research workload.",
+      "Dev Portfolio has an existing missing environment-owned brokerage connection. Old/candidate retained production portfolio projections were compared read-only from dev; live account refresh/order execution was not exercised.",
+      "Three recovered telemetry collection gaps remain in the record. The completed pre-promotion comparison is approximately 39 hours, not 48 hours."
+    ],
+    "acceptance_review": "documents/verification/deep-cleanup-dev-trial-2026-10-18/promotion-review.json"
   },
   "consumer_contract_reviews": {
     "database_lifecycle": {
