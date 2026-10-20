@@ -1,0 +1,336 @@
+{
+  "checked_at": "2026-10-20T22:10:25.874610+00:00",
+  "elapsed_hours": 38.79,
+  "samples": 156,
+  "latest": "2026-10-20T22:07:48.000133+00:00",
+  "due_slots": 156,
+  "missing_due_slots": [],
+  "http_checks": 1560,
+  "http_flags": [],
+  "collection_gaps": [
+    {
+      "slot": 27,
+      "at": "2026-10-19T14:07:48.000113+00:00",
+      "gaps": {
+        "macro-fred-daily": "ConnectTimeout"
+      }
+    },
+    {
+      "slot": 141,
+      "at": "2026-10-20T18:37:48.000114+00:00",
+      "gaps": {
+        "development": {
+          "database": "WorkCancelled"
+        }
+      }
+    },
+    {
+      "slot": 142,
+      "at": "2026-10-20T18:52:48.000130+00:00",
+      "gaps": {
+        "universe-builder": "ReadTimeout",
+        "equities-intraday-preload": "ReadTimeout",
+        "macro-fred-daily": "ReadTimeout",
+        "commodities-regime": "ReadTimeout"
+      }
+    }
+  ],
+  "unique_failed_executions": [
+    {
+      "job": "zopedia-learning",
+      "name": "zopedia-learning-29873720",
+      "status": "Failed",
+      "startTime": "2026-10-19T15:20:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6"
+      ]
+    },
+    {
+      "job": "system-health",
+      "name": "system-health-29874135",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:15:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd"
+      ]
+    },
+    {
+      "job": "evidence-index-dev",
+      "name": "evidence-index-dev-29874135",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:15:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+      ]
+    },
+    {
+      "job": "evidence-index-dev",
+      "name": "evidence-index-dev-29874145",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:25:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+      ]
+    },
+    {
+      "job": "evidence-index-dev",
+      "name": "evidence-index-dev-29874140",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:20:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+      ]
+    },
+    {
+      "job": "system-recovery",
+      "name": "system-recovery-29874142",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:22:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd"
+      ]
+    }
+  ],
+  "index_statuses": {
+    "Succeeded": 462,
+    "Failed": 3
+  },
+  "index_since_recovery": {
+    "Succeeded": 284
+  },
+  "latest_index": {
+    "name": "evidence-index-dev-29875565",
+    "status": "Succeeded",
+    "startTime": "2026-10-20T22:05:00+00:00",
+    "endTime": "2026-10-20T22:05:47+00:00",
+    "images": [
+      "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+    ]
+  },
+  "reasoning_hashes": {
+    "development": [
+      "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+    ],
+    "production": [
+      "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+    ]
+  },
+  "latest_dev_jobs": [
+    {
+      "name": "trading-agent-build-dev",
+      "latest": [
+        {
+          "name": "trading-agent-build-dev-p7wi10v",
+          "status": "Succeeded",
+          "startTime": "2026-10-19T03:39:20+00:00",
+          "endTime": "2026-10-19T03:40:11+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "latest": [
+        {
+          "name": "macro-fred-daily-dev-qx4055p",
+          "status": "Succeeded",
+          "startTime": "2026-10-18T03:57:35+00:00",
+          "endTime": "2026-10-18T04:02:41+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:caf76a4516d06bcce028aaa068f92f58042d57bc30d8b53a2a1508195b0e23a5"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sn-research-run-dev",
+      "latest": [
+        {
+          "name": "sn-research-run-dev-vj4v1ds",
+          "status": "Succeeded",
+          "startTime": "2026-10-19T07:04:26+00:00",
+          "endTime": "2026-10-19T07:05:30+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "latest": [
+        {
+          "name": "robinhood-main-sync-dev-mz5sseo",
+          "status": "Succeeded",
+          "startTime": "2026-10-19T07:18:15+00:00",
+          "endTime": "2026-10-19T07:18:56+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:f1b58d382c271b91889eee3f97a367b8f40e242d84ad961928636a6862fc8827"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "latest": [
+        {
+          "name": "dataset-refresh-dev-rvolsod",
+          "status": "Succeeded",
+          "startTime": "2026-10-06T20:58:40+00:00",
+          "endTime": "2026-10-06T20:59:33+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:9232eb90c9aa8e7c3f025774f1cd73960c4146c15bb239aa7a30a65942c89faa"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "attention-home-next-dev",
+      "latest": [
+        {
+          "name": "attention-home-next-dev-dhoj9k5",
+          "status": "Succeeded",
+          "startTime": "2026-10-19T00:40:17+00:00",
+          "endTime": "2026-10-19T00:41:02+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:8b783d36d760abea22d6328fc1eb1889f791a51155b2174c90fae3166ecf9f9e"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "latest": [
+        {
+          "name": "attention-ticker-next-dev-py9vr51",
+          "status": "Succeeded",
+          "startTime": "2026-10-17T22:27:35+00:00",
+          "endTime": "2026-10-17T22:28:30+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:5a1e180cbe2baa322950d23e2d77b61f8e16686bbc602125849e188fdef8e52d"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "latest": [
+        {
+          "name": "daily-datapoints-next-dev-d286ox8",
+          "status": "Succeeded",
+          "startTime": "2026-10-17T23:01:44+00:00",
+          "endTime": "2026-10-17T23:06:46+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:b334fa9aa367a4a6c1f927bf9ad4a1eaccfba7f6359f241401db9c9fafcad1fe"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "technical-history-next-dev",
+      "latest": [
+        {
+          "name": "technical-history-next-dev-vtl8w1g",
+          "status": "Succeeded",
+          "startTime": "2026-10-07T05:57:13+00:00",
+          "endTime": "2026-10-07T05:58:15+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/pipeline-jobs@sha256:336b9f620ec4013a26baf8d066ca162570bfadf9171d31b9d21dd54fb5620a86"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "equities-next-dev",
+      "latest": [
+        {
+          "name": "equities-next-dev-3ckzdch",
+          "status": "Succeeded",
+          "startTime": "2026-10-17T06:50:21+00:00",
+          "endTime": "2026-10-17T06:54:57+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/zopedia-conversation-dev@sha256:96b315471e744a3bacee75166661d4fd365e7de81ef277275457bacc431eab98"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "evidence-index-dev",
+      "latest": [
+        {
+          "name": "evidence-index-dev-29875565",
+          "status": "Succeeded",
+          "startTime": "2026-10-20T22:05:00+00:00",
+          "endTime": "2026-10-20T22:05:47+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "system-recovery-dev",
+      "latest": [
+        {
+          "name": "system-recovery-dev-m3v9a7f",
+          "status": "Succeeded",
+          "startTime": "2026-10-19T07:28:08+00:00",
+          "endTime": "2026-10-19T07:28:53+00:00",
+          "images": [
+            "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+          ]
+        }
+      ]
+    }
+  ],
+  "resource_audit": {
+    "at": "2026-10-20T22:10:22.977107+00:00",
+    "count": 35,
+    "added": [],
+    "missing": [],
+    "image_drift": [],
+    "configuration_drift": [],
+    "dev_apps": [
+      {
+        "name": "sn-next-ui-dev",
+        "latestRevisionName": "sn-next-ui-dev--0000026",
+        "latestReadyRevisionName": "sn-next-ui-dev--0000026",
+        "runningStatus": "Running",
+        "provisioningState": "Succeeded"
+      },
+      {
+        "name": "sn-api-next-dev",
+        "latestRevisionName": "sn-api-next-dev--0000049",
+        "latestReadyRevisionName": "sn-api-next-dev--0000049",
+        "runningStatus": "Running",
+        "provisioningState": "Succeeded"
+      }
+    ],
+    "observer": {
+      "status": "Running",
+      "startTime": "2026-10-19T07:22:50+00:00",
+      "endTime": null
+    }
+  },
+  "assessment": {
+    "status": "observing",
+    "new_execution_failures_since_previous_review": 0,
+    "candidate_regressions_confirmed": 0,
+    "afternoon_platform_failure_evidence": "root-cause-2026-10-19.json",
+    "new_collection_gap_slots": [
+      141,
+      142
+    ],
+    "collection_recovered_from_slot": 143,
+    "coverage_limit": "Most dev producers remain manual; portfolio/brokerage and representative producer workload gaps remain as recorded in DEVELOPMENT.md.",
+    "production_promoted": false
+  }
+}

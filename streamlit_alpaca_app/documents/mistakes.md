@@ -1135,3 +1135,6 @@ During the evening status inspection, Log Analytics rejected wildcard `has_any`;
 
 ### October 19 — distinguish diagnostic query errors from platform incidents
 The initial detector reads added a `timeGrain` query parameter and returned HTTP 500. Removing that unsupported parameter produced successful time-scoped diagnostic responses, including the decisive provider-creation evidence. Those inspection errors are unrelated to the afternoon incident. A console summary also used reserved `first` as an alias; corrected it to `started_at`. One private job-inspection print assumed secrets was a list; ARM returned null. No runtime or configuration changed for these operator corrections.
+
+### October 20 — keep active verification receipts outside temporary storage
+A status check assumed the previous `/tmp` receipt pointer still existed. It had been removed between sessions. Retrieved the complete durable Azure observation history and stored active private receipts under `~/Library/Application Support/SpectralNature/verification/cleanup-trial-20261019`. The cloud observer and its evidence were unaffected; temporary local paths must not be the authority for an active multi-day trial.

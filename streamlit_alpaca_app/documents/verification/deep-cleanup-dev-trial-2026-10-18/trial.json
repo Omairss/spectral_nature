@@ -48,17 +48,18 @@
     "collection_gaps": 0
   },
   "latest_review": {
-    "at": "2026-10-20T04:17:12.970555+00:00",
-    "evidence": "root-cause-2026-10-19.json",
-    "status": "observing_with_attributed_platform_failures",
-    "samples": 84,
-    "http_checks": 840,
+    "at": "2026-10-20T22:10:25.874610+00:00",
+    "evidence": "status-2026-10-20.json",
+    "status": "observing",
+    "samples": 156,
+    "http_checks": 1560,
     "http_flags": 0,
     "missing_due_slots": 0,
-    "collection_gaps": 1,
+    "collection_gaps": 3,
     "unique_failed_production_executions": 3,
     "unique_failed_candidate_executions": 3,
     "afternoon_platform_failures_attributed": 5,
+    "new_execution_failures_since_previous_review": 0,
     "candidate_regressions_confirmed": 0
   }
 }
