@@ -1,0 +1,122 @@
+[
+  {
+    "status": "available",
+    "ticker": "XP",
+    "days": 365,
+    "company": {
+      "name": "XP Inc. - Class A Common Stock",
+      "business_lens": "",
+      "headline": "",
+      "summary": "## XP Inc. (XP): balances grow fast, client count does not\n\nXP Inc. is a Brazil-centered financial platform. The most consequential thing in its second-quarter 2026 report (published 17 August 2026) is a split signal. Client money is growing quickly, but the number of clients is nearly flat and the fee earned on each real of retail assets is smaller.\n\nClient assets reached R$1,535 billion, up 12% year over year. Total net inflow was R$28 billion, against R$10 billion in the year-ago quarter. Retail net inflow was R$20 billion, up 28% year over year. Yet active clients were 4.77 million, up only 1% year over year, and the annualized retail take rate fell to 1.20% from 1.25% \u2014 a 5 basis point drop ([2Q26 release](https://www.businesswire.com/news/home/20260817593369/en/XP-Inc.-Reports-Second-Quarter-2026-Results)). So the platform is deepening existing relationships rather than adding new ones, and monetizing each real of assets slightly less. That is the central tension in the story, and it explains why the growth mix is tilting toward wholesale and corporate business.\n\n## What XP sells and who buys\n\nXP is a Cayman Islands holding company for a Brazilian platform. It sells brokerage, fixed income, mutual and hedge funds, private equity funds, derivatives, pension products, insurance, credit cards, loans, wealth management, and wholesale banking. Retail clients use three portals: XP, Rico, and Clear. Other brands include XP Asset Management, Infomoney, XP Educa\u00e7\u00e3o, and XP Seguros. Revenue comes from client fees (brokerage commissions, advisory and asset-management fees, product distribution) plus net interest income from Banco XP ([IR FAQs](https://investors.xpinc.com/en/investor-relations/faqs/)). An independent financial advisor network \u2014 18.4 thousand advisors, up 1% year over year \u2014 distributes products, but advisors are intermediaries, not end buyers.\n\nRetail clients are the largest buyer group by count. High-net-worth clients use XP Private and advisory services. Corporate and institutional clients are served by Wholesale Bank.\n\n## Economics: a platform that now carries a bank balance sheet\n\nIn 2Q26, net revenue was R$4,884 million, up 9% year over year; gross profit was R$3,353 million at a 68.6% margin; earnings before tax was R$1,565 million at a 32.0% margin; net income was R$1,384 million; diluted earnings per share was R$2.67, up 9%. The fastest growth was not retail: Wholesale Bank revenue rose 32% to R$1,175 million, and corporate revenue rose 117% to R$606 million.\n\nAt the same time, credit is becoming a bigger part of the company. The expanded loan portfolio reached R$77.9 billion, up 16% year over year, mostly fully collateralized by clients. The BIS ratio was 20.3% and CET1 was 17.1%. Total assets were R$408 billion, equity R$24.8 billion, cash on the balance sheet was R$7.98 billion, and financial liabilities were R$282 billion ([2Q26 interim statements](https://www.sec.gov/Archives/edgar/data/1787425/000095010326012482/dp251887_6k-2q26finstate.htm)). This matters because a larger loan book changes the risk profile: credit losses and funding costs become real earnings drivers, not side items. Fitch affirmed XP's long-term issuer default rating at 'BB' and Banco XP's national ratings at 'AAA(bra)'/'F1+(bra)' with a stable outlook in May 2026, but also called the 2026 gross revenue guidance challenging ([Fitch](https://www.fitchratings.com/research/banks/fitch-affirms-xp-inc-idrs-at-bb-banco-xp-national-ratings-outlook-stable-28-05-2026)).\n\n## What is confirmed, and what is weakening\n\nConfirmed: broad growth, capital returns, and funding access. XP announced a US$0.20 per Class A share dividend (about R$500 million), a new buyback of up to R$1.0 billion through May 2027, and a treasury-share retirement ([dividend and buyback notice](https://www.sec.gov/Archives/edgar/data/1787425/000095010326007333/dp246817_ex9901.htm)).\n\nWeakening: client acquisition and retail monetization. The Net Promoter Score fell from 72 in 2023 to 65 in 2025, then was 66 in 2Q26. Retail revenue grew only 8%, and the fixed-income mix shifted toward low-margin daily liquidity products (about 70% of sales). Net income grew 5%, with the net margin down 100 basis points year over year, and management expects continued weakness in debt capital markets in the third quarter of 2026.\n\nThe reason for 1% client growth is not stated in the evidence. Three explanations are possible, and each is only a hypothesis: market saturation in the existing retail base, competition from Nubank, Ita\u00fa, and BTG, or a deliberate move toward wealthier clients who hold more assets each. The evidence supports the first two as plausible pressures but does not prove either. Adviser-count growth of 1% is consistent with slower new-client acquisition, since advisers bring clients in.\n\nOne regulatory change cuts both ways. CVM Resolutions 178 and 179 loosen adviser exclusivity, which could weaken XP's hold on its distribution network even as it lowers barriers elsewhere. A July 2026 CVM settlement closed a 2017 case for R$2.685 million with no admission of guilt. The Selic rate was 13.75% after a 25 basis point cut, and XP's own economics team cut its Brazil 2026 growth forecast to 1.7%. Brazil's October 2026 election shock moved the share price sharply, but that is a market reaction, not operating data.",
+      "why_now": "",
+      "management_signal": "",
+      "background": "",
+      "as_of": "2026-10-14T02:19:14.572244+00:00"
+    },
+    "technical": {
+      "close": null,
+      "ath": null,
+      "pullback_from_ath_pct": null,
+      "channel_support": null,
+      "channel_resistance": null,
+      "channel_position": null,
+      "dist_to_support_pct": null,
+      "dist_to_resistance_pct": null,
+      "ret_5_pct": null,
+      "ret_21_pct": null,
+      "ret_63_pct": null,
+      "rsi_14": null,
+      "vol_20_ann_pct": null,
+      "regime": ""
+    },
+    "forecast": {
+      "current_price": null,
+      "support": null,
+      "resistance": null,
+      "up_probability": null,
+      "breakout_probability": null,
+      "support_break_probability": null,
+      "expected_return_pct": null,
+      "median_return_pct": null,
+      "expected_path_return_pct": null,
+      "analog_count": null,
+      "terminal_band": {}
+    },
+    "articles": [],
+    "unavailable": [],
+    "provenance": {
+      "modes": [
+        "materialized"
+      ],
+      "datasets": [
+        "technical_signals_latest",
+        "technical_signal_history",
+        "technical_forecast",
+        "zopedia_ticker_business_model_stacks",
+        "attention_ticker_background_snapshots",
+        "company_baselines",
+        "news_articles"
+      ]
+    }
+  },
+  {
+    "status": "available",
+    "ticker": "IOVA",
+    "days": 365,
+    "company": {
+      "name": "Iovance Biotherapeutics, Inc. - Common Stock",
+      "business_lens": "",
+      "headline": "",
+      "summary": "# Iovance Biotherapeutics (IOVA): demand is beating the plan, and the plan is narrow\n\n## The headline development\n\nOn 29 September 2026, Iovance raised its full-year 2026 total revenue guidance to **$410\u2013$420 million** from **$350\u2013$370 million**. The midpoint rose by $55 million, about 15%, and implies nearly 60% annual growth ([8-K exhibit 99.1](https://www.sec.gov/Archives/edgar/data/1425205/000110465926111583/tm2626507d1_ex99-1.htm)). This is the most useful event in the record, because it turns one strong quarter into a full-year claim. The company links the raise to United States demand for Amtagvi and Proleukin, and it says current patient demand and the manufacturing schedule give strong visibility into the third and fourth quarters.\n\n## What the company sells and how it earns money\n\nIovance sells autologous tumor-infiltrating lymphocyte (TIL) cell therapies. \"Autologous\" means the dose is made from the patient's own tumor tissue. Revenue is product revenue from treated patients. It is not licensing or royalty income in the reported figures ([business memory](https://www.sec.gov/Archives/edgar/data/1425205/000110465926091619/tm2622322d1_ex99-1.htm)).\n\nTwo products carry revenue today. **Amtagvi (lifileucel)** is a one-time TIL therapy for adults with unresectable or metastatic melanoma after anti-PD-1 therapy, and the first FDA-approved T cell therapy for a solid tumor. **Proleukin (aldesleukin)** is an IL-2 product that also supports the Amtagvi regimen. In 2026Q2, total revenue was **$99.313 million**: Amtagvi **$90.721 million**, Proleukin **$8.592 million**. Gross margin was 56%.\n\nThe company manufactures at its own Iovance Cell Therapy Center (iCTC) in Philadelphia. That matters, because each dose is made for one patient. Iovance cannot build finished-goods inventory ahead of demand, so patient throughput depends on free manufacturing slots and turnaround time.\n\n## Who buys, and why no backlog exists\n\nThe direct buyers of Amtagvi are Authorized Treatment Centers (ATCs) \u2014 independently owned hospitals and oncology centers. Patients are the end users, not the buyers. The network grew to about 100 centers as of 5 October 2026, against a target of at least 110 active centers by the end of 2026. About one third of centers sit in community oncology settings.\n\nPayers are a second customer group. Aetna publishes a medical-necessity policy for lifileucel that names the covered population and requires precertification ([Aetna policy 1056](https://www.aetna.com/cpb/medical/data/1000_1099/1056.html)). The company said on its 2026Q2 call that about 75% of Amtagvi patients are covered by private payers. That claim rests mainly on company commentary plus one full payer policy and two policy snippets, so it is directional, not verified.\n\nNo backlog, remaining performance obligation, or booking figure appears anywhere. That is a structural result, not a reporting omission: a therapy made per patient cannot generate contracted future deliveries in the usual sense. The nearest substitutes are the ATC count, the guidance range, and management's statement about manufacturing-schedule visibility.\n\n## What is being confirmed\n\nThe commercial story was confirmed three times. The 2026Q2 result (filed 6 August 2026) beat the company's own Amtagvi guide of $79\u2013$81 million. The 29 September guidance raise followed. The 5 October corporate presentation repeated about 100 centers and stated annual manufacturing capacity above 5,000 patients across North America, Europe, and Asia Pacific, with turnaround time at 32 days or less.\n\nTwo product-level details cut the other way. Proleukin revenue fell to $8.592 million in 2026Q2 from about $11 million in the prior quarter, which the company attributes to wholesaler inventory timing. And on 22 July 2025 Iovance withdrew its European marketing-authorisation application for Amtagvi. The European Medicines Agency recorded that, at withdrawal, its provisional view was that the product could not be authorised, citing a response rate too low to show meaningful benefit, serious side effects including deaths, insufficient dose data, and incomplete good-manufacturing-practice documentation ([EMA page](https://www.ema.europa.eu/en/medicines/human/EPAR/amtagvi)). A European resubmission is now targeted for 2027. This removed the near-term European revenue leg, so the raise rests on United States demand alone.\n\n## The connected uncertainties\n\n**Funding.** Iovance reported about **$303.7 million** in cash, cash equivalents, short-term investments, and restricted cash at 30 June 2026, and states this funds operations into the second half of 2028. Reported burn is faster than that implies. Free cash flow was **minus $66.282 million** in 2026Q2, so the stated runway depends on the revenue ramp and cost control, not on the balance alone. One 10-Q summary states a minimum of at least twelve months, which is shorter than the 2028 claim. Shareholders approved an increase in authorized common stock to 650,000,000 from 500,000,000 on 10 June 2026. This creates room for equity issuance, and therefore dilution risk, but the evidence shows no issuance plan.\n\n**Product concentration.** Amtagvi was $90.721 million of $99.313 million total revenue in 2026Q2. A safety signal, label change, or reimbursement block would hit almost the whole revenue base. The pipeline is not commercial.\n\n**Manufacturing yield.** Capacity is a design figure, not an output figure. A single-center real-world study found 8 of 28 products (28.5%) out of specification and reported that only about half of referrals reached infusion. Those findings come from one center and a small sample, so they are a caution, not a company yield rate.\n\n**Workforce.** Glassdoor surfaces report an overall rating near 2.4 out of 5 from roughly 134 reviews, with repeated themes of high turnover and weak transparency. Iovance runs continuous, complex cell manufacturing, so retention pressure could become a delivery problem. That link is a proposed explanation, not a demonstrated effect.\n\nThe next hard test is the third-quarter 2026 report, expected in early November 2026.",
+      "why_now": "",
+      "management_signal": "",
+      "background": "",
+      "as_of": "2026-10-14T02:19:14.572244+00:00"
+    },
+    "technical": {
+      "close": null,
+      "ath": null,
+      "pullback_from_ath_pct": null,
+      "channel_support": null,
+      "channel_resistance": null,
+      "channel_position": null,
+      "dist_to_support_pct": null,
+      "dist_to_resistance_pct": null,
+      "ret_5_pct": null,
+      "ret_21_pct": null,
+      "ret_63_pct": null,
+      "rsi_14": null,
+      "vol_20_ann_pct": null,
+      "regime": ""
+    },
+    "forecast": {
+      "current_price": null,
+      "support": null,
+      "resistance": null,
+      "up_probability": null,
+      "breakout_probability": null,
+      "support_break_probability": null,
+      "expected_return_pct": null,
+      "median_return_pct": null,
+      "expected_path_return_pct": null,
+      "analog_count": null,
+      "terminal_band": {}
+    },
+    "articles": [],
+    "unavailable": [],
+    "provenance": {
+      "modes": [
+        "materialized"
+      ],
+      "datasets": [
+        "technical_signals_latest",
+        "technical_signal_history",
+        "technical_forecast",
+        "zopedia_ticker_business_model_stacks",
+        "attention_ticker_background_snapshots",
+        "company_baselines",
+        "news_articles"
+      ]
+    }
+  }
+]

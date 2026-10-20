@@ -1,5 +1,5 @@
 {
-  "status": "local_review_in_progress",
+  "status": "accepted_locally",
   "request": "Make Markets stock detail consume general Zopedia company research instead of the filing-only Attention explanation.",
   "base_revision": "fc73a4328860b2d69f9868d110625048fc25debb",
   "source_worktree": "/Users/omairs/Documents/code/spectral_nature_stock_research_20261020",
@@ -17,10 +17,15 @@
       "MU",
       "MRNA",
       "CRWV",
-      "BAC"
+      "BAC",
+      "XP (development, October 14)",
+      "IOVA (development, October 14)"
     ],
     "assessment": "The shared analyses explain products, customers, economics, material developments and connected uncertainties, substantially improving usefulness over the old filing/anomaly summaries. Projection preserves the original analysis, including imperfect findings; this is not a claim that every underlying financial fact has been independently verified.",
-    "coverage_gap": "The captured production company dataset contains 25 companies. XP and IOVA lack company analyses in that snapshot. Fresh checks through the existing shared workflow are running separately; runtime code contains no ticker-specific branches."
+    "coverage_gap": "The captured production company dataset has 25 companies, excluding XP and IOVA. The existing development dataset contains complete analyses for both, with their actual October 14 dates preserved. Future scheduled research prioritizes current Attention subjects and accumulates retained company coverage; no claim of universal coverage.",
+    "development_comparison": "development-retained-comparison.json",
+    "known_research_error": "The retained October 14 Iovance analysis incorrectly treats patient-specific manufacturing as proof that backlog cannot exist. This is an existing reasoning error, not a factual conclusion accepted by this review. The current shared synthesis instructions already distinguish absent data from structural impossibility. Fresh research checks are recorded separately; routing acceptance does not certify every retained claim.",
+    "fresh_research_checks": "XP and IOVA in progress through the unchanged shared company workflow; no knowledge-page publication requested."
   },
   "checks": {
     "projection_and_retention": "3 passed",
@@ -33,5 +38,6 @@
     "production_authorized": false,
     "development": "Only after local acceptance and the committed release-source gate.",
     "preserve": "Concurrent dirty work in the original checkout, current production images, unrelated development consumers and the running cleanup observer."
-  }
+  },
+  "preservation_review": "Five runtime files reviewed against the accepted cleanup source. Research engine, model settings, prompts, database/publication contracts, auth, broker, Home, Trading and chart implementations remain unchanged. Full prior-image/source proof is retained in the cleanup packaged-images record. Release selects only development API, frontend and dataset refresh worker; all 32 other consumers remain on their reviewed images and configurations."
 }
