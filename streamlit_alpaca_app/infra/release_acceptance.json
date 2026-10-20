@@ -691,7 +691,22 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:00fc1de3c361a8e924cb2ae93bd167d937ca0b26494d2ca5723c2738cbc5c148": {
+          "role": "worker",
+          "source_revision": "b9292b903695e94af117f4b9ed9595c60e2328c0",
+          "source_inventory_sha256": "bdeb80d186a40484202e9dc7b57c250ca3414ba56598377b66ccc63cacedcc6e",
+          "runtime_inventory_sha256": "339d34530b1d499eeba0417f025797314c356a3de1fb8ee19f28ae7285ce04e7",
+          "complete_git_inventory_matches": true,
+          "all_packaged_files_checked": true,
+          "runtime_files": 187,
+          "changed_modules_and_api_imported": true,
+          "external_attempts": 0,
+          "verification_run": "cj1a6",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:00fc1de3c361a8e924cb2ae93bd167d937ca0b26494d2ca5723c2738cbc5c148",
+          "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/packaged-images.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -716,7 +731,22 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:6eaaf57cf9b6ae3dc54d3dfaf0df294d875c3c9be17db1759eb0c70a7adbeca5": {
+          "role": "api-next",
+          "source_revision": "b9292b903695e94af117f4b9ed9595c60e2328c0",
+          "source_inventory_sha256": "bdeb80d186a40484202e9dc7b57c250ca3414ba56598377b66ccc63cacedcc6e",
+          "runtime_inventory_sha256": "339d34530b1d499eeba0417f025797314c356a3de1fb8ee19f28ae7285ce04e7",
+          "complete_git_inventory_matches": true,
+          "all_packaged_files_checked": true,
+          "runtime_files": 187,
+          "changed_modules_and_api_imported": true,
+          "external_attempts": 0,
+          "verification_run": "cj1a4",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:6eaaf57cf9b6ae3dc54d3dfaf0df294d875c3c9be17db1759eb0c70a7adbeca5",
+          "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/packaged-images.json"
+        }
+      }
     },
     "web": {
       "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
@@ -741,7 +771,22 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3df1b83e02c39735a93590a3f09c5c179ca6939de15a4bf0cff16c93fc84516e": {
+          "role": "web",
+          "source_revision": "b9292b903695e94af117f4b9ed9595c60e2328c0",
+          "source_inventory_sha256": "bdeb80d186a40484202e9dc7b57c250ca3414ba56598377b66ccc63cacedcc6e",
+          "runtime_inventory_sha256": "25712304bafe927d6206e916a77b52b5259b49ecee1a0af72048e9fbfc642288",
+          "complete_git_inventory_matches": true,
+          "all_packaged_files_checked": true,
+          "input_files": 86,
+          "compiled_files": 1703,
+          "symlinks": 0,
+          "verification_run": "cj1a5",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3df1b83e02c39735a93590a3f09c5c179ca6939de15a4bf0cff16c93fc84516e",
+          "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/packaged-images.json"
+        }
+      },
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
