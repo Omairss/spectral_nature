@@ -70,6 +70,11 @@ def research_request_context(
         or not set(source_access) <= {"supplied", "retained_or_data", "web"}
     ):
         raise ValueError("Invalid research source access scope")
+    allowed_tools = context.get("allowed_tool_names")
+    if allowed_tools is not None and (
+        not isinstance(allowed_tools, list) or not all(isinstance(value, str) and value for value in allowed_tools)
+    ):
+        raise ValueError("Invalid research tool access scope")
     return {
         "original_query": str(query).strip(),
         "asof_time_utc": parsed.astimezone(timezone.utc).isoformat(),
@@ -78,6 +83,7 @@ def research_request_context(
         "visible_artifacts": list(context.get("visible_artifacts") or []),
         "allow_web": context.get("allow_web", True) is True,
         "allowed_source_access": source_access,
+        "allowed_tool_names": allowed_tools,
         "task_context": dict(context.get("task_context") or {}),
         "write_policy": write_policy,
         "conversation_id": str(context.get("conversation_id") or ""),

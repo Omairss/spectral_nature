@@ -14,7 +14,7 @@ from typing import Any, Protocol, runtime_checkable
 import requests
 
 from .secrets import resolve_secret_value, runtime_env_value
-from .llm_execution import execution_effort, provider_post, preserves_literal_output
+from .llm_execution import current_local_execution, execution_effort, provider_post, preserves_literal_output
 
 
 class LLMAPIError(RuntimeError):
@@ -156,6 +156,12 @@ _OVERRIDES_CHECKED_AT = 0.0
 _OVERRIDES_LOCK = threading.RLock()
 
 
+def active_prompt_overrides() -> dict[str, str]:
+    """Resolve an experiment's frozen snapshot or the normal application settings."""
+    local = current_local_execution()
+    return local.overrides if local is not None else _PROMPT_OVERRIDES
+
+
 def _prompt_key(name: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
@@ -170,7 +176,7 @@ def register_narrative_prompt(name: str, file: str, prompt: str, *, group: str =
 def get_prompt(key: str) -> str:
     """Resolve the active prompt for a registered key (override or default)."""
     load_prompt_overrides()
-    override = _PROMPT_OVERRIDES.get(key)
+    override = active_prompt_overrides().get(key)
     if override is not None:
         return override
     info = _PROMPT_REGISTRY.get(key)
@@ -183,7 +189,7 @@ def list_narrative_prompts() -> list[dict[str, str]]:
     """Return all registered prompts with their active (override or default) values."""
     entries = []
     for key, info in _PROMPT_REGISTRY.items():
-        override = _PROMPT_OVERRIDES.get(key)
+        override = active_prompt_overrides().get(key)
         entries.append({
             "key": key,
             "name": info["name"],
@@ -210,7 +216,7 @@ def register_config_param(name: str, group: str, default: int | float | str, des
 
 def get_config_param(key: str) -> int | float | str:
     """Resolve the active value for a registered config parameter."""
-    override = _PROMPT_OVERRIDES.get(key)
+    override = active_prompt_overrides().get(key)
     if override is not None:
         try:
             info = _PARAM_REGISTRY.get(key, {})
@@ -228,7 +234,7 @@ def list_config_params() -> list[dict[str, Any]]:
     """Return all registered config parameters with active values, grouped."""
     entries = []
     for key, info in _PARAM_REGISTRY.items():
-        override = _PROMPT_OVERRIDES.get(key)
+        override = active_prompt_overrides().get(key)
         active = info["default"]
         is_override = False
         if override is not None:
@@ -257,7 +263,7 @@ def _narrative_style_rule_key() -> str:
 def get_active_narrative_style_rule() -> str:
     """Return the active narrative style rule (override or default)."""
     load_prompt_overrides()
-    return _PROMPT_OVERRIDES.get(_narrative_style_rule_key(), NARRATIVE_STYLE_RULE)
+    return active_prompt_overrides().get(_narrative_style_rule_key(), NARRATIVE_STYLE_RULE)
 
 
 def llm_settings_scope() -> str:
@@ -296,6 +302,8 @@ def save_prompt_override_changes(changes: dict[str, str | None]) -> bool:
 
 def load_prompt_overrides(*, force: bool = False) -> bool:
     """Refresh a process snapshot at most every 30 seconds; retry failed loads."""
+    if current_local_execution() is not None:
+        return True
     global _OVERRIDES_LOADED, _OVERRIDES_SCOPE, _OVERRIDES_CHECKED_AT
     scope = llm_settings_scope()
     with _OVERRIDES_LOCK:
@@ -633,7 +641,7 @@ def load_llm_config(env_prefix: str = "", *, require_api_key: bool = True) -> LL
     }
     default_model = default_models.get(provider, "gpt-4.1-mini")
     model = config_value(env_prefix, "LLM_MODEL", "OPENAI_MODEL") or default_model
-    model = _PROMPT_OVERRIDES.get(f"runtime:{provider}:model", model)
+    model = active_prompt_overrides().get(f"runtime:{provider}:model", model)
     deployment = config_value(env_prefix, "LLM_DEPLOYMENT", "AZURE_OPENAI_DEPLOYMENT") or model
     if provider == "azure_openai":
         base_url = _normalize_azure_base_url(
@@ -659,10 +667,10 @@ def load_llm_config(env_prefix: str = "", *, require_api_key: bool = True) -> LL
     )
     if provider == "local":
         reasoning_effort = ""
-    timeout_seconds = int(_PROMPT_OVERRIDES.get(f"runtime:{provider}:timeout_seconds", timeout_seconds))
-    temperature = float(_PROMPT_OVERRIDES.get(f"runtime:{provider}:temperature", temperature))
-    reasoning_effort = _PROMPT_OVERRIDES.get(f"runtime:{provider}:reasoning_effort", reasoning_effort)
-    thinking_mode = _PROMPT_OVERRIDES.get(
+    timeout_seconds = int(active_prompt_overrides().get(f"runtime:{provider}:timeout_seconds", timeout_seconds))
+    temperature = float(active_prompt_overrides().get(f"runtime:{provider}:temperature", temperature))
+    reasoning_effort = active_prompt_overrides().get(f"runtime:{provider}:reasoning_effort", reasoning_effort)
+    thinking_mode = active_prompt_overrides().get(
         f"runtime:{provider}:thinking_mode", config_value(env_prefix, "LLM_THINKING_MODE")
     )
     if provider == "deepseek" and not thinking_mode:

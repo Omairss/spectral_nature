@@ -1038,6 +1038,21 @@ def read_analysis_raw_output(
             "llm_context_text": "Raw analysis output lookup failed: analysis_run_id is required.",
         }
 
+    from .llm_execution import current_local_execution
+    if local := current_local_execution():
+        stored = local.read("analysis", run_id)
+        if stored is None:
+            return {"status": "not_found", "analysis_run_id": run_id, "raw_text": "",
+                    "llm_context_text": "This local execution has no analysis with that identity."}
+        streams = {key: str(stored.get(key) or "") for key in ("stdout", "stderr", "error", "traceback")}
+        full_text = ("\n\n".join(f"[{key}]\n{value}" for key, value in streams.items() if value)
+                     if normalized_stream == "all" else streams[normalized_stream])
+        raw_text = full_text[-char_limit:]
+        return {"status": "ok", "analysis_run_id": run_id, "analysis_status": stored.get("status"),
+                "stream": normalized_stream, "raw_text": raw_text, "returned_chars": len(raw_text),
+                "total_chars": len(full_text), "truncated": len(raw_text) < len(full_text),
+                "llm_context_text": raw_text}
+
     own_conn = None
     active_conn = conn
     if active_conn is None:
@@ -1372,6 +1387,10 @@ def run_analysis_python(
 
 
 def _persist_best_effort(payload: dict[str, Any], *, conn: Any | None = None) -> None:
+    from .llm_execution import current_local_execution
+    if local := current_local_execution():
+        local.write("analysis", payload["analysis_run_id"], payload)
+        return
     own_conn = None
     active_conn = conn
     try:

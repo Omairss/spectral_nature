@@ -28,6 +28,171 @@ log = logging.getLogger(__name__)
 _CALL: ContextVar[dict[str, Any]] = ContextVar("llm_execution_call", default={})
 _ACCOUNTS: dict[str, tuple[float, bool]] = {}
 _ACCOUNT_LOCK = threading.RLock()
+_LOCAL_EXECUTION: ContextVar["LocalResearchExecution | None"] = ContextVar("local_research_execution", default=None)
+
+
+class ResearchSpendExceeded(RuntimeError):
+    """The next request cannot be funded within the declared experiment budget."""
+
+
+class LocalResearchExecution:
+    """Explicit local storage and frozen settings for shared-engine experiments.
+
+    Application execution keeps its normal stores. An activated experiment owns
+    its receipts, provider state and analytical results under one local root.
+    Threads inherit this context through the engine's existing copy_context calls.
+    """
+
+    def __init__(self, root: Path, *, overrides: dict[str, str], budget_usd: float,
+                 input_usd_per_million: float, output_usd_per_million: float,
+                 max_input_tokens: int = 1024 * 1024, max_output_tokens: int = 384 * 1024,
+                 cost_basis: str = "provider_token_rates",
+                 request_max_output_tokens: int | None = None,
+                 max_provider_attempts: int | None = None):
+        self.root = Path(root).resolve()
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.overrides = dict(overrides)
+        self.budget_usd = float(budget_usd)
+        self.input_rate = float(input_usd_per_million)
+        self.output_rate = float(output_usd_per_million)
+        self.max_input_tokens = int(max_input_tokens)
+        self.max_output_tokens = int(max_output_tokens)
+        self.request_max_output_tokens = (int(request_max_output_tokens)
+                                          if request_max_output_tokens is not None else None)
+        self.max_provider_attempts = (int(max_provider_attempts)
+                                      if max_provider_attempts is not None else None)
+        self.cost_basis = cost_basis
+        if min(self.max_input_tokens, self.max_output_tokens) <= 0:
+            raise ValueError("Positive token limits are required")
+        if self.request_max_output_tokens is not None and not (
+            0 < self.request_max_output_tokens <= self.max_output_tokens
+        ):
+            raise ValueError("The request output limit must fit the declared model output capacity")
+        if self.max_provider_attempts is not None and self.max_provider_attempts <= 0:
+            raise ValueError("A positive provider attempt limit is required")
+        if cost_basis == "provider_token_rates":
+            if min(self.budget_usd, self.input_rate, self.output_rate) <= 0:
+                raise ValueError("Positive budget and conservative token rates are required")
+        elif cost_basis == "local_resources_unpriced":
+            if (self.budget_usd, self.input_rate, self.output_rate) != (0, 0, 0):
+                raise ValueError("Local unpriced execution declares zero external provider billing")
+        else:
+            raise ValueError("Unknown experiment cost basis")
+        self._lock = threading.RLock()
+        self._reservations: dict[str, float] = {}
+        self._charges: dict[str, float] = {}
+        self._usage: dict[str, dict[str, Any]] = {}
+        self._unknown: set[str] = set()
+        receipt_path = self.root / "provider_attempts.jsonl"
+        if receipt_path.exists():
+            for line in receipt_path.read_text().splitlines():
+                event = json.loads(line)
+                self._account(event)
+            # An interrupted start has no trustworthy zero-cost interpretation.
+            self._unknown.update(self._reservations)
+            self._reservations.clear()
+
+    @contextmanager
+    def activate(self):
+        token = _LOCAL_EXECUTION.set(self)
+        try:
+            yield self
+        finally:
+            _LOCAL_EXECUTION.reset(token)
+
+    def record(self, kind: str, value: dict[str, Any]) -> None:
+        with self._lock:
+            with (self.root / (kind + ".jsonl")).open("a", encoding="utf-8") as stream:
+                stream.write(json.dumps(value, ensure_ascii=False, default=str) + "\n")
+                stream.flush()
+                os.fsync(stream.fileno())
+            if kind == "provider_attempts":
+                self._account(value)
+
+    def _account(self, event: dict[str, Any]) -> None:
+        key = event["attempt_id"]
+        if event["status"] == "started":
+            self._reservations.setdefault(key, 0.0)
+            return
+        self._reservations.pop(key, None)
+        usage = event.get("usage") or {}
+        self._usage[key] = {"prompt_tokens": usage.get("prompt_tokens"),
+                            "completion_tokens": usage.get("completion_tokens"),
+                            "duration_ms": event.get("duration_ms", 0)}
+        if event["status"] == "not_sent":
+            self._charges[key] = 0.0
+        elif usage.get("prompt_tokens") is None or usage.get("completion_tokens") is None:
+            self._unknown.add(key)
+        else:
+            self._charges[key] = (usage["prompt_tokens"] * self.input_rate
+                                  + usage["completion_tokens"] * self.output_rate) / 1e6
+
+    def reserve(self, attempt_id: str, payload: dict[str, Any]) -> None:
+        # Reserve the declared model limits, including any server-side message
+        # framing, rather than inferring a token upper bound from JSON bytes.
+        maximum = int(payload.get("max_tokens") or self.max_output_tokens)
+        bound = (self.max_input_tokens * self.input_rate
+                 + maximum * self.output_rate) / 1e6
+        with self._lock:
+            if self._unknown:
+                raise ResearchSpendExceeded("Earlier provider charge is unknown; further inference is stopped")
+            if self.max_provider_attempts is not None and (
+                len(self._usage) + len(self._reservations) >= self.max_provider_attempts
+            ):
+                raise ResearchSpendExceeded("The declared provider attempt limit is exhausted")
+            if sum(self._charges.values()) + sum(self._reservations.values()) + bound > self.budget_usd:
+                raise ResearchSpendExceeded("The next request cannot fit within the declared experiment budget")
+            self._reservations[attempt_id] = bound
+
+    def validate_transport(self, config: Any) -> None:
+        if self.cost_basis == "local_resources_unpriced":
+            from urllib.parse import urlparse
+            target = urlparse(config.base_url)
+            if config.provider != "local" or target.hostname not in {"127.0.0.1", "localhost", "::1"}:
+                raise ValueError("Unpriced local accounting requires a loopback local provider")
+
+    def summary(self) -> dict[str, Any]:
+        with self._lock:
+            result = {"budget_usd": self.budget_usd, "conservative_usage_estimate_usd": sum(self._charges.values()),
+                    "priced_attempts": len(self._charges), "unknown_attempts": sorted(self._unknown),
+                    "pending_attempts": sorted(self._reservations), "rates_per_million": {
+                        "input": self.input_rate, "output": self.output_rate},
+                    "reservation_limits": {"input_tokens": self.max_input_tokens, "output_tokens": self.max_output_tokens},
+                    "basis": "all input at cache-miss peak rate; output includes reasoning; estimate, not invoice"}
+            if self.request_max_output_tokens is not None:
+                result["request_max_output_tokens"] = self.request_max_output_tokens
+            if self.max_provider_attempts is not None:
+                result["max_provider_attempts"] = self.max_provider_attempts
+            if self.cost_basis == "local_resources_unpriced":
+                result.update({"conservative_usage_estimate_usd": None,
+                    "external_provider_charge_usd": 0, "local_resource_cost_usd": None,
+                    "cost_basis": self.cost_basis, "priced_attempts": 0,
+                    "metered_attempts": len(self._usage),
+                    "tokens": {field: sum(u[field] or 0 for u in self._usage.values())
+                               for field in ("prompt_tokens", "completion_tokens")},
+                    "provider_wall_seconds": sum(u["duration_ms"] for u in self._usage.values()) / 1000,
+                    "basis": "Loopback inference; external API billing is zero. Local hardware, energy and opportunity cost are unpriced. Missing usage remains unknown."})
+            return result
+
+    def read(self, namespace: str, key: str) -> dict[str, Any] | None:
+        path = self._state_path(namespace, key)
+        return json.loads(path.read_text()) if path.exists() else None
+
+    def write(self, namespace: str, key: str, value: dict[str, Any]) -> None:
+        path = self._state_path(namespace, key)
+        with self._lock:
+            temporary = path.with_suffix(".tmp")
+            temporary.write_text(json.dumps(value, ensure_ascii=False, default=str))
+            temporary.replace(path)
+
+    def _state_path(self, namespace: str, key: str) -> Path:
+        identity = hashlib.sha256(json.dumps([namespace, key]).encode()).hexdigest()
+        return self.root / ("state_" + identity + ".json")
+
+
+def current_local_execution() -> LocalResearchExecution | None:
+    return _LOCAL_EXECUTION.get()
+
 
 
 class LLMContextWindowExceeded(RuntimeError):
@@ -128,6 +293,8 @@ def _account_key(config: Any) -> str:
 
 
 def _read_state(namespace: str, key: str) -> dict[str, Any] | None:
+    if local := current_local_execution():
+        return local.read(namespace, key)
     from .pipeline_store import read_execution_state
     try:
         return read_execution_state(namespace, key)
@@ -137,6 +304,9 @@ def _read_state(namespace: str, key: str) -> dict[str, Any] | None:
 
 
 def _write_state(namespace: str, key: str, value: dict[str, Any]) -> None:
+    if local := current_local_execution():
+        local.write(namespace, key, value)
+        return
     from .pipeline_store import write_execution_state
     try:
         if not write_execution_state(namespace, key, value):
@@ -199,12 +369,25 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     from .pipeline_store import record_provider_attempt
     config = config or client.config
     session = session or client.session
+    local = current_local_execution()
+    if local:
+        local.validate_transport(config)
     timeout = float(kwargs.get("timeout") or config.timeout_seconds)
     deadline = time.monotonic() + timeout
     ensure_provider_available(config, timeout=timeout)
     kwargs["timeout"] = _remaining_request_timeout(deadline)
     context = dict(_CALL.get())
     payload = dict(kwargs.get("json") or {})
+    if local and local.request_max_output_tokens is not None and operation in {"chat", "json_repair"}:
+        requested = payload.get("max_tokens")
+        if requested is not None and (
+            not isinstance(requested, int) or isinstance(requested, bool)
+            or requested <= 0 or requested > local.request_max_output_tokens
+        ):
+            raise ValueError("Request max_tokens violates the frozen research output limit")
+        if requested is None:
+            payload["max_tokens"] = local.request_max_output_tokens
+        kwargs["json"] = payload
     if config.provider == "deepseek" and (operation == "json_repair" or context.get("literal_output")):
         # Non-thinking defaults to 8K while thinking defaults to 64K. A
         # mechanical conversion must not silently shorten an existing artifact.
@@ -217,6 +400,9 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     started = datetime.now(timezone.utc)
     t0 = time.monotonic()
     attempt_id = "llmhttp_" + uuid.uuid4().hex
+    if local:
+        local.reserve(attempt_id, payload)
+        record_provider_attempt = lambda event: local.record("provider_attempts", event) or True
     initial_event = {
         "attempt_id": attempt_id, "model_call_id": context.get("model_call_id"),
         "root_run_id": context.get("root_run_id") or os.getenv("PIPELINE_RUN_ID") or context.get("run_id"),
@@ -283,6 +469,8 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                 "transport_attempted": transport_attempted,
                 "request_composition": composition,
                 "error_type": error_type, "provider_request_id": data.get("id"),
+                "response_finish_reasons": [choice.get("finish_reason") for choice in (data.get("choices") or []) if isinstance(choice, dict)],
+                "sampling_parameters": {name: payload[name] for name in ("temperature", "top_p", "top_k", "min_p", "seed", "n", "presence_penalty", "frequency_penalty", "max_tokens", "max_completion_tokens", "thinking_token_budget") if name in payload},
                 "inference_effort": payload.get("reasoning_effort"), "thinking": payload.get("thinking"),
                 "input_hash": hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest(),
                 "job_name": os.getenv("PIPELINE_JOB_NAME"),
@@ -318,6 +506,8 @@ def research_artifact_key(*, access_scope: str, subject: str, query: str,
                 "temperature": config.temperature, "style": get_active_narrative_style_rule(),
                 "literal_output": preserves_literal_output(),
                 "subject": subject, "representation_version": 1}
+    if (local := current_local_execution()) and local.request_max_output_tokens is not None:
+        contract["request_max_output_tokens"] = local.request_max_output_tokens
     key = hashlib.sha256(json.dumps(contract, sort_keys=True, ensure_ascii=False, default=str).encode()).hexdigest()
     return namespace, key
 

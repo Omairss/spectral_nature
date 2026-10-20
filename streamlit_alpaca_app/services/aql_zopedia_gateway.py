@@ -11,7 +11,7 @@ from . import pipeline_store
 from .json_utils import to_jsonable
 from .llm import apply_narrative_style, get_active_narrative_style_rule, llm_request_deadline, llm_settings_scope
 from .zopedia_runtime import zopedia_surface_from_client
-from .llm_execution import model_call_context
+from .llm_execution import current_local_execution, model_call_context
 
 
 _ALLOWED_CALL_TYPES = {
@@ -125,6 +125,15 @@ def _record_gateway_call(
         "client_surface": zopedia_surface_from_client(llm_client),
         "timeout_seconds": _client_config_value(llm_client, "timeout_seconds"),
     }
+    if local := current_local_execution():
+        local.record("model_calls", {"model_call_id": model_call_id, "surface": surface,
+                     "purpose": purpose, "call_type": call_type, "status": status,
+                     "provider": _client_provider(llm_client), "requested_model": requested_model,
+                     "reported_model": provider_reported_model, "started_at_utc": started_at_utc,
+                     "duration_ms": duration_ms, "schema_name": schema_name, "prompt_hash": prompt_hash,
+                     "schema_hash": schema_hash, "metadata": safe_metadata,
+                     "error_type": type(error).__name__ if error is not None else ""})
+        return
     try:
         pipeline_store.record_model_call(
             model_call_id=model_call_id,
@@ -235,6 +244,13 @@ def generate_json_via_aql_zopedia_gateway(
     if isinstance(payload, dict) and "__reasoning_content" in payload:
         payload = dict(payload)
         payload.pop("__reasoning_content", None)
+    if local := current_local_execution():
+        local.record("model_outputs", {
+            "model_call_id": model_call_id, "surface": clean_surface, "purpose": clean_purpose,
+            "schema_name": clean_schema_name,
+            "payload": {key: value for key, value in payload.items()
+                        if key not in {"reasoning", "reasoning_content", "reasoning_trace", "__reasoning_content"}},
+        })
     result_metadata = dict(safe_metadata)
     result_metadata["provider_response"] = response_metadata
     if isinstance(payload, dict):
