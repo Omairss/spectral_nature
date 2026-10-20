@@ -1,5 +1,5 @@
 {
-  "status": "promotion_authorized",
+  "status": "production_monitoring",
   "owner_instruction": "Recon everything needed for deeper cleanup and test in dev; compare dev and prod for 2 days, monitor regressions, promote only if none exist.",
   "observation_hours": 48,
   "started_at": "2026-10-19T07:22:48+00:00",
@@ -11,7 +11,7 @@
     "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
     "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390"
   },
-  "production_promoted": false,
+  "production_promoted": true,
   "production_baseline_observed_at": "2026-10-19T06:24:37.163706+00:00",
   "local_checks": {
     "database_lifecycle_passed": 57,
@@ -29,7 +29,7 @@
   "reasoning_changes": false,
   "observer": {
     "job": "cleanup-trial-observer-dev",
-    "status": "running_with_persisted_observation",
+    "status": "continuing_post_release_monitoring",
     "blob_prefix": "namespaces/development/verification/cleanup-trial/cleanup-20261019T072248Z/",
     "execution": "cleanup-trial-observer-dev-7oyuy3t",
     "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
@@ -38,7 +38,7 @@
     "bounded_exit_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/bounded-observer-completion.json",
     "post_promotion_purpose": "Post-release monitoring until original end; cannot count later samples as old/new comparison."
   },
-  "comparison_status": "accepted_for_promotion_after_39_hours_by_latest_owner_instruction",
+  "comparison_status": "owner_accepted_39_hour_comparison_before_original_48_hour_end",
   "initial_reasoning_settings_sha256": {
     "development": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4",
     "production": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
@@ -68,5 +68,10 @@
     "recorded_at": "2026-10-20T22:25:41.790576+00:00",
     "review": "promotion-review.json",
     "original_48_hours_completed": false
-  }
+  },
+  "production_deployed_at": "2026-10-20T22:32:28.961457+00:00",
+  "comparison_last_observation_at": "2026-10-20T22:22:48.000169+00:00",
+  "comparison_observed_slots": 157,
+  "comparison_hours": 39.03,
+  "production_verification": "production-verification.json"
 }

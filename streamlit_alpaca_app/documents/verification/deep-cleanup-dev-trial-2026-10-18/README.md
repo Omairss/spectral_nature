@@ -1,5 +1,7 @@
 # Deep cleanup development trial
 
+**Current status:** promoted to production on October 20 by explicit owner instruction after approximately 39 comparison hours. All twenty production consumers use the exact development images; all thirty-five definitions and live serving revisions are verified. See [production verification](production-verification.json). The bounded observer continues through its original endpoint as post-release monitoring.
+
 The owner requested reconnaissance, development testing and a two-day dev/production comparison before any production promotion. This record covers the prior local retirement/storage cleanup plus HTTP boundary consolidation. Models, prompts, confidence thresholds, research decisions, tool budgets and broker authority remain fixed.
 
 ## Reconnaissance and scope

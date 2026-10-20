@@ -1,0 +1,116 @@
+{
+  "status": "deployed_verified",
+  "reviewed_at": "2026-10-20T22:40:25.329049+00:00",
+  "deployment_completed_at": "2026-10-20T22:32:28.961457+00:00",
+  "source": {
+    "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+    "accepted_source_revision": "846eda4a69828aa4e3947be5ae25caf30d0ef78b",
+    "source_inventory_sha256": "4b767c98b11161728e5eccd5d28da868f1fa5f8c977c7795fc002c4637db27b6",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390"
+    }
+  },
+  "production_consumers": 20,
+  "development_consumers_unchanged": 15,
+  "all_resource_audit": "production-audit.json",
+  "public_http_and_retained_bytes": "production-http.json",
+  "http_checks": 18,
+  "http_flags": 0,
+  "unchanged_http_responses": 18,
+  "production_publication": {
+    "run_id": "e902f7ae-eb31-424a-8d52-bd55a87f4c60",
+    "as_of": "2026-10-20T20:50:40.516483+00:00",
+    "status": "available",
+    "beats": 11,
+    "datapoints": 5,
+    "audio": true
+  },
+  "signed_in_browser_review": {
+    "browser": "Chrome existing owner admin session, fresh reload after both API and frontend updates",
+    "home": {
+      "rendered": true,
+      "signals": 11,
+      "datapoint_trend_images": 5,
+      "audio_element_visible": true
+    },
+    "portfolio": {
+      "rendered": true,
+      "equities": 29,
+      "options": 3,
+      "futures": 0,
+      "heading_and_holding_groups_equal_before_after": true,
+      "six_displayed_summary_values_match_before": true,
+      "orders_refresh_or_account_changes_submitted": false
+    },
+    "admin_health": {
+      "rendered": true,
+      "receipts": "database",
+      "provider_http_attempts_24h": 2776,
+      "failed_provider_attempts_24h": 101,
+      "usage_unknown_24h": 105,
+      "input_tokens_24h": 255555856,
+      "output_tokens_24h": 10457795,
+      "cached_tokens_24h": 58877694,
+      "upper_estimated_cost_usd_24h": 36.37,
+      "these_counts_match_pre_release": true,
+      "published_datasets_available": 6
+    },
+    "trading": {
+      "rendered": true,
+      "retained_decisions": 21,
+      "visible_default_horizon_short_calls": 4,
+      "approval_or_execution_action_submitted": false
+    }
+  },
+  "normal_worker_execution": {
+    "job": "system-health",
+    "execution": "system-health-29875590",
+    "status": "Succeeded",
+    "started_at": "2026-10-20T22:30:00+00:00",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+  },
+  "observation_before_promotion": {
+    "hours": 39.03,
+    "slots": 157,
+    "http_checks": 1570,
+    "original_48_hours_completed": false,
+    "owner_authorized_immediate_promotion": true
+  },
+  "monitoring": {
+    "observer": "cleanup-trial-observer-dev-7oyuy3t",
+    "original_end": "2026-10-21T07:22:48+00:00",
+    "purpose_after_first_production_update": "post-release monitoring; not an old/new comparison",
+    "first_post_release_observation": {
+      "slot": 157,
+      "observed_at": "2026-10-20T22:37:48.000116+00:00",
+      "http_flags": [],
+      "collection_gaps": {},
+      "reasoning_settings_sha256": {
+        "development": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4",
+        "production": "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+      },
+      "new_execution_failures": [],
+      "compared_with_pre_release_baseline": true
+    }
+  },
+  "limits": [
+    "Not every manual producer has a fresh full candidate execution; existing local/source/installed producer coverage is retained.",
+    "The next normal production broker sync after its image update is pending; no manual live-account refresh or order execution was started.",
+    "Provider failures and unknown usage shown in Health are inherited observations, not zero-error reasoning-quality acceptance."
+  ],
+  "application_or_model_changes_during_promotion": false,
+  "manual_product_jobs_started": 0,
+  "new_builds": 0,
+  "normal_recovery_execution": {
+    "name": "system-recovery-29875597",
+    "status": "Succeeded",
+    "startTime": "2026-10-20T22:37:00+00:00",
+    "endTime": "2026-10-20T22:37:51+00:00",
+    "images": [
+      "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+    ]
+  }
+}

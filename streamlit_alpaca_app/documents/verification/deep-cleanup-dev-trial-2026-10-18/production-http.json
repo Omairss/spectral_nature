@@ -1,0 +1,229 @@
+{
+  "at": "2026-10-20T22:33:18.992117+00:00",
+  "http": [
+    {
+      "environment": "production",
+      "path": "/health",
+      "status": 200,
+      "expected": 200,
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+      "bytes": 15,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production",
+      "path": "/api/home",
+      "status": 200,
+      "expected": 200,
+      "sha256": "ff573257ab3081c3877e7d0cba09f72ef3f1d55f70a77bf70e38c8e96318c63a",
+      "bytes": 1505320,
+      "cache_control": "public, max-age=30, stale-while-revalidate=120",
+      "content_type": "application/json",
+      "same_bytes_as_before": true,
+      "publication": {
+        "run_id": "e902f7ae-eb31-424a-8d52-bd55a87f4c60",
+        "as_of": "2026-10-20T20:50:40.516483+00:00",
+        "status": "available",
+        "beats": 11,
+        "datapoints": 5,
+        "audio": true
+      }
+    },
+    {
+      "environment": "production",
+      "path": "/api/auth/session",
+      "status": 200,
+      "expected": 200,
+      "sha256": "3e58c6fcf10a31770582814c2babfd1ff71bb1a72cae32cdb1c1a428f406d47f",
+      "bytes": 23,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production",
+      "path": "/api/admin/health",
+      "status": 401,
+      "expected": 401,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "bytes": 37,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production",
+      "path": "/api/trading-agent",
+      "status": 401,
+      "expected": 401,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "bytes": 37,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production",
+      "path": "/api/home/audio",
+      "status": 200,
+      "expected": 200,
+      "sha256": "a16c7bd1ef1e84ae00ba7b05815287efc0f19b4fc2a11562b49fdca0323e11c0",
+      "bytes": 662926,
+      "cache_control": "public, max-age=300",
+      "content_type": "audio/mpeg",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production_alias",
+      "path": "/health",
+      "status": 200,
+      "expected": 200,
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+      "bytes": 15,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production_alias",
+      "path": "/api/home",
+      "status": 200,
+      "expected": 200,
+      "sha256": "ff573257ab3081c3877e7d0cba09f72ef3f1d55f70a77bf70e38c8e96318c63a",
+      "bytes": 1505320,
+      "cache_control": "public, max-age=30, stale-while-revalidate=120",
+      "content_type": "application/json",
+      "same_bytes_as_before": true,
+      "publication": {
+        "run_id": "e902f7ae-eb31-424a-8d52-bd55a87f4c60",
+        "as_of": "2026-10-20T20:50:40.516483+00:00",
+        "status": "available",
+        "beats": 11,
+        "datapoints": 5,
+        "audio": true
+      }
+    },
+    {
+      "environment": "production_alias",
+      "path": "/api/auth/session",
+      "status": 200,
+      "expected": 200,
+      "sha256": "3e58c6fcf10a31770582814c2babfd1ff71bb1a72cae32cdb1c1a428f406d47f",
+      "bytes": 23,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production_alias",
+      "path": "/api/admin/health",
+      "status": 401,
+      "expected": 401,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "bytes": 37,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production_alias",
+      "path": "/api/trading-agent",
+      "status": 401,
+      "expected": 401,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "bytes": 37,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "production_alias",
+      "path": "/api/home/audio",
+      "status": 200,
+      "expected": 200,
+      "sha256": "a16c7bd1ef1e84ae00ba7b05815287efc0f19b4fc2a11562b49fdca0323e11c0",
+      "bytes": 662926,
+      "cache_control": "public, max-age=300",
+      "content_type": "audio/mpeg",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "development",
+      "path": "/health",
+      "status": 200,
+      "expected": 200,
+      "sha256": "a29ee2b15c494311c52521766e44af56a3ad2248e7a8ab465e5206463c13d288",
+      "bytes": 15,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "development",
+      "path": "/api/home",
+      "status": 200,
+      "expected": 200,
+      "sha256": "e50f8777c0d636360bce105cdff1df471c78cb680ca0923e28d3278e211aa4ad",
+      "bytes": 1161968,
+      "cache_control": "public, max-age=30, stale-while-revalidate=120",
+      "content_type": "application/json",
+      "same_bytes_as_before": true,
+      "publication": {
+        "run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+        "as_of": "2026-10-18T20:24:34.140109+00:00",
+        "status": "available",
+        "beats": 6,
+        "datapoints": 5,
+        "audio": true
+      }
+    },
+    {
+      "environment": "development",
+      "path": "/api/auth/session",
+      "status": 200,
+      "expected": 200,
+      "sha256": "3e58c6fcf10a31770582814c2babfd1ff71bb1a72cae32cdb1c1a428f406d47f",
+      "bytes": 23,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "development",
+      "path": "/api/admin/health",
+      "status": 401,
+      "expected": 401,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "bytes": 37,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "development",
+      "path": "/api/trading-agent",
+      "status": 401,
+      "expected": 401,
+      "sha256": "939105e98aac00284684c1aaaecd5e23cf2cad658671d815360b0b4aae84c6a9",
+      "bytes": 37,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "same_bytes_as_before": true
+    },
+    {
+      "environment": "development",
+      "path": "/api/home/audio",
+      "status": 200,
+      "expected": 200,
+      "sha256": "fa0ca3bad8284c57ab710eb41780b4b5952fcf63e544857c71782e9f450149c3",
+      "bytes": 1097185,
+      "cache_control": "public, max-age=300",
+      "content_type": "audio/mpeg",
+      "same_bytes_as_before": true
+    }
+  ],
+  "flags": [],
+  "changed_responses": []
+}

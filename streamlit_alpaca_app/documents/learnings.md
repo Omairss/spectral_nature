@@ -1218,3 +1218,6 @@ Read execution-specific Azure system events before assigning a job failure to so
 
 ### October 20 — retain original rollback receipts across an idempotent release resume
 A supported release can resume after verifying already-promoted exact images. Keep the first operation's before definitions separately: a resumed readback already contains the new image. An omitted empty server-only ARM response field needs an explicit representation review and exact fresh baseline, rather than a runtime workaround or weakened configuration comparison.
+
+### October 20 — retain the actual observation decision after promotion
+The owner authorized immediate cleanup promotion after approximately 39 observed hours with coverage limits disclosed. Record that decision separately from a completed 48-hour comparison. All twenty production consumers now run the exact dev-accepted images, and later observer samples are post-release monitoring until the original end. Normal health and recovery executions and fresh signed-in screens provide production evidence without manually triggering account operations or paid research.
