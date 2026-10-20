@@ -1,0 +1,475 @@
+[
+  {
+    "symbol": "MU",
+    "previous_attention": {
+      "symbol": "MU",
+      "company_name": "MICRON TECHNOLOGY INC",
+      "cik": 723125,
+      "latest_filing_date": "2026-10-09 00:00:00+00:00",
+      "latest_form": "10-K",
+      "latest_items": "",
+      "filing_count_lookback": 4,
+      "context_story_text": "MU filed a 10-K on Oct 09 focused on 10-k. Over the current lookback, primary-source context clusters around 10-K, 8-K, and 1 more across 4 filing(s). The filing text itself gives a more concrete read on what management is emphasizing.",
+      "primary_source_excerpt": "Item 7. Management\u2019s Discussion and Analysis of Financial Condition and Results of Operations 55",
+      "source_line": "Primary sources: SEC EDGAR filings",
+      "latest_filing_excerpt": "Item 7. Management\u2019s Discussion and Analysis of Financial Condition and Results of Operations 55",
+      "top_filing_links_json": "[{\"label\": \"10-K \u2022 Oct 09\", \"url\": \"https://www.sec.gov/Archives/edgar/data/723125/000072312526000023/mu-20260903.htm\"}, {\"label\": \"8-K \u2022 Sep 30\", \"url\": \"https://www.sec.gov/Archives/edgar/data/723125/000072312526000018/mu-20260930.htm\"}, {\"label\": \"8-K \u2022 Aug 26\", \"url\": \"https://www.sec.gov/Archives/edgar/data/723125/000110465926101067/tm2624017d1_8k.htm\"}]",
+      "asof_time_utc": "2026-10-20 20:05:39.836932+00:00",
+      "schema_version": "v1",
+      "llm_headline": "Micron jumped, but the paperwork does not say why",
+      "llm_summary_text": "Micron (MU) moved up enough to stand out from its memory-chip peers over a one-year view. The move came right after a results release on September 30, 2026. But the filing that announced those results holds only the cover page. The numbers sit in a press release that is not in the text. So the timing fits a real news event, while the cause of the size of the jump is unconfirmed. Micron's own annual report, filed nine days later, leans cautious on memory prices.",
+      "llm_narrative_text": "Micron stands apart from its peer group. The leftover move \u2014 the part not explained by the group \u2014 is 3.8 standard deviations above normal. That is a large gap. The attention score is 84 out of 100, and the severity score is 95. So this is not noise.\n\nThe most likely trigger is the results release. Micron filed an 8-K on September 30, 2026 for its fourth quarter and full year 2026, which ended September 3, 2026. The filing lists item 2.02, results of operations, and item 9.01, exhibits. Item 2.02 is the rule that covers earnings announcements. That filing confirms the event and its date. It does not confirm the numbers. The press release is Exhibit 99.1, and its contents are not in the text provided. No clear catalyst confirmed beyond the release itself.\n\nThe annual report tells a more careful story. Micron filed its 10-K on October 9, 2026. The section shown is the start of Management's Discussion and Analysis, and it is cut off. It does not give revenue, margin or cash figures. What it does give is a warning about price swings. Over the past five fiscal years, yearly changes in DRAM and NAND average selling prices ran from a rise of about 200% to a fall of about 50%. Management says demand recently ran ahead of supply and pushed prices up. It then warns that as Micron and other companies add supply, prices may fall, mainly if demand growth slows.\n\nSo the two documents pull in opposite directions. One says results were published. The other says memory prices are volatile and supply is rising. If the stock rose, the market likely reacted to the release, not the annual report. Without the release text, I cannot tie the size of the move to a specific number. The honest read: a real news event, an unconfirmed cause. Also note the 8-K from August 26, 2026, which covers item 5.02, a change in officers or directors. That filing has no text, so no details are available.",
+      "llm_why_now": "The dates line up. The results release came on September 30, 2026. The 10-K followed on October 9, 2026. A large peer-adjusted move in the same window points to the release as the trigger. But the release numbers are missing from the evidence, so the size of the move is unexplained. No clear catalyst confirmed.",
+      "llm_management_signal": "Two different tones. The 8-K is neutral and procedural: standard legal wording, no outlook, no comment on demand or pricing. The 10-K section is cautious and defensive. It stresses volatile prices, sole-source materials now in shortage, high fixed costs, and trade rules that change without notice. Management also names competition for power and water, including from AI data centers, as a threat to factory uptime. It gives no firm price outlook and makes no clear commitment on demand.",
+      "llm_supporting_points_json": "[\"Peer-adjusted leftover move is 3.8 standard deviations from normal, with an attention score of 84 and a severity score of 95.\", \"An 8-K filed September 30, 2026 covers item 2.02, the earnings rule, for the fourth quarter and full year 2026, ended September 3, 2026.\", \"The press release with the actual revenue, margin and guidance figures is Exhibit 99.1 and is not in the text provided.\", \"The 10-K, filed October 9, 2026, reports that yearly DRAM and NAND average selling price changes ran from about +200% to about -50% over five fiscal years.\", \"The 10-K warns that added supply from Micron and competitors may push prices down if demand growth slows.\", \"An August 26, 2026 8-K covers item 5.02, an officer or director change, but carries no text, so no details are available.\"]",
+      "llm_confidence": "Medium-low. The timing between the release and the move is strong. The evidence for what the release said is missing, and the annual report section is cut off. Direction is reported by the signal, not verified from the filings.",
+      "llm_source_line": "Synthesized from SEC EDGAR filings and anomaly context"
+    },
+    "candidate": {
+      "status": "available",
+      "ticker": "MU",
+      "days": 365,
+      "company": {
+        "name": "Micron Technology, Inc. - Common Stock",
+        "business_lens": "",
+        "headline": "",
+        "summary": "# Micron: a memory-cycle company that is starting to look contracted\n\nThe most consequential change in Micron's fiscal 2026 disclosure is not the record revenue. It is the contract book. On the 30 September 2026 earnings call, management said Micron had signed 26 Strategic Customer Agreements (SCAs) \u2014 long-term supply contracts with volume commitments \u2014 covering more than 35% of revenue through 2030. Customer financial commitments under those agreements rose to $32 billion, and most of that is cash deposits. Management also said more than 75% of fiscal 2027 shipments are already committed ([prepared remarks](https://s25.q4cdn.com/621799436/files/doc_financials/2026/q4/Q4-FY26-Prepared-Remarks.pdf)). That matters because memory makers normally sell into a spot-driven commodity cycle, where price can fall fast. Take-or-pay contracts and customer deposits shift part of that risk to buyers, if the terms hold.\n\n## What Micron sells\n\nMicron designs and makes memory and storage chips, and sells them to other businesses. Fiscal 2026 revenue was $133.19 billion, against $37.38 billion in fiscal 2025. Dynamic random-access memory (DRAM), the working memory of computers and servers, supplied $100.68 billion, about 76%. NAND flash, the storage memory used in solid-state drives, supplied $31.79 billion, about 24% ([results release](https://investors.micron.com/news/press-release/2026/Micron-Technology-Inc--Reports-Record-Fiscal-Fourth-Quarter-and-Full-Year-2026-Results/)).\n\nHigh Bandwidth Memory (HBM) is the product that carries the AI story. HBM stacks memory chips beside a processor to feed it data quickly. Micron says its HBM4 36GB 12-high part is in high-volume production, designed for the NVIDIA Vera Rubin platform, with bandwidth above 2.8 TB/s and more than 20% better power efficiency than the prior generation ([product release](https://investors.micron.com/news/press-release/2026/Micron-in-High-Volume-Production-of-HBM4-Designed-for-NVIDIA-Vera-Rubin-PCIe-Gen6-SSD-and-SOCAMM2-03-16-2026/default.aspx)). Note the wording: a design target is not a purchase order.\n\n## Buyers and economics\n\nMicron sells components, not finished devices. In fiscal Q4 2026, Cloud Memory was $16.283 billion and Core Data Center was $18.002 billion \u2014 together about 63% of the quarter. Mobile and Client was $13.114 billion, and Automotive and Embedded was $6.824 billion. A Form 10-K summary says the top ten customers were over half of 2026 revenue, so concentration is real. Named counterparties include General Motors, which signed an SCA on 1 July 2026 for automotive memory, and a group of automotive suppliers announced on 16 July 2026.\n\nThe economics are highly geared to price. Fiscal Q4 2026 revenue was $54.23 billion, up 379% year over year, and GAAP gross margin was 86.8%. Full-year GAAP net income was $84.97 billion. Fiscal 2026 operating cash flow was $89.68 billion against net capital expenditure of about $27 billion, and cash, marketable investments and restricted cash were $73.48 billion at 3 September 2026. The board raised the buyback authorization to $35.16 billion, effective 9 December 2026 because CHIPS Act funding terms restrict repurchases before then.\n\n## What is changing, and what could break it\n\nThree things are tightening at once: demand visibility, supply, and spending. Management guides fiscal Q1 2027 revenue to $61.5 billion \u00b1 $1.5 billion and expects supply and demand to be much tighter in fiscal 2027 and 2028 than in 2026. New capacity takes years: the first Idaho fab targets wafer output in mid-2027, the first New York plant targets 2030, and Singapore HBM packaging ramps meaningfully in calendar 2027.\n\nThe clearest caution is the gross margin guide. The fiscal Q1 2027 non-GAAP gross margin guide of about 86.25% is the first sequential decline from roughly 87%, and management calls it a floor according to secondary coverage. If that floor holds, Micron has partly separated from the commodity cycle. If it does not, the record results read as a cycle peak. HBM share is the second test: Counterpoint puts Micron at 18% of HBM revenue in Q2 2026, behind SK hynix at 50% and Samsung at 33%, and Samsung is adding capacity.\n\nLegal access is a live constraint. On 24 September 2026 the Munich Regional Court granted Yangtze Memory Technologies two first-instance injunctions over certain 3D NAND products in Germany; Micron appealed ([report](https://ipfray.com/ymtc-wins-two-german-injunctions-against-micron-getting-leverage-in-global-nand-memory-patent-fight-munich-i-regional-court/)). Chinese suppliers are also adding DRAM capacity; TrendForce reports CXMT rising from about 320,000 to 420,000 wafers per month by 2027. In October 2026 memory stocks fell on that news, neocloud funding stress and slower AI-lab revenue growth, though no source ties those to a Micron order cancellation.\n\nOne figure needs care: the roughly $150 billion remaining performance obligation (RPO) described on the call does not reconcile with an earlier third-party summary that showed about $134 billion. Treat the contract framing as strong but not yet tied to a filed note.",
+        "why_now": "",
+        "management_signal": "",
+        "background": "",
+        "as_of": "2026-10-20T20:05:39.836932+00:00"
+      },
+      "technical": {
+        "close": null,
+        "ath": null,
+        "pullback_from_ath_pct": null,
+        "channel_support": null,
+        "channel_resistance": null,
+        "channel_position": null,
+        "dist_to_support_pct": null,
+        "dist_to_resistance_pct": null,
+        "ret_5_pct": null,
+        "ret_21_pct": null,
+        "ret_63_pct": null,
+        "rsi_14": null,
+        "vol_20_ann_pct": null,
+        "regime": ""
+      },
+      "forecast": {
+        "current_price": null,
+        "support": null,
+        "resistance": null,
+        "up_probability": null,
+        "breakout_probability": null,
+        "support_break_probability": null,
+        "expected_return_pct": null,
+        "median_return_pct": null,
+        "expected_path_return_pct": null,
+        "analog_count": null,
+        "terminal_band": {}
+      },
+      "articles": [],
+      "unavailable": [],
+      "provenance": {
+        "modes": [
+          "materialized"
+        ],
+        "datasets": [
+          "technical_signals_latest",
+          "technical_signal_history",
+          "technical_forecast",
+          "zopedia_ticker_business_model_stacks",
+          "attention_ticker_background_snapshots",
+          "company_baselines",
+          "news_articles"
+        ]
+      }
+    }
+  },
+  {
+    "symbol": "MRNA",
+    "previous_attention": {
+      "symbol": "MRNA",
+      "company_name": "Moderna, Inc.",
+      "cik": 1682852,
+      "latest_filing_date": "2026-09-30 00:00:00+00:00",
+      "latest_form": "8-K",
+      "latest_items": "5.02,7.01,9.01",
+      "filing_count_lookback": 4,
+      "context_story_text": "MRNA filed a 8-K on Sep 30 covering 5.02,7.01,9.01. Over the current lookback, primary-source context clusters around 8-K and 10-Q across 4 filing(s). The filing text itself gives a more concrete read on what management is emphasizing.",
+      "primary_source_excerpt": "Item 5.02 Departure of Directors or Certain Officers; Election of Directors; Appointment of Certain Officers; Compensatory Arrangements of Certain Officers. Item focus: 5.02,7.01,9.01.",
+      "source_line": "Primary sources: SEC EDGAR filings",
+      "latest_filing_excerpt": "Item 5.02 Departure of Directors or Certain Officers; Election of Directors; Appointment of Certain Officers; Compensatory Arrangements of Certain Officers.",
+      "top_filing_links_json": "[{\"label\": \"8-K \u2022 Sep 30\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1682852/000119312526408289/d18337d8k.htm\"}, {\"label\": \"8-K \u2022 Sep 01\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1682852/000119312526378505/d108896d8k.htm\"}, {\"label\": \"10-Q \u2022 Jul 31\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1682852/000168285226000150/mrna-20260630.htm\"}]",
+      "asof_time_utc": "2026-10-20 20:05:39.836932+00:00",
+      "schema_version": "v1",
+      "llm_headline": "Moderna's run comes with a bigger-than-planned $2.6 billion raise and a new operations chief",
+      "llm_summary_text": "Moderna shows strong short-term price momentum against other biotechnology stocks. Two filings sit inside that window: a $2.6 billion convertible note sale and the appointment of a new chief operating officer. Neither filing reports a revenue or profit number, so the link to the price move is context, not proof.",
+      "llm_narrative_text": "The clearest hard fact is the size of the fundraise. On 2026-08-27 Moderna announced a proposed private placement of $2.0 billion of convertible senior notes. One day later it priced the deal at $2.6 billion. That is $0.6 billion more, or 30% above the first plan. Buyers of the notes can later turn them into shares, so the deal brings in cash and adds debt and possible dilution at the same time. The filing text we have does not give the interest rate, the maturity date, the conversion price, or what the money is for. No clear catalyst confirmed for why the deal grew.\n\nThe second filing is a management change. On 2026-09-30 Moderna reported that Mr. Andres will become chief operating officer. A new operations leader can point to a push on how the company runs and spends. But the press release is filed as an exhibit and is not in our text, so his background, pay and start date are unknown. No clear catalyst confirmed for the timing.\n\nThe third filing adds background but no numbers. The 10-Q filed 2026-07-31 repeats the company's accounting rules and says management expects seasonal demand for the COVID and RSV vaccines, with higher sales in fall and winter. That is a stated expectation, not a reported result. The excerpt has no revenue, cash balance or guidance figures, and it warns that the six-month results may not predict the full year.\n\nPut together, the picture is a company that raised more money than planned and changed its operations leadership while heading into its stronger sales season. That mix can lift attention and price. But without the note terms or any financial results, we cannot tie the move to one cause.",
+      "llm_why_now": "The 3-month momentum window covers both late-summer and late-September news. The note offering was launched 2026-08-27 and priced 2026-08-28, and the 8-K for it was filed 2026-09-01. The COO 8-K followed on 2026-09-30. Attention also rises because fall and winter are when management expects vaccine sales to peak.",
+      "llm_management_signal": "Management used the filings to record a larger-than-proposed financing and a change at the top of operations. The tone is neutral and procedural. The filings give no revenue, cash or profit figures, and they give no stated use for the $2.6 billion. That silence is itself a signal: the documents confirm events, not results.",
+      "llm_supporting_points_json": "[\"The convertible note deal was first proposed at $2.0 billion on 2026-08-27 and then priced at $2.6 billion on 2026-08-28, a 30% increase.\", \"The 8-K filed 2026-09-01 lists Items 1.01, 2.03, 3.02, 8.01 and 9.01. It confirms a new direct financial obligation and an unregistered sale of securities.\", \"The notes are unregistered, so resale is restricted and conversion could dilute existing holders.\", \"An 8-K filed 2026-09-30 reports under Item 5.02 that Mr. Andres was appointed chief operating officer, with details placed in a press release not included in our text.\", \"The 10-Q filed 2026-07-31 says management expects higher COVID and RSV vaccine sales in fall and winter, which makes quarterly revenue uneven.\", \"The 10-Q excerpt also flags judgment calls on deferred tax assets and valuation allowances, and uncertain outcomes in legal proceedings.\", \"The attention item carries a residual z-score of 14.48 against the biotechnology peer group, which means the move is far outside the normal range for that group.\"]",
+      "llm_confidence": "Moderate (65/100). The filings confirm the note sale, its upsized size and the COO appointment. They do not include the note interest rate, maturity, conversion price or use of proceeds, and they include no revenue or cash figures. The tie between the news and the price move is reasonable but unproven.",
+      "llm_source_line": "Synthesized from SEC EDGAR filings and anomaly context"
+    },
+    "candidate": {
+      "status": "available",
+      "ticker": "MRNA",
+      "days": 365,
+      "company": {
+        "name": "Moderna, Inc. - Common Stock",
+        "business_lens": "Healthcare & Life Sciences",
+        "headline": "",
+        "summary": "## The lead: an oncology option now carries more weight than the vaccine base\n\nOn 19 August 2026, Moderna and Merck reported that the Phase 3 INTerpath-001 trial met its primary endpoint. The trial tested intismeran autogene, a personalized mRNA cancer therapy, plus pembrolizumab against pembrolizumab alone in 1,137 patients with completely resected stage IIB-IV melanoma. It also met the key secondary endpoint of distant metastasis-free survival ([ESMO presentation notice](https://www.biospace.com/press-releases/moderna-announces-late-breaking-data-to-be-presented-at-esmo-congress-2026)).\n\nThis matters because it gives Moderna a second growth engine while its vaccine revenue shrinks. The equity has already re-rated on that expectation: the company research page records a three-month return of about 300% as of 15 October 2026. But the size of the option is unknown. Hazard ratios, confidence intervals, overall-survival maturity and a regulatory filing date are not yet public. Full results are expected at the ESMO Presidential Symposium on 24 October 2026. Until then, the market pays for a cancer franchise whose value is not measured.\n\n## What Moderna sells and how the money works\n\nModerna sells mRNA medicines, mostly vaccines, and earns money per dose sold. Product sales are the main revenue line. Collaboration, license and royalty revenue, and stand-ready manufacturing revenue are smaller lines. Five products are authorized: Spikevax and mNEXSPIKE for COVID-19, mRESVIA for RSV, mFLUSIVA in the United States for influenza, and mCOMBRIAX in the European Union for influenza plus COVID-19. The FDA approved mFLUSIVA on 5 August 2026 for adults 50 and older. It is the first mRNA influenza vaccine approved in the United States ([Johns Hopkins explainer](https://hub.jhu.edu/2026/09/08/new-mrna-flu-vaccine/)). The European Commission authorized mCOMBRIAX in April 2026 for people 50 and older ([company release](https://finance.yahoo.com/sectors/healthcare/articles/moderna-receives-european-commission-marketing-134000657.html)).\n\nQ2 2026 shows the scale problem. Total revenue was $145 million: $87 million from the United States and $58 million international ([Q2 2026 release](https://www.sec.gov/Archives/edgar/data/1682852/000168285226000147/exhibit9912026q2pressrelea.htm)). Cost of sales was $93 million, including $41 million of inventory write-downs and $23 million of unutilized manufacturing capacity costs. Gross profit was about $52 million, near 36%. Research and development was $651 million, down 7%. Selling, general and administrative cost was $216 million, down 6%. The result was an operating loss of $815 million and a net loss of $782 million, or $(1.97) per share ([Form 10-Q](https://www.sec.gov/Archives/edgar/data/1682852/000168285226000150/mrna-20260630.htm)). A small dose base carries a large fixed research and factory cost.\n\n## Customers, demand and the mix shift\n\nModerna sells to two groups. The first group is governments and public-health bodies. The second group is the commercial channel of pharmacies, clinics and providers, where insurers and Medicare reimburse the dose. Medicare Part B covers Spikevax and mNEXSPIKE for specified age groups, and it covers seasonal influenza vaccines. Management guides 2026 to roughly half U.S. and half international revenue.\n\nReported demand is weak on trend. Q2 2026 revenue was slightly above $142 million a year earlier, but far below the $1.016 billion recorded for 2025Q3 in the company research page. Management expects higher COVID-19 and RSV vaccine sales in fall and winter 2026 and plans about 55% of second-half revenue in the third quarter. It gives no order volumes, so the seasonal recovery is a claim, not yet a fact. Category demand is soft: CDC data showed 16.1% of U.S. adults received a 2025-26 COVID-19 vaccine as of January 2026, against 43.9% for influenza. These are market rates, not Moderna share.\n\nThe mix is moving. mNEXSPIKE held about 24% of U.S. retail COVID-19 vaccinations in 2025 and close to one-third among adults 65 and older. mFLUSIVA is available at more than 13,000 U.S. locations, but Walgreens cites limited quantities and CVS says availability varies by location ([KCRA report](https://www.kcra.com/article/mrna-flu-vaccine-for-older-adults/73882665)). That is a distribution signal, not proof of demand. The 2026 plan excludes mFLUSIVA and mCOMBRIAX revenue and assumes possible declines in COVID-19 vaccination, so the reiterated target of up to 10% growth rests on a low base.\n\nContracted demand is thin. Moderna does not disclose backlog or remaining performance obligations. Deferred revenue was $265 million at 30 June 2026, of which $207 million is expected within one year, up from $95 million at 31 March 2026. The European Commission framework for mRESVIA covers up to 24 million doses over up to four years with no minimum order, so it is not firm backlog.\n\n## Cash, cost cuts and the balance sheet\n\nNear-term funding looks adequate but conditional. Moderna held $6.9 billion in cash and investments at 30 June 2026, before a $950 million litigation payment in July. On 1 September 2026 it completed $3.0 billion of 0.00% convertible senior notes due 2032, with about $2.957 billion of net proceeds and $328.8 million spent on capped calls that limit dilution up to a price cap ([8-K](https://www.sec.gov/Archives/edgar/data/1682852/000119312526378505/d108896dex992.htm)). At the Q2 2026 free-cash-flow burn of $563 million, the net proceeds alone cover about five quarters before existing cash. Management guides 2026 year-end cash to $4.7\u20135.2 billion. Total assets were $10.961 billion and total liabilities $4.2 billion.\n\nThe company is also shrinking to fit. In July 2025 it cut about 10% of its global workforce, more than 800 jobs, and targeted $1.5 billion of annual operating cost savings by 2027 ([CEO memo](https://www.modernatx.com/media-center/all-media/blogs/aligning-cost-structure-to-deliver-pipeline)). It created a chief operating officer role, filled by Juan Andres from 5 October 2026, to lead manufacturing scale-up.\n\n## The connected uncertainties\n\nPatent litigation is the largest identified cash claim. Moderna settled worldwide Arbutus and Genevant litigation for $2.25 billion, paid $950 million in July 2026, and owes up to $1.3 billion more if its Section 1498 government-contractor appeal fails ([8-K, 3 March 2026](https://www.sec.gov/Archives/edgar/data/1682852/000168285226000047/mrna-20260303.htm)). Other cases continue, including a Bayer suit that survived a dismissal bid on 28 September 2026 ([Reuters](https://www.reuters.com/legal/legalindustry/pfizer-moderna-lose-bids-escape-bayer-us-mrna-patent-lawsuit-2026-09-28/)).\n\nPipeline attrition is real. The norovirus candidate mRNA-1403 did not meet statistical criteria for early success at its Phase 3 interim analysis. Policy is a constraint, not a tailwind: HHS wound down BARDA mRNA vaccine projects in August 2025, the childhood immunization schedule was realigned around 11 consensus vaccines in January 2026, and the CEO said in January 2026 that the company will not fund new late-stage vaccine trials because of U.S. market access limits.\n\nEmployee morale is a modest risk. Glassdoor shows 3.2 out of 5 from about 865 reviews and roughly 40% of reviewers would recommend Moderna ([Glassdoor](https://www.glassdoor.com/Overview/Working-at-Moderna-EI_IE453959.11,18.htm)). That is a third-party signal, not company data.\n\nThe next tests are specific. The ESMO data on 24 October 2026 will size the oncology option. Q3 2026 results, due 6 November 2026, will show whether seasonal vaccine demand recovered above $145 million. mFLUSIVA price and payer coverage will show whether the flu launch adds material revenue in 2026-2027 or builds slowly.",
+        "why_now": "",
+        "management_signal": "",
+        "background": "",
+        "as_of": "2026-10-20T20:05:39.836932+00:00"
+      },
+      "technical": {
+        "close": null,
+        "ath": null,
+        "pullback_from_ath_pct": null,
+        "channel_support": null,
+        "channel_resistance": null,
+        "channel_position": null,
+        "dist_to_support_pct": null,
+        "dist_to_resistance_pct": null,
+        "ret_5_pct": null,
+        "ret_21_pct": null,
+        "ret_63_pct": null,
+        "rsi_14": null,
+        "vol_20_ann_pct": null,
+        "regime": ""
+      },
+      "forecast": {
+        "current_price": null,
+        "support": null,
+        "resistance": null,
+        "up_probability": null,
+        "breakout_probability": null,
+        "support_break_probability": null,
+        "expected_return_pct": null,
+        "median_return_pct": null,
+        "expected_path_return_pct": null,
+        "analog_count": null,
+        "terminal_band": {}
+      },
+      "articles": [],
+      "unavailable": [],
+      "provenance": {
+        "modes": [
+          "materialized"
+        ],
+        "datasets": [
+          "technical_signals_latest",
+          "technical_signal_history",
+          "technical_forecast",
+          "zopedia_ticker_business_model_stacks",
+          "attention_ticker_background_snapshots",
+          "company_baselines",
+          "news_articles"
+        ]
+      }
+    }
+  },
+  {
+    "symbol": "CRWV",
+    "previous_attention": {},
+    "candidate": {
+      "status": "available",
+      "ticker": "CRWV",
+      "days": 365,
+      "company": {
+        "name": "CoreWeave, Inc. - Class A Common Stock",
+        "business_lens": "",
+        "headline": "",
+        "summary": "## CoreWeave: demand is proven; financing is the test\n\nCoreWeave\u2019s most consequential issue is not whether customers want AI compute. It is whether CoreWeave can finance and deliver that compute without letting its cost of capital overwhelm the economics. The demand evidence is strong: Q2 2026 revenue was $2.575 billion, up 112%, and revenue backlog was about $104.2 billion at June 30, 2026 ([Q2 results](https://investors.coreweave.com/news/news-details/2026/CoreWeave-Reports-Strong-Second-Quarter-2026-Results/default.aspx)). The company also added more than $25 billion of net new customer commitments early in Q3 2026. Yet its unsecured 2031 notes yielded 15.58% on October 20, 2026, while secured project debt for the Meta contract priced near 5.9% ([Benzinga](https://www.benzinga.com/markets/prediction-markets/26/10/62480073/big-short-trader-danny-moses-calls-coreweave-the-wework-of-ai)). That gap is the central story: project finance still works; corporate finance is under stress.\n\nCoreWeave sells contracted AI cloud capacity. Customers rent NVIDIA GPU clusters on bare metal to train, tune and run models. CoreWeave also sells software through Weights & Biases and CoreWeave Forge. The model is capital-intensive: sign customer contracts, build data centers and GPU capacity, then recognize revenue as capacity is delivered. Q2 2026 cost of revenue was $879 million against $2,575 million of revenue, so gross margin was about 65.9% by calculation, not a company-stated rate. But the GAAP operating result was a $49 million loss, net loss was $626 million, and net interest expense was $640 million. Full-year 2026 capital expenditure guidance is $35 billion to $39 billion.\n\nCustomers are AI labs, hyperscalers, enterprises and government buyers. Concentration is high: the top two customers were 63% of first-half 2026 revenue, and Microsoft was about 67% of fiscal 2025 revenue. Named commitments include Microsoft, OpenAI with total contract commitments of up to about $22.4 billion as of Q3 2025, Meta with a $21 billion expanded agreement through December 2032 that Moody\u2019s describes as take-or-pay, Anthropic under a multi-year agreement with undisclosed terms, and Jane Street with about $6 billion of committed platform use plus a $1 billion equity investment ([Reuters](https://www.reuters.com/legal/transactional/coreweaves-ai-contracts-lenders-financing-its-build-out-2026-10-15/); [Jane Street](https://www.coreweave.com/news/jane-street-signs-6-billion-ai-cloud-agreement-with-coreweave)).\n\nThe backlog is real but not uniform. Revenue backlog is not the same as remaining performance obligation, or RPO, the accounting measure of contracted revenue not yet recognized; RPO was $103.7 billion at June 30, 2026. Backlog conversion also depends on delivery. Active power was about 1.5 GW at June 30, 2026. Management targets more than 1.85 GW by the end of 2026, more than 3 GW by the end of 2027, and at least 8 GW by 2030. At June 30, 2026, 393 MW at one site and 355 MW at other sites were undelivered, with delivery phased through 2028. The Denton, Texas cluster of about 260 MW for OpenAI was delayed by about 60 days because of storms.\n\nWhat is being confirmed is demand and pricing. CoreWeave says it is signing new capacity at higher prices. In Q3 2026 it signed short-dated contracts of about three to six months at roughly $40 million per megawatt annualized ([company release](https://investors.coreweave.com/news/news-details/2026/CoreWeave-Continues-to-Contract-New-Compute-Capacity-at-Higher-Prices/default.aspx)). Goldman Sachs commentary cited a 25% price increase in July 2026 and a further 10% in October; that is an analyst observation, not company-reported pricing. What is changing is the financing mix. Secured project debt remains available: the Meta project facility is $8.5 billion at SOFR plus 2.25%, or about 5.9% fixed, rated A3. But the $2.6 billion DDTL 5.5 facility closed in August 2026 at SOFR plus 5.50%, roughly a 9.6% coupon, with Ba2 and BB+ ratings ([company release](https://investors.coreweave.com/news/news-details/2026/CoreWeave-Closes-2-6-Billion-Loan-Facility-Expanding-Financing-Flexibility-for-AI-Infrastructure/default.aspx)).\n\nThe connected uncertainty is contract duration. Long-dated take-or-pay deals support cheap project debt. Short-dated deals at high current prices may reflect scarcity, but they create a mismatch with long leases and fast-changing GPUs. The WeWork comparison made by investor Danny Moses is an analogy about that duration mismatch, not evidence of default. There is no missed payment or covenant breach in the evidence. Still, principal debt was $35.551 billion at June 30, 2026, with $4.4 billion scheduled in the second half of 2026 and $6.2 billion in 2027. Cash and securities were $6.904 billion, and JPMorgan expects free cash flow to stay negative until 2030. The key open questions are whether short-dated contracts renew at similar prices, who Customer A and Customer B are, and how much of near-term principal is scheduled amortization rather than refinancing.",
+        "why_now": "",
+        "management_signal": "",
+        "background": "",
+        "as_of": "2026-10-20T20:05:39.836932+00:00"
+      },
+      "technical": {
+        "close": null,
+        "ath": null,
+        "pullback_from_ath_pct": null,
+        "channel_support": null,
+        "channel_resistance": null,
+        "channel_position": null,
+        "dist_to_support_pct": null,
+        "dist_to_resistance_pct": null,
+        "ret_5_pct": null,
+        "ret_21_pct": null,
+        "ret_63_pct": null,
+        "rsi_14": null,
+        "vol_20_ann_pct": null,
+        "regime": ""
+      },
+      "forecast": {
+        "current_price": null,
+        "support": null,
+        "resistance": null,
+        "up_probability": null,
+        "breakout_probability": null,
+        "support_break_probability": null,
+        "expected_return_pct": null,
+        "median_return_pct": null,
+        "expected_path_return_pct": null,
+        "analog_count": null,
+        "terminal_band": {}
+      },
+      "articles": [],
+      "unavailable": [],
+      "provenance": {
+        "modes": [
+          "materialized"
+        ],
+        "datasets": [
+          "technical_signals_latest",
+          "technical_signal_history",
+          "technical_forecast",
+          "zopedia_ticker_business_model_stacks",
+          "attention_ticker_background_snapshots",
+          "company_baselines",
+          "news_articles"
+        ]
+      }
+    }
+  },
+  {
+    "symbol": "BAC",
+    "previous_attention": {},
+    "candidate": {
+      "status": "available",
+      "ticker": "BAC",
+      "days": 365,
+      "company": {
+        "name": "Bank of America Corporation Common Stock",
+        "business_lens": "",
+        "headline": "",
+        "summary": "Bank of America's Q3 2026 result is a profitable core franchise with a costly compliance failure attached. The bank earned $29.958 billion of revenue, net of interest expense, up about 3% from a year earlier, and $16.449 billion of net interest income, up 8%. A $1.2 billion non-tax-deductible regulatory settlement charge cut diluted EPS by $0.17 and helped pull net income down 17% to $6.933 billion, or $0.91 per share ([Q3 2026 results](https://newsroom.bankofamerica.com/content/newsroom/press-releases/2026/10/bank-of-america-reports-third-quarter-2026-financial-results.html)). The charge follows the October 13, 2026 enforcement actions: the Financial Crimes Enforcement Network (FinCEN) assessed $1.2 billion, the Office of the Comptroller of the Currency (OCC) assessed $750 million, and the Office of Foreign Assets Control (OFAC) settled for $11.6 million. The FinCEN penalty credits the OCC penalty, so the amounts are not additive. BAC admitted willful Bank Secrecy Act violations ([Treasury](https://home.treasury.gov/news/press-releases/sb0657); [OCC](https://www.occ.gov/news-issuances/news-releases/2026/nr-occ-2026-89.html)). Compliance remediation is now a first-order earnings and strategy risk, not a side issue.\n\n## What it sells and how the money works\n\nBank of America Corporation is a diversified bank and financial services holding company. It takes deposits, makes loans, issues credit cards, and sells wealth management, advisory, underwriting, trading, treasury, and payments services. Net interest income is the spread between interest earned on loans and securities and interest paid on deposits and funding. Fees come from cards, wealth, investment banking, sales and trading, and service charges. On a single-quarter scope, Q3 2026 net interest income was about 55% of revenue. BAC reports four segments: Consumer Banking, Global Wealth & Investment Management (GWIM), Global Banking, and Global Markets.\n\nBAC serves individual consumers, small and middle-market businesses, large corporations and institutions, and wealth clients. It reports about 70 million clients, 39 million checking-account customers, 3,531 financial centers, and 14,965 branded ATMs. It says it has relationships with 78% of the Global Fortune 500 and 96% of the U.S. Fortune 1,000. In Q3 2026 it added more than 200,000 net new consumer checking accounts and more than 1 million new card accounts; Merrill added about 4,200 net new households with at least $500,000 in assets. These are broad customer groups, not named accounts.\n\n## What is changing\n\nDemand is improving in the core. Average loans and leases were $1.23 trillion, up 6% year over year and the 10th consecutive quarter of sequential average growth. Average deposits were $2.02 trillion, up 2%. Average commercial loans were $666.0 billion, larger than average consumer loans of $470.8 billion. Wealth was strong: GWIM revenue rose 13% to $7.1 billion, client balances rose 9% to $5.1 trillion, assets under management (AUM) rose 12% to $2.4 trillion, and quarterly net client flows were $38 billion. Digital reached 50 million active users. This confirms the spread-income and wealth engines.\n\nCapital markets contradicted the story. Fixed income, currencies, and commodities (FICC) revenue fell 17% to $2.55 billion, sales and trading revenue fell 5% to $5.1 billion, Global Markets revenue fell 6% to $5.9 billion, and investment banking fees fell 11% to $1.8 billion. A trade-press comparison says BAC underperformed JPMorgan, Goldman Sachs, and Citi on six capital-markets metrics; it says BAC investment banking revenue fell 16% while the peers rose 9% to 22% ([eFinancialCareers](https://www.efinancialcareers.com/news/bofa-q3-2026)). That is commentary, not company disclosure. It supports a company-specific concern, but product mix could explain part of the gap. The working explanation for the profit decline is the compliance charge plus weak trading; the evidence supports that explanation but does not prove it is the whole cause.\n\n## Capital and the infrastructure connection\n\nCET1, a core capital measure, was 10.9%, down 35 basis points, including a $1.8 billion AOCI impact from higher rates; AOCI is the accounting line for unrealized gains and losses. Average global liquidity sources were $914 billion. BAC returned $8.3 billion to shareholders and still has a $40 billion buyback authorization and a $0.32 quarterly dividend. The proposed replacement of the 2023 Basel III Endgame capital rules could reduce required capital, but final rules are pending. This supports capacity to absorb the charge and keep returning capital.\n\nOne named mandate shows how BAC connects its balance sheet to infrastructure. Related Digital announced a $16 billion data center campus in Saline Township, Michigan, built for Oracle. BAC was structuring agent and financial advisor and led a $14 billion bond sale, anchored by about $10 billion from PIMCO ([BofA release](https://newsroom.bankofamerica.com/content/newsroom/press-releases/2026/04/related-digital-announces-financing-for--16-billion-oracle-data-.html); [Reuters](https://www.reuters.com/legal/transactional/bank-america-launches-250-billion-initiative-us-tech-energy-infrastructure-2026-08-12/)). BAC's fee is not disclosed. BAC reports no backlog or remaining performance obligation (RPO); the $250 billion, 18-month Critical Infrastructure Finance Initiative, running from January 1, 2026 through July 4, 2027, is a deployment target, not contracted demand. It could generate lending and fees, but data centers face power, permitting, labor, and community constraints.\n\nThree uncertainties matter most. Forward AML remediation cost and possible business restrictions are not known. Credit quality is only partly visible: net charge-offs were $1.3 billion, or 44 basis points, versus 47 basis points, but allowance for credit losses, nonperforming loans by portfolio, commercial real estate by property type, and the Q3 card loss rate are missing. And the $109 billion unrealized bond-loss figure has no accounting scope in the evidence; do not treat it as a capital deduction without the available-for-sale and held-to-maturity split.",
+        "why_now": "",
+        "management_signal": "",
+        "background": "",
+        "as_of": "2026-10-20T20:05:39.836932+00:00"
+      },
+      "technical": {
+        "close": null,
+        "ath": null,
+        "pullback_from_ath_pct": null,
+        "channel_support": null,
+        "channel_resistance": null,
+        "channel_position": null,
+        "dist_to_support_pct": null,
+        "dist_to_resistance_pct": null,
+        "ret_5_pct": null,
+        "ret_21_pct": null,
+        "ret_63_pct": null,
+        "rsi_14": null,
+        "vol_20_ann_pct": null,
+        "regime": ""
+      },
+      "forecast": {
+        "current_price": null,
+        "support": null,
+        "resistance": null,
+        "up_probability": null,
+        "breakout_probability": null,
+        "support_break_probability": null,
+        "expected_return_pct": null,
+        "median_return_pct": null,
+        "expected_path_return_pct": null,
+        "analog_count": null,
+        "terminal_band": {}
+      },
+      "articles": [],
+      "unavailable": [],
+      "provenance": {
+        "modes": [
+          "materialized"
+        ],
+        "datasets": [
+          "technical_signals_latest",
+          "technical_signal_history",
+          "technical_forecast",
+          "zopedia_ticker_business_model_stacks",
+          "company_baselines",
+          "news_articles"
+        ]
+      }
+    }
+  },
+  {
+    "symbol": "XP",
+    "previous_attention": {
+      "symbol": "XP",
+      "company_name": "XP Inc.",
+      "cik": 1787425,
+      "latest_filing_date": "2026-10-16 00:00:00+00:00",
+      "latest_form": "6-K",
+      "latest_items": "",
+      "filing_count_lookback": 4,
+      "context_story_text": "XP filed a 6-K on Oct 16 focused on 6-k. Over the current lookback, primary-source context clusters around 6-K across 4 filing(s). The filing text itself gives a more concrete read on what management is emphasizing.",
+      "primary_source_excerpt": "(Exact name of registrant as specified in its charter) Indicate by check mark whether the registrant files or will file annual reports under cover of Form 20-F or Form 40-F: Indicate by check mark if the registrant is submitting the Form 6-K in paper as permitted by Regulation S-T Rule 101(b)(1):",
+      "source_line": "Primary sources: SEC EDGAR filings",
+      "latest_filing_excerpt": "(Exact name of registrant as specified in its charter) Indicate by check mark whether the registrant files or will file annual reports under cover of Form 20-F or Form 40-F: Indicate by check mark if the registrant is submitting the Form 6-K in paper as permitted by Regulation S-T Rule 101(b)(1):",
+      "top_filing_links_json": "[{\"label\": \"6-K \u2022 Oct 16\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1787425/000119312526424071/d79350d6k.htm\"}, {\"label\": \"6-K \u2022 Aug 17\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1787425/000095010326012482/dp251887_6k-2q26finstate.htm\"}, {\"label\": \"6-K \u2022 Aug 17\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1787425/000095010326012481/dp251884_6k-2q26er.htm\"}]",
+      "asof_time_utc": "2026-10-20 20:05:39.836932+00:00",
+      "schema_version": "v1",
+      "llm_headline": "XP shows a strong one-month momentum jump, but the filings give no confirmed cause",
+      "llm_summary_text": "XP Inc. ranks high on our attention list: its one-month price trend accelerated far beyond what the model expected, with a residual score of 5.89 against its Brokerage & Wealth Management peers. The filings we pulled do not explain the move. They are a routine board change from October 16, 2026 and two August 17, 2026 notices that point to second-quarter 2026 results but do not include the numbers. No clear catalyst confirmed.",
+      "llm_narrative_text": "XP Inc. is a Brazilian investment platform that trades in the United States. Our screen flags it for momentum acceleration: over the past month its price trend sped up by far more than the model predicted for a stock in its peer group. The leftover gap, measured as a residual score of 5.89, is large. That score means the size of the move is unusual even after we account for the group's normal behavior.\n\nThe filings do not show us why. On August 17, 2026, XP filed a Form 6-K that names one exhibit: a press release titled \"XP Inc. Reports 2Q26 Financial Results.\" A second 6-K filed the same day points to interim financial statements for the three months ended March 31, 2026. The text we have stops at the labels. It holds no revenue, no earnings, no client-asset figures and no management quotes, so we cannot check the results or connect them to the price move.\n\nThe third filing is dated October 16, 2026. Martin Emiliano Escobari Lifchitz left the board that day, and the board named Rodrigo Kede Lima as an interim director in the same action. The company says the exit was voluntary and not tied to any disagreement over operations, policies or practices. Kede Lima is independent under Nasdaq rules. He stays until the 2027 annual shareholder meeting. This is a governance notice. It carries no financial or operating update.\n\nSo the honest read is this: the price signal is strong, but the public record we hold is thin. An earnings release on August 17 could plausibly change how investors value the stock, and a board change could change how they view oversight. Neither is confirmed as the trigger. No clear catalyst confirmed for the move.",
+      "llm_why_now": "The attention flag covers a one-month window ending in the days around the October 16, 2026 board filing. The two events we can date are that board notice and the August 17, 2026 earnings filing. The earnings date is two months before the board date, and the filing text we have does not include the release itself. Because the numbers are missing, the timing link between the filings and the price acceleration stays unproven.",
+      "llm_management_signal": "Mixed and mostly administrative. The board filled a vacant seat on the same day it opened, which shows a fast process rather than a strategy shift. The new director brings large technology-company experience, including senior roles at Microsoft and more than twenty years at IBM, plus a past presidency at TOTVS. The company states the departing director had no disagreement with the board or management. No management commentary on results or outlook appears in the text we hold.",
+      "llm_supporting_points_json": "[\"Attention score is 83.75 and severity is 100.0, on a one-month upward view against Brokerage & Wealth Management peers.\", \"The residual z-score is 5.89. That means the price trend moved well beyond the model's expected range for this stock and group.\", \"The August 17, 2026 Form 6-K names exhibit 99.1, a press release dated the same day titled \\\"XP Inc. Reports 2Q26 Financial Results.\\\" The exhibit text is not in our excerpt.\", \"A second August 17, 2026 Form 6-K names unaudited interim financial statements for the three months ended March 31, 2026. That period end is about four and a half months before the filing date.\", \"The October 16, 2026 Form 6-K covers a board resignation and a same-day interim appointment. It states no earnings, guidance, capital plan or business update.\", \"The company says the resignation was voluntary and not the result of any disagreement on operations, policies or practices.\", \"No clear catalyst confirmed. The filing text holds no figures that can be tied to the price move.\"]",
+      "llm_confidence": "Low to moderate. The price anomaly is well measured, but the evidence that could explain it is missing. The earnings release is named in a filing yet its contents are absent from our text, so any link between those results and the momentum jump is a guess, not a finding.",
+      "llm_source_line": "Synthesized from SEC EDGAR filings and anomaly context"
+    },
+    "candidate": {
+      "status": "available",
+      "ticker": "XP",
+      "days": 365,
+      "company": {
+        "name": "XP Inc. - Class A Common Stock",
+        "business_lens": "",
+        "headline": "",
+        "summary": "",
+        "why_now": "",
+        "management_signal": "",
+        "background": "",
+        "as_of": "2026-10-20T20:50:40.516483+00:00"
+      },
+      "technical": {
+        "close": null,
+        "ath": null,
+        "pullback_from_ath_pct": null,
+        "channel_support": null,
+        "channel_resistance": null,
+        "channel_position": null,
+        "dist_to_support_pct": null,
+        "dist_to_resistance_pct": null,
+        "ret_5_pct": null,
+        "ret_21_pct": null,
+        "ret_63_pct": null,
+        "rsi_14": null,
+        "vol_20_ann_pct": null,
+        "regime": ""
+      },
+      "forecast": {
+        "current_price": null,
+        "support": null,
+        "resistance": null,
+        "up_probability": null,
+        "breakout_probability": null,
+        "support_break_probability": null,
+        "expected_return_pct": null,
+        "median_return_pct": null,
+        "expected_path_return_pct": null,
+        "analog_count": null,
+        "terminal_band": {}
+      },
+      "articles": [],
+      "unavailable": [],
+      "provenance": {
+        "modes": [
+          "materialized"
+        ],
+        "datasets": [
+          "technical_signals_latest",
+          "technical_signal_history",
+          "technical_forecast",
+          "zopedia_ticker_business_model_stacks",
+          "attention_ticker_background_snapshots",
+          "news_articles"
+        ]
+      }
+    }
+  },
+  {
+    "symbol": "IOVA",
+    "previous_attention": {
+      "symbol": "IOVA",
+      "company_name": "IOVANCE BIOTHERAPEUTICS, INC.",
+      "cik": 1425205,
+      "latest_filing_date": "2026-10-05 00:00:00+00:00",
+      "latest_form": "8-K",
+      "latest_items": "8.01,9.01",
+      "filing_count_lookback": 4,
+      "context_story_text": "IOVA filed a 8-K on Oct 05 covering 8.01,9.01. Over the current lookback, primary-source context clusters around 8-K and 10-Q across 4 filing(s). The filing text itself gives a more concrete read on what management is emphasizing.",
+      "primary_source_excerpt": "Item 9.01 Financial Statements and Exhibits. Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934 Date of Report (date of earliest event reported): October 5, 2026 Item focus: 8.01,9.01.",
+      "source_line": "Primary sources: SEC EDGAR filings",
+      "latest_filing_excerpt": "Item 9.01 Financial Statements and Exhibits. Pursuant to Section 13 or 15(d) of the Securities Exchange Act of 1934 Date of Report (date of earliest event reported): October 5, 2026",
+      "top_filing_links_json": "[{\"label\": \"8-K \u2022 Oct 05\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1425205/000110465926113763/tm2627047d1_8k.htm\"}, {\"label\": \"8-K \u2022 Sep 29\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1425205/000110465926111583/tm2626507d1_8k.htm\"}, {\"label\": \"8-K \u2022 Aug 06\", \"url\": \"https://www.sec.gov/Archives/edgar/data/1425205/000110465926092145/tm2622463d1_8k.htm\"}]",
+      "asof_time_utc": "2026-10-20 20:05:39.836932+00:00",
+      "schema_version": "v1",
+      "llm_headline": "Iovance breaks away from its biotech peers, but the filings do not yet show why",
+      "llm_summary_text": "Iovance Biotherapeutics (IOVA) has moved off its normal path with the Biotechnology group. The gap is large: the leftover move scores 5.82 standard deviations from what the peer pattern predicts. The only firm evidence is a September 29, 2026 filing that says the company updated full year 2026 revenue guidance. That filing does not give the numbers, so the size and direction of the change are unknown. No clear catalyst confirmed.",
+      "llm_narrative_text": "A correlation break means a stock stops moving with the group it usually tracks. For IOVA, the up direction over one year and the 5.82 leftover score say the stock has parted from the Biotechnology peer group by a wide margin. The attention score is 83.75 out of 100, with severity at 100.\n\nThe filings give one solid lead and two blanks. The solid lead is the 8-K filed September 29, 2026. It states that Iovance issued a press release that day to update its full year 2026 revenue guidance, attached as Exhibit 99.1. A guidance update is the kind of event that can break a stock away from its peers. But the filing text does not give the new range, the old range, or the reason for the change. The exhibit is not in the supplied text, so we cannot say whether guidance went up, down, or stayed flat. No clear catalyst confirmed.\n\nThe other two filings add little. The August 6, 2026 8-K shows only the Item 9.01 heading and the standard exchange act reference. The October 5, 2026 8-K lists Item 8.01 and Item 9.01, but the Item 8.01 text and the exhibit list are missing. So neither filing names a business event we can check.\n\nPut together: the market has repriced IOVA against its peer group, and the most likely link is the guidance update. That link is plausible, not proven. Read the Exhibit 99.1 press release before treating this as a confirmed driver.",
+      "llm_why_now": "The break is visible now because the one-year window covers the September 29, 2026 guidance update. That is the most recent filing with named business content. The October 5, 2026 filing came six days later and could add to the move, but its Item 8.01 text is missing from the evidence, so its effect cannot be measured.",
+      "llm_management_signal": "Management took a public step to reset its 2026 revenue outlook. The filing records the act of disclosure only. It carries no stated view on results, no figures, and no stated cause. The August 6 and October 5 filings show no management voice in the supplied text.",
+      "llm_supporting_points_json": "[\"Anomaly type is correlation break, direction up, horizon one year, peer group Biotechnology.\", \"Residual z-score is 5.82, a wide departure from the peer pattern. Severity score is 100 and attention score is 83.75.\", \"The 8-K dated September 29, 2026 says Iovance issued a press release updating full year 2026 revenue guidance, attached as Exhibit 99.1.\", \"The guidance range, the prior range, and the reason for the change are not in the filing text. Direction of the update is unknown.\", \"The 8-K dated August 6, 2026 shows only Item 9.01 boilerplate. The Item 8.01 body is absent.\", \"The 8-K dated October 5, 2026 lists Items 8.01 and 9.01, but the event description and exhibit list are missing.\", \"No clear catalyst confirmed for the August 6 or October 5 filings.\"]",
+      "llm_confidence": "Moderate. The correlation break itself is well measured, at a 5.82 leftover score. The link to company news is weaker, because the key exhibit text is missing and two of three filings lack their main content. The stated confidence score is 65 out of 100.",
+      "llm_source_line": "Synthesized from SEC EDGAR filings and anomaly context"
+    },
+    "candidate": {
+      "status": "available",
+      "ticker": "IOVA",
+      "days": 365,
+      "company": {
+        "name": "Iovance Biotherapeutics, Inc. - Common Stock",
+        "business_lens": "Healthcare & Life Sciences",
+        "headline": "",
+        "summary": "",
+        "why_now": "",
+        "management_signal": "",
+        "background": "",
+        "as_of": "2026-10-20T20:50:40.516483+00:00"
+      },
+      "technical": {
+        "close": null,
+        "ath": null,
+        "pullback_from_ath_pct": null,
+        "channel_support": null,
+        "channel_resistance": null,
+        "channel_position": null,
+        "dist_to_support_pct": null,
+        "dist_to_resistance_pct": null,
+        "ret_5_pct": null,
+        "ret_21_pct": null,
+        "ret_63_pct": null,
+        "rsi_14": null,
+        "vol_20_ann_pct": null,
+        "regime": ""
+      },
+      "forecast": {
+        "current_price": null,
+        "support": null,
+        "resistance": null,
+        "up_probability": null,
+        "breakout_probability": null,
+        "support_break_probability": null,
+        "expected_return_pct": null,
+        "median_return_pct": null,
+        "expected_path_return_pct": null,
+        "analog_count": null,
+        "terminal_band": {}
+      },
+      "articles": [],
+      "unavailable": [],
+      "provenance": {
+        "modes": [
+          "materialized"
+        ],
+        "datasets": [
+          "technical_signals_latest",
+          "technical_signal_history",
+          "technical_forecast",
+          "zopedia_ticker_business_model_stacks",
+          "attention_ticker_background_snapshots",
+          "news_articles"
+        ]
+      }
+    }
+  }
+]

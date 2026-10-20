@@ -579,7 +579,7 @@ input:focus, select:focus, textarea:focus { border-color: #596a7a; box-shadow: 0
 }
 .company-brief-copy { padding: 1.15rem 1.25rem; }
 .company-brief-copy .section-label { margin-bottom: 0.45rem; }
-.company-brief h2 { font-size: 1.02rem; font-weight: 610; letter-spacing: -0.02em; line-height: 1.35; margin: 0; }
+.company-brief-copy > h2 { font-size: 1.02rem; font-weight: 610; letter-spacing: -0.02em; line-height: 1.35; margin: 0; }
 .company-summary { color: var(--ink-soft); font-size: 0.74rem; line-height: 1.62; margin: 0.65rem 0 0; max-width: 65rem; }
 .context-notes { border-top: 1px solid var(--line); display: grid; gap: 0.7rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0.95rem 0 0; padding-top: 0.9rem; }
 .context-notes div { display: grid; gap: 0.3rem; }

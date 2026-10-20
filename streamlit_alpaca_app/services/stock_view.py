@@ -14,7 +14,7 @@ from data_access.query_service import QueryService
 _TICKER_RE = re.compile(r"^[A-Z0-9.-]{1,12}$")
 
 
-def _clean(value: object, *, limit: int = 4000) -> str:
+def _clean(value: object, *, limit: int | None = 4000) -> str:
     text = str(value if value is not None else "").strip()
     return "" if not text or text.lower() == "nan" else text[:limit]
 
@@ -78,7 +78,7 @@ def build_stock_investigator_view(
 
     resolve("technical", lambda: access.resolve_technical_signal_summary(symbol))
     resolve("forecast", lambda: access.resolve_forecast_next_week(symbol, days=max(lookback_days, 180)))
-    resolve("context", lambda: access.resolve_attention_context(symbol))
+    resolve("research", lambda: access.resolve_ticker_business_model_stack(symbol))
     resolve("background", lambda: access.resolve_attention_ticker_background(symbol))
     resolve("news", lambda: access.resolve_recent_news(symbol, days=14, limit=8))
 
@@ -125,25 +125,24 @@ def build_stock_investigator_view(
         }
     forecast["terminal_band"] = terminal_band
 
-    context = _dict_payload(resolutions.get("context"))
+    research_rows = _records(resolutions["research"].payload) if "research" in resolutions else []
+    research = research_rows[0] if research_rows else {}
+    story = _clean(research.get("business_story_markdown"), limit=None)
     background = _dict_payload(resolutions.get("background"))
     company = {
-        "name": _clean(context.get("company_name") or background.get("company_name"), limit=200),
-        "business_lens": _clean(context.get("business_lens") or background.get("business_lens"), limit=400),
-        "headline": _clean(context.get("llm_headline") or background.get("llm_headline"), limit=300),
-        "summary": _clean(
-            context.get("llm_summary_text")
-            or context.get("context_story_text")
-            or background.get("llm_summary_text"),
-            limit=4000,
-        ),
-        "why_now": _clean(context.get("llm_why_now"), limit=2400),
-        "management_signal": _clean(context.get("llm_management_signal"), limit=2400),
+        "name": _clean(research.get("company_name") or background.get("company_name"), limit=200),
+        "business_lens": _clean(background.get("business_lens"), limit=400),
+        # Keep the shared client contract, including installed native builds.
+        # The complete Zopedia story owns its headings and source links; do not
+        # splice in a separate Attention interpretation or truncate the analysis.
+        "headline": "",
+        "summary": story,
+        "why_now": "",
+        "management_signal": "",
         "background": _clean(
-            background.get("company_background_text") or background.get("description_text"),
-            limit=4000,
-        ),
-        "as_of": _clean(background.get("asof_time_utc") or context.get("asof_time_utc"), limit=80),
+            background.get("company_background_text") or background.get("description_text"), limit=None,
+        ) if not story else "",
+        "as_of": _clean(research.get("asof_time_utc") if story else background.get("asof_time_utc"), limit=80),
     }
 
     news_payload = resolutions.get("news").payload if resolutions.get("news") is not None else None

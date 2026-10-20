@@ -2779,6 +2779,7 @@ def build_ticker_business_model_stack_frames(
     edgar_evidence_frame: pd.DataFrame | None = None,
     news_frame: pd.DataFrame | None = None,
     research_results_frame: pd.DataFrame | None = None,
+    existing_stacks_frame: pd.DataFrame | None = None,
     serp_client: Any | None = None,
     tavily_client: Any | None = None,
     execute_research: bool = False,
@@ -2813,11 +2814,23 @@ def build_ticker_business_model_stack_frames(
         limit=limit,
         progress_callback=progress_callback,
     )
+    stacks = serialize_ticker_business_model_stack_results(results)
+    if isinstance(existing_stacks_frame, pd.DataFrame) and not existing_stacks_frame.empty:
+        # A scheduled batch researches a subset of companies. Retain complete
+        # prior analyses for other companies, and when an attempt has no story.
+        # Keep each retained row's original dates and provenance intact.
+        stacks = pd.concat([stacks, existing_stacks_frame], ignore_index=True)
+        stacks["symbol"] = stacks["symbol"].astype(str).str.upper().str.strip()
+        stacks = stacks[stacks["symbol"].ne("")].copy()
+        stacks["_has_story"] = stacks["business_story_markdown"].fillna("").astype(str).str.strip().ne("")
+        stacks["_as_of"] = pd.to_datetime(stacks["asof_time_utc"], utc=True, errors="coerce")
+        stacks = stacks.sort_values(["_has_story", "_as_of"], ascending=False, kind="stable", na_position="last")
+        stacks = stacks.drop_duplicates("symbol", keep="first").drop(columns=["_has_story", "_as_of"]).reset_index(drop=True)
     return {
         "zopedia_business_model_research_plans": serialize_business_model_research_plan_rows(results),
         "zopedia_business_model_search_requests": serialize_business_model_search_request_rows(results),
         "zopedia_business_model_search_results": serialize_business_model_search_result_rows(results),
-        "zopedia_ticker_business_model_stacks": serialize_ticker_business_model_stack_results(results),
+        "zopedia_ticker_business_model_stacks": stacks,
         "zopedia_company_business_memory_pages": business_memory_pages_from_stacks(results),
     }
 

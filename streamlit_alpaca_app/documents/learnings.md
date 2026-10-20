@@ -1221,3 +1221,7 @@ A supported release can resume after verifying already-promoted exact images. Ke
 
 ### October 20 — retain the actual observation decision after promotion
 The owner authorized immediate cleanup promotion after approximately 39 observed hours with coverage limits disclosed. Record that decision separately from a completed 48-hour comparison. All twenty production consumers now run the exact dev-accepted images, and later observer samples are post-release monitoring until the original end. Normal health and recovery executions and fresh signed-in screens provide production evidence without manually triggering account operations or paid research.
+
+### October 20 — connect company presentation to shared research
+
+A common model gateway does not establish a shared company explanation. Trace the final consumer: Markets stock detail was prioritizing a narrow filing/anomaly summary while fuller Zopedia company analyses were already retained. Reuse the complete shared analysis, including its source links and original date. Scheduled subset refreshes must retain earlier company results and prioritize the subjects shown in Attention. Keep useful partial research; absence of a new story is an execution outcome, not a reason to erase the previous one.

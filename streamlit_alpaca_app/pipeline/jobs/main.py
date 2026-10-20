@@ -2319,13 +2319,13 @@ def _iter_news_business_research_output_phases(
     ctx: JobContext,
     conn: Any | None,
 ) -> Iterator[dict[str, pd.DataFrame]]:
-    if not isinstance(news, pd.DataFrame) or news.empty:
+    if not symbols:
         write_policy = _normalize_zopedia_write_policy(os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "safe_auto"))
         commit_report = _zopedia_memory_commit_report_frame(
             ctx=ctx,
             source="pipeline.news_business_resolution",
             write_policy=write_policy,
-            result={"status": "skipped", "reason": "no_news", "page_count": 0},
+            result={"status": "skipped", "reason": "no_symbols", "page_count": 0},
             requested_page_count=0,
             eligible_page_count=0,
             rejected_pages=[],
@@ -2334,7 +2334,7 @@ def _iter_news_business_research_output_phases(
             "zopedia_business_model_research_plans": pd.DataFrame(),
             "zopedia_business_model_search_requests": pd.DataFrame(),
             "zopedia_business_model_search_results": pd.DataFrame(),
-            "zopedia_ticker_business_model_stacks": pd.DataFrame(),
+            "zopedia_ticker_business_model_stacks": _load_latest_materialized_frame("zopedia_ticker_business_model_stacks"),
             "zopedia_news_business_resolutions": pd.DataFrame(),
             "zopedia_company_business_memory_pages": pd.DataFrame(),
             "zopedia_memory_commit_report": commit_report,
@@ -2372,6 +2372,7 @@ def _iter_news_business_research_output_phases(
         zopedia_pages_frame=zopedia_pages,
         edgar_evidence_frame=edgar_evidence,
         news_frame=news,
+        existing_stacks_frame=_load_latest_materialized_frame("zopedia_ticker_business_model_stacks"),
         serp_client=serp_client,
         tavily_client=tavily_client,
         execute_research=execute_business_research,
@@ -2577,7 +2578,10 @@ def run_news(ctx: JobContext, conn: Any | None = None) -> None:
             business_resolution_phases = _iter_news_business_research_output_phases(
                 news=news,
                 edgar_evidence=edgar_evidence,
-                symbols=symbols,
+                # Research current Attention subjects through the same company
+                # workflow as news. Filing-only context must not be their sole
+                # explanation just because they are outside the news shortlist.
+                symbols=list(dict.fromkeys([*context_symbols, *symbols])),
                 llm_client=llm_client,
                 ctx=ctx,
                 conn=conn,

@@ -4,6 +4,7 @@ import type { FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/icons";
+import { Markdown } from "@/components/markdown";
 import { Visualization } from "@/components/visualizations/visualization";
 import { responseError, secureMutation } from "@/lib/client/api";
 import { readAuthenticatedSession } from "@/lib/client/session";
@@ -287,14 +288,14 @@ function StockInvestigatorWorkspace() {
           <div className="company-brief-copy">
             <p className="section-label">Company context</p>
             {company?.headline ? <h2>{company.headline}</h2> : null}
-            {company?.summary ? <p className="company-summary">{company.summary}</p> : null}
+            {company?.summary ? <Markdown>{company.summary}</Markdown> : null}
             {company?.why_now || company?.management_signal ? (
               <dl className="context-notes">
                 {company.why_now ? <div><dt>Why now</dt><dd>{company.why_now}</dd></div> : null}
                 {company.management_signal ? <div><dt>Management signal</dt><dd>{company.management_signal}</dd></div> : null}
               </dl>
             ) : null}
-            {!company?.summary && company?.background ? <p className="company-summary">{company.background}</p> : null}
+            {!company?.summary && company?.background ? <Markdown>{company.background}</Markdown> : null}
           </div>
           {forecast && Object.values(forecast).some((value) => typeof value === "number") ? (
             <dl className="forecast-ledger" aria-label="Next-week forecast">

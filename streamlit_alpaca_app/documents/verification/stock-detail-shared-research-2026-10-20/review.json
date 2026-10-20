@@ -1,0 +1,37 @@
+{
+  "status": "local_review_in_progress",
+  "request": "Make Markets stock detail consume general Zopedia company research instead of the filing-only Attention explanation.",
+  "base_revision": "fc73a4328860b2d69f9868d110625048fc25debb",
+  "source_worktree": "/Users/omairs/Documents/code/spectral_nature_stock_research_20261020",
+  "design": {
+    "research_owner": "Existing shared AQL/Zopedia company workflow, with its existing acquisition, retained evidence and synthesis.",
+    "read_owner": "Stock Investigator consumes zopedia_ticker_business_model_stacks through the existing DAL resolver.",
+    "client_contract": "Preserve existing company.summary for installed SwiftUI clients; carry the full model-authored Markdown and source links without a 4,000-character cut. Web uses its existing Markdown renderer.",
+    "coverage": "Scheduled company research prioritizes current Attention subjects before the existing news universe, under the existing batch limit. Empty news does not suppress company research.",
+    "retention": "The shared producer retains each company's newest nonempty analysis across sparse batches and unsuccessful refreshes, with its own original date and provenance. Partial analyses remain usable.",
+    "boundaries": "No research during rendering; no additional company writer, prompt, model or source-specific semantic rules. Specialized filing extraction and the Attention feed writer remain scoped to their existing tasks."
+  },
+  "review": {
+    "published_comparison": "published-output-comparison.json",
+    "personally_read_complete_retained_analyses": [
+      "MU",
+      "MRNA",
+      "CRWV",
+      "BAC"
+    ],
+    "assessment": "The shared analyses explain products, customers, economics, material developments and connected uncertainties, substantially improving usefulness over the old filing/anomaly summaries. Projection preserves the original analysis, including imperfect findings; this is not a claim that every underlying financial fact has been independently verified.",
+    "coverage_gap": "The captured production company dataset contains 25 companies. XP and IOVA lack company analyses in that snapshot. Fresh checks through the existing shared workflow are running separately; runtime code contains no ticker-specific branches."
+  },
+  "checks": {
+    "projection_and_retention": "3 passed",
+    "typescript": "passed",
+    "broader_selected_tests": "61 passed, 5 failed; the same five failures reproduce on the unchanged accepted base (59 passed, 5 failed). They assert older semantic suppression, per-category model calls and an obsolete evidence dataset name. No reasoning was changed to satisfy those expectations.",
+    "native": "Existing InvestigatorView renders company.summary using MarkdownView. No native source or build change is required.",
+    "development": "pending"
+  },
+  "deployment": {
+    "production_authorized": false,
+    "development": "Only after local acceptance and the committed release-source gate.",
+    "preserve": "Concurrent dirty work in the original checkout, current production images, unrelated development consumers and the running cleanup observer."
+  }
+}
