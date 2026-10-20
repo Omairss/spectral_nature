@@ -3236,6 +3236,14 @@ def _execute_zopedia_agent_loop(
         )
     full_tool_registry = build_tool_registry(resolved_service)
     allowed_tool_catalog = _tool_catalog_for_write_policy(full_tool_registry.catalog(), resolved_write_policy)
+    allowed_tool_names = request_context.get("allowed_tool_names")
+    if allowed_tool_names is not None:
+        if not isinstance(allowed_tool_names, list) or not all(
+            isinstance(name, str) and name for name in allowed_tool_names
+        ):
+            raise ValueError("Invalid research tool access scope")
+        allowed_tool_catalog = [tool for tool in allowed_tool_catalog
+                                if tool.get("name") in allowed_tool_names]
     allowed_source_access = request_context.get("allowed_source_access")
     if allowed_source_access is not None:
         if not isinstance(allowed_source_access, list) or not set(allowed_source_access) <= {"supplied", "retained_or_data", "web"}:
@@ -3263,7 +3271,9 @@ def _execute_zopedia_agent_loop(
         tool_catalog = [tool for tool in tool_registry.catalog() if tool["name"] in core_names]
     else:
         tool_catalog = tool_registry.catalog()
-    if request_context.get("conversation_runs"):
+    if request_context.get("conversation_runs") and (
+        allowed_tool_names is None or "conversation.research_runs" in allowed_tool_names
+    ):
         tool_catalog.append(
             {
                 "name": "conversation.research_runs",
@@ -3282,7 +3292,9 @@ def _execute_zopedia_agent_loop(
             }
         )
     # Inject conversation.prior_answers tool when chat history is available
-    if conversation_history:
+    if conversation_history and (
+        allowed_tool_names is None or "conversation.prior_answers" in allowed_tool_names
+    ):
         tool_catalog.append(
             {
                 "name": "conversation.prior_answers",
@@ -3682,6 +3694,8 @@ def _execute_zopedia_agent_loop(
                 tool_arguments=arguments,
             )
             try:
+                if allowed_tool_names is not None and tool_name not in allowed_tool_names:
+                    raise ValueError(f"Tool is outside the requested research scope: {tool_name}")
                 if tool_name == "conversation.research_runs":
                     records = [
                         row
