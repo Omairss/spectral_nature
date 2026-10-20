@@ -1215,3 +1215,6 @@ Read execution-specific Azure system events before assigning a job failure to so
 
 ### October 19 — use Azure execution diagnostics for failures before startup
 `BackoffLimitExceeded` is a terminal retry outcome. The job `containerJobAvailabilityDetector` exposed `ProviderCreateFailed` for all ten affected Consumption replicas while normal system logs showed only scheduling and retries. Complete job diagnostics can contain decisive replica-creation evidence even when aggregate Platform Health, image-pull and OCI checks are green. Correlate probe warnings with the actual failed interval; normal startup warnings elsewhere do not explain a replica that was never created. Preserve the provider attribution without inventing its undisclosed internal cause.
+
+### October 20 — retain original rollback receipts across an idempotent release resume
+A supported release can resume after verifying already-promoted exact images. Keep the first operation's before definitions separately: a resumed readback already contains the new image. An omitted empty server-only ARM response field needs an explicit representation review and exact fresh baseline, rather than a runtime workaround or weakened configuration comparison.

@@ -1090,7 +1090,7 @@
           "kind": "jobs",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "582ca07839e32aaca57ad45e0868cea4509729be10da2b3216a022fcddcf9cf0",
+          "configuration_sha256": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
           "preservation_review": {
             "status": "accepted",
             "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
@@ -1106,7 +1106,9 @@
             "environment": {
               "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
             }
-          }
+          },
+          "prior_configuration_sha256": "582ca07839e32aaca57ad45e0868cea4509729be10da2b3216a022fcddcf9cf0",
+          "configuration_readback_review": "documents/verification/deep-cleanup-dev-trial-2026-10-18/configuration-readback-review.json"
         }
       ],
       "accepted_images": {

@@ -1,0 +1,17 @@
+{
+  "recorded_at": "2026-10-20T22:30:34.298847+00:00",
+  "resource": "system-recovery",
+  "status": "accepted_response_representation_change",
+  "before_configuration_sha256": "582ca07839e32aaca57ad45e0868cea4509729be10da2b3216a022fcddcf9cf0",
+  "after_configuration_sha256": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
+  "only_difference": {
+    "path": "template.containers[0].resources.ephemeralStorage",
+    "before": "",
+    "after": "omitted"
+  },
+  "property_semantics": "Server-populated, read-only response field; not a configurable requested storage allocation.",
+  "primary_source": "https://azuresdkdocs.z19.web.core.windows.net/javascript/azure-arm-appcontainers/3.0.0/interfaces/ContainerResources.html",
+  "desired_configuration_equal_after_removing_empty_read_only_field": true,
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+  "action": "Record the exact new ARM readback as this consumer baseline and resume the supported command. No release-code exception, application change, ignored configuration field or image rebuild."
+}
