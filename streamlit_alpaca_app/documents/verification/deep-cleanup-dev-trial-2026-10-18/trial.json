@@ -48,15 +48,15 @@
     "collection_gaps": 0
   },
   "latest_review": {
-    "at": "2026-10-19T17:25:49.808158+00:00",
-    "evidence": "status-2026-10-19.json",
-    "status": "observing",
-    "samples": 41,
-    "http_checks": 410,
+    "at": "2026-10-20T01:15:24.152786+00:00",
+    "evidence": "status-2026-10-19-evening.json",
+    "status": "observing_with_unresolved_failures",
+    "samples": 72,
+    "http_checks": 720,
     "http_flags": 0,
     "missing_due_slots": 0,
     "collection_gaps": 1,
-    "unique_failed_production_executions": 1,
-    "unique_failed_candidate_executions": 0
+    "unique_failed_production_executions": 3,
+    "unique_failed_candidate_executions": 3
   }
 }

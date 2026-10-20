@@ -1127,3 +1127,8 @@ A worker fallback database did not establish the API Portfolio baseline. Final p
 
 ### October 19 — normalize transported metrics in operator analysis
 The first observation-summary calculation compared JSON string values for database durations with integers and raised `TypeError`. Converted transported numeric values before aggregation; no application code or observed runtime result changed.
+
+### October 19 — answer the active cleanup status directly
+The owner asked how the cleanup run was looking. I led with the unrelated research experiment inferred from the active IDE tab. Conversation scope was the local/dev cleanup trial. Lead with local acceptance, observed development behavior and remaining trial coverage; do not infer a different task from open tabs.
+
+During the evening status inspection, Log Analytics rejected wildcard `has_any`; the corrected query explicitly searched packed fields. ARM also rejected API version 2025-07-01 for historical replicas even though it supports the job inventory; the supported CLI returned no retained replicas. These read-only operator errors did not create or change job failures.

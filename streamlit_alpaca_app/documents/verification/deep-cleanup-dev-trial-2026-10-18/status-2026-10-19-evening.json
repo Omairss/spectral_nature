@@ -1,0 +1,449 @@
+{
+  "checked_at": "2026-10-20T01:15:24.152786+00:00",
+  "samples": 72,
+  "first": "2026-10-19T07:23:26.880935+00:00",
+  "latest": "2026-10-20T01:07:48.000123+00:00",
+  "missing_due_slots": [],
+  "http_checks": 720,
+  "http_flags": [],
+  "collection_gaps": [
+    {
+      "slot": 27,
+      "at": "2026-10-19T14:07:48.000113+00:00",
+      "gaps": {
+        "macro-fred-daily": "ConnectTimeout"
+      }
+    }
+  ],
+  "unique_failed_executions": [
+    {
+      "job": "zopedia-learning",
+      "name": "zopedia-learning-29873720",
+      "status": "Failed",
+      "startTime": "2026-10-19T15:20:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6"
+      ]
+    },
+    {
+      "job": "system-health",
+      "name": "system-health-29874135",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:15:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd"
+      ]
+    },
+    {
+      "job": "evidence-index-dev",
+      "name": "evidence-index-dev-29874135",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:15:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+      ]
+    },
+    {
+      "job": "evidence-index-dev",
+      "name": "evidence-index-dev-29874145",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:25:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+      ]
+    },
+    {
+      "job": "evidence-index-dev",
+      "name": "evidence-index-dev-29874140",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:20:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+      ]
+    },
+    {
+      "job": "system-recovery",
+      "name": "system-recovery-29874142",
+      "status": "Failed",
+      "startTime": "2026-10-19T22:22:00+00:00",
+      "endTime": null,
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd"
+      ]
+    }
+  ],
+  "settings_hashes": {
+    "development": [
+      "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+    ],
+    "production": [
+      "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+    ]
+  },
+  "latency": [
+    {
+      "environment": "development",
+      "path": "/health",
+      "median_seconds": 0.082,
+      "max_seconds": 0.266
+    },
+    {
+      "environment": "development",
+      "path": "/api/home",
+      "median_seconds": 0.49,
+      "max_seconds": 0.988
+    },
+    {
+      "environment": "production",
+      "path": "/health",
+      "median_seconds": 0.11,
+      "max_seconds": 0.198
+    },
+    {
+      "environment": "production",
+      "path": "/api/home",
+      "median_seconds": 0.54,
+      "max_seconds": 1.306
+    }
+  ],
+  "resource_audit": {
+    "checked_at": "2026-10-20T01:15:55.268294+00:00",
+    "resources": 35,
+    "missing": [],
+    "added": [],
+    "image_drift": [],
+    "configuration_drift": [],
+    "dev_apps": [
+      {
+        "name": "sn-api-next-dev",
+        "latestRevisionName": "sn-api-next-dev--0000049",
+        "latestReadyRevisionName": "sn-api-next-dev--0000049",
+        "runningStatus": "Running",
+        "provisioningState": "Succeeded"
+      },
+      {
+        "name": "sn-next-ui-dev",
+        "latestRevisionName": "sn-next-ui-dev--0000026",
+        "latestReadyRevisionName": "sn-next-ui-dev--0000026",
+        "runningStatus": "Running",
+        "provisioningState": "Succeeded"
+      }
+    ],
+    "production_baseline_preserved": true
+  },
+  "observer": {
+    "execution": "cleanup-trial-observer-dev-7oyuy3t",
+    "status": "Running",
+    "startTime": "2026-10-19T07:22:50+00:00",
+    "endTime": null
+  },
+  "development_index": {
+    "observed_executions": 213,
+    "statuses": {
+      "Succeeded": 210,
+      "Failed": 3
+    },
+    "observed_executions_since_1530_pdt": 32,
+    "statuses_since_1530_pdt": {
+      "Succeeded": 32
+    },
+    "latest": {
+      "name": "evidence-index-dev-29874305",
+      "status": "Succeeded",
+      "startTime": "2026-10-20T01:05:00+00:00",
+      "endTime": "2026-10-20T01:05:48+00:00",
+      "images": [
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+      ]
+    }
+  },
+  "failure_review": {
+    "production_learning": "Previously confirmed one-hour DeadlineExceeded on unchanged production image; its later 19:20 UTC execution succeeded.",
+    "new_window_utc": [
+      "2026-10-19T22:15:00Z",
+      "2026-10-19T22:30:00Z"
+    ],
+    "new_development_failures": 3,
+    "new_production_failures": 2,
+    "platform_reason": "BackoffLimitExceeded",
+    "retained_events": [
+      {
+        "TimeGenerated": "2026-10-19T22:15:00.7634722Z",
+        "JobName_s": "system-health",
+        "ReplicaName_s": "system-health-29874135-t87s8",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'system-health-29874135-t87s8' for Job Execution 'system-health-29874135' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:15:00.7634722Z",
+        "JobName_s": "system",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Created job system-health-29874135"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:15:00.7634722Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'evidence-index-dev-29874135'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:15:00.7634722Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874135-7tkj2",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'evidence-index-dev-29874135-7tkj2' for Job Execution 'evidence-index-dev-29874135' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:15:00.7634722Z",
+        "JobName_s": "system-health",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'system-health-29874135'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:15:00.7634722Z",
+        "JobName_s": "evidence-index",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "(combined from similar events): Created job evidence-index-dev-29874135"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:17:38.0995392Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874135-5rdjw",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'evidence-index-dev-29874135-5rdjw' for Job Execution 'evidence-index-dev-29874135' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:17:38.0995392Z",
+        "JobName_s": "system-health",
+        "ReplicaName_s": "system-health-29874135-jj6cv",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'system-health-29874135-jj6cv' for Job Execution 'system-health-29874135' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:17:38.0995392Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'evidence-index-dev-29874135'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:17:38.0995392Z",
+        "JobName_s": "system-health",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'system-health-29874135'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:20:01.2621723Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'evidence-index-dev-29874140'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:20:01.2621723Z",
+        "JobName_s": "evidence-index",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "(combined from similar events): Created job evidence-index-dev-29874140"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:20:01.2621723Z",
+        "JobName_s": "system-health",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulDelete",
+        "Log_s": "Deleted pod: system-health-29874135-jj6cv"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:20:01.2621723Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874140-p7826",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'evidence-index-dev-29874140-p7826' for Job Execution 'evidence-index-dev-29874140' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:20:13.7565047Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "BackoffLimitExceeded",
+        "Log_s": "Job has reached the specified backoff limit"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:20:13.7565047Z",
+        "JobName_s": "system",
+        "ReplicaName_s": "",
+        "Reason_s": "SawCompletedJob",
+        "Log_s": "Saw completed job: system-health-29874135, condition: Failed"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:20:13.7565047Z",
+        "JobName_s": "system-health",
+        "ReplicaName_s": "",
+        "Reason_s": "BackoffLimitExceeded",
+        "Log_s": "Job has reached the specified backoff limit"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:22:00.8316328Z",
+        "JobName_s": "system-recovery",
+        "ReplicaName_s": "system-recovery-29874142-n7dj8",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'system-recovery-29874142-n7dj8' for Job Execution 'system-recovery-29874142' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:22:00.8316328Z",
+        "JobName_s": "system",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Created job system-recovery-29874142"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:22:00.8316328Z",
+        "JobName_s": "system-recovery",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'system-recovery-29874142'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:22:27.8374479Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874135-5rdjw",
+        "Reason_s": "PodDeletion",
+        "Log_s": "JobCleanup: Pod - evidence-index-dev-29874135-5rdjw has exited with status Failed"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:22:36.7327364Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'evidence-index-dev-29874140'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:22:37.7442242Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874140-nxpsj",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'evidence-index-dev-29874140-nxpsj' for Job Execution 'evidence-index-dev-29874140' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:24:37.9297251Z",
+        "JobName_s": "system-recovery",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'system-recovery-29874142'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:24:37.9297251Z",
+        "JobName_s": "system-recovery",
+        "ReplicaName_s": "system-recovery-29874142-9zsgs",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'system-recovery-29874142-9zsgs' for Job Execution 'system-recovery-29874142' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:25:00.7510094Z",
+        "JobName_s": "evidence-index",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "(combined from similar events): Created job evidence-index-dev-29874145"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:25:00.7510094Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874145-vnq5h",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'evidence-index-dev-29874145-vnq5h' for Job Execution 'evidence-index-dev-29874145' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:25:00.7510094Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'evidence-index-dev-29874145'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:25:13.7355003Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "BackoffLimitExceeded",
+        "Log_s": "Job has reached the specified backoff limit"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:27:00.8525135Z",
+        "JobName_s": "system-recovery",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulDelete",
+        "Log_s": "Deleted pod: system-recovery-29874142-9zsgs"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:27:13.8055173Z",
+        "JobName_s": "system",
+        "ReplicaName_s": "",
+        "Reason_s": "SawCompletedJob",
+        "Log_s": "Saw completed job: system-recovery-29874142, condition: Failed"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:27:13.8055173Z",
+        "JobName_s": "system-recovery",
+        "ReplicaName_s": "",
+        "Reason_s": "BackoffLimitExceeded",
+        "Log_s": "Job has reached the specified backoff limit"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:27:27.8018568Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874140-nxpsj",
+        "Reason_s": "PodDeletion",
+        "Log_s": "JobCleanup: Pod - evidence-index-dev-29874140-nxpsj has exited with status Failed"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:27:36.7747686Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874145-6729x",
+        "Reason_s": "AssigningReplica",
+        "Log_s": "Replica 'evidence-index-dev-29874145-6729x' for Job Execution 'evidence-index-dev-29874145' has been scheduled to run on a node."
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:27:36.7747686Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "SuccessfulCreate",
+        "Log_s": "Successfully created pod for Job Execution 'evidence-index-dev-29874145'"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:30:13.7628538Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "",
+        "Reason_s": "BackoffLimitExceeded",
+        "Log_s": "Job has reached the specified backoff limit"
+      },
+      {
+        "TimeGenerated": "2026-10-19T22:32:27.9076138Z",
+        "JobName_s": "evidence-index-dev",
+        "ReplicaName_s": "evidence-index-dev-29874145-6729x",
+        "Reason_s": "PodDeletion",
+        "Log_s": "JobCleanup: Pod - evidence-index-dev-29874145-6729x has exited with status Failed"
+      }
+    ],
+    "console_logs_returned": 0,
+    "retained_replicas_returned": 0,
+    "interpretation": "Failed executions show scheduling/retries and exhausted retry limits. No container-start event or application traceback was returned for those executions. Candidate indexing and two unchanged production monitoring jobs failed in the same interval and subsequent schedules recovered. This suggests a shared startup/platform incident, but the retained evidence does not establish its root cause or clear the candidate failures."
+  },
+  "assessment": {
+    "status": "observing_with_unresolved_failures",
+    "candidate_regression_confirmed": false,
+    "candidate_failure_cause_resolved": false,
+    "production_acceptance": "pending_complete_window_failure_investigation_and_workload_review",
+    "reasoning_settings_unchanged": true,
+    "coverage_limit": "Most development producers remain manual; successful HTTP sampling and index schedules are not a matched research workload.",
+    "runtime_changed": false,
+    "production_promoted": false
+  }
+}
