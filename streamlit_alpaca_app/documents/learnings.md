@@ -1212,3 +1212,6 @@ A worker fallback database does not establish an API baseline. Match the actual 
 
 ### October 19 — distinguish platform failure from cleanup attribution
 Read execution-specific Azure system events before assigning a job failure to source changes. The cleanup observer found a production learning failure; `DeadlineExceeded` confirms its one-hour platform termination on the unchanged production image. That does not establish why it ran too long or prove candidate workload coverage. Preserve recovered telemetry gaps and idle development producers in the final comparison.
+
+### October 19 — use Azure execution diagnostics for failures before startup
+`BackoffLimitExceeded` is a terminal retry outcome. The job `containerJobAvailabilityDetector` exposed `ProviderCreateFailed` for all ten affected Consumption replicas while normal system logs showed only scheduling and retries. Complete job diagnostics can contain decisive replica-creation evidence even when aggregate Platform Health, image-pull and OCI checks are green. Correlate probe warnings with the actual failed interval; normal startup warnings elsewhere do not explain a replica that was never created. Preserve the provider attribution without inventing its undisclosed internal cause.

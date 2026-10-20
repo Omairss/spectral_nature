@@ -1,0 +1,220 @@
+{
+  "reviewed_at": "2026-10-20T04:18:45.877593+00:00",
+  "status": "afternoon_failure_cause_attributed",
+  "cause": {
+    "owner": "Azure Container Apps Consumption infrastructure",
+    "reason": "ProviderCreateFailed",
+    "provider": "Legion",
+    "failure_phase": "Azure replica creation, before image pull or application container startup",
+    "confirmed_replica_failures": {
+      "evidence-index-dev": 6,
+      "system-health": 2,
+      "system-recovery": 2
+    },
+    "mechanism": "The provider could not create the initial or retried replica; each job allows one replica retry. Exhausted retries caused the terminal BackoffLimitExceeded status.",
+    "boundary": "Azure diagnostics confirm provider-side replica-creation failure. They do not disclose the underlying Microsoft-internal reason; no regional capacity shortage, host maintenance, or registry outage is asserted."
+  },
+  "window": {
+    "failed_execution_starts_utc": [
+      "2026-10-19T22:15:00Z",
+      "2026-10-19T22:25:00Z"
+    ],
+    "first_subsequent_successful_index_schedule": "2026-10-19T22:30:00Z"
+  },
+  "classification": "The three development and two production afternoon failures are attributed to the shared Azure provider and do not demonstrate a cleanup application regression.",
+  "detector_receipts": [
+    {
+      "job": "evidence-index-dev",
+      "path": "azure-startup-diagnostics/evidence-index-dev.json",
+      "sha256": "c37fc1544b9e573438560642b3ab1c4fa2048955b8c464b72ae2356615b441d1",
+      "detector": "containerJobAvailabilityDetector",
+      "requested_start": "2026-10-19T22:00:00Z",
+      "requested_end": "2026-10-19T23:00:00Z"
+    },
+    {
+      "job": "system-health",
+      "path": "azure-startup-diagnostics/system-health.json",
+      "sha256": "0ec2188232542dc2992f242f43d0ddd9190f729338a177302b42a08016b92ea5",
+      "detector": "containerJobAvailabilityDetector",
+      "requested_start": "2026-10-19T22:00:00Z",
+      "requested_end": "2026-10-19T23:00:00Z"
+    },
+    {
+      "job": "system-recovery",
+      "path": "azure-startup-diagnostics/system-recovery.json",
+      "sha256": "866b7746add93283a88f3be40bbc5058ac0443bc07192c52caa4bb1ae2f3470f",
+      "detector": "containerJobAvailabilityDetector",
+      "requested_start": "2026-10-19T22:00:00Z",
+      "requested_end": "2026-10-19T23:00:00Z"
+    }
+  ],
+  "independent_checks": {
+    "image_pull_failure_detector": "none detected",
+    "key_vault_secret_failure_detector": "none detected",
+    "quota_or_max_nodes_detector": "none detected",
+    "oci_runtime_create_failure_detector": "none detected",
+    "storage_mount_failure_detector": "none detected",
+    "subscription_activity_events_in_window": 0,
+    "service_health_events_returned": 0,
+    "registry_pull_count_between_2215_and_2230_utc": 0,
+    "registry_pull_activity_resumed_at_utc": "2026-10-19T22:31:00Z",
+    "probe_warning_interpretation": "The diagnostic records routine startup probe signals outside the failed execution interval. They are not evidence that an application probe killed these uncreated replicas.",
+    "missing_metric_interpretation": "Consumption environment node/quota metrics returned no series; this is not a zero-usage or healthy-capacity finding."
+  },
+  "current_inventory": {
+    "at": "2026-10-20T04:17:13.590496+00:00",
+    "count": 35,
+    "added": [],
+    "missing": [],
+    "image_drift": [],
+    "configuration_drift": [],
+    "failed_job_configuration": [
+      {
+        "name": "system-recovery",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+        "replicaRetryLimit": 1,
+        "replicaTimeout": 300,
+        "probes": null,
+        "resources": {
+          "cpu": 0.5,
+          "memory": "1Gi",
+          "ephemeralStorage": ""
+        }
+      },
+      {
+        "name": "evidence-index-dev",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+        "replicaRetryLimit": 1,
+        "replicaTimeout": 600,
+        "probes": null,
+        "resources": {
+          "cpu": 0.5,
+          "memory": "1Gi"
+        }
+      },
+      {
+        "name": "system-health",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd",
+        "replicaRetryLimit": 1,
+        "replicaTimeout": 300,
+        "probes": null,
+        "resources": {
+          "cpu": 0.25,
+          "memory": "0.5Gi"
+        }
+      }
+    ]
+  },
+  "latest_trial": {
+    "checked_at": "2026-10-20T04:17:12.970555+00:00",
+    "samples": 84,
+    "latest": "2026-10-20T04:07:48.000114+00:00",
+    "missing_due_slots": [],
+    "http_checks": 840,
+    "http_flags": 0,
+    "collection_gaps": [
+      {
+        "slot": 27,
+        "gaps": {
+          "macro-fred-daily": "ConnectTimeout"
+        }
+      }
+    ],
+    "unique_execution_flags": [
+      {
+        "job": "zopedia-learning",
+        "name": "zopedia-learning-29873720",
+        "status": "Failed",
+        "startTime": "2026-10-19T15:20:00+00:00",
+        "endTime": null,
+        "images": [
+          "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:35fde874c971770a5d0250b8facb476e2a4047bdf06532754b58e7c578f16dd6"
+        ]
+      },
+      {
+        "job": "system-health",
+        "name": "system-health-29874135",
+        "status": "Failed",
+        "startTime": "2026-10-19T22:15:00+00:00",
+        "endTime": null,
+        "images": [
+          "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd"
+        ]
+      },
+      {
+        "job": "evidence-index-dev",
+        "name": "evidence-index-dev-29874135",
+        "status": "Failed",
+        "startTime": "2026-10-19T22:15:00+00:00",
+        "endTime": null,
+        "images": [
+          "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+        ]
+      },
+      {
+        "job": "evidence-index-dev",
+        "name": "evidence-index-dev-29874145",
+        "status": "Failed",
+        "startTime": "2026-10-19T22:25:00+00:00",
+        "endTime": null,
+        "images": [
+          "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+        ]
+      },
+      {
+        "job": "evidence-index-dev",
+        "name": "evidence-index-dev-29874140",
+        "status": "Failed",
+        "startTime": "2026-10-19T22:20:00+00:00",
+        "endTime": null,
+        "images": [
+          "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+        ]
+      },
+      {
+        "job": "system-recovery",
+        "name": "system-recovery-29874142",
+        "status": "Failed",
+        "startTime": "2026-10-19T22:22:00+00:00",
+        "endTime": null,
+        "images": [
+          "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:3ab50680bb7ce47ca01dbc029900f98d1a2bbaa15a0a380f56a034f15d5ed2cd"
+        ]
+      }
+    ],
+    "index": {
+      "statuses": {
+        "Succeeded": 246,
+        "Failed": 3
+      },
+      "since_recovery": {
+        "Succeeded": 68
+      },
+      "latest": {
+        "name": "evidence-index-dev-29874485",
+        "status": "Succeeded",
+        "startTime": "2026-10-20T04:05:00+00:00",
+        "endTime": "2026-10-20T04:05:48+00:00",
+        "images": [
+          "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+        ]
+      }
+    },
+    "reasoning_hashes": {
+      "development": [
+        "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+      ],
+      "production": [
+        "8e7f52fb2cbe706fb199f337116c14f6e94aa702815ce7dd659accd6162b13e4"
+      ]
+    }
+  },
+  "separate_production_learning_failure": "zopedia-learning-29873720 was terminated by its one-hour DeadlineExceeded earlier in the day; it is not part of this ProviderCreateFailed incident. Why that application workload exceeded its deadline is not established by this diagnosis.",
+  "action": {
+    "application_change": "none indicated by this incident",
+    "deployment": "none",
+    "config_or_retry_change": "none",
+    "production_promoted": false,
+    "trial": "continue original 48-hour observation and review workload coverage"
+  }
+}

@@ -1132,3 +1132,6 @@ The first observation-summary calculation compared JSON string values for databa
 The owner asked how the cleanup run was looking. I led with the unrelated research experiment inferred from the active IDE tab. Conversation scope was the local/dev cleanup trial. Lead with local acceptance, observed development behavior and remaining trial coverage; do not infer a different task from open tabs.
 
 During the evening status inspection, Log Analytics rejected wildcard `has_any`; the corrected query explicitly searched packed fields. ARM also rejected API version 2025-07-01 for historical replicas even though it supports the job inventory; the supported CLI returned no retained replicas. These read-only operator errors did not create or change job failures.
+
+### October 19 — distinguish diagnostic query errors from platform incidents
+The initial detector reads added a `timeGrain` query parameter and returned HTTP 500. Removing that unsupported parameter produced successful time-scoped diagnostic responses, including the decisive provider-creation evidence. Those inspection errors are unrelated to the afternoon incident. A console summary also used reserved `first` as an alias; corrected it to `started_at`. One private job-inspection print assumed secrets was a list; ARM returned null. No runtime or configuration changed for these operator corrections.
