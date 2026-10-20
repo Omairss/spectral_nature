@@ -25,14 +25,15 @@
     "coverage_gap": "The captured production company dataset has 25 companies, excluding XP and IOVA. The existing development dataset contains complete analyses for both, with their actual October 14 dates preserved. Future scheduled research prioritizes current Attention subjects and accumulates retained company coverage; no claim of universal coverage.",
     "development_comparison": "development-retained-comparison.json",
     "known_research_error": "The retained October 14 Iovance analysis incorrectly treats patient-specific manufacturing as proof that backlog cannot exist. This is an existing reasoning error, not a factual conclusion accepted by this review. The current shared synthesis instructions already distinguish absent data from structural impossibility. Fresh research checks are recorded separately; routing acceptance does not certify every retained claim.",
-    "fresh_research_checks": "XP and IOVA in progress through the unchanged shared company workflow; no knowledge-page publication requested."
+    "fresh_research_checks": "Completed XP and IOVA through the existing shared workflow, QA only. Full synthesis recovered from versioned checkpoints because the convenience probe report clips text at 900 characters. See fresh-research-review.json for complete outputs and remaining weaknesses."
   },
   "checks": {
     "projection_and_retention": "3 passed",
     "typescript": "passed",
     "broader_selected_tests": "61 passed, 5 failed; the same five failures reproduce on the unchanged accepted base (59 passed, 5 failed). They assert older semantic suppression, per-category model calls and an obsolete evidence dataset name. No reasoning was changed to satisfy those expectations.",
     "native": "Existing InvestigatorView renders company.summary using MarkdownView. No native source or build change is required.",
-    "development": "pending"
+    "development": "pending",
+    "local_rendering": "Actual Markdown component and application CSS rendered with retained XP content; headings, paragraphs and source links verified in Chrome. This is a local component preview, distinct from the authenticated deployed-page check."
   },
   "deployment": {
     "production_authorized": false,
