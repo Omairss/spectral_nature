@@ -75,6 +75,15 @@ class LLMJSONParseError(LLMAPIError):
         self.raw_content = raw_content
 
 
+class LLMCompletionInterrupted(LLMAPIError):
+    """Keep an interrupted generation distinct from repairable malformed JSON."""
+
+    def __init__(self, finish_reason: str, *, final_content: str = "") -> None:
+        super().__init__(f"LLM generation ended with finish_reason={finish_reason}.")
+        self.finish_reason = finish_reason
+        self.final_content = final_content
+
+
 class LLMJSONResult(dict[str, Any]):
     """Keep provider identity and usage outside the model's schema fields."""
 
@@ -579,15 +588,20 @@ def _extract_first_json_object(raw: str) -> dict[str, Any]:
     return parsed
 
 
-def _chat_message_text(message: dict[str, Any]) -> str:
+def _chat_message_text(message: dict[str, Any], *, finish_reason: object = None) -> str:
     content = message.get("content")
     if isinstance(content, list):
         text_parts: list[str] = []
         for item in content:
             if isinstance(item, dict) and item.get("type") == "text":
                 text_parts.append(_clean(item.get("text")))
-        return "\n".join(part for part in text_parts if part).strip()
-    return _clean(content)
+        raw = "\n".join(part for part in text_parts if part).strip()
+    else:
+        raw = _clean(content)
+    reason = _clean(finish_reason)
+    if reason and reason != "stop":
+        raise LLMCompletionInterrupted(reason, final_content=raw)
+    return raw
 
 
 def _json_repair_messages(
@@ -777,7 +791,7 @@ class OpenAIChatJSONClient:
         if refusal:
             raise LLMAPIError(f"LLM refused request: {refusal}")
 
-        raw = _chat_message_text(message)
+        raw = _chat_message_text(message, finish_reason=choices[0].get("finish_reason"))
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
         repair_parsed = None
@@ -815,7 +829,7 @@ class OpenAIChatJSONClient:
             repair_refusal = _clean(repair_message.get("refusal"))
             if repair_refusal:
                 raise LLMAPIError(f"LLM JSON repair refused request: {repair_refusal}") from exc
-            repair_raw = _chat_message_text(repair_message)
+            repair_raw = _chat_message_text(repair_message, finish_reason=repair_choices[0].get("finish_reason"))
             if not repair_raw:
                 raise LLMAPIError("LLM JSON repair returned empty content.") from exc
             parsed_object = _extract_first_json_object(repair_raw)
@@ -912,7 +926,7 @@ class AzureOpenAIChatJSONClient:
         refusal = _clean(message.get("refusal"))
         if refusal:
             raise LLMAPIError(f"LLM refused request: {refusal}")
-        raw = _chat_message_text(message)
+        raw = _chat_message_text(message, finish_reason=choices[0].get("finish_reason"))
         if not raw:
             raise LLMAPIError("LLM returned empty content.")
         repair_parsed = None
@@ -951,7 +965,7 @@ class AzureOpenAIChatJSONClient:
             repair_refusal = _clean(repair_message.get("refusal"))
             if repair_refusal:
                 raise LLMAPIError(f"LLM JSON repair refused request: {repair_refusal}") from exc
-            repair_raw = _chat_message_text(repair_message)
+            repair_raw = _chat_message_text(repair_message, finish_reason=repair_choices[0].get("finish_reason"))
             if not repair_raw:
                 raise LLMAPIError("LLM JSON repair returned empty content.") from exc
             parsed_object = _extract_first_json_object(repair_raw)
@@ -1046,7 +1060,7 @@ class DeepSeekChatJSONClient:
             choices = parsed.get("choices") or []
             if choices:
                 message = choices[0].get("message") or {}
-                raw = _chat_message_text(message)
+                raw = _chat_message_text(message, finish_reason=choices[0].get("finish_reason"))
                 if raw:
                     break
             if attempt == 0:
@@ -1084,7 +1098,7 @@ class DeepSeekChatJSONClient:
             if not repair_choices:
                 raise LLMAPIError(f"{self.provider_label} JSON repair returned no choices.") from exc
             repair_message = repair_choices[0].get("message") or {}
-            repair_raw = _chat_message_text(repair_message)
+            repair_raw = _chat_message_text(repair_message, finish_reason=repair_choices[0].get("finish_reason"))
             if not repair_raw:
                 raise LLMAPIError(f"{self.provider_label} JSON repair returned empty content.") from exc
             parsed_object = _extract_first_json_object(repair_raw)
