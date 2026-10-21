@@ -142,6 +142,7 @@ class LocalResearchExecution:
         self._charges: dict[str, float] = {}
         self._usage: dict[str, dict[str, Any]] = {}
         self._unknown: set[str] = set()
+        self._pre_execution_rejections: dict[str, dict[str, Any]] = {}
         receipt_path = self.root / "provider_attempts.jsonl"
         policy_path = self.root / "accounting-policy.json"
         events = [json.loads(line) for line in receipt_path.read_text().splitlines()] if receipt_path.exists() else []
@@ -196,11 +197,23 @@ class LocalResearchExecution:
                             "duration_ms": event.get("duration_ms", 0)}
         if event["status"] == "not_sent":
             self._charges[key] = 0.0
+            self._unknown.discard(key)
+        elif (event["status"] == "failure" and event.get("provider") == "deepseek"
+              and event.get("http_status") == 402):
+            # The same explicit balance rejection that blocks this provider
+            # occurs before model generation. Keep missing usage visible, but
+            # do not confuse it with an accepted request of unknown cost.
+            self._charges[key] = 0.0
+            self._unknown.discard(key)
+            self._pre_execution_rejections[key] = {
+                "provider": "deepseek", "http_status": 402, "reason": "insufficient_balance",
+            }
         elif usage.get("prompt_tokens") is None or usage.get("completion_tokens") is None:
             self._unknown.add(key)
         else:
             self._charges[key] = (usage["prompt_tokens"] * self.input_rate
                                   + usage["completion_tokens"] * self.output_rate) / 1e6
+            self._unknown.discard(key)
 
     def reserve(self, attempt_id: str, payload: dict[str, Any]) -> None:
         # Reserve the declared model limits, including any server-side message
@@ -234,6 +247,11 @@ class LocalResearchExecution:
                         "input": self.input_rate, "output": self.output_rate},
                     "reservation_limits": {"input_tokens": self.max_input_tokens, "output_tokens": self.max_output_tokens},
                     "basis": "all input at cache-miss peak rate; output includes reasoning; estimate, not invoice"}
+            result["unknown_usage_attempts"] = sorted(set(self._unknown) | {
+                key for key, usage in self._usage.items()
+                if usage.get("prompt_tokens") is None or usage.get("completion_tokens") is None
+            })
+            result["pre_execution_rejections"] = dict(self._pre_execution_rejections)
             if self.request_max_output_tokens is not None:
                 result["request_max_output_tokens"] = self.request_max_output_tokens
             if self.max_provider_attempts is not None:
