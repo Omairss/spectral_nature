@@ -7,6 +7,7 @@ from .llm_execution import LLMContextWindowExceeded, research_run_context
 
 from dataclasses import replace
 
+import hashlib
 import json
 import re
 import threading
@@ -1573,6 +1574,8 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "Keep answer_points as a short outline of the ideas the reader needs, separate from the larger findings list. "
         "Make those points self-contained, including facts, quotations, calculations or code needed by this request, "
         "with source references. Choose them for the actual request; do not include every observation collected during research. "
+        "Use a supplied answer review to revisit disputed claims against the sources and update both findings and the answer "
+        "outline. Preserve supported alternatives and explain unresolved disagreements with the review. "
         "This is a factual research summary, not private chain-of-thought. Revise earlier interpretations when new "
         "sources change the picture. A prior generated answer is context, not independent corroboration. Distinguish original "
         "reporting, dated observations, retained knowledge and hypotheses. Read source dependencies when it adds understanding; "
@@ -3448,6 +3451,12 @@ def _execute_zopedia_agent_loop(
                     "source_policy": source_policy,
                     "seconds_remaining": round(budget.remaining(), 1),
                     "pending_action": pending_action,
+                    "answer_review": {
+                        key: quality_review[key] for key in (
+                            "status", "verdict", "critique_summary", "unsupported_claims",
+                            "evidence_gaps", "research_requests", "reviewed_answer_sha256", "answer_sha256",
+                        ) if key in quality_review
+                    },
                 },
                 ensure_ascii=False,
             )
@@ -3570,6 +3579,7 @@ def _execute_zopedia_agent_loop(
             if action == "final":
                 if answer_review_owner == "agent" and best_draft and not reviewed_draft and budget.remaining() > 0:
                     reviewed_draft = True
+                    reviewed_answer_sha256 = hashlib.sha256(best_draft.encode("utf-8")).hexdigest()
                     quality_review = _run_answer_judge(
                         llm=_synthesis_llm_client(resolved_llm),
                         run_id=run_id,
@@ -3594,6 +3604,10 @@ def _execute_zopedia_agent_loop(
                     )
                     if quality_review.get("status") == "completed":
                         best_draft = quality_review.get("answer_markdown") or best_draft
+                        quality_review["reviewed_answer_sha256"] = reviewed_answer_sha256
+                        quality_review["answer_sha256"] = hashlib.sha256(
+                            _clean_model_output(best_draft).encode("utf-8")
+                        ).hexdigest()
                         if quality_review.get("answer_points"):
                             research_state["answer_points"] = quality_review["answer_points"]
                         requests = quality_review.get("research_requests") or []
@@ -4009,14 +4023,20 @@ def _execute_zopedia_agent_loop(
 
     checkpoint("research_collection_complete")
     structured_draft = final_answer if response_schema else ""
+    delivered_answer_sha256 = hashlib.sha256(_clean_model_output(final_answer).encode("utf-8")).hexdigest()
+    if quality_review.get("status") == "completed" and quality_review.get("answer_sha256") != delivered_answer_sha256:
+        quality_review = {
+            **quality_review, "status": "superseded",
+            "superseded_by_answer_sha256": delivered_answer_sha256,
+        }
     if (
         final_answer
         and answer_review_owner == "agent"
         and quality_review.get("status") != "completed"
-        and response_schema
         and not direct_structured_payload_used
         and budget.remaining("completion") > 0
     ):
+        reviewed_answer_sha256 = delivered_answer_sha256
         quality_review = _run_answer_judge(
             llm=_synthesis_llm_client(resolved_llm),
             run_id=run_id,
@@ -4068,6 +4088,8 @@ def _execute_zopedia_agent_loop(
                 ],
                 "revised_answer_applied": revised_answer_applied,
                 "research_requests": quality_review.get("research_requests") or [],
+                "reviewed_answer_sha256": reviewed_answer_sha256,
+                "answer_sha256": hashlib.sha256(_clean_model_output(final_answer).encode("utf-8")).hexdigest(),
             }
 
     if quality_review.get("research_requests"):
@@ -4157,7 +4179,10 @@ def _execute_zopedia_agent_loop(
         "answer_status": (
             "structured"
             if direct_structured_payload_used
-            else "reviewed" if quality_review.get("status") == "completed" else "draft"
+            else "reviewed" if (
+                quality_review.get("status") == "completed"
+                and quality_review.get("answer_sha256") == hashlib.sha256(answer_markdown.encode("utf-8")).hexdigest()
+            ) else "draft"
         ),
         "memory_update": memory_update,
         "trajectory_reviews": trajectory_reviews,
