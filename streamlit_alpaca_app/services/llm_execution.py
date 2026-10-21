@@ -143,9 +143,21 @@ class LocalResearchExecution:
         self._usage: dict[str, dict[str, Any]] = {}
         self._unknown: set[str] = set()
         receipt_path = self.root / "provider_attempts.jsonl"
+        policy_path = self.root / "accounting-policy.json"
+        events = [json.loads(line) for line in receipt_path.read_text().splitlines()] if receipt_path.exists() else []
+        if cost_basis == "local_resources_unpriced" and any(event.get("provider") != "local" for event in events):
+            raise ValueError("A local ledger cannot reinterpret hosted or unidentified provider attempts")
+        policy = {"version": 1, "cost_basis": cost_basis}
+        if policy_path.exists():
+            if json.loads(policy_path.read_text()) != policy:
+                raise ValueError("The retained ledger accounting basis cannot change")
+        else:
+            # Exclusive creation fails closed if another owner races setup.
+            with policy_path.open("x", encoding="utf-8") as stream:
+                os.fchmod(stream.fileno(), 0o600)
+                stream.write(json.dumps(policy) + "\n")
         if receipt_path.exists():
-            for line in receipt_path.read_text().splitlines():
-                event = json.loads(line)
+            for event in events:
                 self._account(event)
             # An interrupted start has no trustworthy zero-cost interpretation.
             self._unknown.update(self._reservations)
@@ -171,6 +183,8 @@ class LocalResearchExecution:
                 self._account(value)
 
     def _account(self, event: dict[str, Any]) -> None:
+        if self.cost_basis == "local_resources_unpriced" and event.get("provider") != "local":
+            raise ValueError("Unpriced local accounting requires local provider receipts")
         key = event["attempt_id"]
         if event["status"] == "started":
             self._reservations.setdefault(key, 0.0)
@@ -195,10 +209,10 @@ class LocalResearchExecution:
         bound = (self.max_input_tokens * self.input_rate
                  + maximum * self.output_rate) / 1e6
         with self._lock:
-            if self._unknown:
+            if self._unknown and self.cost_basis == "provider_token_rates":
                 raise ResearchSpendExceeded("Earlier provider charge is unknown; further inference is stopped")
             if self.max_provider_attempts is not None and (
-                len(self._usage) + len(self._reservations) >= self.max_provider_attempts
+                len(set(self._usage) | set(self._reservations) | self._unknown) >= self.max_provider_attempts
             ):
                 raise ResearchSpendExceeded("The declared provider attempt limit is exhausted")
             if sum(self._charges.values()) + sum(self._reservations.values()) + bound > self.budget_usd:
@@ -229,6 +243,7 @@ class LocalResearchExecution:
                     "external_provider_charge_usd": 0, "local_resource_cost_usd": None,
                     "cost_basis": self.cost_basis, "priced_attempts": 0,
                     "metered_attempts": len(self._usage),
+                    "unknown_usage_attempts": sorted(self._unknown), "unknown_charge_attempts": [],
                     "tokens": {field: sum(u[field] or 0 for u in self._usage.values())
                                for field in ("prompt_tokens", "completion_tokens")},
                     "provider_wall_seconds": sum(u["duration_ms"] for u in self._usage.values()) / 1000,
