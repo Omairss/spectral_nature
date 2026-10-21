@@ -1125,6 +1125,7 @@ def _run_evidence_model_step(
     query_in_context = bool(query)
     records = {**(service.supplied_evidence if supplied_evidence_allowed else {}),
                **context_state.get("stage_inputs", {})}
+    stage_read_ids: set[str] = set()
     if capacity_feedback:
         input_reference = "stage_input:" + purpose
         records[input_reference] = {"title": "Complete input for " + purpose,
@@ -1161,7 +1162,15 @@ def _run_evidence_model_step(
         history_catalog = [{"tool_call_id": call["tool_call_id"], "source_id": "history:" + call["tool_call_id"],
                             "tool_name": call.get("tool_name"), "argument_fields": list(call.get("arguments") or {}),
                             "status": call.get("status")} for call in tool_calls]
-        user_prompt = base_prompt + "\n\nEvidence access:\n" + serialize_llm_context({
+        # A stage formatter may deliberately render only an outline and source
+        # index. The evidence owner must still deliver the results of reads it
+        # just executed, including catalog IDs and tool errors, to that stage.
+        # Context selection and the existing capacity recovery remain in force.
+        stage_reads = [call for call in visible if call["tool_call_id"] in stage_read_ids]
+        user_prompt = base_prompt
+        if stage_reads and not catalog_only:
+            user_prompt += "\n\nReturned evidence:\n" + _tool_history_prompt(stage_reads, full_evidence=True)
+        user_prompt += "\n\nEvidence access:\n" + serialize_llm_context({
             "history_catalog": history_catalog, "supplied_sources": reader.supplied_evidence_manifest,
             "tools": read_tools, "context_feedback": feedback,
         })
@@ -1239,6 +1248,7 @@ def _run_evidence_model_step(
                     "status": "failed", "error": str(exc), "result_summary": {}}
         call.update(origin_run_id=metadata.get("run_id"), origin_turn_id=metadata.get("turn_id"))
         tool_calls.append(call)
+        stage_read_ids.add(call_id)
         if context_state.get("tool_call_ids") is not None:
             context_state["tool_call_ids"] = [*context_state["tool_call_ids"], call_id]
         elif catalog_only:
