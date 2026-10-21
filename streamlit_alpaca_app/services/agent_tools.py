@@ -844,7 +844,7 @@ def _analysis_tools() -> list[dict[str, Any]]:
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "objective": {"type": "string"},
+                    "objective": {"type": "string", "description": "Optional description of the calculation; the research run retains the original user request."},
                     "code": {"type": "string"},
                     "dataset_refs": {
                         "type": "array",
@@ -874,7 +874,7 @@ def _analysis_tools() -> list[dict[str, Any]]:
                     "timeout_seconds": {"type": "integer"},
                     "max_rows": {"type": "integer", "minimum": 1, "description": "Optional explicit input admission bound. Omit to use all rows within the byte allocation. Oversized input is rejected rather than sampled."},
                 },
-                "required": ["objective", "code"],
+                "required": ["code"],
                 "additionalProperties": False,
             },
         },

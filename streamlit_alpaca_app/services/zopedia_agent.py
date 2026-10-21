@@ -3617,6 +3617,13 @@ def _execute_zopedia_agent_loop(
                 continue
             tool_name = _clean(decision.get("tool_name"))
             entry = _tool_entry_by_name(tool_catalog, tool_name)
+            if not entry:
+                # A deferred schema is hidden from the current prompt, not
+                # unavailable. Resolve exact names only inside the already
+                # authorized registry, then validate the canonical schema.
+                entry = tool_registry.get(tool_name) or {}
+                if entry:
+                    tool_catalog.append(entry)
             arguments, error = _coerce_tool_arguments(decision.get("tool_arguments"))
             if entry and not error:
                 arguments = _normalized_arguments(
