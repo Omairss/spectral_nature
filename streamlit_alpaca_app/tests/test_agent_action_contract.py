@@ -34,3 +34,25 @@ def test_valid_final_and_tool_argument_type_contracts_remain():
     Draft202012Validator(_STEP_SCHEMA).validate(payload)
     payload=tool_request();payload["tool_arguments"]="{}"
     assert list(Draft202012Validator(_STEP_SCHEMA).iter_errors(payload))
+
+
+def test_minimal_actions_and_partial_metadata_updates():
+    validate=Draft202012Validator(_STEP_SCHEMA).validate
+    validate({"action":"tool_call", "tool_name":"example.tool", "tool_arguments":{}})
+    validate({"action":"final", "answer_markdown":"Example", "confidence":"low"})
+    validate({"action":"tool_call", "tool_name":"example.tool", "tool_arguments":{},
+        "research_state":{"findings":[]}, "public_update":{"next_step":""}})
+    validate({"action":"tool_call", "tool_name":"example.tool", "tool_arguments":{},
+        "confidence":"", "research_state":{"findings":None}, "public_update":None,
+        "source_policy":None, "knowledge_policy":None, "request_review":None})
+
+
+@pytest.mark.parametrize("payload", [
+    {"action":"tool_call", "tool_name":"example.tool"},
+    {"action":"tool_call", "tool_arguments":{}},
+    {"action":"tool_call", "tool_name":"", "tool_arguments":{}},
+    {"action":"tool_call", "tool_name":"example.tool", "tool_arguments":None},
+    {"action":"final", "answer_markdown":"", "confidence":"low"},
+])
+def test_action_content_is_still_required(payload):
+    assert list(Draft202012Validator(_STEP_SCHEMA).iter_errors(payload))

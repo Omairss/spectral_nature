@@ -149,74 +149,66 @@ _P_TOOL_DISCOVERY_MAX_STEPS = register_config_param(
 _STEP_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
+    "description": "Choose a research action. Tool requests require action, tool_name and typed tool_arguments. Final decisions require action, answer_markdown and answer confidence. Progress, research state and policy fields are optional updates; omitted or null updates preserve the current owner state and permissions.",
     "properties": {
         "action": {"type": "string", "enum": ["tool_call", "final"]},
-        "reasoning": {"type": "string"},
-        "tool_name": {"type": "string"},
+        "reasoning": {"type": ["string", "null"]},
+        "tool_name": {"type": ["string", "null"]},
         "tool_arguments": {
-            "type": "object",
+            "type": ["object", "null"],
             "additionalProperties": True,
             "description": "Arguments matching the chosen tool input schema, with their original types. Use an empty object for no arguments.",
         },
-        "answer_markdown": {"type": "string"},
+        "answer_markdown": {"type": ["string", "null"]},
         "confidence": {
-            "type": ["string", "null"], "enum": [None, "none", "low", "medium", "high"],
+            "type": ["string", "null"],
             "description": "Confidence in a delivered answer. Tool requests may omit this or use null/none because no answer is being delivered. Final answers require low, medium or high.",
         },
-        "needs_more_tools": {"type": "boolean"},
+        "needs_more_tools": {"type": ["boolean", "null"]},
         "public_update": {
-            "type": "object",
+            "type": ["object", "null"],
             "additionalProperties": False,
             "properties": {
-                "summary": {"type": "string"},
-                "finding": {"type": "string"},
-                "next_step": {"type": "string"},
+                "summary": {"type": ["string", "null"]},
+                "finding": {"type": ["string", "null"]},
+                "next_step": {"type": ["string", "null"]},
             },
-            "required": ["summary", "finding", "next_step"],
         },
         "research_state": {
-            "type": "object",
+            "type": ["object", "null"],
             "additionalProperties": False,
             "properties": {
-                "goal": {"type": "string"},
-                "findings": {"type": "array", "items": {"type": "string"}},
-                "answer_points": {"type": "array", "items": {"type": "string"}},
-                "selected_source_ids": {"type": "array", "items": {"type": "string"}},
-                "alternatives": {"type": "array", "items": {"type": "string"}},
-                "open_questions": {"type": "array", "items": {"type": "string"}},
-                "next_actions": {"type": "array", "items": {"type": "string"}},
+                "goal": {"type": ["string", "null"]},
+                "findings": {"type": ["array", "null"], "items": {"type": "string"}},
+                "answer_points": {"type": ["array", "null"], "items": {"type": "string"}},
+                "selected_source_ids": {"type": ["array", "null"], "items": {"type": "string"}},
+                "alternatives": {"type": ["array", "null"], "items": {"type": "string"}},
+                "open_questions": {"type": ["array", "null"], "items": {"type": "string"}},
+                "next_actions": {"type": ["array", "null"], "items": {"type": "string"}},
             },
-            "required": [
-                "goal",
-                "findings",
-                "answer_points",
-                "selected_source_ids",
-                "alternatives",
-                "open_questions",
-                "next_actions",
-            ],
         },
-        "source_policy": {"type": "string", "enum": ["available", "retained_only"]},
-        "knowledge_policy": {"type": "string", "enum": ["inherit", "none", "propose"]},
-        "request_review": {"type": "boolean"},
+        "source_policy": {"type": ["string", "null"], "enum": [None, "available", "retained_only"]},
+        "knowledge_policy": {"type": ["string", "null"], "enum": [None, "inherit", "none", "propose"]},
+        "request_review": {"type": ["boolean", "null"]},
     },
-    "required": [
-        "action",
-        "reasoning",
-        "tool_name",
-        "tool_arguments",
-        "needs_more_tools",
-        "public_update",
-        "research_state",
-        "source_policy",
-        "knowledge_policy",
-        "request_review",
-    ],
+    "required": ["action"],
     "allOf": [{
+        "if": {"properties": {"action": {"const": "tool_call"}}},
+        "then": {
+            "required": ["tool_name", "tool_arguments"],
+            "properties": {
+                "tool_name": {"type": "string", "minLength": 1},
+                "tool_arguments": {"type": "object"},
+            },
+        },
+    }, {
         "if": {"properties": {"action": {"const": "final"}}},
         "then": {
             "required": ["answer_markdown", "confidence"],
-            "properties": {"confidence": {"type": "string", "enum": ["low", "medium", "high"]}},
+            "properties": {
+                "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+                "answer_markdown": {"type": "string", "minLength": 1},
+            },
         },
     }],
 }
@@ -3536,7 +3528,9 @@ def _execute_zopedia_agent_loop(
                     break
                 raise
             if isinstance(decision.get("research_state"), dict):
-                research_state = decision["research_state"]
+                research_state = {**research_state, **{
+                    key: value for key, value in decision["research_state"].items() if value is not None
+                }}
             update = decision.get("public_update") or {}
             if update.get("summary") or update.get("finding"):
                 _emit_progress(
