@@ -159,7 +159,10 @@ _STEP_SCHEMA: dict[str, Any] = {
             "description": "Arguments matching the chosen tool input schema, with their original types. Use an empty object for no arguments.",
         },
         "answer_markdown": {"type": "string"},
-        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+        "confidence": {
+            "type": ["string", "null"], "enum": [None, "none", "low", "medium", "high"],
+            "description": "Confidence in a delivered answer. Tool requests may omit this or use null/none because no answer is being delivered. Final answers require low, medium or high.",
+        },
         "needs_more_tools": {"type": "boolean"},
         "public_update": {
             "type": "object",
@@ -202,8 +205,6 @@ _STEP_SCHEMA: dict[str, Any] = {
         "reasoning",
         "tool_name",
         "tool_arguments",
-        "answer_markdown",
-        "confidence",
         "needs_more_tools",
         "public_update",
         "research_state",
@@ -211,6 +212,13 @@ _STEP_SCHEMA: dict[str, Any] = {
         "knowledge_policy",
         "request_review",
     ],
+    "allOf": [{
+        "if": {"properties": {"action": {"const": "final"}}},
+        "then": {
+            "required": ["answer_markdown", "confidence"],
+            "properties": {"confidence": {"type": "string", "enum": ["low", "medium", "high"]}},
+        },
+    }],
 }
 
 _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
