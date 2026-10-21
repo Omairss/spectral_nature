@@ -238,7 +238,7 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        'Check the proposed answer against original sources and actual calculation results. Check that each statistic answers the question; matching source numbers and correct arithmetic are not enough. Correct invented figures, wrong definitions, units, periods or denominators, contradictions and claims of work not performed. Verify claimed source statements and distinguish them from calculations or reconstructions. Remove alternatives the source already resolves; preserve useful conditional findings when uncertainty remains. Read a needed original. Return the best supported answer and matching answer points. Accept sound work without extra commentary.'
+        'Check the proposed answer against original sources and actual calculation results. Check that each statistic answers the question; matching source numbers and correct arithmetic are not enough. Correct invented figures, wrong definitions, units, periods or denominators, contradictions and claims of work not performed. Verify claimed source statements and distinguish them from calculations or reconstructions. Remove alternatives the source already resolves; preserve useful conditional findings when uncertainty remains. Read a needed original. Accept a sound draft unchanged. For a revision, return finished corrected text; include a short outline only when useful.'
     ),
 )
 
@@ -247,18 +247,16 @@ _JUDGE_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
     "properties": {
         "verdict": {"type": "string", "enum": ["accept", "revise", "insufficient"]},
-        "critique_summary": {"type": "string"},
-        "answer_points": {"type": "array", "items": {"type": "string"}},
-        "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
-        "research_requests": {"type": "array", "items": {"type": "string"}},
+        "critique_summary": {"type": ["string", "null"]},
+        "answer_points": {"type": ["array", "null"], "items": {"type": "string"}},
+        "answer_markdown": {"type": ["string", "null"], "description": "Finished corrected answer when revising. Acceptance preserves the draft."},
+        "confidence": {"type": ["string", "null"], "enum": [None, "low", "medium", "high"]},
+        "research_requests": {"type": ["array", "null"], "items": {"type": "string"}},
     },
-    "required": [
-        "verdict",
-        "critique_summary",
-        "answer_points",
-        "confidence",
-        "research_requests",
-    ],
+    "required": ["verdict"],
+    "allOf": [{"if": {"properties": {"verdict": {"const": "revise"}}},
+               "then": {"required": ["answer_markdown"], "properties": {
+                   "answer_markdown": {"type": "string", "minLength": 1}}}}],
 }
 
 _TRAJECTORY_MONITOR_SCHEMA: dict[str, Any] = {
@@ -1993,9 +1991,9 @@ def _judge_user_prompt(
         "Use established business context and reasonable inference to explain indirect relationships. Missing exact source "
         "matches or price data do not exclude useful leads. Keep observations dated and do not invent current facts. "
         + (
-            "Return the corrected artifact in answer_payload. Keep its field schema and use plain public prose."
+            "Accept the draft unchanged, or return the corrected artifact in answer_payload when revising. Preserve its schema."
             if structured_response
-            else "Return corrected answer_points for the final writer. These points own the substantive analysis; keep review commentary separate."
+            else "Accept the draft unchanged, or return a finished corrected answer in answer_markdown when revising. Optional answer_points are analytical notes, not the finished answer."
         )
     )
 
@@ -2054,9 +2052,11 @@ def _run_answer_judge(
     if response_schema:
         review_schema["properties"] = {
             **_JUDGE_SCHEMA["properties"],
-            "answer_payload": response_schema,
+            "answer_payload": {"anyOf": [response_schema, {"type": "null"}]},
         }
-        review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_payload"]
+        review_schema["allOf"] = [{"if": {"properties": {"verdict": {"const": "revise"}}},
+                                   "then": {"required": ["answer_payload"], "properties": {
+                                       "answer_payload": response_schema}}}]
 
     def _runner() -> None:
         try:
@@ -2073,7 +2073,7 @@ def _run_answer_judge(
                 system_prompt=(
                     get_prompt(_AGENT_JUDGE_SYSTEM_PROMPT)
                     + (
-                        " The draft is a structured artifact. Return the corrected artifact in answer_payload, preserving its schema. "
+                        " The draft is a structured artifact. If revising, return the corrected artifact in answer_payload, preserving its schema. Acceptance keeps the original artifact unchanged. "
                         "Review the facts, sources and business reasoning. Keep process limitations out of public text fields."
                         if response_schema
                         else ""
@@ -2145,12 +2145,12 @@ def _run_answer_judge(
         return {"status": "failed", "reason": _safe_agent_error_text(error_box[0])}
 
     payload = result_box[0] or {}
-    if response_schema and isinstance(payload.get("answer_payload"), dict):
+    if payload.get("verdict") == "accept":
+        answer = draft_answer
+    elif response_schema and isinstance(payload.get("answer_payload"), dict):
         answer = json.dumps(payload["answer_payload"], ensure_ascii=False, default=str)
     else:
-        answer = (
-            "\n\n".join(str(point).strip() for point in payload.get("answer_points") or []) or draft_answer
-        )
+        answer = _clean_model_output(payload.get("answer_markdown")) or draft_answer
     errors = list(
         Draft202012Validator(review_schema).iter_errors(
             {key: value for key, value in payload.items() if not key.startswith("__")}
@@ -2180,7 +2180,8 @@ def _run_answer_judge(
         "verdict": payload["verdict"],
         "critique_summary": _clean(payload.get("critique_summary")),
         "answer_markdown": answer,
-        "answer_points": payload.get("answer_points") or [],
+        **({"answer_points": payload["answer_points"]}
+           if isinstance(payload.get("answer_points"), list) else {}),
         "confidence": _clean(payload.get("confidence")).lower() or draft_confidence or "low",
         "limitations": [_clean(item) for item in list(payload.get("limitations") or []) if _clean(item)],
         "unsupported_claims": [
@@ -3522,8 +3523,8 @@ def _execute_zopedia_agent_loop(
                         quality_review["answer_sha256"] = hashlib.sha256(
                             _clean_model_output(best_draft).encode("utf-8")
                         ).hexdigest()
-                        if quality_review.get("answer_points"):
-                            research_state["answer_points"] = quality_review["answer_points"]
+                        if quality_review.get("verdict") != "accept":
+                            research_state["answer_points"] = quality_review.get("answer_points") or []
                         requests = quality_review.get("research_requests") or []
                         if requests:
                             research_state["next_actions"] = requests
@@ -3978,6 +3979,8 @@ def _execute_zopedia_agent_loop(
             if judge_answer:
                 revised_answer_applied = judge_answer != final_answer
                 final_answer = judge_answer
+            if verdict != "accept":
+                research_state["answer_points"] = quality_review.get("answer_points") or []
             final_confidence = _clean(quality_review.get("confidence")).lower() or final_confidence
             reviewed_limitations = [
                 _clean(item) for item in list(quality_review.get("limitations") or []) if _clean(item)
