@@ -585,7 +585,7 @@ input:focus, select:focus, textarea:focus { border-color: #596a7a; box-shadow: 0
 .context-notes div { display: grid; gap: 0.3rem; }
 .context-notes dt { color: var(--faint); font-size: 0.54rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .context-notes dd { color: var(--muted); font-size: 0.68rem; line-height: 1.5; margin: 0; }
-.forecast-ledger { border-left: 1px solid var(--line); display: grid; margin: 0; }
+.forecast-ledger { align-content: start; border-left: 1px solid var(--line); display: grid; margin: 0; }
 .forecast-ledger div { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding: 0.7rem 0.8rem; }
 .forecast-ledger div:last-child { border-bottom: 0; }
 .forecast-ledger dt { color: var(--faint); font-size: 0.54rem; text-transform: uppercase; }
