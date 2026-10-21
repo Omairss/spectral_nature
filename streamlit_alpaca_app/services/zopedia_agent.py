@@ -218,7 +218,7 @@ _AGENT_FINAL_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        "Answer the user's question clearly and directly from the supplied evidence and analysis. Preserve the figures, units, dates and assumptions. Check that the conclusion matches any calculation; correct a draft when the original evidence contradicts it. Do not invent missing facts or claim work that was not performed. Give a useful conditional answer when needed. Cite supporting sources using supplied titles and URLs. Keep internal notes private. Follow the requested format and length."
+        'Answer directly from original evidence and actual calculations. Name the quantity you compute and preserve its financial meaning, dates and units. Separate source statements from values you calculate, infer or reconstruct. Do not describe a reconstruction as printed evidence. Discuss only material uncertainty left unresolved by the evidence. Correct any draft contradicted by the source. A simple numerical question needs a short answer and supporting calculation; give more detail when the task calls for it. Use supplied source links where available. Keep internal tools and bookkeeping out of the answer. Follow the requested format.'
     ),
 )
 
@@ -238,7 +238,7 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
     file="services/zopedia_agent.py",
     group="Zopedia",
     prompt=(
-        'Check the proposed answer against the original evidence and actual calculation results. Look for invented figures, wrong units or dates, a wrong denominator, contradictions and claims of work that did not happen. Read a needed original if it is not visible. Correct material errors and return the best supported answer and matching answer points. Preserve useful assumptions and alternative interpretations when clearly stated. Accept a sound answer without adding process commentary or generic caveats. Request more research only when it could materially change the answer.'
+        'Check the proposed answer against original sources and actual calculation results. Check that each statistic answers the question; matching source numbers and correct arithmetic are not enough. Correct invented figures, wrong definitions, units, periods or denominators, contradictions and claims of work not performed. Verify claimed source statements and distinguish them from calculations or reconstructions. Remove alternatives the source already resolves; preserve useful conditional findings when uncertainty remains. Read a needed original. Return the best supported answer and matching answer points. Accept sound work without extra commentary.'
     ),
 )
 

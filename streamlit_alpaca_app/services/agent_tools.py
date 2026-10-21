@@ -956,7 +956,7 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
                  "limit": {"type": "integer", "minimum": 1, "maximum": 100}}}},
             {"name": "research.read_supplied_evidence", "description": "Read a supplied source's complete original content, optionally at a JSON Pointer (e.g. /points). Continue with next_offset. All originals remain available; catalog metadata alone does not establish a trend or cause.",
              "inputSchema": {"type": "object", "additionalProperties": False, "required": ["source_id"], "properties": {
-                 "source_id": {"type": "string"}, "pointer": {"type": "string"}, "offset": {"type": "integer", "minimum": 0},
+                 "source_id": {"type": "string", "description": "Read handle from the catalog entry's source_id field. Original document IDs inside metadata may differ."}, "pointer": {"type": "string"}, "offset": {"type": "integer", "minimum": 0},
                  "max_characters": {"type": "integer", "minimum": 1, "maximum": 60000}}}},
         ])
     tools.extend(_zopedia_tools())
