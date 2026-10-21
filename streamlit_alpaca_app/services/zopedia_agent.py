@@ -154,8 +154,9 @@ _STEP_SCHEMA: dict[str, Any] = {
         "reasoning": {"type": "string"},
         "tool_name": {"type": "string"},
         "tool_arguments": {
-            "type": "string",
-            "description": "A JSON-encoded object matching the chosen tool input schema. Use {} for no arguments.",
+            "type": "object",
+            "additionalProperties": True,
+            "description": "Arguments matching the chosen tool input schema, with their original types. Use an empty object for no arguments.",
         },
         "answer_markdown": {"type": "string"},
         "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
@@ -1156,7 +1157,8 @@ def _run_evidence_model_step(
         "properties": {
             "action": {"type": "string", "enum": ["answer", "read", "select_context"]},
             "tool_name": {"type": "string"},
-            "tool_arguments": {"type": "string", "description": "JSON object for the evidence tool; {} otherwise."},
+            "tool_arguments": {"type": "object", "additionalProperties": True,
+                               "description": "Arguments for the evidence tool, with their original types; an empty object otherwise."},
             "keep_tool_call_ids": {"type": ["array", "null"], "items": {"type": "string"},
                                    "description": "Results to keep in working context; null keeps the current selection. All originals remain readable."},
             "answer": {"anyOf": [schema, {"type": "null"}]},
@@ -1616,7 +1618,7 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "writing style. Use short paragraphs and useful source links. Explain practical meaning and cause and effect in familiar "
         "words. Keep tool IDs, research bookkeeping, confidence labels and execution failures out of the answer. "
         "Tools are optional. Answer directly for explanations, transformations and reasoning over supplied input when external "
-        "information would not improve the requested answer. Encode tool_arguments as one JSON object inside a string; "
+        "information would not improve the requested answer. Provide tool_arguments as a JSON object, not an encoded string; "
         "its values must match the chosen tool's input schema. answer_markdown is a concise working draft for the final writer; "
         "do not write a full report during planning. Use exactly an available tool name. Return the required JSON schema."
     ),
@@ -1927,8 +1929,8 @@ def _planner_user_prompt(
         "Return exactly one next action. "
         "If you still need data, set action='tool_call' and choose one tool. "
         "If you can answer now, set action='final'. "
-        "When action='tool_call', tool_arguments is a JSON-encoded object with the required fields and typed values "
-        "from that tool's input_schema. Use the string '{}' when the tool takes no arguments or action='final'."
+        "When action='tool_call', tool_arguments is an object with the required fields and typed values "
+        "from that tool's input_schema. Use an empty object when the tool takes no arguments or action='final'."
     )
 
 
