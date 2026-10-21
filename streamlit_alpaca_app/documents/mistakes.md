@@ -1145,3 +1145,7 @@ The production release comparator stopped after Azure omitted `system-recovery`'
 ### October 20 — company research existed but stock detail displayed a narrower summary
 
 The stock-detail adapter reused Attention filing summaries and separate background text, bypassing retained company research. This exposed retrieval limitations and weak interpretations as the main company explanation. The initial diagnosis also needed precision: filing analysis already feeds shared company research; the missing integration was the stock-detail consumer. Repair the handoff and scheduled coverage rather than simply enabling research tools inside another feature writer. The first local live check used namespace `dev` instead of the deployed `development` namespace; it exercises sparse-input company discovery and must not be described as a seeded development comparison.
+
+### October 20 — verify the complete long-form stock layout
+
+The initial local Markdown preview omitted the forecast ledger. The signed-in development page exposed its four rows stretching over the full analysis height. Added grid content alignment at the existing stylesheet owner and repeated packaging and development verification. The first deployment attempt also used an incorrect subscription identifier; complete consumer preflight stopped before any mutation. Subsequent deployment reads the subscription from the captured authorized inventory.
