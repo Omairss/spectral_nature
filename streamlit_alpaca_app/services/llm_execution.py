@@ -9,8 +9,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime, timezone
 import hashlib
-from functools import wraps
-from functools import lru_cache
+from functools import lru_cache, partial, wraps
 import json
 import logging
 import os
@@ -22,6 +21,9 @@ import uuid
 from pathlib import Path
 from urllib.parse import urlparse
 
+import anyio
+from anyio.from_thread import start_blocking_portal
+import httpx
 import requests
 
 log = logging.getLogger(__name__)
@@ -29,6 +31,57 @@ _CALL: ContextVar[dict[str, Any]] = ContextVar("llm_execution_call", default={})
 _ACCOUNTS: dict[str, tuple[float, bool]] = {}
 _ACCOUNT_LOCK = threading.RLock()
 _LOCAL_EXECUTION: ContextVar["LocalResearchExecution | None"] = ContextVar("local_research_execution", default=None)
+ProviderResponse = requests.Response | httpx.Response
+
+
+class ProviderHTTPDeadlineExceeded(TimeoutError):
+    """The entire transport operation exceeded its caller's remaining time."""
+
+
+class ProviderHTTPSession:
+    """Synchronous provider interface backed by cancellable asynchronous I/O.
+
+    Requests' read timeout measures inactivity, so a response that keeps sending
+    bytes can exceed the caller's deadline. The cancel scope below covers the
+    complete HTTP exchange. Each call owns and closes its client and portal;
+    timing out never abandons a synchronous network thread in the background.
+    """
+
+    async def _request(self, method: str, deadline: float, kwargs: dict[str, Any]) -> httpx.Response:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise ProviderHTTPDeadlineExceeded('Provider HTTP deadline expired before sending')
+        # Preserve Requests' environment CA override as well as HTTPX's own
+        # SSL_CERT_FILE / proxy handling. No auth or cookies persist across calls.
+        ca_bundle = os.getenv('REQUESTS_CA_BUNDLE') or os.getenv('CURL_CA_BUNDLE')
+        verify: Any = True
+        if ca_bundle:
+            import ssl
+            verify = ssl.create_default_context(**{
+                'capath' if Path(ca_bundle).is_dir() else 'cafile': ca_bundle})
+        try:
+            with anyio.fail_after(max(0, deadline - time.monotonic())):
+                async with httpx.AsyncClient(follow_redirects=True, verify=verify) as client:
+                    return await client.request(method, **kwargs, timeout=httpx.Timeout(remaining))
+        except TimeoutError as exc:
+            raise ProviderHTTPDeadlineExceeded('Provider HTTP wall-clock deadline expired') from exc
+        except httpx.ReadTimeout as exc:
+            raise requests.exceptions.ReadTimeout(str(exc)) from exc
+        except httpx.TransportError as exc:
+            raise requests.exceptions.ConnectionError(str(exc)) from exc
+
+    def request(self, method: str, *, timeout: float, **kwargs: Any) -> httpx.Response:
+        deadline = time.monotonic() + float(timeout)
+        # A portal works from synchronous callers, agent worker threads and
+        # existing application event loops without nesting asyncio.run().
+        with start_blocking_portal() as portal:
+            return portal.call(partial(self._request, method, deadline, kwargs))
+
+    def post(self, *, timeout: float, **kwargs: Any) -> httpx.Response:
+        return self.request('POST', timeout=timeout, **kwargs)
+
+    def get(self, url: str, *, timeout: float, **kwargs: Any) -> httpx.Response:
+        return self.request('GET', url=url, timeout=timeout, **kwargs)
 
 
 class ResearchSpendExceeded(RuntimeError):
@@ -338,15 +391,15 @@ def ensure_provider_available(config: Any, *, timeout: float) -> None:
             blocked = bool((state or {}).get("blocked")) or bool(local and local[1])
             if blocked:
                 try:
-                    response = requests.get(
+                    response = ProviderHTTPSession().get(
                         config.base_url.rstrip("/") + "/user/balance",
                         headers={"Authorization": "Bearer " + config.api_key},
                         timeout=min(timeout, 15),
                     )
-                    if response.ok and response.json().get("is_available") is True:
+                    if 200 <= response.status_code < 300 and response.json().get("is_available") is True:
                         blocked = False
                         _write_state("provider_account", key, {"blocked": False})
-                except (requests.RequestException, ValueError):
+                except (requests.RequestException, ProviderHTTPDeadlineExceeded, ValueError):
                     pass
             _ACCOUNTS[key] = (time.monotonic(), blocked)
     if blocked:
@@ -371,9 +424,9 @@ def request_composition(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def provider_post(client: Any = None, *, config: Any = None, session: Any = None,
-                  operation: str = "chat", **kwargs: Any) -> requests.Response:
+                  operation: str = "chat", **kwargs: Any) -> ProviderResponse:
     """Meter each transport attempt, including failures and nested JSON repairs."""
-    from .llm import llm_settings_scope, _remaining_request_timeout
+    from .llm import LLMDeadlineExceeded, llm_settings_scope, _remaining_request_timeout
     from .pipeline_store import record_provider_attempt
     config = config or client.config
     session = session or client.session
@@ -411,6 +464,17 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     if local:
         local.reserve(attempt_id, payload)
         record_provider_attempt = lambda event: local.record("provider_attempts", event) or True
+    request_metadata = {
+        "request_composition": composition, "job_name": os.getenv("PIPELINE_JOB_NAME"),
+        "input_hash": hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest(),
+        "inference_effort": payload.get("reasoning_effort"), "thinking": payload.get("thinking"),
+        "max_output_tokens": payload.get("max_tokens"),
+        "sampling_parameters": {name: payload[name] for name in (
+            "temperature", "top_p", "top_k", "min_p", "seed", "n",
+            "presence_penalty", "frequency_penalty", "max_tokens",
+            "max_completion_tokens", "thinking_token_budget",
+        ) if name in payload},
+    }
     initial_event = {
         "attempt_id": attempt_id, "model_call_id": context.get("model_call_id"),
         "root_run_id": context.get("root_run_id") or os.getenv("PIPELINE_RUN_ID") or context.get("run_id"),
@@ -420,7 +484,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         "purpose": context.get("purpose") or "direct." + operation,
         "provider": config.provider, "requested_model": payload.get("model") or config.model,
         "operation": operation, "status": "started", "started_at_utc": started, "duration_ms": 0,
-        "metadata": {"request_composition": composition, "job_name": os.getenv("PIPELINE_JOB_NAME")},
+        "metadata": request_metadata,
     }
     try:
         if not record_provider_attempt(initial_event):
@@ -467,6 +531,11 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                 _ACCOUNTS[key] = (time.monotonic(), True)
             _write_state("provider_account", key, {"blocked": True, "http_status": 402})
         return response
+    except ProviderHTTPDeadlineExceeded as exc:
+        error_type = 'LLMDeadlineExceeded'
+        # This terminal deadline is not a retryable read-inactivity exception.
+        # With no final response, the ordinary receipt retains unknown usage.
+        raise LLMDeadlineExceeded(str(exc)) from exc
     except BaseException as exc:
         error_type = type(exc).__name__
         raise
@@ -494,18 +563,19 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
             "started_at_utc": started, "duration_ms": (time.monotonic() - t0) * 1000,
             "usage": data.get("usage"),
             "metadata": {
+                **request_metadata,
                 "transport_attempted": transport_attempted,
-                "request_composition": composition,
                 "error_type": error_type, "provider_request_id": data.get("id"),
-                "response_finish_reasons": [choice.get("finish_reason") for choice in (data.get("choices") or []) if isinstance(choice, dict)],
-                "sampling_parameters": {name: payload[name] for name in ("temperature", "top_p", "top_k", "min_p", "seed", "n", "presence_penalty", "frequency_penalty", "max_tokens", "max_completion_tokens", "thinking_token_budget") if name in payload},
-                "inference_effort": payload.get("reasoning_effort"), "thinking": payload.get("thinking"),
-                "input_hash": hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest(),
-                "job_name": os.getenv("PIPELINE_JOB_NAME"),
+                # Preserve provider termination even when the client rejects an
+                # empty or partial answer before a model output can be saved.
+                "response_finish_reasons": [choice.get("finish_reason") for choice in
+                    (data.get("choices") or []) if isinstance(choice, dict)],
                 "research_subject": context.get("research_subject"),
                 "artifact_input_id": context.get("artifact_input_id"),
                 "literal_output": bool(context.get("literal_output")),
-                "max_output_tokens": payload.get("max_tokens"),
+                # Configuration is not the wire contract: some providers omit
+                # or ignore controls in reasoning mode. Record requested fields
+                # only; an absent field is not an observed effective default.
                 "input_characters": len(str(payload.get("text") or "")) if operation == "audio" else None,
                 "estimated_charge": estimated_charge(provider=config.provider,
                     model=data.get("model") or (payload.get("model") if operation == "embedding" else ""),

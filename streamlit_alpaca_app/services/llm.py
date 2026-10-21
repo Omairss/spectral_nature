@@ -14,7 +14,8 @@ from typing import Any, Protocol, runtime_checkable
 import requests
 
 from .secrets import resolve_secret_value, runtime_env_value
-from .llm_execution import current_local_execution, execution_effort, provider_post, preserves_literal_output
+from .llm_execution import (ProviderHTTPSession, ProviderResponse, current_local_execution,
+                            execution_effort, provider_post, preserves_literal_output)
 
 
 class LLMAPIError(RuntimeError):
@@ -102,7 +103,7 @@ class LLMJSONResult(dict[str, Any]):
         }
 
 
-def _deepseek_response_error(response: requests.Response, *, operation: str = "request") -> LLMAPIError:
+def _deepseek_response_error(response: ProviderResponse, *, operation: str = "request") -> LLMAPIError:
     status_code = int(response.status_code)
     response_text = _clean(response.text)[:400]
     provider_code = ""
@@ -709,11 +710,11 @@ def load_llm_config(env_prefix: str = "", *, require_api_key: bool = True) -> LL
 
 
 class OpenAIChatJSONClient:
-    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+    def __init__(self, config: LLMConfig, *, session: Any | None = None) -> None:
         if not config.api_key:
             raise LLMAPIError("Missing LLM API key.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     def generate_json(
         self,
@@ -838,7 +839,7 @@ class OpenAIChatJSONClient:
 
 
 class AzureOpenAIChatJSONClient:
-    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+    def __init__(self, config: LLMConfig, *, session: Any | None = None) -> None:
         if not config.api_key:
             raise LLMAPIError("Missing LLM API key.")
         if not config.base_url:
@@ -846,7 +847,7 @@ class AzureOpenAIChatJSONClient:
         if not config.deployment:
             raise LLMAPIError("Missing Azure OpenAI deployment.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     def generate_json(
         self,
@@ -974,19 +975,19 @@ class AzureOpenAIChatJSONClient:
 
 
 class DeepSeekChatJSONClient:
-    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+    def __init__(self, config: LLMConfig, *, session: Any | None = None) -> None:
         if not config.api_key:
             raise LLMAPIError("Missing DeepSeek API key.")
         if not config.base_url:
             raise LLMAPIError("Missing DeepSeek base URL.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     @property
     def provider_label(self) -> str:
         return "DeepSeek"
 
-    def _response_error(self, response: requests.Response, *, operation: str = "request") -> LLMAPIError:
+    def _response_error(self, response: ProviderResponse, *, operation: str = "request") -> LLMAPIError:
         return _deepseek_response_error(response, operation=operation)
 
     def generate_json(
@@ -1117,22 +1118,22 @@ class LocalChatJSONClient(DeepSeekChatJSONClient):
     dependency. Authentication is optional and controlled by ``LLM_API_KEY``.
     """
 
-    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+    def __init__(self, config: LLMConfig, *, session: Any | None = None) -> None:
         if not config.base_url:
             raise LLMAPIError("Missing local LLM base URL.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     @property
     def provider_label(self) -> str:
         return "Local LLM"
 
-    def _response_error(self, response: requests.Response, *, operation: str = "request") -> LLMAPIError:
+    def _response_error(self, response: ProviderResponse, *, operation: str = "request") -> LLMAPIError:
         detail = _clean(response.text)[:400] or "No server error details were returned."
         return LLMAPIError(f"Local LLM {operation} failed: HTTP {int(response.status_code)}. {detail}")
 
 
-def _embedding_post(session: requests.Session, *, config: LLMConfig, deadline: float, **kwargs: Any) -> requests.Response:
+def _embedding_post(session: Any, *, config: LLMConfig, deadline: float, **kwargs: Any) -> ProviderResponse:
     for attempt in range(4):
         try:
             response = provider_post(config=config, session=session, operation="embedding", timeout=_remaining_request_timeout(deadline), **kwargs)
@@ -1157,7 +1158,7 @@ def _embedding_post(session: requests.Session, *, config: LLMConfig, deadline: f
 
 
 def _generate_openai_embedding_vectors(
-    *, config: LLMConfig, session: requests.Session, texts: list[str],
+    *, config: LLMConfig, session: Any, texts: list[str],
     model: str, headers: dict[str, str], params: dict[str, str] | None = None,
 ) -> list[list[float]]:
     """Embed complete inputs within provider limits, preserving input order.
@@ -1226,11 +1227,11 @@ def _generate_openai_embedding_vectors(
 
 
 class OpenAIEmbeddingClient:
-    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+    def __init__(self, config: LLMConfig, *, session: Any | None = None) -> None:
         if not config.api_key:
             raise LLMAPIError("Missing LLM API key.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
         return _generate_openai_embedding_vectors(
@@ -1241,7 +1242,7 @@ class OpenAIEmbeddingClient:
 
 
 class AzureOpenAIEmbeddingClient:
-    def __init__(self, config: LLMConfig, *, session: requests.Session | None = None) -> None:
+    def __init__(self, config: LLMConfig, *, session: Any | None = None) -> None:
         if not config.api_key:
             raise LLMAPIError("Missing LLM API key.")
         if not config.base_url:
@@ -1249,7 +1250,7 @@ class AzureOpenAIEmbeddingClient:
         if not (config.embedding_deployment or config.embedding_model):
             raise LLMAPIError("Missing Azure OpenAI embedding deployment.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     def generate_embeddings(self, texts: list[str]) -> list[list[float]]:
         return _generate_openai_embedding_vectors(

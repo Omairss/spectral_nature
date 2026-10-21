@@ -137,7 +137,7 @@ def test_billing_circuit_is_shared_and_recovers_without_paid_probe(store, monkey
     execution._ACCOUNTS.clear()  # A second worker reads the durable account state.
     balance = requests.Response(); balance.status_code = 200; balance._content = b'{"is_available":true}'
     probes = []
-    monkeypatch.setattr(execution.requests, "get", lambda *a, **k: probes.append(a) or balance)
+    monkeypatch.setattr(execution.ProviderHTTPSession, "get", lambda *a, **k: probes.append(a) or balance)
     assert generate(model)["value"] == 1
     assert len(calls) == 2 and len(probes) == 1
     assert "fake" not in json.dumps(list(store[0]))
@@ -267,13 +267,13 @@ def test_provider_receipts_survive_database_outage_and_reconcile_once(monkeypatc
     pointers = {}; objects = {}; inserted = {}
     class Blob:
         def __init__(self, name): self.name = name
-        def download_blob(self): return SimpleNamespace(readall=lambda: json.dumps(pointers[self.name]).encode())
-        def delete_blob(self): pointers.pop(self.name)
+        def download_blob(self, **kwargs): return SimpleNamespace(readall=lambda: json.dumps(pointers[self.name]).encode())
+        def delete_blob(self, **kwargs): pointers.pop(self.name)
     class Archive:
         def __init__(self, *, namespace, root):
             self.root = namespace + '/' + root
             self.container = SimpleNamespace(
-                list_blobs=lambda **kwargs: [SimpleNamespace(name=name) for name in list(pointers) if name.startswith(kwargs['name_starts_with'])],
+                walk_blobs=lambda **kwargs: [SimpleNamespace(name=name) for name in list(pointers) if name.startswith(kwargs['name_starts_with'])],
                 get_blob_client=lambda name: Blob(name))
         def put(self, data, **kwargs): objects['object'] = data; return {'object': 'object'}
         def point(self, name, receipt): pointers[self.root+'/'+name] = receipt; return self.root+'/'+name

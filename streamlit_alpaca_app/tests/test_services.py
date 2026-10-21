@@ -4072,6 +4072,8 @@ def test_load_elevenlabs_tts_config_uses_default_keyvault_secret_names(monkeypat
 
 
 def test_elevenlabs_tts_client_posts_expected_request():
+    import requests
+
     class RecordingSession:
         def __init__(self):
             self.calls: list[dict[str, object]] = []
@@ -4086,7 +4088,10 @@ def test_elevenlabs_tts_client_posts_expected_request():
                     "timeout": timeout,
                 }
             )
-            return SimpleNamespace(status_code=200, content=b"audio-bytes", text="ok")
+            response = requests.Response()
+            response.status_code = 200
+            response._content = b"audio-bytes"
+            return response
 
     session = RecordingSession()
     client = ElevenLabsTTSClient(
@@ -4104,6 +4109,8 @@ def test_elevenlabs_tts_client_posts_expected_request():
     audio_bytes = client.synthesize("Market summary text")
 
     assert audio_bytes == b"audio-bytes"
+    assert len(session.calls) == 1
+    assert 0 < session.calls[0].pop("timeout") <= 30
     assert session.calls == [
         {
             "url": "https://api.elevenlabs.io/v1/text-to-speech/voice-123",
@@ -4116,7 +4123,6 @@ def test_elevenlabs_tts_client_posts_expected_request():
                 "text": "Market summary text",
                 "model_id": "eleven_multilingual_v2",
             },
-            "timeout": 30,
         }
     ]
     assert audio_mime_type("mp3_44100_128") == "audio/mpeg"

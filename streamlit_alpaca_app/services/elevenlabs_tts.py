@@ -5,11 +5,10 @@ import os
 import hashlib
 import json
 import logging
-
-import requests
+from typing import Any
 
 from .secrets import resolve_secret_value
-from .llm_execution import provider_post
+from .llm_execution import ProviderHTTPSession, provider_post
 
 log = logging.getLogger(__name__)
 
@@ -85,13 +84,13 @@ def audio_file_extension(output_format: object) -> str:
 
 
 class ElevenLabsTTSClient:
-    def __init__(self, config: ElevenLabsTTSConfig, *, session: requests.Session | None = None) -> None:
+    def __init__(self, config: ElevenLabsTTSConfig, *, session: Any | None = None) -> None:
         if not config.api_key:
             raise ElevenLabsTTSAPIError("Missing ElevenLabs API key.")
         if not config.voice_id:
             raise ElevenLabsTTSAPIError("Missing ElevenLabs voice id.")
         self.config = config
-        self.session = session or requests.Session()
+        self.session = session or ProviderHTTPSession()
 
     def synthesize(self, text: str) -> bytes:
         normalized_text = " ".join(str(text or "").split()).strip()
