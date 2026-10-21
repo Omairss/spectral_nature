@@ -1,0 +1,35 @@
+{
+  "status": "authorized_for_promotion",
+  "owner_instruction": "promote",
+  "client_date": "2026-10-20",
+  "source_revision": "4869d9e2719990a28dbf4750a91112ff84fbbe0f",
+  "source_inventory_sha256": "30c6ddb8afcaa9e44d9c136c848049f0d9a74c2cea569af1a8e0a8d89de76d02",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda"
+  },
+  "targets": [
+    "news-ingest-and-features",
+    "sn-api-next",
+    "sn-next-ui",
+    "sn-streamlit-ui"
+  ],
+  "development_acceptance": "development-verification.json",
+  "qualitative_review": "review.json",
+  "packaged_image_proof": "packaged-images-v2.json",
+  "prior_production_evidence": "../deep-cleanup-dev-trial-2026-10-18/production-verification.json",
+  "preservation_review": {
+    "runtime_diff": "Five previously reviewed runtime files are unchanged since final development acceptance. All other application files match the accepted cleanup source.",
+    "api": "Only stock company projection changes. Auth, broker, Home, Trading, charts and research execution transport are preserved.",
+    "web": "Both production ingress apps serve Next.js. The same accepted Markdown rendering and compact forecast layout are promoted to both.",
+    "producer": "run_news owns company stack materialization. The production binding is news-ingest-and-features; it receives the same verified worker image used by dataset-refresh-dev. Existing news, filing acquisition, knowledge writes and resource configuration stay intact.",
+    "retained_consumers": 31,
+    "unresolved_shared_checkout": "Original checkout contains concurrent uncommitted cleanup and research work. It is preserved and not a release source. This promotion uses the accepted isolated Git worktree and immutable images only.",
+    "data": "No QA research results or dev datasets are copied to production. Existing production company analyses are consumed immediately; subsequent scheduled news/company runs accumulate coverage.",
+    "limits": "Retained company coverage is incomplete and existing reasoning weaknesses remain recorded in fresh-research-review.json. Promotion accepts the shared integration without certifying all model claims."
+  },
+  "new_builds": 0,
+  "manual_product_jobs_planned": 0,
+  "operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/stock-detail-shared-research-20261020/production"
+}

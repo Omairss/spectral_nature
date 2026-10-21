@@ -46,11 +46,12 @@
     "shared_checkout": "Only the five reviewed runtime edits and the new data-contract checks applied with git apply --check followed by git apply. All 3 checks pass in the original workspace."
   },
   "deployment": {
-    "production_authorized": false,
+    "production_authorized": true,
     "development": "Accepted: API, web frontend and dataset refresh worker. Both serving revisions are Healthy with 100% traffic; all 35 consumers reviewed, 32 other images and every configuration preserved.",
-    "preserve": "Concurrent dirty work in the original checkout, current production images, unrelated development consumers and the running cleanup observer.",
+    "preserve": "Concurrent dirty work in the original checkout, all unrelated consumers, existing configuration and running cleanup observer.",
     "source_branch": "fix/shared-stock-research-20261020",
-    "operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/stock-detail-shared-research-20261020"
+    "operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/stock-detail-shared-research-20261020",
+    "production": "Owner instructed \u201cpromote\u201d on October 20 after development acceptance; exact-image production promotion is authorized. See promotion-review.json; completion is recorded separately."
   },
   "preservation_review": "Five runtime files reviewed against the accepted cleanup source. Research engine, model settings, prompts, database/publication contracts, auth, broker, Home, Trading and chart implementations remain unchanged. Full prior-image/source proof is retained in the cleanup packaged-images record. Release selects only development API, frontend and dataset refresh worker; all 32 other consumers remain on their reviewed images and configurations.",
   "verified_at_utc": "2026-10-21T00:25:17.075185+00:00"

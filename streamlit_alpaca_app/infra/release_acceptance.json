@@ -1,6 +1,6 @@
 {
   "status": "accepted_locally",
-  "scope": "Shared Zopedia stock explanation; development only",
+  "scope": "Promote development-accepted shared company research to the production API, both Next.js entry points and scheduled news/company research producer; retain every other consumer.",
   "source_revision": "9a78aad87c3551128c70675eaf4051ea406000e0",
   "review_base_revision": "fc73a4328860b2d69f9868d110625048fc25debb",
   "files": {
@@ -691,7 +691,23 @@
           }
         }
       ],
-      "production_targets": [],
+      "production_targets": [
+        {
+          "name": "news-ingest-and-features",
+          "kind": "jobs",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
+          "environment": "production",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+            "package_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/packaged-images.json",
+            "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json"
+          }
+        }
+      ],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214": {
           "role": "worker",
@@ -732,7 +748,23 @@
           }
         }
       ],
-      "production_targets": [],
+      "production_targets": [
+        {
+          "name": "sn-api-next",
+          "kind": "containerApps",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
+          "environment": "production",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
+            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+            "package_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/packaged-images.json",
+            "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json"
+          }
+        }
+      ],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda": {
           "role": "api-next",
@@ -773,7 +805,38 @@
           }
         }
       ],
-      "production_targets": [],
+      "production_targets": [
+        {
+          "name": "sn-streamlit-ui",
+          "kind": "containerApps",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
+          "environment": "production",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
+            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+            "package_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/packaged-images.json",
+            "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json"
+          }
+        },
+        {
+          "name": "sn-next-ui",
+          "kind": "containerApps",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
+          "environment": "production",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
+            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+            "package_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/packaged-images.json",
+            "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json"
+          }
+        }
+      ],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b": {
           "role": "web",
@@ -891,57 +954,6 @@
   },
   "untouched_consumers": [
     {
-      "name": "sn-streamlit-ui",
-      "kind": "containerApps",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
-      "environment": "production",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
-        "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-        "package_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/packaged-images.json",
-        "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json"
-      },
-      "role": "web",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384"
-    },
-    {
-      "name": "sn-next-ui",
-      "kind": "containerApps",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
-      "environment": "production",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384",
-        "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-        "package_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/packaged-images.json",
-        "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json"
-      },
-      "role": "web",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:218270a600ac4b76c8908bf2a78089d39ef1215f3990ad64fd2cbe9c99f6c384"
-    },
-    {
-      "name": "sn-api-next",
-      "kind": "containerApps",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
-      "environment": "production",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
-        "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-        "package_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/packaged-images.json",
-        "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json"
-      },
-      "role": "api-next",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9"
-    },
-    {
       "name": "universe-builder",
       "kind": "jobs",
       "configuration_api_version": "2025-07-01",
@@ -1014,23 +1026,6 @@
       "kind": "jobs",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
-      "environment": "production",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-        "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-        "package_evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/packaged-images.json",
-        "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json"
-      },
-      "role": "worker",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
-    },
-    {
-      "name": "news-ingest-and-features",
-      "kind": "jobs",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
       "environment": "production",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
       "preservation_review": {
@@ -1465,9 +1460,24 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "production_authorization": {
-    "status": "not_requested"
+    "status": "authorized",
+    "owner_instruction": "promote",
+    "client_date": "2026-10-20",
+    "recorded_at_utc": "2026-10-21T03:23:27.109501+00:00",
+    "scope": [
+      "news-ingest-and-features",
+      "sn-api-next",
+      "sn-next-ui",
+      "sn-streamlit-ui"
+    ],
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda"
+    },
+    "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/promotion-review.json"
   },
   "development_acceptance": {
     "status": "accepted",
