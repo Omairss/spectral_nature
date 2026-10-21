@@ -1,0 +1,38 @@
+{
+  "status": "accepted",
+  "consumers_checked": 35,
+  "changed_images": [
+    "dataset-refresh-dev",
+    "sn-api-next-dev",
+    "sn-next-ui-dev"
+  ],
+  "configuration_changes": 0,
+  "unexpected_image_changes": 0,
+  "production_image_changes": 0,
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda"
+  },
+  "revision_health": {
+    "sn-next-ui-dev": {
+      "healthState": "Healthy",
+      "runningState": "RunningAtMaxScale",
+      "trafficWeight": 100,
+      "active": true,
+      "revision": "sn-next-ui-dev--0000028"
+    },
+    "sn-api-next-dev": {
+      "healthState": "Healthy",
+      "runningState": "RunningAtMaxScale",
+      "trafficWeight": 100,
+      "active": true,
+      "revision": "sn-api-next-dev--0000051"
+    }
+  },
+  "http": {
+    "/stock-investigator?ticker=XP": 200,
+    "/api/investigator/XP": 401
+  },
+  "source_revision": "4869d9e2719990a28dbf4750a91112ff84fbbe0f"
+}

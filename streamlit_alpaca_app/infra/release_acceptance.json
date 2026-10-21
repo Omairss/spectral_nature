@@ -1470,7 +1470,19 @@
     "status": "not_requested"
   },
   "development_acceptance": {
-    "status": "pending"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda"
+    },
+    "source_inventory_sha256": "30c6ddb8afcaa9e44d9c136c848049f0d9a74c2cea569af1a8e0a8d89de76d02",
+    "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/development-verification.json",
+    "qualitative_review": "documents/verification/stock-detail-shared-research-2026-10-20/review.json",
+    "coverage_limits": [
+      "Retained company coverage grows through scheduled subset refreshes; it is not universal.",
+      "Some shared-research reasoning errors remain, documented with complete outputs in fresh-research-review.json."
+    ]
   },
   "consumer_contract_reviews": {
     "database_lifecycle": {
