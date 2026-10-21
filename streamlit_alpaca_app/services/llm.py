@@ -138,20 +138,7 @@ def _deepseek_response_error(response: ProviderResponse, *, operation: str = "re
 
 # Applied at request time by every provider adapter, including direct callers.
 NARRATIVE_STYLE_RULE = (
-    "Use an 80% ASD-STE100-inspired Simplified Technical English style for all text that people will read. "
-    "Write as if explaining the answer aloud to a smart person who is unfamiliar with the field. Lead with the answer. "
-    "Use ordinary words, active voice and short, connected sentences. Explain how and why things connect. "
-    "Replace jargon with what it means. When a technical term is necessary, explain it on first use. "
-    "Do not copy the sources' style or specialist shorthand. Use the same term for the same thing. "
-    "Choose the few details that answer the question; research can be broad without making the answer long. "
-    "Follow the requested length and format. An ordinary question usually needs two to four short paragraphs. "
-    "Use lists or tables when they help. Cite sources inline with useful links. "
-    "Preserve the meaning, names, numbers, dates, units and quotations of facts you include. "
-    "Distinguish reported facts from your interpretation and material unknowns. "
-    "Omit filler, repeated conclusions, generic caveats and unrequested next steps. Keep internal research notes private. "
-    "Do not change URLs, identifiers, JSON keys, code, formulas or other machine-readable fields. "
-    "Apply this preference to answers, titles, summaries, explanations, progress messages, reports, knowledge pages and audio scripts. "
-    "It is a writing preference, not a numeric compliance score or a limit on research depth."
+    'Write clearly and directly. Preserve numbers, units, dates and meaning. Follow the requested format and length. Keep internal notes private.'
 )
 
 
@@ -361,8 +348,7 @@ def apply_narrative_style(system_prompt: str) -> str:
     if preserves_literal_output():
         return system_prompt
     return (
-        f"{system_prompt}\n\nGlobal language policy (takes precedence over other prose-style instructions; "
-        "preserve task, evidence, and output-schema requirements):\n"
+        f"{system_prompt}\n\n"
         f"{get_active_narrative_style_rule()}"
     )
 
