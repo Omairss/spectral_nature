@@ -422,18 +422,22 @@ def ensure_provider_available(config: Any, *, timeout: float) -> None:
         else:
             state = _read_state("provider_account", key)
             blocked = bool((state or {}).get("blocked")) or bool(local and local[1])
-            if blocked:
-                try:
-                    response = ProviderHTTPSession().get(
-                        config.base_url.rstrip("/") + "/user/balance",
-                        headers={"Authorization": "Bearer " + config.api_key},
-                        timeout=min(timeout, 15),
-                    )
-                    if 200 <= response.status_code < 300 and response.json().get("is_available") is True:
-                        blocked = False
-                        _write_state("provider_account", key, {"blocked": False})
-                except (requests.RequestException, ProviderHTTPDeadlineExceeded, ValueError):
-                    pass
+            # An absent/stale local flag is not proof that a prepaid account
+            # has credit. Probe once per cache interval, and recover a blocked
+            # account only from an actual positive provider response.
+            try:
+                response = ProviderHTTPSession().get(
+                    config.base_url.rstrip("/") + "/user/balance",
+                    headers={"Authorization": "Bearer " + config.api_key},
+                    timeout=min(timeout, 15),
+                )
+                if 200 <= response.status_code < 300:
+                    available = response.json().get("is_available")
+                    if isinstance(available, bool):
+                        blocked = not available
+                        _write_state("provider_account", key, {"blocked": blocked})
+            except (requests.RequestException, ProviderHTTPDeadlineExceeded, ValueError):
+                pass
             _ACCOUNTS[key] = (time.monotonic(), blocked)
     if blocked:
         raise LLMProviderUnavailable("DeepSeek account has insufficient funds; provider execution is paused until credit is restored.")
