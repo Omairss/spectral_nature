@@ -48,9 +48,15 @@ class LocalResearchExecution:
                  max_input_tokens: int = 1024 * 1024, max_output_tokens: int = 384 * 1024,
                  cost_basis: str = "provider_token_rates",
                  request_max_output_tokens: int | None = None,
-                 max_provider_attempts: int | None = None):
+                 max_provider_attempts: int | None = None,
+                 retain_training_io: bool = False):
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
+        if not isinstance(retain_training_io, bool):
+            raise ValueError("Training transcript retention must be explicitly enabled or disabled")
+        self.retain_training_io = retain_training_io
+        if retain_training_io:
+            self.root.chmod(0o700)
         self.overrides = dict(overrides)
         self.budget_usd = float(budget_usd)
         self.input_rate = float(input_usd_per_million)
@@ -103,6 +109,8 @@ class LocalResearchExecution:
     def record(self, kind: str, value: dict[str, Any]) -> None:
         with self._lock:
             with (self.root / (kind + ".jsonl")).open("a", encoding="utf-8") as stream:
+                if self.retain_training_io:
+                    os.fchmod(stream.fileno(), 0o600)
                 stream.write(json.dumps(value, ensure_ascii=False, default=str) + "\n")
                 stream.flush()
                 os.fsync(stream.fileno())
@@ -425,6 +433,26 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     try:
         if context_budget and not context_budget["fits"]:
             raise LLMContextWindowExceeded(json.dumps(context_budget))
+        if local and local.retain_training_io and operation in {"chat", "json_repair"}:
+            # Deliberate private research material, separate from operational
+            # telemetry. Never retain transport headers or private reasoning.
+            request = {name: payload[name] for name in (
+                "model", "response_format", "tools", "tool_choice", "max_tokens",
+                "max_completion_tokens", "temperature", "top_p", "top_k", "min_p",
+                "seed", "n", "stop", "presence_penalty", "frequency_penalty",
+                "thinking", "reasoning_effort",
+            ) if name in payload}
+            request["messages"] = [
+                {name: message[name] for name in ("role", "content", "name", "tool_call_id", "tool_calls")
+                 if name in message}
+                for message in (payload.get("messages") or []) if isinstance(message, dict)
+            ]
+            local.record("provider_inputs", {
+                "attempt_id": attempt_id, "model_call_id": context.get("model_call_id"),
+                "run_id": context.get("run_id"), "surface": initial_event["surface"],
+                "purpose": initial_event["purpose"], "operation": operation,
+                "request": request,
+            })
         kwargs["timeout"] = _remaining_request_timeout(deadline)
         transport_attempted = True
         response = session.post(**kwargs)
@@ -493,6 +521,26 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
             # credentials are included in this event.
             log.warning("Provider attempt accounting unavailable; receipt=%s",
                         json.dumps(event, sort_keys=True, default=str), exc_info=False)
+        if local and local.retain_training_io and operation in {"chat", "json_repair"}:
+            choices = []
+            for choice in data.get("choices") or []:
+                if not isinstance(choice, dict):
+                    continue
+                message = choice.get("message")
+                if not isinstance(message, dict):
+                    message = {}
+                choices.append({
+                    "index": choice.get("index"), "finish_reason": choice.get("finish_reason"),
+                    "message": {name: message[name] for name in ("role", "content", "refusal", "tool_calls")
+                                if name in message},
+                })
+            local.record("provider_outputs", {
+                "attempt_id": attempt_id, "model_call_id": context.get("model_call_id"),
+                "run_id": context.get("run_id"), "http_status": event["http_status"],
+                "status": event["status"], "reported_model": data.get("model"),
+                "usage": data.get("usage"),
+                "choices": choices,
+            })
 
 
 def research_artifact_key(*, access_scope: str, subject: str, query: str,
