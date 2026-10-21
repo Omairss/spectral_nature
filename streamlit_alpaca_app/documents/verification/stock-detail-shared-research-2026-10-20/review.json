@@ -1,5 +1,5 @@
 {
-  "status": "accepted_in_development",
+  "status": "deployed_verified",
   "request": "Make Markets stock detail consume general Zopedia company research instead of the filing-only Attention explanation.",
   "base_revision": "fc73a4328860b2d69f9868d110625048fc25debb",
   "source_worktree": "/Users/omairs/Documents/code/spectral_nature_stock_research_20261020",
@@ -43,7 +43,12 @@
       "initial_screenshot": "development-xp-initial.jpg"
     },
     "local_rendering": "Actual Markdown component and application CSS rendered with retained XP content; headings, paragraphs and source links verified in Chrome. This is a local component preview, distinct from the authenticated deployed-page check.",
-    "shared_checkout": "Only the five reviewed runtime edits and the new data-contract checks applied with git apply --check followed by git apply. All 3 checks pass in the original workspace."
+    "shared_checkout": "Only the five reviewed runtime edits and the new data-contract checks applied with git apply --check followed by git apply. All 3 checks pass in the original workspace.",
+    "production": {
+      "status": "accepted",
+      "evidence": "production-verification.json",
+      "authenticated_screen": "Fresh signed-in MU detail shows the complete shared company story, four source links, unchanged price/forecast values and all five actual charts."
+    }
   },
   "deployment": {
     "production_authorized": true,
@@ -51,7 +56,7 @@
     "preserve": "Concurrent dirty work in the original checkout, all unrelated consumers, existing configuration and running cleanup observer.",
     "source_branch": "fix/shared-stock-research-20261020",
     "operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/stock-detail-shared-research-20261020",
-    "production": "Owner instructed \u201cpromote\u201d on October 20 after development acceptance; exact-image production promotion is authorized. See promotion-review.json; completion is recorded separately."
+    "production": "Owner-authorized exact-image promotion completed on four production consumers. All three serving revisions are Healthy at 100% traffic; 31 other consumers and every configuration are preserved. See production-verification.json."
   },
   "preservation_review": "Five runtime files reviewed against the accepted cleanup source. Research engine, model settings, prompts, database/publication contracts, auth, broker, Home, Trading and chart implementations remain unchanged. Full prior-image/source proof is retained in the cleanup packaged-images record. Release selects only development API, frontend and dataset refresh worker; all 32 other consumers remain on their reviewed images and configurations.",
   "verified_at_utc": "2026-10-21T00:25:17.075185+00:00"

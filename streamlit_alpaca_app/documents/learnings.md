@@ -1227,3 +1227,8 @@ The owner authorized immediate cleanup promotion after approximately 39 observed
 A common model gateway does not establish a shared company explanation. Trace the final consumer: Markets stock detail was prioritizing a narrow filing/anomaly summary while fuller Zopedia company analyses were already retained. Reuse the complete shared analysis, including its source links and original date. Scheduled subset refreshes must retain earlier company results and prioritize the subjects shown in Attention. Keep useful partial research; absence of a new story is an execution outcome, not a reason to erase the previous one.
 
 Long-form content review must include adjacent metrics and the complete deployed page. A standalone Markdown preview omitted the forecast ledger; the signed-in check exposed its rows stretching over the full story. Keep those rows compact and verify the final computed layout. Convenience probe reports may clip text: inspect the full versioned synthesis checkpoint before making a qualitative judgment.
+
+
+### October 20 — promote the actual company research producer
+
+Company stack materialization belongs to `run_news`, bound in production to `news-ingest-and-features`; `company-baseline-prefetch` maintains different data. Trace the producer before translating a development worker acceptance into production targets. Promote exact accepted digests to the consumers that execute the changed behavior, preserve every other resource, and verify the freshly loaded authenticated company screen after API health and traffic settle. Charts outside the viewport render lazily; scroll them into view before treating an empty chart DOM as missing data.

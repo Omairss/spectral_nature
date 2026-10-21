@@ -1,0 +1,162 @@
+{
+  "status": "deployed_verified",
+  "client_date": "2026-10-20",
+  "verified_at_utc": "2026-10-21T03:28:54.162327+00:00",
+  "owner_instruction": "promote",
+  "source": {
+    "packaged_source_revision": "4869d9e2719990a28dbf4750a91112ff84fbbe0f",
+    "promotion_acceptance_revision": "39ee0f84",
+    "source_inventory_sha256": "30c6ddb8afcaa9e44d9c136c848049f0d9a74c2cea569af1a8e0a8d89de76d02",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda"
+    }
+  },
+  "consumers_checked": 35,
+  "image_changes": [
+    "news-ingest-and-features",
+    "sn-api-next",
+    "sn-next-ui",
+    "sn-streamlit-ui"
+  ],
+  "retained_consumers": 31,
+  "configuration_changes": 0,
+  "serving_revisions": {
+    "sn-api-next": {
+      "revision": "sn-api-next--0000017",
+      "active": true,
+      "healthState": "Healthy",
+      "runningState": "RunningAtMaxScale",
+      "trafficWeight": 100
+    },
+    "sn-next-ui": {
+      "revision": "sn-next-ui--0000014",
+      "active": true,
+      "healthState": "Healthy",
+      "runningState": "RunningAtMaxScale",
+      "trafficWeight": 100
+    },
+    "sn-streamlit-ui": {
+      "revision": "sn-streamlit-ui--0000098",
+      "active": true,
+      "healthState": "Healthy",
+      "runningState": "RunningAtMaxScale",
+      "trafficWeight": 100
+    }
+  },
+  "http_checks": [
+    {
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "path": "/stock-investigator?ticker=MU",
+      "status": 200
+    },
+    {
+      "path": "/api/investigator/MU",
+      "status": 401
+    },
+    {
+      "path": "/api/home",
+      "status": 200
+    },
+    {
+      "path": "/api/portfolio",
+      "status": 401
+    },
+    {
+      "path": "/api/trading-agent",
+      "status": 401
+    },
+    {
+      "host": "sn-streamlit-ui",
+      "path": "/health",
+      "status": 200
+    },
+    {
+      "host": "sn-streamlit-ui",
+      "path": "/stock-investigator?ticker=MU",
+      "status": 200
+    }
+  ],
+  "http_baseline_responses_preserved": true,
+  "authenticated_screen": {
+    "browser": "Freshly reloaded existing signed-in production Chrome session",
+    "ticker": "MU",
+    "old_explanation": "Micron jumped, but the paperwork does not say why",
+    "new_explanation": "Micron: a memory-cycle company that is starting to look contracted",
+    "charts": [
+      {
+        "label": "Price channel",
+        "svg_count": 11,
+        "text": "Price channelDataProvenanceNov 2025Jan 2026Mar 2026May 2026Jul 2026Sep 202620040060080010001200ATHCloseResistanceSupportMU Price ChannelDatePrice"
+      },
+      {
+        "label": "Pullback",
+        "svg_count": 11,
+        "text": "PullbackDataProvenanceJan 2026Apr 2026Jul 2026Oct 2026\u221240\u221230\u221220\u2212100MU Pullback From ATH"
+      },
+      {
+        "label": "Income",
+        "svg_count": 13,
+        "text": "IncomeDataProvenance20202025020B40BNet IncomeOperating IncomeTotal RevenueMU - Income Statement (Quarterly)"
+      },
+      {
+        "label": "Balance",
+        "svg_count": 13,
+        "text": "BalanceDataProvenance20202025050B100B150B200BStockholders EquityTotal AssetsTotal LiabilitiesMU - Balance Statement (Quarterly)"
+      },
+      {
+        "label": "Cash flow",
+        "svg_count": 13,
+        "text": "Cash flowDataProvenance20202025020B40BCapital ExpenditureFree Cash FlowOperating Cash FlowMU - Cashflow Statement (Quarterly)"
+      }
+    ],
+    "company_text_characters": 4552,
+    "forecast_alignment": "start",
+    "forecast_text": "1W up+58.3%Breakout0%Expected 5D+1.6%Analogs80",
+    "source_links": [
+      {
+        "text": "prepared remarks",
+        "url": "https://s25.q4cdn.com/621799436/files/doc_financials/2026/q4/Q4-FY26-Prepared-Remarks.pdf"
+      },
+      {
+        "text": "results release",
+        "url": "https://investors.micron.com/news/press-release/2026/Micron-Technology-Inc--Reports-Record-Fiscal-Fourth-Quarter-and-Full-Year-2026-Results/"
+      },
+      {
+        "text": "product release",
+        "url": "https://investors.micron.com/news/press-release/2026/Micron-in-High-Volume-Production-of-HBM4-Designed-for-NVIDIA-Vera-Rubin-PCIe-Gen6-SSD-and-SOCAMM2-03-16-2026/default.aspx"
+      },
+      {
+        "text": "report",
+        "url": "https://ipfray.com/ymtc-wins-two-german-injunctions-against-micron-getting-leverage-in-global-nand-memory-patent-fight-munich-i-regional-court/"
+      }
+    ],
+    "prices_match_before": true,
+    "forecast_matches_before": true,
+    "recent_news_articles": 8,
+    "client_errors": 0,
+    "screenshot": "production-mu.jpg",
+    "chart_screenshot": "production-charts.jpg"
+  },
+  "producer": {
+    "job": "news-ingest-and-features",
+    "template_image_verified": true,
+    "new_execution_started": false,
+    "coverage": "Existing production company analyses are read immediately. Future scheduled runs prioritize current Attention subjects and retain earlier company coverage."
+  },
+  "limits": [
+    "Company coverage is incomplete; no development or QA company datasets were copied to production.",
+    "The existing shared reasoning weaknesses documented in fresh-research-review.json remain outside this integration repair.",
+    "The next scheduled production company refresh has not been observed in this promotion; its exact worker image and unchanged execution configuration are verified."
+  ],
+  "new_builds": 0,
+  "manual_product_jobs_started": 0,
+  "application_or_model_changes_during_promotion": false,
+  "native": "Existing installed SwiftUI client consumes the same company.summary Markdown field; no native source/build/install is required.",
+  "operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/stock-detail-shared-research-20261020/production",
+  "concurrent_shared_work": "Preserved; original dirty checkout was not used as release source."
+}

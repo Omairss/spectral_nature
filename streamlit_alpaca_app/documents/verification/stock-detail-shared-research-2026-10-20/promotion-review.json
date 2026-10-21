@@ -1,5 +1,5 @@
 {
-  "status": "authorized_for_promotion",
+  "status": "promoted_and_verified",
   "owner_instruction": "promote",
   "client_date": "2026-10-20",
   "source_revision": "4869d9e2719990a28dbf4750a91112ff84fbbe0f",
@@ -31,5 +31,6 @@
   },
   "new_builds": 0,
   "manual_product_jobs_planned": 0,
-  "operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/stock-detail-shared-research-20261020/production"
+  "operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/stock-detail-shared-research-20261020/production",
+  "production_verification": "production-verification.json"
 }
