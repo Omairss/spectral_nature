@@ -1154,16 +1154,27 @@ def _run_evidence_model_step(
         )
     step_schema = {
         "type": "object", "additionalProperties": False,
+        "description": "Read requires an evidence tool and typed arguments. Answer requires the requested answer object. select_context requires known tool_call_ids. Other fields are optional and do not replace the chosen action.",
         "properties": {
             "action": {"type": "string", "enum": ["answer", "read", "select_context"]},
-            "tool_name": {"type": "string"},
-            "tool_arguments": {"type": "object", "additionalProperties": True,
+            "tool_name": {"type": ["string", "null"]},
+            "tool_arguments": {"type": ["object", "null"], "additionalProperties": True,
                                "description": "Arguments for the evidence tool, with their original types; an empty object otherwise."},
             "keep_tool_call_ids": {"type": ["array", "null"], "items": {"type": "string"},
                                    "description": "Results to keep in working context; null keeps the current selection. All originals remain readable."},
-            "answer": {"anyOf": [schema, {"type": "null"}]},
+            "answer": {"type": ["object", "null"]},
         },
-        "required": ["action", "tool_name", "tool_arguments", "keep_tool_call_ids", "answer"],
+        "required": ["action"],
+        "allOf": [
+            {"if": {"properties": {"action": {"const": "read"}}},
+             "then": {"required": ["tool_name", "tool_arguments"], "properties": {
+                 "tool_name": {"type": "string", "minLength": 1}, "tool_arguments": {"type": "object"}}}},
+            {"if": {"properties": {"action": {"const": "answer"}}},
+             "then": {"required": ["answer"], "properties": {"answer": schema}}},
+            {"if": {"properties": {"action": {"const": "select_context"}}},
+             "then": {"required": ["keep_tool_call_ids"], "properties": {
+                 "keep_tool_call_ids": {"type": "array", "items": {"type": "string"}}}}},
+        ],
     }
     feedback = capacity_feedback
     catalog_only = False
@@ -1248,13 +1259,17 @@ def _run_evidence_model_step(
             feedback = "Invalid response: " + errors[0].message
             continue
         keep = step.get("keep_tool_call_ids")
+        action = step["action"]
+        selection_feedback = ""
         if keep is not None:
             known = {call["tool_call_id"] for call in tool_calls}
             if not set(keep) <= known:
-                feedback = "Unknown tool_call_id in working-context selection. Use the history catalog."
-                continue
-            context_state["tool_call_ids"] = keep
-        action = step["action"]
+                if action == "select_context":
+                    feedback = "Unknown tool_call_id in working-context selection. Use the history catalog."
+                    continue
+                selection_feedback = "Optional context selection was not applied: use known tool_call_ids from the history catalog."
+            else:
+                context_state["tool_call_ids"] = keep
         if action == "answer" and isinstance(step.get("answer"), dict):
             return {**step["answer"], **{key: value for key, value in step.items() if key.startswith("__")}}
         if action == "select_context":
@@ -1286,7 +1301,7 @@ def _run_evidence_model_step(
         elif catalog_only:
             context_state["tool_call_ids"] = [call_id]
         catalog_only = False
-        feedback = ""
+        feedback = selection_feedback
         _emit_progress(progress_callback, stage="evidence_read_complete", message="Evidence reading complete.",
                        progress=0.9, tool_name=tool_name, tool_call_id=call_id, purpose=purpose)
     raise TimeoutError("Evidence step exceeded its existing deadline: " + purpose)
