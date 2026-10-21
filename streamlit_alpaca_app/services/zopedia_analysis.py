@@ -1012,6 +1012,9 @@ def _build_llm_context(payload: dict[str, Any]) -> str:
     if log_stats:
         lines.append("Output logs:")
         lines.extend(f"- {item}" for item in log_stats)
+        for stream in ("stdout", "stderr", "traceback"):
+            if payload.get(stream):
+                lines.append(f"{stream}:\n{payload[stream]}")
     result_payload = payload.get("result")
     result_summary = _summarize_result_payload(result_payload)
     if result_summary:
@@ -1244,11 +1247,14 @@ def _base_result_payload(
         "created_at_utc": _utc_now(),
         "metadata": {
             "runner": "zopedia_analysis.v1",
-            "context_policy": "summary_only_logs",
+            "context_policy": "bounded_original_outputs",
             **({"failure_category": failure_category} if failure_category else {}),
         },
     }
     payload["llm_context_text"] = _build_llm_context(payload)
+    payload["evidence_context_text"] = json.dumps(
+        {key: value for key, value in payload.items() if key != "llm_context_text"}, default=str, ensure_ascii=False
+    )
     return payload
 
 
@@ -1308,22 +1314,6 @@ def run_analysis_python(
             started_at=started_at,
             error=f"Input resolution failed: {type(exc).__name__}: {exc}",
             failure_category="analysis_input_rejected" if isinstance(exc, AnalysisRejectedError) else "analysis_input_missing",
-        )
-        if persist:
-            _persist_best_effort(payload, conn=conn)
-        return payload
-
-    if not frames:
-        payload = _base_result_payload(
-            status="failed",
-            run_id=run_id,
-            objective=objective_text,
-            code=clean_code,
-            input_refs=input_refs,
-            messages=messages,
-            started_at=started_at,
-            error="No analysis input datasets were available.",
-            failure_category="analysis_input_missing",
         )
         if persist:
             _persist_best_effort(payload, conn=conn)
@@ -1410,13 +1400,16 @@ def run_analysis_python(
         "created_at_utc": _utc_now(),
         "metadata": {
             "runner": "zopedia_analysis.v1",
-            "context_policy": "summary_only_logs",
+            "context_policy": "bounded_original_outputs",
             "frame_names": sorted(frames),
             "timeout_seconds": timeout,
             **({"failure_category": "analysis_runtime_error"} if status not in {"succeeded", "success"} else {}),
         },
     }
     payload["llm_context_text"] = _build_llm_context(payload)
+    payload["evidence_context_text"] = json.dumps(
+        {key: value for key, value in payload.items() if key != "llm_context_text"}, default=str, ensure_ascii=False
+    )
     if persist:
         _persist_best_effort(payload, conn=conn)
     return payload

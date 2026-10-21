@@ -834,12 +834,12 @@ def _analysis_tools() -> list[dict[str, Any]]:
                 "within a 128 MiB estimated-frame input allocation; only display previews are shortened. Use this for EDA, statistical checks, regressions, "
                 "clustering, classification, feature importance, or other quantitative analysis that "
                 "needs computation beyond direct dataset lookup. Provide dataset_refs that name QueryService "
-                "datasets plus typed params, or inline_datasets for user-uploaded tabular data. "
+                "datasets plus typed params, or inline_datasets for supplied tabular data. Omit both for a self-contained calculation. "
                 "Code must be valid multiline Python. Inputs are preloaded as pandas DataFrames in "
                 "`datasets` and as variables named by each dataset alias. Do not call load_dataset, "
                 "get_dataset, context, globals, open, or filesystem/network APIs from the code. "
-                "Normal results summarize stdout/stderr by statistics only; call analysis.read_raw_output "
-                "with the returned analysis_run_id only when exact logs are required."
+                "Results include retained numerical outputs as evidence. analysis.read_raw_output "
+                "can inspect retained logs by analysis_run_id."
             ),
             "inputSchema": {
                 "type": "object",
@@ -884,7 +884,7 @@ def _analysis_tools() -> list[dict[str, Any]]:
                 "Explicitly read bounded raw stdout, stderr, error, traceback, or all output for a persisted "
                 "analysis.run_python run. Use only when exact logs are needed for debugging or answering "
                 "a user question about what the analysis printed; ordinary analysis context already includes "
-                "summary statistics."
+                "retained numerical results."
             ),
             "inputSchema": {
                 "type": "object",
