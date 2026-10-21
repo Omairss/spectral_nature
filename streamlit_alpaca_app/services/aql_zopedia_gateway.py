@@ -209,6 +209,17 @@ def generate_json_via_aql_zopedia_gateway(
             "settings_scope": llm_settings_scope(),
         }
     )
+    if local := current_local_execution():
+        if local.retain_training_io:
+            # Deliberate private training material, never operational telemetry.
+            # Preserve the typed shared contract before provider adaptation.
+            local.record("model_inputs", {
+                "model_call_id": model_call_id, "surface": clean_surface,
+                "purpose": clean_purpose, "call_type": clean_call_type,
+                "schema_name": clean_schema_name, "schema": schema,
+                "schema_hash": schema_hash, "prompt_hash": prompt_hash,
+                "system_prompt": effective_system, "user_prompt": user_prompt,
+            })
 
     try:
         with llm_request_deadline(deadline_monotonic), model_call_context(**{
