@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Native paper-detail repair and conditional foreground Home refresh; scoped DEV web deployment after local platform verification.",
-  "source_revision": "4c43d59acaafcdca3ab0d6b575bedfd415cc5755",
+  "source_revision": "83c947b2433eb5546911c26e15745583b6b0df6d",
   "review_base_revision": "23a0c1b9",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -280,7 +280,7 @@
     "web/components/admin/operational-health.tsx": "5aac991f4bc273cbeb8144718f197e85cad887b93ba5c4add46053b1ca57de25",
     "web/components/agent-rail.tsx": "ceeab7d77cb5cb4962023402a8d347019ae4d36cf885d71d8f75c6962057ec8a",
     "web/components/attention-ticker-card.tsx": "ff663f85afe7add12037ae8273c9f74686914c535e97a37720bf9d60dd01f575",
-    "web/components/home-workspace.tsx": "d969e111d10f068dabc06b2bc2da86bba5d875d5917d214f24f5c9794598a4be",
+    "web/components/home-workspace.tsx": "709b08db27af5197412c9a1954582f7012141dfb7bdcec3d89c4de5d8c23a667",
     "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
     "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
     "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
@@ -502,7 +502,7 @@
   "reviewed_changes": {
     "web/app/page.tsx": "Preserve account-link redirects, validated replay and SSR content; delegate live updates to the mounted Home workspace.",
     "web/app/api/home/route.ts": "Complete same-origin retained Home with content ETags and bodyless conditional 304. Preserve replay separation and upstream errors; unavailable reads do not validate old content.",
-    "web/components/home-workspace.tsx": "Preserve full Brief, Highlights, Attention prices/fundamentals/network and controls. Poll visible live screens; cancel hidden reads; retain good data on failure; defer changes during audio; stable chart identities.",
+    "web/components/home-workspace.tsx": "Preserve full Brief, Highlights, Attention prices/fundamentals/network and controls. Poll visible live screens; cancel hidden reads; retain good data on failure; defer changes during audio; stable chart identities. Timestamp time zone and count locale are explicit for consistent SSR/hydration.",
     "web/lib/server/home.ts": "Share retained response and 15-second cache between SSR and gateway. Hash all content including independent prices/Highlights; no research/provider calls.",
     "web/tests/home-refresh.test.mjs": "Actual route/loader checks for unchanged 304, full payload, independent data changes and outages; no narrative claims."
   },
@@ -737,7 +737,7 @@
       "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:9aaba4650ee4cd11e7f54ee2e947b192fd0436ae854ae2baf985b997477028e5"
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:2ba0f1391b481c66f8b7d81a391fe2caace30c9d34d82da72b9ef10be8d7ceaa"
       ],
       "development_targets": [
         {
@@ -746,13 +746,13 @@
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4",
           "environment": "development",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:9aaba4650ee4cd11e7f54ee2e947b192fd0436ae854ae2baf985b997477028e5",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:2ba0f1391b481c66f8b7d81a391fe2caace30c9d34d82da72b9ef10be8d7ceaa",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:9aaba4650ee4cd11e7f54ee2e947b192fd0436ae854ae2baf985b997477028e5",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-            "package_evidence": "documents/verification/client-refresh-2026-10-22/retained-maintenance-packages.json",
-            "evidence": "documents/verification/client-refresh-2026-10-22/LOCAL.md"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:2ba0f1391b481c66f8b7d81a391fe2caace30c9d34d82da72b9ef10be8d7ceaa",
+            "source_revision": "150c791b31096e39227cdb0de00442829cf317e5",
+            "evidence": "documents/verification/client-refresh-2026-10-22/LOCAL.md",
+            "package_evidence": "documents/verification/client-refresh-2026-10-22/packaged-image.json"
           }
         }
       ],
@@ -865,7 +865,7 @@
         "web/components/admin/operational-health.tsx": "5aac991f4bc273cbeb8144718f197e85cad887b93ba5c4add46053b1ca57de25",
         "web/components/agent-rail.tsx": "ceeab7d77cb5cb4962023402a8d347019ae4d36cf885d71d8f75c6962057ec8a",
         "web/components/attention-ticker-card.tsx": "ff663f85afe7add12037ae8273c9f74686914c535e97a37720bf9d60dd01f575",
-        "web/components/home-workspace.tsx": "d969e111d10f068dabc06b2bc2da86bba5d875d5917d214f24f5c9794598a4be",
+        "web/components/home-workspace.tsx": "709b08db27af5197412c9a1954582f7012141dfb7bdcec3d89c4de5d8c23a667",
         "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
         "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
         "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
