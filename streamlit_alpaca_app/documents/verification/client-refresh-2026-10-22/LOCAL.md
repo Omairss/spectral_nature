@@ -1,5 +1,9 @@
 # Client refresh source review — October 22
 
+Current status: accepted in DEV on revision 33. Signed native build 9 is ready.
+Production promotion and physical installation await owner approval and phone
+connection. [Final acceptance](development.json) · [Signed client](native-build.json).
+
 The owner authorized feedback items 1 and 2. Source review accepts the scoped
 transport/state changes for platform verification. DEV deployment follows complete
 local UI verification; production is not authorized by this instruction.
@@ -101,3 +105,26 @@ conditional GET and CSRF rejection/retry probe, preserving cookies, Origin, body
 and CSRF headers. Its credential storage is an in-memory QA stub, not a copied
 application session. The complete real native authenticated paper chart was
 independently verified above. The replacement package will be rechecked in DEV.
+
+## Final DEV acceptance
+
+The final Git-built package `c02b7142…` passed complete verification of 89 frontend
+inputs and all 1,703 compiled files. DEV revision 33 is ready/running with 100%
+latest-revision traffic. A fresh authenticated browser session has no console
+warnings/errors after interactive chart use. Every one of the 29,184 Home text
+characters matches Azure SSR to Chrome after hydration. The retained Home ETag
+remains identical across the rollout, and conditional reads return empty 304.
+
+All 36 current resource definitions were read back. Only the intended DEV web
+image changed; zero configuration changes and zero production image changes. The
+maintenance rollout and its separate API reader credential/schedule remain intact.
+The signed native 9 runtime matches 40 committed source/config/asset files; its
+normal authenticated DEV chart works. The phone is currently paired but its
+tunnel is unavailable. Its last installed build remains 8. No physical install,
+order/approval action or production promotion was performed.
+
+Task-owned source is synchronized to the original IDE checkout using reviewed
+patches. All 1,463 pre-existing modified/untracked file hashes were preserved at
+integration; subsequent shared-note edits are scoped and retain other research.
+The release manifest stays in the accepted Git worktree, separate from the dirty
+main checkout. Local QA servers and the task-booted simulator have been stopped.

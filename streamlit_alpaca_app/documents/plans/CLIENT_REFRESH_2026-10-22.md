@@ -35,8 +35,9 @@ prepare the committed source record, verify builds and deploy the scoped web cha
 to DEV. Prepare the native build for the compatible gateway without changing the
 phone's production default, bundle identity or saved session.
 
-Status: local/native acceptance complete and signed build 9 prepared. The first
-DEV web candidate passed conditional transport checks; explicit timestamp and shared currency formatting
-now give identical complete server/browser text under Node 22. The final package
-is undergoing verification. Production and the physical
-iPhone remain unchanged. See [verification](../verification/client-refresh-2026-10-22/LOCAL.md).
+Status: accepted in DEV on revision 33; the complete deployed Home matches SSR
+and browser text with zero rendering warnings. Native build 9 is signed and its
+normal authenticated DEV Paper performance chart is verified. Production and the
+physical iPhone remain unchanged pending approval and connection. See
+[verification](../verification/client-refresh-2026-10-22/development.json) and
+[native build](../verification/client-refresh-2026-10-22/native-build.json).

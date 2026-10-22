@@ -1543,7 +1543,14 @@
     "status": "not_requested"
   },
   "development_acceptance": {
-    "status": "pending"
+    "status": "accepted",
+    "images": {
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660"
+    },
+    "source_inventory_sha256": "4517cb70ea70d8a1eef1674467e3bf3e6b38f6c623d4a3115c4802e1e56bb1e8",
+    "evidence": "documents/verification/client-refresh-2026-10-22/development.json",
+    "qualitative_review": "documents/verification/client-refresh-2026-10-22/LOCAL.md",
+    "scope": "Conditional Brief refresh and shared rendering in DEV, plus normal native authenticated paper detail. No model/prompt, production deployment or physical installation."
   },
   "consumer_contract_reviews": {
     "database_lifecycle": {

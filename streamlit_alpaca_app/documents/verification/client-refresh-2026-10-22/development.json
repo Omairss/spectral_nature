@@ -1,0 +1,259 @@
+{
+  "status": "accepted",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
+  "latest_ready_revision": "sn-next-ui-dev--0000033",
+  "http": {
+    "status": 200,
+    "etag": "\"231f5f08f3e19d199e52bfeaf21bb7f19da5cad11ca8095d9b631fc74e61f694\"",
+    "conditional_status": 304,
+    "conditional_bytes": 0,
+    "as_of": "2026-10-18T20:24:34.140109+00:00",
+    "signals": 6,
+    "highlights": 5
+  },
+  "consumers": [
+    {
+      "name": "sn-streamlit-ui",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "sn-api-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97568a0e62cdbfc817612b31d54ad7ae1fe06bc6f556f340d3c8077188bee274",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
+      "configuration_unchanged": true,
+      "image_changed": true
+    },
+    {
+      "name": "sn-next-ui",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "sn-api-next",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "universe-builder",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "equities-intraday-preload",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "macro-fred-daily",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "commodities-regime",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "options-liquid-universe",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "news-ingest-and-features",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "attention-home-build",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "trading-agent-build",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "zopedia-maintenance",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "zopedia-learning",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "system-health",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "sn-research-run-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "attention-home-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "technical-history-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "sn-research-run",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "equities-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "evidence-index-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "system-recovery-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "system-recovery",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "cleanup-trial-observer-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "configuration_unchanged": true,
+      "image_changed": false
+    },
+    {
+      "name": "zopedia-maintenance-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "configuration_unchanged": true,
+      "image_changed": false
+    }
+  ],
+  "configuration_changes": 0,
+  "production_image_changes": 0,
+  "native_authenticated_detail": "Existing MARA approved call rendered six call/SPY observations through normal DEV gateway; no decisions or orders submitted.",
+  "browser": {
+    "console_errors": 0,
+    "console_warnings": 0,
+    "interactive_price_chart": true,
+    "complete_ssr_and_browser_text_equal": true,
+    "text_characters": 29184
+  },
+  "native_transport": {
+    "csrf": 2,
+    "posts": 2,
+    "conditional": 1,
+    "valid_headers": true,
+    "success": true,
+    "scope": "Actual APIClient/JSONValue/APIModels with local HTTP and in-memory credential stub. No production writes."
+  },
+  "mechanical_checks": {
+    "node22": 16,
+    "node25": 16,
+    "web_typecheck": "passed",
+    "scoped_eslint": "passed",
+    "native_simulator_build": "passed",
+    "signed_device_build9": "passed"
+  },
+  "upstream_home_payload_preserved": true
+}
