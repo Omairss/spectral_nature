@@ -2,7 +2,7 @@
 
 ## Client refresh and gateway checks — 2026-10-22
 
-Conditional refresh must cover independent ticker and Highlight publications as well as the narrative run. Keep a mounted renderer, stable item identities, foreground-only requests, last-good state on failures and audio continuity. Check SSR/browser formatting across time zones. Native API paths must match the exposed Next.js gateway; populated authenticated detail checks caught the paper-performance route mismatch that compilation missed.
+Conditional refresh must cover independent ticker and Highlight publications as well as the narrative run. Keep a mounted renderer, stable item identities, foreground-only requests, last-good state on failures and audio continuity. Check SSR/browser formatting across time zones. Compare the production Node/ICU version with Chrome too: compact currency defaults differed between Node 22 and Node 25/Chrome. Set both minimum and maximum precision in shared formatters. Native API paths must match the exposed Next.js gateway; populated authenticated detail checks caught the paper-performance route mismatch that compilation missed.
 
 ## Trading resumption — 2026-10-18
 

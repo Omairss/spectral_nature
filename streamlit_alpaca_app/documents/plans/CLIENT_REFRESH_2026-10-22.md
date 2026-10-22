@@ -36,6 +36,7 @@ to DEV. Prepare the native build for the compatible gateway without changing the
 phone's production default, bundle identity or saved session.
 
 Status: local/native acceptance complete and signed build 9 prepared. The first
-DEV web candidate passed conditional transport checks; a timestamp hydration fix
-is undergoing replacement-package verification. Production and the physical
+DEV web candidate passed conditional transport checks; explicit timestamp and shared currency formatting
+now give identical complete server/browser text under Node 22. The final package
+is undergoing verification. Production and the physical
 iPhone remain unchanged. See [verification](../verification/client-refresh-2026-10-22/LOCAL.md).
