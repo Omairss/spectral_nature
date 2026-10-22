@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Local source approval for aggregate approved-paper accounting and portfolio-first clients. Native screen/build verification pending; production is not authorized.",
-  "source_revision": "e806f3636118c15d0ac32165617645b4173e0dce",
+  "source_revision": "d8663b31b2c2639ceb98b8bcc2aafddc87cce0cc",
   "review_base_revision": "2130a3c59c3c5ea8b00448135b22634513f48311",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -207,7 +207,7 @@
     "services/system_health.py": "3075ac581364cb7007415bac1a5f921f5e5cdb2bd7ce1b1b2c24c6658ee1445b",
     "services/trading_agent.py": "b1c19df36fa21a92750f487e26885fc75aa8030a5f187cb24602fa49013441fb",
     "services/trading_agent_view.py": "1bc754a136bc8e66061597197f624a6c6371bfb408f7348336ab8a731d4129e0",
-    "services/trading_call_tracking.py": "bca57383a5ce1240eccede5770058b73d7e157f13f684cc46ca06b467cb1074f",
+    "services/trading_call_tracking.py": "45ca64b0002f5106afe3cedbc6a6a03a0c46e6d16af9a894133de13dd9ef5254",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
@@ -286,7 +286,7 @@
     "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
     "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
     "web/components/trading-paper-portfolio.module.css": "926f140804cc86d8befff2ca0e296321f2064d2b0e2500dadeab836182c94950",
-    "web/components/trading-paper-portfolio.tsx": "5c1e83b045b2e5862efaf1ff93cfa456dbb21cefcca887fda575915f71617fe3",
+    "web/components/trading-paper-portfolio.tsx": "f2f672ec42985df8b73ececa2759d0d9b6c1d7525adac9840a640c9fbe915d13",
     "web/components/visualizations/data-plot.tsx": "cc6ae2da3397a70d46a1dd12d02d0dc3b70f9dbb54564388650684af972d5a64",
     "web/components/visualizations/plotly-renderer.tsx": "ef001b939efe9d5a257a58453b43ce17d294f3ef2a6987ff517ec4edaf9cd298",
     "web/components/visualizations/price-context-chart.tsx": "269f8771261cee929f72f0df421ab79345d01c1bb4731a4dfc87ac787ce9c47f",
@@ -487,7 +487,7 @@
     "services/system_health.py": "3075ac581364cb7007415bac1a5f921f5e5cdb2bd7ce1b1b2c24c6658ee1445b",
     "services/trading_agent.py": "b1c19df36fa21a92750f487e26885fc75aa8030a5f187cb24602fa49013441fb",
     "services/trading_agent_view.py": "1bc754a136bc8e66061597197f624a6c6371bfb408f7348336ab8a731d4129e0",
-    "services/trading_call_tracking.py": "bca57383a5ce1240eccede5770058b73d7e157f13f684cc46ca06b467cb1074f",
+    "services/trading_call_tracking.py": "45ca64b0002f5106afe3cedbc6a6a03a0c46e6d16af9a894133de13dd9ef5254",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
@@ -502,7 +502,7 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "services/trading_call_tracking.py": "Read-only, owned approval/outcome aggregation; time-weighted equal entry capital, retained cash, signed benchmark, coverage and linked attribution. Ten arithmetic/ownership checks. Existing mutation, valuation and learning functions unchanged; individual detail remains lazy.",
+    "services/trading_call_tracking.py": "Read-only, owned approval/outcome aggregation; time-weighted equal entry capital, retained cash, signed benchmark, coverage and linked attribution. Eleven arithmetic/ownership checks. Existing mutation, valuation and learning functions unchanged; individual detail remains lazy. Unpriced/invalid paths remain isolated and unknown contribution/value stays null.",
     "services/trading_agent_view.py": "Expose the shared paper_portfolio independently of research availability; preserve all research, decision and original tracking fields.",
     "web/app/trading-agent/page.tsx": "Default to aggregate portfolio; preserve all Calls/horizon/cards/decisions. Approval returns to portfolio. Research timestamp stays with Calls.",
     "web/components/trading-paper-portfolio.tsx": "Source-owned aggregate renderer with combined path, exposure, complete contributor labels, grouped holdings and lazy original call drilldown. Personally inspected populated and empty navigation locally.",
@@ -921,7 +921,7 @@
         "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
         "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
         "web/components/trading-paper-portfolio.module.css": "926f140804cc86d8befff2ca0e296321f2064d2b0e2500dadeab836182c94950",
-        "web/components/trading-paper-portfolio.tsx": "5c1e83b045b2e5862efaf1ff93cfa456dbb21cefcca887fda575915f71617fe3",
+        "web/components/trading-paper-portfolio.tsx": "f2f672ec42985df8b73ececa2759d0d9b6c1d7525adac9840a640c9fbe915d13",
         "web/components/visualizations/data-plot.tsx": "cc6ae2da3397a70d46a1dd12d02d0dc3b70f9dbb54564388650684af972d5a64",
         "web/components/visualizations/plotly-renderer.tsx": "ef001b939efe9d5a257a58453b43ce17d294f3ef2a6987ff517ec4edaf9cd298",
         "web/components/visualizations/price-context-chart.tsx": "269f8771261cee929f72f0df421ab79345d01c1bb4731a4dfc87ac787ce9c47f",
