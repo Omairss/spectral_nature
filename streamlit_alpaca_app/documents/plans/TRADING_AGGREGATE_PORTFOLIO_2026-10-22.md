@@ -111,3 +111,7 @@ integration and its consumer contracts before any DEV packaging. Unrelated
 research in the shared IDE checkout remains untouched.
 
 Status: replacing the local aggregate prototype with Alpaca-owned accounting.
+
+## Native and source acceptance update
+
+Signed build 10 compiled and account/review screens were inspected in iPhone 16 Simulator. Shared account projection now normalizes broker amounts and timestamps for both clients. Development integration retains all 17 maintenance files byte-for-byte. API/web builds are in progress; production and physical-phone install remain unauthorized for this task.
