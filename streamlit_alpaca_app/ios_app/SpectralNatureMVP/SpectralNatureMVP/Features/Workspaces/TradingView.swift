@@ -105,7 +105,8 @@ struct TradingView: View {
     refreshing = true
     do {
       let result: JSONValue = try await session.api.post("/api/trading-agent/paper/refresh")
-      paper = result.dictionaryValue
+      guard let account = result.dictionaryValue else { throw APIError.invalidResponse }
+      paper = account
       decisionError = ""
     } catch { decisionError = error.localizedDescription }
     refreshing = false
@@ -480,8 +481,9 @@ private struct PaperOrderReviewView: View {
     do {
       let value: JSONValue = try await session.api.post("/api/trading-agent/paper/review",
         body: ["candidate_id": .string(candidate.text("candidate_id")), "policy": .object(policy)])
-      review = value.dictionaryValue
-    } catch { error = error.localizedDescription }
+      guard let ticket = value.dictionaryValue else { throw APIError.invalidResponse }
+      review = ticket
+    } catch { self.error = error.localizedDescription }
     busy = false
   }
   private func confirm() async {
@@ -489,8 +491,9 @@ private struct PaperOrderReviewView: View {
     do {
       let result: JSONValue = try await session.api.post("/api/trading-agent/paper/confirm",
         body: ["ticket_id": .string(review.text("ticket_id")), "arguments_hash": .string(review.text("arguments_hash"))])
-      await submitted(result["order"].dictionaryValue)
-    } catch { error = error.localizedDescription }
+      guard let receipt = result["order"].dictionaryValue else { throw APIError.invalidResponse }
+      await submitted(receipt)
+    } catch { self.error = error.localizedDescription }
     busy = false
   }
 }
