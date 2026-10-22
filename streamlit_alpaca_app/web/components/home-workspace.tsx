@@ -20,6 +20,7 @@ function formatAsOf(value: string) {
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "UTC",
     timeZoneName: "short",
   }).format(parsed);
 }
@@ -187,7 +188,7 @@ export function HomeWorkspace({ initialHome, initialEtag, targetDate }: {
             <section className="home-graph-panel" aria-label="Market attention network">
               <header className="section-heading">
                 <div><p className="section-label">Structure</p><h2>{home.graph.title}</h2></div>
-                <span>{home.graph.performance.row_count.toLocaleString()} plotted points</span>
+                <span>{home.graph.performance.row_count.toLocaleString("en-US")} plotted points</span>
               </header>
               <Visualization artifact={home.graph} />
             </section>

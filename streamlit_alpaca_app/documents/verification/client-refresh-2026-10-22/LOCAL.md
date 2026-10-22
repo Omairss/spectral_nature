@@ -73,3 +73,12 @@ every compiled runtime file/symlink match the build inventory. See
 [package evidence](packaged-image.json). Runtime source is committed Git, with no
 inherited application tree. Authenticated real DEV rendering remains the final
 rollout check; all production images/configurations remain unchanged.
+
+The first deployed DEV candidate exposed a UTC/server versus local/browser timestamp
+hydration mismatch. Normal native DEV authentication and the existing MARA paper
+call succeeded, including its six dated call/SPY observations. The DEV Home gateway
+returns its retained six-signal/five-Highlight snapshot with ETag and bodyless 304.
+The corrected client explicitly formats the publication timestamp in UTC and
+network counts with an explicit locale. Web types/lint and all 15 transport checks
+pass again. A replacement web package and fresh browser console review follow;
+the initial candidate is not the final promotion candidate.

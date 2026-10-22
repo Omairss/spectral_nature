@@ -1,5 +1,9 @@
 # Mistakes — Active Guidelines
 
+## Client refresh acceptance — 2026-10-22
+
+Moving the Home renderer across the server/client boundary left publication time formatting dependent on the host time zone. The first DEV browser load reported React hydration error 418 because Azure rendered UTC and the browser rendered Pacific time. Made the displayed timestamp explicitly UTC and the network count locale explicit. Local tests on one host time zone did not expose this; fresh deployed browser-console review caught it before production.
+
 ## Trading resumption preparation and reasoning — 2026-10-18
 
 - Release gates caught a retired endpoint pathname and a stale duplicate component record before packaging; use the current approved-call route and one component record. Registry verification needs a single encoded command argument, and a job execution override needs the complete supported container template, including its image/environment. Preserve saved templates and classify these as operator rejections, not model failures.
