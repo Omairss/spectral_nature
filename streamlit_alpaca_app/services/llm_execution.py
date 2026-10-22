@@ -30,6 +30,17 @@ _ACCOUNTS: dict[str, tuple[float, bool]] = {}
 _ACCOUNT_LOCK = threading.RLock()
 
 
+def normalize_provider_usage(usage: dict[str, Any] | None) -> dict[str, Any]:
+    """Retain native accounting fields and expose common token-count names."""
+    result = dict(usage or {})
+    for common, native in (("prompt_tokens", "input_tokens"), ("completion_tokens", "output_tokens"),
+                           ("prompt_tokens_details", "input_tokens_details"),
+                           ("completion_tokens_details", "output_tokens_details")):
+        if common not in result and native in result:
+            result[common] = result[native]
+    return result
+
+
 class LLMContextWindowExceeded(RuntimeError):
     """Capacity feedback for the agent; retrying an unchanged request cannot help."""
 
@@ -45,14 +56,14 @@ def request_context_budget(config: Any, payload: dict[str, Any]) -> dict[str, An
         1048576 if config.provider == "deepseek" and
         urlparse(config.base_url).hostname == "api.deepseek.com" else 0
     ))
-    if not window or not payload.get("messages"):
+    if not window or not (payload.get("messages") or payload.get("input") or payload.get("instructions")):
         return {}
     import tiktoken
 
     encoding = tiktoken.get_encoding("cl100k_base")
     text = json.dumps(payload, ensure_ascii=False, default=str)
     tokens = len(encoding.encode_ordinary(text))
-    reserve = int(payload.get("max_tokens") or os.getenv("LLM_CONTEXT_OUTPUT_RESERVE_TOKENS") or 65536)
+    reserve = int(payload.get("max_tokens") or payload.get("max_output_tokens") or os.getenv("LLM_CONTEXT_OUTPUT_RESERVE_TOKENS") or 65536)
     estimate = (tokens * 5 + 3) // 4
     return {"window_tokens": window, "estimated_input_tokens": estimate,
             "reserved_output_tokens": reserve, "fits": estimate + reserve <= window,
@@ -182,13 +193,18 @@ def request_composition(payload: dict[str, Any]) -> dict[str, Any]:
         return sum(len(part) for part in encoder.iterencode(value))
     roles: dict[str, int] = {}
     messages = payload.get("messages") or []
+    if not messages and (payload.get("input") or payload.get("instructions")):
+        supplied = payload.get("input") or []
+        messages = ([{"role": "user", "content": supplied}] if isinstance(supplied, str) else list(supplied))
+        if payload.get("instructions"):
+            messages = [{"role": "system", "content": payload["instructions"]}, *messages]
     for message in messages:
         role = str(message.get("role") or "unknown")
         roles[role] = roles.get(role, 0) + size(message)
     return {"serialized_characters": size(payload), "message_count": len(messages),
             "message_characters_by_role": roles, "tool_count": len(payload.get("tools") or []),
             "tool_schema_characters": size(payload.get("tools") or []),
-            "response_schema_characters": size(payload.get("response_format") or {}),
+            "response_schema_characters": size(payload.get("response_format") or (payload.get("text") or {}).get("format") or {}),
             "measurement": "serialized JSON characters; provider usage supplies actual tokens"}
 
 
@@ -208,7 +224,8 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     if config.provider == "deepseek" and (operation == "json_repair" or context.get("literal_output")):
         # Non-thinking defaults to 8K while thinking defaults to 64K. A
         # mechanical conversion must not silently shorten an existing artifact.
-        payload.setdefault("max_tokens", int(os.getenv("DEEPSEEK_LITERAL_MAX_OUTPUT_TOKENS") or "65536"))
+        output_key = "max_output_tokens" if operation == "responses" else "max_tokens"
+        payload.setdefault(output_key, int(os.getenv("DEEPSEEK_LITERAL_MAX_OUTPUT_TOKENS") or "65536"))
         kwargs["json"] = payload
     composition = request_composition(payload)
     context_budget = request_context_budget(config, payload)
@@ -278,22 +295,26 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
             "status": "success" if response is not None and 200 <= response.status_code < 300 else "failure" if transport_attempted else "not_sent",
             "http_status": response.status_code if response is not None else None,
             "started_at_utc": started, "duration_ms": (time.monotonic() - t0) * 1000,
-            "usage": data.get("usage"),
+            "usage": normalize_provider_usage(data.get("usage")),
             "metadata": {
                 "transport_attempted": transport_attempted,
                 "request_composition": composition,
                 "error_type": error_type, "provider_request_id": data.get("id"),
-                "inference_effort": payload.get("reasoning_effort"), "thinking": payload.get("thinking"),
+                "response_status": data.get("status"), "native_usage": data.get("usage"),
+                "response_error": data.get("error"),
+                "response_finish_reasons": [choice.get("finish_reason") for choice in data.get("choices") or []],
+                "sampling_parameters": {key: payload[key] for key in ("temperature", "top_p", "max_tokens", "max_output_tokens") if key in payload},
+                "inference_effort": payload.get("reasoning_effort") or (payload.get("reasoning") or {}).get("effort"), "thinking": payload.get("thinking"),
                 "input_hash": hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest(),
                 "job_name": os.getenv("PIPELINE_JOB_NAME"),
                 "research_subject": context.get("research_subject"),
                 "artifact_input_id": context.get("artifact_input_id"),
                 "literal_output": bool(context.get("literal_output")),
-                "max_output_tokens": payload.get("max_tokens"),
+                "max_output_tokens": payload.get("max_tokens") or payload.get("max_output_tokens"),
                 "input_characters": len(str(payload.get("text") or "")) if operation == "audio" else None,
                 "estimated_charge": estimated_charge(provider=config.provider,
                     model=data.get("model") or (payload.get("model") if operation == "embedding" else ""),
-                    usage=data.get("usage"), started_at=started),
+                    usage=normalize_provider_usage(data.get("usage")), started_at=started),
             },
         }
         try:
@@ -315,7 +336,7 @@ def research_artifact_key(*, access_scope: str, subject: str, query: str,
     contract = {"engine_revision": research_engine_revision(), "query": query, "schema": schema, "provider": config.provider,
                 "endpoint": config.base_url, "model": config.model,
                 "thinking": config.thinking_mode, "effort": execution_effort(config.reasoning_effort),
-                "temperature": config.temperature, "style": get_active_narrative_style_rule(),
+                "temperature": config.temperature, "api_style": getattr(config, "api_style", "chat"), "style": get_active_narrative_style_rule(),
                 "literal_output": preserves_literal_output(),
                 "subject": subject, "representation_version": 1}
     key = hashlib.sha256(json.dumps(contract, sort_keys=True, ensure_ascii=False, default=str).encode()).hexdigest()

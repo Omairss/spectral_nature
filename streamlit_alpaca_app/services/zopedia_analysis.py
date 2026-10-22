@@ -8,9 +8,9 @@ import hashlib
 import io
 import json
 import multiprocessing as mp
-import queue
 import re
 import time
+import threading
 import traceback
 from typing import Any
 import uuid
@@ -21,6 +21,7 @@ import pandas as pd
 from services.json_utils import frame_to_records, to_jsonable
 from data_access.query_service import QueryService
 from services.saa.storage import _db_connection
+from services.work_scope import check_work, remaining_work_seconds, register_cancellation
 
 
 try:
@@ -766,7 +767,7 @@ def _worker_artifact(
 def _analysis_worker(
     code: str,
     frame_records: dict[str, list[dict[str, Any]]],
-    result_queue: Any,
+    result_connection: Any,
     memory_mb: int,
 ) -> None:
     if resource is not None:
@@ -859,7 +860,7 @@ def _analysis_worker(
             exec(compile(code, "<zopedia-analysis>", "exec"), globals_dict, globals_dict)
         if isinstance(globals_dict.get("result"), dict):
             result = to_jsonable(globals_dict.get("result") or {})
-        result_queue.put(
+        result_connection.send(
             {
                 "status": "succeeded",
                 "stdout": stdout_buffer.getvalue()[-8000:],
@@ -872,7 +873,7 @@ def _analysis_worker(
             }
         )
     except BaseException as exc:  # noqa: BLE001 - returned to parent as bounded tool output.
-        result_queue.put(
+        result_connection.send(
             {
                 "status": "failed",
                 "stdout": stdout_buffer.getvalue()[-8000:],
@@ -1215,6 +1216,7 @@ def run_analysis_python(
     conn: Any | None = None,
 ) -> dict[str, Any]:
     started_at = time.monotonic()
+    check_work()
     clean_code = normalize_analysis_code(code)
     run_id = f"zopedia_analysis::{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S')}::{uuid.uuid4().hex[:10]}"
     objective_text = _coerce_text(objective)
@@ -1262,7 +1264,7 @@ def run_analysis_python(
             _persist_best_effort(payload, conn=conn)
         return payload
 
-    if not frames:
+    if not frames and (dataset_refs or inline_datasets):
         payload = _base_result_payload(
             status="failed",
             run_id=run_id,
@@ -1278,19 +1280,60 @@ def run_analysis_python(
             _persist_best_effort(payload, conn=conn)
         return payload
 
-    timeout = _normalize_numeric(timeout_seconds, default=DEFAULT_TIMEOUT_SECONDS, minimum=1, maximum=120)
+    timeout = remaining_work_seconds(_normalize_numeric(timeout_seconds, default=DEFAULT_TIMEOUT_SECONDS, minimum=1, maximum=120))
     frame_records = {name: _frame_payload(frame) for name, frame in frames.items()}
     ctx = mp.get_context("spawn")
-    result_queue = ctx.Queue(maxsize=1)
+    result_reader, result_writer = ctx.Pipe(duplex=False)
     process = ctx.Process(
         target=_analysis_worker,
-            args=(clean_code, frame_records, result_queue, _normalize_numeric(memory_mb, default=DEFAULT_MEMORY_MB, minimum=128, maximum=8192)),
+        args=(clean_code, frame_records, result_writer, _normalize_numeric(memory_mb, default=DEFAULT_MEMORY_MB, minimum=128, maximum=8192)),
     )
-    process.start()
-    process.join(timeout=timeout)
-    if process.is_alive():
-        process.terminate()
-        process.join(timeout=2)
+    process_lock = threading.Lock()
+
+    def stop_process() -> None:
+        with process_lock:
+            if process.pid is not None:
+                if process.is_alive():
+                    process.terminate()
+                process.join(timeout=0.5)
+                if process.is_alive():
+                    process.kill()
+                    process.join(timeout=2)
+
+    worker_payload = None
+    timed_out = False
+    unregister = register_cancellation(stop_process)
+    try:
+        check_work()
+        process.start()
+        # Only the child keeps a writer. Cancellation closes the actual writer
+        # even during a large send, so the reader gets EOF instead of hanging
+        # on a partial frame held open by the parent's own duplicate handle.
+        result_writer.close()
+        deadline = time.monotonic() + timeout
+        while worker_payload is None:
+            check_work()
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                timed_out = True
+                break
+            if result_reader.poll(min(0.1, remaining)):
+                try:
+                    worker_payload = result_reader.recv()
+                except EOFError:
+                    break
+            elif not process.is_alive():
+                break
+        check_work()
+        exitcode = process.exitcode
+    finally:
+        stop_process()
+        unregister()
+        result_reader.close()
+        result_writer.close()
+        if process.pid is not None and not process.is_alive():
+            process.close()
+    if timed_out:
         payload = _base_result_payload(
             status="timeout",
             run_id=run_id,
@@ -1306,12 +1349,10 @@ def run_analysis_python(
             _persist_best_effort(payload, conn=conn)
         return payload
 
-    try:
-        worker_payload = result_queue.get_nowait()
-    except queue.Empty:
+    if worker_payload is None:
         worker_payload = {
             "status": "failed",
-            "error": f"Analysis worker exited without output (exitcode={process.exitcode}).",
+            "error": f"Analysis worker exited without output (exitcode={exitcode}).",
             "stdout": "",
             "stderr": "",
             "result": {},

@@ -1,0 +1,28 @@
+{
+  "scope": "Development only: retain the unchanged Python maintenance source already installed on the DEV API/workers. New Trading changes are the only change relative to that DEV runtime.",
+  "production_authorized": false,
+  "retained_source_revision": "ff432b74",
+  "retained_package_source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+  "retained_api_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97568a0e62cdbfc817612b31d54ad7ae1fe06bc6f556f340d3c8077188bee274",
+  "package_evidence": "documents/verification/client-refresh-2026-10-22/retained-maintenance-packages.json",
+  "unchanged_runtime_files": {
+    "pipeline/jobs/main.py": "33acaa2505e6acfa28126f3d001d9003aec13be6696f86efc9e24aef397955c3",
+    "services/agent_tools.py": "1b7ec50b2274891fce697073b33cbb5e927e6771b08ddfea684ffa67aaa640f0",
+    "services/aql/business_model_stack.py": "f1a5792961c53a5395953830b2aac681deabddd419a1f7300c9a536ae64de545",
+    "services/aql/evidence_pack.py": "ae8e663783a17ae5f9e519047be10a65f9d829337f2b45f9a5cbcb53c6b2454c",
+    "services/aql/news_business_resolution.py": "b9f1246593c16802a608fe200784b0c947249124378ce38fd5ea91b2ec1210e2",
+    "services/aql_zopedia_engine.py": "8c87e06c7b8a3f69bc79c3c2aa5f969992dec51decf0487abf34acbb0d4f2481",
+    "services/llm.py": "448f080d673a9597e62935d440a5abc747411bd6b226aa53415f2c9423d92f7f",
+    "services/llm_execution.py": "ed26946ca3ef6306b4809838c8c4f24d9b51f0b4bcaaf51b22b6df443e0a1bed",
+    "services/operational_health.py": "9e5158cb4ea3183df643fba36e43dbfe73371e194c0f20811e41978c5001d529",
+    "services/page_browsing.py": "1125df0bc46bba4f74a353591b9d81f163d238d9bb0c19472ca5f5da93b827e5",
+    "services/saa/storage.py": "b137800371e7b32932efa19f3523877797271b4a5bf712b8c3035cdf209a597e",
+    "services/saa/zopedia.py": "6d456ab311fcc8cdf1f5674fdfb44c3c337a23defff8458b902bb7872bf3f3e1",
+    "services/zopedia_agent.py": "206c4fabbd54a1687a338c374413bb1504a5c44bcf3bddca22448ba7b9a94e20",
+    "services/zopedia_analysis.py": "9e1c1860f797b030846d1ffe1221f7e5fcf735387d17416f99f5f69fa94d6376",
+    "services/zopedia_learning.py": "08606d9d669d14e78543b7c5936a1b578838e5d0dccf1d0ba183e24e302ecba3",
+    "services/zopedia_maintenance.py": "895e4e3bf71a46bd41bdbe46e570214220587824db8245327cda05ebe72fc06a",
+    "services/zopedia_research.py": "5edb60e005fafc77f05f51e49a90fccfb2aa483e9859deae48236b7ee8da44e3"
+  },
+  "limits": "This preserves the isolated DEV rollout, including its documented quality limits. It is not approval to bundle that experimental research source into production. The production-source feature branch remains separate."
+}

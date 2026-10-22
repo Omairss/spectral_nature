@@ -98,6 +98,13 @@ NEWS_BUSINESS_RESOLUTION_COLUMNS: tuple[str, ...] = (
     "created_at_utc",
 )
 
+BUSINESS_MEMORY_ARTICLE_SCHEMA: dict[str, Any] = {
+    "type": "object", "additionalProperties": False,
+    "properties": {"page_id": {"type": "string"}, "summary": {"type": "string"},
+                   "body_markdown": {"type": "string"}},
+    "required": ["page_id", "summary", "body_markdown"],
+}
+
 NEWS_BUSINESS_RESOLUTION_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
@@ -132,10 +139,11 @@ NEWS_BUSINESS_RESOLUTION_SCHEMA: dict[str, Any] = {
             },
         },
         "coherent_story_markdown": {"type": "string", "minLength": 1, "description": "Explain available observations and useful research leads, including uncertainty; retain a narrative even when company evidence is incomplete."},
+        "memory_article": BUSINESS_MEMORY_ARTICLE_SCHEMA,
         "confidence": {"type": "string"},
         "data_gaps": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["slot_facts", "resolved_changes", "coherent_story_markdown", "confidence", "data_gaps"],
+    "required": ["slot_facts", "resolved_changes", "coherent_story_markdown", "memory_article", "confidence", "data_gaps"],
 }
 
 AqlZopediaStructuredRunner = Callable[..., dict[str, Any]]
@@ -432,13 +440,15 @@ def _is_company_business_memory_page(page: dict[str, Any], *, symbol: str, compa
     )
     if not names_match:
         return False
-    if metadata.get("source_type") in GENERATED_BUSINESS_MEMORY_SOURCE_TYPES:
+    if _is_generated_business_memory_page(page):
         return True
     return page_type == "ticker" and ("business-memory" in slug or "business memory" in title)
 
 
 def _is_generated_business_memory_page(page: dict[str, Any]) -> bool:
-    return _page_metadata(page).get("source_type") in GENERATED_BUSINESS_MEMORY_SOURCE_TYPES
+    metadata = _page_metadata(page)
+    source_types = {metadata.get("source_type"), *(_json_list(metadata.get("source_types")))}
+    return bool(source_types.intersection(GENERATED_BUSINESS_MEMORY_SOURCE_TYPES))
 
 
 def _company_business_memory_pages(
@@ -673,9 +683,12 @@ def _llm_page_context(page: dict[str, Any], *, symbol: str, company_name: str) -
     }
     if is_memory_page and _is_generated_business_memory_page(page):
         context["source_backed_slot_facts"] = _source_backed_memory_facts(page)
-        return context
     context["summary"] = _coerce_text(page.get("summary"))
-    context["body_markdown"] = _coerce_text(page.get("body_markdown"))[:1800]
+    context["body_markdown"] = _coerce_text(page.get("body_markdown"))
+    context["metadata"] = _page_metadata(page)
+    context["source_urls"] = page.get("source_urls") or _json_list(page.get("source_urls_json"))
+    context["source_document_ids"] = page.get("source_document_ids") or _json_list(page.get("source_document_ids_json"))
+    context["version"] = page.get("version")
     return context
 
 
@@ -801,6 +814,8 @@ def _news_resolution_query(
         "Read relevant Zopedia business memory pages and source evidence when available. "
         "Connect the news to the operating business: products, customers, demand, fundamentals, workforce, employee sentiment, web attention, policy, and execution risk. "
         "Write a coherent business story explaining what the news confirms, extends, contradicts, or leaves unresolved. "
+        "For each question included in slot_facts, return the complete reconciled findings that should remain in memory, retaining useful history and distinct facts while removing repetition and superseded assertions. These findings replace that question's prior materialized findings; omitted questions remain unchanged. "
+        "Return memory_article as the COMPLETE updated durable company article, starting from the existing canonical article and integrating the news. Keep useful knowledge from unrelated sections, distinct figures, dates, conditions, counterevidence and open leads. Do not rebuild it only from the finding groups changed by this news. Choose an existing canonical page_id from the supplied business memory; use an empty page_id only for a genuinely new article. The summary and body are the complete publication, separate from the shorter news story. Preserve uncertainty when evidence does not resolve a conflict. "
         "Return explicit verdicts; do not say that evidence exists without explaining what it means. "
         "Do not write stock-price, chart, or technical-analysis commentary.\n\n"
         "Context JSON:\n"
@@ -858,7 +873,7 @@ def _zopedia_resolution(
     return payload
 
 
-def _merge_slot_facts(base: dict[str, list[dict[str, Any]]], overlay: object) -> dict[str, list[dict[str, Any]]]:
+def _merge_slot_facts(base: dict[str, list[dict[str, Any]]], overlay: object, *, replace_resolved: bool = False) -> dict[str, list[dict[str, Any]]]:
     merged = {slot: list(facts or []) for slot, facts in base.items() if facts}
     if not isinstance(overlay, dict):
         return merged
@@ -866,6 +881,8 @@ def _merge_slot_facts(base: dict[str, list[dict[str, Any]]], overlay: object) ->
         clean_slot = _coerce_text(slot)
         if clean_slot not in BUSINESS_MEMORY_SLOTS or not isinstance(facts, list):
             continue
+        if replace_resolved:
+            merged[clean_slot] = []
         for item in facts:
             if not isinstance(item, dict):
                 continue
@@ -924,7 +941,18 @@ def _build_company_memory_page(
     source_urls: list[str],
     asof_time_utc: str,
     cold_start: bool,
+    memory_article: dict[str, Any] | None = None,
+    existing_pages: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    article = dict(memory_article or {})
+    existing_by_id = {str(page.get("page_id")): page for page in existing_pages or []}
+    article_id = _coerce_text(article.get("page_id"))
+    if existing_by_id and (article_id not in existing_by_id or not _coerce_text(article.get("body_markdown"))):
+        # A news interpretation remains useful even when its complete memory
+        # publication is missing; preserve the current article in that case.
+        return {}
+    if not existing_by_id:
+        article_id = ""
     title = f"{company_name or symbol} Business Memory"
     lines = [f"# {title}", "", f"Symbol: {symbol}", ""]
     for slot in BUSINESS_MEMORY_SLOTS:
@@ -932,7 +960,7 @@ def _build_company_memory_page(
         if not facts:
             continue
         lines.append(f"## {slot.replace('_', ' ').title()}")
-        for fact in facts[:6]:
+        for fact in facts:
             source = _coerce_text(fact.get("source"))
             suffix = f" ({source})" if source else ""
             lines.append(f"- {_coerce_text(fact.get('text'))}{suffix}")
@@ -943,21 +971,27 @@ def _build_company_memory_page(
         if facts:
             summary = _coerce_text(facts[0].get("text"))
             break
+    existing = existing_by_id.get(article_id) or {}
     return {
-        "page_id": build_zopedia_page_id(page_type="ticker", title=title, slug=f"{symbol.lower()}-business-memory"),
-        "page_type": "ticker",
-        "title": title,
-        "slug": f"{symbol.lower()}-business-memory",
-        "summary": summary or f"Cold-start business memory for {company_name or symbol}.",
-        "body_markdown": "\n".join(lines).strip(),
+        "page_id": article_id or build_zopedia_page_id(page_type="ticker", title=title, slug=f"{symbol.lower()}-business-memory"),
+        "page_type": existing.get("page_type") or "ticker",
+        "title": existing.get("title") or title,
+        "slug": existing.get("slug") or f"{symbol.lower()}-business-memory",
+        "summary": _coerce_text(article.get("summary")) or summary or f"Cold-start business memory for {company_name or symbol}.",
+        "body_markdown": _coerce_text(article.get("body_markdown")) or "\n".join(lines).strip(),
         "source_urls": source_urls,
         "entity_refs": [item for item in [symbol, company_name] if item],
         "outgoing_links": [],
         "metadata": {
+            **_page_metadata(existing),
+            **({"merge_mode": "replace"} if article.get("body_markdown") else {}),
+            **({"expected_version": int(existing["version"])} if pd.notna(existing.get("version")) and int(existing["version"]) > 0 else {}),
             "symbol": symbol,
             "company_name": company_name,
             "slot_tags": [slot for slot in BUSINESS_MEMORY_SLOTS if slot_facts.get(slot)],
-            "source_event_ids": source_event_ids,
+            "source_event_ids": list(dict.fromkeys([
+                *_json_list(_page_metadata(existing).get("source_event_ids")), *source_event_ids,
+            ])),
             "source_type": "news_business_resolution_business_memory",
             "freshness_class": "current",
             "cold_start": bool(cold_start),
@@ -1079,7 +1113,7 @@ def resolve_news_business_event(
         data_gaps=data_gaps,
         surface=surface,
     )
-    slot_facts = _merge_slot_facts(initial_slot_facts, (synthesis_payload or {}).get("slot_facts") if isinstance(synthesis_payload, dict) else None)
+    slot_facts = _merge_slot_facts(initial_slot_facts, (synthesis_payload or {}).get("slot_facts") if isinstance(synthesis_payload, dict) else None, replace_resolved=True)
     if isinstance(synthesis_payload, dict):
         if synthesis_payload.get("_execution_error"):
             data_gaps.append("research_execution::" + synthesis_payload["_execution_error"])
@@ -1122,10 +1156,14 @@ def resolve_news_business_event(
             source_urls=[_coerce_text(news_row.get("url"))] if _coerce_text(news_row.get("url")) else [],
             asof_time_utc=asof_iso,
             cold_start=not has_existing_memory,
+            memory_article=(synthesis_payload or {}).get("memory_article"),
+            existing_pages=business_memory_pages,
         )
         if synthesis_available
         else {}
     )
+    if synthesis_available and has_existing_memory and not company_page:
+        data_gaps.append("complete_memory_article_unavailable")
     pages_to_prepare = [source_page] + ([company_page] if company_page else [])
     proposed_frame, _ = prepare_zopedia_pages(pages_to_prepare, now=pd.to_datetime(asof_iso, utc=True, errors="coerce").to_pydatetime())
     proposed_pages = proposed_frame.to_dict("records") if not proposed_frame.empty else []
@@ -1295,7 +1333,6 @@ def build_news_business_resolution_results(
     kwargs = dict(
         company_baselines_frame=company_baselines_frame,
         fundamentals_frame=fundamentals_frame,
-        zopedia_pages_frame=zopedia_pages_frame,
         business_model_stack_frame=business_model_stack_frame,
         edgar_evidence_frame=edgar_evidence_frame,
         llm_client=llm_client,
@@ -1307,18 +1344,47 @@ def build_news_business_resolution_results(
     )
     print(f"[info] news business resolution starting events={len(selected)} workers={workers}", flush=True)
 
-    def resolve(index: int, row: pd.Series, symbol: str) -> NewsBusinessResolutionResult:
-        print(f"[info] news business resolution started index={index} symbol={symbol}", flush=True)
-        result = resolve_news_business_event(row, symbol=symbol, **kwargs)
-        print(f"[info] news business resolution completed index={index} symbol={symbol} status={result.status}", flush=True)
-        return result
+    grouped: dict[str, list[tuple[int, pd.Series]]] = {}
+    for index, (row, symbol) in enumerate(selected):
+        grouped.setdefault(symbol, []).append((index, row))
+
+    def resolve_company(symbol: str, events: list[tuple[int, pd.Series]]) -> list[tuple[int, NewsBusinessResolutionResult]]:
+        # Each complete article builds on the previous draft. The publication
+        # still checks the original database version; drafts are not commits.
+        memory = zopedia_pages_frame.copy() if isinstance(zopedia_pages_frame, pd.DataFrame) else pd.DataFrame()
+        base_versions = {str(row["page_id"]): row.get("version") for row in memory.to_dict("records")}
+        results: list[tuple[int, NewsBusinessResolutionResult]] = []
+        for index, row in events:
+            print(f"[info] news business resolution started index={index} symbol={symbol}", flush=True)
+            result = resolve_news_business_event(row, symbol=symbol, zopedia_pages_frame=memory, **kwargs)
+            print(f"[info] news business resolution completed index={index} symbol={symbol} status={result.status}", flush=True)
+            results.append((index, result))
+            drafts = business_memory_pages_from_results([result])
+            if not drafts.empty:
+                records = {str(item["page_id"]): item for item in memory.to_dict("records")}
+                for draft in drafts.to_dict("records"):
+                    page_id = str(draft["page_id"])
+                    previous = records.get(page_id) or {}
+                    for field in ("source_urls", "source_document_ids", "entity_refs", "outgoing_links"):
+                        draft[f"{field}_json"] = _json_dumps(list(dict.fromkeys([
+                            *_json_list(previous.get(field) or previous.get(f"{field}_json")),
+                            *_json_list(draft.get(field) or draft.get(f"{field}_json")),
+                        ])))
+                    draft["version"] = base_versions.get(page_id) or 0
+                    records[page_id] = draft
+                    result.proposed_pages = [draft if str(page.get("page_id")) == page_id else page
+                                             for page in result.proposed_pages]
+                memory = pd.DataFrame(records.values())
+        return results
 
     if workers == 1:
-        return [resolve(index, row, symbol) for index, (row, symbol) in enumerate(selected)]
+        resolved = [item for symbol, events in grouped.items() for item in resolve_company(symbol, events)]
+        return [result for _, result in sorted(resolved, key=lambda item: item[0])]
     with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="news-resolution") as pool:
-        futures = [pool.submit(copy_context().run, resolve, index, row, symbol)
-                   for index, (row, symbol) in enumerate(selected)]
-        return [future.result() for future in futures]
+        futures = [pool.submit(copy_context().run, resolve_company, symbol, events)
+                   for symbol, events in grouped.items()]
+        resolved = [item for future in futures for item in future.result()]
+        return [result for _, result in sorted(resolved, key=lambda item: item[0])]
 
 
 def serialize_news_business_resolution_results(results: list[NewsBusinessResolutionResult]) -> pd.DataFrame:

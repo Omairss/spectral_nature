@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from contextlib import contextmanager
 from contextvars import ContextVar
 import json
@@ -14,7 +14,7 @@ from typing import Any, Protocol, runtime_checkable
 import requests
 
 from .secrets import resolve_secret_value, runtime_env_value
-from .llm_execution import execution_effort, provider_post, preserves_literal_output
+from .llm_execution import execution_effort, provider_post, preserves_literal_output, normalize_provider_usage, model_call_context
 
 
 class LLMAPIError(RuntimeError):
@@ -82,12 +82,14 @@ class LLMJSONResult(dict[str, Any]):
         super().__init__(value)
         self.response_metadata = {
             "provider_reported_model": str(response.get("model") or ""),
-            "usage": response.get("usage") or {},
+            "usage": normalize_provider_usage(response.get("usage")),
+            "response_status": response.get("status"),
             "finish_reason": (response.get("choices") or [{}])[0].get("finish_reason"),
             "json_repair": {
                 "used": repair_response is not None,
                 "provider_reported_model": str((repair_response or {}).get("model") or ""),
-                "usage": (repair_response or {}).get("usage") or {},
+                "usage": normalize_provider_usage((repair_response or {}).get("usage")),
+                "response_status": (repair_response or {}).get("status"),
                 "finish_reason": ((repair_response or {}).get("choices") or [{}])[0].get("finish_reason"),
             },
         }
@@ -407,6 +409,7 @@ class LLMConfig:
     temperature: float = 0.2
     reasoning_effort: str = ""
     thinking_mode: str = ""
+    api_style: str = "chat"
     embedding_model: str = "text-embedding-3-small"
     embedding_dimensions: int = 1536
 
@@ -587,6 +590,16 @@ def _json_repair_messages(
 ) -> list[dict[str, str]]:
     schema_text = json.dumps(schema, sort_keys=True)
     raw_text = str(raw_content or "").strip()
+    parser_diagnostics = ""
+    try:
+        json.loads(raw_text)
+    except json.JSONDecodeError as exc:
+        parser_diagnostics = (
+            "\n\nJSON parser diagnostics:\n"
+            + json.dumps({"message": exc.msg, "line": exc.lineno, "column": exc.colno, "position": exc.pos})
+            + "\nCorrect the indicated syntax and verify the entire object, including nesting and delimiters, "
+            "against the schema. Preserve the substantive strings and numbers."
+        )
     return [
         {
             "role": "system",
@@ -605,7 +618,7 @@ def _json_repair_messages(
                 f"JSON Schema:\n{schema_text}\n\n"
                 f"Original request context:\n{json.dumps(original_messages or [], ensure_ascii=False, default=str)}\n\n"
                 "Model output to repair:\n"
-                f"{raw_text}"
+                f"{raw_text}{parser_diagnostics}"
             ),
         },
     ]
@@ -678,6 +691,7 @@ def load_llm_config(env_prefix: str = "", *, require_api_key: bool = True) -> LL
         temperature=temperature,
         reasoning_effort=reasoning_effort,
         thinking_mode=thinking_mode,
+        api_style=_PROMPT_OVERRIDES.get(f"runtime:{provider}:api_style", config_value(env_prefix, "LLM_API_STYLE") or "chat"),
         embedding_model=embedding_model,
     )
 
@@ -1056,32 +1070,90 @@ class DeepSeekChatJSONClient:
                 raw_content=exc.raw_content,
                 original_messages=payload["messages"],
             )
-            repair_response = provider_post(self, operation="json_repair", url=
-                request_url,
-                headers=headers,
-                json=repair_payload,
-                timeout=_remaining_request_timeout(deadline),
-            )
-            if repair_response.status_code != 200:
-                raise self._response_error(repair_response, operation="JSON repair") from exc
-            try:
-                repair_parsed = repair_response.json()
-            except Exception as repair_exc:
-                raise LLMAPIError(f"{self.provider_label} JSON repair returned invalid JSON: {repair_exc}") from exc
-            repair_choices = repair_parsed.get("choices") or []
-            if not repair_choices:
-                raise LLMAPIError(f"{self.provider_label} JSON repair returned no choices.") from exc
-            repair_message = repair_choices[0].get("message") or {}
-            repair_raw = _chat_message_text(repair_message)
-            if not repair_raw:
-                raise LLMAPIError(f"{self.provider_label} JSON repair returned empty content.") from exc
-            parsed_object = _extract_first_json_object(repair_raw)
+            if self.config.provider == "deepseek" and self.config.api_style == "chat_native_repair":
+                repair_client = DeepSeekResponsesJSONClient(
+                    replace(self.config, thinking_mode="disabled", reasoning_effort=""),
+                    session=self.session,
+                )
+                with llm_request_deadline(deadline), model_call_context(literal_output=True, inference_effort="none"):
+                    repaired = repair_client.generate_json(
+                        system_prompt=repair_payload["messages"][0]["content"],
+                        user_prompt=repair_payload["messages"][1]["content"],
+                        schema_name=schema_name, schema=schema,
+                    )
+                parsed_object = dict(repaired)
+                repair_metadata = repaired.response_metadata
+                repair_parsed = {"model": repair_metadata["provider_reported_model"],
+                                 "usage": repair_metadata["usage"], "status": repair_metadata["response_status"]}
+            else:
+                repair_response = provider_post(self, operation="json_repair", url=
+                    request_url,
+                    headers=headers,
+                    json=repair_payload,
+                    timeout=_remaining_request_timeout(deadline),
+                )
+                if repair_response.status_code != 200:
+                    raise self._response_error(repair_response, operation="JSON repair") from exc
+                try:
+                    repair_parsed = repair_response.json()
+                except Exception as repair_exc:
+                    raise LLMAPIError(f"{self.provider_label} JSON repair returned invalid JSON: {repair_exc}") from exc
+                repair_choices = repair_parsed.get("choices") or []
+                if not repair_choices:
+                    raise LLMAPIError(f"{self.provider_label} JSON repair returned no choices.") from exc
+                repair_message = repair_choices[0].get("message") or {}
+                repair_raw = _chat_message_text(repair_message)
+                if not repair_raw:
+                    raise LLMAPIError(f"{self.provider_label} JSON repair returned empty content.") from exc
+                parsed_object = _extract_first_json_object(repair_raw)
         result = parsed_object
         reasoning_content = _clean(message.get("reasoning_content"))
         if reasoning_content:
             result["__reasoning_content"] = reasoning_content
         _remaining_request_timeout(deadline)
         return LLMJSONResult(result, parsed, repair_response=repair_parsed)
+
+
+class DeepSeekResponsesJSONClient(DeepSeekChatJSONClient):
+    """Native result serializer used only by the existing DeepSeek JSON repair."""
+
+    def generate_json(self, *, system_prompt: str, user_prompt: str,
+                      schema_name: str, schema: dict[str, Any]) -> dict[str, Any]:
+        deadline = _request_deadline(self.config.timeout_seconds)
+        # The native endpoint is a serializer at the existing repair boundary.
+        # Research generation stays on the accepted chat transport.
+        output_function = "emit_structured_result"
+        payload = {"model": self.config.model,
+                   "instructions": apply_narrative_style(system_prompt) + "\nReturn the structured result by calling " + output_function + ".",
+                   "input": [{"role": "user", "content": [{"type": "input_text", "text": user_prompt}]}],
+                   "stream": False, "reasoning": {"effort": "none"},
+                   "temperature": self.config.temperature,
+                   "tools": [{"type": "function", "name": output_function,
+                       "description": "Return the requested structured artifact as arguments. This serializes a result; it does not execute a research tool.",
+                       "parameters": schema}],
+                   "tool_choice": {"type": "function", "name": output_function}}
+        response = provider_post(self, operation="responses",
+            url=self.config.base_url.rstrip("/") + "/responses",
+            headers={"Authorization": "Bearer " + self.config.api_key, "Content-Type": "application/json"},
+            json=payload, timeout=_remaining_request_timeout(deadline))
+        if response.status_code != 200:
+            raise self._response_error(response)
+        data = response.json()
+        if data.get("status") != "completed":
+            raise LLMAPIError("Responses generation did not complete: " + str(data.get("status"))
+                              + "; " + str(data.get("incomplete_details") or data.get("error") or ""))
+        outputs = data.get("output") or []
+        calls = [item for item in outputs if item.get("type") == "function_call"]
+        if len(calls) != 1 or calls[0].get("name") != output_function:
+            raise LLMAPIError("Responses did not return the requested structured-result function")
+        if calls[0].get("status") not in (None, "completed"):
+            raise LLMAPIError("Responses structured-result function is incomplete")
+        arguments = calls[0].get("arguments")
+        raw = arguments if isinstance(arguments, str) else json.dumps(arguments)
+        value = _extract_first_json_object(raw)
+        # Stage validation and formatting recovery remain owned by the shared engine.
+        _remaining_request_timeout(deadline)
+        return LLMJSONResult(value, data)
 
 
 class LocalChatJSONClient(DeepSeekChatJSONClient):
@@ -1258,6 +1330,8 @@ def load_llm_client(env_prefix: str = "") -> JSONLLMClient | None:
     if config.provider == "azure_openai":
         return AzureOpenAIChatJSONClient(config)
     if config.provider == "deepseek":
+        if config.api_style not in {"chat", "chat_native_repair"}:
+            raise LLMAPIError("Unsupported DeepSeek API style: " + config.api_style)
         return DeepSeekChatJSONClient(config)
     if config.provider == "local":
         return LocalChatJSONClient(config)

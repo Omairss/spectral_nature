@@ -399,25 +399,36 @@ def bootstrap_saa_storage(conn: Any) -> None:
         ("saa_evidence_chunks", "embedding_model"), ("saa_evidence_chunks", "embedding_vector_json"),
         ("saa_evidence_chunks", "search_tsvector"),
     )
-    with conn.cursor() as cur:
-        cur.execute(
-            """
-            SELECT NOT EXISTS (
-                SELECT 1 FROM unnest(%s::text[]) AS required(relation_name)
-                WHERE to_regclass(required.relation_name) IS NULL
-            ) AND NOT EXISTS (
-                SELECT 1 FROM unnest(%s::text[], %s::text[]) AS required(relation_name, column_name)
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM pg_attribute
-                    WHERE attrelid = to_regclass(required.relation_name)
-                      AND attname = required.column_name AND NOT attisdropped
+
+    def schema_ready() -> bool:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT NOT EXISTS (
+                    SELECT 1 FROM unnest(%s::text[]) AS required(relation_name)
+                    WHERE to_regclass(required.relation_name) IS NULL
+                ) AND NOT EXISTS (
+                    SELECT 1 FROM unnest(%s::text[], %s::text[]) AS required(relation_name, column_name)
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM pg_attribute
+                        WHERE attrelid = to_regclass(required.relation_name)
+                          AND attname = required.column_name AND NOT attisdropped
+                    )
                 )
+                """,
+                (list(required_relations), [table for table, _ in migrated_columns], [column for _, column in migrated_columns]),
             )
-            """,
-            (list(required_relations), [table for table, _ in migrated_columns], [column for _, column in migrated_columns]),
-        )
-        ready = cur.fetchone()
-    if ready and ready[0] and _zopedia_storage_ready(conn):
+            ready = cur.fetchone()
+        return bool(ready and ready[0]) and _zopedia_storage_ready(conn)
+
+    if schema_ready():
+        return
+    # PostgreSQL's concurrent CREATE IF NOT EXISTS can still race in the
+    # catalogs. Serialize only a missing-schema migration, then recheck after
+    # the previous initializer commits. Ready readers do not take this lock.
+    with conn.cursor() as cur:
+        cur.execute("SELECT pg_advisory_xact_lock(hashtextextended('spectral_nature:saa_schema', 0))")
+    if schema_ready():
         return
     with conn.cursor() as cur:
         cur.execute(
@@ -1057,7 +1068,7 @@ def prepare_retained_evidence_chunks(
     return base, records
 
 
-def _upsert_retained_evidence_chunk_records(conn: Any, records: list[tuple[Any, ...]]) -> None:
+def _upsert_retained_evidence_chunk_records(conn: Any, records: list[tuple[Any, ...]], *, commit: bool = True) -> None:
     records = [tuple(None if value is pd.NaT else value for value in row) for row in records]
     if not records:
         return
@@ -1138,7 +1149,8 @@ def _upsert_retained_evidence_chunk_records(conn: Any, records: list[tuple[Any, 
             """,
             records,
         )
-    conn.commit()
+    if commit:
+        conn.commit()
 
 
 def persist_retained_evidence_chunks(
@@ -1149,6 +1161,7 @@ def persist_retained_evidence_chunks(
     run_id: str,
     asof_time_utc: object,
     conn: Any | None,
+    commit: bool = True,
 ) -> pd.DataFrame:
     prepared_frame, records = prepare_retained_evidence_chunks(
         frame,
@@ -1158,7 +1171,7 @@ def persist_retained_evidence_chunks(
         asof_time_utc=asof_time_utc,
     )
     if conn is not None and records:
-        _upsert_retained_evidence_chunk_records(conn, records)
+        _upsert_retained_evidence_chunk_records(conn, records, commit=commit)
     return prepared_frame
 
 
