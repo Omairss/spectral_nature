@@ -1,0 +1,78 @@
+{
+  "status": "completed_and_publication_verified",
+  "client_date": "2026-10-22",
+  "verified_at_utc": "2026-10-22T17:33:37.752885+00:00",
+  "owner_instruction": "Refresh the failed run",
+  "recovery": {
+    "method": "Followed the already-running 9:50 a.m. scheduled retry after confirming current provider credit availability. No duplicate or manual execution was started.",
+    "execution": "attention-home-build-29878130",
+    "started_at_utc": "2026-10-22T16:50:00+00:00",
+    "last_observed_execution_status": "Succeeded",
+    "provider_availability": {
+      "observed_at_utc": "2026-10-22T17:07:13.057186+00:00",
+      "http": 200,
+      "is_available": true
+    },
+    "completed_at_utc": "2026-10-22T17:33:03+00:00"
+  },
+  "publication": {
+    "prior_run_id": "98a93605-1685-4781-ab86-40ce1a58fdc4",
+    "prior_as_of": "2026-10-21T16:50:42.408992+00:00",
+    "run_id": "3e2e1624-9b57-4aa3-9325-0db053e298e4",
+    "as_of": "2026-10-22T16:50:38.058867+00:00",
+    "as_of_pacific": "October 22, 2026, 9:50 a.m. PDT",
+    "first_observed_new_snapshot_utc": "2026-10-22T17:27:34.207179+00:00",
+    "stories": 8,
+    "highlights": 5,
+    "highlights_as_of": "2026-10-22T16:50:38.058867+00:00",
+    "graph_artifact_id": "viz_2ae7391bdfd3d5d4ec1c3866",
+    "graph_plotted_points": 311
+  },
+  "verified_gateways": [
+    "https://spectral-nature.com/api/home",
+    "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io/api/home"
+  ],
+  "browser": {
+    "review": "Fresh production Chrome reload, with actual visible publication date, overview, story headings, five rendered Highlight charts and graph point count. The first request served the normal revalidating 30-second SSR cache; the following reload showed the new publication.",
+    "screenshot": "production-brief.jpg",
+    "audio_error": null,
+    "audio_present": true,
+    "headings": [
+      "10-year Treasury yield: 5.12% near 2026 high",
+      "High-yield credit spread: 3.33% on 20 October",
+      "CoreWeave share price at a 52-week low",
+      "Meta free cash flow: $1.19bn in 2026 Q2",
+      "TTM Technologies: 28.9% one-day drop",
+      "Meta's AI spending turns free cash flow negative",
+      "CoreWeave hits a 52-week low as credit costs rise",
+      "Micron falls as the AI chip de-rating meets a slower memory price rise",
+      "Chip and electronics shares fall as the AI de-rating widens",
+      "Tesla's robotaxi and FSD growth meets a lower capital-spending plan",
+      "Hexcel drops 11.5% after a small sales miss and a cautious profit target",
+      "Graco falls 15% as sales grow but profit does not",
+      "MSC Industrial falls 12.7% on a softer margin outlook"
+    ],
+    "highlight_charts": 5,
+    "publication_time": "2026-10-22T16:50:38.058867+00:00",
+    "ticker_figures": 80,
+    "network_points": 311
+  },
+  "audio": {
+    "http": 200,
+    "content_type": "audio/mpeg",
+    "content_length": null,
+    "bytes_checked": 64
+  },
+  "review": {
+    "read": "Personally read the complete new overview, all eight story texts and five Highlight captions. Observed dates remain explicit; financial-quarter and FRED observations are not relabeled as same-day prices.",
+    "pipeline": "12 company research attempts finished, with a synthesis timeout for SEI; all 12 subsequent company context enrichments completed. Public Home review completed with 24 reviewed, 14 changed and 10 dropped, leaving eight public stories. Market coverage reported 999 symbols and no gaps.",
+    "limits": "The complete job succeeded and the main Home snapshot is verified. Optional Market Explorer and Stock Investigator page-summary attempts reported deadline failures; this does not claim those separate summary attempts recovered."
+  },
+  "job_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+  "job_configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
+  "job_definition_and_image_unchanged": true,
+  "application_changes": false,
+  "deployments": 0,
+  "manual_executions_started": 0,
+  "operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/home-refresh-20261022"
+}

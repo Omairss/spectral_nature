@@ -1237,3 +1237,8 @@ Company stack materialization belongs to `run_news`, bound in production to `new
 ### October 22 — verify renewed signing on the actual phone
 
 Renew from accepted Git source, verify the embedded profile’s dates, bundle, team and device membership, then install in place. A valid host codesign check does not grant device trust: the October 22 reinstall required the owner to trust the renewed developer app before launch. Verify both launch and a subsequent process readback, and tell the owner the exact new expiry. See verification/native-renewal-2026-10-22/release.json.
+
+
+### October 22 — follow the active recovery and verify both serving paths
+
+Before manually retrying a failed scheduled producer, inspect current executions. The Home recovery was already running after provider credit returned; following it avoided duplicate research. Verify the actual billing credential’s availability without printing it, then check the newly published run identity on both the phone gateway and web API. The server-rendered page has a normal 30-second revalidating cache, so a fresh API response alone is not visible-page proof. Core Home publication precedes optional page summaries; record any independent summary failures without treating them as loss of the accepted main publication. See verification/home-refresh-2026-10-22/refresh.json.
