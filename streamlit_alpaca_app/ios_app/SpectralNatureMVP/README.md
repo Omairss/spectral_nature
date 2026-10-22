@@ -54,6 +54,11 @@ Keep normal simulator signing enabled: Keychain needs Xcode's simulated applicat
 
 ## Installation and validation
 
+Build 9 is prepared for the Paper performance route repair and automatic live Brief
+refresh. It passed populated simulator checks through the normal authenticated DEV
+gateway. Production promotion and physical installation are pending; build 8 remains
+on the phone. [Current work](../../documents/plans/CLIENT_REFRESH_2026-10-22.md).
+
 Version 1.0.0 build 8 was renewed, installed in place and launched on the owner's
 physical iPhone on October 22. The new Personal Team profile expires October 29,
 2026 at 9:52 a.m. Pacific. The same bundle identifier and development team preserve

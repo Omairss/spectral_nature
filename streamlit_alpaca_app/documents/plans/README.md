@@ -17,6 +17,8 @@ Use the docs as follows:
 
 ## Product and UX
 
+- [Client refresh and native paper performance](CLIENT_REFRESH_2026-10-22.md): conditional live Brief refresh, replay/playback preservation and corrected native detail routing.
+
 - [Native Markets chart clarity](NATIVE_MARKETS_CHARTS_2026-10-14.md): interpretable return comparisons, numeric colors, point identities and named return bars.
 - `EXPERIMENT_SUMMARY_CLARITY_ELEVENLABS_KEYVAULT_2026-04-11.md`: cleaner experiment summary text plus Key Vault-backed ElevenLabs setup notes
 - `DAILY_MARKET_OVERVIEW_SUMMARY_AUDIO_2026-04-10.md`: shared daily market overview summary plus on-demand ElevenLabs audio

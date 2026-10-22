@@ -14,7 +14,7 @@ checkout must remain intact. Production promotion requires separate owner approv
   Home DTO, including independent ticker and Highlight publications. Conditional
   reads return 304 without sending or decoding the unchanged chart payload.
 - Both clients check every 30 seconds while the live Brief is visible and on
-  foreground/focus/network return. Stop background timers, cancel obsolete work,
+  foreground return; web also checks on focus/network return. Stop background timers, cancel obsolete work,
   prevent overlapping reads, and preserve the last displayed publication on failure.
   Replay never follows the live feed.
 - Update content in place with stable identities. Keep active audio uninterrupted;
@@ -35,4 +35,7 @@ prepare the committed source record, verify builds and deploy the scoped web cha
 to DEV. Prepare the native build for the compatible gateway without changing the
 phone's production default, bundle identity or saved session.
 
-Status: implementation in progress; no new deployment or physical installation.
+Status: local/native acceptance complete and signed build 9 prepared. The first
+DEV web candidate passed conditional transport checks; a timestamp hydration fix
+is undergoing replacement-package verification. Production and the physical
+iPhone remain unchanged. See [verification](../verification/client-refresh-2026-10-22/LOCAL.md).
