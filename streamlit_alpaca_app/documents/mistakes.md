@@ -2,7 +2,7 @@
 
 ## Client refresh acceptance — 2026-10-22
 
-Moving the Home renderer across the server/client boundary left publication time formatting dependent on the host time zone. The first DEV browser load reported React hydration error 418 because Azure rendered UTC and the browser rendered Pacific time. Made the displayed timestamp explicitly UTC and the network count locale explicit. Local tests on one host time zone did not expose this; fresh deployed browser-console review caught it before production.
+Moving Home across the server/client boundary exposed host-dependent timestamp and compact-currency formatting. The first DEV browser load reported React hydration error 418. Explicit UTC time and count locale did not finish the repair: a complete server/browser text comparison found 139 compact-currency precision differences, such as $3.0B versus $3B. Node 25 local rendering matched Chrome and hid the Node 22 server default. Set precision and locale in the shared chart/ticker formatters and compare the production Node version with the actual browser. No production promotion occurred during this repair.
 
 ## Trading resumption preparation and reasoning — 2026-10-18
 

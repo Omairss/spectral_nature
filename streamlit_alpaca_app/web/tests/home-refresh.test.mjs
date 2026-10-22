@@ -4,11 +4,13 @@ import { createRequire } from "node:module";
 import vm from "node:vm";
 import test from "node:test";
 import ts from "typescript";
+import React from "react";
+import { renderToString } from "react-dom/server";
 
 const require = createRequire(import.meta.url);
 function load(path, overrides) {
   const code = ts.transpileModule(readFileSync(new URL(path, import.meta.url), "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   const module = { exports: {} };
   vm.runInNewContext(code, { module, exports: module.exports, Response,
@@ -59,4 +61,17 @@ test("upstream errors and unavailable publications never validate an old represe
     assert.ok(response.status >= 500);
     assert.equal(response.headers.get("ETag"), null);
   }
+});
+
+test("shared financial charts render compact USD without runtime-dependent trailing zeros", () => {
+  const { TrendChart } = load("../components/visualizations/trend-chart.tsx", {});
+  const html = renderToString(React.createElement(TrendChart, {
+    label: "Cash flow", unit: "USD", points: [
+      { date: "2026-01-01", value: -3_000_000_000, period: "2026Q1" },
+      { date: "2026-04-01", value: 3_100_000_000, period: "2026Q2" },
+    ],
+  }));
+  assert.ok(html.includes("-$3B"));
+  assert.ok(html.includes("$3.1B"));
+  assert.ok(!html.includes("$3.0B"));
 });

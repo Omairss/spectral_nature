@@ -2,7 +2,7 @@ import type { TrendPoint } from "@/lib/types";
 
 function displayValue(value: number, unit: string, price = false) {
   if (price) return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(value);
-  if (unit === "USD") return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 }).format(value);
+  if (unit === "USD") return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", notation: "compact", minimumFractionDigits: 0, maximumFractionDigits: 1 }).format(value);
   return `${new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(value)}${unit === "%" ? "%" : ""}`;
 }
 

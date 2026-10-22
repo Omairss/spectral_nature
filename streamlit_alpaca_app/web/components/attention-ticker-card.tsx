@@ -5,8 +5,8 @@ import { PriceContextChart } from "@/components/visualizations/price-context-cha
 import { TrendChart } from "@/components/visualizations/trend-chart";
 import type { HomeTickerSnapshot } from "@/lib/types";
 
-const price = (value: number | null | undefined) => value == null ? "—" : value.toLocaleString(undefined, { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const money = (value: number | null) => value == null ? "—" : value.toLocaleString(undefined, { style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1 });
+const price = (value: number | null | undefined) => value == null ? "—" : value.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money = (value: number | null) => value == null ? "—" : value.toLocaleString("en-US", { style: "currency", currency: "USD", notation: "compact", minimumFractionDigits: 0, maximumFractionDigits: 1 });
 
 export function AttentionTickerCard({ ticker }: { ticker: HomeTickerSnapshot }) {
   const intraday = ticker.intraday_price_history?.points.length ? ticker.intraday_price_history : null;

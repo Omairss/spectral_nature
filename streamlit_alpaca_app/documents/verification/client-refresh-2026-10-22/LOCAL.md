@@ -82,3 +82,12 @@ The corrected client explicitly formats the publication timestamp in UTC and
 network counts with an explicit locale. Web types/lint and all 15 transport checks
 pass again. A replacement web package and fresh browser console review follow;
 the initial candidate is not the final promotion candidate.
+
+The second deployed candidate still reported 418 after initial rendering. Full
+SSR/browser Home text comparison found 139 compact-currency precision differences
+($3.0B versus $3B), beyond the timestamp correction. Local Node 25 hid the default
+difference present in production Node 22. The shared TrendChart and ticker-card
+formatters now specify zero minimum compact decimals and an English-US locale.
+All consumers retain the same numbers, units and price cents. Both Node 22 and
+Node 25 run the expanded 16 checks. A final source/package/browser check follows;
+the earlier candidate remains unaccepted for promotion.
