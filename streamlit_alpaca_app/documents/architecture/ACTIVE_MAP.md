@@ -11,6 +11,7 @@ Updated October 20, 2026. Current ownership; historical source and migration pla
 | Home production | `pipeline/jobs/attention_home_build.py` | Full-intake accepted editor and shared review; retained output consumed by the API. |
 | Data production | `pipeline/jobs/` | Independent market, fundamental, news, index and maintenance producers. |
 | Broker ingestion | `services/robinhood_main_sync.py`, `robinhood_main_store.py` | Dedicated provider-isolated ingestion and last-good retention. |
+| Paper trading | `services/alpaca_paper.py`, `compute/paper_sizing.py`, existing brokerage store | Owned Alpaca paper balances/fills, retained snapshots and explicit scientific-risk order review; separate from the main Portfolio provider. |
 | Chart presentation | `presentation/plotly.py`, `visualization_artifacts.py`, client renderers | Canonical chart/data contracts and edge rendering; no Streamlit loaders. |
 | Release | `scripts/release_source.py`, `release_application.py`, committed acceptance record | Reviewed Git source and verified role-specific immutable images. |
 

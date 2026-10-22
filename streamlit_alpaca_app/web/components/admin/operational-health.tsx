@@ -12,6 +12,7 @@ type Series = { metric: string; unit: string; points: Point[] };
 type Health = {
   hours: number; scope: string; resources: { name: string; kind: string; scope: string }[];
   outputs?: Row[];
+  maintenance?: { reports?: Row[]; attempts?: Row[]; unavailable?: Record<string, string> };
   cloud_unavailable?: string;
   metrics?: { observed_at?: string; resource: string; series: Series[]; unavailable?: string; allocation_unavailable?: string;
     allocation?: { containers: { name: string; cpu?: number; memory?: string }[] } };
@@ -77,6 +78,25 @@ export function OperationalHealth() {
         { label: "Known cost estimate (USD, upper)", value: format(total("estimated_usd_max")) }, { label: "Unpriced attempts", value: format(total("unpriced_attempts")) },
       ]} />
     </section>
+    {view?.maintenance ? <section className="workbook-panel"><header className="panel-header"><h2>Isolated dev maintenance</h2></header>
+      {view.maintenance.unavailable ? <p role="status" className="subtle-error">Unavailable: {Object.values(view.maintenance.unavailable).join(", ")}</p> : null}
+      <DataTable rows={view.maintenance.reports || []} rowKey={(row) => String(row.run_id)} columns={[
+        { key: "created_at_utc", label: "Started", render: date }, { key: "research_status", label: "Research" },
+        { key: "edits", label: "Edits", align: "right", render: format },
+        { key: "run_id", label: "Run" },
+      ]} />
+      <DataTable<Row> rows={(view.maintenance.reports || []).flatMap((report) =>
+        (Array.isArray(report.articles) ? report.articles as Row[] : []).map((article) => ({ ...article, run_id: report.run_id })))}
+        rowKey={(row, index) => `${row.run_id}-${index}`} columns={[
+          { key: "page_id", label: "Article" }, { key: "status", label: "Result" }, { key: "error", label: "Failure" },
+        ]} />
+      <DataTable rows={view.maintenance.attempts || []} rowKey={(_, index) => String(index)} columns={[
+        { key: "model", label: "Model" }, { key: "purpose", label: "Purpose" },
+        ...["attempts", "failures", "input_tokens", "output_tokens", "unknown_usage", "unpriced_attempts"].map((key) =>
+          ({ key, label: key.replaceAll("_", " "), align: "right" as const, render: format })),
+        { key: "estimated_usd_max", label: "Known cost (USD, upper)", align: "right", render: format },
+      ]} />
+    </section> : null}
     <section className="workbook-panel"><header className="panel-header"><h2>Published outputs</h2></header>
       <DataTable rows={view?.outputs || []} rowKey={(row) => String(row.dataset)} columns={[
         { key: "dataset", label: "Dataset" }, { key: "asof", label: "As of", render: date },

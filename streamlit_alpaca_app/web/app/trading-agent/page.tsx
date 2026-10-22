@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { TradingPaperPortfolio, type PaperPortfolio, type TrackedPaperCall } from "@/components/trading-paper-portfolio";
+import { PaperOrderReview, TradingPaperPortfolio, type PaperPortfolio, type TrackedPaperCall } from "@/components/trading-paper-portfolio";
 import { DataPlot } from "@/components/visualizations/data-plot";
 import { DataTable, MetricStrip, WorkbookTabs } from "@/components/workbook";
 import { responseError, secureMutation } from "@/lib/client/api";
@@ -27,6 +27,22 @@ export default function TradingAgentPage() {
   const [section, setSection] = useState("portfolio");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [reviewing, setReviewing] = useState<Candidate | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const refreshInFlight = useRef(false);
+
+  const refreshPaper = useCallback(async () => {
+    if (refreshInFlight.current) return;
+    refreshInFlight.current = true; setRefreshing(true);
+    try {
+      const response = await secureMutation("/api/trading-agent/paper/refresh", {method: "POST", body: "{}"});
+      if (!response.ok) throw new Error(await responseError(response, "Paper account refresh failed."));
+      const paper = await response.json() as PaperPortfolio;
+      setView(current => current ? {...current, paper_portfolio: paper} : current); setError("");
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Paper account refresh failed."); }
+    finally { refreshInFlight.current = false; setRefreshing(false); }
+  }, []);
 
   const load = useCallback(async () => {
     await Promise.resolve();
@@ -46,6 +62,15 @@ export default function TradingAgentPage() {
     const timer = window.setTimeout(() => { void load(); }, 0);
     return () => window.clearTimeout(timer);
   }, [load, session]);
+  const paperStatus = view?.paper_portfolio?.status;
+  useEffect(() => {
+    if (!session?.authenticated || section !== "portfolio" || !["available", "partial", "pending"].includes(paperStatus || "")) return;
+    const refreshVisible = () => {if (document.visibilityState === "visible") void refreshPaper();};
+    const initial = window.setTimeout(refreshVisible, 0);
+    const interval = window.setInterval(refreshVisible, 60_000);
+    window.addEventListener("focus", refreshVisible);
+    return () => {window.clearTimeout(initial); window.clearInterval(interval); window.removeEventListener("focus", refreshVisible);};
+  }, [paperStatus, refreshPaper, section, session?.authenticated]);
   const horizon = view?.horizons.find((item) => item.key === activeHorizon);
   const groups = useMemo(() => ({
     long: horizon?.candidates.filter((item) => item.stance === "long") || [],
@@ -54,12 +79,12 @@ export default function TradingAgentPage() {
   }), [horizon]);
 
   async function decide(candidate: Candidate, action: "approve" | "reject") {
+    if (action === "approve") {setReviewing(candidate); return;}
     setLoading(true); setError("");
     try {
       const response = await secureMutation("/api/trading-agent/decisions", { method: "POST", body: JSON.stringify({ candidate_id: candidate.candidate_id, action }) });
       if (!response.ok) throw new Error(await responseError(response, "Decision could not be recorded."));
       await load();
-      if (action === "approve") setSection("portfolio");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Decision could not be recorded."); setLoading(false); }
   }
 
@@ -69,9 +94,10 @@ export default function TradingAgentPage() {
     <div className="page-shell workbook-page">
       <header className="artifact-header"><div><p className="breadcrumb">Agent <span>/</span> Market decisions</p><h1>Trading Agent</h1></div>{section === "calls" && view?.as_of ? <time dateTime={view.as_of}>{new Date(view.as_of).toLocaleString()}</time> : null}</header>
       {sessionError || error ? <p className="subtle-error" role="alert">{sessionError || error}</p> : null}
+      {notice ? <p role="status">{notice}</p> : null}
       {loading && !view ? <p className="loading-label">Loading Trading Agent…</p> : null}
       <WorkbookTabs active={section} items={[{key: "portfolio", label: "Paper portfolio"}, {key: "calls", label: "Calls"}]} label="Trading view" onChange={setSection} />
-      {section === "portfolio" ? view ? <TradingPaperPortfolio portfolio={view.paper_portfolio} calls={view.tracked_calls || []} unavailable={view.tracking_status === "unavailable"} onReviewCalls={() => setSection("calls")} /> : null : view?.status === "available" && horizon ? <>
+      {section === "portfolio" ? view ? <TradingPaperPortfolio portfolio={view.paper_portfolio} calls={view.tracked_calls || []} onReviewCalls={() => setSection("calls")} refreshing={refreshing} onRefresh={() => void refreshPaper()} /> : null : view?.status === "available" && horizon ? <>
         <WorkbookTabs active={activeHorizon} items={view.horizons.map((item) => ({ key: item.key, label: item.label }))} label="Trading horizons" onChange={setActiveHorizon} />
         <section className="agent-backdrop"><p className="section-label">Market backdrop</p><h2>{horizon.regime_read}</h2>{horizon.portfolio_posture ? <p>{horizon.portfolio_posture}</p> : null}</section>
         <MetricStrip items={[{ label: "Long", value: groups.long.length }, { label: "Short", value: groups.short.length }, { label: "Watch", value: groups.watch.length }, { label: "Decisions", value: view.decisions.length }]} />
@@ -80,6 +106,7 @@ export default function TradingAgentPage() {
         {groups.watch.length ? <section className="candidate-section"><header className="panel-header"><div><p className="section-label">Watch</p><h2>Research queue</h2></div><span>{groups.watch.length}</span></header><div className="candidate-grid">{groups.watch.map((candidate) => <CandidateCard candidate={candidate} horizon={horizon} loading={loading} onDecide={decide} key={candidate.candidate_id} />)}</div></section> : null}
         {view.decisions.length ? <details className="workbook-panel decisions-panel"><summary>Decisions</summary><DataTable columns={[{ key: "created_at_utc", label: "Time" }, { key: "ticker", label: "Ticker" }, { key: "horizon_key", label: "Horizon" }, { key: "action", label: "Decision" }, { key: "requested_email", label: "Reviewed by" }]} rowKey={(row, index) => String(row.action_id || index)} rows={view.decisions} /></details> : null}
       </> : view && !loading ? <section className="empty-state"><strong>Trading Agent unavailable</strong></section> : null}
+      {reviewing ? <PaperOrderReview candidate={reviewing} initialPolicy={view?.paper_portfolio?.risk_policy} onClose={() => setReviewing(null)} onSubmitted={async order => {setNotice(`Paper order submitted: ${order.side} ${order.qty} ${order.symbol}`); setReviewing(null); await load(); await refreshPaper(); setSection("portfolio");}} /> : null}
     </div>
   );
 }
@@ -111,7 +138,7 @@ function CandidateCard({ candidate, horizon, loading, onDecide }: { candidate: C
         </div>
         <footer>
           <button className="quiet-button" onClick={() => router.push(`/stock-investigator?ticker=${encodeURIComponent(candidate.ticker)}`)} type="button">Open {candidate.ticker}</button>
-          {decision ? <span className="decision-state">{["place_requested", "approved"].includes(decision) ? "Approved" : decision === "rejected" ? "Rejected" : decision}</span> : <div className="decision-actions"><button className="quiet-button" disabled={loading} onClick={() => void onDecide(candidate, "reject")} type="button">Reject</button><button className="primary-button" disabled={loading || !["long", "short"].includes(candidate.stance)} onClick={() => void onDecide(candidate, "approve")} type="button">Approve and track</button></div>}
+          {decision ? <span className="decision-state">{["place_requested", "approved"].includes(decision) ? "Approved" : decision === "rejected" ? "Rejected" : decision}</span> : <div className="decision-actions"><button className="quiet-button" disabled={loading} onClick={() => void onDecide(candidate, "reject")} type="button">Reject</button><button className="primary-button" disabled={loading || !["long", "short"].includes(candidate.stance)} onClick={() => void onDecide(candidate, "approve")} type="button">Review paper trade</button></div>}
         </footer>
       </> : null}</details></article>
     );

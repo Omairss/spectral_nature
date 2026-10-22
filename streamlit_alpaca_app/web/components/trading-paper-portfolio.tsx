@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DataPlot } from "@/components/visualizations/data-plot";
-import { MetricStrip } from "@/components/workbook";
-import { responseError } from "@/lib/client/api";
+import { MetricStrip, DataTable } from "@/components/workbook";
+import { responseError, secureMutation } from "@/lib/client/api";
 import styles from "./trading-paper-portfolio.module.css";
 
 type Observation = { date: string; return_pct: number | null; benchmark_return_pct: number | null };
@@ -14,26 +14,24 @@ export type TrackedPaperCall = {
   entry_date?: string; last_price_date?: string; target_date?: string; hypothesis?: string;
   path?: Observation[]; path_status?: string;
 };
-type Holding = {
-  ticker: string; stance: string; tracking_ids: string[]; long_calls: number; short_calls: number;
-  contribution_pct: number | null; net_exposure_pct: number | null; gross_exposure_pct: number | null;
-  last_price_date: string; unpriced_calls: number;
-};
 export type PaperPortfolio = {
-  status: string; start_date: string; last_price_date: string;
-  return_pct: number | null; excess_return_pct: number | null; max_drawdown_pct: number | null;
-  path: Observation[]; approved_calls: number; open_calls: number; completed_calls: number;
-  pending_calls: number; unpriced_calls: number; current_marks: number; stale_sessions: number; benchmark_status: string;
-  allocation: { long_pct: number | null; short_pct: number | null; net_pct: number | null; cash_pct: number | null };
-  holdings: Holding[]; attribution: Array<{ ticker: string; contribution_pct: number; calls: number }>;
+  status: string; as_of?: string; return_pct?: number; max_drawdown_pct?: number;
+  summary?: Record<string, number | string | boolean | null>;
+  path?: Array<{date: string; equity: number | null; return_pct: number | null}>;
+  holdings?: Array<Record<string, string | number>>;
+  orders?: Array<Record<string, string | number>>;
+  unavailable?: string[]; coverage?: Record<string, string>;
+  risk_policy?: RiskPolicy;
 };
-const teal = "#52d6c7", coral = "#f08c73", violet = "#b89cff";
+const teal = "#52d6c7", violet = "#b89cff";
 function pct(value: number | null | undefined) { return value == null ? "—" : `${value > 0 ? "+" : ""}${value.toFixed(1)}%`; }
-function pp(value: number | null) { return value == null ? "—" : `${value > 0 ? "+" : ""}${value.toFixed(2)} pp`; }
 function day(value: string) { return value ? new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "—"; }
+function numeric(value: unknown) { return value == null || value === "" || !Number.isFinite(Number(value)) ? null : Number(value); }
+function money(value: unknown) { const n = numeric(value); return n == null ? "—" : n.toLocaleString("en-US", {style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2}); }
 
-export function TradingPaperPortfolio({ portfolio, calls, unavailable, onReviewCalls }: {
-  portfolio?: PaperPortfolio; calls: TrackedPaperCall[]; unavailable: boolean; onReviewCalls: () => void;
+export function TradingPaperPortfolio({ portfolio, calls, onReviewCalls, onRefresh, refreshing }: {
+  portfolio?: PaperPortfolio; calls: TrackedPaperCall[]; onReviewCalls: () => void;
+  onRefresh: () => void; refreshing: boolean;
 }) {
   const [selected, setSelected] = useState("");
   const chosen = calls.find(call => call.tracking_id === selected);
@@ -41,67 +39,89 @@ export function TradingPaperPortfolio({ portfolio, calls, unavailable, onReviewC
     <button className="quiet-button" type="button" onClick={() => setSelected("")}>← Paper portfolio</button>
     <ApprovedCallDetail call={chosen} />
   </section>;
-  if (unavailable || !portfolio) return <p className="subtle-error" role="alert">Portfolio data is unavailable.</p>;
-  if (portfolio.status === "empty") return <section className={`workbook-panel ${styles.empty}`}>
-    <h2>Paper portfolio</h2><p>Approve a call to start tracking your portfolio.</p>
-    <button className="primary-button" type="button" onClick={onReviewCalls}>Review calls</button>
-  </section>;
-  const allocation = portfolio.allocation;
-  const attribution = [...portfolio.attribution].sort((a, b) => Math.abs(b.contribution_pct) - Math.abs(a.contribution_pct)).slice(0, 8).reverse();
-  const closed = calls.filter(call => call.status === "matured");
-  const pending = calls.filter(call => call.status === "pending_entry");
-  function callButtons(items: TrackedPaperCall[]) {
-    return <div className={styles.calls}>{items.map(call => <button key={call.tracking_id} type="button" onClick={() => setSelected(call.tracking_id)}>
-      <span><strong>{call.ticker}</strong> · {call.stance} · {call.horizon_label}<small>Approved {day(call.approved_at_utc)} · {call.entry_date ? `Entry ${day(call.entry_date)}` : "Awaiting entry"}</small></span>
-      <span>{pct(call.return_pct)} <span aria-hidden="true">›</span></span>
-    </button>)}</div>;
-  }
+  const available = portfolio && ["available", "partial"].includes(portfolio.status);
+  const summary = portfolio?.summary || {};
+  const path = portfolio?.path || [];
+  const equityValues = path.map(point => point.equity).filter((value): value is number => value != null && Number.isFinite(value));
+  const low = Math.min(...equityValues), high = Math.max(...equityValues);
+  const equityRange = equityValues.length && high === low ? [low - Math.max(1, Math.abs(low) * .01), high + Math.max(1, Math.abs(high) * .01)] : undefined;
+  const holdings = portfolio?.holdings || [];
   return <div className={styles.portfolio}>
     <section className="workbook-panel">
-      <header className="panel-header"><h2>Paper portfolio</h2>{portfolio.last_price_date ? <time dateTime={portfolio.last_price_date}>Prices through {day(portfolio.last_price_date)}</time> : null}</header>
-      <MetricStrip items={[
-        {label: portfolio.unpriced_calls ? "Priced-call return" : "Portfolio return", value: pct(portfolio.return_pct)},
-        {label: "Vs matched SPY", value: pct(portfolio.excess_return_pct)},
-        {label: "Max drawdown", value: pct(portfolio.max_drawdown_pct)},
-        {label: "Open calls", value: portfolio.open_calls},
-      ]} />
-      {portfolio.status === "unavailable" ? <p className="subtle-error" role="alert">Portfolio performance is unavailable.</p> : null}
-      {portfolio.status === "pending" ? <p>Entry at the next trading day’s close.</p> : null}
-      {portfolio.status === "capital_exhausted" ? <p role="alert">Portfolio capital was exhausted; subsequent returns are unavailable.</p> : null}
-      {portfolio.path.length ? <div className={styles.chart}><DataPlot displayModeBar={false} id="paper-portfolio-return" title="Portfolio return" data={[
-        {type: "scatter", mode: portfolio.path.length === 1 ? "markers" : "lines", name: "Paper portfolio", x: portfolio.path.map(p => p.date), y: portfolio.path.map(p => p.return_pct), connectgaps: false, line: {color: teal, width: 2.4}},
-        ...(portfolio.benchmark_status === "available" ? [{type: "scatter", mode: "lines", name: "Matched SPY", x: portfolio.path.map(p => p.date), y: portfolio.path.map(p => p.benchmark_return_pct), line: {color: violet, dash: "dot"}}] : []),
-      ]} layout={{xaxis: {type: "date"}, yaxis: {title: {text: "Return (%)"}, zeroline: true, ticksuffix: "%"}, showlegend: true, hovermode: "x unified", height: 330}} rowCount={portfolio.path.length} /></div> : null}
-      <p className={styles.method}>Equal entry capital · time-weighted returns · cash after exit. SPY follows the same dates and long/short mix.</p>
-      {portfolio.status === "partial" ? <p className={styles.coverage}>{portfolio.current_marks} of {portfolio.open_calls} open calls have current marks{portfolio.unpriced_calls ? ` · ${portfolio.unpriced_calls} unpriced` : ""}{portfolio.stale_sessions ? ` · ${portfolio.stale_sessions} sessions use older marks` : ""}</p> : null}
+      <header className="panel-header"><div><h2>Alpaca paper portfolio</h2>{portfolio?.as_of ? <time dateTime={portfolio.as_of}>{new Date(portfolio.as_of).toLocaleString()}</time> : null}</div>
+        {portfolio?.status !== "unlinked" ? <button className="quiet-button" type="button" disabled={refreshing} onClick={onRefresh}>{refreshing ? "Refreshing…" : "Refresh"}</button> : null}
+      </header>
+      {!available ? <p role="status">{portfolio?.status === "unlinked" ? "No Alpaca paper account connected." : portfolio?.status === "pending" ? "The paper account is waiting for its first refresh." : "Paper account data is unavailable."}</p> : <>
+        <MetricStrip items={[{label: "Equity", value: money(summary.equity)}, {label: "Cash", value: money(summary.cash)}, {label: "Today", value: money(summary.day_pl)}, {label: "Buying power", value: money(summary.buying_power)}]} />
+        {portfolio.unavailable?.length ? <p className={styles.coverage} role="status">Refresh incomplete: {portfolio.unavailable.join(", ")}. Previous observations retained.</p> : null}
+        {path.length ? <div className={styles.chart}><DataPlot displayModeBar={false} id="paper-portfolio-equity" title="Account equity · 1Y" data={[
+          {type: "scatter", mode: "lines", name: "Account equity", x: path.map(p => p.date), y: path.map(p => p.equity), connectgaps: false, line: {color: teal, width: 2.4}},
+        ]} layout={{xaxis: {type: "date"}, yaxis: {title: {text: "Equity (USD)"}, tickprefix: "$", tickformat: high - low > 10 || equityRange ? ",.0f" : ",.2f", range: equityRange, nticks: 4, automargin: true}, margin: {l: 85, r: 18, t: 42, b: 42}, showlegend: false, hovermode: "x unified", height: 330}} rowCount={path.length} /></div> : null}
+        <MetricStrip items={[{label: "1Y return", value: pct(portfolio.return_pct)}, {label: "Equity drawdown", value: pct(portfolio.max_drawdown_pct)}, {label: "Long exposure", value: money(summary.long_market_value)}, {label: "Short exposure", value: money(summary.short_market_value)}]} />
+      </>}
     </section>
-    {portfolio.path.length ? <div className={styles.analytics}>
-      <section className="workbook-panel"><header className="panel-header"><h2>{portfolio.unpriced_calls ? "Priced exposure" : "Exposure"}</h2></header>
-        <MetricStrip items={[{label: "Net", value: pct(allocation.net_pct)}, {label: "Closed-call cash", value: pct(allocation.cash_pct)}]} />
-        <div className={styles.chart} style={{height: 190}}><DataPlot displayModeBar={false} id="paper-portfolio-exposure" title="" data={[
-          {type: "bar", orientation: "h", name: "Long", y: ["Long"], x: [allocation.long_pct], marker: {color: teal}},
-          {type: "bar", orientation: "h", name: "Short", y: ["Short"], x: [allocation.short_pct == null ? null : -allocation.short_pct], marker: {color: coral}},
-        ]} layout={{height: 190, xaxis: {title: {text: "Exposure (% of portfolio value)"}, zeroline: true, ticksuffix: "%"}, showlegend: false, margin: {l: 50, r: 20, t: 12, b: 42}}} rowCount={2} /></div>
-      </section>
-      <section className="workbook-panel"><header className="panel-header"><h2>Return contributors</h2></header>
-        <div className={styles.chart} style={{height: Math.max(220, attribution.length * 28 + 65)}}><DataPlot displayModeBar={false} id="paper-portfolio-contribution" title="" data={[{type: "bar", orientation: "h", y: attribution.map(p => p.ticker), x: attribution.map(p => p.contribution_pct), marker: {color: attribution.map(p => p.contribution_pct >= 0 ? teal : coral)}, hovertemplate: "%{y}: %{x:.2f} pp<extra></extra>"}]} layout={{height: Math.max(220, attribution.length * 28 + 65), xaxis: {title: {text: "Contribution (percentage points)"}, zeroline: true, ticksuffix: " pp"}, yaxis: {type: "category", tickmode: "array", tickvals: attribution.map(p => p.ticker), ticktext: attribution.map(p => p.ticker), automargin: true}, margin: {l: 60, r: 20, t: 12, b: 42}}} rowCount={attribution.length} /></div>
-      </section>
-    </div> : null}
-    {portfolio.holdings.length ? <section className={`workbook-panel ${styles.holdings}`}>
-      <header className="panel-header"><h2>Positions</h2><span>{portfolio.holdings.length} symbols</span></header>
-      <div className={styles.columns}><span>Symbol / calls</span><span>Net exposure</span><span>Contribution</span></div>
-      {portfolio.holdings.map(holding => <details className={styles.holding} key={holding.ticker}>
-        <summary><span><strong>{holding.ticker}</strong><small>{[holding.long_calls ? `${holding.long_calls} long` : "", holding.short_calls ? `${holding.short_calls} short` : ""].filter(Boolean).join(" · ")}</small></span>
-          <span>{pct(holding.net_exposure_pct)}{holding.stance === "mixed" ? <small>Gross {pct(holding.gross_exposure_pct)}</small> : null}</span>
-          <span style={{color: holding.contribution_pct == null ? undefined : holding.contribution_pct < 0 ? coral : teal}}>{pp(holding.contribution_pct)}<small aria-hidden="true">View calls ›</small></span>
-        </summary>
-        {holding.unpriced_calls ? <p className={styles.coverage}>{holding.unpriced_calls} calls awaiting prices</p> : null}
-        {callButtons(calls.filter(call => holding.tracking_ids.includes(call.tracking_id)))}
-      </details>)}
+    {available ? <section className="workbook-panel"><header className="panel-header"><h2>Positions</h2><span>{holdings.length} symbols</span></header>
+      {holdings.length ? <DataTable<Record<string, unknown>> columns={[{key: "symbol", label: "Symbol"}, {key: "side", label: "Side"}, {key: "qty", label: "Shares"}, {key: "market_value_display", label: "Value"}, {key: "current_price_display", label: "Price"}, {key: "pl_display", label: "Unrealized P/L"}]} rows={holdings.map(row => ({...row, market_value_display: money(row.market_value), current_price_display: money(row.current_price), pl_display: money(row.unrealized_pl)}))} rowKey={row => String(row.symbol)} /> : <><p>No open positions.</p><button className="primary-button" type="button" onClick={onReviewCalls}>Review calls</button></>}
     </section> : null}
-    {pending.length ? <details className="workbook-panel"><summary>Pending entry · {pending.length}</summary>{callButtons(pending)}</details> : null}
-    {closed.length ? <details className="workbook-panel"><summary>Closed calls · {closed.length}</summary>{callButtons(closed)}</details> : null}
+    {available ? <section className="workbook-panel"><h2>Recent paper orders</h2>{portfolio.orders?.length ? <DataTable columns={[{key: "symbol", label: "Symbol"}, {key: "side", label: "Side"}, {key: "qty", label: "Shares"}, {key: "filled_qty", label: "Filled"}, {key: "filled_avg_price", label: "Fill price"}, {key: "status", label: "Status"}, {key: "submitted_at", label: "Submitted"}]} rows={portfolio.orders} rowKey={row => String(row.id)} /> : <p>No paper orders yet.</p>}</section> : null}
+    {calls.length ? <details className="workbook-panel"><summary>Research observations · {calls.length}</summary>
+      <div className={styles.calls}>{calls.map(call => <button key={call.tracking_id} type="button" onClick={() => setSelected(call.tracking_id)}>
+        <span><strong>{call.ticker}</strong> · {call.stance} · {call.horizon_label}<small>Approved {day(call.approved_at_utc)}</small></span><span>{pct(call.return_pct)} ›</span>
+      </button>)}</div>
+    </details> : null}
   </div>;
+}
+
+type RiskPolicy = {position_volatility_pct: number; portfolio_volatility_pct: number; max_position_pct: number; max_gross_pct: number};
+type OrderReview = {ticket_id: string; arguments_hash: string; expires_at: string; order: {symbol: string; side: string; qty: string; type: string; time_in_force: string}; risk: {suggested_notional: number; asset_volatility_pct: number; portfolio_volatility_before_pct: number; portfolio_volatility_after_pct: number; observations: number; history_start: string; history_end: string; binding_limit: string; execution_price_tolerance_pct: number}};
+export function PaperOrderReview({candidate, initialPolicy, onClose, onSubmitted}: {candidate: {candidate_id: string; ticker: string}; initialPolicy?: RiskPolicy; onClose: () => void; onSubmitted: (order: Record<string, string>) => Promise<void>}) {
+  const [policy, setPolicy] = useState<RiskPolicy | null>(initialPolicy || null);
+  const [review, setReview] = useState<OrderReview | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const element = dialog.current;
+    if (element && !element.open) element.showModal();
+    return () => element?.close();
+  }, []);
+  async function calculate() {
+    if (!policy) {setError("Risk limits are unavailable. Refresh the paper account."); return;}
+    setBusy(true); setError(""); setReview(null);
+    try {
+      const response = await secureMutation("/api/trading-agent/paper/review", {method: "POST", body: JSON.stringify({candidate_id: candidate.candidate_id, policy})});
+      if (!response.ok) throw new Error(await responseError(response, "The paper order could not be sized."));
+      setReview(await response.json() as OrderReview);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Sizing is unavailable."); }
+    finally { setBusy(false); }
+  }
+  async function confirm() {
+    if (!review) return;
+    setBusy(true); setError("");
+    try {
+      const response = await secureMutation("/api/trading-agent/paper/confirm", {method: "POST", body: JSON.stringify({ticket_id: review.ticket_id, arguments_hash: review.arguments_hash})});
+      if (!response.ok) throw new Error(await responseError(response, "Paper order submission is unavailable."));
+      const receipt = await response.json() as {order: Record<string, string>};
+      await onSubmitted(receipt.order);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Submission is unavailable."); }
+    finally { setBusy(false); }
+  }
+  const labels: Record<keyof RiskPolicy, string> = {position_volatility_pct: "Position volatility budget (%)", portfolio_volatility_pct: "Portfolio volatility limit (%)", max_position_pct: "Maximum position (% equity)", max_gross_pct: "Maximum gross exposure (%)"};
+  return <dialog ref={dialog} className={styles.overlay} aria-label={`Review ${candidate.ticker} paper trade`} onCancel={event => {event.preventDefault(); if (!busy) onClose();}}><section className={`workbook-panel ${styles.review}`}>
+    <header className="panel-header"><h2>{candidate.ticker} · paper trade</h2><button className="quiet-button" type="button" disabled={busy} onClick={onClose}>Close</button></header>
+    <p className={styles.method}>Volatility budgeting · Ledoit–Wolf covariance · annualized risk</p>
+    {policy ? <div className={styles.riskInputs}>{(Object.keys(labels) as Array<keyof RiskPolicy>).map(key => <label key={key}>{labels[key]}<input type="number" min="0.1" max="100" step="0.1" value={policy[key]} disabled={busy} onChange={event => {setPolicy({...policy, [key]: Number(event.target.value)}); setReview(null);}} /></label>)}</div> : <p role="alert">Risk limits are unavailable. Refresh the paper account.</p>}
+    {error ? <p className="subtle-error" role="alert">{error}</p> : null}
+    {review ? <>
+      <h3>{review.order.side === "buy" ? "Buy" : "Short"} {review.order.qty} {review.order.symbol}</h3>
+      <p>{review.order.type} · {review.order.time_in_force} · {review.risk.execution_price_tolerance_pct}% price reserve</p>
+      <MetricStrip items={[{label: "Estimated amount", value: money(review.risk.suggested_notional)}, {label: "Estimated portfolio volatility", value: `${pct(review.risk.portfolio_volatility_before_pct)} → ${pct(review.risk.portfolio_volatility_after_pct)}`}]} />
+      <p>{review.risk.observations} daily returns · {day(review.risk.history_start)}–{day(review.risk.history_end)}</p>
+      <p>Limited by {review.risk.binding_limit.replaceAll("_", " ")} · review expires {new Date(review.expires_at).toLocaleTimeString()}</p>
+      <button className="primary-button" type="button" disabled={busy} onClick={() => void confirm()}>{busy ? "Submitting…" : error ? "Retry confirmation" : "Place paper order"}</button>
+      <button className="quiet-button" type="button" disabled={busy} onClick={() => void calculate()}>Recalculate size</button>
+    </> : <button className="primary-button" type="button" disabled={busy || !policy} onClick={() => void calculate()}>{busy ? "Calculating…" : "Calculate size"}</button>}
+  </section></dialog>;
 }
 
 function ApprovedCallDetail({call}: {call: TrackedPaperCall}) {
