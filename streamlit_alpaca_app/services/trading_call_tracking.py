@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import json
+import math
 import uuid
 from typing import Any
 
@@ -319,12 +320,144 @@ def enqueue_outcome_reviews(frame: pd.DataFrame, calls: list[dict[str, Any]]) ->
         connection.close()
 
 
+def build_paper_portfolio(calls: list[dict[str, Any]]) -> dict[str, Any]:
+    """Equal entry capital, daily time-weighted returns, and cash after maturity.
+
+    Each entered approval contributes one unit at its recorded entry close.
+    Contributions buy into the existing portfolio after that day's price change;
+    they never manufacture a gain or dilute its return. Short proceeds are not
+    reused. This is an observation of published paper outcomes, not an allocation
+    instruction or a simulation of broker financing/margin.
+    """
+    prepared, unpriced = [], []
+    for call in calls:
+        points = call.get('path') or []
+        if not isinstance(points, list) or not points or not all(
+                isinstance(p, dict) and isinstance(p.get('date'), str) and
+                isinstance(p.get('return_pct'), (int, float)) and math.isfinite(p['return_pct']) for p in points):
+            unpriced.append(call)
+            continue
+        valid = points[0]['date'] == call.get('entry_date')
+        dates = [point['date'] for point in points]
+        valid = valid and dates == sorted(set(dates))
+        valid = valid and abs(points[0]['return_pct']) < 1e-8
+        if not valid:
+            unpriced.append(call)
+            continue
+        prepared.append({'call': call, 'points': {p['date']: p for p in points},
+                         'start': dates[0], 'end': dates[-1], 'return': 0.0,
+                         'benchmark': 0.0, 'contribution': 0.0})
+    pending = sum(call.get('status') == 'pending_entry' for call in unpriced)
+    missing = len(unpriced) - pending
+    benchmark_complete = bool(prepared) and all(
+        isinstance(p.get('benchmark_return_pct'), (int, float)) and math.isfinite(p['benchmark_return_pct'])
+        for item in prepared for p in item['points'].values()) and all(
+            abs(item['points'][item['start']]['benchmark_return_pct']) < 1e-8 for item in prepared)
+    dates = sorted({day for item in prepared for day in item['points']})
+    index, benchmark_index, peak, drawdown = 1.0, 1.0, 1.0, 0.0
+    value, benchmark_value, capital = 0.0, 0.0, 0
+    path, entered = [], []
+    exhausted, benchmark_exhausted, stale_sessions = False, False, 0
+    for day in dates:
+        change, benchmark_change = 0.0, 0.0
+        deltas, stale = [], False
+        for item in entered:
+            point = item['points'].get(day)
+            if point is None:
+                stale |= item['call'].get('status') != 'matured' or day <= item['end']
+                continue
+            delta = (point['return_pct'] - item['return']) / 100
+            item['return'] = point['return_pct']
+            change += delta
+            deltas.append((item, delta))
+            if benchmark_complete:
+                benchmark_change += (point['benchmark_return_pct'] - item['benchmark']) / 100
+                item['benchmark'] = point['benchmark_return_pct']
+        if value > 0 and not exhausted:
+            previous_index = index
+            index *= 1 + change / value
+            for item, delta in deltas:
+                item['contribution'] += previous_index * delta / value * 100
+            peak = max(peak, index)
+            drawdown = min(drawdown, (index / peak - 1) * 100)
+            exhausted = value + change <= 0
+        if benchmark_complete and benchmark_value > 0 and not benchmark_exhausted:
+            benchmark_index *= 1 + benchmark_change / benchmark_value
+            benchmark_exhausted = benchmark_value + benchmark_change <= 0
+        newcomers = [item for item in prepared if item['start'] == day]
+        entered.extend(newcomers)
+        capital += len(newcomers)
+        value += change + len(newcomers)
+        benchmark_value += benchmark_change + len(newcomers)
+        path.append({'date': day, 'return_pct': None if exhausted else (index - 1) * 100,
+                     'benchmark_return_pct': (benchmark_index - 1) * 100 if benchmark_complete and not benchmark_exhausted else None,
+                     'value_units': value, 'contributed_units': capital, 'uses_older_marks': stale})
+        stale_sessions += stale
+    end = dates[-1] if dates else ''
+    holdings, attribution = {}, {}
+    cash, long_exposure, short_exposure, current_marks = 0.0, 0.0, 0.0, 0
+    for item in prepared:
+        call = item['call']; ticker = call['ticker']
+        total = attribution.setdefault(ticker, {'ticker': ticker, 'contribution_pct': 0.0, 'calls': 0})
+        total['contribution_pct'] += item['contribution']; total['calls'] += 1
+        if call.get('status') == 'matured':
+            cash += 1 + item['return'] / 100
+            continue
+        row = holdings.setdefault(ticker, {'ticker': ticker, 'tracking_ids': [], 'long_calls': 0,
+            'short_calls': 0, 'value_units': 0.0, 'long_units': 0.0, 'short_units': 0.0,
+            'contribution_pct': 0.0, 'last_price_date': item['end'], 'unpriced_calls': 0})
+        side = call['stance']; sign = 1 if side == 'long' else -1
+        exposure = 1 + sign * item['return'] / 100
+        row['tracking_ids'].append(call['tracking_id']); row[side + '_calls'] += 1
+        row['value_units'] += 1 + item['return'] / 100
+        row[side + '_units'] += exposure
+        row['contribution_pct'] += item['contribution']
+        row['last_price_date'] = min(row['last_price_date'], item['end'])
+        long_exposure += exposure if side == 'long' else 0
+        short_exposure += exposure if side == 'short' else 0
+        current_marks += item['end'] == end and call.get('status') == 'open'
+    # Entered approvals without a usable path remain visible, with unknown weights.
+    for call in unpriced:
+        if call.get('status') in {'pending_entry', 'matured'}:
+            continue
+        ticker = call['ticker']
+        row = holdings.setdefault(ticker, {'ticker': ticker, 'tracking_ids': [], 'long_calls': 0,
+            'short_calls': 0, 'value_units': 0.0, 'long_units': 0.0, 'short_units': 0.0,
+            'contribution_pct': 0.0, 'last_price_date': '', 'unpriced_calls': 0})
+        row['tracking_ids'].append(call['tracking_id']); row[call['stance'] + '_calls'] += 1
+        row['unpriced_calls'] += 1
+    for row in holdings.values():
+        row['stance'] = 'mixed' if row['long_calls'] and row['short_calls'] else 'long' if row['long_calls'] else 'short'
+        row['net_exposure_pct'] = (row['long_units'] - row['short_units']) / value * 100 if value > 0 and not row['unpriced_calls'] else None
+        row['gross_exposure_pct'] = (row['long_units'] + row['short_units']) / value * 100 if value > 0 and not row['unpriced_calls'] else None
+    opened = sum(item['call'].get('status') != 'matured' for item in prepared)
+    status = ('empty' if not calls else 'pending' if not prepared and not missing else
+              'unavailable' if not prepared else 'capital_exhausted' if exhausted else
+              'partial' if missing or current_marks < opened or stale_sessions else 'available')
+    return {'status': status, 'method': 'equal_entry_capital_time_weighted',
+            'start_date': dates[0] if dates else '', 'last_price_date': end,
+            'return_pct': (index - 1) * 100 if prepared and not exhausted else None,
+            'benchmark_return_pct': (benchmark_index - 1) * 100 if benchmark_complete and not benchmark_exhausted else None,
+            'excess_return_pct': (index - benchmark_index) * 100 if benchmark_complete and not benchmark_exhausted and not exhausted else None,
+            'max_drawdown_pct': drawdown if prepared else None, 'path': path,
+            'approved_calls': len(calls), 'entered_calls': len(prepared), 'open_calls': opened + sum(c.get('status') != 'matured' for c in unpriced) - pending,
+            'completed_calls': sum(c.get('status') == 'matured' for c in calls),
+            'pending_calls': pending, 'unpriced_calls': missing, 'current_marks': current_marks, 'stale_sessions': stale_sessions,
+            'benchmark_status': 'available' if benchmark_complete and not benchmark_exhausted else 'unavailable',
+            'allocation': {'long_pct': long_exposure / value * 100 if value > 0 else None,
+                           'short_pct': short_exposure / value * 100 if value > 0 else None,
+                           'net_pct': (long_exposure - short_exposure) / value * 100 if value > 0 else None,
+                           'cash_pct': cash / value * 100 if value > 0 else None},
+            'holdings': sorted(holdings.values(), key=lambda row: (-(row['gross_exposure_pct'] or 0), row['ticker'])),
+            'attribution': sorted(attribution.values(), key=lambda row: -row['contribution_pct'])}
+
+
 def tracking_view(*, owner_id: str, tracking_id: str | None = None) -> dict[str,Any]:
     from . import pipeline_store as store
     calls=approved_calls(owner_id=owner_id,tracking_id=tracking_id,include_snapshot=bool(tracking_id))
     if tracking_id and not calls:raise LookupError('Tracked call not found.')
     metadata=store.latest_dataset_metadata(DATASET) if calls else None
-    columns=COLUMNS if tracking_id else SUMMARY_COLUMNS
+    columns=COLUMNS if tracking_id else [*SUMMARY_COLUMNS, 'path_json']
     values=store.load_dataset_frame(metadata,columns=columns,symbols=[calls[0]['ticker']] if tracking_id else None) if metadata else pd.DataFrame()
     by_id={str(row['tracking_id']):row for row in values.to_dict(orient='records')} if not values.empty else {}
     results=[]
@@ -336,9 +469,14 @@ def tracking_view(*, owner_id: str, tracking_id: str | None = None) -> dict[str,
             raise TrackingUnavailable('Tracked call ownership does not match its publication.')
         row.update(performance)
         row.pop('owner_id',None)
+        row['path']=json.loads(row.pop('path_json','[]'))
         if tracking_id:
             snapshot=call['candidate_payload'];snapshot=json.loads(snapshot) if isinstance(snapshot,str) else snapshot
             row['candidate']=snapshot
-            row['path']=json.loads(row.pop('path_json','[]'))
         results.append(to_jsonable(row))
-    return {'status':'available','as_of':getattr(metadata,'asof_time_utc',''),'calls':results}
+    portfolio = build_paper_portfolio(results) if not tracking_id else None
+    if not tracking_id:
+        for row in results:
+            row.pop('path', None)
+    return {'status':'available','as_of':getattr(metadata,'asof_time_utc',''),'calls':results,
+            **({'portfolio': portfolio} if portfolio is not None else {})}

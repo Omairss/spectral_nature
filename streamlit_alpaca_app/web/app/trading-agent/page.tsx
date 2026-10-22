@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { TradingPaperPortfolio, type PaperPortfolio, type TrackedPaperCall } from "@/components/trading-paper-portfolio";
 import { DataPlot } from "@/components/visualizations/data-plot";
 import { DataTable, MetricStrip, WorkbookTabs } from "@/components/workbook";
 import { responseError, secureMutation } from "@/lib/client/api";
@@ -15,8 +16,7 @@ type Candidate = Record<string, unknown> & {
 };
 type Horizon = { key: string; label: string; selected_horizon_col: string; status: string; regime_read: string; portfolio_posture: string; data_gaps: string[]; candidates: Candidate[] };
 type Forecast = { reference_price?: number; reference_snapshot_as_of: string; pricing_assessment: string; assumptions: string[]; opposing_case: string };
-type TrackedCall = {tracking_id: string; ticker: string; stance: string; horizon_label: string; approved_at_utc: string; as_of?: string; status: string; return_pct?: number; benchmark_return_pct?: number; excess_return_pct?: number; max_drawdown_pct?: number; entry_date?: string; last_price_date?: string; target_date?: string; hypothesis?: string; path?: Array<{date: string; return_pct: number; benchmark_return_pct: number | null}>};
-type TradingView = { status: string; as_of: string; run_id: string; horizons: Horizon[]; decisions: Array<Record<string, unknown>>; tracked_calls?: TrackedCall[]; tracking_status?: string };
+type TradingView = { status: string; as_of: string; run_id: string; horizons: Horizon[]; decisions: Array<Record<string, unknown>>; tracked_calls?: TrackedPaperCall[]; tracking_status?: string; paper_portfolio?: PaperPortfolio };
 function number(value: unknown) { if (value === null || value === undefined || value === "") return null; const parsed = Number(value); return Number.isFinite(parsed) ? parsed : null; }
 function pct(value: unknown) { const parsed = number(value); return parsed === null ? "—" : `${parsed > 0 ? "+" : ""}${parsed.toFixed(1)}%`; }
 
@@ -24,7 +24,7 @@ export default function TradingAgentPage() {
   const { session, sessionError } = useAuthenticatedSession("/trading-agent");
   const [view, setView] = useState<TradingView | null>(null);
   const [activeHorizon, setActiveHorizon] = useState("");
-  const [section, setSection] = useState("calls");
+  const [section, setSection] = useState("portfolio");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -59,7 +59,7 @@ export default function TradingAgentPage() {
       const response = await secureMutation("/api/trading-agent/decisions", { method: "POST", body: JSON.stringify({ candidate_id: candidate.candidate_id, action }) });
       if (!response.ok) throw new Error(await responseError(response, "Decision could not be recorded."));
       await load();
-      if (action === "approve") setSection("performance");
+      if (action === "approve") setSection("portfolio");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Decision could not be recorded."); setLoading(false); }
   }
 
@@ -67,11 +67,11 @@ export default function TradingAgentPage() {
   if (!session?.authenticated) return <div className="page-shell"><p className="loading-label">Checking session…</p></div>;
   return (
     <div className="page-shell workbook-page">
-      <header className="artifact-header"><div><p className="breadcrumb">Agent <span>/</span> Market decisions</p><h1>Trading Agent</h1></div>{view?.as_of ? <time dateTime={view.as_of}>{new Date(view.as_of).toLocaleString()}</time> : null}</header>
+      <header className="artifact-header"><div><p className="breadcrumb">Agent <span>/</span> Market decisions</p><h1>Trading Agent</h1></div>{section === "calls" && view?.as_of ? <time dateTime={view.as_of}>{new Date(view.as_of).toLocaleString()}</time> : null}</header>
       {sessionError || error ? <p className="subtle-error" role="alert">{sessionError || error}</p> : null}
       {loading && !view ? <p className="loading-label">Loading Trading Agent…</p> : null}
-      <WorkbookTabs active={section} items={[{key: "calls", label: "Calls"}, {key: "performance", label: "Paper performance"}]} label="Trading view" onChange={setSection} />
-      {section === "performance" ? <ApprovedCallPerformance calls={view?.tracked_calls || []} unavailable={view?.tracking_status === "unavailable"} /> : view?.status === "available" && horizon ? <>
+      <WorkbookTabs active={section} items={[{key: "portfolio", label: "Paper portfolio"}, {key: "calls", label: "Calls"}]} label="Trading view" onChange={setSection} />
+      {section === "portfolio" ? view ? <TradingPaperPortfolio portfolio={view.paper_portfolio} calls={view.tracked_calls || []} unavailable={view.tracking_status === "unavailable"} onReviewCalls={() => setSection("calls")} /> : null : view?.status === "available" && horizon ? <>
         <WorkbookTabs active={activeHorizon} items={view.horizons.map((item) => ({ key: item.key, label: item.label }))} label="Trading horizons" onChange={setActiveHorizon} />
         <section className="agent-backdrop"><p className="section-label">Market backdrop</p><h2>{horizon.regime_read}</h2>{horizon.portfolio_posture ? <p>{horizon.portfolio_posture}</p> : null}</section>
         <MetricStrip items={[{ label: "Long", value: groups.long.length }, { label: "Short", value: groups.short.length }, { label: "Watch", value: groups.watch.length }, { label: "Decisions", value: view.decisions.length }]} />
@@ -116,42 +116,3 @@ function CandidateCard({ candidate, horizon, loading, onDecide }: { candidate: C
       </> : null}</details></article>
     );
   }
-
-
-function ApprovedCallPerformance({calls, unavailable}: {calls: TrackedCall[]; unavailable: boolean}) {
-  const [selected, setSelected] = useState("");
-  const [detail, setDetail] = useState<TrackedCall | null>(null);
-  const [error, setError] = useState("");
-  const chosen = calls.find((item) => item.tracking_id === selected) || calls[0];
-  const identity = chosen?.tracking_id || "";
-  useEffect(() => {
-    const controller = new AbortController();
-    if (!identity) return () => controller.abort();
-    void fetch(`/api/trading-agent/approved-calls/${encodeURIComponent(identity)}`, {cache: "no-store", signal: controller.signal}).then(async (response) => {
-      if (!response.ok) throw new Error(await responseError(response, "Call tracking is unavailable."));
-      const value = await response.json() as TrackedCall;
-      if (!controller.signal.aborted) {setDetail(value); setError("");}
-    }).catch((reason: unknown) => {if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Call tracking is unavailable.");});
-    return () => controller.abort();
-  }, [identity, chosen?.as_of]);
-  if (unavailable) return <p className="subtle-error" role="alert">Call tracking is unavailable.</p>;
-  if (!chosen) return <section className="workbook-panel"><p>Approve a call to track its performance.</p></section>;
-  const current = detail?.tracking_id === identity ? detail : chosen;
-  const path = current.path || [];
-  const benchmark = current.stance === "short" ? "SPY short" : "SPY long";
-  return <section className="workbook-panel">
-    <MetricStrip items={[{label: "Tracked calls", value: calls.length}, {label: "Open", value: calls.filter((item) => item.status === "open").length}, {label: "Completed", value: calls.filter((item) => item.status === "matured").length}]} />
-    <label>Approved call <select value={identity} onChange={(event) => setSelected(event.target.value)}>{calls.map((item) => <option key={item.tracking_id} value={item.tracking_id}>{item.ticker} · {item.stance} · {item.horizon_label} · {new Date(item.approved_at_utc).toLocaleDateString()}</option>)}</select></label>
-    {error ? <p className="subtle-error" role="alert">{error}</p> : null}
-    <MetricStrip items={[{label: "Return", value: pct(current.return_pct)}, {label: `Vs ${benchmark}`, value: pct(current.excess_return_pct)}, {label: "Drawdown", value: pct(current.max_drawdown_pct)}]} />
-    {current.status === "pending_entry" ? <p>Entry at the next trading day’s close.</p> : null}
-    {current.status === "price_unavailable" ? <p>Price data is unavailable.</p> : null}
-    {path.length ? <DataPlot id={`tracked-${identity}`} title={`${current.ticker} · paper return`} data={[
-      {type: "scatter", mode: path.length === 1 ? "markers" : "lines", name: "Call", x: path.map((point) => point.date), y: path.map((point) => point.return_pct), line: {color: "#52d6c7"}},
-      {type: "scatter", mode: "lines", name: benchmark, x: path.map((point) => point.date), y: path.map((point) => point.benchmark_return_pct), connectgaps: false, line: {color: "#b89cff", dash: "dot"}},
-    ]} layout={{xaxis: {type: "date"}, yaxis: {title: {text: "Return (%)"}, zeroline: true}, showlegend: true}} rowCount={path.length} /> : null}
-    {current.entry_date ? <p>Entry {current.entry_date} · Target {current.target_date} · Prices through {current.last_price_date}</p> : null}
-    {current.hypothesis ? <p>{current.hypothesis}</p> : null}
-    <DataTable columns={[{key: "ticker", label: "Symbol"}, {key: "stance", label: "Call"}, {key: "horizon_label", label: "Horizon"}, {key: "return_pct", label: "Return (%)"}, {key: "status", label: "Status"}]} rows={calls as unknown as Record<string, unknown>[]} rowKey={(row) => String(row.tracking_id)} />
-  </section>;
-}

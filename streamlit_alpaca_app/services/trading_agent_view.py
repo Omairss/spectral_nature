@@ -123,7 +123,8 @@ def build_trading_agent_view(context: UserContext | None = None) -> dict[str, An
             tracking = tracking_view(owner_id=context.user_id)
         except Exception:
             tracking = {"status": "unavailable", "calls": [], "as_of": ""}
-    tracking_fields = {"tracking_status": tracking["status"], "tracked_calls": tracking["calls"], "tracking_as_of": tracking["as_of"]}
+    tracking_fields = {"tracking_status": tracking["status"], "tracked_calls": tracking["calls"], "tracking_as_of": tracking["as_of"],
+                       "paper_portfolio": tracking.get("portfolio", {"status": tracking["status"]})}
     runs, candidates, actions, metadata = _latest_output()
     if runs.empty or candidates.empty:
         return {"status": "unavailable", "as_of": "", "horizons": [], "decisions": [], **tracking_fields}
