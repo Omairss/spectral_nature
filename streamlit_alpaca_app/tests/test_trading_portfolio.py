@@ -100,7 +100,8 @@ def test_broker_projection_does_not_return_credentials_or_invent_holdings():
         "last_equity": "100000", "id": "private", "api_key": "private"},
         "positions": [], "timeseries": [{"date": "2026-10-21", "equity": 100000, "return_pct": 0}],
         "server_info": {"secret_secret_name": "private"}, "details": {"coverage": {"account": "2026-10-22"}}})
-    assert result["summary"]["cash"] == "100000"
+    assert result["summary"]["cash"] == 100000
+    assert result["summary"]["equity"] == 100000
     assert result["holdings"] == []
     assert result["return_pct"] == 0
     assert "private" not in str(result)

@@ -1254,3 +1254,5 @@ Renew from accepted Git source, verify the embedded profile’s dates, bundle, t
 ### October 22 — follow the active recovery and verify both serving paths
 
 Before manually retrying a failed scheduled producer, inspect current executions. The Home recovery was already running after provider credit returned; following it avoided duplicate research. Verify the actual billing credential’s availability without printing it, then check the newly published run identity on both the phone gateway and web API. The server-rendered page has a normal 30-second revalidating cache, so a fresh API response alone is not visible-page proof. Core Home publication precedes optional page summaries; record any independent summary failures without treating them as loss of the accepted main publication. See verification/home-refresh-2026-10-22/refresh.json.
+
+Broker decimal strings must become finite numeric values in the shared public account projection, while exact order quantities stay strings. Native review exposed absent metrics that browser coercion had masked. Serialize snapshot timestamps as ISO8601 with time and offset.
