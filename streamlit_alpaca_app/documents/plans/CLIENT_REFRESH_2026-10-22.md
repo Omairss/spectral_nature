@@ -35,9 +35,9 @@ prepare the committed source record, verify builds and deploy the scoped web cha
 to DEV. Prepare the native build for the compatible gateway without changing the
 phone's production default, bundle identity or saved session.
 
-Status: accepted in DEV on revision 33; the complete deployed Home matches SSR
-and browser text with zero rendering warnings. Native build 9 is signed and its
-normal authenticated DEV Paper performance chart is verified. Production and the
-physical iPhone remain unchanged pending approval and connection. See
-[verification](../verification/client-refresh-2026-10-22/development.json) and
-[native build](../verification/client-refresh-2026-10-22/native-build.json).
+Status: completed and deployed October 22. The exact accepted DEV web image is on
+both production entry points; all 36 consumers are verified, with only two web
+image changes and zero configuration changes. Signed native build 9 installed
+in place over Wi-Fi and launched on the physical iPhone. Conditional Home reads
+and the freshly loaded production page pass. See the
+[production and native receipt](../verification/client-refresh-2026-10-22/production.json).

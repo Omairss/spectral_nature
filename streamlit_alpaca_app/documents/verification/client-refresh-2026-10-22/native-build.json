@@ -1,5 +1,5 @@
 {
-  "status": "signed_and_verified_ready_for_installation",
+  "status": "installed_wirelessly_and_launched",
   "version": "1.0.0",
   "build": "9",
   "native_source_revision": "38ef91abfb0f4fcc031eb81d60e07ffe0db9f903",
@@ -54,8 +54,9 @@
     "binary_sha256": "13b0d9c8198a3284a48668613eb803bcf8c52a38b6477bf901392100f26a354d"
   },
   "default_gateway": "https://spectral-nature.com",
-  "physical_installation": false,
+  "physical_installation": true,
   "simulator_authenticated_dev_detail": "Existing MARA call and six dated call/SPY observations rendered; no order/approval action.",
-  "phone_last_observed": "Paired; tunnel unavailable. Reconnect for installation.",
-  "profile_expires_pacific": "October 29, 2026 at 9:52 AM PDT"
+  "phone_last_observed": "Build 9 installed over paired localNetwork tunnel; launch and running process readback confirmed.",
+  "profile_expires_pacific": "October 29, 2026 at 9:52 AM PDT",
+  "installation_evidence": "documents/verification/client-refresh-2026-10-22/production.json"
 }

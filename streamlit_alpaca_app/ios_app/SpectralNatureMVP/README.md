@@ -54,19 +54,20 @@ Keep normal simulator signing enabled: Keychain needs Xcode's simulated applicat
 
 ## Installation and validation
 
-Build 9 is prepared for the Paper performance route repair and automatic live Brief
-refresh. It passed populated simulator checks through the normal authenticated DEV
-gateway. Production promotion and physical installation are pending; build 8 remains
-on the phone. [Current work](../../documents/plans/CLIENT_REFRESH_2026-10-22.md).
+Version 1.0.0 build 9 was installed in place over Wi-Fi and launched on the owner's
+iPhone on October 22. It includes the Paper performance route repair and automatic
+live Brief refresh, using the production gateway. Device app/version and running
+process readbacks confirm installation and launch. It also passed populated native
+checks through the normal authenticated DEV gateway.
+See the [deployment receipt](../../documents/verification/client-refresh-2026-10-22/production.json).
 
-Version 1.0.0 build 8 was renewed, installed in place and launched on the owner's
-physical iPhone on October 22. The new Personal Team profile expires October 29,
-2026 at 9:52 a.m. Pacific. The same bundle identifier and development team preserve
-application data and Keychain storage. Device readback confirms the running app.
-See the [renewal receipt](../../documents/verification/native-renewal-2026-10-22/release.json).
+The Personal Team profile expires October 29, 2026 at 9:52 a.m. Pacific. The same
+bundle identifier and development team preserve application data and Keychain
+storage. Build 8's preceding signing renewal is retained in the
+[renewal receipt](../../documents/verification/native-renewal-2026-10-22/release.json).
 
 Free Personal Team profiles expire seven days after issuance, independently of
-backend updates. To renew, connect and unlock the phone, build the accepted Git
+backend updates. To renew, connect over USB or the existing paired Wi-Fi connection and unlock the phone, build the accepted Git
 source with automatic signing and provisioning updates enabled, install over the
 existing app, and verify launch. iOS may require renewed developer trust under
 Settings → General → VPN & Device Management. Host signature verification does not

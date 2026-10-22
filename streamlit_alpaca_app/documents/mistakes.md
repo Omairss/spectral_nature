@@ -4,6 +4,8 @@
 
 Moving Home across the server/client boundary exposed host-dependent timestamp and compact-currency formatting. The first DEV browser load reported React hydration error 418. Explicit UTC time and count locale did not finish the repair: a complete server/browser text comparison found 139 compact-currency precision differences, such as $3.0B versus $3B. Node 25 local rendering matched Chrome and hid the Node 22 server default. Set precision and locale in the shared chart/ticker formatters and compare the production Node version with the actual browser. No production promotion occurred during this repair.
 
+The first production HTTP probe ran before latest-ready traffic had settled and assumed an ETag; it received the preceding response. Repeated both gateways after readiness. The reused browser tab also retained an older React error across reload; final verification uses a fresh tab and actual chart interaction. Neither required a runtime patch.
+
 ## Trading resumption preparation and reasoning — 2026-10-18
 
 - Release gates caught a retired endpoint pathname and a stale duplicate component record before packaging; use the current approved-call route and one component record. Registry verification needs a single encoded command argument, and a job execution override needs the complete supported container template, including its image/environment. Preserve saved templates and classify these as operator rejections, not model failures.

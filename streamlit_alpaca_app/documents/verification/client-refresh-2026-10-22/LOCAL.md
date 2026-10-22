@@ -128,3 +128,23 @@ patches. All 1,463 pre-existing modified/untracked file hashes were preserved at
 integration; subsequent shared-note edits are scoped and retain other research.
 The release manifest stays in the accepted Git worktree, separate from the dirty
 main checkout. Local QA servers and the task-booted simulator have been stopped.
+
+## Production and wireless installation
+
+The owner requested wireless deployment in reply to the prepared production and
+installation approval. The exact DEV-accepted `c02b7142…` web image is now on
+production revisions `sn-next-ui--0000015` and `sn-streamlit-ui--0000099`, both
+ready/running with 100% latest-revision traffic. All 36 resource definitions were
+read back: only these two images changed, with zero configuration changes. Both
+public Home gateways return the same current October 22 18:50 UTC publication,
+six signals and five Highlights, with empty conditional 304 responses. A fresh
+production browser tab displays the signed-in Admin account, working charts and
+no console warnings/errors. No job was started and no QA data was copied.
+
+The paired iPhone's tunnel connected over `localNetwork`. After the owner unlocked
+it, signed build 9 installed in place and launched successfully. Device app/version
+and subsequent process readbacks confirm build 9 is running. Xcode also shows the
+network connection and installed version 9. The bundle/team and production gateway
+are unchanged; no uninstall or credential reset was performed. The existing
+Personal Team profile expires October 29 at 9:52 AM Pacific. Full receipts are in
+[production.json](production.json).

@@ -4,6 +4,8 @@
 
 Conditional refresh must cover independent ticker and Highlight publications as well as the narrative run. Keep a mounted renderer, stable item identities, foreground-only requests, last-good state on failures and audio continuity. Check SSR/browser formatting across time zones. Compare the production Node/ICU version with Chrome too: compact currency defaults differed between Node 22 and Node 25/Chrome. Set both minimum and maximum precision in shared formatters. Native API paths must match the exposed Next.js gateway; populated authenticated detail checks caught the paper-performance route mismatch that compilation missed.
 
+Paired wireless devices can report a disconnected tunnel in the cached list while remaining reachable: request current device details before declaring Wi-Fi unavailable. Verify `localNetwork`, installed bundle version, successful launch and subsequent process readback. Await latest-ready production traffic before HTTP acceptance, and use a fresh browser tab to separate retained old console logs from the deployed image.
+
 ## Trading resumption — 2026-10-18
 
 - Completed paper outcomes are supplied-evidence episodes for the existing learner, with immutable owner/environment identity and no inference in the price job. Preserve decision-time facts separately from outcomes; returns alone cannot establish reasoning quality. Enqueue must retry after publication even when no calls remain active, and production’s empty dataset namespace is a valid boundary.
