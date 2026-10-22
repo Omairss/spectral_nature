@@ -124,13 +124,28 @@ def project(snapshot: dict[str, Any]) -> dict[str, Any]:
     """Explicit public allowlist. Never return connection metadata or raw account identity."""
     details = snapshot.get('details') or {}
     summary = _select(snapshot.get('account_summary') or {}, ACCOUNT_FIELDS)
-    equity, previous = _number(summary.get('equity')), _number(summary.get('last_equity'))
+    for field in ('equity', 'cash', 'buying_power', 'last_equity', 'long_market_value',
+                  'short_market_value', 'initial_margin', 'maintenance_margin', 'daytrade_count'):
+        if field in summary:
+            summary[field] = _number(summary[field])
+    equity, previous = summary.get('equity'), summary.get('last_equity')
     summary['day_pl'] = equity - previous if equity is not None and previous is not None else None
     summary['day_return_pct'] = (equity / previous - 1) * 100 if equity is not None and previous and previous > 0 else None
     points = [_select(row, ('date', 'equity', 'profit_loss', 'return_pct')) for row in snapshot.get('timeseries') or []]
     first_funded = next((index for index, point in enumerate(points) if (_number(point.get('equity')) or 0) != 0), None)
     points = points[first_funded:] if first_funded is not None else []
     positions = [_select(row, POSITION_FIELDS) for row in snapshot.get('positions') or []]
+    for position in positions:
+        for field in ('market_value', 'cost_basis', 'avg_entry_price', 'current_price',
+                      'unrealized_pl', 'unrealized_plpc', 'change_today'):
+            if field in position:
+                position[field] = _number(position[field])
+    orders = [_select(row, ORDER_FIELDS) for row in details.get('orders') or []]
+    for order in orders:
+        if 'filled_avg_price' in order:
+            order['filled_avg_price'] = _number(order['filled_avg_price'])
+    observed = snapshot.get('source_updated_at')
+    as_of = observed.isoformat() if isinstance(observed, datetime) else str(observed or '')
     peak, drawdown = None, None
     for point in points:
         value = _number(point.get('equity'))
@@ -141,9 +156,9 @@ def project(snapshot: dict[str, Any]) -> dict[str, Any]:
     latest = next((p for p in reversed(points) if p.get('return_pct') is not None), {})
     return {'status': 'partial' if details.get('errors') else 'available', 'provider': PROVIDER,
             'risk_policy': asdict(RiskPolicy()),
-            'as_of': str(snapshot.get('source_updated_at') or ''), 'period': '1Y', 'summary': summary,
+            'as_of': as_of, 'period': '1Y', 'summary': summary,
             'holdings': positions, 'path': points, 'return_pct': latest.get('return_pct'),
-            'max_drawdown_pct': drawdown, 'orders': [_select(row, ORDER_FIELDS) for row in details.get('orders') or []],
+            'max_drawdown_pct': drawdown, 'orders': orders,
             'coverage': details.get('coverage') or {}, 'unavailable': sorted((details.get('errors') or {}).keys())}
 
 
