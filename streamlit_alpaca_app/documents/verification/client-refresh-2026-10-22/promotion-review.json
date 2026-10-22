@@ -1,0 +1,15 @@
+{
+  "status": "authorized",
+  "owner_instruction": "Can you deploy it wirelessly?",
+  "owner_context": "Reply to the prepared request to approve production rollout and installation of signed build 9; owner asks for wireless deployment.",
+  "scope": "Promote the exact accepted DEV web image to sn-next-ui and sn-streamlit-ui, and install signed native build 9 in place over the existing paired local-network connection.",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
+  "source_inventory_sha256": "4517cb70ea70d8a1eef1674467e3bf3e6b38f6c623d4a3115c4802e1e56bb1e8",
+  "native_build": "9",
+  "native_binary_sha256": "13b0d9c8198a3284a48668613eb803bcf8c52a38b6477bf901392100f26a354d",
+  "development_evidence": "documents/verification/client-refresh-2026-10-22/development.json",
+  "local_review": "documents/verification/client-refresh-2026-10-22/LOCAL.md",
+  "native_evidence": "documents/verification/client-refresh-2026-10-22/native-build.json",
+  "preserved": "All API, worker, broker, job, database, authentication, environment and network configurations. In-place native upgrade preserves bundle identity and saved application data.",
+  "recorded_at": "2026-10-22T20:53:10.825060+00:00"
+}
