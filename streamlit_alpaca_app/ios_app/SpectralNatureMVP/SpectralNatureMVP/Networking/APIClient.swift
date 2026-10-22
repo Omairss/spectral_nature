@@ -58,6 +58,15 @@ actor APIClient {
     try decode(await data(path, query: query))
   }
 
+  func getIfChanged<T: Decodable>(
+    _ path: String, query: [String: String] = [:], etag: String
+  ) async throws -> (value: T?, etag: String) {
+    let (payload, response) = try await request(
+      path, query: query, headers: etag.isEmpty ? [:] : ["If-None-Match": etag])
+    return (response.statusCode == 304 ? nil : try decode(payload),
+            response.value(forHTTPHeaderField: "ETag") ?? "")
+  }
+
   func post<T: Decodable>(_ path: String, body: Record = [:], key: String? = nil) async throws -> T
   {
     let encoded = try JSONEncoder().encode(body)
@@ -98,12 +107,20 @@ actor APIClient {
     _ path: String, query: [String: String] = [:], method: String = "GET",
     body: Data? = nil, key: String? = nil, contentType: String = "application/json"
   ) async throws -> Data {
+    try await request(path, query: query, method: method, body: body, key: key, contentType: contentType).0
+  }
+
+  private func request(
+    _ path: String, query: [String: String] = [:], method: String = "GET",
+    body: Data? = nil, key: String? = nil, contentType: String = "application/json",
+    headers: [String: String] = [:]
+  ) async throws -> (Data, HTTPURLResponse) {
     let previous = tail
     let operation = Task {
       await previous?.value
       try Task.checkCancellation()
       return try await self.perform(
-        path, query: query, method: method, body: body, key: key, contentType: contentType)
+        path, query: query, method: method, body: body, key: key, contentType: contentType, headers: headers)
     }
     tail = Task { _ = await operation.result }
     return try await withTaskCancellationHandler {
@@ -128,8 +145,8 @@ actor APIClient {
 
   private func perform(
     _ path: String, query: [String: String], method: String,
-    body: Data?, key: String?, contentType: String
-  ) async throws -> Data {
+    body: Data?, key: String?, contentType: String, headers: [String: String] = [:]
+  ) async throws -> (Data, HTTPURLResponse) {
     precondition(path.hasPrefix("/api/"))
     if method != "GET", csrf.isEmpty {
       let (payload, response) = try await send(
@@ -141,7 +158,7 @@ actor APIClient {
       guard !csrf.isEmpty else { throw APIError.invalidResponse }
     }
     var (payload, response) = try await send(
-      path, query: query, method: method, body: body, key: key, contentType: contentType)
+      path, query: query, method: method, body: body, key: key, contentType: contentType, headers: headers)
     try Task.checkCancellation()
     // Retry only an explicit CSRF rejection, before the backend mutation ran.
     if response.statusCode == 403, method != "GET",
@@ -152,10 +169,10 @@ actor APIClient {
       let token: JSONValue = try decode(
         await perform(
           "/api/auth/csrf", query: [:], method: "GET", body: nil, key: nil,
-          contentType: "application/json"))
+          contentType: "application/json").0)
       csrf = token["csrfToken"].string
       (payload, response) = try await send(
-        path, query: query, method: method, body: body, key: key, contentType: contentType)
+        path, query: query, method: method, body: body, key: key, contentType: contentType, headers: headers)
     }
     try Task.checkCancellation()
     if response.statusCode == 401 {
@@ -166,13 +183,15 @@ actor APIClient {
         NotificationCenter.default.post(name: Self.sessionExpired, object: nil)
       }
     }
-    try validate(payload, response)
-    return payload
+    if !(response.statusCode == 304 && method == "GET" && headers["If-None-Match"] != nil) {
+      try validate(payload, response)
+    }
+    return (payload, response)
   }
 
   private func send(
     _ path: String, query: [String: String], method: String,
-    body: Data?, key: String?, contentType: String
+    body: Data?, key: String?, contentType: String, headers: [String: String] = [:]
   ) async throws -> (Data, HTTPURLResponse) {
     guard var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false) else {
       throw APIError.invalidResponse
@@ -187,6 +206,7 @@ actor APIClient {
     request.httpBody = body
     request.setValue("application/json", forHTTPHeaderField: "Accept")
     request.setValue("SpectralNature-iOS/1.0", forHTTPHeaderField: "User-Agent")
+    for (header, value) in headers { request.setValue(value, forHTTPHeaderField: header) }
     cookies.removeAll { $0.expiresDate.map { $0 <= Date() } ?? false }
     let matching = cookies.filter {
       $0.domain.trimmingCharacters(in: CharacterSet(charactersIn: ".")) == url.host

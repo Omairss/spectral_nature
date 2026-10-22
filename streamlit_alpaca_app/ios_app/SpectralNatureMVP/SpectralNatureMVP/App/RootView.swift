@@ -3,19 +3,25 @@ import SwiftUI
 struct RootView: View {
   @EnvironmentObject private var session: AppSession
   @Environment(\.scenePhase) private var scenePhase
+  @State private var selectedTab = "brief"
   var body: some View {
-    TabView {
-      NavigationStack { HomeView() }
+    TabView(selection: $selectedTab) {
+      NavigationStack { HomeView(isSelected: selectedTab == "brief") }
+        .tag("brief")
         .tabItem { Label("Brief", systemImage: "waveform.path") }
       NavigationStack { AccessGate { MarketsView() } }
+        .tag("markets")
         .tabItem { Label("Markets", systemImage: "chart.xyaxis.line") }
       if session.context?.isAdmin == true {
         NavigationStack { TradingView() }
+          .tag("trading")
           .tabItem { Label("Trading", systemImage: "arrow.triangle.branch") }
       }
       NavigationStack { AccessGate { PortfolioView() } }
+        .tag("portfolio")
         .tabItem { Label("Portfolio", systemImage: "chart.pie") }
       NavigationStack { WorkspaceList() }
+        .tag("explore")
         .tabItem { Label("Explore", systemImage: "square.grid.2x2") }
     }
     .environmentObject(session.research)

@@ -58,6 +58,7 @@ struct HomeSnapshot: Decodable {
   let viewDate: String
   let isReplay: Bool
   let asOf: String
+  let runId: String
   let summary: Summary?
   let beats: [Beat]
   let dailyDatapoints: [Datapoint]?

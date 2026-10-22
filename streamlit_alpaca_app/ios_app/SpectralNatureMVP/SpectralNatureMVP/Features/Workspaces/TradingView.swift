@@ -308,6 +308,6 @@ private struct ApprovedCallPerformanceView: View {
   }
   private func load() async {
     guard !identity.isEmpty else { return }
-    await detail.load(key: identity) { try await session.api.get("/api/trading-agent/calls/\(identity)") }
+    await detail.load(key: identity) { try await session.api.get("/api/trading-agent/approved-calls/\(identity)") }
   }
 }

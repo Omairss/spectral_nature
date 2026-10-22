@@ -3,11 +3,21 @@ import SwiftUI
 
 struct HomeView: View {
   @EnvironmentObject private var session: AppSession
+  @Environment(\.scenePhase) private var scenePhase
   @StateObject private var resource = Resource<HomeSnapshot>()
+  @StateObject private var player = BriefPlayer()
+  let isSelected: Bool
   @State private var date = Date()
   @State private var replay = false
   @State private var showingDate = false
   @State private var section = "Brief"
+  @State private var visible = false
+  @State private var currentKey: String?
+  @State private var requestID: UUID?
+  @State private var etag = ""
+  @State private var pending: HomeSnapshot?
+  private var targetDate: String { replay ? Format.day(date) : "" }
+  private var active: Bool { isSelected && visible && scenePhase == .active }
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 20) {
@@ -36,7 +46,10 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 16) {
                   Text(summary.headline).font(.title2.weight(.medium))
                   MarkdownView(text: summary.markdown)
-                  if summary.audioAvailable { BriefAudio(date: replay ? Format.day(date) : "") }
+                  if summary.audioAvailable {
+                    BriefAudio(player: player, date: targetDate,
+                               publication: home.runId + home.asOf + summary.markdown)
+                  }
                 }
               }
               if let points = home.dailyDatapoints, !points.isEmpty {
@@ -118,7 +131,18 @@ struct HomeView: View {
     .researchContext(
       "Daily Brief; date=\(replay ? Format.day(date) : "latest"); as_of=\(resource.value?.asOf ?? "")"
     )
-    .task { await load() }
+    .onAppear { visible = true }
+    .onDisappear { visible = false }
+    .task(id: "\(active)|\(targetDate)") {
+      guard active else { return }
+      repeat {
+        await load(quiet: resource.value != nil)
+        guard !replay else { return }
+        do { try await Task.sleep(for: .seconds(30)) } catch { return }
+      } while !Task.isCancelled
+    }
+    .onChange(of: player.playing) { _, _ in applyPending() }
+    .onChange(of: player.loading) { _, _ in applyPending() }
     .refreshable { await load() }
     .sheet(isPresented: $showingDate) {
       NavigationStack {
@@ -137,11 +161,46 @@ struct HomeView: View {
       }.presentationDetents([.medium, .large])
     }
   }
-  private func load() async {
-    let target = replay ? Format.day(date) : ""
-    await resource.load(key: target) {
-      try await session.api.get("/api/home", query: target.isEmpty ? [:] : ["date": target])
+  private func load(quiet: Bool = false) async {
+    let target = targetDate
+    if currentKey == target && requestID != nil { return }
+    if currentKey != target {
+      player.stop()
+      resource.value = nil
+      etag = ""
+      pending = nil
+      currentKey = target
     }
+    let identity = UUID()
+    requestID = identity
+    if !quiet { resource.loading = true; resource.error = "" }
+    defer {
+      if requestID == identity { requestID = nil; resource.loading = false }
+    }
+    do {
+      let result: (value: HomeSnapshot?, etag: String) = try await session.api.getIfChanged(
+        "/api/home", query: target.isEmpty ? [:] : ["date": target], etag: etag)
+      guard !Task.isCancelled, requestID == identity, target == targetDate else { return }
+      resource.error = ""
+      if let home = result.value, home.status == "available" {
+        if etag.isEmpty || etag != result.etag {
+          pending = home
+          applyPending()
+        }
+        etag = result.etag
+        resource.error = ""
+      } else if result.value != nil && resource.value == nil {
+        resource.error = "Daily Brief unavailable"
+      }
+    } catch {
+      guard !Task.isCancelled, requestID == identity else { return }
+      if !quiet || resource.value == nil { resource.error = error.localizedDescription }
+    }
+  }
+  private func applyPending() {
+    guard !player.playing, !player.loading, let home = pending else { return }
+    resource.value = home
+    pending = nil
   }
 }
 
@@ -268,8 +327,9 @@ private final class BriefPlayer: NSObject, ObservableObject, AVAudioPlayerDelega
 
 private struct BriefAudio: View {
   @EnvironmentObject private var session: AppSession
-  @StateObject private var player = BriefPlayer()
+  @ObservedObject var player: BriefPlayer
   let date: String
+  let publication: String
   var body: some View {
     VStack(alignment: .leading) {
       Button {
@@ -298,7 +358,7 @@ private struct BriefAudio: View {
       }
       if player.loading { ProgressView() }
       if !player.error.isEmpty { Failure(message: player.error) }
-    }.onChange(of: date) { _, _ in player.stop() }.onDisappear { player.stop() }
+    }.onChange(of: publication) { _, _ in player.stop() }.onDisappear { player.stop() }
       .task {
         while !Task.isCancelled {
           player.updateClock()
