@@ -91,3 +91,13 @@ formatters now specify zero minimum compact decimals and an English-US locale.
 All consumers retain the same numbers, units and price cents. Both Node 22 and
 Node 25 run the expanded 16 checks. A final source/package/browser check follows;
 the earlier candidate remains unaccepted for promotion.
+
+The final local production-version check runs Next under Node 22.22.0 with UTC
+server time. All 29,184 characters of the retained Home's SSR text match Chrome
+after hydration, with zero warnings. An actual chart keyboard interaction also
+works. All 16 transport/format/auth checks pass under Node 22 and Node 25; web
+types and lint pass. Native's actual APIClient additionally passes a local HTTP
+conditional GET and CSRF rejection/retry probe, preserving cookies, Origin, body
+and CSRF headers. Its credential storage is an in-memory QA stub, not a copied
+application session. The complete real native authenticated paper chart was
+independently verified above. The replacement package will be rechecked in DEV.
