@@ -12,11 +12,11 @@ export type TrackedPaperCall = {
   approved_at_utc: string; as_of?: string; status: string; return_pct?: number;
   benchmark_return_pct?: number; excess_return_pct?: number; max_drawdown_pct?: number;
   entry_date?: string; last_price_date?: string; target_date?: string; hypothesis?: string;
-  path?: Observation[];
+  path?: Observation[]; path_status?: string;
 };
 type Holding = {
   ticker: string; stance: string; tracking_ids: string[]; long_calls: number; short_calls: number;
-  contribution_pct: number; net_exposure_pct: number | null; gross_exposure_pct: number | null;
+  contribution_pct: number | null; net_exposure_pct: number | null; gross_exposure_pct: number | null;
   last_price_date: string; unpriced_calls: number;
 };
 export type PaperPortfolio = {
@@ -29,7 +29,7 @@ export type PaperPortfolio = {
 };
 const teal = "#52d6c7", coral = "#f08c73", violet = "#b89cff";
 function pct(value: number | null | undefined) { return value == null ? "—" : `${value > 0 ? "+" : ""}${value.toFixed(1)}%`; }
-function pp(value: number) { return `${value > 0 ? "+" : ""}${value.toFixed(2)} pp`; }
+function pp(value: number | null) { return value == null ? "—" : `${value > 0 ? "+" : ""}${value.toFixed(2)} pp`; }
 function day(value: string) { return value ? new Date(`${value.slice(0, 10)}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "—"; }
 
 export function TradingPaperPortfolio({ portfolio, calls, unavailable, onReviewCalls }: {
@@ -41,7 +41,7 @@ export function TradingPaperPortfolio({ portfolio, calls, unavailable, onReviewC
     <button className="quiet-button" type="button" onClick={() => setSelected("")}>← Paper portfolio</button>
     <ApprovedCallDetail call={chosen} />
   </section>;
-  if (unavailable || !portfolio || portfolio.status === "unavailable") return <p className="subtle-error" role="alert">Portfolio data is unavailable.</p>;
+  if (unavailable || !portfolio) return <p className="subtle-error" role="alert">Portfolio data is unavailable.</p>;
   if (portfolio.status === "empty") return <section className={`workbook-panel ${styles.empty}`}>
     <h2>Paper portfolio</h2><p>Approve a call to start tracking your portfolio.</p>
     <button className="primary-button" type="button" onClick={onReviewCalls}>Review calls</button>
@@ -65,6 +65,7 @@ export function TradingPaperPortfolio({ portfolio, calls, unavailable, onReviewC
         {label: "Max drawdown", value: pct(portfolio.max_drawdown_pct)},
         {label: "Open calls", value: portfolio.open_calls},
       ]} />
+      {portfolio.status === "unavailable" ? <p className="subtle-error" role="alert">Portfolio performance is unavailable.</p> : null}
       {portfolio.status === "pending" ? <p>Entry at the next trading day’s close.</p> : null}
       {portfolio.status === "capital_exhausted" ? <p role="alert">Portfolio capital was exhausted; subsequent returns are unavailable.</p> : null}
       {portfolio.path.length ? <div className={styles.chart}><DataPlot displayModeBar={false} id="paper-portfolio-return" title="Portfolio return" data={[
@@ -92,7 +93,7 @@ export function TradingPaperPortfolio({ portfolio, calls, unavailable, onReviewC
       {portfolio.holdings.map(holding => <details className={styles.holding} key={holding.ticker}>
         <summary><span><strong>{holding.ticker}</strong><small>{[holding.long_calls ? `${holding.long_calls} long` : "", holding.short_calls ? `${holding.short_calls} short` : ""].filter(Boolean).join(" · ")}</small></span>
           <span>{pct(holding.net_exposure_pct)}{holding.stance === "mixed" ? <small>Gross {pct(holding.gross_exposure_pct)}</small> : null}</span>
-          <span style={{color: holding.contribution_pct < 0 ? coral : teal}}>{pp(holding.contribution_pct)}<small aria-hidden="true">View calls ›</small></span>
+          <span style={{color: holding.contribution_pct == null ? undefined : holding.contribution_pct < 0 ? coral : teal}}>{pp(holding.contribution_pct)}<small aria-hidden="true">View calls ›</small></span>
         </summary>
         {holding.unpriced_calls ? <p className={styles.coverage}>{holding.unpriced_calls} calls awaiting prices</p> : null}
         {callButtons(calls.filter(call => holding.tracking_ids.includes(call.tracking_id)))}
@@ -124,6 +125,7 @@ function ApprovedCallDetail({call}: {call: TrackedPaperCall}) {
     <MetricStrip items={[{label: "Return", value: pct(current.return_pct)}, {label: `Vs ${benchmark}`, value: pct(current.excess_return_pct)}, {label: "Drawdown", value: pct(current.max_drawdown_pct)}]} />
     {current.status === "pending_entry" ? <p>Entry at the next trading day’s close.</p> : null}
     {current.status === "price_unavailable" ? <p>Price data is unavailable.</p> : null}
+    {current.path_status === "unavailable" ? <p>Price history is unavailable.</p> : null}
     {path.length ? <DataPlot id={`tracked-${current.tracking_id}`} title={`${current.ticker} · paper return`} data={[
       {type: "scatter", mode: path.length === 1 ? "markers" : "lines", name: "Call", x: path.map(p => p.date), y: path.map(p => p.return_pct), line: {color: teal}},
       {type: "scatter", mode: "lines", name: benchmark, x: path.map(p => p.date), y: path.map(p => p.benchmark_return_pct), connectgaps: false, line: {color: violet, dash: "dot"}},

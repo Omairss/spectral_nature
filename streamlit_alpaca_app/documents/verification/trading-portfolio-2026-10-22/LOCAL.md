@@ -16,7 +16,7 @@ gross exposure and retain each underlying approval. Missing marks, missing SPY,
 pending entries and exhausted capital remain explicit. Individual paths are
 loaded only when opened; the main DTO contains one aggregate path and summaries.
 
-Ten objective accounting/ownership checks pass. They cover staggered funding,
+Eleven objective accounting/ownership checks pass. They cover staggered funding,
 closed cash, long/short overlap, matched SPY, missing marks/benchmark, pending and
 empty books, drawdown/nonpositive capital, historical gaps, invalid paths and
 owner-scoped joins. These are arithmetic/authorization checks, not NLP grading.
@@ -34,8 +34,14 @@ leads to Calls, preserving the collapsed candidate and decision actions.
 The first layout inherited the generic chart's tall viewport and auto-skipped
 categorical ticks. Portfolio containers now specify their own chart sizes and
 explicit contributor ticks/units; no shared renderer or other chart changed.
-Types and changed-file lint pass. Local native compilation and screen review,
-additional empty/partial native checks and deployment verification remain pending.
+Types, changed-file lint and all sixteen existing auth/Home regressions pass.
+The first native build passes and personally inspected portfolio and short-call
+sheets agree with web totals. Review found clipped native dates and a zero
+contribution placeholder for an unpriced holding; the shared return chart now
+uses compact UTC labels, and the source DTO marks unknown contribution/value
+explicitly. Missing path JSON is isolated to that call, retaining the other
+approvals and individual thesis. Final native compilation/screen review and
+deployment verification remain pending.
 The current checked-in acceptance is source/build approval only, not permission
 for production or a claim that native visual QA has completed.
 
@@ -47,3 +53,7 @@ its seventeen Python changes must remain intact for a DEV API update. Any DEV
 integration of that source is separately recorded and cannot authorize an
 unrelated research promotion to production. The original dirty IDE checkout is
 not release source and all concurrent research remains preserved.
+
+Local stress observation: 1,000 calls / 250,000 input observations aggregate in
+0.231 seconds to 250 shared observations and a 72,496-byte portfolio DTO. Individual
+price histories are absent from the main response and remain click-loaded.

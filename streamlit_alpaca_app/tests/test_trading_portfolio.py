@@ -75,7 +75,9 @@ def test_missing_benchmark_is_unknown_and_missing_marks_keep_the_position_visibl
     assert result['return_pct'] == pytest.approx(10)
     assert result['current_marks'] == 0
     assert result['open_calls'] == 2
-    assert next(h for h in result['holdings'] if h['ticker'] == 'B')['net_exposure_pct'] is None
+    missing = next(h for h in result['holdings'] if h['ticker'] == 'B')
+    assert missing['net_exposure_pct'] is None
+    assert missing['contribution_pct'] is None
 
 
 def test_pending_entry_and_empty_portfolio_do_not_invent_zero_returns():
@@ -113,6 +115,11 @@ def test_summary_joins_only_owned_approvals_and_keeps_individual_paths_lazy(monk
     assert len(result['calls']) == 1
     assert 'path' not in result['calls'][0]
     assert 'owner_id' not in result['calls'][0]
+    frames[0]['path_json'] = '{'
+    unreadable = tracking.tracking_view(owner_id='me')
+    assert len(unreadable['calls']) == 1
+    assert unreadable['calls'][0]['path_status'] == 'unavailable'
+    assert unreadable['portfolio']['status'] == 'unavailable'
     frames[0]['owner_id'] = 'other'
     with pytest.raises(tracking.TrackingUnavailable):
         tracking.tracking_view(owner_id='me')
@@ -134,3 +141,13 @@ def test_invalid_path_does_not_erase_other_owned_positions():
     assert result['unpriced_calls'] == 1
     assert result['return_pct'] == pytest.approx(10)
     assert len(result['holdings']) == 2
+
+
+def test_research_unavailability_does_not_hide_the_owned_portfolio(monkeypatch):
+    from services import trading_agent_view as view
+    portfolio = tracking.build_paper_portfolio([call('A', {1: 0, 2: 10})])
+    monkeypatch.setattr(view, 'tracking_view', lambda **kw: {'status': 'available', 'calls': [], 'as_of': '2026-10-03', 'portfolio': portfolio})
+    monkeypatch.setattr(view, '_latest_output', lambda: (pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), None))
+    result = view.build_trading_agent_view(SimpleNamespace(user_id='me'))
+    assert result['status'] == 'unavailable'
+    assert result['paper_portfolio']['return_pct'] == pytest.approx(10)

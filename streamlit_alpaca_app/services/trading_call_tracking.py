@@ -430,6 +430,9 @@ def build_paper_portfolio(calls: list[dict[str, Any]]) -> dict[str, Any]:
         row['stance'] = 'mixed' if row['long_calls'] and row['short_calls'] else 'long' if row['long_calls'] else 'short'
         row['net_exposure_pct'] = (row['long_units'] - row['short_units']) / value * 100 if value > 0 and not row['unpriced_calls'] else None
         row['gross_exposure_pct'] = (row['long_units'] + row['short_units']) / value * 100 if value > 0 and not row['unpriced_calls'] else None
+        if row['unpriced_calls']:
+            row['contribution_pct'] = None
+            row['value_units'] = None
     opened = sum(item['call'].get('status') != 'matured' for item in prepared)
     status = ('empty' if not calls else 'pending' if not prepared and not missing else
               'unavailable' if not prepared else 'capital_exhausted' if exhausted else
@@ -469,7 +472,11 @@ def tracking_view(*, owner_id: str, tracking_id: str | None = None) -> dict[str,
             raise TrackingUnavailable('Tracked call ownership does not match its publication.')
         row.update(performance)
         row.pop('owner_id',None)
-        row['path']=json.loads(row.pop('path_json','[]'))
+        try:
+            row['path'] = json.loads(row.pop('path_json', '[]'))
+        except (TypeError, ValueError):
+            row['path'] = []
+            row['path_status'] = 'unavailable'
         if tracking_id:
             snapshot=call['candidate_payload'];snapshot=json.loads(snapshot) if isinstance(snapshot,str) else snapshot
             row['candidate']=snapshot

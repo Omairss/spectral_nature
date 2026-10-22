@@ -250,35 +250,12 @@ private struct ApprovedCallDetailView: View {
           if current.text("status") == "price_unavailable" {
             Text("Price data is unavailable.").font(.subheadline).foregroundStyle(.secondary)
           }
+          if current.text("path_status") == "unavailable" {
+            Text("Price history is unavailable.").font(.subheadline).foregroundStyle(.secondary)
+          }
           let points = current.rows("path")
           if !points.isEmpty {
-            Chart {
-              ForEach(points.map { TradingRow(record: $0, key: "date") }) { item in
-                if let date = Format.date(item.record.text("date")), let value = item.record.number("return_pct") {
-                  LineMark(x: .value("Date", date), y: .value("Return (%)", value), series: .value("Series", "Call"))
-                    .foregroundStyle(by: .value("Series", "Call"))
-                  if points.count == 1 {
-                    PointMark(x: .value("Date", date), y: .value("Return (%)", value))
-                      .foregroundStyle(by: .value("Series", "Call"))
-                  }
-                }
-                if let date = Format.date(item.record.text("date")), let value = item.record.number("benchmark_return_pct") {
-                  PointMark(x: .value("Date", date), y: .value("Return (%)", value))
-                    .foregroundStyle(by: .value("Series", benchmark)).symbolSize(12)
-                }
-              }
-              RuleMark(y: .value("Zero", 0)).foregroundStyle(.secondary.opacity(0.3))
-            }.chartForegroundStyleScale(domain: ["Call", benchmark], range: [Theme.teal, Theme.violet])
-              .chartXAxis {
-                AxisMarks(values: .automatic(desiredCount: 3)) { value in
-                  AxisGridLine()
-                  AxisTick()
-                  AxisValueLabel {
-                    if let date = value.as(Date.self) { Text(Format.observationDay(date)) }
-                  }
-                }
-              }
-              .chartYAxisLabel("Return (%)").frame(height: 240)
+            PaperReturnChart(points: points, benchmark: true, seriesLabel: "Call", benchmarkLabel: benchmark)
           }
           if !current.text("entry_date").isEmpty {
             Text("Entry \(current.text("entry_date")) · Target \(current.text("target_date")) · Prices through \(current.text("last_price_date"))")
@@ -308,7 +285,7 @@ private struct PaperPortfolioView: View {
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
-      if unavailable || portfolio.isEmpty || portfolio.text("status") == "unavailable" {
+      if unavailable || portfolio.isEmpty {
         Failure(message: "Portfolio data is unavailable.")
       } else if portfolio.text("status") == "empty" {
         Panel("Paper portfolio") {
@@ -321,6 +298,9 @@ private struct PaperPortfolioView: View {
             ("Vs matched SPY", Format.percent(portfolio.number("excess_return_pct"))),
             ("Max drawdown", Format.percent(portfolio.number("max_drawdown_pct"))),
             ("Open calls", portfolio.text("open_calls"))])
+          if portfolio.text("status") == "unavailable" {
+            Failure(message: "Portfolio performance is unavailable.")
+          }
           if portfolio.text("status") == "pending" {
             Text("Entry at the next trading day's close.").font(.subheadline).foregroundStyle(.secondary)
           }
@@ -328,7 +308,7 @@ private struct PaperPortfolioView: View {
             Failure(message: "Portfolio capital was exhausted; subsequent returns are unavailable.")
           }
           if !points.isEmpty {
-            PaperPortfolioReturnChart(points: points, benchmark: portfolio.text("benchmark_status") == "available")
+            PaperReturnChart(points: points, benchmark: portfolio.text("benchmark_status") == "available")
           }
           Text("Equal entry capital · time-weighted returns · cash after exit. SPY follows the same dates and long/short mix.")
             .font(.caption).foregroundStyle(.secondary)
@@ -440,9 +420,16 @@ private struct PaperPortfolioView: View {
   }
 }
 
-private struct PaperPortfolioReturnChart: View {
+private struct PaperReturnChart: View {
   let points: [Record]
   let benchmark: Bool
+  var seriesLabel = "Paper portfolio"
+  var benchmarkLabel = "Matched SPY"
+  private var spansYears: Bool {
+    guard let start = points.first.flatMap({ Format.date($0.text("date")) }),
+      let end = points.last.flatMap({ Format.date($0.text("date")) }) else { return false }
+    return end.timeIntervalSince(start) > 365 * 24 * 60 * 60
+  }
   @State private var selectedDate: Date?
   private var selected: Record? {
     guard let date = selectedDate else { return nil }
@@ -458,15 +445,15 @@ private struct PaperPortfolioReturnChart: View {
         ForEach(points.map { TradingRow(record: $0, key: "date") }) { item in
           if let date = Format.date(item.id) {
             if let value = item.record.number("return_pct") {
-              LineMark(x: .value("Date", date), y: .value("Return (%)", value), series: .value("Series", "Paper portfolio"))
-                .foregroundStyle(by: .value("Series", "Paper portfolio"))
+              LineMark(x: .value("Date", date), y: .value("Return (%)", value), series: .value("Series", seriesLabel))
+                .foregroundStyle(by: .value("Series", seriesLabel))
               if points.count == 1 {
                 PointMark(x: .value("Date", date), y: .value("Return (%)", value)).foregroundStyle(Theme.teal)
               }
             }
             if benchmark, let value = item.record.number("benchmark_return_pct") {
-              LineMark(x: .value("Date", date), y: .value("Return (%)", value), series: .value("Series", "Matched SPY"))
-                .foregroundStyle(by: .value("Series", "Matched SPY"))
+              LineMark(x: .value("Date", date), y: .value("Return (%)", value), series: .value("Series", benchmarkLabel))
+                .foregroundStyle(by: .value("Series", benchmarkLabel))
                 .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
             }
           }
@@ -475,13 +462,14 @@ private struct PaperPortfolioReturnChart: View {
         if let point = selected, let date = Format.date(point.text("date")) {
           RuleMark(x: .value("Date", date)).foregroundStyle(.secondary.opacity(0.5))
         }
-      }.chartForegroundStyleScale(domain: benchmark ? ["Paper portfolio", "Matched SPY"] : ["Paper portfolio"], range: benchmark ? [Theme.teal, Theme.violet] : [Theme.teal])
+      }.chartForegroundStyleScale(domain: benchmark ? [seriesLabel, benchmarkLabel] : [seriesLabel], range: benchmark ? [Theme.teal, Theme.violet] : [Theme.teal])
         .chartXSelection(value: $selectedDate)
         .chartXAxis { AxisMarks(values: .automatic(desiredCount: 3)) { value in
           AxisGridLine(); AxisTick()
-          AxisValueLabel { if let date = value.as(Date.self) { Text(Format.historyDate(date, years: false)) } }
+          AxisValueLabel { if let date = value.as(Date.self) { Text(Format.historyDate(date, years: spansYears)).fixedSize() } }
         } }
         .chartYAxisLabel("Return (%)").frame(height: 240)
+        .environment(\.timeZone, TimeZone(secondsFromGMT: 0)!)
     }
   }
 }
