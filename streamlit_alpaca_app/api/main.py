@@ -27,6 +27,7 @@ from services.agents.research_runs import (
 from services.admin_view import build_admin_view, build_llm_settings_view, update_llm_settings
 from services.home_view import build_public_home_audio, build_public_home_view
 from api.feature_requests import create_feature_request_router
+from api.paper_trading import create_paper_trading_router
 from services.market_view import build_market_lenses_view
 from services.portfolio_view import build_portfolio_view, build_portfolio_opportunity_view
 from services.stock_view import build_stock_investigator_view
@@ -1405,3 +1406,4 @@ def get_research_export(
 
 
 app.include_router(create_feature_request_router(_require_principal))
+app.include_router(create_paper_trading_router(_require_principal))

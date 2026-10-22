@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
 from functools import cached_property
 import os
 import random
@@ -28,6 +29,20 @@ class AlpacaAPIError(RuntimeError):
 @dataclass
 class AlpacaAPI:
     config: AppConfig
+
+    @staticmethod
+    def validate_order_receipt(payload: Any, expected: dict[str, Any]) -> dict[str, Any]:
+        """Accept proof only for the exact submitted provider identity/payload."""
+        try:
+            matches = isinstance(payload, dict) and bool(payload.get('id')) and bool(payload.get('status')) and all(
+                Decimal(str(payload.get(key) or '0')) == Decimal(str(value)) if key == 'qty'
+                else payload.get(key) == value for key, value in expected.items()
+            )
+        except InvalidOperation:
+            matches = False
+        if not matches:
+            raise AlpacaAPIError('The broker receipt does not match the reviewed order.')
+        return payload
 
     @staticmethod
     def _chunked(values: list[str], size: int) -> Iterator[list[str]]:
@@ -170,19 +185,25 @@ class AlpacaAPI:
         path: str,
         params: dict[str, Any] | None = None,
         timeout: int = 25,
+        *,
+        max_attempts: int | None = None,
+        json_body: dict[str, Any] | None = None,
     ) -> Any:
         url = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
-        max_attempts = self._env_int("ALPACA_REQUEST_MAX_ATTEMPTS", 4, minimum=1, maximum=8)
+        max_attempts = max_attempts or self._env_int("ALPACA_REQUEST_MAX_ATTEMPTS", 4, minimum=1, maximum=8)
         last_error = ""
 
         for attempt in range(1, max_attempts + 1):
             try:
+                body = {"json": json_body} if json_body is not None else {}
                 resp = requests.request(
                     method=method,
                     url=url,
                     headers=self._headers(),
                     params=params,
                     timeout=timeout,
+                    allow_redirects=False,
+                    **body,
                 )
             except requests.RequestException as exc:
                 last_error = str(exc)
@@ -191,7 +212,9 @@ class AlpacaAPI:
                 self._sleep(self._retry_delay_seconds(attempt))
                 continue
 
-            if resp.status_code < 400:
+            if 300 <= resp.status_code < 400:
+                raise AlpacaAPIError('Alpaca returned an unexpected redirect.', status_code=resp.status_code)
+            if resp.status_code < 300:
                 return resp.json()
 
             error_text = (resp.text or "").strip()
@@ -207,6 +230,16 @@ class AlpacaAPI:
             raise AlpacaAPIError(last_error, status_code=resp.status_code, payload=error_payload)
 
         raise AlpacaAPIError(last_error or "Alpaca request failed")
+
+    def paper_request(self, method: str, path: str, *, params: dict[str, Any] | None = None,
+                      body: dict[str, Any] | None = None) -> Any:
+        """Paper-only transport. Never retry a submission after an ambiguous response."""
+        if self.config.alpaca_trading_base_url.rstrip('/') != 'https://paper-api.alpaca.markets':
+            raise AlpacaAPIError('The Trading workspace requires an Alpaca paper account.')
+        if not path.startswith('/v2/') or '://' in path:
+            raise ValueError('Invalid paper API path.')
+        return self._request(method, 'https://paper-api.alpaca.markets', path,
+                             params=params, timeout=10, max_attempts=1, json_body=body)
 
     def get_account(self) -> dict[str, Any]:
         try:
@@ -400,6 +433,7 @@ class AlpacaAPI:
         timeframe: str = "1Day",
         feed: str = "iex",
         adjustment: str = PRICE_HISTORY_ADJUSTMENT,
+        timeout_seconds: float | None = None,
     ) -> dict[str, pd.DataFrame]:
         normalized_symbols = self._normalize_symbols(symbols)
         if not normalized_symbols:
@@ -408,6 +442,7 @@ class AlpacaAPI:
         end = end or datetime.now(timezone.utc)
         start = start or (end - timedelta(days=365))
         parsed: dict[str, pd.DataFrame] = {}
+        deadline = time.monotonic() + timeout_seconds if timeout_seconds is not None else None
 
         # Alpaca's bars endpoint applies the limit to the whole request, not per symbol.
         # Large universes therefore need batching or the later symbols can be silently dropped.
@@ -420,7 +455,11 @@ class AlpacaAPI:
             # can exceed the worker's memory before the fetch completes.
             by_symbol: dict[str, list[dict[str, Any]]] = {}
             page_token: str | None = None
+            seen_tokens: set[str] = set()
             while True:
+                remaining = deadline - time.monotonic() if deadline is not None else None
+                if remaining is not None and remaining <= 0:
+                    raise AlpacaAPIError('Historical price acquisition timed out.')
                 params = {
                     "symbols": ",".join(batch),
                     "timeframe": timeframe,
@@ -434,11 +473,13 @@ class AlpacaAPI:
                 if page_token:
                     params["page_token"] = page_token
 
+                request_options = {'timeout': min(10, remaining), 'max_attempts': 1} if remaining is not None else {}
                 payload = self._request(
                     "GET",
                     self.config.alpaca_data_base_url,
                     "/v2/stocks/bars",
                     params=params,
+                    **request_options,
                 )
 
                 bars = payload.get("bars", {})
@@ -451,6 +492,10 @@ class AlpacaAPI:
                         by_symbol.setdefault(sym, []).append(row)
 
                 page_token = str(payload.get("next_page_token") or payload.get("nextPageToken") or "").strip() or None
+                if page_token is not None:
+                    if page_token in seen_tokens:
+                        raise AlpacaAPIError('Historical price pagination repeated a page.')
+                    seen_tokens.add(page_token)
                 has_more_batches = index * batch_size < len(deduped_symbols)
                 if pause_seconds > 0 and (page_token is not None or has_more_batches):
                     self._sleep(pause_seconds)

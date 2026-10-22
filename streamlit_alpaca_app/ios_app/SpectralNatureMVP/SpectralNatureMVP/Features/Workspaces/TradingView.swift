@@ -3,11 +3,16 @@ import SwiftUI
 
 struct TradingView: View {
   @EnvironmentObject private var session: AppSession
+  @Environment(\.scenePhase) private var scenePhase
+  @State private var visible = false
+  @State private var paper: Record = [:]
+  @State private var refreshing = false
   @StateObject private var resource = Resource<JSONValue>()
   @State private var horizon = ""
   @State private var section = "portfolio"
   @State private var selectedCandidate: Record?
   @State private var decisionError = ""
+  @State private var paperNotice = ""
   @State private var deciding = false
   private var horizons: [Record] { resource.value?["horizons"].records ?? [] }
   private var selected: Record {
@@ -18,16 +23,15 @@ struct TradingView: View {
       LazyVStack(alignment: .leading, spacing: 20) {
         ResourceStatus(resource: resource) { Task { await load() } }
         if !decisionError.isEmpty { Failure(message: decisionError) }
+        if !paperNotice.isEmpty { Text(paperNotice).font(.subheadline).foregroundStyle(Theme.teal) }
         Picker("Trading view", selection: $section) {
           Text("Paper portfolio").tag("portfolio")
           Text("Calls").tag("calls")
         }.pickerStyle(.segmented)
         if section == "portfolio" {
           if resource.value != nil {
-            PaperPortfolioView(portfolio: resource.value?["paper_portfolio"].dictionaryValue ?? [:],
-              calls: resource.value?["tracked_calls"].records ?? [],
-              unavailable: resource.value?["tracking_status"].string == "unavailable",
-              reviewCalls: { section = "calls" })
+            PaperPortfolioView(portfolio: paper, calls: resource.value?["tracked_calls"].records ?? [],
+              refreshing: refreshing, refresh: { Task { await refreshPaper() } }, reviewCalls: { section = "calls" })
           }
         } else if resource.value?["status"].string == "available" {
           Picker(
@@ -72,21 +76,39 @@ struct TradingView: View {
         "Trading Agent; horizon=\(selected.text("label")); run_id=\(resource.value?["run_id"].string ?? "")"
       )
       .task { await load() }.refreshable { await load() }
-      .confirmationDialog(
-        "Approve \(selectedCandidate?.text("ticker") ?? "candidate")?",
-        isPresented: Binding(
-          get: { selectedCandidate != nil }, set: { if !$0 { selectedCandidate = nil } }),
-        titleVisibility: .visible
-      ) {
-        if let candidate = selectedCandidate {
-          Button("Approve and track") { Task { await decide(candidate, "approve") } }
+      .onAppear { visible = true }.onDisappear { visible = false }
+      .task(id: "\(visible)|\(scenePhase == .active)|\(section)|\(paper.text("status"))") {
+        while visible && scenePhase == .active && section == "portfolio" {
+          if ["available", "partial", "pending"].contains(paper.text("status")) { await refreshPaper() }
+          do { try await Task.sleep(for: .seconds(60)) } catch { return }
         }
-        Button("Cancel", role: .cancel) { selectedCandidate = nil }
+      }
+      .sheet(isPresented: Binding(get: { selectedCandidate != nil }, set: { if !$0 { selectedCandidate = nil } })) {
+        if let candidate = selectedCandidate {
+          PaperOrderReviewView(candidate: candidate, initialPolicy: paper.object("risk_policy")) { receipt in
+            paperNotice = "Paper order submitted: \(receipt.text("side")) \(receipt.text("qty")) \(receipt.text("symbol"))"
+            selectedCandidate = nil
+            await load()
+            section = "portfolio"
+            await refreshPaper()
+          }
+        }
       }
   }
   private func load() async {
     await resource.load { try await session.api.get("/api/trading-agent") }
+    if let value = resource.value?["paper_portfolio"].dictionaryValue { paper = value }
     if horizon.isEmpty { horizon = horizons.first?.text("key") ?? "" }
+  }
+  private func refreshPaper() async {
+    guard !refreshing else { return }
+    refreshing = true
+    do {
+      let result: JSONValue = try await session.api.post("/api/trading-agent/paper/refresh")
+      paper = result.dictionaryValue
+      decisionError = ""
+    } catch { decisionError = error.localizedDescription }
+    refreshing = false
   }
   private func decide(_ candidate: Record, _ action: String) async {
     deciding = true
@@ -193,7 +215,7 @@ private struct TradingCandidateCard: View {
                     reject()
                   }.buttonStyle(.bordered)
                   Spacer()
-                  Button("Approve and track") { approve() }.buttonStyle(
+                  Button("Review paper trade") { approve() }.buttonStyle(
                     .borderedProminent).disabled(!["long", "short"].contains(candidate.text("stance")))
                 }.disabled(deciding)
               }
@@ -274,149 +296,202 @@ private struct ApprovedCallDetailView: View {
 private struct PaperPortfolioView: View {
   let portfolio: Record
   let calls: [Record]
-  let unavailable: Bool
+  let refreshing: Bool
+  let refresh: () -> Void
   let reviewCalls: () -> Void
   @State private var selectedCall: TradingRow?
+  private var summary: Record { portfolio.object("summary") }
   private var points: [Record] { portfolio.rows("path") }
-  private var holdings: [Record] { portfolio.rows("holdings") }
-  private var allocation: Record { portfolio.object("allocation") }
-  private var contributors: [Record] {
-    Array(portfolio.rows("attribution").sorted { abs($0.number("contribution_pct") ?? 0) > abs($1.number("contribution_pct") ?? 0) }.prefix(8))
+  private var available: Bool { ["available", "partial"].contains(portfolio.text("status")) }
+  private var equityRange: ClosedRange<Double> {
+    let values = points.compactMap { $0.number("equity") }
+    guard let low = values.min(), let high = values.max() else { return 0...1 }
+    let padding = low == high ? max(1, abs(low) * 0.01) : (high - low) * 0.08
+    return (low - padding)...(high + padding)
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
-      if unavailable || portfolio.isEmpty {
-        Failure(message: "Portfolio data is unavailable.")
-      } else if portfolio.text("status") == "empty" {
-        Panel("Paper portfolio") {
-          Text("Approve a call to start tracking your portfolio.").font(.subheadline).foregroundStyle(.secondary)
-          Button("Review calls", action: reviewCalls).buttonStyle(.borderedProminent)
+      Panel("Alpaca paper portfolio") {
+        if portfolio.text("status") != "unlinked" {
+          Button(refreshing ? "Refreshing…" : "Refresh", action: refresh).disabled(refreshing)
         }
-      } else {
-        Panel("Paper portfolio") {
-          Metrics(items: [((portfolio.number("unpriced_calls") ?? 0) > 0 ? "Priced-call return" : "Portfolio return", Format.percent(portfolio.number("return_pct"))),
-            ("Vs matched SPY", Format.percent(portfolio.number("excess_return_pct"))),
-            ("Max drawdown", Format.percent(portfolio.number("max_drawdown_pct"))),
-            ("Open calls", portfolio.text("open_calls"))])
-          if portfolio.text("status") == "unavailable" {
-            Failure(message: "Portfolio performance is unavailable.")
-          }
-          if portfolio.text("status") == "pending" {
-            Text("Entry at the next trading day's close.").font(.subheadline).foregroundStyle(.secondary)
-          }
-          if portfolio.text("status") == "capital_exhausted" {
-            Failure(message: "Portfolio capital was exhausted; subsequent returns are unavailable.")
+        if available {
+          Metrics(items: [("Equity", Format.money(summary.number("equity"))), ("Cash", Format.money(summary.number("cash"))),
+            ("Today", Format.money(summary.number("day_pl"))), ("Buying power", Format.money(summary.number("buying_power")))])
+          if portfolio.text("status") == "partial" {
+            Text("Refresh incomplete. Previous observations retained.").font(.caption).foregroundStyle(.secondary)
           }
           if !points.isEmpty {
-            PaperReturnChart(points: points, benchmark: portfolio.text("benchmark_status") == "available")
-          }
-          Text("Equal entry capital · time-weighted returns · cash after exit. SPY follows the same dates and long/short mix.")
-            .font(.caption).foregroundStyle(.secondary)
-          if !portfolio.text("last_price_date").isEmpty {
-            Text("Prices through \(portfolio.text("last_price_date"))").font(.caption).foregroundStyle(.secondary)
-          }
-          if (portfolio.number("stale_sessions") ?? 0) > 0 {
-            Text("\(portfolio.text("stale_sessions")) sessions use older marks").font(.caption).foregroundStyle(.secondary)
-          }
-          if portfolio.text("status") == "partial" {
-            Text("\(portfolio.text("current_marks")) of \(portfolio.text("open_calls")) open calls have current marks")
-              .font(.caption).foregroundStyle(.secondary)
-          }
-        }
-        if !points.isEmpty {
-          Panel((portfolio.number("unpriced_calls") ?? 0) > 0 ? "Priced exposure" : "Exposure") {
-            Metrics(items: [("Long", Format.percent(allocation.number("long_pct"))),
-              ("Short", Format.percent(allocation.number("short_pct"))),
-              ("Net", Format.percent(allocation.number("net_pct"))),
-              ("Closed-call cash", Format.percent(allocation.number("cash_pct")))])
             Chart {
-              if let value = allocation.number("long_pct") {
-                BarMark(x: .value("Exposure (%)", value), y: .value("Side", "Long")).foregroundStyle(Theme.teal)
-              }
-              if let value = allocation.number("short_pct") {
-                BarMark(x: .value("Exposure (%)", -value), y: .value("Side", "Short")).foregroundStyle(Theme.coral)
-              }
-              RuleMark(x: .value("Zero", 0)).foregroundStyle(.secondary.opacity(0.4))
-            }.chartXAxisLabel("Exposure (% of portfolio value)").frame(height: 150)
-          }
-        }
-        if !holdings.isEmpty {
-          Panel("Positions") {
-            ForEach(holdings.map { TradingRow(record: $0, key: "ticker") }) { item in
-              let row = item.record
-              DisclosureGroup {
-                if (row.number("unpriced_calls") ?? 0) > 0 {
-                  Text("\(row.text("unpriced_calls")) calls awaiting prices").font(.caption).foregroundStyle(.secondary)
+              ForEach(points.map { TradingRow(record: $0, key: "date") }) { item in
+                if let date = Format.date(item.id), let equity = item.record.number("equity") {
+                  LineMark(x: .value("Date", date), y: .value("Equity (USD)", equity)).foregroundStyle(Theme.teal)
                 }
-                let ids = row["tracking_ids"]?.array.map(\.string) ?? []
-                callRows(calls.filter { ids.contains($0.text("tracking_id")) })
-              } label: {
-                HStack(alignment: .top, spacing: 12) {
-                  VStack(alignment: .leading, spacing: 5) {
-                    Text(row.text("ticker")).font(.headline).foregroundStyle(Theme.text)
-                    Text([(row.number("long_calls") ?? 0) > 0 ? "\(row.text("long_calls")) long" : "", (row.number("short_calls") ?? 0) > 0 ? "\(row.text("short_calls")) short" : ""].filter { !$0.isEmpty }.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary)
-                  }
-                  Spacer(minLength: 4)
-                  VStack(alignment: .trailing, spacing: 5) {
-                    Text("Net \(Format.percent(row.number("net_exposure_pct")))").font(.subheadline).foregroundStyle(Theme.text)
-                    Text("\(Format.number(row.number("contribution_pct"))) pp")
-                      .font(.caption).foregroundStyle(Theme.tone(row.number("contribution_pct")))
-                    if row.text("stance") == "mixed" {
-                      Text("Gross \(Format.percent(row.number("gross_exposure_pct")))").font(.caption).foregroundStyle(.secondary)
-                    }
-                  }.monospacedDigit()
-                }.padding(.vertical, 7)
               }
-              Divider()
+            }.chartYScale(domain: equityRange)
+              .chartYAxis { AxisMarks(values: .automatic(desiredCount: 3)) { value in
+                AxisGridLine(); AxisTick()
+                AxisValueLabel { if let amount = value.as(Double.self) { Text(Format.money(amount)).font(.caption2) } }
+              } }
+              .chartXAxis { AxisMarks(values: .automatic(desiredCount: 3)) { value in
+                AxisGridLine(); AxisTick()
+                AxisValueLabel { if let date = value.as(Date.self) { Text(Format.historyDate(date, years: false)).fixedSize() } }
+              } }
+              .chartYAxisLabel("Account equity (USD) · 1Y").frame(height: 240)
+              .environment(\.timeZone, TimeZone(secondsFromGMT: 0)!)
+          }
+          Metrics(items: [("1Y return", Format.percent(portfolio.number("return_pct"))),
+            ("Equity drawdown", Format.percent(portfolio.number("max_drawdown_pct"))),
+            ("Long exposure", Format.money(summary.number("long_market_value"))),
+            ("Short exposure", Format.money(summary.number("short_market_value")))])
+          if let date = Format.date(portfolio.text("as_of")) {
+            Text("Updated \(date.formatted(date: .abbreviated, time: .shortened))").font(.caption).foregroundStyle(.secondary)
+          }
+        } else {
+          Text(portfolio.text("status") == "unlinked" ? "No Alpaca paper account connected." : "Paper account data is unavailable.").font(.subheadline).foregroundStyle(.secondary)
+        }
+      }
+      if available {
+        Panel("Positions") {
+          let holdings = portfolio.rows("holdings")
+          if holdings.isEmpty {
+            Text("No open positions.").font(.subheadline).foregroundStyle(.secondary)
+            Button("Review calls", action: reviewCalls).buttonStyle(.borderedProminent)
+          } else {
+            ForEach(holdings.map { TradingRow(record: $0, key: "symbol") }) { item in
+              DisclosureGroup {
+                Metrics(items: [("Shares", item.record.text("qty")), ("Price", Format.price(item.record.number("current_price"))),
+                  ("Entry", Format.price(item.record.number("avg_entry_price"))), ("Unrealized P/L", Format.money(item.record.number("unrealized_pl")))])
+              } label: {
+                HStack {
+                  VStack(alignment: .leading) { Text(item.id).font(.headline); Text(item.record.text("side")).font(.caption).foregroundStyle(.secondary) }
+                  Spacer()
+                  Text(Format.money(item.record.number("market_value"))).monospacedDigit()
+                }.foregroundStyle(Theme.text).padding(.vertical, 6)
+              }
             }
           }
         }
-        if !contributors.isEmpty {
-          Panel("Return contributors") {
-            Chart {
-              ForEach(contributors.map { TradingRow(record: $0, key: "ticker") }) { item in
-                if let value = item.record.number("contribution_pct") {
-                  BarMark(x: .value("Contribution (pp)", value), y: .value("Symbol", item.id))
-                    .foregroundStyle(Theme.tone(value))
-                }
-              }
-              RuleMark(x: .value("Zero", 0)).foregroundStyle(.secondary.opacity(0.4))
-            }.chartXAxisLabel("Contribution (percentage points)")
-              .frame(height: CGFloat(max(180, contributors.count * 32)))
+        Panel {
+          let orders = portfolio.rows("orders")
+          DisclosureGroup("Recent paper orders · \(orders.count)") {
+            if orders.isEmpty { Text("No paper orders yet.").font(.caption).foregroundStyle(.secondary) }
+            ForEach(orders.map { TradingRow(record: $0, key: "id") }) { item in
+              VStack(alignment: .leading, spacing: 5) {
+                Text("\(item.record.text("side").capitalized) \(item.record.text("qty")) \(item.record.text("symbol"))").font(.subheadline)
+                Text("\(item.record.text("status")) · Filled \(item.record.text("filled_qty")) at \(Format.price(item.record.number("filled_avg_price")))").font(.caption).foregroundStyle(.secondary)
+              }.padding(.vertical, 8)
+            }
           }
         }
-        let pending = calls.filter { $0.text("status") == "pending_entry" }
-        if !pending.isEmpty {
-          Panel { DisclosureGroup("Pending entry · \(pending.count)") { callRows(pending) } }
-        }
-        let closed = calls.filter { $0.text("status") == "matured" }
-        if !closed.isEmpty {
-          Panel { DisclosureGroup("Closed calls · \(closed.count)") { callRows(closed) } }
-        }
+      }
+      if !calls.isEmpty {
+        Panel { DisclosureGroup("Research observations · \(calls.count)") {
+          ForEach(calls.map { TradingRow(record: $0, key: "tracking_id") }) { item in
+            Button { selectedCall = item } label: {
+              HStack {
+                Text("\(item.record.text("ticker")) · \(item.record.text("stance")) · \(item.record.text("horizon_label"))")
+                Spacer()
+                Text(Format.percent(item.record.number("return_pct")))
+              }.font(.subheadline).foregroundStyle(Theme.text).padding(.vertical, 10)
+            }.buttonStyle(.plain)
+          }
+        } }
       }
     }.sheet(item: $selectedCall) { item in
       NavigationStack {
         ScrollView { ApprovedCallDetailView(chosen: item.record).padding(20) }
-          .workbench().navigationTitle("Paper call").navigationBarTitleDisplayMode(.inline)
+          .workbench().navigationTitle("Research observation").navigationBarTitleDisplayMode(.inline)
           .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { selectedCall = nil } } }
       }.preferredColorScheme(.dark).tint(Theme.teal)
     }
   }
-  private func callRows(_ values: [Record]) -> some View {
-    ForEach(values.map { TradingRow(record: $0, key: "tracking_id") }) { item in
-      Button { selectedCall = item } label: {
-        HStack(alignment: .top) {
-          VStack(alignment: .leading, spacing: 5) {
-            Text("\(item.record.text("ticker")) · \(item.record.text("stance")) · \(item.record.text("horizon_label"))")
-              .font(.subheadline).foregroundStyle(Theme.text)
-            Text("Approved \(item.record.text("approved_at_utc").prefix(10))").font(.caption).foregroundStyle(.secondary)
+}
+
+private struct PaperOrderReviewView: View {
+  @EnvironmentObject private var session: AppSession
+  @Environment(\.dismiss) private var dismiss
+  let candidate: Record
+  let submitted: (Record) async -> Void
+  @State private var positionRisk: Double
+  @State private var portfolioRisk: Double
+  @State private var maxPosition: Double
+  @State private var maxGross: Double
+  @State private var review: Record = [:]
+  @State private var busy = false
+  @State private var error = ""
+  init(candidate: Record, initialPolicy: Record, submitted: @escaping (Record) async -> Void) {
+    self.candidate = candidate
+    self.submitted = submitted
+    _positionRisk = State(initialValue: initialPolicy.number("position_volatility_pct") ?? 0)
+    _portfolioRisk = State(initialValue: initialPolicy.number("portfolio_volatility_pct") ?? 0)
+    _maxPosition = State(initialValue: initialPolicy.number("max_position_pct") ?? 0)
+    _maxGross = State(initialValue: initialPolicy.number("max_gross_pct") ?? 0)
+  }
+  private var policy: Record { ["position_volatility_pct": .number(positionRisk), "portfolio_volatility_pct": .number(portfolioRisk),
+    "max_position_pct": .number(maxPosition), "max_gross_pct": .number(maxGross)] }
+  var body: some View {
+    NavigationStack {
+      ScrollView {
+        VStack(alignment: .leading, spacing: 18) {
+          Text("Volatility budgeting · Ledoit–Wolf covariance · annualized risk").font(.caption).foregroundStyle(.secondary)
+          Panel("Risk limits") {
+            riskField("Position volatility budget (%)", value: $positionRisk)
+            riskField("Portfolio volatility limit (%)", value: $portfolioRisk)
+            riskField("Maximum position (% equity)", value: $maxPosition)
+            riskField("Maximum gross exposure (%)", value: $maxGross)
           }
-          Spacer()
-          Text(Format.percent(item.record.number("return_pct"))).font(.subheadline).monospacedDigit()
-          Image(systemName: "chevron.right").font(.caption)
-        }.padding(.vertical, 10)
-      }.buttonStyle(.plain)
+          if !error.isEmpty { Failure(message: error) }
+          if !review.isEmpty {
+            let order = review.object("order"), risk = review.object("risk")
+            Panel("\(order.text("side") == "buy" ? "Buy" : "Short") \(order.text("qty")) \(order.text("symbol"))") {
+              Text("\(order.text("type").capitalized) · \(order.text("time_in_force").capitalized) · \(Format.number(risk.number("execution_price_tolerance_pct"), digits: 0))% price reserve").font(.caption).foregroundStyle(.secondary)
+              Metrics(items: [("Estimated amount", Format.money(risk.number("suggested_notional"))),
+                ("Estimated vol before", Format.percent(risk.number("portfolio_volatility_before_pct"))),
+                ("Estimated vol after", Format.percent(risk.number("portfolio_volatility_after_pct"))),
+                ("Daily observations", risk.text("observations"))])
+              Text("Limited by \(risk.text("binding_limit").replacingOccurrences(of: "_", with: " "))").font(.caption).foregroundStyle(.secondary)
+              Text("History \(risk.text("history_start"))–\(risk.text("history_end"))").font(.caption).foregroundStyle(.secondary)
+              if let expires = Format.date(review.text("expires_at")) {
+                Text("Review expires \(expires.formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(.secondary)
+              }
+              Button(busy ? "Submitting…" : error.isEmpty ? "Place paper order" : "Retry confirmation") { Task { await confirm() } }.buttonStyle(.borderedProminent).disabled(busy)
+              Button("Recalculate size") { Task { await calculate() } }.buttonStyle(.bordered).disabled(busy)
+            }
+          } else {
+            Button(busy ? "Calculating…" : "Calculate size") { Task { await calculate() } }.buttonStyle(.borderedProminent).disabled(busy)
+          }
+        }.padding(20)
+      }.workbench().navigationTitle("\(candidate.text("ticker")) · paper trade").navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Close") { dismiss() }.disabled(busy) } }
+    }.preferredColorScheme(.dark).tint(Theme.teal)
+  }
+  private func riskField(_ label: String, value: Binding<Double>) -> some View {
+    HStack {
+      Text(label).font(.caption)
+      Spacer()
+      TextField(label, value: value, format: .number).keyboardType(.decimalPad)
+        .multilineTextAlignment(.trailing).frame(width: 70).disabled(busy)
+        .onChange(of: value.wrappedValue) { _, _ in review = [:] }
     }
+  }
+  private func calculate() async {
+    busy = true; error = ""; review = [:]
+    do {
+      let value: JSONValue = try await session.api.post("/api/trading-agent/paper/review",
+        body: ["candidate_id": .string(candidate.text("candidate_id")), "policy": .object(policy)])
+      review = value.dictionaryValue
+    } catch { error = error.localizedDescription }
+    busy = false
+  }
+  private func confirm() async {
+    busy = true; error = ""
+    do {
+      let result: JSONValue = try await session.api.post("/api/trading-agent/paper/confirm",
+        body: ["ticket_id": .string(review.text("ticket_id")), "arguments_hash": .string(review.text("arguments_hash"))])
+      await submitted(result["order"].dictionaryValue)
+    } catch { error = error.localizedDescription }
+    busy = false
   }
 }
 

@@ -1,36 +1,24 @@
 .portfolio, .detail { display: grid; gap: 1.25rem; }
 .detail > button { justify-self: start; }
-.analytics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
-.analytics h2, .holdings h2, .empty h2 { font-size: 1rem; margin: 0; }
-.method, .coverage { color: var(--muted); font-size: .73rem; line-height: 1.6; }
+.method, .coverage { color: var(--muted); font-size: .73rem; line-height: 1.6; margin: .65rem 1rem 1rem; }
 .coverage { color: var(--ink-soft); }
-.columns, .holding > summary { display: grid; grid-template-columns: minmax(0, 1.3fr) 1fr 1fr; align-items: center; gap: 1rem; }
-.columns { color: var(--faint); font-size: .66rem; padding: .7rem 0; border-bottom: 1px solid var(--line); }
-.columns > :not(:first-child), .holding > summary > :not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
-.holding { border-bottom: 1px solid var(--line); }
-.holding > summary { padding: 1rem 0; cursor: pointer; list-style: none; font-size: .85rem; }
-.holding > summary::-webkit-details-marker { display: none; }
-.holding > summary:focus-visible, .calls button:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
-.holding strong { font-size: 1rem; }
-.holding small, .calls small { display: block; color: var(--muted); font-size: .68rem; margin-top: .3rem; }
 .calls { display: grid; }
-.calls button { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--ink-soft); padding: .9rem .25rem; text-align: left; cursor: pointer; font: inherit; font-size: .8rem; }
+.calls button { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border: 0; border-top: 1px solid var(--line); background: transparent; color: var(--ink-soft); padding: .9rem 1rem; text-align: left; cursor: pointer; font: inherit; font-size: .8rem; }
 .calls button:hover { background: rgba(255,255,255,.025); }
+.calls button:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
+.calls small { display: block; color: var(--muted); font-size: .68rem; margin-top: .3rem; }
 .calls button > span:last-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.empty { display: grid; gap: .75rem; justify-items: start; }
-.empty p { margin: 0; }
-@media (max-width: 900px) { .analytics { grid-template-columns: 1fr; } }
-@media (max-width: 520px) {
-  .columns, .holding > summary { grid-template-columns: minmax(0, 1.15fr) .9fr 1fr; gap: .5rem; }
-  .columns { font-size: .6rem; }
-  .holding > summary { font-size: .78rem; }
-}
-
 .chart { height: 20rem; min-width: 0; }
 .chart :global(.visualization-viewport), .chart :global(.plotly-frame), .chart :global(.visualization-loading) { height: 100%; }
-
-.method, .coverage { margin: .65rem 1rem 1rem; }
 .portfolio :global(.panel-header) time { color: var(--muted); font-size: .72rem; font-variant-numeric: tabular-nums; }
-
-.columns, .holding > summary { padding-left: 1rem; padding-right: 1rem; }
-.holding .calls { padding: 0 1rem; }
+.overlay { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; border: 0; background: transparent; color: var(--ink-soft); padding: 20px; overflow: auto; }
+.overlay[open] { display: grid; place-items: center; }
+.overlay::backdrop { background: #000a; }
+.review { width: min(640px, 100%); max-height: 90dvh; overflow: auto; }
+.review > h3, .review > p, .review > .riskInputs { margin-inline: 1rem; }
+.review > button { margin: 0 0 1rem 1rem; }
+.review > button + button { margin-left: .5rem; }
+.riskInputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-block: 16px; }
+.riskInputs label { display: grid; gap: 6px; font-size: .82rem; color: var(--muted); }
+.riskInputs input { width: 100%; }
+@media (max-width: 520px) { .riskInputs { grid-template-columns: 1fr; } }

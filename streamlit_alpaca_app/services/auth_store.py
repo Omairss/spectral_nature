@@ -483,6 +483,8 @@ def get_active_portfolio_membership(*, user_id: str, portfolio_id: str) -> dict[
                 FROM {schema}.portfolio_memberships AS membership
                 JOIN {schema}.portfolios AS portfolio
                   ON portfolio.id = membership.portfolio_id
+                JOIN {schema}.users AS account_user
+                  ON account_user.id = membership.user_id AND account_user.status = 'active'
                 WHERE membership.user_id = %s::uuid
                   AND membership.portfolio_id = %s::uuid
                   AND portfolio.status = %s

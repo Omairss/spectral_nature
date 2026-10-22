@@ -1,3 +1,7 @@
+# Superseded prototype
+
+The equal-capital prototype below was superseded by the owner's Alpaca paper-account instruction. Its tests/screenshots/build do not qualify the current integration. See ALPACA.md for active verification.
+
 # Aggregate approved-paper portfolio — local review
 
 The owner confirms approved paper calls as portfolio membership. Trading now

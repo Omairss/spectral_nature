@@ -213,10 +213,12 @@ def _ensure_schema(conn: Any) -> None:
             source_updated_at TIMESTAMPTZ NOT NULL,
             created_at TIMESTAMPTZ NOT NULL,
             updated_at TIMESTAMPTZ NOT NULL,
-            UNIQUE (portfolio_id, environment)
+            UNIQUE (portfolio_id, connection_id, environment)
         )
         """,
         f"ALTER TABLE {schema}.brokerage_portfolio_snapshots ADD COLUMN IF NOT EXISTS details_json JSONB NOT NULL DEFAULT '{{}}'::jsonb",
+        f"ALTER TABLE {schema}.brokerage_portfolio_snapshots DROP CONSTRAINT IF EXISTS brokerage_portfolio_snapshots_portfolio_id_environment_key",
+        f"CREATE UNIQUE INDEX IF NOT EXISTS idx_{schema}_brokerage_snapshots_identity ON {schema}.brokerage_portfolio_snapshots (portfolio_id, connection_id, environment)",
         f"""
         CREATE INDEX IF NOT EXISTS idx_{schema}_brokerage_portfolio_snapshots_connection
         ON {schema}.brokerage_portfolio_snapshots (connection_id, updated_at DESC)
@@ -633,6 +635,37 @@ def save_portfolio_snapshot(
     with conn:
         _ensure_schema(conn)
         with conn.cursor() as cursor:
+            # Serialize only the short persistence transaction. Provider IO
+            # stays outside the connection pool; separate refreshes may finish
+            # out of order or succeed for different components.
+            cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))",
+                           (json.dumps(["brokerage_snapshot", portfolio_id, connection_id, environment]),))
+            cursor.execute(f'''SELECT account_summary_json, positions_json, timeseries_json,
+                details_json, source_updated_at FROM {schema}.brokerage_portfolio_snapshots
+                WHERE portfolio_id=%s::uuid AND connection_id=%s::uuid AND environment=%s
+                FOR UPDATE''', (portfolio_id, connection_id, environment))
+            previous = _row_dict(cursor, cursor.fetchone())
+            if previous and (details or {}).get('coverage'):
+                details = dict(details)
+                old_details = _json_value(previous.get('details_json'), {})
+                coverage = dict(details.get('coverage') or {})
+                old_coverage = old_details.get('coverage') or {}
+                for component in ('account', 'positions', 'history', 'orders'):
+                    old_stamp, new_stamp = old_coverage.get(component), coverage.get(component)
+                    if old_stamp and (not new_stamp or datetime.fromisoformat(old_stamp) > datetime.fromisoformat(new_stamp)):
+                        coverage[component] = old_stamp
+                        if component == 'account':
+                            account_summary = _json_value(previous['account_summary_json'], {})
+                        elif component == 'positions':
+                            positions = _json_value(previous['positions_json'], [])
+                        elif component == 'history':
+                            timeseries = _json_value(previous['timeseries_json'], [])
+                        else:
+                            details['orders'] = old_details.get('orders') or []
+                details['coverage'] = coverage
+                if previous['source_updated_at'] > source_updated_at:
+                    source_updated_at = previous['source_updated_at']
+                    details['errors'] = old_details.get('errors') or {}
             cursor.execute(
                 f"""
                     INSERT INTO {schema}.brokerage_portfolio_snapshots (
@@ -644,7 +677,7 @@ def save_portfolio_snapshot(
                         %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb,
                         %s, %s, %s
                     )
-                    ON CONFLICT (portfolio_id, environment) DO UPDATE SET
+                    ON CONFLICT (portfolio_id, connection_id, environment) DO UPDATE SET
                         connection_id = EXCLUDED.connection_id,
                         provider = EXCLUDED.provider,
                         account_summary_json = EXCLUDED.account_summary_json,
@@ -653,6 +686,7 @@ def save_portfolio_snapshot(
                         details_json = EXCLUDED.details_json,
                         source_updated_at = EXCLUDED.source_updated_at,
                         updated_at = EXCLUDED.updated_at
+                    WHERE brokerage_portfolio_snapshots.source_updated_at <= EXCLUDED.source_updated_at
                     RETURNING id, portfolio_id, connection_id, provider, environment,
                               account_summary_json, positions_json, timeseries_json, details_json,
                               source_updated_at, created_at, updated_at
@@ -665,10 +699,20 @@ def save_portfolio_snapshot(
                 ),
             )
             row = _row_dict(cursor, cursor.fetchone())
+            if not row:
+                cursor.execute(f'''SELECT id, portfolio_id, connection_id, provider, environment,
+                    account_summary_json, positions_json, timeseries_json, details_json,
+                    source_updated_at, created_at, updated_at
+                    FROM {schema}.brokerage_portfolio_snapshots
+                    WHERE portfolio_id=%s::uuid AND connection_id=%s::uuid AND environment=%s''',
+                    (portfolio_id, connection_id, environment))
+                row = _row_dict(cursor, cursor.fetchone())
+            if not row:
+                raise RuntimeError('The brokerage snapshot could not be retained.')
     return _payload(row) or {}
 
 
-def get_portfolio_snapshot(*, portfolio_id: str, environment: str) -> dict[str, Any] | None:
+def get_portfolio_snapshot(*, portfolio_id: str, connection_id: str, user_id: str, environment: str) -> dict[str, Any] | None:
     conn = auth_store.open_auth_store_connection()
     if conn is None:
         return None
@@ -678,14 +722,17 @@ def get_portfolio_snapshot(*, portfolio_id: str, environment: str) -> dict[str, 
             with conn.cursor() as cursor:
                 cursor.execute(
                     f"""
-                    SELECT id, portfolio_id, connection_id, provider, environment,
-                           account_summary_json, positions_json, timeseries_json, details_json,
-                           source_updated_at, created_at, updated_at
-                    FROM {schema}.brokerage_portfolio_snapshots
-                    WHERE portfolio_id = %s::uuid AND environment = %s
+                    SELECT s.id, s.portfolio_id, s.connection_id, s.provider, s.environment,
+                           s.account_summary_json, s.positions_json, s.timeseries_json, s.details_json,
+                           s.source_updated_at, s.created_at, s.updated_at
+                    FROM {schema}.brokerage_portfolio_snapshots s
+                    JOIN {schema}.brokerage_connections c ON c.id = s.connection_id
+                    WHERE s.portfolio_id = %s::uuid AND s.connection_id = %s::uuid
+                      AND c.user_id = %s::uuid AND c.environment = %s AND s.environment = c.environment
+                      AND s.provider = c.provider AND c.status = 'connected'
                     LIMIT 1
                     """,
-                    (portfolio_id, environment),
+                    (portfolio_id, connection_id, user_id, environment),
                 )
                 row = _row_dict(cursor, cursor.fetchone())
         return _payload(row)
@@ -1040,6 +1087,21 @@ def consume_order_ticket(
     return _payload(row)
 
 
+def get_order_ticket(*, ticket_id: str, user_id: str, provider: str, environment: str) -> dict[str, Any] | None:
+    conn = auth_store.open_auth_store_connection()
+    if conn is None:
+        raise RuntimeError('Application database is unavailable.')
+    schema = auth_store.auth_store_schema_name()
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f'''SELECT id, connection_id, user_id, provider, environment,
+                arguments_hash, request_summary_json, result_summary_json, status, expires_at
+                FROM {schema}.brokerage_order_tickets
+                WHERE id=%s::uuid AND user_id=%s::uuid AND provider=%s AND environment=%s''',
+                (ticket_id, user_id, provider, environment))
+            return _payload(_row_dict(cursor, cursor.fetchone()))
+
+
 def cancel_order_ticket(
     *,
     ticket_id: str,
@@ -1094,7 +1156,7 @@ def finish_order_ticket(
                         result_summary_json = %s::jsonb,
                         error = NULLIF(%s, ''),
                         completed_at = %s
-                    WHERE id = %s::uuid AND status = %s
+                    WHERE id = %s::uuid AND (status = %s OR (status = 'unknown' AND %s = 'executed'))
                     """,
                 (
                     status,
@@ -1103,6 +1165,7 @@ def finish_order_ticket(
                     now,
                     ticket_id,
                     "executing",
+                    status,
                 ),
             )
 

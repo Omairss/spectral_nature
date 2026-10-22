@@ -1,5 +1,13 @@
 # Mistakes — Active Guidelines
 
+## Aggregate accounting assumption corrected — 2026-10-22
+
+A repeated SQL-pattern patch initially matched a sibling function. Immediate source inspection caught it before execution; the correction uses function-scoped edits. Repeated SQL and mock-class structures need exact function anchors, not broad text matches.
+
+I built an equal-capital aggregate after the owner confirmed which calls to include, without establishing the portfolio's accounting authority. Membership did not authorize invented capital or cash. The owner directed reuse of Alpaca paper trading. The prototype remained local and undeployed; its synthetic accounting is superseded and its evidence remains historical. Check existing broker capabilities before designing a new trade ledger.
+
+The previous web release also dropped the conditional dev-maintenance Health section. Its accepted source is restored in the current work; this restoration has not been deployed. A local lint check additionally finds a pre-existing synchronous effect-state update outside those restored lines; do not describe this as a clean whole-file lint result.
+
 ## Client refresh acceptance — 2026-10-22
 
 Moving Home across the server/client boundary exposed host-dependent timestamp and compact-currency formatting. The first DEV browser load reported React hydration error 418. Explicit UTC time and count locale did not finish the repair: a complete server/browser text comparison found 139 compact-currency precision differences, such as $3.0B versus $3B. Node 25 local rendering matched Chrome and hid the Node 22 server default. Set precision and locale in the shared chart/ticker formatters and compare the production Node version with the actual browser. No production promotion occurred during this repair.
