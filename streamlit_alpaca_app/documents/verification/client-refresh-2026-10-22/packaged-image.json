@@ -24,5 +24,18 @@
     "symlinks": 0,
     "verification_run": "cj1b2",
     "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:a58aec888fd566bf4408ff6289b138c4572f39485599de2299bbe5e4c056ac70"
+  },
+  {
+    "role": "web",
+    "source_revision": "a86286a3ddcf0da33c6f6127a62ae9fa6e529209",
+    "source_inventory_sha256": "4517cb70ea70d8a1eef1674467e3bf3e6b38f6c623d4a3115c4802e1e56bb1e8",
+    "runtime_inventory_sha256": "1ce2f96777f1288c74cedd3b40ddfd2a354034e56823ed1b4b48b3d70230d86f",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "input_files": 89,
+    "compiled_files": 1703,
+    "symlinks": 0,
+    "verification_run": "cj1b4",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660"
   }
 ]
