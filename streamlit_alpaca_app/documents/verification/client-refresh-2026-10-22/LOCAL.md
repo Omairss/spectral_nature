@@ -39,3 +39,37 @@ contract signatures match its verified source; its Python images stay unchanged.
 Only package-proof metadata is retained here, with no runtime integration.
 The first inventory read missed ARM pagination; the second exposed the additional
 job. Both incomplete inventories were rejected before any build/deployment.
+
+## Local platform acceptance
+
+The complete simulator build and signed device build 9 pass. Signature, same bundle
+and phone membership pass; the renewed profile expires October 29 at 16:52:31 UTC.
+The physical phone is unchanged during development verification.
+
+Personally inspected the populated native Paper performance fixture: the corrected
+gateway request returns 200 and the dated call/SPY chart, metrics and dates render.
+The retired native URL returns 404 in this fixture. No approval/order was submitted.
+
+Real 30-second native/browser checks observed unchanged 304 and changed publication
+200 responses. Both kept publication 3 and advancing 120-second audio while
+publication 4 was fetched, then displayed 4 on pause. Both kept publication 4
+without an error overlay during an injected 503 and recovered to 5. Native made no
+Home reads during 44 seconds on Trading and loaded 5 immediately on return. Native
+and browser replay stayed on October 21/publication 5 across a new live publication
+and more than 37 seconds, with zero replay polls. Latest returned to publication 6.
+A Highlight-only update with unchanged narrative/run/as-of reached both clients;
+the web selected META price point remained selected. Stable DOM identity retains
+the reader's viewport anchor as text above changes height.
+
+The initial browser review used the full retained Home: eight signals, five
+Highlights, twenty ticker cards, preserved price/fundamental charts and network.
+Playback checks subsequently used a compact, explicitly local QA narrative and
+silent audio, plus a synthetic paper call. No QA data was published to application
+storage. The host briefly became overloaded after simulator boot, then recovered;
+interactive checks were completed after response improved.
+
+The complete remote web build and package verification pass: 89 Git inputs and
+every compiled runtime file/symlink match the build inventory. See
+[package evidence](packaged-image.json). Runtime source is committed Git, with no
+inherited application tree. Authenticated real DEV rendering remains the final
+rollout check; all production images/configurations remain unchanged.

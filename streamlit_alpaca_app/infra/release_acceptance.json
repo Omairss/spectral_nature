@@ -788,7 +788,22 @@
           }
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:2ba0f1391b481c66f8b7d81a391fe2caace30c9d34d82da72b9ef10be8d7ceaa": {
+          "role": "web",
+          "source_revision": "150c791b31096e39227cdb0de00442829cf317e5",
+          "source_inventory_sha256": "0acc6731e570eb9db9a05492480718c1b7d5d24775cfcdeea993237ab11bc0b7",
+          "runtime_inventory_sha256": "6ec26c54c1c360c1577fe9449f3e22f0a62771aee1e9390aa55ff2ad3f143839",
+          "complete_git_inventory_matches": true,
+          "all_packaged_files_checked": true,
+          "input_files": 89,
+          "compiled_files": 1703,
+          "symlinks": 0,
+          "verification_run": "cj1b0",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:2ba0f1391b481c66f8b7d81a391fe2caace30c9d34d82da72b9ef10be8d7ceaa",
+          "evidence": "documents/verification/client-refresh-2026-10-22/packaged-image.json"
+        }
+      },
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
