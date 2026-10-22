@@ -1149,3 +1149,8 @@ The stock-detail adapter reused Attention filing summaries and separate backgrou
 ### October 20 — verify the complete long-form stock layout
 
 The initial local Markdown preview omitted the forecast ledger. The signed-in development page exposed its four rows stretching over the full analysis height. Added grid content alignment at the existing stylesheet owner and repeated packaging and development verification. The first deployment attempt also used an incorrect subscription identifier; complete consumer preflight stopped before any mutation. Subsequent deployment reads the subscription from the captured authorized inventory.
+
+
+### October 22 — native installation documentation lagged the accepted release
+
+The native README still described build 7 as installed and build 8/Trading as held after the accepted October 16 installation and October 18 server release. Replaced those stale status claims with the current renewal receipt and retained historical evidence links. During verification, CoreDevice rejected a string-contains filter on its URL-valued executable field; use the numeric processIdentifier returned by launch.

@@ -1232,3 +1232,8 @@ Long-form content review must include adjacent metrics and the complete deployed
 ### October 20 — promote the actual company research producer
 
 Company stack materialization belongs to `run_news`, bound in production to `news-ingest-and-features`; `company-baseline-prefetch` maintains different data. Trace the producer before translating a development worker acceptance into production targets. Promote exact accepted digests to the consumers that execute the changed behavior, preserve every other resource, and verify the freshly loaded authenticated company screen after API health and traffic settle. Charts outside the viewport render lazily; scroll them into view before treating an empty chart DOM as missing data.
+
+
+### October 22 — verify renewed signing on the actual phone
+
+Renew from accepted Git source, verify the embedded profile’s dates, bundle, team and device membership, then install in place. A valid host codesign check does not grant device trust: the October 22 reinstall required the owner to trust the renewed developer app before launch. Verify both launch and a subsequent process readback, and tell the owner the exact new expiry. See verification/native-renewal-2026-10-22/release.json.

@@ -14,11 +14,11 @@ Daily Brief is public. Use your existing Spectral Nature account for Markets, Re
 
 For a physical iPhone, connect and unlock the phone, accept Trust This Computer, and select that physical phone as Xcode's run destination before configuring your team under Signing & Capabilities. Keep automatic signing enabled, then press Command-R. If signing says the team has no devices, check that the physical phone is selected and click Try Again (or Register if offered); automatic signing registers the connected device. A simulator cannot supply the device registration for an iPhone development profile. See [Apple's device signing instructions](https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices).
 
-TestFlight distribution additionally needs your Apple Developer membership and App Store Connect configuration. Build 7 is installed directly on the owner's iPhone; TestFlight/App Store distribution is not configured.
+TestFlight distribution additionally needs your Apple Developer membership and App Store Connect configuration. The app is installed directly on the owner's iPhone; TestFlight/App Store distribution is not configured.
 
 ## Native surfaces
 
-- Brief: expandable report, retained audio, replay date, attention stories, a combined preceding-week/latest-session price chart, compact bank/insurance fundamentals and fiscal-quarter histories, and attention network. Longer price/financial analysis remains in Investigator.
+- Brief: full report, retained audio, replay date, attention stories, a combined preceding-week/latest-session price chart, compact bank/insurance fundamentals and fiscal-quarter histories, and attention network. Longer price/financial analysis remains in Investigator.
 - Markets: business/broad/commodity modes, server lenses/horizons, full-universe return comparisons with percent axes and daily-change color legends, point identity/search/inspection, named return leaders/laggards, volume treemap, optional 3D/heatmap comparisons, ranking, and company navigation.
 - Research: durable conversations, ordered progress journal, cancellation, follow-up, result metadata, citations, knowledge folders/search/connected pages, retained sources, source upload, and administrative maintenance inspection.
 - Portfolio: all holdings, asset exposure, position treemap and P/L contributions, value and indexed benchmarks, drawdown, monthly return matrix, risk/correlation/factors, performance statistics, indexed list comparisons, risk/return/breadth analysis, and return/risk/momentum contributor Sankeys.
@@ -52,42 +52,36 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
 
 Keep normal simulator signing enabled: Keychain needs Xcode's simulated application identity. Disabling signing can produce a launchable app whose session storage fails. The project specification now retains the owner's configured development team so regeneration preserves signing.
 
-## Validation and remaining work
+## Installation and validation
 
-Build 8 (October 15) is prepared and signed for simulator and the physical iPhone.
-It adds peripheral scatter direction/volume encodings, softer text, full Brief with
-network access, dated Highlights, session-owned five-second research progress and
-in-app completion notices, consolidated Research navigation, collapsed Trading
-cards, and request threads with follow-ups. Zero volume is valid; missing direction
-or volume has an explicit legend. The new API/gateway/Trading images are deployed
-to dev with all protected configuration unchanged. Production and the phone remain
-on the accepted prior release until approval. The normal signed-in native dev request flow, full999 Markets view and real
-research completion passed. Full Trading generation hit an exit137 failure; its retry was stopped, and
-worker promotion is held pending a deeper memory/reliability repair.
+Version 1.0.0 build 8 was renewed, installed in place and launched on the owner's
+physical iPhone on October 22. The new Personal Team profile expires October 29,
+2026 at 9:52 a.m. Pacific. The same bundle identifier and development team preserve
+application data and Keychain storage. Device readback confirms the running app.
+See the [renewal receipt](../../documents/verification/native-renewal-2026-10-22/release.json).
 
-The confirmed free Personal Team cannot enable remote push. This build checks
-research while foregrounded and resumes checks on return; notification delivery
-while locked/closed remains blocked on Developer Program enrollment and APNs setup.
-See the [refinement plan](../../documents/plans/NATIVE_WORKBENCH_REFINEMENT_2026-10-15.md)
-and [build 8 receipt](../../documents/verification/native-workbench-2026-10-15/release.json).
+Free Personal Team profiles expire seven days after issuance, independently of
+backend updates. To renew, connect and unlock the phone, build the accepted Git
+source with automatic signing and provisioning updates enabled, install over the
+existing app, and verify launch. iOS may require renewed developer trust under
+Settings → General → VPN & Device Management. Host signature verification does not
+establish that the phone has granted trust. See [Apple's account limits](https://developer.apple.com/help/account/basics/about-your-developer-account).
 
-The following describes the previously accepted installed release:
+The original [build 8 acceptance](../../documents/verification/native-workbench-2026-10-15/release.json)
+records the October 16 production promotion and installation. The current native
+source also includes the owner-approved October 18 paper-call presentation and
+dated performance axis; its prior simulator review is recorded in the
+[Trading release](../../documents/verification/trading-calls-2026-10-18/PRODUCTION.md).
+The October 22 renewal changes signing, not application logic or production servers.
 
+Build 8 includes peripheral scatter direction and volume, softer text, full Brief
+with network access, dated Highlights, five-second foreground research progress
+and completion notices, consolidated Research navigation, collapsed Trading cards,
+and request threads with follow-ups. The signed-in native development request flow,
+999-instrument Markets view and research completion were verified before release.
+Earlier chart and compact-device evidence remains in the
+[build 7 receipt](../../documents/verification/native-analytics-2026-10-14/build7/release.json).
 
-Build 7 passes signed simulator and physical-device Debug compilation and signature
-verification. The complete native simulator app restored the normal production
-session, rendered all 999 market instruments, and showed the final return bars with
-separate ticker/value columns. Point selection includes the correct company, quote
-and both returns; return rows open the matching Investigator. The compact iPhone SE
-review covers the shared scatter and color legend. Build 5's accepted Attention,
-fundamentals, conversation and main Portfolio source hashes remain unchanged.
-
-CoreDevice confirms version 1.0.0 build 7 is installed on the owner's iPhone. After
-owner unlock, launch succeeded and the app remained running as PID 30309. The
-earlier locked-device rejection is resolved. No uninstall or Keychain reset
-occurred. Production server/web images and
-settings are unchanged. Commodity symbols still lack history in the retained source
-snapshot; no provider backfill was added. See the [Markets acceptance record](../../documents/plans/NATIVE_MARKETS_CHARTS_2026-10-14.md)
-and [build 7 receipt](../../documents/verification/native-analytics-2026-10-14/build7/release.json).
-
-The earlier live signed-in review covers the principal read workflows, including the full 999-symbol market universe and option scenario/surface values. Public Brief, sign-in and recovery layouts were reviewed on iPhone SE. Credential-changing actions, source uploads, new research submissions/cancellation, and admin/Trading Agent mutations still need owner acceptance. The separate server release must expose LLM settings metadata before native editing appears. Retained development option data limits multi-maturity surface review. See [the implementation and acceptance record](../../documents/plans/NATIVE_IPHONE_WORKBENCH_2026-10-06.md) for exact evidence. TestFlight/App Store setup remains pending.
+The free Personal Team cannot enable remote push. Research checks resume when the
+app returns to the foreground; locked or closed delivery requires Developer Program
+enrollment and APNs setup. TestFlight/App Store distribution remains unconfigured.
