@@ -1,0 +1,75 @@
+[
+  {
+    "role": "web",
+    "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "compiled_files": 1703,
+    "symlinks": 0,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:9aaba4650ee4cd11e7f54ee2e947b192fd0436ae854ae2baf985b997477028e5",
+    "source_inventory_sha256": "d85fff327bb316ec761ae3dbaa959835a398890a3d32ff4821beeb73ceba8357",
+    "runtime_inventory_sha256": "60d0b1fd579e9f98e3c9136d44c48457131ad008c593d3738f862d32a4e1a617",
+    "verification_run": "cj1ax",
+    "evidence": "documents/verification/zopedia-maintenance-rollout-dev-2026-10-21/packaged-images.json"
+  },
+  {
+    "role": "api-next",
+    "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "runtime_files": 188,
+    "modules_imported": 126,
+    "dependencies": {
+      "numpy": "1.26.4",
+      "pandas": "2.3.3",
+      "psycopg": "3.3.6",
+      "psycopg_pool": "3.3.3"
+    },
+    "outbound_network_disabled": true,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97568a0e62cdbfc817612b31d54ad7ae1fe06bc6f556f340d3c8077188bee274",
+    "source_inventory_sha256": "d85fff327bb316ec761ae3dbaa959835a398890a3d32ff4821beeb73ceba8357",
+    "runtime_inventory_sha256": "3018ba8c119babf92ca1c108bd5b2a0d9704ba13a8aef696418e69a3f92a497e",
+    "verification_run": "cj1ax",
+    "evidence": "documents/verification/zopedia-maintenance-rollout-dev-2026-10-21/packaged-images.json"
+  },
+  {
+    "role": "worker",
+    "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "runtime_files": 188,
+    "modules_imported": 126,
+    "dependencies": {
+      "numpy": "1.26.4",
+      "pandas": "2.3.3",
+      "psycopg": "3.3.6",
+      "psycopg_pool": "3.3.3"
+    },
+    "outbound_network_disabled": true,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+    "source_inventory_sha256": "d85fff327bb316ec761ae3dbaa959835a398890a3d32ff4821beeb73ceba8357",
+    "runtime_inventory_sha256": "3018ba8c119babf92ca1c108bd5b2a0d9704ba13a8aef696418e69a3f92a497e",
+    "verification_run": "cj1ax",
+    "evidence": "documents/verification/zopedia-maintenance-rollout-dev-2026-10-21/packaged-images.json"
+  },
+  {
+    "role": "broker",
+    "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "runtime_files": 188,
+    "modules_imported": 126,
+    "dependencies": {
+      "numpy": "1.26.4",
+      "pandas": "2.3.3",
+      "psycopg": "3.3.6",
+      "psycopg_pool": "3.3.3"
+    },
+    "outbound_network_disabled": true,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
+    "source_inventory_sha256": "d85fff327bb316ec761ae3dbaa959835a398890a3d32ff4821beeb73ceba8357",
+    "runtime_inventory_sha256": "3018ba8c119babf92ca1c108bd5b2a0d9704ba13a8aef696418e69a3f92a497e",
+    "verification_run": "cj1ax",
+    "evidence": "documents/verification/zopedia-maintenance-rollout-dev-2026-10-21/packaged-images.json"
+  }
+]
