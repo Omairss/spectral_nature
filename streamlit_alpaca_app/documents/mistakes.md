@@ -1168,3 +1168,5 @@ The initial local Markdown preview omitted the forecast ledger. The signed-in de
 ### October 22 — native installation documentation lagged the accepted release
 
 The native README still described build 7 as installed and build 8/Trading as held after the accepted October 16 installation and October 18 server release. Replaced those stale status claims with the current renewal receipt and retained historical evidence links. During verification, CoreDevice rejected a string-contains filter on its URL-valued executable field; use the numeric processIdentifier returned by launch.
+
+Native paper review initially passed parsing but failed full compilation on optional JSON dictionaries and a shadowed error field. The fix validates response objects before replacing retained state and qualifies the view error field. Parsing is not type checking.
