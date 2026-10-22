@@ -61,9 +61,7 @@ call/order-review navigation use declared presentation fixtures. No broker order
 endpoint is connected to that fixture. The review shows its computed amount,
 policy limits, history dates and volatility before/after.
 
-Native compilation/visual review, final exact-source packaging and authenticated
-development verification remain pending. No application image from this task is
-deployed and build 10 is not installed on the physical phone. Source/build
+Signed native build 10 compiled successfully and was inspected in the iPhone 16 simulator. The account view renders broker balances and ISO timestamps; the review shows exact shares, amount and shared risk inputs. Captures: alpaca-native-overview.png and alpaca-native-review.png. Native request handling rejects malformed objects and retains recoverable errors. Final exact-source packaging and authenticated development verification remain pending. No application image from this task is deployed and build 10 is not installed on the physical phone. Source/build
 qualification does not authorize production. Preserve the separately accepted
 seventeen-file dev maintenance runtime during integration, and do not promote
 that experimental research source to production incidentally.
@@ -71,3 +69,5 @@ that experimental research source to production incidentally.
 The restored Health maintenance section is exact accepted source. Whole-file lint
 still flags its pre-existing synchronous state update in an unchanged effect;
 new Trading files pass scoped lint. This distinction remains part of the review.
+
+The native review exposed broker decimal-string values masked by browser coercion. The shared public DTO now emits finite numbers for amounts/prices and ISO8601 timestamps, retaining exact order quantity strings. All 21 paper checks passed after this correction.
