@@ -1,6 +1,6 @@
 # Zopedia benchmark and prospective forecast study
 
-Updated October 22, 2026, at 22:17 Pacific. DeepSeek V4 Pro with high reasoning is being evaluated on native financial benchmarks and eight prospective Seeking Alpha investigations. The shared numerical capabilities are now in production. The complete benchmark program and future outcome evaluation remain unfinished.
+Updated October23, 2026, at01:30 Pacific. DeepSeek V4 Pro with high reasoning is being evaluated on native financial benchmarks and eight prospective Seeking Alpha investigations. The shared numerical capabilities are now in production. The complete benchmark program and future outcome evaluation remain unfinished.
 
 ## Ground truth
 
@@ -21,7 +21,7 @@ Local execution reached two million rows and 96 columns in separate probes, incl
 | FinQA | 1,147 test questions | 818 native execution matches, 71.32%; one transport failure remains in the denominator. |
 | TAT-QA | 1,663 questions in the released labeled snapshot | 68.97% exact match, 78.17% F1; 12 transport failures remain in the denominator. The separate 1,669-question unlabeled test is not joined to these labels. |
 | ConvFinQA | 421 development conversations, 1,490 turns | Original condition: 960 matches, 64.43%. Requested-unit revision: 369 matches, 24.77%, with ambiguous program references and syntax failures retained. |
-| FinanceBench | 150 questions over 84 complete original reports | All reports acquired; full-report inference running. Personal source review follows. |
+| FinanceBench | 150 questions over 84 complete original reports | All150 full-report answers completed. Personal review started; no final accuracy score yet. |
 | FINCH | 172 native workflows | All 354 original assets acquired. Native workbook execution pending. |
 | BlueFin | 11 public rows over nine task folders | Native asset acquisition and workbook execution incomplete. |
 | EMB | One public SaaS workbook case | Original inputs and references acquired; native execution pending. Scratch and template conditions are one case. |
@@ -47,4 +47,6 @@ The [HIMS review](forecast-personal-review-HIMS.json) found a wrong entry-date d
 
 The conservative reference allowance is $100: $82 for native benchmarks, $13 for prospective investigations and $5 for production qualification. Known usage and maximum exposure for unknown calls both count. At FinanceBench admission, native known usage was $35.2526 and 13 interrupted calls reserved $19.6805, totaling $54.9331. These are conservative reference amounts, not invoices. No GPU was rented or started.
 
-Next work is to finish FinanceBench, personally inspect the remaining forecast investigations, and implement native workbook execution through the shared analysis owner. Resolve spreadsheet execution and distribution constraints before claiming FINCH, BlueFin or EMB completion. Keep the original prospective forecasts frozen until their actual outcomes mature.
+All150 FinanceBench responses completed with no pending provider attempts. Native conservative known usage is$58.4848 plus$19.6805 maximum exposure for13 unknown attempts, totaling$78.1653 against the$82 native allowance. [Personal review](financebench-personal-review.json) has begun; a quick-ratio case already shows a defensible definition differing from the publisher convention. Keep native agreement and financial validity distinct.
+
+Next work is to finish the personal FinanceBench comparison, personally inspect the remaining forecast investigations, and implement native workbook execution through the shared analysis owner. Resolve spreadsheet execution and distribution constraints before claiming FINCH, BlueFin or EMB completion. Keep the original prospective forecasts frozen until their actual outcomes mature.

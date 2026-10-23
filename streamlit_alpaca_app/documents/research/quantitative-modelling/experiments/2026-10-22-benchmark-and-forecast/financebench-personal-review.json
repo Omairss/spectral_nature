@@ -1,0 +1,160 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_grader_used": false,
+  "status": "in_progress_not_final_score",
+  "completed_inference": 150,
+  "reviewed_answers": 12,
+  "scope": "Personally compared complete final answers with publisher references. Original source evidence inspected for3M capex/PP&E, capital-intensity inputs, margin drivers, quick-assets definition and Adobe operating-income change. Explicit pending checks remain; this is not a claim that all12 are fully source-audited.",
+  "native_reference_policy": "Keep published labels and condition unchanged. Record defensible definition variants and source precision separately from native reference agreement.",
+  "cases": [
+    {
+      "id": "financebench_id_03029",
+      "document": "3M_2018_10K",
+      "status": "supported",
+      "prediction_sha256": "fabb2e9c33c7d835e9a3fff43924f4daf6398a596e1519f75284adffa9590e01",
+      "answer": "1,577",
+      "publisher_answer": "$1577.00",
+      "publisher_evidence_pages": [
+        59
+      ],
+      "assessment": "FY2018 purchases of PP&E are1577 million; cash outflow sign is appropriately expressed as expenditure amount."
+    },
+    {
+      "id": "financebench_id_04672",
+      "document": "3M_2018_10K",
+      "status": "supported_more_precise_than_reference",
+      "prediction_sha256": "7d02eb88a23c6b9990f46fbea22aeed946c462fe1190865fc438c617c2adad25",
+      "answer": "$8.738 billion",
+      "publisher_answer": "$8.70",
+      "publisher_evidence_pages": [
+        57
+      ],
+      "assessment": "Net PP&E8738 million is8.738 billion. Publisher rounds to8.70; the more precise sourced answer is acceptable."
+    },
+    {
+      "id": "financebench_id_00499",
+      "document": "3M_2022_10K",
+      "status": "supported",
+      "prediction_sha256": "859f800851dd7766ab616b8e5e8bf7ca25784c210b2fb310949422bb01bdf0ce",
+      "answer": "No. 3M's FY2022 capital expenditures were $1,749 million, which is about 5.1% of net sales of $34,229 million, a moderate, not high, capital intensity.",
+      "publisher_answer": "No, the company is managing its CAPEX and Fixed Assets pretty efficiently, which is evident from below key metrics:\nCAPEX/Revenue Ratio: 5.1%\nFixed assets/Total Assets: 20%\nReturn on Assets= 12.4%",
+      "publisher_evidence_pages": [
+        47,
+        49,
+        51
+      ],
+      "assessment": "Capex1749 / revenue34229 =5.1%; a supported moderate-capital-intensity judgment. Reference also cites asset ratios; those were not explicitly required."
+    },
+    {
+      "id": "financebench_id_01226",
+      "document": "3M_2022_10K",
+      "status": "supported_pending_supplemental_claim_check",
+      "prediction_sha256": "ab4b68b1db2bf45ea085b6fc97a5199da6536101227afa8a15118f7af2f61856",
+      "answer": "3M's FY2022 GAAP operating margin decreased to 19.1% from 20.8% in FY2021, a decline of 1.7 percentage points. The key drivers were: (1) net costs for significant litigation (Combat Arms Earplugs and PFAS-related) had a large negative impact; (2) PFAS manufacturing exit costs; (3) raw material and logistics cost inflation; and (4) Russia exit charges and divestiture costs. These were partially offset by the gain on the Food Safety divestiture and organic sales growth/productivity improvements. Excluding special items, adjusted operating margin was 20.8% in FY2022 versus 22.2% in FY2021, reflecting mainly raw material inflation and operational headwinds. Operating margin remains useful, but 3M supplements it with adjusted measures because special items can significantly distort year-over-year comparisons.",
+      "publisher_answer": "Operating Margin for 3M in FY2022 has decreased by 1.7% primarily due to: \n-Decrease in gross Margin\n-mostly one-off charges including Combat Arms Earplugs litigation, impairment related to exiting PFAS manufacturing, costs related to exiting Russia and divestiture-related restructuring\ncharges",
+      "publisher_evidence_pages": [
+        26
+      ],
+      "assessment": "Answer identifies1.7 percentage point GAAP margin decline and litigation/PFAS/Russia/restructuring drivers. Published evidence supports these drivers. Extra adjusted-margin and inflation claims still need separate full-report comparison."
+    },
+    {
+      "id": "financebench_id_01865",
+      "document": "3M_2022_10K",
+      "status": "supported",
+      "prediction_sha256": "540f65f865fcdbd1104ae31ae3e9ab24b54726a5e8079e10d9cb5fcd4947e9e1",
+      "answer": "Consumer; excluding M&A (organic sales), Consumer's organic sales fell 0.9% in 2022, the only segment with negative organic growth, which dragged down 3M's total organic growth of 1.2%.",
+      "publisher_answer": "The consumer segment shrunk by 0.9% organically.",
+      "publisher_evidence_pages": [
+        24
+      ],
+      "assessment": "Correctly identifies Consumer organic sales -0.9%; uses organic rather than acquisition-affected total growth."
+    },
+    {
+      "id": "financebench_id_00807",
+      "document": "3M_2023Q2_10Q",
+      "status": "definition_variant_native_mismatch",
+      "prediction_sha256": "8374f0555ae3dcdc96080c29d2b281c366607be7aa58fadb8887e50a0a4fa1e3",
+      "answer": "No, based on 3M's quick ratio for Q2 FY2023, the quick ratio was approximately 0.85, calculated as quick assets of $9,261 million (cash and cash equivalents $4,258 million + current marketable securities $56 million + accounts receivable, net $4,947 million) divided by total current liabilities of $10,936 million. A quick ratio below 1.0 suggests that highly liquid assets do not fully cover current liabilities, indicating potential liquidity strain. However, the quick ratio is not the most relevant measure for 3M's liquidity because it excludes available committed credit facilities and predictable operating cash flows; 3M also had an undrawn $4.25 billion revolving credit facility and access to commercial paper markets.",
+      "publisher_answer": "No. The quick ratio for 3M was 0.96 by Jun'23 close, which needs a bit of an improvement to touch the 1x mark",
+      "publisher_evidence_pages": [
+        4
+      ],
+      "assessment": "Answer explicitly uses cash4258 + securities56 + net receivables4947, divided by current liabilities10936, giving0.8469. Publisher uses (current assets15754 - inventory5280)/10936 =0.9578, which retains prepaids674 and other current assets539. Both conclude below1x. Preserve numeric native mismatch and distinguish the defensible stricter quick-assets definition; do not call the calculation wrong or silently change the reference."
+    },
+    {
+      "id": "financebench_id_00941",
+      "document": "3M_2023Q2_10Q",
+      "status": "supported",
+      "prediction_sha256": "56341f2b507bc82fd5c6da55315edf8f2a4a1c90355f7feb49324ad72109d574",
+      "answer": "1.500% Notes due 2026, 1.750% Notes due 2030, and 1.500% Notes due 2031",
+      "publisher_answer": "Following debt securities registered under 3M's name are listed to trade on the New York Stock Exchange:\n-1.500% Notes due 2026 (Trading Symbol: MMM26)\n-1.750% Notes due 2030 (Trading Symbol: MMM30)\n-1.500% Notes due 2031 (Trading Symbol: MMM31)",
+      "publisher_evidence_pages": [
+        0
+      ],
+      "assessment": "Correct coupon/maturity securities2026/2030/2031. Omits trading symbols but identifies all requested debt issues."
+    },
+    {
+      "id": "financebench_id_01858",
+      "document": "3M_2023Q2_10Q",
+      "status": "supported",
+      "prediction_sha256": "58b0235274b78a75f59ada67b48e82748348a71befbc868e35c9bea3e88d21ee",
+      "answer": "Yes. 3M paid $1.50 per share in each of the first and second quarters of 2023, up from $1.49 per share in the corresponding 2022 quarters, marking the 65th consecutive year of dividend increases.",
+      "publisher_answer": "Yes, not only they distribute the dividends on a routine basis, 3M has also been increasing the per share dividend for consecutive 65 years",
+      "publisher_evidence_pages": [
+        61
+      ],
+      "assessment": "Stable dividends and65 consecutive annual increases match the reference. Answer provides current and prior quarterly per-share amounts."
+    },
+    {
+      "id": "financebench_id_02987",
+      "document": "ACTIVISIONBLIZZARD_2019_10K",
+      "status": "reference_match_pending_arithmetic_source_check",
+      "prediction_sha256": "067a14a6a16e64e2df44132ab357b69c331b04846d378a4cdcbcac00650e7034",
+      "answer": "24.26",
+      "publisher_answer": "24.26",
+      "publisher_evidence_pages": [
+        68,
+        69
+      ],
+      "assessment": "24.26 matches the published fixed-asset-turnover result. Need personally recompute original revenue / average2018-2019 PP&E before final acceptance."
+    },
+    {
+      "id": "financebench_id_07966",
+      "document": "ACTIVISIONBLIZZARD_2019_10K",
+      "status": "reference_match_pending_arithmetic_source_check",
+      "prediction_sha256": "28a9b7c62deb6f3895143c39e90ec05d55bfb7de2ec41e5b4797258153f4348b",
+      "answer": "1.9%",
+      "publisher_answer": "1.9%",
+      "publisher_evidence_pages": [
+        69,
+        72
+      ],
+      "assessment": "1.9% matches the published three-year capex/revenue mean. Need personally recompute each annual ratio before final acceptance."
+    },
+    {
+      "id": "financebench_id_04735",
+      "document": "ADOBE_2015_10K",
+      "status": "reference_match_pending_arithmetic_source_check",
+      "prediction_sha256": "8dc00753f6e3ad67b97eb486020dd99e2878c56f5679e6a20588d777c73776be",
+      "answer": "0.66",
+      "publisher_answer": "0.66",
+      "publisher_evidence_pages": [
+        58,
+        62
+      ],
+      "assessment": "0.66 matches published Adobe2015 CFO/current-liabilities result. Need personally recompute original denominator before final acceptance."
+    },
+    {
+      "id": "financebench_id_07507",
+      "document": "ADOBE_2016_10K",
+      "status": "supported",
+      "prediction_sha256": "aa11b55b67fa05f33cff89e86b07349ba5f9d02fc521a0d06013bbe1064b08f4",
+      "answer": "65.4%",
+      "publisher_answer": "65.4%",
+      "publisher_evidence_pages": [
+        61
+      ],
+      "assessment": "Operating income1493602 /903095 -1 =65.4%, same financial quantity and requested precision."
+    }
+  ]
+}
