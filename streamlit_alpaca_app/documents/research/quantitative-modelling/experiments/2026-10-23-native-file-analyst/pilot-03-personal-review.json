@@ -1,0 +1,35 @@
+{
+  "reviewed_at_utc": "2026-10-23T19:02:20.168871+00:00",
+  "reviewer": "primary_agent",
+  "other_llm_evaluator_used": false,
+  "scope": "All three complete third-pilot final answers; selected complete programs/results and direct input/output inspection. Not every intermediate claim independently audited. Exposed development cases, not held-out accuracy.",
+  "cases": [
+    {
+      "id": "0",
+      "prediction_sha256": "9c609bc7c4409abda6c0985f6b256b9e37f5eb3a969e8e5f8efd88325afbb557",
+      "execution_status": "completed",
+      "assessment": "Financial controls reproduce zero balance differences and -333 total equity discrepancy. All12shapes and original formula/literal values survive; changed merges remain a preservation limitation.",
+      "private_inspection_files": [
+        "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch-native-pilot-03/predictions/0/personal-inspection.json"
+      ]
+    },
+    {
+      "id": "6",
+      "prediction_sha256": "2db6a953387b35629757f54cb2432f02be97166dfec9f199862f52d2684447c4",
+      "execution_status": "completed",
+      "assessment": "All53source observations independently recomputed; quoted statistics agree and both charts visually inspected. Countercyclical-behavior inference is stronger than weak correlations establish.",
+      "private_inspection_files": [
+        "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch-native-pilot-03/predictions/6/personal-numerical-inspection.json"
+      ]
+    },
+    {
+      "id": "22",
+      "prediction_sha256": "a2fa8dcf6750645698b1f1a8104288bd54d11bdffe0825ec1ed284dd7582aab4",
+      "execution_status": "completed",
+      "assessment": "Independent five-record nominal-volume sum is-16000and overall3340795. Onlysheet2.xmlchanges; all other original ZIPparts are byte-identical. No separate Excel refresh performed.",
+      "private_inspection_files": [
+        "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch-native-pilot-03/predictions/22/personal-inspection.json"
+      ]
+    }
+  ]
+}

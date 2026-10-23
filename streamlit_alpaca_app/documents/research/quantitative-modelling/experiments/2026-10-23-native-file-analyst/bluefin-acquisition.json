@@ -1,0 +1,300 @@
+{
+  "acquired_at_utc": "2026-10-23T18:46:37.858183+00:00",
+  "revision": "6a2a02db0a764b8da52214a573954143ecf68cea",
+  "files": [
+    {
+      "path": "tasks/interrogation/0122/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 231455,
+      "sha256": "0e8b53b1efdaa76930256c55293bde604ffbe73eb3e50c013ed19c55cac1ace9",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/interrogation/0122/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/interrogation/0122/questions.json",
+      "role": "evaluator",
+      "bytes": 1021,
+      "sha256": "7abf1e8e386c3f5f0cb235337a706ff2226fe1a2f8b2dd23e2025a5a9b3fe6f6",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/interrogation/0122/questions.json"
+    },
+    {
+      "path": "tasks/manipulation/2aac5a2a/golden_output.xlsx",
+      "role": "evaluator",
+      "bytes": 52619,
+      "sha256": "28b8b346e95007c5557ca0264a6a39315ee47dec7bccec8fffb7e6462ad1bbd5",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2aac5a2a/golden_output.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/2aac5a2a/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 42510,
+      "sha256": "89a9880f084d7f74467c263a64e306338eb435c508016f6554a465256f9b8f8a",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2aac5a2a/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/2aac5a2a/instruction.md",
+      "role": "actor",
+      "bytes": 2214,
+      "sha256": "fec4bb0ed1b3cab23906e28ed4a0c9dff7e5932fa7e869318be2004995159419",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2aac5a2a/instruction.md"
+    },
+    {
+      "path": "tasks/manipulation/2aac5a2a/metadata.json",
+      "role": "evaluator",
+      "bytes": 156,
+      "sha256": "e3a68a41e1db1e00ee145f55c7c2c3add74a082ab016e1362e46787ceef2b7bd",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2aac5a2a/metadata.json"
+    },
+    {
+      "path": "tasks/manipulation/2aac5a2a/rubric.json",
+      "role": "evaluator",
+      "bytes": 9766,
+      "sha256": "04126dbbea31130507fc56f56325ea2233eee77a002f82982ba334886d704d30",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2aac5a2a/rubric.json"
+    },
+    {
+      "path": "tasks/manipulation/2bdd0f12/golden_output.xlsx",
+      "role": "evaluator",
+      "bytes": 50480,
+      "sha256": "2be2b47a59bca2f654c946344235025ecf77baea8ebd8957d013c8f6d5088424",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2bdd0f12/golden_output.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/2bdd0f12/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 42904,
+      "sha256": "c43b25a890d39af3fc276cd95fd9d4151975ad0c9f1e13c97aff1f33dbe0d731",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2bdd0f12/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/2bdd0f12/instruction.md",
+      "role": "actor",
+      "bytes": 2231,
+      "sha256": "b4f85e093d6d11b9cd85463921738063f25bdcc84c3a1f9fe67f4892a60f55b9",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2bdd0f12/instruction.md"
+    },
+    {
+      "path": "tasks/manipulation/2bdd0f12/metadata.json",
+      "role": "evaluator",
+      "bytes": 156,
+      "sha256": "2b3aa238c32e11824ff96c7a69367273c174f0ee0e4634a955538abb83cd9e15",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2bdd0f12/metadata.json"
+    },
+    {
+      "path": "tasks/manipulation/2bdd0f12/rubric.json",
+      "role": "evaluator",
+      "bytes": 12695,
+      "sha256": "b0978037f7bab75edc01249b751cfef8a5b093300a4f890c39abd70cedf0b11c",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/2bdd0f12/rubric.json"
+    },
+    {
+      "path": "tasks/manipulation/67cbe713/golden_output.xlsx",
+      "role": "evaluator",
+      "bytes": 539850,
+      "sha256": "9d44c0bc7f044a81c7fe0e9ade9f5967646b1f326ba9240a3d503a28717f1fc9",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/67cbe713/golden_output.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/67cbe713/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 533827,
+      "sha256": "3b4881c79a2470cc922579701f33c81401c38133e168a5f0f03b50bbb122f26e",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/67cbe713/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/67cbe713/instruction.md",
+      "role": "actor",
+      "bytes": 3659,
+      "sha256": "f46deeb51b213e2dc64f71df249dc168e7c089b95531d9c51521ad5121a89235",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/67cbe713/instruction.md"
+    },
+    {
+      "path": "tasks/manipulation/67cbe713/metadata.json",
+      "role": "evaluator",
+      "bytes": 156,
+      "sha256": "d88b9628f028ec90193168ac5e9a2088ebfde5423ef7f2f215c2d673f122c794",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/67cbe713/metadata.json"
+    },
+    {
+      "path": "tasks/manipulation/67cbe713/rubric.json",
+      "role": "evaluator",
+      "bytes": 10877,
+      "sha256": "36eceeeaee96563bb89639480628a9248780508d851c14b72bb481e53e69e4e1",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/67cbe713/rubric.json"
+    },
+    {
+      "path": "tasks/manipulation/95d3752e/golden_output.xlsx",
+      "role": "evaluator",
+      "bytes": 1359687,
+      "sha256": "572e4c011c115d47e5f66444be09bcc48c49b65699986ae8e92708bf5c41ed44",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/95d3752e/golden_output.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/95d3752e/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 995706,
+      "sha256": "e466b1255bb8e3316b2bd2ca7205143a401559ad0c31a5bfc3416e40fcf5eed7",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/95d3752e/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/95d3752e/instruction.md",
+      "role": "actor",
+      "bytes": 4540,
+      "sha256": "bbf3b2e9172b49e459a752e9ec9962c172304492da6e62822d214a3b9a28604d",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/95d3752e/instruction.md"
+    },
+    {
+      "path": "tasks/manipulation/95d3752e/metadata.json",
+      "role": "evaluator",
+      "bytes": 156,
+      "sha256": "e9f70afd674aadac4f8761ae3bea9da628f67360aeb79fc2839908b69faa2022",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/95d3752e/metadata.json"
+    },
+    {
+      "path": "tasks/manipulation/95d3752e/rubric.json",
+      "role": "evaluator",
+      "bytes": 12824,
+      "sha256": "006a8d6a87332b9a93c70a08680571fbe83b796e7e4fc33c016e9915ea71d78b",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/95d3752e/rubric.json"
+    },
+    {
+      "path": "tasks/manipulation/d970b98b/golden_output.xlsx",
+      "role": "evaluator",
+      "bytes": 161569,
+      "sha256": "48c28efd0c5c52f5b229e96fa08d1534baeaddd6103cc2b45fab7466344b4654",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/d970b98b/golden_output.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/d970b98b/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 129709,
+      "sha256": "1f182861ac65ee539de15e143afbc8af1c8fc361105f216cba5a675db209f73d",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/d970b98b/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/d970b98b/instruction.md",
+      "role": "actor",
+      "bytes": 3994,
+      "sha256": "bb3d119e061c87d6a76911e0a5011555e555ca7d343628e394ba9be880f7801a",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/d970b98b/instruction.md"
+    },
+    {
+      "path": "tasks/manipulation/d970b98b/metadata.json",
+      "role": "evaluator",
+      "bytes": 156,
+      "sha256": "3a44a696163c532cd4081c2b5ade86f428f35039750e405e0362d264551bd5e0",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/d970b98b/metadata.json"
+    },
+    {
+      "path": "tasks/manipulation/d970b98b/rubric.json",
+      "role": "evaluator",
+      "bytes": 10666,
+      "sha256": "5c390636b04348ab214b42efdfc212e0bfa443a2ea9a1285c17edd80ded73f8e",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/d970b98b/rubric.json"
+    },
+    {
+      "path": "tasks/manipulation/e13c5e9d/golden_output.xlsx",
+      "role": "evaluator",
+      "bytes": 105262,
+      "sha256": "c1a5f18fc9b1300e16bbcd8d00ce8f91601a521298dbd1ade1c9f18fd91976e0",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/e13c5e9d/golden_output.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/e13c5e9d/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 68251,
+      "sha256": "1d29300d550e55acb6962f3505514c3e446e6d6c8ec16bc2d5a5e1b6a4f2cabe",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/e13c5e9d/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/e13c5e9d/instruction.md",
+      "role": "actor",
+      "bytes": 2075,
+      "sha256": "b601b93e52634229cfeb70f31eb80ae5d7dd2c169955fe2f3a57bcebcee706b4",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/e13c5e9d/instruction.md"
+    },
+    {
+      "path": "tasks/manipulation/e13c5e9d/metadata.json",
+      "role": "evaluator",
+      "bytes": 156,
+      "sha256": "ee8352f607c275f6803af10ac47fab88f3935b2d922adc90b2c5426b88701748",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/e13c5e9d/metadata.json"
+    },
+    {
+      "path": "tasks/manipulation/e13c5e9d/rubric.json",
+      "role": "evaluator",
+      "bytes": 9059,
+      "sha256": "812d696c2c00c1bc13f8aa9bdda7dbee0c930f3e3a01bf7eb116e27f2d2b3b42",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/e13c5e9d/rubric.json"
+    },
+    {
+      "path": "tasks/manipulation/eae8665e/golden_output.xlsx",
+      "role": "evaluator",
+      "bytes": 431034,
+      "sha256": "62cfc79277475e0ba8996dd614ce21f75fc7e8469b3177e51a7c7b680159c8c7",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/eae8665e/golden_output.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/eae8665e/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 377794,
+      "sha256": "ad03a5f886ae51d07f7ea3e2a6b8e83817e86ed4dc67e12759da5845a069ef56",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/eae8665e/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/manipulation/eae8665e/instruction.md",
+      "role": "actor",
+      "bytes": 2096,
+      "sha256": "a9d71a7719bc6bd19eca9a768ba19549308acaab72e2d4e96ed7d6bae4aab6af",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/eae8665e/instruction.md"
+    },
+    {
+      "path": "tasks/manipulation/eae8665e/metadata.json",
+      "role": "evaluator",
+      "bytes": 156,
+      "sha256": "29832368aa896c6eedcd427f992f4e4dd17bc42fc394add83bb65cae7c63b1c3",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/eae8665e/metadata.json"
+    },
+    {
+      "path": "tasks/manipulation/eae8665e/rubric.json",
+      "role": "evaluator",
+      "bytes": 8902,
+      "sha256": "9f3de65186720ce4428248a87bacae492ce8166f7563847ed41b95aeb99424c6",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/manipulation/eae8665e/rubric.json"
+    },
+    {
+      "path": "tasks/synthesis/TTWO_Operating_Model_DCF/input_workbook.xlsx",
+      "role": "actor",
+      "bytes": 306196,
+      "sha256": "cb4790ae38a7b9387503f4f36ea8dfc7141f88a2314bd85fe8857c1c88274990",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/synthesis/TTWO_Operating_Model_DCF/input_workbook.xlsx"
+    },
+    {
+      "path": "tasks/synthesis/TTWO_Operating_Model_DCF/instruction.md",
+      "role": "actor",
+      "bytes": 8709,
+      "sha256": "f48e1a7ec174b8cfe3be03e635b0eb9c2112d112ae182030c6dcac2f1745155c",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/synthesis/TTWO_Operating_Model_DCF/instruction.md"
+    },
+    {
+      "path": "tasks/synthesis/TTWO_Operating_Model_DCF/metadata.json",
+      "role": "evaluator",
+      "bytes": 252,
+      "sha256": "69366eb185fe8190ea3b7898eee18b67ff5415928a7c468b2d9bd0da0ef69766",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/synthesis/TTWO_Operating_Model_DCF/metadata.json"
+    },
+    {
+      "path": "tasks/synthesis/TTWO_Operating_Model_DCF/rubric.json",
+      "role": "evaluator",
+      "bytes": 11509,
+      "sha256": "659022b863632dc72552546c79a52fa2cbd51bc41f7c493f187b8f09bde56a33",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/synthesis/TTWO_Operating_Model_DCF/rubric.json"
+    },
+    {
+      "path": "tasks/synthesis/TTWO_Operating_Model_DCF/sample_output.xlsx",
+      "role": "evaluator",
+      "bytes": 227327,
+      "sha256": "26258f14b8f995a6ca4217e2a467b5c8ab94a6dcf3c779ac422cf8ecad361e73",
+      "source": "https://huggingface.co/datasets/Longitude-Labs/bluefin-release/resolve/6a2a02db0a764b8da52214a573954143ecf68cea/tasks/synthesis/TTWO_Operating_Model_DCF/sample_output.xlsx"
+    }
+  ]
+}

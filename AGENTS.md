@@ -13,4 +13,6 @@ Historical images, extracted application trees, temporary overlays and retired a
 
 Keep experiments separate from accepted release source. Archive superseded release work outside the repository, retain it for 30 days, and use the archive cleanup command documented in the release policy. Preserve active work in other sessions; record unresolved source integration before any promotion.
 
+Before running model studies or analysis batches, estimate the total cost of Lambda GPU execution versus DeepSeek API execution and use the cheaper option that meets the task's quality and capability requirements. Include model fit, context length, measured throughput/batching, reasoning tokens, API caching, GPU startup/model loading, idle time, storage and shutdown. Record the estimate and choice with the study; revisit it when workload or prices change. Terminate rented instances when finished and verify termination. This is the owner's standing October23,2026 instruction.
+
 Do not deploy until the requested behavior is accepted locally. Deploy authorized application changes to development; production requires explicit owner permission. Archiving and local release maintenance do not require an application deployment.

@@ -1,0 +1,36 @@
+{
+  "condition": "finch_native_files_pilot_02",
+  "created_at_utc": "2026-10-23T18:28:39.458778+00:00",
+  "app": "/Users/omairs/Library/Application Support/SpectralNature/research/checkouts/native-file-analysis-20261023/streamlit_alpaca_app",
+  "source_git": "33aafa883fa96a311d12eb949fef948fa1dd9ba4",
+  "engine_revision": "d69cff6386f07d836a81",
+  "actor_store": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch",
+  "actor_manifest": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch-actor-manifest.json",
+  "actor_sha256": "abd71d3b961ea949ee425c76fe310798acac4623a4abe9c4b4e4e636d1663601",
+  "runner_sha256": "4bc3475a4b8506ab6ea2196f505e70a8719d0ec8458962f763e660b75a2ae361",
+  "root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch-native-pilot-02",
+  "runtime_overrides": {
+    "runtime:deepseek:model": "deepseek-v4-pro",
+    "runtime:deepseek:thinking_mode": "enabled",
+    "runtime:deepseek:reasoning_effort": "high",
+    "runtime:deepseek:timeout_seconds": 480
+  },
+  "completion_tokens": 32768,
+  "budget_usd": 12,
+  "max_provider_attempts": 100,
+  "input_usd_per_million": 1.32,
+  "output_usd_per_million": 3.96,
+  "concurrency": 2,
+  "selected_ids": [
+    "0",
+    "6",
+    "22"
+  ],
+  "image_id": "sha256:a71e5464aab97c6deaeec1c98c53d48bebc3909fe9e7b71c02a3b28319a3fcf0",
+  "docker_context": "colima-zopedia-workbooks",
+  "selection": "Format coverage before inspecting model outputs; balance/control edits, narrative/charts, pivot modification. This pilot is not representative benchmark accuracy.",
+  "grading": "Primary agent personal assessment; no LLM evaluator. Actor receives declared source files only; no gold workbooks, rubrics or reference answers.",
+  "network": "No live web; supplied-asset condition.",
+  "parent_protocol": "protocol-pilot-01.json",
+  "change": "Source-free discovery/capabilities survive source filtering; admitted file tool is correctly classified as supplied-source access. Original prompts/model/input files unchanged."
+}

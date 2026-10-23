@@ -1,0 +1,1065 @@
+{
+  "reviewed_at_utc": "2026-10-23T18:33:37.502729+00:00",
+  "reviewer": "primary_agent",
+  "other_llm_evaluator_used": false,
+  "condition": "native_full_reports",
+  "method": "Personal comparison of all150 complete final answers with published references. Accept semantic equivalents and compatible precision/percent presentation. Flag material numeric, scope or judgment differences, even where the reference is source-wrong or the model uses a defensible alternative. Supplemental claims are not all independently source-audited.",
+  "not_official_publisher_metric": "FINANCEBENCH official LLM judging was not run. This is a separately named personal reference-alignment comparison, not certified source accuracy.",
+  "cases": 150,
+  "reference_aligned": 131,
+  "material_differences": 19,
+  "reference_alignment_fraction": 0.8733333333333333,
+  "financial_accuracy": "No aggregate final source-accuracy score; source adjudication is partial. Four confirmed publisher errors and genuine model/scope failures remain visible in the companion review.",
+  "rows": [
+    {
+      "id": "financebench_id_03029",
+      "prediction_sha256": "fabb2e9c33c7d835e9a3fff43924f4daf6398a596e1519f75284adffa9590e01",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "FY2018 purchases of PP&E are1577 million; cash outflow sign is appropriately expressed as expenditure amount."
+    },
+    {
+      "id": "financebench_id_04672",
+      "prediction_sha256": "7d02eb88a23c6b9990f46fbea22aeed946c462fe1190865fc438c617c2adad25",
+      "reference_aligned": true,
+      "financial_review_status": "supported_more_precise_than_reference",
+      "assessment": "Net PP&E8738 million is8.738 billion. Publisher rounds to8.70; the more precise sourced answer is acceptable."
+    },
+    {
+      "id": "financebench_id_00499",
+      "prediction_sha256": "859f800851dd7766ab616b8e5e8bf7ca25784c210b2fb310949422bb01bdf0ce",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "Capex1749 / revenue34229 =5.1%; a supported moderate-capital-intensity judgment. Reference also cites asset ratios; those were not explicitly required."
+    },
+    {
+      "id": "financebench_id_01226",
+      "prediction_sha256": "ab4b68b1db2bf45ea085b6fc97a5199da6536101227afa8a15118f7af2f61856",
+      "reference_aligned": true,
+      "financial_review_status": "supported_pending_supplemental_claim_check",
+      "assessment": "Answer identifies1.7 percentage point GAAP margin decline and litigation/PFAS/Russia/restructuring drivers. Published evidence supports these drivers. Extra adjusted-margin and inflation claims still need separate full-report comparison."
+    },
+    {
+      "id": "financebench_id_01865",
+      "prediction_sha256": "540f65f865fcdbd1104ae31ae3e9ab24b54726a5e8079e10d9cb5fcd4947e9e1",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "Correctly identifies Consumer organic sales -0.9%; uses organic rather than acquisition-affected total growth."
+    },
+    {
+      "id": "financebench_id_00807",
+      "prediction_sha256": "8374f0555ae3dcdc96080c29d2b281c366607be7aa58fadb8887e50a0a4fa1e3",
+      "reference_aligned": false,
+      "financial_review_status": "definition_variant_native_mismatch",
+      "assessment": "Answer explicitly uses cash4258 + securities56 + net receivables4947, divided by current liabilities10936, giving0.8469. Publisher uses (current assets15754 - inventory5280)/10936 =0.9578, which retains prepaids674 and other current assets539. Both conclude below1x. Preserve numeric native mismatch and distinguish the defensible stricter quick-assets definition; do not call the calculation wrong or silently change the reference."
+    },
+    {
+      "id": "financebench_id_00941",
+      "prediction_sha256": "56341f2b507bc82fd5c6da55315edf8f2a4a1c90355f7feb49324ad72109d574",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "Correct coupon/maturity securities2026/2030/2031. Omits trading symbols but identifies all requested debt issues."
+    },
+    {
+      "id": "financebench_id_01858",
+      "prediction_sha256": "58b0235274b78a75f59ada67b48e82748348a71befbc868e35c9bea3e88d21ee",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "Stable dividends and65 consecutive annual increases match the reference. Answer provides current and prior quarterly per-share amounts."
+    },
+    {
+      "id": "financebench_id_02987",
+      "prediction_sha256": "067a14a6a16e64e2df44132ab357b69c331b04846d378a4cdcbcac00650e7034",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "Personally recomputed6489 / mean(253,282) =24.2579439, rounds24.26."
+    },
+    {
+      "id": "financebench_id_07966",
+      "prediction_sha256": "28a9b7c62deb6f3895143c39e90ec05d55bfb7de2ec41e5b4797258153f4348b",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "Personally recomputed mean(116/6489,131/7500,155/7017) *100 =1.9144095%, rounds1.9%."
+    },
+    {
+      "id": "financebench_id_04735",
+      "prediction_sha256": "8dc00753f6e3ad67b97eb486020dd99e2878c56f5679e6a20588d777c73776be",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "Personally recomputed1469502 /2213556 =0.66386484, rounds0.66."
+    },
+    {
+      "id": "financebench_id_07507",
+      "prediction_sha256": "aa11b55b67fa05f33cff89e86b07349ba5f9d02fc521a0d06013bbe1064b08f4",
+      "reference_aligned": true,
+      "financial_review_status": "supported",
+      "assessment": "Operating income1493602 /903095 -1 =65.4%, same financial quantity and requested precision."
+    },
+    {
+      "id": "financebench_id_03856",
+      "prediction_sha256": "d642a9a612c5d0e204b00a9ee2c6a531c6c100f02ed5a44c55f6e4401505b5ac",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "0.83 matches the native Adobe2017 CFO/current-liabilities answer; source arithmetic still pending."
+    },
+    {
+      "id": "financebench_id_00438",
+      "prediction_sha256": "8e0ef1899b7d3ffc26c94faa0ec83bd9b9dbe3e369fba3fccc120cfca3e21fce",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correctly says margins declined34.6% vs36.8%. Additional2020 context and expense explanations require source comparison."
+    },
+    {
+      "id": "financebench_id_00591",
+      "prediction_sha256": "be9f50cad17ce70fee6ac441128d31f568c188bf1849f49f88f86915b6437003",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "155.5% vs142.7% gives the correct direction and matches the rounded publisher values; final2022 formula is internally coherent."
+    },
+    {
+      "id": "financebench_id_01319",
+      "prediction_sha256": "5d679aa0df38e33f6fd7e17cd00e9b2c0265310232c93bfd43dd60933fa99e6a",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "0 matches the explicit question convention: absent separately stated restructuring expense is reported as0, not inferred from notes."
+    },
+    {
+      "id": "financebench_id_00540",
+      "prediction_sha256": "a57ce40eff535aaac4802fe2b3a3f4aac2cd16e04a1fddf9d24e167b6d15abef",
+      "reference_aligned": false,
+      "financial_review_status": "definition_variant_native_mismatch",
+      "assessment": "Source evidence shows COGS10069, inventory1055 and604. Analyst uses average inventory829.5 =>12.1386x; publisher uses year-end inventory1055 =>9.5441x. Question does not prescribe average vs closing inventory. Keep native mismatch separately from a defensible average-inventory convention."
+    },
+    {
+      "id": "financebench_id_10420",
+      "prediction_sha256": "df88b5e3bbfaa560aa643b48251460a6fd855cbe7870127cc3e5a046bc5f8200",
+      "reference_aligned": false,
+      "financial_review_status": "incorrect_specified_denominator",
+      "assessment": "Question explicitly requires average2021/2022 assets. Source: net income attributableAES -546, assets38363 and32963. -546/35663=-0.015309985 (=-1.5310%); rounds-0.02 as a ratio. Answer-1.42% is inconsistent with the specified average and numerically aligns with closing assets instead. This is an actual modeling/instruction failure, beyond a percent presentation difference."
+    },
+    {
+      "id": "financebench_id_06655",
+      "prediction_sha256": "61b4c61673833ec10de05e65d3342cf481880853b8556181a9cbf56f35d31933",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "93.86days matches the explicitly defined DPO formula; source recomputation pending."
+    },
+    {
+      "id": "financebench_id_08135",
+      "prediction_sha256": "93dfeb68d6c73d24636280b43781283d7cf2587603bf942a89afd11324a4bc1b",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "30.8% agrees with published Amazon revenue growth; source recomputation pending."
+    },
+    {
+      "id": "financebench_id_08286",
+      "prediction_sha256": "c6a3f0de3f33ab07f257f1aa6029c5a633d931a6ca7a0477ba970c1ec9a44548",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "11588million agrees with the requested2019 income attributable to shareholders."
+    },
+    {
+      "id": "financebench_id_03882",
+      "prediction_sha256": "4f16e53da7d4afaf7c8d849119e5f462f5100dfe95f18ec419d37d1d49ca65fd",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "1615.9million is more precise than rounded1616; verify source rather than penalize display precision."
+    },
+    {
+      "id": "financebench_id_01935",
+      "prediction_sha256": "72868b97cd4a22a51597c63ac67f351b7fb7aa8534775291fc667dbd13dd02b6",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct issuer-substitution/assumption transaction, rather than inventing a business acquisition."
+    },
+    {
+      "id": "financebench_id_00799",
+      "prediction_sha256": "cdb0d43013cc4d150a9687269ffded73f32651c7ba1a06310d688af88fb6e7aa",
+      "reference_aligned": false,
+      "financial_review_status": "definition_variant_native_mismatch",
+      "assessment": "Both say quick ratio improved. Analyst explicitly uses cash+receivables:2564/4476=.5728 and2710/5103=.5311. Publisher uses current assets less inventory, including prepaids/other assets and the2022 held-for-sale balance. Source balance sheet confirms the alternative inputs; preserve this defensible stricter definition separately."
+    },
+    {
+      "id": "financebench_id_01079",
+      "prediction_sha256": "24e832445508fdd18829d4298ef7973623f1aacd3a42b0781671f44d05f7a0c3",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "All3FY2023 acquisitions match reference. Additional claim of no major FY2021/22 acquisitions disclosed needs full-report verification."
+    },
+    {
+      "id": "financebench_id_01148",
+      "prediction_sha256": "81ab497c57f84b173e382a4d5ae54b7624767b45eee409db15faa05d183bec69",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Packaging-industry identification matches."
+    },
+    {
+      "id": "financebench_id_00684",
+      "prediction_sha256": "69163a9724b95dbf7755431bf0798c99cbe82ba5fc6634041f8c487519273e78",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct declining gross-margin profile. Numerical precision is compatible with the rounded reference. Extra causal explanation still needs source check."
+    },
+    {
+      "id": "financebench_id_01936",
+      "prediction_sha256": "e545f7ff9c088f86b7af3a8fffbb117d68b78eb4c180a6edf877f8d4119b158e",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "81/93=87.1% employee costs agrees with reference. Russia-Ukraine attribution, other cost categories and payment timing still require source check."
+    },
+    {
+      "id": "financebench_id_01928",
+      "prediction_sha256": "141dacbaa1c61067a05fb7ee8e953b3d171f4b76c0fea65564433103695d8dbc",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "2018million adjusted non-GAAP EBITDA matches the requested fiscal2023 measure."
+    },
+    {
+      "id": "financebench_id_01930",
+      "prediction_sha256": "64a0a78f7dea947aaeed097ad1f25ebb9723214010cb307cd1d8b1f631d645fe",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Flat comparable constant-currency sales agrees with requested adjustments."
+    },
+    {
+      "id": "financebench_id_03069",
+      "prediction_sha256": "14c82513e35da31d9ecad7951ec4c5f1f3d2c81ea684f624ae33d38e2adff6d1",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "167/3991=4.1844%, rounds4.2%; inputs agree with native reference."
+    },
+    {
+      "id": "financebench_id_00222",
+      "prediction_sha256": "6163f673b995cac433f0b1976d2033ff402077e10e96d0d034525cc088933b90",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Quick assets9981/current liabilities6369=1.5671x; correct healthy-liquidity direction and reference measure."
+    },
+    {
+      "id": "financebench_id_00995",
+      "prediction_sha256": "00f9be963afdd423d6e0d52c7452a92eebeb38387f31fe5a851679e07a014bd2",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Matches all major AMD product categories and service types. Extra IP-licensing claim needs source check."
+    },
+    {
+      "id": "financebench_id_01198",
+      "prediction_sha256": "1d7833061ba3516bcd426288990756843d1d50ae952c8cdede626d5bd296086b",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct EPYC, semi-custom and newly consolidated Xilinx revenue drivers. Additional segment figures pending source comparison."
+    },
+    {
+      "id": "financebench_id_00917",
+      "prediction_sha256": "680027a944368af9e372a35ff32fdf3a68e667bc6e1d403b13656d7fb691bcf9",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct acquisition-related intangible-amortization explanation for operating-margin decline. Additional expense figures and gross-margin attribution pending source comparison."
+    },
+    {
+      "id": "financebench_id_01279",
+      "prediction_sha256": "c7bdec0db8e8a1f1f3521ef5d031e8026d3364de6fb76c38f1713174c0305256",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Operations matches the requested largest cash-flow activity."
+    },
+    {
+      "id": "financebench_id_00563",
+      "prediction_sha256": "e8d4b3efd2fea7c53ec032a897fbe163fd6fa05909fd9a87755ae273741cd9e5",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "DataCenter correctly answers proportional segment growth excluding Embedded."
+    },
+    {
+      "id": "financebench_id_00757",
+      "prediction_sha256": "2eeab7c61fc161668d7692b2be2cb5918f3b8711d09cf92a94969d08ba088ad4",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct16% revenue customer concentration. Additional18% receivables concentration pending source check."
+    },
+    {
+      "id": "financebench_id_00476",
+      "prediction_sha256": "53b959c595d5665205f55234259337b73693cadfcb982b1be0df7ea8e72d8ae4",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct absence of exchange-listed debt; common-share qualifier agrees with listing distinction."
+    },
+    {
+      "id": "financebench_id_01028",
+      "prediction_sha256": "fd235d31299e81d259d66085a55d635ad95e5f70d35374e374f98e2ab67b639e",
+      "reference_aligned": true,
+      "financial_review_status": "supported_geographic_variant_source_confirmed",
+      "assessment": "Original business overview explicitly lists UK, EU, Australia, Japan, Canada and Mexico as significant non-US billed-business jurisdictions. Model reproduces that list and US; the different regional aggregation does not make the answer incomplete."
+    },
+    {
+      "id": "financebench_id_00723",
+      "prediction_sha256": "2dc075fc878c84dfbd436caa876825e5dea5d7b05d7fd9eee098af35eb2f285b",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correctly rejects generic operating margin for AMEX. Supplemental pretax-margin and ROE figures require source checking."
+    },
+    {
+      "id": "financebench_id_00720",
+      "prediction_sha256": "515dfdf3f4a551eaec34181ba4b18040f179123c73659df54eba5562f6a8f784",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correctly rejects gross margin as disclosed measure. Supplemental revenue/provision/expense details need source checking."
+    },
+    {
+      "id": "financebench_id_01351",
+      "prediction_sha256": "0fbe47a8cac91b7ffb154aff0224d0049edec5310415a095096b6c5b02514a30",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct3percentage-point tax-rate decline24.6 to21.6."
+    },
+    {
+      "id": "financebench_id_01964",
+      "prediction_sha256": "dd119fc72036713d5df2f2646a28868e96e7362aff0edb1b135d82e7a4ddcdd0",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct customer-deposits liability; extra amount pending source check."
+    },
+    {
+      "id": "financebench_id_01981",
+      "prediction_sha256": "ca83b515e6dfb2adcef5fa76fa0ae36bb6b2be9883c682469a62fb7b1366280b",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct retention direction. Acquisition count/fee-growth support and retention are distinct; verify supplemental claims."
+    },
+    {
+      "id": "financebench_id_05718",
+      "prediction_sha256": "b41c32d6377af4dbdd63559e9f5a5cfab0d349aa608f9960f090f8f4c2dd06e9",
+      "reference_aligned": true,
+      "financial_review_status": "supported_precision_source_confirmed",
+      "assessment": "Original cash-flow statement reports dividends389million=.389billion; retain the accurate source precision alongside publisher0.40."
+    },
+    {
+      "id": "financebench_id_04254",
+      "prediction_sha256": "39d40479fa5319731da63fd20dedce649488d167946708f4a118ea7009c05277",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "1196+636=1832million; internally consistent with specified unadjusted EBITDA definition."
+    },
+    {
+      "id": "financebench_id_00070",
+      "prediction_sha256": "1af5b814a40845e566a0e80784ce970c1d73397b1c3449a16509da709b5964e8",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "1250-2811=-1561million matches negative working capital. Refinancing/metric-utility commentary pending source check."
+    },
+    {
+      "id": "financebench_id_02608",
+      "prediction_sha256": "045cd60a392967936e6fcf52299619f4e712bcdd91ac1f2fc6b6ec6e3e58094e",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "2.8% matches requested3-year average net-profit margin."
+    },
+    {
+      "id": "financebench_id_04417",
+      "prediction_sha256": "183206fddf4e530592d6ea760aa51677b03cd20f0592a6f2be0e91e48862ce04",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "5409million inventory matches."
+    },
+    {
+      "id": "financebench_id_00685",
+      "prediction_sha256": "0b05bd2e90c288bf92a5cc772faa90c3bd6363815bc03569fe2577dc349857e8",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Gross margins21.4/22.5/22.4 show changes within2pp; main answer agrees."
+    },
+    {
+      "id": "financebench_id_01077",
+      "prediction_sha256": "21cb99c1aeb490a7387047142e43f451fc773f7078276aa791a5a12bbd22f836",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct2FY2022 acquisitions. Extra dates and no FY2021/23 transactions need source checking."
+    },
+    {
+      "id": "financebench_id_01275",
+      "prediction_sha256": "c8b8b42db29a7e8228dc5396a0fc5603516afec76a0ec7d6f9410a5bde170674",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Operations1824million agrees. Other two activity amounts pending source check."
+    },
+    {
+      "id": "financebench_id_00288",
+      "prediction_sha256": "77286c3920921ca45f112d1c86f061f1313c88bf943446c5f31dd3305f3517a4",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "1874 to1093 is a41.68% decline, compatible with reference42%."
+    },
+    {
+      "id": "financebench_id_00460",
+      "prediction_sha256": "700bd388908f3c45b41c29b929d8588e3cead8debd14dfb7da6d7f423cf67864",
+      "reference_aligned": false,
+      "financial_review_status": "incomplete_scope_source_confirmed",
+      "assessment": "Source domestic-store table totals969 vs982, including OutletCenters, PacificSales and Yardbird. Analyst instead supplies BestBuy-format907 vs930 plus Canada128 vs127. It omits other domestic formats, and the question also ambiguously saysFY2023 while the reference usesQ2FY2023. Preserve omission and date/scope ambiguity separately."
+    },
+    {
+      "id": "financebench_id_01902",
+      "prediction_sha256": "c2c226681155e1d564fe4b33760e07d7a8d9370e3d115ccdc9bf7ffd092ae730",
+      "reference_aligned": false,
+      "financial_review_status": "ambiguous_measure_source_confirmed",
+      "assessment": "Full original revenue table confirms Computing/Mobile3674million, the largest category level. Entertainment has highest comparable-sales growth+9%. Question says best by top line without defining level vs growth; retain native difference and ambiguity."
+    },
+    {
+      "id": "financebench_id_04660",
+      "prediction_sha256": "fed841c754780364281a9f2f67591772a3f2ebe87ee4ad3977ef6c12951a976a",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "1.73 matches explicitly defined current-assets/current-liabilities ratio."
+    },
+    {
+      "id": "financebench_id_03838",
+      "prediction_sha256": "e3bde41780e3477d65b4d6b34af9b8615fa996b6ba9f22047361da66409bfe8e",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "101.5% matches Block2019-2020 revenue growth."
+    },
+    {
+      "id": "financebench_id_07661",
+      "prediction_sha256": "4f008bf16e244becec3a1b49aa0695474c68905495af558d5ef7ed277897b46b",
+      "reference_aligned": true,
+      "financial_review_status": "supported_precision_source_confirmed",
+      "assessment": "Original cash-flow statement381603thousand=381.603million;381.6million is correct at the displayed precision."
+    },
+    {
+      "id": "financebench_id_10285",
+      "prediction_sha256": "aa1eb1724b8edec40ab923a758c50bff107734af6e7e69386a1b039449c07e34",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "12645million net PP&E matches."
+    },
+    {
+      "id": "financebench_id_00517",
+      "prediction_sha256": "e140f45f2a914bc9316bb2f88926eebd290785565705e9d31b606198814fd6f9",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "All3Boeing segments exceed20%; supplied dollar shares align with reference rounded percentages."
+    },
+    {
+      "id": "financebench_id_01091",
+      "prediction_sha256": "61c8eba0af0e607f810dc4454ffd4c179dbf40b38f34b1b842f14fcabcec4dc7",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct737MAX litigation. Extra Embraer arbitration and loss-estimation statements pending source verification."
+    },
+    {
+      "id": "financebench_id_00678",
+      "prediction_sha256": "b982378d94237afcd6caa24d220ecb3217323288af3a5a4bfa2968beaa1b2591",
+      "reference_aligned": true,
+      "financial_review_status": "mixed_judgment_pending_source_review",
+      "assessment": "Correct reported gross-margin improvement. Says the measure is not useful due charges; this is stronger than merely explaining distortion. Need judge source-based usefulness reasoning separately from the direction."
+    },
+    {
+      "id": "financebench_id_01290",
+      "prediction_sha256": "9311ee55703a96d619752616d83a44610844ff0d3076666fe928ccb4ea746d30",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct airline and US-government customers; reference40% revenue not expressly requested."
+    },
+    {
+      "id": "financebench_id_00464",
+      "prediction_sha256": "e24c1b54e6163c1b66088d09f50e70f69c3aaaf5b1e929d18138cabfefafa497",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct exposure to historically cyclical airline industry."
+    },
+    {
+      "id": "financebench_id_00494",
+      "prediction_sha256": "ee075191b89d4abe02c21419ed0f97356b816da01577ce48f76b77ce651ab2dc",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct production increases737/787 and restart777X. Detailed rates need source verification."
+    },
+    {
+      "id": "financebench_id_00585",
+      "prediction_sha256": "67a2c49012c6a11a24244161db5214cf94ff3a219bb7341453d1c1a72ea59786",
+      "reference_aligned": false,
+      "financial_review_status": "publisher_sign_error_source_confirmed",
+      "assessment": "Full original Boeing2022 report explicitly prints effective income tax rate2022(0.6)%,2021 14.8%. Analyst matches it. Publisher reverses signs by using the tax-benefit-oriented statement line without converting to tax expense. Preserve native mismatch; financial answer is source-supported."
+    },
+    {
+      "id": "financebench_id_03473",
+      "prediction_sha256": "250b1156b06d3685c2ea591a7501597949ff46abaee5a3f6f16c558b7583fd0a",
+      "reference_aligned": true,
+      "financial_review_status": "rounded_reference_agreement_measure_variant",
+      "assessment": "Original statement has consolidated income1283 and attributable income1248; assets87896and87270. Model uses consolidated income and requested average assets87583. Both numerator variants round to native0.01ratio; retain the finer measure difference rather than claim identical definitions."
+    },
+    {
+      "id": "financebench_id_09724",
+      "prediction_sha256": "9d8640f31a84265b61ba3c372029821808cd2a8f827f820fdaac11fff6672da0",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "15357/38655=39.73%, rounds39.7%; inputs agree with reference."
+    },
+    {
+      "id": "financebench_id_06272",
+      "prediction_sha256": "9110ca5beb339b99b0a9f5c4bc72936efd74a224099cea5a07d10f8e43356ff5",
+      "reference_aligned": true,
+      "financial_review_status": "precision_variant_pending_source_review",
+      "assessment": "79.82%=.7982 rounds.80 as ratio; keep explicit percent units and judge financial quantity rather than string similarity."
+    },
+    {
+      "id": "financebench_id_10130",
+      "prediction_sha256": "627389c5ae7366e64dd7a31d1675fed69dead23b5382766700af7e47187d4edb",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "63.86 matches specified Corning DPO."
+    },
+    {
+      "id": "financebench_id_02981",
+      "prediction_sha256": "f3e4917067250bdbb5206220a0f377b088712cdd46c79abf5082de72ebadb93b",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "10.3% matches3-year average operating margin."
+    },
+    {
+      "id": "financebench_id_01346",
+      "prediction_sha256": "569c6f4252f668ea7664274ccf735773b15de3a8fe3e2f7686836b377f7acc82",
+      "reference_aligned": true,
+      "financial_review_status": "precision_variant_pending_source_review",
+      "assessment": "20.2% to22.9%, +2.7pp, may be more precise than publisher20 to23; source must decide."
+    },
+    {
+      "id": "financebench_id_00005",
+      "prediction_sha256": "cb0d43f787cc6294a77c5aaa7453ef21e50459aefebd9bf193ac58d298e71a7f",
+      "reference_aligned": false,
+      "financial_review_status": "definition_variant_source_confirmed",
+      "assessment": "Original balance sheet current assets7453 less current liabilities5175=2278million. Publisher831excludes cash and current borrowings. Unqualified working capital admits the model total-current definition; both correctly answer positive."
+    },
+    {
+      "id": "financebench_id_04209",
+      "prediction_sha256": "28469f1a990f97a37ba526c2faf76ebcdc5418128b79c61593c24b8a075e9a73",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "59268million total assets matches."
+    },
+    {
+      "id": "financebench_id_05915",
+      "prediction_sha256": "cff26864ccf6c457cd8ffd712bd4c0b530f7a634f589b2688d154fe0b92464f4",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "17.98 matches requested CVS fixed-asset turnover."
+    },
+    {
+      "id": "financebench_id_00790",
+      "prediction_sha256": "42035c7c2fba8a969e165c8b5850e382ee38cd9d56bc372123968c64690bc412",
+      "reference_aligned": false,
+      "financial_review_status": "judgment_variant_source_confirmed",
+      "assessment": "Original report says gross capexapproximately2.7billion, revenue322467million, netPP&E12873andtotalassets228275. Low physical capital intensity is a supported interpretation; publisher instead emphasizes total acquired capital/goodwill. No universal binary capital-intensive cutoff is defined."
+    },
+    {
+      "id": "financebench_id_01107",
+      "prediction_sha256": "0f7e87b654e84a5f351f225f7041657d87c9fe64c77347ba1d08020eef1e18e0",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct existence of material CVS legal disputes. Covers opioids but not full usual/customary-pricing and PBM litigation detail; question asks whether, not a complete enumeration. Extra5800millioncharge pending source check."
+    },
+    {
+      "id": "financebench_id_01244",
+      "prediction_sha256": "5f11599adcad6f00690e460c6c2218ab0ecc52e8f8b01c0604fc666e8ea93877",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct quarterly0.55 dividend per common share."
+    },
+    {
+      "id": "financebench_id_00839",
+      "prediction_sha256": "d1581a277d3a0cfa6d89ef57c821b8f2a9d32ab87bef0203cb14ebd467da1a37",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct previous UltaBeauty CEO experience; distinguishes retail similarity from footwear-specific experience."
+    },
+    {
+      "id": "financebench_id_00822",
+      "prediction_sha256": "65e2e0cbf418c8cfff253ca1bd522f4518c5696035816c91efd13271151b7834",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct RichardJohnson nominee with unusually high against votes. Counts pending source verification."
+    },
+    {
+      "id": "financebench_id_04103",
+      "prediction_sha256": "91325fb4607e92bfe42406cf96e482f7dfbfd086a4622619647328496675ae92",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "-3.70days matches the explicitly defined CCC; source arithmetic pending."
+    },
+    {
+      "id": "financebench_id_03471",
+      "prediction_sha256": "b898e67ba4392c9edca6aa2db142a73fe7310867909f911e8a2c4cda2840af75",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "0.68 matches specified current-assets/current-liabilities ratio."
+    },
+    {
+      "id": "financebench_id_04854",
+      "prediction_sha256": "e22363607a5ce12476f6468d66aa1ba8fc58b2459dc907bfd2f24eca5542a529",
+      "reference_aligned": true,
+      "financial_review_status": "supported_precision_source_confirmed",
+      "assessment": "Original cash-flow statement CFO3676.2 minus purchases460.8=3215.4million."
+    },
+    {
+      "id": "financebench_id_10136",
+      "prediction_sha256": "6c8694c3d24f9883624df4907ae68a1e338d92868d8f299b756089f3faea6a1b",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "0.54 matches retention-ratio definition."
+    },
+    {
+      "id": "financebench_id_00956",
+      "prediction_sha256": "26112777898ed29308982348f447bc1ed77b3d269639a517df535f5dc6dde08c",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct low-growth judgment with1.3%sales growth. Extra net-earnings amounts pending source check."
+    },
+    {
+      "id": "financebench_id_00669",
+      "prediction_sha256": "f29de2244c6fcc649e4d0e0a40f1b78318ea184b51668dff4b1016181b1e97ff",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct COVIDexit, FX and commodity-inflation drivers plus supply-chain offset. Additional margin/amortization figures pending source check."
+    },
+    {
+      "id": "financebench_id_00711",
+      "prediction_sha256": "0f56838340b37b37c92915269b44b021ee8106baee791cbdc712b950197c5a15",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "31089/mean(12483,10387)=2.7187x, agrees2.7. Original inputs pending source check."
+    },
+    {
+      "id": "financebench_id_00651",
+      "prediction_sha256": "d53dac26ea61cae25bc03f9af80fa7b46436e5de09a4cb1f04e389a1a53d8aa9",
+      "reference_aligned": false,
+      "financial_review_status": "publisher_measure_mismatch_source_confirmed",
+      "assessment": "Full original earnings release distinguishes adjusted operational EPS midpoint10.50 (+3.5%) from adjusted EPS midpoint10.55 (+4.0%). The question says adjusted EPS; analyst correctly uses4.0 vs2022 3.6. Publisher uses the currency-excluded operational measure without specifying it in the question. Preserve native mismatch and source-supported answer; no label rewrite in the actor."
+    },
+    {
+      "id": "financebench_id_01484",
+      "prediction_sha256": "002b23bc483e0cdd4efe4fff4003e6398778065fff87f6cea5887b75f57e104b",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct reported US+3.0% vs international-0.6%. Separates operational international+9.1% from reported growth; source check supplemental operational value."
+    },
+    {
+      "id": "financebench_id_01488",
+      "prediction_sha256": "225ed536abf0481b56387eccf86dd79efc2cd1e601df708a386c5f658c0a3162",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct ConsumerHealth discontinued-operation segment."
+    },
+    {
+      "id": "financebench_id_01490",
+      "prediction_sha256": "dd62c00fdaadf6a0c965da497cd42f4ddba20c532c56bb5851b285054826352d",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct approximate20billion separation gain."
+    },
+    {
+      "id": "financebench_id_01491",
+      "prediction_sha256": "7dad8f10a452ce186b5663d0c04f632c5272f92562fc901a91ab5221c134716e",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct13.2billion cash proceeds."
+    },
+    {
+      "id": "financebench_id_01487",
+      "prediction_sha256": "80ccbc276758102b6963960922a3aee11918b898ec8197a62f0946f0c18efedd",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct20.0 to20.1% net-earnings share of sales."
+    },
+    {
+      "id": "financebench_id_00299",
+      "prediction_sha256": "ac1e3266fb2f4e0af3adbb2eb55ce2fd92a806f49027da99fd1da69b42f3a78e",
+      "reference_aligned": false,
+      "financial_review_status": "scope_mismatch_source_confirmed",
+      "assessment": "Source segment table includes Corporate -473million, below CommercialBanking2393million. Answer omits Corporate. Need preserve distinction between four operating business segments and the Corporate reporting bucket when judging ambiguous wording; strict publisher comparison is a mismatch."
+    },
+    {
+      "id": "financebench_id_02119",
+      "prediction_sha256": "e0ab0cc202a100e8725445449ae183a381185eafd2566d05bbd5c00c61df7ded",
+      "reference_aligned": false,
+      "financial_review_status": "liquidation_proxy_difference",
+      "assessment": "Full native question asks a hypothetical liquidation payout, which financial-statement book values alone cannot establish. Publisher uses tangible book value66.56; model supplies ordinary book value82.31with pre-liquidation-cost qualification. Preserve the proxy disagreement; neither amount is independently established actual bankruptcy proceeds."
+    },
+    {
+      "id": "financebench_id_00206",
+      "prediction_sha256": "f68ce27be45bc2ee648d07c6f5e6220339ef9c5134b2bf793d9faf4985f85fd0",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correctly rejects gross margin for a financial institution. Additional overhead ratios pending source check."
+    },
+    {
+      "id": "financebench_id_00394",
+      "prediction_sha256": "b75c2a4ea67c7b720f669a0b2ab5285ff90e0aadff9eaa627f6bbdbce593b1b1",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct Corporate&InvestmentBank highest net income."
+    },
+    {
+      "id": "financebench_id_02049",
+      "prediction_sha256": "26cd1e56c4d4a481624661f61273472eda1d8704f582892dfd791aa8e2866280",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct falling average total VaR47 vs54million; source figures pending check."
+    },
+    {
+      "id": "financebench_id_10499",
+      "prediction_sha256": "dc7316b4f180f092c03c8e9dba4464792eeb4fde1b44203b4d101e51204ad515",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "6.25 matches explicitly defined average-inventory turnover."
+    },
+    {
+      "id": "financebench_id_04412",
+      "prediction_sha256": "4b0fbeb6336593b5623c608d4143e6024146416e283fd468ba7c34af8478f7c2",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "1.33 matches average-assets turnover."
+    },
+    {
+      "id": "financebench_id_03031",
+      "prediction_sha256": "130de068dc0fcb0bca28167aa96970f04429d551fdf3d1595c46181786c67ddc",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "19815-13997=5818million matches explicitly defined net working capital."
+    },
+    {
+      "id": "financebench_id_03718",
+      "prediction_sha256": "944c62926bb3f15288e6fbff2da79cfe7f1c54a67388782c8a1bf712977d5fd8",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "0.4% matches2-year revenue CAGR."
+    },
+    {
+      "id": "financebench_id_04171",
+      "prediction_sha256": "0428bc5e92ffd2b1d4e2b52e726c4d13d4b422bd33f9e0bc19d1d17efc78b96a",
+      "reference_aligned": true,
+      "financial_review_status": "supported_precision_source_confirmed",
+      "assessment": "Original balance sheet accounts payable302578thousand=302.578million."
+    },
+    {
+      "id": "financebench_id_03849",
+      "prediction_sha256": "ba1b72a1c1e4d41d9007a646d4d1e23fdaeaa121f0406d55b8229893d1f48b0f",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "7.9% matches3-year capex/revenue average."
+    },
+    {
+      "id": "financebench_id_01254",
+      "prediction_sha256": "bfbfbcab67fc3f153ce500077917cb0f146ee2c1941b2957e737a729c597d2e6",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Quarterly0.0025 totals annual0.01/share, consistent with reference. Additional4million paid needs source check."
+    },
+    {
+      "id": "financebench_id_00382",
+      "prediction_sha256": "7c72e2a95704633f71f92a7bf874282f2d63992cbe9d0176753c3bb0bb796c89",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct LasVegas highest EBITDAR region. Values by region require source confirmation."
+    },
+    {
+      "id": "financebench_id_01911",
+      "prediction_sha256": "79d3b1106c72434fa23e3ec1e0bc990a6f4a7cd21db3969990a8bb00fba20195",
+      "reference_aligned": false,
+      "financial_review_status": "definition_variant_source_confirmed",
+      "assessment": "Source adjusted EBITDAR3497254K minus rent1950566K minus D&A3482050K gives adjusted EBIT proxy-1935362K; /interest594954K=-3.253x. Publisher clips negative EBIT coverage to0 without specifying a floor in the question. Preserve ratio-convention difference; the negative ratio correctly signals inability to cover interest."
+    },
+    {
+      "id": "financebench_id_01912",
+      "prediction_sha256": "33d4d648195a64b2d1568b706614cc78c0d64dea42ec3fb594aa49ddb0afc507",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct MGMChina worst topline region and44% decline."
+    },
+    {
+      "id": "financebench_id_00407",
+      "prediction_sha256": "094f02f3296e779e97cfdaf0bf5b97ec0f86ab662d25b25c6422744e2bc1adf0",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct corporate bonds largest short-term investment category."
+    },
+    {
+      "id": "financebench_id_04700",
+      "prediction_sha256": "a4d4a662729e57aa4ad84bc224772dbd18fdaab81c4499e9346998a52e97f55a",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "32780million cost of revenue matches."
+    },
+    {
+      "id": "financebench_id_00552",
+      "prediction_sha256": "29da2ce0e09a12cb441604b530c80379f2662088afb3138e8c900085bfa65b02",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Debt49781 to47237million is a2544million decrease, matching rounded2.5billion."
+    },
+    {
+      "id": "financebench_id_04458",
+      "prediction_sha256": "24465828d8564181a396e6f2196f0b3d8d7913aac1b3e748565df32a9adb38b5",
+      "reference_aligned": true,
+      "financial_review_status": "supported_precision_source_confirmed",
+      "assessment": "Original statements show operating income305826K plus specified D&A62283K, divided by revenue6779511K, giving5.4297%."
+    },
+    {
+      "id": "financebench_id_03282",
+      "prediction_sha256": "70ae35b41a36ab112b7c918c65761e3d5c164004ca5a5c94d9cb8fd8402f2ec3",
+      "reference_aligned": true,
+      "financial_review_status": "supported_precision_source_confirmed",
+      "assessment": "Original balance sheet current liabilities5466312thousand=5466.312million;5466.3million is correctly rounded."
+    },
+    {
+      "id": "financebench_id_04302",
+      "prediction_sha256": "c7585e2d5f7f3dfe792ab9215829a743bf5145dacea189e0b909166ce410c27f",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "55.1% matches3-year COGS/revenue average."
+    },
+    {
+      "id": "financebench_id_03531",
+      "prediction_sha256": "6a960a8da987e8425a35355ddbd8c186f02ac6abfd49557816d861fe3439085d",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "16525million current assets matches."
+    },
+    {
+      "id": "financebench_id_04080",
+      "prediction_sha256": "d0201a2f5ade3c50691efefc2cd5f9ce9152dbb5ca36c8bd594549b7e2596c07",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "3.46 matches average-inventory turnover."
+    },
+    {
+      "id": "financebench_id_01163",
+      "prediction_sha256": "fce304ce5489a7393f1bfa9b4e764d74d337ab038c90a07dbdef7fb9d8cccebe",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct operations largest Nike cashflow. Detailed3activity amounts pending source check."
+    },
+    {
+      "id": "financebench_id_00080",
+      "prediction_sha256": "cb28cbf41e3b079c19373f04a0ac994160a180191608630a1d34ffb28fe52a44",
+      "reference_aligned": false,
+      "financial_review_status": "definition_variant_source_confirmed",
+      "assessment": "Original PayPal balance sheet confirms current assets57517 minus current liabilities45101=12416million. Publisher excludes cash7776 and short-term investments3092 to obtain operating working capital1548million(~1.6billion), although question does not specify operating. Both answer positive. Analyst additionally excludes customer custodial receivable/payable balances, obtaining16166million; arithmetic is coherent."
+    },
+    {
+      "id": "financebench_id_04980",
+      "prediction_sha256": "d41d4a52b9d89fcf82c753b543f892691538e3c4680e2123142a4963fe8a12f2",
+      "reference_aligned": true,
+      "financial_review_status": "precision_variant_pending_source_review",
+      "assessment": "4.625billion capex may be more precise than publisher4.60."
+    },
+    {
+      "id": "financebench_id_01009",
+      "prediction_sha256": "65e7d1de1378fc793aee47ef244df954efebb749eb5020253f8ec0eaaae2ff45",
+      "reference_aligned": false,
+      "financial_review_status": "geographic_coverage_variant",
+      "assessment": "Publisher enumerates all operating regions, including MiddleEast/SouthAsia/Oceania. Model says more than200countries and gives selected major countries, but does not supply the complete regional organization. This is a coverage difference, not proof that the named countries are false."
+    },
+    {
+      "id": "financebench_id_00735",
+      "prediction_sha256": "9e93c5537aafe8229b6182439404d4312e4194b133f0b45d91e5da21323e3585",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct absence of management-reported materially adverse ongoing litigation, while acknowledging ordinary proceedings."
+    },
+    {
+      "id": "financebench_id_01328",
+      "prediction_sha256": "08d411b5aeecf03e37d09a9c97d3f5432287e5fb1d121ed43dd040eba6ac7e43",
+      "reference_aligned": false,
+      "financial_review_status": "statement_scope_mismatch_source_confirmed",
+      "assessment": "Original consolidated income statement has no separate restructuring-cost line. Note3discloses411million allocated to cost of sales33, SG&A347 and otherpension/retireebenefits31. Question explicitly instructs0if costs are not directly outlined in income statements, so0is defensible under literal statement-line interpretation;411is disclosed note expense under broader interpretation. Keep both scope and native mismatch explicit."
+    },
+    {
+      "id": "financebench_id_03620",
+      "prediction_sha256": "b533451622a0c1f90aa1a21d55e49cba31b9e73ca24da83f630dd961dfd75781",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "9068million unadjusted EBITDA less capex matches."
+    },
+    {
+      "id": "financebench_id_04481",
+      "prediction_sha256": "a0c988fefe29243ee9adf2525bc4d1dcaa8ff9927f6d8ccd8f97427309b293a5",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "11512+2763=14275million EBITDA; /86392=16.5235%, matches16.5%."
+    },
+    {
+      "id": "financebench_id_01482",
+      "prediction_sha256": "e43ec01d5c540c395db169eb0df59447bbedfdcbb82d4c261d55a886a60ba524",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct shareholder proposal defeated; vote counts pending source validation."
+    },
+    {
+      "id": "financebench_id_00705",
+      "prediction_sha256": "4967299c02cd990eb5cd1bac411328d45319bba55af601f0759d3ddd99407aa8",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "4200-3800=400million revolving-credit increase agrees."
+    },
+    {
+      "id": "financebench_id_00882",
+      "prediction_sha256": "3e3c7cd41f62023aea6e473a7a13df8067c0ecdb94d73774651a17106e27b6e2",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Two4200million lines total8400million, agrees."
+    },
+    {
+      "id": "financebench_id_01474",
+      "prediction_sha256": "4fca586e489dad2cba01e8d2c2fe1d77f2cfd9380a3ec419b612786b6689f82a",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct strongQ1start rationale; detailed guidance changes pending source check."
+    },
+    {
+      "id": "financebench_id_01476",
+      "prediction_sha256": "8995560b874522f25eb8771b837d559f05fb96b6612e4f88fc69e2fe9fbe076d",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct1percentage-point increase."
+    },
+    {
+      "id": "financebench_id_00302",
+      "prediction_sha256": "67b9157dc6b6540721c90d19fa93dc9d8bda6886774b5823751354d9c7c5e454",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct increasing PP&E; specific13745/14882million pending source check."
+    },
+    {
+      "id": "financebench_id_00702",
+      "prediction_sha256": "1d786f1647210c88aaaecbaca50988e94c636e8ba23ded855966413f816602b6",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct exceptional ConsumerHealthcare JV gain; pretax/after-tax amounts pending source check."
+    },
+    {
+      "id": "financebench_id_02416",
+      "prediction_sha256": "8edeb4715bb6d26b14821c61451bb64a7f65377a99df7e306859dae31fbf103a",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "CorrectTrillium/Array/Therachon acquisitions."
+    },
+    {
+      "id": "financebench_id_00283",
+      "prediction_sha256": "bb0d41d5cadaeecfe5073e7f760d5aaf36efc719306decbb3d843a1cdd7fc3ae",
+      "reference_aligned": false,
+      "financial_review_status": "publisher_base_error_source_confirmed",
+      "assessment": "Source says estimated total separation costs700million, of which90% already incurred. Remaining10%*700=70million, exactly analyst answer. Publisher divides700by9as if700were incurred90%, contradicting wording. Preserve published mismatch; analyst is source-correct."
+    },
+    {
+      "id": "financebench_id_00724",
+      "prediction_sha256": "7554c770f8e49753c3f07a3a3c3b14ffa3e789c7d3b0ea17df9bd6e941b76381",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct DevelopedRestofWorld worst percentage decline."
+    },
+    {
+      "id": "financebench_id_02419",
+      "prediction_sha256": "d5e72a0bb74a1a99ab254a6ce36cad74070e32a120f5ea390e9e29f5266e2259",
+      "reference_aligned": false,
+      "financial_review_status": "publisher_timing_error_source_confirmed",
+      "assessment": "Full original report says Upjohn was spun off on2020-11-16 and combined with Mylan to form Viatris. Residual separation costs inQ22023do not make the already completed transaction an ongoing spin-off. Analyst correctly distinguishes historical completion from newQ22023activity."
+    },
+    {
+      "id": "financebench_id_00746",
+      "prediction_sha256": "69a19124d26410b0fc3ba9925ecc8ea1e6f76fe3424ae12e5c02c475ca4159e5",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct absence of exchange-listed debt securities."
+    },
+    {
+      "id": "financebench_id_00521",
+      "prediction_sha256": "5750d093136b7aa3487db7d97b0ac0bbfc549341cf58bceda63c24cbbadafe74",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct absence of major acquisitions for the supplied report periods. Fiscal/calendar label ambiguity is explicitly disclosed."
+    },
+    {
+      "id": "financebench_id_00601",
+      "prediction_sha256": "c18a47100a6b7b4cb2fc2305c7db7fbd7929a8d2a5e37eae3d12efba608f0334",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Matches SG&A improvement causes. Correctly distinguishes actual fiscal2022 period endingJanuary2023 from datasetFY2023label."
+    },
+    {
+      "id": "financebench_id_00603",
+      "prediction_sha256": "ab7d16cba29c58553d92d896d68b6000de6857fe6f1d96fcf582bcdbc4f3ad71",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Matches47new stores inventory driver; additional launch/cost factors pending source check. Fiscal/calendar label distinction retained."
+    },
+    {
+      "id": "financebench_id_00605",
+      "prediction_sha256": "515d1983a21066a1eff488cb3664d719781def758367e932341080fc5c92528e",
+      "reference_aligned": true,
+      "financial_review_status": "supported_precision_source_confirmed",
+      "assessment": "Original release: fourth-quarter repurchases328.1million /annual900million=36.4556%. Fiscal2022 endsJanuary2023; model explicitly explains dataset naming."
+    },
+    {
+      "id": "financebench_id_00606",
+      "prediction_sha256": "bbbc7eb6cbc8c3b2c02428d0b557fe437c2cfe854b5cd04f86cc89fae1b4fae2",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct wage-expense share increased."
+    },
+    {
+      "id": "financebench_id_00859",
+      "prediction_sha256": "06c3982bc0c04b1016e3fef41f5c1b8601205cfeaa7c20cfe14f74f335def005",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct cross-currency swaps32502million."
+    },
+    {
+      "id": "financebench_id_02024",
+      "prediction_sha256": "f0844e5ce3121f5c9a26b0796394ae6dc73ad360e36314b004cc9c3d75c5f0f4",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "1097+862=1959million total benefits; correct sum of reference components."
+    },
+    {
+      "id": "financebench_id_00216",
+      "prediction_sha256": "52e7fec2d91f246493ecb8e6067d7edaefa80f70272903b21ca96f4c7e48a64f",
+      "reference_aligned": false,
+      "financial_review_status": "judgment_variant_with_overstatement",
+      "assessment": "Full original report confirms operating cashflow37141million and unused revolver9436million. Quick ratioabout.54does not establish overall insolvency. Model nevertheless overstates that it does not indicate a liquidity problem and describes current lease liabilities as noncash/deferrable without establishing that; lease payments are cash obligations. Keep ratio agreement, native judgment disagreement and that reasoning weakness distinct."
+    },
+    {
+      "id": "financebench_id_00215",
+      "prediction_sha256": "7c477ac7b9709bd72cb8e598180b5acd599888008d884015adc7818890809021",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "Correct capital-intensive judgment; capex/grossPP&E provide alternative support to reference assets/revenue."
+    },
+    {
+      "id": "financebench_id_00566",
+      "prediction_sha256": "7539ea468d24369d1a62b043af09bff558e80d971f541c4cf0b17aa3154ebe76",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "2022debt150639 vs2021 150868 gives229million decrease; components reconcile."
+    },
+    {
+      "id": "financebench_id_06247",
+      "prediction_sha256": "ef262d9b156165df17c8a9d4ccd828100ae0e0a141faf0478fc50a82d3abc15d",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "42.69 matches explicitly defined DPO."
+    },
+    {
+      "id": "financebench_id_04784",
+      "prediction_sha256": "bf74a0401d677c7254b37ff6f1c0311cbf20b6a77dd852771e6f58b452111087",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "0.2% matches requested operating-margin change, though percentage-point convention should be clear."
+    },
+    {
+      "id": "financebench_id_06741",
+      "prediction_sha256": "8558d9b350cb16cddaafd43442cce8fd7d261983b3ad2e14d3a9f2bfaa115c88",
+      "reference_aligned": true,
+      "financial_review_status": "reference_agreement_pending_source_review",
+      "assessment": "6.2% matches3-year unadjusted EBITDA margin."
+    }
+  ]
+}

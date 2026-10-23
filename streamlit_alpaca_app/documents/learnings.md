@@ -1215,3 +1215,13 @@ Keep published-reference agreement separate from financial validity. FinDeepFore
 ### Native calculation and workbook preservation are separate — October23
 
 An isolated LibreOffice engine computed an independently checked DCF, retained its formulas after save/reopen and recalculated a changed WACC. Five original workbook round trips still changed pivot labels, a blank shape and statement merges. Distinguish numerical serialization near15-digit precision from real content/layout changes. Inspect shared-formula expansion through an established read-only reader before blaming the engine. A valid calculation and preserved chart counts do not establish full workbook fidelity or a production-safe file executor.
+
+
+### Compare Lambda GPU and DeepSeek total study cost — October23
+
+The owner explicitly requires a cost estimate before studies and analysis, then the cheaper suitable execution path. Compare the same task quality and required context/capabilities. API estimates count cache hits/misses and completion tokens including reasoning once; GPU estimates count the complete allocation from loading through idle periods to verified termination, including storage and any qualification work. A cheap single GPU is not a valid price comparison when the chosen model does not fit it. Record source dates, workload, throughput assumptions, break-even point and decision in the study; revisit when workload or prices change. Training that requires weight updates must be marked unavailable through a hosted inference API rather than treated as an equivalent option.
+
+
+### Give file investigations explicit paths and recoverable state — October 23
+
+Declared file descriptors should expose the actual isolated input path. Source-free tool discovery must remain available after source restrictions. A failed calculation should not permanently strand the analyst: restore the last successful working checkpoint on the next call and discard uncommitted failed writes. Native UNO editing preserved twelve shapes that openpyxl saving had removed. Keep that gain distinct from remaining merge compatibility changes. Primary inspection also confirmed a useful economic report and two charts while retaining its overly strong causal interpretation.

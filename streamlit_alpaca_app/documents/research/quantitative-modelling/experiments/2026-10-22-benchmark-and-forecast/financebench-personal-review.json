@@ -488,14 +488,14 @@
     {
       "id": "financebench_id_01028",
       "document": "AMERICANEXPRESS_2022_10K",
-      "status": "semantic_variant_pending_source_review",
+      "status": "supported_geographic_variant_source_confirmed",
       "prediction_sha256": "fd235d31299e81d259d66085a55d635ad95e5f70d35374e374f98e2ab67b639e",
       "answer": "American Express primarily operates in the United States, with significant non-U.S. billed business in the United Kingdom (UK), the European Union (EU), Australia, Japan, Canada, and Mexico.",
       "publisher_answer": "United States, EMEA, APAC, and LACC",
       "publisher_evidence_pages": [
         154
       ],
-      "assessment": "Lists US and principal foreign countries spanning the reference regions. Need compare whether geographic scope is sufficiently complete, rather than require identical region names."
+      "assessment": "Original business overview explicitly lists UK, EU, Australia, Japan, Canada and Mexico as significant non-US billed-business jurisdictions. Model reproduces that list and US; the different regional aggregation does not make the answer incomplete."
     },
     {
       "id": "financebench_id_00723",
@@ -560,14 +560,14 @@
     {
       "id": "financebench_id_05718",
       "document": "AMERICANWATERWORKS_2020_10K",
-      "status": "precision_variant_pending_source_review",
+      "status": "supported_precision_source_confirmed",
       "prediction_sha256": "b41c32d6377af4dbdd63559e9f5a5cfab0d349aa608f9960f090f8f4c2dd06e9",
       "answer": "0.389",
       "publisher_answer": "$0.40",
       "publisher_evidence_pages": [
         85
       ],
-      "assessment": "0.389billion may be a more precise source value than publisher0.40; original cash-flow line must decide."
+      "assessment": "Original cash-flow statement reports dividends389million=.389billion; retain the accurate source precision alongside publisher0.40."
     },
     {
       "id": "financebench_id_04254",
@@ -682,14 +682,14 @@
     {
       "id": "financebench_id_01902",
       "document": "BESTBUY_2024Q2_10Q",
-      "status": "ambiguous_measure_native_mismatch",
+      "status": "ambiguous_measure_source_confirmed",
       "prediction_sha256": "c2c226681155e1d564fe4b33760e07d7a8d9370e3d115ccdc9bf7ffd092ae730",
       "answer": "Computing and Mobile Phones ($3,674 million domestic revenue in Q2 FY2024)",
       "publisher_answer": "The entertainment segment experienced the highest growth of 9% during Q2 FY2024, primarily from gaming division.",
       "publisher_evidence_pages": [
         17
       ],
-      "assessment": "Reference selects strongest comparable-sales growth (Entertainment+9%). Answer selects highest absolute revenue (Computing/Mobile$3674M). Question says performed best by top line without specifying level vs growth. Source excerpt supports Entertainment growth; absolute category revenue needs separate source confirmation. Do not silently force one interpretation."
+      "assessment": "Full original revenue table confirms Computing/Mobile3674million, the largest category level. Entertainment has highest comparable-sales growth+9%. Question says best by top line without defining level vs growth; retain native difference and ambiguity."
     },
     {
       "id": "financebench_id_04660",
@@ -718,14 +718,14 @@
     {
       "id": "financebench_id_07661",
       "document": "BLOCK_2020_10K",
-      "status": "precision_variant_pending_source_review",
+      "status": "supported_precision_source_confirmed",
       "prediction_sha256": "4f008bf16e244becec3a1b49aa0695474c68905495af558d5ef7ed277897b46b",
       "answer": "381.6",
       "publisher_answer": "$382.00",
       "publisher_evidence_pages": [
         89
       ],
-      "assessment": "381.6million may be precise reported cash flow vs publisher382; source validation pending."
+      "assessment": "Original cash-flow statement381603thousand=381.603million;381.6million is correct at the displayed precision."
     },
     {
       "id": "financebench_id_10285",
@@ -828,7 +828,7 @@
     {
       "id": "financebench_id_03473",
       "document": "COCACOLA_2017_10K",
-      "status": "precision_and_definition_pending_source_review",
+      "status": "rounded_reference_agreement_measure_variant",
       "prediction_sha256": "250b1156b06d3685c2ea591a7501597949ff46abaee5a3f6f16c558b7583fd0a",
       "answer": "FY2017 ROA = 1.46% (calculated as FY2017 consolidated net income of $1,283 million divided by average total assets of $87,583 million, where average total assets = ($87,896 million + $87,270 million) / 2).",
       "publisher_answer": "0.01",
@@ -836,14 +836,14 @@
         73,
         75
       ],
-      "assessment": "Uses average assets87583 and consolidated income1283;1.46%=0.0146 rounds0.01 as a ratio. Publisher may use attributable income instead; correct rounding alone does not settle definition."
+      "assessment": "Original statement has consolidated income1283 and attributable income1248; assets87896and87270. Model uses consolidated income and requested average assets87583. Both numerator variants round to native0.01ratio; retain the finer measure difference rather than claim identical definitions."
     },
     {
       "id": "financebench_id_09724",
       "document": "COCACOLA_2021_10K",
       "status": "reference_agreement_pending_source_review",
       "prediction_sha256": "9d8640f31a84265b61ba3c372029821808cd2a8f827f820fdaac11fff6672da0",
-      "answer": "Coca-Cola's FY2021 COGS % margin is 39.7% (calculated as Cost of goods sold $15,357 million \u00f7 Net operating revenues $38,655 million \u00d7 100 = 39.73%).",
+      "answer": "Coca-Cola's FY2021 COGS % margin is 39.7% (calculated as Cost of goods sold $15,357 million ÷ Net operating revenues $38,655 million × 100 = 39.73%).",
       "publisher_answer": "39.7%",
       "publisher_evidence_pages": [
         61
@@ -903,14 +903,14 @@
     {
       "id": "financebench_id_00005",
       "document": "CORNING_2022_10K",
-      "status": "definition_variant_pending_source_review",
+      "status": "definition_variant_source_confirmed",
       "prediction_sha256": "cb0d43f787cc6294a77c5aaa7453ef21e50459aefebd9bf193ac58d298e71a7f",
       "answer": "Yes. Based on FY2022 data, Corning had positive working capital of $2,278 million. This is calculated as total current assets of $7,453 million minus total current liabilities of $5,175 million.",
       "publisher_answer": "Yes. Corning had a positive working capital amount of $831 million by FY 2022 close. This answer considers only operating current assets and current liabilities that were clearly shown in the balance sheet.",
       "publisher_evidence_pages": [
         59
       ],
-      "assessment": "Answer total current assets7453 minus current liabilities5175=2278; publisher831 uses operating current items. The question does not specify operating working capital. Verify source and preserve definition difference."
+      "assessment": "Original balance sheet current assets7453 less current liabilities5175=2278million. Publisher831excludes cash and current borrowings. Unqualified working capital admits the model total-current definition; both correctly answer positive."
     },
     {
       "id": "financebench_id_04209",
@@ -940,7 +940,7 @@
     {
       "id": "financebench_id_00790",
       "document": "CVSHEALTH_2022_10K",
-      "status": "judgment_disagreement_pending_source_review",
+      "status": "judgment_variant_source_confirmed",
       "prediction_sha256": "42035c7c2fba8a969e165c8b5850e382ee38cd9d56bc372123968c64690bc412",
       "answer": "No. In FY2022, CVS Health's capital expenditures were approximately $2.7 billion, which is only about 0.8% of total revenues of $322.5 billion, and net property and equipment was $12.9 billion out of $228.3 billion total assets, indicating relatively low capital intensity.",
       "publisher_answer": "Yes, CVS Health requires an extensive asset base to operate, which is evident from its ROA of only 1.82% in 2022 and 3.39% in 2021, though it should be noted that a significant portion of this asset base is goodwill, and CVS's fixed assets/total assets ratio is on the lower side of 5.6%.",
@@ -948,7 +948,7 @@
         107,
         109
       ],
-      "assessment": "CVS capital intensity: analyst uses lowcapex/revenue and netPP&E/assets; publisher uses lowROA/large assets while acknowledging goodwill. Different economic notions, not a numerical retrieval mismatch. Need assess reasoning against question and original source."
+      "assessment": "Original report says gross capexapproximately2.7billion, revenue322467million, netPP&E12873andtotalassets228275. Low physical capital intensity is a supported interpretation; publisher instead emphasizes total acquired capital/goodwill. No universal binary capital-intensive cutoff is defined."
     },
     {
       "id": "financebench_id_01107",
@@ -956,7 +956,7 @@
       "status": "reference_agreement_pending_source_review",
       "prediction_sha256": "0f7e87b654e84a5f351f225f7041657d87c9fe64c77347ba1d08020eef1e18e0",
       "answer": "Yes, CVS Health reported materially important ongoing legal battles in 2022, 2021, and 2020, including opioid litigation that resulted in $5.8 billion charges in 2022 and other lawsuits, government investigations, and regulatory proceedings.",
-      "publisher_answer": "Yes, CVS Health has been involved in multiple ongoing legal battles. Some notable legal dispute areas for CVS are: (1) usual and customary pricing litigation: where it's claimed that CVS\u00e2\u0080\u0099s retail pharmacies overcharged for prescription drugs; (2) PBM litigation and investigations: where it's claimed that that rebate agreements between the drug manufacturers and PBMs caused inflated prices for certain drug products; and (3) controlled substances litigation: legal matters around opioids for which CVS has agreed to pay up to $4.3 billion to claimants in remediation and $625 million to attorneys and fees",
+      "publisher_answer": "Yes, CVS Health has been involved in multiple ongoing legal battles. Some notable legal dispute areas for CVS are: (1) usual and customary pricing litigation: where it's claimed that CVSâs retail pharmacies overcharged for prescription drugs; (2) PBM litigation and investigations: where it's claimed that that rebate agreements between the drug manufacturers and PBMs caused inflated prices for certain drug products; and (3) controlled substances litigation: legal matters around opioids for which CVS has agreed to pay up to $4.3 billion to claimants in remediation and $625 million to attorneys and fees",
       "publisher_evidence_pages": [
         172,
         172,
@@ -1028,14 +1028,14 @@
     {
       "id": "financebench_id_04854",
       "document": "GENERALMILLS_2020_10K",
-      "status": "precision_variant_pending_source_review",
+      "status": "supported_precision_source_confirmed",
       "prediction_sha256": "e22363607a5ce12476f6468d66aa1ba8fc58b2459dc907bfd2f24eca5542a529",
       "answer": "3215.4",
       "publisher_answer": "$3215.00",
       "publisher_evidence_pages": [
         51
       ],
-      "assessment": "3215.4million may be more precise than reference3215. Need original source arithmetic."
+      "assessment": "Original cash-flow statement CFO3676.2 minus purchases460.8=3215.4million."
     },
     {
       "id": "financebench_id_10136",
@@ -1174,14 +1174,14 @@
     {
       "id": "financebench_id_02119",
       "document": "JPMORGAN_2021Q1_10Q",
-      "status": "liquidation_proxy_mismatch_pending_source_review",
+      "status": "liquidation_proxy_difference",
       "prediction_sha256": "e0ab0cc202a100e8725445449ae183a381185eafd2566d05bbd5c00c61df7ded",
       "answer": "As of March 31, 2021, JPMorgan Chase reported common stockholders' equity of $249,151 million and 3,027.1 million common shares outstanding. Dividing $249,151 million by 3,027.1 million shares gives approximately $82.31 per common share, which is the reported book value per share before any liquidation costs.",
       "publisher_answer": "They could receive $66.56 per share.",
       "publisher_evidence_pages": [
         5
       ],
-      "assessment": "Publisher uses tangible book value66.56/share; analyst uses total common book value82.31/share and qualifies before liquidation costs. Actual liquidation proceeds are not determined by reported book assets. Preserve proxy disagreement and inspect the full source rather than claim literal bankruptcy payout is established."
+      "assessment": "Full native question asks a hypothetical liquidation payout, which financial-statement book values alone cannot establish. Publisher uses tangible book value66.56; model supplies ordinary book value82.31with pre-liquidation-cost qualification. Preserve the proxy disagreement; neither amount is independently established actual bankruptcy proceeds."
     },
     {
       "id": "financebench_id_00206",
@@ -1272,14 +1272,14 @@
     {
       "id": "financebench_id_04171",
       "document": "MGMRESORTS_2018_10K",
-      "status": "precision_variant_pending_source_review",
+      "status": "supported_precision_source_confirmed",
       "prediction_sha256": "0428bc5e92ffd2b1d4e2b52e726c4d13d4b422bd33f9e0bc19d1d17efc78b96a",
       "answer": "302.578",
       "publisher_answer": "$303.00",
       "publisher_evidence_pages": [
         56
       ],
-      "assessment": "302.578million may be precise reported accounts payable versus rounded303."
+      "assessment": "Original balance sheet accounts payable302578thousand=302.578million."
     },
     {
       "id": "financebench_id_03849",
@@ -1383,7 +1383,7 @@
     {
       "id": "financebench_id_04458",
       "document": "NETFLIX_2015_10K",
-      "status": "precision_variant_pending_source_review",
+      "status": "supported_precision_source_confirmed",
       "prediction_sha256": "24465828d8564181a396e6f2196f0b3d8d7913aac1b3e748565df32a9adb38b5",
       "answer": "FY2015 unadjusted EBITDA margin = 5.43%. Calculation: EBITDA = $305,826K operating income + $62,283K D&A = $368,109K; margin = $368,109K / $6,779,511K revenue = 5.43%.",
       "publisher_answer": "5.4%",
@@ -1391,19 +1391,19 @@
         39,
         41
       ],
-      "assessment": "5.43% agrees with rounded5.4%;305826+62283=368109K EBITDA, divided by6779511K revenue is internally coherent."
+      "assessment": "Original statements show operating income305826K plus specified D&A62283K, divided by revenue6779511K, giving5.4297%."
     },
     {
       "id": "financebench_id_03282",
       "document": "NETFLIX_2017_10K",
-      "status": "precision_variant_pending_source_review",
+      "status": "supported_precision_source_confirmed",
       "prediction_sha256": "70ae35b41a36ab112b7c918c65761e3d5c164004ca5a5c94d9cb8fd8402f2ec3",
       "answer": "$5,466.3 million",
       "publisher_answer": "$5466.00",
       "publisher_evidence_pages": [
         44
       ],
-      "assessment": "5466.3million may be more precise than rounded5466."
+      "assessment": "Original balance sheet current liabilities5466312thousand=5466.312million;5466.3million is correctly rounded."
     },
     {
       "id": "financebench_id_04302",
@@ -1481,7 +1481,7 @@
     {
       "id": "financebench_id_01009",
       "document": "PEPSICO_2022_10K",
-      "status": "semantic_variant_pending_source_review",
+      "status": "geographic_coverage_variant",
       "prediction_sha256": "65e7d1de1378fc793aee47ef244df954efebb749eb5020253f8ec0eaaae2ff45",
       "answer": "PepsiCo primarily operates in more than 200 countries and territories, with its largest operations in the United States, Mexico, Russia, Canada, China, the United Kingdom and South Africa.",
       "publisher_answer": "As of FY2022, Pepsico primarily operates in the following geographies: North America, Latin America, Europe, Africa, Middle East, South Asia, Asia Pacific, Australia, New Zealand and China.",
@@ -1489,7 +1489,7 @@
         3,
         4
       ],
-      "assessment": "Country-based operating footprint differs from reference regional enumeration. Need assess material completeness and validate largest-country claim from original."
+      "assessment": "Publisher enumerates all operating regions, including MiddleEast/SouthAsia/Oceania. Model says more than200countries and gives selected major countries, but does not supply the complete regional organization. This is a coverage difference, not proof that the named countries are false."
     },
     {
       "id": "financebench_id_00735",
@@ -1643,7 +1643,7 @@
       "document": "Pfizer_2023Q2_10Q",
       "status": "publisher_base_error_source_confirmed",
       "prediction_sha256": "bb0d41d5cadaeecfe5073e7f760d5aaf36efc719306decbb3d843a1cdd7fc3ae",
-      "answer": "Pfizer expects approximately $70 million in future costs to separate Upjohn. Total expected costs are approximately $700 million, with 90% already incurred through Q2 2023, leaving 10% (10% \u00d7 $700 million = $70 million) to be paid in the future.",
+      "answer": "Pfizer expects approximately $70 million in future costs to separate Upjohn. Total expected costs are approximately $700 million, with 90% already incurred through Q2 2023, leaving 10% (10% × $700 million = $70 million) to be paid in the future.",
       "publisher_answer": "77.78",
       "publisher_evidence_pages": [
         40
@@ -1725,14 +1725,14 @@
     {
       "id": "financebench_id_00605",
       "document": "ULTABEAUTY_2023Q4_EARNINGS",
-      "status": "precision_variant_pending_source_review",
+      "status": "supported_precision_source_confirmed",
       "prediction_sha256": "515d1983a21066a1eff488cb3664d719781def758367e932341080fc5c92528e",
       "answer": "36.5% (Q4 FY2022 repurchases of $328.1 million divided by FY2022 total repurchases of $900.0 million; the report does not provide FY2023 quarterly repurchase detail).",
       "publisher_answer": "36%. The answer here assumes FY2023 refers to the 12 months ended on January 28, 2023 (although the company refers to this period as its fiscal 2022.",
       "publisher_evidence_pages": [
         2
       ],
-      "assessment": "328.1/900=36.4556%, so36.5% is a precise version of reference36%; fiscal-period qualification explicit."
+      "assessment": "Original release: fourth-quarter repurchases328.1million /annual900million=36.4556%. Fiscal2022 endsJanuary2023; model explicitly explains dataset naming."
     },
     {
       "id": "financebench_id_00606",
@@ -1774,14 +1774,14 @@
     {
       "id": "financebench_id_00216",
       "document": "VERIZON_2022_10K",
-      "status": "judgment_disagreement_pending_source_review",
+      "status": "judgment_variant_with_overstatement",
       "prediction_sha256": "52e7fec2d91f246493ecb8e6067d7edaefa80f70272903b21ca96f4c7e48a64f",
       "answer": "The quick ratio is not a relevant measure of Verizon's liquidity profile for FY2022. Based on Dec 31, 2022 data, quick assets (cash and cash equivalents $2.605B + accounts receivable, net $24.506B + current fixed income securities $0.037B) total $27.148B, while current liabilities total $50.171B, giving a quick ratio of 0.54x. Although below 1, this does not indicate a liquidity problem because Verizon's current liabilities include significant non-cash/deferrable items such as contract liabilities and current operating lease liabilities, as well as debt maturing within one year that is routinely refinanced. Verizon also has substantial operating cash flow ($37.141B in FY2022), a $9.436B unused revolving credit facility, commercial paper capacity, and asset-backed financing arrangements, making the quick ratio a poor standalone indicator of its actual liquidity.",
       "publisher_answer": "No. The quick ratio was approximately 0.54 for Verizon. It indicated that Verizon does not have a healthy liquidity profile.",
       "publisher_evidence_pages": [
         55
       ],
-      "assessment": "Quick ratio0.54agrees. Analyst argues weak standalone relevance using cashflow/credit capacity, which question explicitly allows if justified. Must check supplemental sources and distinguish ratio-based warning from overall liquidity risk; do not equate below1automatically with inability to pay."
+      "assessment": "Full original report confirms operating cashflow37141million and unused revolver9436million. Quick ratioabout.54does not establish overall insolvency. Model nevertheless overstates that it does not indicate a liquidity problem and describes current lease liabilities as noncash/deferrable without establishing that; lease payments are cash obligations. Keep ratio agreement, native judgment disagreement and that reasoning weakness distinct."
     },
     {
       "id": "financebench_id_00215",
@@ -1846,5 +1846,6 @@
       ],
       "assessment": "6.2% matches3-year unadjusted EBITDA margin."
     }
-  ]
+  ],
+  "reference_comparison": "Complete primary-agent comparison is separately recorded in financebench-reference-comparison.json; full-report financial source adjudication remains partial."
 }

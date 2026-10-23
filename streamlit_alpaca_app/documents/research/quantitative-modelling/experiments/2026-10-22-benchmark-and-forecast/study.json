@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-10-23T17:44:59.324838+00:00",
+  "updated_at_utc": "2026-10-23T19:03:47.164313+00:00",
   "owner_goals": [
     "Evaluate the model on every external benchmark in the retained source catalog.",
     "Create Seeking Alpha future-prediction tasks with extensive controlled context and no target leakage.",
@@ -47,17 +47,17 @@
     {
       "id": "finch",
       "public_scope": "172 native workflows; original workbook outputs required",
-      "status": "354_original_assets_acquired_native_execution_pending"
+      "status": "native_file_evaluation_running"
     },
     {
       "id": "bluefin",
       "public_scope": "11 public rows over9 task folders; native workbook outputs for applicable tasks",
-      "status": "native_asset_and_execution_preparation"
+      "status": "native_file_evaluation_running"
     },
     {
       "id": "emb",
       "public_scope": "1 public SaaS workbook task; scratch/template are one case",
-      "status": "native_asset_and_execution_preparation"
+      "status": "native_file_evaluation_running"
     },
     {
       "id": "forecastbench",
@@ -176,6 +176,24 @@
       "model_workflows_executed": 0,
       "local_vm": "stopped",
       "production_resources_changed": false
+    },
+    "native_file_workflows": {
+      "study": "../2026-10-23-native-file-analyst/README.md",
+      "protocol": "../2026-10-23-native-file-analyst/protocol-full-01.json",
+      "status": "running",
+      "pid": 97859,
+      "new_cases": 181,
+      "carried_cases": 3,
+      "all_public_cases": 184,
+      "counts": {
+        "finch": 172,
+        "bluefin": 11,
+        "emb": 1
+      },
+      "source_git": "eafdc56bdb1cf19c62f3e1ef0d3356ebf2b9bd47",
+      "engine_revision": "bfd65099722adab4d7e1",
+      "compute_choice": "DeepSeek after Lambda comparison; noGPUallocated",
+      "production_file_delivery": "not_implemented_or_promoted"
     }
   },
   "budget": {
@@ -198,13 +216,14 @@
     "findeepforecast_probe_known_usd": 0.31146588,
     "findeepforecast_estimated_full_usd": 29.241828,
     "findeepforecast_primary_new_known_usd": 8.89810944,
-    "findeepforecast_carried_32k_probe_known_usd": 0.1707552
+    "findeepforecast_carried_32k_probe_known_usd": 0.1707552,
+    "standing_owner_compute_preference": "Estimate Lambda GPU versus DeepSeek total cost before studies/batches and choose the cheaper suitable path. Include setup, caching/reasoning, throughput/idle time, storage and verified shutdown."
   },
   "next_actions": [
+    "Complete all181new native-file cases; carry all3pilot03cases, personally inspect native deliverables and preserve failures. The hosted file executor and authenticated client delivery remain open.",
     "Resume all1002unavailable FinDeepForecast cases under the append-only recovery protocol and original cumulative35dollar reference cap. Preserve first attempts and keep raw reference agreement separate from financial validity.",
     "Finish source/definition adjudication and publish the personal FinanceBench comparison. All150 final answers reviewed; no final score. Keep published-reference agreement separate from source-supported corrections.",
     "Use personal reviews of all8usable forecast outputs to improve shared period/calendar/numerical handoffs and concise instructions, evaluated on newissuers/origins. Preserve original forecasts and failedGNKprimary.",
-    "Resolve native workbook execution as a shared capability, not benchmark-local authoring; no native workbook successes claimed yet.",
     "Run official1370 FinDeepForecast tasks only as explicitly retrospective historical coverage; all native deadlines were2025.",
     "Score future SA predictions only once independent actual outcomes exist; primary agent resolves ground truth."
   ],
@@ -220,7 +239,9 @@
     "findeepforecast_scores": "findeepforecast-primary-scores.json",
     "findeepforecast_review": "findeepforecast-personal-review.json",
     "finch_actor_audit": "finch-input-capability-audit.json",
-    "native_workbook_engine": "../2026-10-23-native-workbook-engine/README.md"
+    "native_workbook_engine": "../2026-10-23-native-workbook-engine/README.md",
+    "native_file_study": "../2026-10-23-native-file-analyst/README.md",
+    "financebench_reference_comparison": "financebench-reference-comparison.json"
   },
   "owner_constraints": {
     "custom_ground_truth": "Primary agent personally defines and verifies ground truth from source records. No other LLM labels outcomes or makes the final grading judgment. Code calculates numerical scores.",
@@ -250,7 +271,15 @@
     "final_score": null,
     "native_accounting_upper_bound_usd": 78.165252,
     "pending_provider_attempts": 0,
-    "review": "financebench-personal-review.json"
+    "review": "financebench-personal-review.json",
+    "personal_reference_comparison": {
+      "file": "financebench-reference-comparison.json",
+      "aligned": 131,
+      "material_differences": 19,
+      "total": 150,
+      "source_accuracy": "partial source adjudication; no final aggregate financial-accuracy score",
+      "official_llm_judge_used": false
+    }
   },
   "findeepforecast_progress": {
     "primary_completed_answers": 368,

@@ -1,0 +1,125 @@
+{
+  "estimated_at_utc": "2026-10-23T18:40:31.434113+00:00",
+  "owner_rule": "Use cheaper suitable Lambda GPU versus DeepSeek execution; revisit by study and workload.",
+  "study": "Current FinDeepForecast1370task workload; native-file studies have additional GPU-idle time while CPU tools run.",
+  "api": {
+    "model": "deepseek-v4-pro",
+    "current_provider_version": "DeepSeek-V4-Pro-0813",
+    "successful_observed_calls": 423,
+    "observed_tokens": {
+      "input": 239502,
+      "cache_hit": 0,
+      "completion_including_reasoning": 2665759,
+      "cache_miss": 239502
+    },
+    "projected_full1370_peak_usd": 35.213690646808516,
+    "projected_full1370_off_peak_usd": 17.606845323404258,
+    "peak_rates_per_million": {
+      "cache_miss_input": 1.32,
+      "cache_hit_input": 0.044,
+      "output_including_reasoning": 3.96
+    },
+    "off_peak_rates": "Half peak; estimate bounds, not invoices. Existing accounting retains conservative peak all-cache-miss reservations."
+  },
+  "lambda": {
+    "configuration": "8xB200180GB",
+    "usd_per_gpu_hour": 6.69,
+    "usd_per_instance_hour": 53.52,
+    "model_fit": "Reference V4Pro recipe reports about960GB mixed-precision weights and recommends multi-GPU deployments; oneGPU is not comparable.8xB200 provides1440GB aggregate VRAM. Actual runtime fit and quality require qualification.",
+    "throughput_measured": null,
+    "setup_measured": false,
+    "scenarios": [
+      {
+        "aggregate_output_tokens_per_second_assumed_not_measured": 1000,
+        "cold_start_minutes_assumed": 30,
+        "gpu_cost_usd_excluding_tax_storage_and_prefill": 155.1155606130812
+      },
+      {
+        "aggregate_output_tokens_per_second_assumed_not_measured": 1000,
+        "cold_start_minutes_assumed": 60,
+        "gpu_cost_usd_excluding_tax_storage_and_prefill": 181.87556061308118
+      },
+      {
+        "aggregate_output_tokens_per_second_assumed_not_measured": 10000,
+        "cold_start_minutes_assumed": 30,
+        "gpu_cost_usd_excluding_tax_storage_and_prefill": 39.59555606130812
+      },
+      {
+        "aggregate_output_tokens_per_second_assumed_not_measured": 10000,
+        "cold_start_minutes_assumed": 60,
+        "gpu_cost_usd_excluding_tax_storage_and_prefill": 66.35555606130814
+      }
+    ],
+    "excluded_costs": "Scenarios deliberately omit prefill, idle periods, separate storage, taxes and qualification costs; these increase GPU cost. Warmup30-60min and throughput1000/10000outputtps are planning sensitivities, not observed performance.",
+    "hot_decode_only_break_even_output_tps_peak": 3754.2087542087543,
+    "hot_decode_only_break_even_output_tps_off_peak": 7508.4175084175085,
+    "availability": "Public listing is not confirmation of allocatable account capacity.",
+    "checkpoint_equivalence": "Hosted0813model versus public downloadable checkpoint equivalence not established."
+  },
+  "choice": "Continue DeepSeek for the current studies: lower expected total cost in the evaluated cold-start scenarios and already qualified for the frozen conditions. No Lambda instance allocated. Re-estimate with measured throughput for larger batched workloads or a separately qualified smaller open model.",
+  "sources": {
+    "lambda_rates": "https://lambda.ai/instances",
+    "lambda_billing": "https://docs.lambda.ai/public-cloud/billing/",
+    "deepseek_rates": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "model_recipe": "https://github.com/vllm-project/recipes/blob/main/models/deepseek-ai/DeepSeek-V4-Pro.yaml"
+  },
+  "native_pilot_03": {
+    "previous_3task_pilot_conservative_peak_usd": 1.52808216,
+    "estimate_usd_range_peak": [
+      0.76404108,
+      2.29212324
+    ],
+    "declared_peak_reference_cap_usd": 12,
+    "lambda_8B200_30min_cold_start_assumption_usd_before_inference": 26.76,
+    "choice": "DeepSeek; three tasks cost far less than the assumed GPU startup allocation alone. No GPU rented. Re-estimate before full native benchmark expansion."
+  },
+  "native_full_184": {
+    "estimated_at_utc": "2026-10-23T18:57:54.928999+00:00",
+    "carried_cases": 3,
+    "new_cases": 181,
+    "pilot_observed_usage": {
+      "prompt_tokens": 1626934,
+      "completion_tokens": 116674,
+      "prompt_cache_hit_tokens": 845440,
+      "prompt_cache_miss_tokens": 781494
+    },
+    "projected_new_cases_peak_with_observed_cache_usd": 92.35829562666667,
+    "projected_new_cases_off_peak_with_observed_cache_usd": 46.17914781333334,
+    "projected_new_cases_peak_without_cache_usd": 157.44477584,
+    "conservative_all_cache_miss_peak_reference_cap_usd": 200,
+    "not_a_representative_accuracy_or_cost_sample": "Only3format-selected development cases. Task complexity/caching may differ. Actual reservations and receipts remain authoritative for the declared cap.",
+    "lambda_8B200_sensitivity": [
+      {
+        "output_tps_assumed_not_measured": 250,
+        "cold_start_minutes_assumed": 30,
+        "usd_excluding_prefill_idle_storage_and_tax": 445.3655699555556
+      },
+      {
+        "output_tps_assumed_not_measured": 250,
+        "cold_start_minutes_assumed": 60,
+        "usd_excluding_prefill_idle_storage_and_tax": 472.1255699555556
+      },
+      {
+        "output_tps_assumed_not_measured": 1000,
+        "cold_start_minutes_assumed": 30,
+        "usd_excluding_prefill_idle_storage_and_tax": 131.4113924888889
+      },
+      {
+        "output_tps_assumed_not_measured": 1000,
+        "cold_start_minutes_assumed": 60,
+        "usd_excluding_prefill_idle_storage_and_tax": 158.1713924888889
+      },
+      {
+        "output_tps_assumed_not_measured": 10000,
+        "cold_start_minutes_assumed": 30,
+        "usd_excluding_prefill_idle_storage_and_tax": 37.225139248888894
+      },
+      {
+        "output_tps_assumed_not_measured": 10000,
+        "cold_start_minutes_assumed": 60,
+        "usd_excluding_prefill_idle_storage_and_tax": 63.9851392488889
+      }
+    ],
+    "decision": "DeepSeek. The current two-investigation interactive schedule does not provide evidence of the very high sustained GPU batching needed to beat API cost. Typical planning sensitivities250-1000aggregate outputtps are more expensive. The optimistic10000tps scenario can overlap API cost but is unmeasured, excludes prefill and tool-idle time, and requires checkpoint/quality qualification. Reassess for a larger saturated workload or an existing warm qualified endpoint; do not claim the API is always cheaper. NoGPUallocation."
+  }
+}

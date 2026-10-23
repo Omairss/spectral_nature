@@ -1,0 +1,37 @@
+{
+  "condition": "finch_native_files_pilot_03",
+  "created_at_utc": "2026-10-23T18:44:57.911560+00:00",
+  "app": "/Users/omairs/Library/Application Support/SpectralNature/research/checkouts/native-file-analysis-20261023/streamlit_alpaca_app",
+  "source_git": "eafdc56bdb1cf19c62f3e1ef0d3356ebf2b9bd47",
+  "engine_revision": "bfd65099722adab4d7e1",
+  "actor_store": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch",
+  "actor_manifest": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch-actor-manifest.json",
+  "actor_sha256": "abd71d3b961ea949ee425c76fe310798acac4623a4abe9c4b4e4e636d1663601",
+  "runner_sha256": "267a12352ceaa71ea01110d32f943f90ac2e7e9eb2e5738d5e145d58ee0e64b0",
+  "root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/finch-native-pilot-03",
+  "runtime_overrides": {
+    "runtime:deepseek:model": "deepseek-v4-pro",
+    "runtime:deepseek:thinking_mode": "enabled",
+    "runtime:deepseek:reasoning_effort": "high",
+    "runtime:deepseek:timeout_seconds": 480
+  },
+  "completion_tokens": 32768,
+  "budget_usd": 12,
+  "max_provider_attempts": 100,
+  "input_usd_per_million": 1.32,
+  "output_usd_per_million": 3.96,
+  "concurrency": 2,
+  "selected_ids": [
+    "0",
+    "6",
+    "22"
+  ],
+  "image_id": "sha256:a71e5464aab97c6deaeec1c98c53d48bebc3909fe9e7b71c02a3b28319a3fcf0",
+  "docker_context": "colima-zopedia-workbooks",
+  "selection": "Format coverage before inspecting model outputs; balance/control edits, narrative/charts, pivot modification. This pilot is not representative benchmark accuracy.",
+  "grading": "Primary agent personal assessment; no LLM evaluator. Actor receives declared source files only; no gold workbooks, rubrics or reference answers.",
+  "network": "No live web; supplied-asset condition.",
+  "parent_protocol": "protocol-pilot-02.json",
+  "change": "Native UNO editing helper; transactional successful-work checkpoint and timeout recovery; explicit container input paths and effective-capability check before inference. Original task instructions, input bytes and hosted model remain unchanged.",
+  "compute_comparison": "compute-cost-comparison.json"
+}

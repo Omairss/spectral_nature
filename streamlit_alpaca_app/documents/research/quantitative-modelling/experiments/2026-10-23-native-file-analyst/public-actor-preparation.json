@@ -1,0 +1,14 @@
+{
+  "prepared_at_utc": "2026-10-23T18:51:29.128742+00:00",
+  "counts": {
+    "finch": 172,
+    "bluefin": 11,
+    "emb": 1
+  },
+  "actor_cases": 184,
+  "actor_files": 211,
+  "actor_sha256": "dd56fc918d5c6d6c5948b30aea41324def9f38a15122765f5abb634f05eb8763",
+  "actor_store": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/public-actor",
+  "evaluator_files_admitted": 0,
+  "selection": "Complete retained public native workflows; scratch/template count once. All source files verified; no reference workbooks, rubric, expected answer or scenario checks admitted."
+}

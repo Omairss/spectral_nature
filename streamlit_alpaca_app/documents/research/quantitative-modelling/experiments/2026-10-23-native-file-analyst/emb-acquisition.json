@@ -1,0 +1,94 @@
+{
+  "acquired_at_utc": "2026-10-23T18:46:57.702068+00:00",
+  "revision": "da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3",
+  "files": [
+    {
+      "path": "problems/06 Dataroom Summaries/M003-scratch/Customer Data Raw.xlsx",
+      "role": "actor",
+      "bytes": 177715,
+      "sha256": "6d08f624b0193de91080f5079d64d4488a61fb431657d721db10f7b56bd24dc8",
+      "git_blob_sha1": "8d343ee80ce163c418ab2c924e58a7ff77456efa",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-scratch/Customer Data Raw.xlsx"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-scratch/gold.xlsx",
+      "role": "evaluator",
+      "bytes": 1711572,
+      "sha256": "35dc0cb1900e14d157f97847c1293b3ea3b9cc57db0106f30b921a19c6ea08ea",
+      "git_blob_sha1": "89613484f2de39b59568d40fabee27c39b5ebe68",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-scratch/gold.xlsx"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-scratch/instructions.md",
+      "role": "actor",
+      "bytes": 6061,
+      "sha256": "f9a2c06ab88bf7b2d5cc85ccd17c75d731f756504f86cf6b3ab7b0b6a6eda560",
+      "git_blob_sha1": "48ed746c7bd3f9b35cfc6a594fa82de2bae648e1",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-scratch/instructions.md"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-scratch/rubric.jsonl",
+      "role": "evaluator",
+      "bytes": 85564,
+      "sha256": "78a0f20c32e746c9722b92c7fa916ea9cbe5af6991c57aecefa57d500a92ba28",
+      "git_blob_sha1": "8c71c12c8698dabd22e16d625e43c67b6f6b7c24",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-scratch/rubric.jsonl"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-scratch/state_checks.json",
+      "role": "evaluator",
+      "bytes": 9909554,
+      "sha256": "4a36ddf64b524827460b91d31947097a9650050c25466aaad41f6b12474800a4",
+      "git_blob_sha1": "bff878cfc4bf2fe7d885be2daf54eace6575bcfd",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-scratch/state_checks.json"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-template/Customer Data Raw.xlsx",
+      "role": "actor",
+      "bytes": 177715,
+      "sha256": "6d08f624b0193de91080f5079d64d4488a61fb431657d721db10f7b56bd24dc8",
+      "git_blob_sha1": "8d343ee80ce163c418ab2c924e58a7ff77456efa",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-template/Customer Data Raw.xlsx"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-template/cell_checks.json",
+      "role": "evaluator",
+      "bytes": 34916375,
+      "sha256": "e52435197a75f63c312d94b5841a0a9bd51b44e37b4210c2a6a8eae41eaddc4a",
+      "git_blob_sha1": "a34431072a00486090b41eb282e6dbd3a9ab8bf8",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-template/cell_checks.json"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-template/gold.xlsx",
+      "role": "evaluator",
+      "bytes": 1711572,
+      "sha256": "35dc0cb1900e14d157f97847c1293b3ea3b9cc57db0106f30b921a19c6ea08ea",
+      "git_blob_sha1": "89613484f2de39b59568d40fabee27c39b5ebe68",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-template/gold.xlsx"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-template/instructions.md",
+      "role": "actor",
+      "bytes": 6108,
+      "sha256": "52bd3b43ab877c29aa00fa4198fe3413a844f1ce9a5e107eecb7e7422f1a6494",
+      "git_blob_sha1": "53211a2a20591e32ff9efac6a55f79010070a5b1",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-template/instructions.md"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-template/state_checks.json",
+      "role": "evaluator",
+      "bytes": 9909554,
+      "sha256": "4a36ddf64b524827460b91d31947097a9650050c25466aaad41f6b12474800a4",
+      "git_blob_sha1": "bff878cfc4bf2fe7d885be2daf54eace6575bcfd",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-template/state_checks.json"
+    },
+    {
+      "path": "problems/06 Dataroom Summaries/M003-template/template.xlsx",
+      "role": "actor",
+      "bytes": 636349,
+      "sha256": "71f8ad0ddfa84af0e6c2f1020e01b1d52c3896377c26a1a8a4f0a5bf351dd5b4",
+      "git_blob_sha1": "1448b66eab064952888ed95f55af244ebde61fc3",
+      "url": "https://raw.githubusercontent.com/vals-ai/emb-public-dataset/da1fcaedb0a0a2a7c28e16b42de9d0cf025003c3/problems/06 Dataroom Summaries/M003-template/template.xlsx"
+    }
+  ]
+}

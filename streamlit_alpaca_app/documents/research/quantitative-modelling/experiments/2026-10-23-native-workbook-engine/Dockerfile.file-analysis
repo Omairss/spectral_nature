@@ -1,0 +1,12 @@
+FROM zopedia-workbook-deps:20261023@sha256:09d93a3de4de077ff2b607efbe30d64a481ef2a841ede9f4f00ca386802d2b7f
+
+# General file/numerical dependencies only; application and task files are absent.
+USER root
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+       python3-numpy python3-pandas python3-scipy python3-sklearn python3-matplotlib \
+       python3-pil python3-pypdf python3-docx poppler-utils tesseract-ocr \
+       tesseract-ocr-eng tesseract-ocr-chi-sim tesseract-ocr-chi-tra \
+    && dpkg-query -W > /usr/local/share/file-analysis-dependencies.txt \
+    && rm -rf /var/lib/apt/lists/*
+USER 10001:10001

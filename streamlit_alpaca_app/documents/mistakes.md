@@ -1128,3 +1128,8 @@ I also began a local VM/worktree setup before checking disk headroom. The checko
 ### The first workbook inspector misread shared formulas — October23
 
 The manual OOXML probe treated shared-formula followers as constants and compared merge ordering, exaggerating differences. Replaced its cell inspection with read-only openpyxl expansion and sorted merge ranges before assessment. The remaining17pivot-label changes, blank shape loss and added statement merges are genuine compatibility gaps; no blanket workbook-preservation acceptance or native benchmark success was claimed.
+
+
+### Supplied-file access and timeout recovery — October23
+
+The first shared file-analysis pilot admitted inputs but the generic source filter removed file execution and even source-free discovery, leaving an empty tool catalog. Its three no-work attempts are retained. Classify admitted file analysis as supplied access and discovery/capability tools as source-free; verify the effective catalog before inference. The second pilot actually executed files. A model recursive filesystem search then timed out and destroyed its container, leaving later calls unable to recover. Checkpoint recovery was then corrected and qualified with a real timeout: the uncommitted overwrite was discarded and prior working files restored before expansion. Another task calculated useful controls but openpyxl authoring removed12original shapes, so its preservation claim fails despite correct control arithmetic. The next shared native-editing helper retained all12shapes, although LibreOffice merge changes remain a preservation limitation.
