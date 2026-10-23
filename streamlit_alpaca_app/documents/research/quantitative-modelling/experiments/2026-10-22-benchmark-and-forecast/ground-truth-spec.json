@@ -1,0 +1,237 @@
+{
+  "created_at_utc": "2026-10-23T02:38:45.304951+00:00",
+  "scope": "Eight already-frozen prospective development tasks. These definitions do not change actor inputs or replace any first forecast.",
+  "ground_truth_owner": "primary_agent_personal_review",
+  "other_llm_labeling_or_judging": false,
+  "decision_manifest_sha256": "748aa550ecc045b297a90889bf4e9e65dc025bdf5df76ce947acfe872c53e1c4",
+  "companies": [
+    {
+      "ticker": "HIMS",
+      "cik": 1773751,
+      "company": "Hims & Hers Health, Inc.",
+      "measure": "first publicly reported full-year consolidated revenue for fiscal year ending in calendar2027",
+      "reviewer": "primary_agent_personal_review",
+      "current_standard_tag": {
+        "namespace": "us-gaap",
+        "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "unit": "USD"
+      },
+      "personally_checked_definition": "Consolidated total revenue in USD; do not substitute cost of revenue, ARR, billings or a quarterly figure.",
+      "reference_annual_actual_2025": {
+        "value": 2347637000,
+        "period_start": "2025-01-01",
+        "period_end": "2025-12-31",
+        "filed": "2026-02-23",
+        "accession": "0001773751-26-000022",
+        "sec_filing_index": "https://www.sec.gov/Archives/edgar/data/1773751/000177375126000022/0001773751-26-000022-index.html",
+        "companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001773751.json",
+        "frozen_input_sha256": "36feb05955e2f596feff4a700769f199ac29dade0127bff4d803df5415f990b5"
+      },
+      "future_ground_truth": null,
+      "resolution_status": "pending_future_actual"
+    },
+    {
+      "ticker": "GH",
+      "cik": 1576280,
+      "company": "Guardant Health, Inc.",
+      "measure": "first publicly reported full-year consolidated revenue for fiscal year ending in calendar2027",
+      "reviewer": "primary_agent_personal_review",
+      "current_standard_tag": {
+        "namespace": "us-gaap",
+        "concept": "Revenues",
+        "unit": "USD"
+      },
+      "personally_checked_definition": "The two standard total-revenue tags agree at $982.021 million. Count consolidated total revenue once, including precision oncology and development services.",
+      "reference_annual_actual_2025": {
+        "value": 982021000,
+        "period_start": "2025-01-01",
+        "period_end": "2025-12-31",
+        "filed": "2026-02-19",
+        "accession": "0001576280-26-000013",
+        "sec_filing_index": "https://www.sec.gov/Archives/edgar/data/1576280/000157628026000013/0001576280-26-000013-index.html",
+        "companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001576280.json",
+        "frozen_input_sha256": "4e514bcd0518e4a7d9709d9fd80ce3dadb00031322defb2ef0aededdf404c002"
+      },
+      "future_ground_truth": null,
+      "resolution_status": "pending_future_actual"
+    },
+    {
+      "ticker": "AMD",
+      "cik": 2488,
+      "company": "ADVANCED MICRO DEVICES INC",
+      "measure": "first publicly reported full-year consolidated revenue for fiscal year ending in calendar2027",
+      "reviewer": "primary_agent_personal_review",
+      "current_standard_tag": {
+        "namespace": "us-gaap",
+        "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "unit": "USD"
+      },
+      "personally_checked_definition": "Respect AMD fiscal-year periods: fiscal2025 is 2024-12-29 through 2025-12-27. Fiscal2027 is the issuer fiscal year ending in calendar2027, not the calendar-year sum.",
+      "reference_annual_actual_2025": {
+        "value": 34639000000,
+        "period_start": "2024-12-29",
+        "period_end": "2025-12-27",
+        "filed": "2026-02-04",
+        "accession": "0000002488-26-000018",
+        "sec_filing_index": "https://www.sec.gov/Archives/edgar/data/2488/000000248826000018/0000002488-26-000018-index.html",
+        "companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000002488.json",
+        "frozen_input_sha256": "3155362edafdc85b16cb0e755334797b85d8119c09fa867908150c1e2ad7fc09"
+      },
+      "future_ground_truth": null,
+      "resolution_status": "pending_future_actual"
+    },
+    {
+      "ticker": "MAA",
+      "cik": 912595,
+      "company": "MID AMERICA APARTMENT COMMUNITIES INC.",
+      "measure": "first publicly reported full-year consolidated revenue for fiscal year ending in calendar2027",
+      "reviewer": "primary_agent_personal_review",
+      "current_standard_tag": {
+        "namespace": "us-gaap",
+        "concept": "Revenues",
+        "unit": "USD"
+      },
+      "personally_checked_definition": "Total consolidated revenues, including property revenues; do not substitute same-store growth, NOI, FFO or an annualized quarter.",
+      "reference_annual_actual_2025": {
+        "value": 2209126000,
+        "period_start": "2025-01-01",
+        "period_end": "2025-12-31",
+        "filed": "2026-02-06",
+        "accession": "0001193125-26-041208",
+        "sec_filing_index": "https://www.sec.gov/Archives/edgar/data/912595/000119312526041208/0001193125-26-041208-index.html",
+        "companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000912595.json",
+        "frozen_input_sha256": "726625b86598af511d640adc81a75c6e0d3d2fc3f4f16788ae7c5bada9f0ac91"
+      },
+      "future_ground_truth": null,
+      "resolution_status": "pending_future_actual"
+    },
+    {
+      "ticker": "O",
+      "cik": 726728,
+      "company": "REALTY INCOME CORP",
+      "measure": "first publicly reported full-year consolidated revenue for fiscal year ending in calendar2027",
+      "reviewer": "primary_agent_personal_review",
+      "current_standard_tag": {
+        "namespace": "us-gaap",
+        "concept": "Revenues",
+        "unit": "USD"
+      },
+      "personally_checked_definition": "Total consolidated revenue; do not substitute rental-revenue-only, AFFO or an annualized acquisition run rate.",
+      "reference_annual_actual_2025": {
+        "value": 5749377000,
+        "period_start": "2025-01-01",
+        "period_end": "2025-12-31",
+        "filed": "2026-02-25",
+        "accession": "0000726728-26-000011",
+        "sec_filing_index": "https://www.sec.gov/Archives/edgar/data/726728/000072672826000011/0000726728-26-000011-index.html",
+        "companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000726728.json",
+        "frozen_input_sha256": "d0075e5d651506053385ee371821eb733996a3f3cbdfc712f55b2b8c5d0f8a47"
+      },
+      "future_ground_truth": null,
+      "resolution_status": "pending_future_actual"
+    },
+    {
+      "ticker": "GNK",
+      "cik": 1326200,
+      "company": "GENCO SHIPPING & TRADING LTD",
+      "measure": "first publicly reported full-year consolidated revenue for fiscal year ending in calendar2027",
+      "reviewer": "primary_agent_personal_review",
+      "current_standard_tag": {
+        "namespace": "us-gaap",
+        "concept": "Revenues",
+        "unit": "USD"
+      },
+      "personally_checked_definition": "Consolidated voyage revenue, including applicable voyage revenue under the accounting presentation. Do not substitute time-charter equivalent net revenue or per-day TCE.",
+      "reference_annual_actual_2025": {
+        "value": 342054000,
+        "period_start": "2025-01-01",
+        "period_end": "2025-12-31",
+        "filed": "2026-02-18",
+        "accession": "0001104659-26-017117",
+        "sec_filing_index": "https://www.sec.gov/Archives/edgar/data/1326200/000110465926017117/0001104659-26-017117-index.html",
+        "companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326200.json",
+        "frozen_input_sha256": "bde8b749154cca60c6d7aeb963bb46665d1abdd39410226cd7a43d8e31e2691d"
+      },
+      "future_ground_truth": null,
+      "resolution_status": "pending_future_actual"
+    },
+    {
+      "ticker": "LCID",
+      "cik": 1811210,
+      "company": "Lucid Group, Inc.",
+      "measure": "first publicly reported full-year consolidated revenue for fiscal year ending in calendar2027",
+      "reviewer": "primary_agent_personal_review",
+      "current_standard_tag": {
+        "namespace": "us-gaap",
+        "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "unit": "USD"
+      },
+      "personally_checked_definition": "Consolidated total revenue in USD; do not substitute cost of revenue, ARR, billings or a quarterly figure.",
+      "reference_annual_actual_2025": {
+        "value": 1353790000,
+        "period_start": "2025-01-01",
+        "period_end": "2025-12-31",
+        "filed": "2026-02-24",
+        "accession": "0001628280-26-011053",
+        "sec_filing_index": "https://www.sec.gov/Archives/edgar/data/1811210/000162828026011053/0001628280-26-011053-index.html",
+        "companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001811210.json",
+        "frozen_input_sha256": "b28041387479a8823ecdbfb58768e0783d96e2fbf97856971069c5eb6d4cf60e"
+      },
+      "future_ground_truth": null,
+      "resolution_status": "pending_future_actual"
+    },
+    {
+      "ticker": "HAL",
+      "cik": 45012,
+      "company": "HALLIBURTON CO",
+      "measure": "first publicly reported full-year consolidated revenue for fiscal year ending in calendar2027",
+      "reviewer": "primary_agent_personal_review",
+      "current_standard_tag": {
+        "namespace": "us-gaap",
+        "concept": "RevenueFromContractWithCustomerIncludingAssessedTax",
+        "unit": "USD"
+      },
+      "personally_checked_definition": "This issuer reports the including-assessed-tax revenue tag. Use the consolidated statement total and preserve its accounting definition.",
+      "reference_annual_actual_2025": {
+        "value": 22184000000,
+        "period_start": "2025-01-01",
+        "period_end": "2025-12-31",
+        "filed": "2026-02-06",
+        "accession": "0000045012-26-000015",
+        "sec_filing_index": "https://www.sec.gov/Archives/edgar/data/45012/000004501226000015/0000045012-26-000015-index.html",
+        "companyfacts_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000045012.json",
+        "frozen_input_sha256": "62254b7249f22666a2f3e67a4196c3f874ef9559b33f248d6190a77671d572ea"
+      },
+      "future_ground_truth": null,
+      "resolution_status": "pending_future_actual"
+    }
+  ],
+  "revenue_resolution": {
+    "unit": "USD",
+    "fiscal_year": 2027,
+    "publication_vintage": "First publicly reported full-year consolidated actual, including an earnings release before the 10-K. Guidance, consensus, preliminary forecasts and later restatements are distinct. Retain the original release and reconcile the later filing separately.",
+    "selection": "I will personally verify the consolidated statement, issuer, fiscal duration, accounting definition, unit and first-publication timestamp from issuer/SEC primary records. XBRL is a retrieval aid; no automated semantic labeler or LLM judge.",
+    "changes": "If accounting tags or entity scope change, document the statement bridge and retain the original question. Do not silently switch to a convenient metric. If unresolved, keep the case unresolved rather than drop it."
+  },
+  "returns": {
+    "entry_session": "2026-10-23",
+    "exit_session": "2027-01-21",
+    "unit": "fraction",
+    "measure": "adjusted-close total holding return, exit adjusted close / entry adjusted close - 1",
+    "calendar_rule": "Use first trading session on/after each specified date if closed. Resolve the actual sessions explicitly.",
+    "benchmark": "SPY, identical session endpoints and adjustment convention",
+    "comparison": "strict stock return > SPY return; ties resolve to false",
+    "sources": "Retain the dated adjusted-close series and corporate-action records. Personally cross-check endpoints/actions against issuer, exchange or primary distribution notices. Yahoo chart data may supply adjusted prices; it does not override a contradictory corporate-action record.",
+    "delisting": "Retain the case. Resolve cash/stock consideration, distributions and successor holdings through the exit date. Ordinary dividends before a terminal event follow the same adjusted-price total-return reinvestment convention as SPY. Cash merger consideration or liquidation proceeds after a terminal event are held without interest through exit. Bankruptcy or a missing quote does not automatically mean either zero or the last quote. Keep unresolved labels if primary records cannot establish the payoff.",
+    "forecaster_target_errors": "Score the original specified window even if the model used another entry date or trading-day count. Do not repair the prediction or move the target."
+  },
+  "scoring": {
+    "continuous": "Absolute median error; pinball loss at .1/.5/.9; 80% interval coverage and interval score; weighted interval score. No pooling across revenue/return units.",
+    "binary": "Brier score for outperforming SPY; constant .5 baseline has .25 Brier.",
+    "missing": "All eight cases stay in coverage counts, including failed/late/missing predictions. Unresolved outcomes are pending, never fabricated.",
+    "hypotheses": "Primary-agent personal assessment of the stated mechanism and falsifiers against later primary evidence, separately from price returns. No automatic prose grade and no other LLM judge."
+  },
+  "evaluator_boundary": "Resolution files live outside actor/ in evaluator/resolutions. The analyst has no tool or dataset exposing them.",
+  "updated_at_utc": "2026-10-23T03:28:02.970433+00:00",
+  "clarification": "Corporate-action mechanics clarified before any future target outcome exists; original question, fiscal revenue measure and return holding window remain as frozen in the actor manifest."
+}

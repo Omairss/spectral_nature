@@ -1,0 +1,34 @@
+{
+  "created_at_utc": "2026-10-23T01:49:36.778997+00:00",
+  "app": "/Users/omairs/Library/Application Support/SpectralNature/research/checkouts/analyst-workspace-20261022/streamlit_alpaca_app",
+  "source_git": "4f21a3f84666fcc9eaa07c2e4c2ee34866a3fbd9",
+  "engine_revision": "2c0211f8b27bcbb53a6f",
+  "runner_sha256": "a92126992e9fe1803f904990f7a51d593d1a414527f45908cab3a7579a5c01be",
+  "actor_sha256": "e4f0a9f538480a373f20aef236fdacd552b38430af476eafc5f0f66e6519bca3",
+  "model": "deepseek-v4-pro",
+  "provider_version_claim": "DeepSeek-V4-Pro-0813, official docs checked October22; hosted weights not hash-pinned",
+  "runtime_overrides": {
+    "runtime:deepseek:model": "deepseek-v4-pro",
+    "runtime:deepseek:thinking_mode": "enabled",
+    "runtime:deepseek:reasoning_effort": "high",
+    "runtime:deepseek:timeout_seconds": 600
+  },
+  "budget_usd": 70,
+  "input_usd_per_million": 1.32,
+  "output_usd_per_million": 3.96,
+  "completion_tokens": 32768,
+  "timeout_seconds": 600,
+  "max_provider_attempts": 10000,
+  "accounting_root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/accounting",
+  "authorization": "Owner October22 explicitly requests every external benchmark and custom future-prediction tasks; bounded new evaluation study, separate from earlier runs. Fifty-dollar conservative reference ceiling declared before paid inference; no card top-up or GPU rental.",
+  "scope": "Native model-only condition through shared AQL/Zopedia structured gateway. FinQA full test1147; TAT-QA official released labeled-test snapshot1663, extracting only table/text/question fields; ConvFinQA public dev421 conversations1490 turns because private test lacks labels. Earlier generated answers only in conversation history. No tools, reviewer, evaluator records or gold support annotations in model messages. Initial three-case package/schema probe is retained separately and has no benchmark score; corrected flat-program grammar comes from publisher documentation and public training examples. Model/prompt fixed before full inference; no claim of pretraining-clean public benchmarks.",
+  "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+  "scheduling": "Round-robin across benchmarks; individual known-usage model failures remain failures, other in-flight calls do not block the batch. Same actor inputs, instructions and model as v2 pilot.",
+  "unknown_charge_policy": "reserve_maximum",
+  "accounting_change": "One actual ConnectionError has unknown usage. Its full1M-input/32768-output maximum exposure remains reserved; do not zero usage or rerun its failed first response. The resumed actor tasks/model/instructions for FinQA/TAT-QA are unchanged.",
+  "instructions": {
+    "convfinqa": "Answer the current financial question using the report and previous model answers. Use the requested financial quantity, period and units. Return an answer and a flat comma-separated calculation program. Operations: add, subtract, multiply, divide, exp, greater, table_sum, table_average, table_max, table_min; earlier results are #0, #1, etc. Do not nest calls or assign variables. Native percentage-rate programs normally return decimal ratios; answer text may display percent. When a follow-up explicitly asks to convert an already supplied decimal to percentage units, execute that conversion. Return only the requested JSON."
+  },
+  "condition": "Complete public development conversations under corrected requested-unit instructions; no selective cases or changed source/gold history.",
+  "native_unit_basis": "Publisher training sample has percentage-change program returning.14136, while explicit decimal-to-percent follow-ups require conversion. No held-out numeric answer supplied."
+}

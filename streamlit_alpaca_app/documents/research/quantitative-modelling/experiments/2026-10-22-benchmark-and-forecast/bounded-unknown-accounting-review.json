@@ -1,0 +1,20 @@
+[
+  {
+    "case": "legacy_default_keeps_unknown_halt",
+    "halted": true
+  },
+  {
+    "case": "real_3601_attempt_receipt_replay",
+    "known_usage_estimate_usd": 22.76690064000002,
+    "unknown_attempts": [
+      "llmhttp_9572d96941f34745b7f1fb64d6110d00"
+    ],
+    "unknown_charge_upper_bound_usd": 1.5138816000000002,
+    "accounted_spend_upper_bound_usd": 24.280782240000022,
+    "next_request_reservation_usd": 1.5138816000000002
+  },
+  {
+    "case": "insufficient_remaining_budget_keeps_transport_blocked",
+    "blocked": true
+  }
+]

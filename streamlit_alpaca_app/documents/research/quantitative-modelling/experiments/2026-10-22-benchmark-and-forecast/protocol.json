@@ -1,0 +1,26 @@
+{
+  "created_at_utc": "2026-10-23T01:49:36.778997+00:00",
+  "app": "/Users/omairs/Library/Application Support/SpectralNature/research/checkouts/analyst-answer-ownership-20261021/streamlit_alpaca_app",
+  "source_git": "0fbfd58696a2ce221fc0e5213cf42fac0fb698da",
+  "engine_revision": "9ba8cf932a0a64ce5634",
+  "runner_sha256": "17655228f65852ed11c2b44c5a6262c2d730b0ef3f46f8cda10b5d150244399e",
+  "actor_sha256": "3915c3d22e2453b1095c37c2fb52e5b6f6a70e7df1482e8293c1eab5c1f0fcd3",
+  "model": "deepseek-v4-pro",
+  "provider_version_claim": "DeepSeek-V4-Pro-0813, official docs checked October22; hosted weights not hash-pinned",
+  "runtime_overrides": {
+    "runtime:deepseek:model": "deepseek-v4-pro",
+    "runtime:deepseek:thinking_mode": "enabled",
+    "runtime:deepseek:reasoning_effort": "high",
+    "runtime:deepseek:timeout_seconds": 600
+  },
+  "budget_usd": 50,
+  "input_usd_per_million": 1.32,
+  "output_usd_per_million": 3.96,
+  "completion_tokens": 32768,
+  "timeout_seconds": 600,
+  "max_provider_attempts": 10000,
+  "accounting_root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/accounting",
+  "authorization": "Owner October22 explicitly requests every external benchmark and custom future-prediction tasks; bounded new evaluation study, separate from earlier runs. Fifty-dollar conservative reference ceiling declared before paid inference; no card top-up or GPU rental.",
+  "scope": "Native model-only component benchmark condition through shared AQL/Zopedia structured gateway, no tools and no reviewer. Forecast/ML workflow condition will separately use full shared research engine. Public FinQA test, public TAT-QA test, ConvFinQA public dev because test answers unavailable. Earlier model answers only in conversation history. No gold fields or evaluator paths in model messages. Full split completion and native scores pending; pilot is not full benchmark completion.",
+  "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/"
+}

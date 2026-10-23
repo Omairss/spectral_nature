@@ -1,0 +1,210 @@
+{
+  "scored_at_utc": "2026-10-23T05:09:00.444689+00:00",
+  "ground_truth_spec_sha256": "c97ee1bca13d9201e3b5ad6ede3a40224d2868a7b95e46dcf5741911780d6d7b",
+  "ground_truth_owner": "primary_agent_personal_review",
+  "model_judges_used": false,
+  "cohort_size": 8,
+  "results": [
+    {
+      "ticker": "HIMS",
+      "targets": {
+        "annual_revenue_usd": {
+          "status": "pending",
+          "score": null
+        },
+        "stock_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "spy_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "outperform_spy": {
+          "status": "pending",
+          "score": null
+        }
+      },
+      "status": "pending_outcomes",
+      "prediction_sha256": "c3dff460c8abecbad541e0706ed9a5db9574e1e8c3a10c19e4aa8d1b8bbedc9d",
+      "issued_at_utc": "2026-10-23T02:16:41.845292+00:00",
+      "before_issue_deadline": true
+    },
+    {
+      "ticker": "GH",
+      "targets": {
+        "annual_revenue_usd": {
+          "status": "pending",
+          "score": null
+        },
+        "stock_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "spy_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "outperform_spy": {
+          "status": "pending",
+          "score": null
+        }
+      },
+      "status": "pending_outcomes",
+      "prediction_sha256": "66e78b9dfb39c79889c12f1cd4c31946c3b6036bf73ec65a0b4701aefe92ede8",
+      "issued_at_utc": "2026-10-23T02:33:52.367536+00:00",
+      "before_issue_deadline": true
+    },
+    {
+      "ticker": "AMD",
+      "targets": {
+        "annual_revenue_usd": {
+          "status": "pending",
+          "score": null
+        },
+        "stock_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "spy_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "outperform_spy": {
+          "status": "pending",
+          "score": null
+        }
+      },
+      "status": "pending_outcomes",
+      "prediction_sha256": "f623ec026f6ff092027c4868437e01b699e9cc7774225113f044147d42924c4a",
+      "issued_at_utc": "2026-10-23T02:51:20.393286+00:00",
+      "before_issue_deadline": true
+    },
+    {
+      "ticker": "MAA",
+      "targets": {
+        "annual_revenue_usd": {
+          "status": "pending",
+          "score": null
+        },
+        "stock_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "spy_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "outperform_spy": {
+          "status": "pending",
+          "score": null
+        }
+      },
+      "status": "pending_outcomes",
+      "prediction_sha256": "30df2097374376fca8baa0dbfa88536a72da8ee01220379494deafef813f9874",
+      "issued_at_utc": "2026-10-23T03:01:02.975546+00:00",
+      "before_issue_deadline": true
+    },
+    {
+      "ticker": "O",
+      "targets": {
+        "annual_revenue_usd": {
+          "status": "pending",
+          "score": null
+        },
+        "stock_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "spy_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "outperform_spy": {
+          "status": "pending",
+          "score": null
+        }
+      },
+      "status": "pending_outcomes",
+      "prediction_sha256": "a53d4d39a63f53960f6d69f734f89cf8902347785b2a285372a837e90dcf88ac",
+      "issued_at_utc": "2026-10-23T03:18:14.307383+00:00",
+      "before_issue_deadline": true
+    },
+    {
+      "ticker": "GNK",
+      "targets": {
+        "annual_revenue_usd": {
+          "status": "pending",
+          "score": null
+        },
+        "stock_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "spy_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "outperform_spy": {
+          "status": "pending",
+          "score": null
+        }
+      },
+      "status": "failed_prediction_retained",
+      "prediction_sha256": "8cc69ecb492bc5340c744ad4e9e4ffbe74f01d204b20cc35b0c0083d0f31df37",
+      "issued_at_utc": "2026-10-23T04:09:23.115874+00:00",
+      "before_issue_deadline": true
+    },
+    {
+      "ticker": "LCID",
+      "targets": {
+        "annual_revenue_usd": {
+          "status": "pending",
+          "score": null
+        },
+        "stock_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "spy_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "outperform_spy": {
+          "status": "pending",
+          "score": null
+        }
+      },
+      "status": "pending_outcomes",
+      "prediction_sha256": "492a0455a23dd214e153f1a9ec1c6b26a50432d73a8bc1ed2901512e59da0c9c",
+      "issued_at_utc": "2026-10-23T04:30:55.418723+00:00",
+      "before_issue_deadline": true
+    },
+    {
+      "ticker": "HAL",
+      "targets": {
+        "annual_revenue_usd": {
+          "status": "pending",
+          "score": null
+        },
+        "stock_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "spy_total_return": {
+          "status": "pending",
+          "score": null
+        },
+        "outperform_spy": {
+          "status": "pending",
+          "score": null
+        }
+      },
+      "status": "pending_outcomes",
+      "prediction_sha256": "3181dbadaae3fec4a97749924d7aca1e518d48a90b631faed3e751b0e2959172",
+      "issued_at_utc": "2026-10-23T04:40:17.946156+00:00",
+      "before_issue_deadline": true
+    }
+  ],
+  "aggregation": "Different units are not pooled. Missing/failed/late predictions and pending outcomes remain explicit. Qualitative hypothesis assessment is separate."
+}

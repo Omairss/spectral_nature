@@ -1,0 +1,48 @@
+{
+  "reviewed_at_utc": "2026-10-23T02:24:47.039503+00:00",
+  "task": "sa_prospective_HIMS",
+  "prediction_retained": "Private forecast/predictions/HIMS.json; first attempt retained for later scoring.",
+  "review_scope": "Personally read the full lead article, actual generated programs, retained numerical stdout, and final structured forecast.",
+  "source_and_compute": {
+    "article_read": "sa_4955180",
+    "corpus_available": 259,
+    "facts_rows_available": 8051,
+    "successful_python_runs": 6,
+    "failed_python_runs_retained": 2,
+    "executed_methods": [
+      "Annual revenue log-linear regression",
+      "Revenue residual bootstrap",
+      "2025 temporal holdout diagnostic",
+      "Empirical joint63-session HIMS/SPY returns",
+      "Correlated GBM simulation"
+    ],
+    "last_successful_model_run": "zopedia_analysis::20261023T021247::7ed06bbd56"
+  },
+  "useful_behavior": [
+    "Independently used numerical methods rather than copying article forecasts.",
+    "Recognized that the very high in-sample fit extrapolated unrealistically:FY2027 near7.95B and a2025 holdout overprediction18.6%.",
+    "Revised the final revenue judgment toward reported recent growth and article-stated2026 guidance; preserved scenarios and uncertainty."
+  ],
+  "remaining_quality_failures": [
+    "Final prose assumes entry at the known October22 close, while the frozen target starts at the future October23 close. The evaluator retains the originally specified target; do not move it to match the answer.",
+    "Uses63 trading sessions instead of the exact specified holding window, and approximates requested return quantiles from printed5/25/50/75/95-percentiles rather than computing them directly.",
+    "Final revenue3.5/4.2/5.0B quantiles are judgmental adjustments, not outputs of the fitted regression/bootstrap; their calibration is not established.",
+    "Overlapping historical return windows and recent regulatory/business changes limit the interpretation of the empirical probability. The historical diagnostic uses current-vintage facts and is not certified as a past point-in-time backtest."
+  ],
+  "final_forecast": {
+    "revenue_usd": {
+      "p10": 3500000000,
+      "p50": 4200000000,
+      "p90": 5000000000
+    },
+    "stock_total_return": {
+      "p10": -0.348,
+      "p50": 0.017,
+      "p90": 0.722
+    },
+    "probability_outperform_spy": 0.483
+  },
+  "financial_method_fully_accepted": false,
+  "target_outcomes": "Pending future observation; no accuracy claim.",
+  "next_decision": "Continue the remaining seven first-attempt development forecasts under the same frozen condition. Preserve failures and target-adherence review alongside later numeric scores; no company-specific patch or replacement of the HIMS forecast."
+}

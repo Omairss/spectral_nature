@@ -1,0 +1,41 @@
+{
+  "reviewed_at_utc": "2026-10-23T03:02:25.857701+00:00",
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_judges_used": false,
+  "benchmark": "convfinqa",
+  "split": "complete public development",
+  "turns": 1490,
+  "native_execution_matches": 960,
+  "native_execution_accuracy": 0.6442953020134228,
+  "condition": "protocol-v3.json",
+  "instruction_confound": {
+    "finding": "FinQA_INSTRUCTIONS were reused for ConvFinQA and require percentage rates as decimal ratios. ConvFinQA includes explicit follow-ups that request conversion from a decimal to a percentage. Those targets require a factor of100, so this instruction can contradict the question.",
+    "example": "Double_IPG/2015/page_37.pdf turns1and2 have published values0.02045 and2.04524 for the decimal and percentage questions respectively.",
+    "action": "Retain all original results and the reported native score. Prepare a new frozen condition with benchmark-appropriate requested-unit instructions after the running native condition finishes; no per-question numeric corrections or selective reruns."
+  },
+  "personally_recomputed_cases": [
+    {
+      "id": "Double_ZBH/2003/page_58.pdf",
+      "turn": 3,
+      "review": "Previous answer is the inventory ratio527.7/257.6=2.04852. Removing the portion equal to2002 means subtract1, yielding1.04852. The model instead subtracts absolute inventory values and returns270.1; this loses the conversational referent."
+    },
+    {
+      "id": "Double_STT/2011/page_83.pdf",
+      "turns": [
+        3,
+        4
+      ],
+      "review": "Fair value changes from81881to99832million: +17951million, then17951/81881=0.219232789. The model instead combines181/448 unrealized-loss balances with303/523 reclassification amounts, returning487 and0.00595. This is a quantity-selection error, not inability to subtract."
+    },
+    {
+      "id": "Double_IPG/2015/page_37.pdf",
+      "turns": [
+        0,
+        1,
+        2
+      ],
+      "review": "The publisher interprets total cash flow as the adjusted net-income row848.2minus831.2=17million, with17/831.2=.020452358 and2.0452358percent. The model chooses net change in cash across operating/investing/financing:2015=-1.6,2014=124.8, change=-126.4. The initial wording is ambiguous; preserve this plausible alternate measure separately from the unaltered native reference score. Subsequent follow-ups propagate the initial interpretation."
+    }
+  ],
+  "scope": "Three complete source/conversation contexts inspected personally. This is failure analysis, not a representative estimate or a replacement for native scoring."
+}

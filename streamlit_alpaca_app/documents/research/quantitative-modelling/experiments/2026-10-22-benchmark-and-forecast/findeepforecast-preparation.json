@@ -1,0 +1,20 @@
+{
+  "prepared_at_utc": "2026-10-23T04:56:48.588245+00:00",
+  "publisher": "OpenFinArena",
+  "official_dataset": "https://huggingface.co/datasets/OpenFinArena/FinDeepForecast",
+  "revision": "412a8c83bab78410238c97ee3dacf04d4aacfa8d",
+  "license": "apache-2.0",
+  "task_counts": {
+    "Corporate - Non-Recurrent": 247,
+    "Corporate - Recurrent": 699,
+    "Macro - Non-Recurrent": 128,
+    "Macro - Recurrent": 296
+  },
+  "questions": 1370,
+  "actor_sha256": "18272d243b379bec83ed83c46eca8e3e92763d2cbbd437ff210e291784b21993",
+  "evaluator_sha256": "60ddf45bd918a23b164960b6d1e15fc2917485fb86cbfd7f78643b98ce7d402c",
+  "published_answer_missing": 0,
+  "input_policy": "Only original question/prompt and declared dates/group. Published Answer and all other models predictions are excluded. No external submission performed.",
+  "timing": "Original forecast deadlines are in2025 and precede the current model. A run now is a retrospective historical-question condition with possible parameter knowledge of outcomes, not an on-time native submission or uncontaminated future-forecast score.",
+  "ground_truth_policy": "Use fixed published references for native-reference comparisons; personally verify consequential outcome/definition disagreements from primary records. Do not invoke the publisher LLM extraction/judging agents or another LLM grader."
+}

@@ -1,0 +1,89 @@
+{
+  "status": "deployed_and_runtime_verified",
+  "recorded_at_utc": "2026-10-23T05:06:28.687882+00:00",
+  "owner_authorization": "If Zopedia prod doesn't have some of these new skills, bring them to prod. Especially forecasting/modeling.",
+  "source_checkout": "/Users/omairs/Documents/code/spectral_nature_quant_compute_20261022",
+  "packaged_source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+  "accepted_application_revision": "8c7c9f55b38fd09dcbf53b5aa39af513f38e4578",
+  "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
+  "engine_revision": "1b332d7f4e378ac94383",
+  "images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab"
+  },
+  "promoted_consumers": 18,
+  "retained_consumers": 18,
+  "all36_azure_configurations_preserved": true,
+  "all_expected_images_read_back": true,
+  "api_revision": "sn-api-next--0000018",
+  "live_runtime": {
+    "scope": "production",
+    "stored_settings": {
+      "production::runtime:deepseek:model": "deepseek-v4-pro",
+      "production::runtime:deepseek:thinking_mode": "enabled",
+      "production::runtime:deepseek:reasoning_effort": "high",
+      "production::param:engine_agent_run_timeout_seconds": "900",
+      "production::param:agent_llm_step_timeout_seconds": "240"
+    },
+    "engine_revision": "1b332d7f4e378ac94383",
+    "research_budget": {
+      "max_tool_calls": 10,
+      "run_timeout_seconds": 900,
+      "tool_call_timeout_seconds": 45,
+      "llm_step_timeout_seconds": 240,
+      "prefetch_timeout_seconds": 15
+    },
+    "numeric_status": "succeeded",
+    "numeric_result": {
+      "rows": 100001,
+      "sum_x": 5000050000,
+      "slope": 2.999999999999999,
+      "intercept": 7.000000000058208
+    },
+    "numeric_error": "",
+    "default_calculation_seconds": 120,
+    "maximum_calculation_seconds": 900,
+    "input_allocation_bytes": 134217728,
+    "health_status": 200
+  },
+  "http_statuses_preserved": true,
+  "http_note": "API ingress is internal: public direct probes remain404 as before. The actual API localhost health request returned200. Both public Next.js entry points retain their prior200 health and Zopedia responses.",
+  "development_evidence": "development-review.json",
+  "package_evidence": "packaged-images.json",
+  "capabilities": [
+    "Full analytical inputs within128MiB estimated-frame admission, with optional explicit rejection bounds and separate display previews.",
+    "Internal DataFrames retain complete rows, columns and cells; local2million-row and96-column execution plus cloud2million-row and live API100001-row execution verified.",
+    "NumPy, pandas, SciPy and scikit-learn calculations, regressions, forecasts and correlations through the shared analysis tool.",
+    "120second default calculation allocation, maximum900seconds when the remaining research budget permits; generic tool dispatch honors its execution allocation.",
+    "Actual numerical-process cancellation and drain-before-join output transport.",
+    "Original numerical outputs available to research synthesis and retained analysis inspection."
+  ],
+  "scope_limits": [
+    "No asynchronous hours-long external compute service has been implemented.",
+    "No new native workbook-authoring executor has been released.",
+    "A useful model execution framework does not establish calibrated prediction quality. Future cohort outcomes remain pending."
+  ],
+  "production_settings_adoption": {
+    "changed_keys": {
+      "runtime:deepseek:model": "deepseek-v4-pro",
+      "runtime:deepseek:thinking_mode": "enabled",
+      "runtime:deepseek:reasoning_effort": "high",
+      "param:engine_agent_run_timeout_seconds": "900",
+      "param:agent_llm_step_timeout_seconds": "240"
+    },
+    "scope": "production only, through existing validated settings storage; development model settings unchanged.",
+    "confirmed_previous_model_settings": {
+      "model": "deepseek-reasoner",
+      "thinking": "enabled",
+      "effort": ""
+    },
+    "previous_timeout_override_values": "Not captured. An initial inspection used the context-managed cursor incorrectly; the subsequent validated settings change succeeded and its current physical rows and active runtime were independently read back. Code defaults300/90 are known but are not claimed to be the exact previous overrides."
+  },
+  "production_verification_execution": "sn-research-run-kipctr6",
+  "full_production_model_observation": "Completed and personally reviewed; two successful real-data programs through actual shared production configuration. Compute capability accepted; calibration and future accuracy unresolved.",
+  "scheduled_product_jobs_started": 0,
+  "controlled_production_verification_jobs_started": 1,
+  "private_operator_receipts": "/Users/omairs/Library/Application Support/SpectralNature/verification/quantitative-compute-20261022",
+  "production_model_review": "production-model-review.json"
+}

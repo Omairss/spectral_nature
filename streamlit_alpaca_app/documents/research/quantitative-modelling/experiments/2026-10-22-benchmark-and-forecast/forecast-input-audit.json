@@ -1,0 +1,12 @@
+{
+  "checked_at_utc": "2026-10-23T02:07:08.910753+00:00",
+  "sources": 259,
+  "datasets": 25,
+  "source_bytes": 2845730,
+  "facts_rows": 128777,
+  "price_rows": 17374,
+  "violations": [],
+  "context_policy": "Whitelisted source-only fields, observation-time and reported-period checks, immutable hashes, full-engine tool/data allowlist; no outcome reader or live search. Future targets are not realized at forecast issuance. Historical replays are not certified by this audit.",
+  "decision_cutoff_utc": "2026-10-23T02:04:03.822078+00:00",
+  "issue_deadline_utc": "2026-10-23T12:00:00+00:00"
+}

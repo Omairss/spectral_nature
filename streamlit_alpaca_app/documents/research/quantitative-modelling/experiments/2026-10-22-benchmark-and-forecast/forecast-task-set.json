@@ -1,0 +1,424 @@
+{
+  "frozen_at_utc": "2026-10-23T02:04:03.822078+00:00",
+  "issue_deadline_utc": "2026-10-23T12:00:00+00:00",
+  "companies": [
+    {
+      "ticker": "HIMS",
+      "article_id": "4955180",
+      "cik": 1773751,
+      "company": "Hims & Hers Health, Inc."
+    },
+    {
+      "ticker": "GH",
+      "article_id": "4955182",
+      "cik": 1576280,
+      "company": "Guardant Health, Inc."
+    },
+    {
+      "ticker": "AMD",
+      "article_id": "4955111",
+      "cik": 2488,
+      "company": "ADVANCED MICRO DEVICES INC"
+    },
+    {
+      "ticker": "MAA",
+      "article_id": "4955140",
+      "cik": 912595,
+      "company": "MID AMERICA APARTMENT COMMUNITIES INC."
+    },
+    {
+      "ticker": "O",
+      "article_id": "4955134",
+      "cik": 726728,
+      "company": "REALTY INCOME CORP"
+    },
+    {
+      "ticker": "GNK",
+      "article_id": "4955139",
+      "cik": 1326200,
+      "company": "GENCO SHIPPING & TRADING LTD"
+    },
+    {
+      "ticker": "LCID",
+      "article_id": "4955183",
+      "cik": 1811210,
+      "company": "Lucid Group, Inc."
+    },
+    {
+      "ticker": "HAL",
+      "article_id": "4954495",
+      "cik": 45012,
+      "company": "HALLIBURTON CO"
+    }
+  ],
+  "source_count": 259,
+  "body_utf8_bytes": 2845730,
+  "dataset_receipts": [
+    {
+      "dataset": "facts_HIMS",
+      "rows": 8051,
+      "sha256": "36feb05955e2f596feff4a700769f199ac29dade0127bff4d803df5415f990b5",
+      "bytes": 2726031
+    },
+    {
+      "dataset": "concepts_HIMS",
+      "rows": 383,
+      "sha256": "cd91ab29a601627977721d4b74718c1717beb0dc1a24e5db95d420eeb65c8664",
+      "bytes": 160808
+    },
+    {
+      "dataset": "facts_GH",
+      "rows": 12302,
+      "sha256": "4e514bcd0518e4a7d9709d9fd80ce3dadb00031322defb2ef0aededdf404c002",
+      "bytes": 4306266
+    },
+    {
+      "dataset": "concepts_GH",
+      "rows": 400,
+      "sha256": "5af523e2d9f487d2b2ebe032f697488f3ff71c1e5e24173e173830971b7df0c2",
+      "bytes": 162711
+    },
+    {
+      "dataset": "facts_AMD",
+      "rows": 23826,
+      "sha256": "3155362edafdc85b16cb0e755334797b85d8119c09fa867908150c1e2ad7fc09",
+      "bytes": 8221654
+    },
+    {
+      "dataset": "concepts_AMD",
+      "rows": 792,
+      "sha256": "a949dd49275ff132c3827a6f08ff91138dc73c7b4a8d943a55ea3b6324ec5db8",
+      "bytes": 335347
+    },
+    {
+      "dataset": "facts_MAA",
+      "rows": 16182,
+      "sha256": "726625b86598af511d640adc81a75c6e0d3d2fc3f4f16788ae7c5bada9f0ac91",
+      "bytes": 5606490
+    },
+    {
+      "dataset": "concepts_MAA",
+      "rows": 418,
+      "sha256": "d4dfbdd833095ca3af2d5e331e21cbb9ba1e3b00718c34eb0574be20daafd443",
+      "bytes": 170386
+    },
+    {
+      "dataset": "facts_O",
+      "rows": 21723,
+      "sha256": "d0075e5d651506053385ee371821eb733996a3f3cbdfc712f55b2b8c5d0f8a47",
+      "bytes": 7313378
+    },
+    {
+      "dataset": "concepts_O",
+      "rows": 502,
+      "sha256": "8ef5eb1ad873cd8e96e03124fe5b8f0cfce6e28fc1ed21b3d4bf2d7628830df1",
+      "bytes": 205221
+    },
+    {
+      "dataset": "facts_GNK",
+      "rows": 15623,
+      "sha256": "bde8b749154cca60c6d7aeb963bb46665d1abdd39410226cd7a43d8e31e2691d",
+      "bytes": 5234193
+    },
+    {
+      "dataset": "concepts_GNK",
+      "rows": 308,
+      "sha256": "e7c137a391aaf26c8e040ea8f15356927feb4374d1ffc46891a7ed7f56aa143f",
+      "bytes": 123603
+    },
+    {
+      "dataset": "facts_LCID",
+      "rows": 9702,
+      "sha256": "b28041387479a8823ecdbfb58768e0783d96e2fbf97856971069c5eb6d4cf60e",
+      "bytes": 3328999
+    },
+    {
+      "dataset": "concepts_LCID",
+      "rows": 476,
+      "sha256": "6ec71abaab4088bdc0cdd1e40e346e29a05f9884923bc9be14aecf6b9136cfe3",
+      "bytes": 192818
+    },
+    {
+      "dataset": "facts_HAL",
+      "rows": 21368,
+      "sha256": "62254b7249f22666a2f3e67a4196c3f874ef9559b33f248d6190a77671d572ea",
+      "bytes": 7319659
+    },
+    {
+      "dataset": "concepts_HAL",
+      "rows": 487,
+      "sha256": "b5f63bd91a0676e5f82dd6374e02b0d6d78661d9d4519659e533e03a008e5cf7",
+      "bytes": 196517
+    },
+    {
+      "dataset": "prices_HIMS",
+      "rows": 1787,
+      "sha256": "508f2056a72a1eacf0e3c28d89922ab1975fb123195a3a71630ac799cf563c60",
+      "bytes": 363348
+    },
+    {
+      "dataset": "prices_GH",
+      "rows": 2008,
+      "sha256": "b134cd5d12795bdcedf05f0be9903eb1ae25bb9cd79f38bd18b8c4647cf9577b",
+      "bytes": 401534
+    },
+    {
+      "dataset": "prices_AMD",
+      "rows": 2008,
+      "sha256": "0254550d7b84dcffab3a59565a0fb3e4498b1ed02cb5ebfda744e6951c9d6922",
+      "bytes": 410123
+    },
+    {
+      "dataset": "prices_MAA",
+      "rows": 2008,
+      "sha256": "40b807b5d4b6829abec74712fe8a155f971bece7ab2f77bb343fc94377e4254d",
+      "bytes": 410821
+    },
+    {
+      "dataset": "prices_O",
+      "rows": 2008,
+      "sha256": "c455a4d85d5fbd3631fff49992524b9d5d44a234631a21daea26a34356bacb6e",
+      "bytes": 405155
+    },
+    {
+      "dataset": "prices_GNK",
+      "rows": 2008,
+      "sha256": "267cd97e33d48e8d04e0f9b27f760b455d17f17ea09e1ad35da128cb25638d1b",
+      "bytes": 408694
+    },
+    {
+      "dataset": "prices_LCID",
+      "rows": 1531,
+      "sha256": "9241760dbcc939e7e2e6519458071214a4c9442977aaf4e6e07686c266f0f648",
+      "bytes": 298984
+    },
+    {
+      "dataset": "prices_HAL",
+      "rows": 2008,
+      "sha256": "8cf35fad1929167fa22569d18cb1b8bc77d178373fb6a25a035497b7abeda920",
+      "bytes": 411952
+    },
+    {
+      "dataset": "prices_SPY",
+      "rows": 2008,
+      "sha256": "00bd7a77d24ee6079b41481e030a13a9846a3f38d8b7867b0db7fb1ef11f0adb",
+      "bytes": 409789
+    }
+  ],
+  "input_policy": "Only sources captured before freeze, facts filed and periods ending by freeze, and frozen pre-entry prices. No cohort labels, retrospective reviews, outcomes, return files, reference answers, live web, serving memory or future observations admitted. Full sources available by controlled reader; source-to-compute references retain complete selected datasets.",
+  "scoring": "Save forecasts before entry and before target outcomes occur. Separate evaluator later resolves official reported revenue, adjusted-price returns and the binary outperform event. Score median absolute error, quantile losses/80% interval coverage and Brier score, alongside simple predeclared controls and personal hypothesis review. Immature targets remain pending, never counted as correct.",
+  "selection": "Eight development issuer investigations with different mechanisms from the unlabelled current-article collection; all259 retained articles are decision-time background. This is not a representative final cohort.",
+  "forecast_status": "not_issued",
+  "issuance": {
+    "recorded_at_utc": "2026-10-23T05:11:12.464201+00:00",
+    "status": "primary_attempts_complete_outcomes_pending",
+    "primary_attempts": 8,
+    "completed_primary": 7,
+    "failed_primary": 1,
+    "completed_separate_recoveries": 1,
+    "all_completed_forecasts_before_deadline": true,
+    "original_predictions_modified": false,
+    "receipts": [
+      {
+        "ticker": "AMD",
+        "condition": "primary_first_attempt",
+        "issued_at_utc": "2026-10-23T02:51:20.393286+00:00",
+        "before_issue_deadline": true,
+        "sha256": "f623ec026f6ff092027c4868437e01b699e9cc7774225113f044147d42924c4a",
+        "status": "completed",
+        "error": null,
+        "forecasts": {
+          "annual_revenue_usd": {
+            "p10": 55240273296.33,
+            "p50": 62007558124.69,
+            "p90": 70054756014.99
+          },
+          "stock_total_return": {
+            "p10": -0.216,
+            "p50": 0.161,
+            "p90": 0.748
+          },
+          "probability_outperform_spy": 0.658
+        },
+        "protocol_sha256": "86dae3051715dce669154bffa13cc5f5f26c28adc9c4bc203ee609f3413283e4"
+      },
+      {
+        "ticker": "GH",
+        "condition": "primary_first_attempt",
+        "issued_at_utc": "2026-10-23T02:33:52.367536+00:00",
+        "before_issue_deadline": true,
+        "sha256": "66e78b9dfb39c79889c12f1cd4c31946c3b6036bf73ec65a0b4701aefe92ede8",
+        "status": "completed",
+        "error": null,
+        "forecasts": {
+          "annual_revenue_usd": {
+            "p10": 1500000000,
+            "p50": 1750000000,
+            "p90": 2050000000
+          },
+          "stock_total_return": {
+            "p10": -0.31,
+            "p50": 0.05,
+            "p90": 0.6
+          },
+          "probability_outperform_spy": 0.51
+        },
+        "protocol_sha256": "86dae3051715dce669154bffa13cc5f5f26c28adc9c4bc203ee609f3413283e4"
+      },
+      {
+        "ticker": "GNK",
+        "condition": "primary_first_attempt",
+        "issued_at_utc": "2026-10-23T04:09:23.115874+00:00",
+        "before_issue_deadline": true,
+        "sha256": "8cc69ecb492bc5340c744ad4e9e4ffbe74f01d204b20cc35b0c0083d0f31df37",
+        "status": "failed",
+        "error": {
+          "type": "ResearchSpendExceeded",
+          "message": "Earlier provider charge is unknown; further inference is stopped"
+        },
+        "forecasts": null,
+        "protocol_sha256": "86dae3051715dce669154bffa13cc5f5f26c28adc9c4bc203ee609f3413283e4"
+      },
+      {
+        "ticker": "HAL",
+        "condition": "primary_first_attempt",
+        "issued_at_utc": "2026-10-23T04:40:17.946156+00:00",
+        "before_issue_deadline": true,
+        "sha256": "3181dbadaae3fec4a97749924d7aca1e518d48a90b631faed3e751b0e2959172",
+        "status": "completed",
+        "error": null,
+        "forecasts": {
+          "annual_revenue_usd": {
+            "p10": 20500000000,
+            "p50": 24000000000,
+            "p90": 28000000000
+          },
+          "stock_total_return": {
+            "p10": -0.25,
+            "p50": 0.03,
+            "p90": 0.4
+          },
+          "probability_outperform_spy": 0.47
+        },
+        "protocol_sha256": "8d51a27616f6d11666d21ea8a09733dbaa94a6f5a0eab4fe27e5a73b44f22d45"
+      },
+      {
+        "ticker": "HIMS",
+        "condition": "primary_first_attempt",
+        "issued_at_utc": "2026-10-23T02:16:41.845292+00:00",
+        "before_issue_deadline": true,
+        "sha256": "c3dff460c8abecbad541e0706ed9a5db9574e1e8c3a10c19e4aa8d1b8bbedc9d",
+        "status": "completed",
+        "error": null,
+        "forecasts": {
+          "annual_revenue_usd": {
+            "p10": 3500000000.0,
+            "p50": 4200000000.0,
+            "p90": 5000000000.0
+          },
+          "stock_total_return": {
+            "p10": -0.348,
+            "p50": 0.017,
+            "p90": 0.722
+          },
+          "probability_outperform_spy": 0.483
+        },
+        "protocol_sha256": "86dae3051715dce669154bffa13cc5f5f26c28adc9c4bc203ee609f3413283e4"
+      },
+      {
+        "ticker": "LCID",
+        "condition": "primary_first_attempt",
+        "issued_at_utc": "2026-10-23T04:30:55.418723+00:00",
+        "before_issue_deadline": true,
+        "sha256": "492a0455a23dd214e153f1a9ec1c6b26a50432d73a8bc1ed2901512e59da0c9c",
+        "status": "completed",
+        "error": null,
+        "forecasts": {
+          "annual_revenue_usd": {
+            "p10": 1209274196,
+            "p50": 2937920370,
+            "p90": 6333525642
+          },
+          "stock_total_return": {
+            "p10": -0.5306,
+            "p50": -0.229,
+            "p90": 0.2967
+          },
+          "probability_outperform_spy": 0.21923333333333334
+        },
+        "protocol_sha256": "8d51a27616f6d11666d21ea8a09733dbaa94a6f5a0eab4fe27e5a73b44f22d45"
+      },
+      {
+        "ticker": "MAA",
+        "condition": "primary_first_attempt",
+        "issued_at_utc": "2026-10-23T03:01:02.975546+00:00",
+        "before_issue_deadline": true,
+        "sha256": "30df2097374376fca8baa0dbfa88536a72da8ee01220379494deafef813f9874",
+        "status": "completed",
+        "error": null,
+        "forecasts": {
+          "annual_revenue_usd": {
+            "p10": 2250000000.0,
+            "p50": 2350000000.0,
+            "p90": 2500000000.0
+          },
+          "stock_total_return": {
+            "p10": -0.11,
+            "p50": 0.03,
+            "p90": 0.16
+          },
+          "probability_outperform_spy": 0.41
+        },
+        "protocol_sha256": "86dae3051715dce669154bffa13cc5f5f26c28adc9c4bc203ee609f3413283e4"
+      },
+      {
+        "ticker": "O",
+        "condition": "primary_first_attempt",
+        "issued_at_utc": "2026-10-23T03:18:14.307383+00:00",
+        "before_issue_deadline": true,
+        "sha256": "a53d4d39a63f53960f6d69f734f89cf8902347785b2a285372a837e90dcf88ac",
+        "status": "completed",
+        "error": null,
+        "forecasts": {
+          "annual_revenue_usd": {
+            "p10": 6000000000,
+            "p50": 6500000000,
+            "p90": 7000000000
+          },
+          "stock_total_return": {
+            "p10": -0.1,
+            "p50": 0.02,
+            "p90": 0.14
+          },
+          "probability_outperform_spy": 0.4
+        },
+        "protocol_sha256": "86dae3051715dce669154bffa13cc5f5f26c28adc9c4bc203ee609f3413283e4"
+      },
+      {
+        "ticker": "GNK",
+        "condition": "separate_recovery",
+        "issued_at_utc": "2026-10-23T04:56:58.800064+00:00",
+        "before_issue_deadline": true,
+        "sha256": "62adbed7ff1242a1393c2f481142c4cc08bea89abf0992dfa588ea7dcad5a058",
+        "status": "completed",
+        "error": null,
+        "forecasts": {
+          "annual_revenue_usd": {
+            "p10": 433000000,
+            "p50": 550000000,
+            "p90": 661000000
+          },
+          "stock_total_return": {
+            "p10": -0.26,
+            "p50": 0.04,
+            "p90": 0.49
+          },
+          "probability_outperform_spy": 0.51
+        },
+        "protocol_sha256": "8d51a27616f6d11666d21ea8a09733dbaa94a6f5a0eab4fe27e5a73b44f22d45"
+      }
+    ],
+    "future_outcome_status": "None resolved. Returns mature2027-01-21; fiscal2027 revenue must be first publicly reported after the issuer fiscal year. Primary agent personally resolves the actuals.",
+    "recovery_policy": "GNK first failed record remains primary; its successful recovery is a separate condition, never a replacement of first-attempt performance."
+  }
+}

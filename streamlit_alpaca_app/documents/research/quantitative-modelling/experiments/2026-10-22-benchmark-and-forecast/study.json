@@ -1,0 +1,197 @@
+{
+  "updated_at_utc": "2026-10-23T05:11:12.464201+00:00",
+  "owner_goals": [
+    "Evaluate the model on every external benchmark in the retained source catalog.",
+    "Create Seeking Alpha future-prediction tasks with extensive controlled context and no target leakage.",
+    "Let Zopedia choose and execute appropriate statistics/ML; score its locked predictions against actual subsequent outcomes."
+  ],
+  "status": "active",
+  "objective_achieved": false,
+  "model": "deepseek-v4-pro",
+  "thinking": "enabled/high",
+  "source_git": "0fbfd58696a2ce221fc0e5213cf42fac0fb698da",
+  "engine_revision": "9ba8cf932a0a64ce5634",
+  "benchmark_registry": [
+    {
+      "id": "finqa",
+      "public_scope": "1147 official test questions",
+      "status": "full_split_scored",
+      "execution_accuracy": 0.7131647776809067
+    },
+    {
+      "id": "tatqa",
+      "public_scope": "1663 questions from official labeled test snapshot",
+      "status": "full_released_labeled_snapshot_scored",
+      "metrics": {
+        "exact_match": 0.6897173782321107,
+        "f1": 0.7816776909200246,
+        "scale": 0.8659049909801564
+      }
+    },
+    {
+      "id": "convfinqa",
+      "public_scope": "421 public development conversations,1490 turns; private test labels unavailable",
+      "status": "two_full_public_dev_conditions_scored_with_instruction_failures_retained",
+      "execution_accuracy": 0.6442953020134228,
+      "personal_review": "native-personal-review-convfinqa.json",
+      "next_condition": "No further full rerun launched. Resolve standalone-program syntax/reference contract using official training examples first; development set is already exposed.",
+      "requested_unit_condition_execution_accuracy": 0.24765100671140938,
+      "requested_unit_condition_score": "convfinqa-requested-units-scores.json"
+    },
+    {
+      "id": "financebench",
+      "public_scope": "150 public questions over84 named reports; all84 PDFs and layout extracts acquired",
+      "status": "all150_full_report_inference_running"
+    },
+    {
+      "id": "finch",
+      "public_scope": "172 native workflows; original workbook outputs required",
+      "status": "354_original_assets_acquired_native_execution_pending"
+    },
+    {
+      "id": "bluefin",
+      "public_scope": "11 public rows over9 task folders; native workbook outputs for applicable tasks",
+      "status": "native_asset_and_execution_preparation"
+    },
+    {
+      "id": "emb",
+      "public_scope": "1 public SaaS workbook task; scratch/template are one case",
+      "status": "native_asset_and_execution_preparation"
+    },
+    {
+      "id": "forecastbench",
+      "public_scope": "Dated official future-question cohort; actual issuance and later resolutions required",
+      "status": "cohort_preparation"
+    },
+    {
+      "id": "findeepforecast",
+      "public_scope": "Official1370 tasks:699 corporate recurrent,247 corporate event,296 macro recurrent,128 macro event;2025 forecast deadlines.",
+      "status": "official1370_task_release_acquired_retrospective_condition_pending",
+      "primary_source": "https://openfinarena.com/",
+      "official_download": "https://huggingface.co/datasets/OpenFinArena/FinDeepForecast",
+      "revision": "412a8c83bab78410238c97ee3dacf04d4aacfa8d",
+      "preparation": "findeepforecast-preparation.json"
+    },
+    {
+      "id": "finsheet",
+      "public_scope": "Official paper/publisher checked; no official downloadable release yet verified; third-party recreation excluded",
+      "status": "official_download_not_exposed_after_rendered_publisher_review",
+      "primary_source": "https://qubera.ch/research",
+      "review": "Rendered complete research page exposes paper links and contact/demo, no dataset download. No contact message sent; third-party recreation not adopted.",
+      "official_version_check": "arXiv2603.07316 has only v1 as of2026-10-23; publisher renamed its link but no newer official version/download was verified."
+    }
+  ],
+  "native_component_progress": {
+    "first_condition_questions_or_turns": 4300,
+    "first_condition_complete": true,
+    "first_condition_scores": "native-scores.json",
+    "second_convfinqa_condition_questions_or_turns": 1490,
+    "second_condition_scores": "convfinqa-requested-units-scores.json",
+    "quality_note": "Original13 transport failures included in first-condition denominators. Requested-unit followup condition introduces ambiguous cross-turn references and missing call-syntax example; retain the24.8percent result rather than claiming model competence declined. FinanceBench is a new full-report condition."
+  },
+  "prospective_task_set": {
+    "investigations": 8,
+    "source_articles": 259,
+    "numerical_datasets": 25,
+    "reported_fact_rows": 128777,
+    "historical_price_rows": 17374,
+    "decision_cutoff_utc": "2026-10-23T02:04:03.822078+00:00",
+    "issue_deadline_utc": "2026-10-23T12:00:00+00:00",
+    "revenue_target": "Fiscal2027 consolidated annual revenue in USD, first reported actual",
+    "return_target": "2026-10-23 close to2027-01-21 close; total return and probability of outperforming SPY",
+    "pilot": "HIMS first forecast issued and personally reviewed; actual ML/statistics executed, target/horizon/calibration issues retained; no accuracy claim before maturity.",
+    "input_audit": "forecast-input-audit.json",
+    "modality": "Complete retained article TEXT and frozen SEC/price datasets. Figure files remain retained but are not presented to this text-only model; no visual-coverage claim.",
+    "historical_replays": "Development only; current pages and modern model knowledge cannot certify historical non-leakage.",
+    "first_forecasts_issued": 7,
+    "personal_review": "forecast-personal-review-HIMS.json",
+    "remaining_seven": "Complete. Seven successful primary forecasts and GNK failed primary retained; separate GNK recovery completed before issue deadline.",
+    "first_attempts_recorded": 8,
+    "failed_first_attempts": 1,
+    "separate_successful_recoveries": 1,
+    "forecast_receipts": "forecast-task-set.json",
+    "outcomes": "Pending; no accuracy claim."
+  },
+  "execution": {
+    "native_session": null,
+    "forecast_pilot_session": null,
+    "financebench_acquisition_session": 31369,
+    "gpu_rented": false,
+    "deployments": true,
+    "research_environment": "Private pinned research checkout and separate local research stores; no shared dirty application runtime edited.",
+    "forecast_continuation_session": null,
+    "production_qualification": {
+      "candidate_source": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+      "local_source_gate": "passed for four reviewed shared runtime files and all36 consumers",
+      "development_execution_overrides": [
+        "sn-research-run-dev-g13gogr",
+        "sn-research-run-dev-zk6z2fm",
+        "sn-research-run-dev-3yi2j5h"
+      ],
+      "production_mutations": "18 Python consumer image promotions plus5 production-scoped settings; all36 Azure configurations preserved.",
+      "development_templates_changed": 0,
+      "production_verification": "sn-research-run-kipctr6",
+      "production_status": "deployed_and_runtime_verified_personally_reviewed",
+      "production_record": "../../../../verification/quantitative-compute-2026-10-22/production.json"
+    },
+    "native_resume_session": null,
+    "native_original_end": "Stopped after3601 provider attempts because one24ms ConnectionError returned no usage. Original receipts and one failed first response retained.",
+    "convfinqa_requested_units_session": null,
+    "financebench_session": 93335
+  },
+  "budget": {
+    "native_benchmarks_reference_ceiling_usd": 82,
+    "forecast_pilot_reference_ceiling_usd": 13,
+    "combined_declared_reference_ceiling_usd": 100,
+    "basis": "Conservative peak input cache-miss/output rates; estimates not invoices. Separate ledgers avoid concurrent-process budget races; no top-up or GPU allocation.",
+    "previous_combined_declared_reference_ceiling_usd": 75,
+    "scope_extension": "Full150 FinanceBench original-report condition and complete requested-unit correction condition for public ConvFinQA. New protocols apply after current frozen run; old protocols/receipts unchanged. No automatic top-up or GPU allocation.",
+    "production_qualification_reference_allowance_usd": 5,
+    "unknown_charges": "Native13 interrupted calls reserve$19.6804608 total maximum exposure; forecast1 interrupted call reserves$1.63756032. Usage remains unknown, not zero. See retained ledger summaries; estimates are not invoices.",
+    "reallocation": "After the original forecast batch closed, unused forecast allowance moved to FinanceBench:82 native +13 prospective +5 qualification =100. Original protocols/receipts unchanged.",
+    "native_snapshot_before_financebench": {
+      "conservative_usage_estimate_usd": 35.25263676000004,
+      "unknown_charge_upper_bound_usd": 19.680460800000002,
+      "accounted_spend_upper_bound_usd": 54.933097560000036,
+      "pending_reservation_usd": 0
+    }
+  },
+  "next_actions": [
+    "Finish all150 FinanceBench full-report answers and personally compare them with primary source reports; no LLM grader.",
+    "Personally review remaining complete prospective outputs and retain primary/recovery distinctions; do not rewrite issued forecasts.",
+    "Resolve native workbook execution as a shared capability, not benchmark-local authoring; no native workbook successes claimed yet.",
+    "Run official1370 FinDeepForecast tasks only as explicitly retrospective historical coverage; all native deadlines were2025.",
+    "Score future SA predictions only once independent actual outcomes exist; primary agent resolves ground truth."
+  ],
+  "evidence_links": {
+    "protocol": "protocol-v3.json",
+    "forecast_protocol": "forecast-protocol.json",
+    "task_set": "forecast-task-set.json",
+    "source_audit": "forecast-input-audit.json",
+    "private_store": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation",
+    "ground_truth_spec": "ground-truth-spec.json",
+    "forecast_scores": "forecast-scores.json",
+    "production": "../../../../verification/quantitative-compute-2026-10-22/production.json"
+  },
+  "owner_constraints": {
+    "custom_ground_truth": "Primary agent personally defines and verifies ground truth from source records. No other LLM labels outcomes or makes the final grading judgment. Code calculates numerical scores.",
+    "production_authorization": {
+      "instruction": "If Zopedia prod doesn't have some of these new skills, bring them to prod. Especially forecasting/modeling.",
+      "status": "explicitly_authorized_after_local_and_development_acceptance",
+      "audit": "All18 production Python consumers use exact development-accepted images from Git82958ac4. Live API100001-row numerical smoke and full production-model forecasting investigation completed. All36 Azure configurations and18 retained images preserved.",
+      "candidate_checkout": "/Users/omairs/Documents/code/spectral_nature_quant_compute_20261022",
+      "candidate_base": "2130a3c5",
+      "deployment_status": "deployed_and_runtime_verified",
+      "production_record": "../../../../verification/quantitative-compute-2026-10-22/production.json"
+    }
+  },
+  "accounting_repair": {
+    "source_git": "4f21a3f84666fcc9eaa07c2e4c2ee34866a3fbd9",
+    "engine_revision": "2c0211f8b27bcbb53a6f",
+    "policy": "reserve_maximum",
+    "review": "bounded-unknown-accounting-review.json",
+    "original_v3_runner_private_archive": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/source-snapshots/benchmark-native-v3.py",
+    "resumed_inputs": "FinQA and TAT-QA unchanged questions/instructions/model; no replacement for the transport-failed first attempt.",
+    "native_resume_protocol": "protocol-v3-resume.json"
+  }
+}

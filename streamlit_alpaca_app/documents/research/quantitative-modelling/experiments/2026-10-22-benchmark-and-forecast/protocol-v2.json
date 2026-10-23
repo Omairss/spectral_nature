@@ -1,0 +1,26 @@
+{
+  "created_at_utc": "2026-10-23T01:49:36.778997+00:00",
+  "app": "/Users/omairs/Library/Application Support/SpectralNature/research/checkouts/analyst-answer-ownership-20261021/streamlit_alpaca_app",
+  "source_git": "0fbfd58696a2ce221fc0e5213cf42fac0fb698da",
+  "engine_revision": "9ba8cf932a0a64ce5634",
+  "runner_sha256": "026aab5a79b10e693f445920736b0aab6edcd8d7e3a49ea02dde6f65ad9f6cab",
+  "actor_sha256": "b877d5fec698e76a98159ec7ad334dde97b46b9948faf9d70acfd824e24e2e36",
+  "model": "deepseek-v4-pro",
+  "provider_version_claim": "DeepSeek-V4-Pro-0813, official docs checked October22; hosted weights not hash-pinned",
+  "runtime_overrides": {
+    "runtime:deepseek:model": "deepseek-v4-pro",
+    "runtime:deepseek:thinking_mode": "enabled",
+    "runtime:deepseek:reasoning_effort": "high",
+    "runtime:deepseek:timeout_seconds": 600
+  },
+  "budget_usd": 50,
+  "input_usd_per_million": 1.32,
+  "output_usd_per_million": 3.96,
+  "completion_tokens": 32768,
+  "timeout_seconds": 600,
+  "max_provider_attempts": 10000,
+  "accounting_root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/accounting",
+  "authorization": "Owner October22 explicitly requests every external benchmark and custom future-prediction tasks; bounded new evaluation study, separate from earlier runs. Fifty-dollar conservative reference ceiling declared before paid inference; no card top-up or GPU rental.",
+  "scope": "Native model-only condition through shared AQL/Zopedia structured gateway. FinQA full test1147; TAT-QA official released labeled-test snapshot1663, extracting only table/text/question fields; ConvFinQA public dev421 conversations1490 turns because private test lacks labels. Earlier generated answers only in conversation history. No tools, reviewer, evaluator records or gold support annotations in model messages. Initial three-case package/schema probe is retained separately and has no benchmark score; corrected flat-program grammar comes from publisher documentation and public training examples. Model/prompt fixed before full inference; no claim of pretraining-clean public benchmarks.",
+  "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/"
+}

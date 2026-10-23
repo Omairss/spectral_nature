@@ -1,0 +1,30 @@
+{
+  "created_at_utc": "2026-10-23T01:49:36.778997+00:00",
+  "app": "/Users/omairs/Library/Application Support/SpectralNature/research/checkouts/analyst-workspace-20261022/streamlit_alpaca_app",
+  "source_git": "4f21a3f84666fcc9eaa07c2e4c2ee34866a3fbd9",
+  "engine_revision": "2c0211f8b27bcbb53a6f",
+  "runner_sha256": "f0ef5c838cd86a300b70322ab4f3c2abebd9b729344db395e2a289fe5edb9d9f",
+  "actor_sha256": "b877d5fec698e76a98159ec7ad334dde97b46b9948faf9d70acfd824e24e2e36",
+  "model": "deepseek-v4-pro",
+  "provider_version_claim": "DeepSeek-V4-Pro-0813, official docs checked October22; hosted weights not hash-pinned",
+  "runtime_overrides": {
+    "runtime:deepseek:model": "deepseek-v4-pro",
+    "runtime:deepseek:thinking_mode": "enabled",
+    "runtime:deepseek:reasoning_effort": "high",
+    "runtime:deepseek:timeout_seconds": 900
+  },
+  "budget_usd": 13,
+  "input_usd_per_million": 1.32,
+  "output_usd_per_million": 3.96,
+  "completion_tokens": 64000,
+  "timeout_seconds": 900,
+  "max_provider_attempts": 500,
+  "accounting_root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/forecast/accounting",
+  "authorization": "Owner October22 three explicit goals. Forecast pilot reference ceiling25USD, separate from the native external benchmark ceiling50USD: combined declared maximum75USD before any forecast inference. No GPU rental or billing top-up.",
+  "scope": "Full shared Zopedia analyst with controlled evidence and frozen source-to-compute datasets, scipy/sklearn allowed. Eight prospective development investigations, fiscal2027 revenue and Oct23-Jan21 total returns/outperform probability. No model-accessible future outcomes or evaluator files. First attempts retained; no claim of predictive accuracy before outcomes mature.",
+  "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+  "scheduling": "Round-robin across benchmarks; individual known-usage model failures remain failures, other in-flight calls do not block the batch. Same actor inputs, instructions and model as v2 pilot.",
+  "actor_manifest_sha256": "748aa550ecc045b297a90889bf4e9e65dc025bdf5df76ce947acfe872c53e1c4",
+  "unknown_charge_policy": "reserve_maximum",
+  "continuation": "Same actor package, model, prompts, tasks and numerical execution. Continue unissued LCID/HAL first attempts. GNK first failed transport attempt remains primary; a separately labeled recovery may issue before the original deadline without replacing it. Bounded missing charges remain reserved."
+}

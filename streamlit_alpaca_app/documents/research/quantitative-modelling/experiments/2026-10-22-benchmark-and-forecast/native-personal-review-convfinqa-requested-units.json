@@ -1,0 +1,29 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_ground_truth_or_final_evaluation_judges_used": false,
+  "reviewed_at_utc": "2026-10-23T05:13:26.905096+00:00",
+  "scope": "Full1490-turn published development split; all1490 model outputs completed. Personally inspect representative failed programs, their answer text, and native publisher turn_program definitions; numerical totals use the pinned native evaluator.",
+  "result": {
+    "correct_native_executions": 369,
+    "turns": 1490,
+    "accuracy": 0.24765100671140938,
+    "valid_programs": 722,
+    "invalid_programs": 768
+  },
+  "original_condition": {
+    "correct_native_executions": 960,
+    "turns": 1490,
+    "accuracy": 0.6442953020134228
+  },
+  "findings": [
+    "The requested-unit revision removed the original concrete call-syntax example. Generated outputs include comma-only pseudo-programs, missing comma spaces required by the native tokenizer, and cross-turn # references.",
+    "The instruction says earlier results are #0,#1 without explicitly resetting scope at each response. Native published turn_program entries repeat necessary earlier calculations within the current program; scoring each current program independently matches the official contract.",
+    "For DRE2009, compensation rises from4.9to7.3million. The follow-up answer48.98percent is reasonable, but divide(#0,4.9) has no current-program #0 and fails native execution.",
+    "For ADBE2018, the emitted divide(0,80.9) has no comma-space and the publisher tokenizer rejects it. Preserve this failed program; do not quietly normalize the published metric.",
+    "353programs were executable but did not match the published numerical reference. Contract mistakes are not the sole source of error.",
+    "This condition changes instructions and cannot establish that the underlying model became less financially capable. The24.8percent native result remains a real result for that configured system."
+  ],
+  "next_action": "Use official public training examples to explain standalone programs, current-response references and native units, with one short syntax example. Do not adapt to individual development answers, modify the native metric, or repeat a costly full development run before inspecting the training probe.",
+  "official_contract": "https://github.com/czyssrs/ConvFinQA#dataset",
+  "inference_repeated_for_this_review": false
+}

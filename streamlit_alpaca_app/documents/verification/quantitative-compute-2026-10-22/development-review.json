@@ -1,0 +1,53 @@
+{
+  "recorded_at_utc": "2026-10-23T04:12:01.700545+00:00",
+  "status": "accepted",
+  "reviewer": "primary_agent_personal_review",
+  "scope": "Shared numerical execution/input/result/cancellation capabilities and the explicit Pro/high provider configuration. This is development acceptance of useful modeling execution, not proof of calibrated future forecasts or an asynchronous hours-long compute service.",
+  "exact_images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab"
+  },
+  "executions": [
+    "sn-research-run-dev-g13gogr",
+    "sn-research-run-dev-3yi2j5h",
+    "sn-research-run-dev-zk6z2fm"
+  ],
+  "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
+  "engine_revision": "1b332d7f4e378ac94383",
+  "mechanical_evidence": "Each role executed the full2,000,000-row calculation in the actual cloud runtime and checked all187 packaged application files against committed Git. Local wide96-column and41-second numerical runs and actual CPU cancellation also passed.",
+  "forecast_case": {
+    "status": "useful_complete_investigation",
+    "review": "Personally read the full supplied source, all four attempted programs, actual stored outputs and final answer. The final$4.393bn FY2027 revenue forecast and$3.43\u20135.63bn scenario range match the successful executed damped-anchor calculations. The source management midpoint$3.2bn and author$3.5bn anchor are distinguished. Chronological holdout through2023 predicts2024\u201325 with CAGR MAPE13.59% and log-linear MAPE19.42%; the final source-anchored model is not falsely claimed to have won that holdout. Its scenario range is explicitly uncalibrated.",
+    "retained_failures": [
+      "One malformed newline string caused a syntax error; the next complete program executed successfully.",
+      "A later call omitted its dataset references and failed with NameError; final answer retained the earlier correct calculation.",
+      "Only7 annual observations; the damping formula/scenario weights and growth-noise assumption are judgments, not established forecasting improvements."
+    ],
+    "provider_requests": 11,
+    "conservative_reference_estimate_usd": 0.4399692
+  },
+  "correlation_case": {
+    "status": "useful_complete_investigation",
+    "review": "Personally read all3 attempted programs, their outputs and the final answer. Full-history daily correlation.28699756 and beta1.13167395 match the executed centered-return regression. Rolling252-session betas vary.0528\u20132.8967. Held-out RMSE5.5644% versus5.7774% for the training-mean baseline is reproduced by the actual code. The answer correctly states that same-day SPY explains same-day HIMS and does not establish tomorrow predictability. Approximate OLS significance and changing coefficients are distinguished from causality.",
+    "retained_failures": [
+      "The restricted Python builtins omit object, so an initial dtype inspection failed; a revised inspection and full SciPy study succeeded.",
+      "The source_ids list names supplied document sources rather than the price dataset; actual price data/provenance and analysis IDs remain in the retained execution.",
+      "Daily history includes the pre-merger trading history; the study does not establish an invariant business beta."
+    ],
+    "provider_requests": 7,
+    "conservative_reference_estimate_usd": 0.20836332
+  },
+  "provider_accounting": "All18 provider requests succeeded with reported deepseek-v4-pro and usage receipts; estimated conservative reference cost$0.64833252, not an invoice. Broker qualification made no model calls.",
+  "development_preservation": "Used per-execution overrides on the existing manual research job. Existing development job/app templates and their accepted concurrent feature images remain unchanged.",
+  "production_settings_to_adopt": {
+    "runtime:deepseek:model": "deepseek-v4-pro",
+    "runtime:deepseek:thinking_mode": "enabled",
+    "runtime:deepseek:reasoning_effort": "high",
+    "param:engine_agent_run_timeout_seconds": "900",
+    "param:agent_llm_step_timeout_seconds": "240"
+  },
+  "production_release": "Explicit owner authorization recorded. Exact-image promotion and live production readback remain pending.",
+  "other_llm_ground_truth_or_final_evaluation_judges_used": false,
+  "analyst_internal_review": "The evaluated analyst retains its normal writer/reviewer steps. They generate the answer; they do not establish outcome ground truth or supply this final personal evaluation."
+}

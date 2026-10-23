@@ -1,0 +1,35 @@
+{
+  "prepared_at_utc": "2026-10-23T01:49:34.869847+00:00",
+  "counts": {
+    "finqa": {
+      "split": "test",
+      "cases": 1147,
+      "questions": 1147
+    },
+    "tatqa": {
+      "split": "test",
+      "contexts": 278,
+      "questions": 1669,
+      "published_gold_questions": 1663,
+      "input_questions_without_published_gold_count": 1669,
+      "gold_questions_without_input_count": 1663
+    },
+    "convfinqa": {
+      "split": "dev",
+      "conversations": 421,
+      "turns": 1490,
+      "reason": "Public test has no answers. Use the full public development split; model-generated earlier answers only, no gold history."
+    }
+  },
+  "actor_sha256": "3915c3d22e2453b1095c37c2fb52e5b6f6a70e7df1482e8293c1eab5c1f0fcd3",
+  "evaluator_sha256": "673553e8aff97ef13db532bb8ccaae3ce85ca2f4e860346bf5527daf5acac299",
+  "actor_fields": [
+    "id",
+    "benchmark",
+    "split",
+    "report",
+    "questions"
+  ],
+  "input_policy": "Original report text/tables and questions only. No gold support indices, programs, answers, derivations, mappings or future conversation questions enter a model call.",
+  "scope": "Initial unscored schema probe; superseded by v2 using the matching published labeled-test input snapshot. Full original receipt retained privately."
+}

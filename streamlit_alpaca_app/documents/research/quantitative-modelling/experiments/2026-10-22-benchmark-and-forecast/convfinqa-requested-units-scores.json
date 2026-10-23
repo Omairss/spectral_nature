@@ -1,0 +1,27 @@
+{
+  "scored_at_utc": "2026-10-23T05:09:00.285352+00:00",
+  "benchmarks": {
+    "convfinqa": {
+      "expected_questions_or_turns": 1490,
+      "attempted": 1490,
+      "correct_native_executions": 369,
+      "valid_programs": 722,
+      "accuracy_on_attempted": 0.24765100671140938,
+      "accuracy_on_full_split_missing_as_unanswered": 0.24765100671140938,
+      "coverage": 1.0,
+      "inference_complete": true,
+      "metric": "Pinned publisher program tokenization/execution; exact comparison to native execution value. No semantic program-equivalence metric claimed.",
+      "expected_conversations": 421,
+      "attempted_conversations": 421,
+      "all_conversations_attempted": true
+    }
+  },
+  "scope": "Current frozen native model-only condition. Partial coverage is not full-benchmark completion. Reference agreement does not certify financial reasoning or forecasting skill.",
+  "unreadable_in_progress_files": [],
+  "metric_sources": {
+    "finqa-evaluate.py": "845cd131cab843eceff256cf6d392978cc470a7da4a80107beb56027fdca5c13",
+    "convfinqa-general-utils.py": "bbe88b84ebe7026dc940e1c0e955cf63ac5b1082049e32f2ec1cc29482452b2d",
+    "tatqa-metric.py": "2aeeac479f89f8c76300af1cc0e8d098eb86af84bc386b38b6ab4af484a6dea8",
+    "tatqa-utils.py": "a84bb2f960737cf0a53733637a674cc4b20ef030a2be6a4b21dc2c4356f415ec"
+  }
+}

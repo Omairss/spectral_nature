@@ -1,0 +1,29 @@
+{
+  "prepared_at_utc": "2026-10-23T03:12:38.328082+00:00",
+  "benchmark": "financebench",
+  "public_questions": 150,
+  "original_reports": 84,
+  "actor_sha256": "37e215deeb08acd2788ff95eac86d3b345a4f11aecb0409cabb03eecd0d52add",
+  "evaluator_sha256": "4e7f4a61659590a04423a4e7886c3613e4d41cf4b59ae2bf536a038c44f30b5a",
+  "actor_fields": [
+    "id",
+    "benchmark",
+    "split",
+    "report.doc_name",
+    "report.text",
+    "questions"
+  ],
+  "reference_fields_excluded": [
+    "answer",
+    "justification",
+    "evidence",
+    "question_reasoning",
+    "question_type",
+    "domain_question_num",
+    "dataset_subset_label"
+  ],
+  "condition": "Complete named original report as layout-preserving text in context, question only. No gold evidence/page selection or answers. Text-only model; no assertion of visual document coverage.",
+  "input_tokens_cl100k_estimate": 16901039,
+  "max_document_tokens_cl100k_estimate": 374210,
+  "review": "Primary agent personally evaluates complete answers against primary report records. No LLM judge."
+}

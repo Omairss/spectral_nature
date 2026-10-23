@@ -1,0 +1,136 @@
+{
+  "recorded_at_utc": "2026-10-23T02:55:32.261409+00:00",
+  "status": "local_execution_accepted_cloud_and_complete_conversation_verification_pending",
+  "owner_instruction": "If Zopedia prod doesn't have some of these new skills, bring them to prod. Especially forecasting/modeling.",
+  "base_accepted_source": "2130a3c5",
+  "changed_runtime_review": {
+    "services/zopedia_analysis.py": "Remove implicit input truncation; byte-based admission preserves all rows/columns/cells. Transfer internal DataFrames directly to spawned numerical workers. Keep bounded previews separate. Permit self-contained calculations. Retain numerical outputs in research evidence. Drain process output before joining. Enforce deadline/cancellation through actual CPU cleanup. Default120seconds/max900 bounded by caller and128MiB frame-input allocation. Existing restricted imports and public/persisted result schemas retained.",
+    "services/agent_tools.py": "Expose the same numerical capability through the shared registry with an explicit execution allocation. Optional max_rows is an admission limit, never a sampling instruction. Existing provider/data/memory permissions unchanged.",
+    "services/zopedia_agent.py": "Generic tool execution allocation honors declared runtime within the remaining research budget. A cancelled progress callback also cancels the shared WorkScope and joins cleanup; source acquisition and other tool behavior otherwise retained.",
+    "services/aql_zopedia_engine.py": "Include numerical execution source in the actual loaded shared-engine fingerprint."
+  },
+  "personally_inspected_executions": [
+    {
+      "case": "100000_rows_96_columns",
+      "status": "succeeded",
+      "result": {
+        "rows": 100000,
+        "columns": 96,
+        "last_column_sum": 480004700000.0
+      },
+      "expected_last_column_sum": 480004700000.0,
+      "input_refs": [
+        {
+          "kind": "query_service_dataset",
+          "dataset": "wide",
+          "alias": "wide",
+          "params": {},
+          "frame_names": [
+            "wide"
+          ],
+          "provenance": {
+            "mode": "controlled_probe",
+            "datasets": [
+              "wide"
+            ],
+            "details": {}
+          },
+          "resolved_frames": [
+            {
+              "name": "wide",
+              "rows": 100000,
+              "columns": 96,
+              "frame_bytes_estimate": 76800132
+            }
+          ]
+        }
+      ],
+      "duration_ms": 606,
+      "error": ""
+    },
+    {
+      "case": "actual_price_series_scipy_sklearn_chronological_holdout",
+      "status": "succeeded",
+      "result": {
+        "rows": 1787,
+        "holdout_mse": 0.003348013848604154,
+        "zero_return_baseline_mse": 0.0033320768933056424,
+        "lag_one_correlation": -0.0017169093728698472
+      },
+      "duration_ms": 1102,
+      "error": ""
+    },
+    {
+      "case": "self_contained_calculation",
+      "status": "succeeded",
+      "result": {
+        "answer": 6
+      }
+    },
+    {
+      "case": "two_million_rows",
+      "status": "succeeded",
+      "result": {
+        "rows": 2000000,
+        "sum": 11999994000000.0
+      },
+      "expected_sum": 11999994000000.0,
+      "duration_ms": 571,
+      "error": ""
+    },
+    {
+      "case": "million_path_7560_session_capacity_probe",
+      "status": "succeeded",
+      "result": {
+        "one_year_monte_carlo_returns": [
+          -0.5438305078743133,
+          98.14217233522425,
+          21990.366582055212
+        ],
+        "paths": 1000000,
+        "trading_sessions": 7560
+      },
+      "duration_ms": 41186,
+      "error": ""
+    },
+    {
+      "case": "cancel_actual_cpu_process",
+      "elapsed_seconds": 2.023205500008771,
+      "live_children_after_cancel": []
+    }
+  ],
+  "cancellation_executions": [
+    {
+      "case": "cancel_actual_cpu_process",
+      "elapsed_seconds": 2.0285515419964213,
+      "live_children_after_cancel": []
+    },
+    {
+      "case": "research_owner_cancels_from_progress",
+      "elapsed_seconds": 5.065047624986619,
+      "live_children_after_cancel": []
+    }
+  ],
+  "personal_financial_assessment": "The actual HIMS price-series lag-one regression executes with chronological holdout, but its holdout MSE0.003348 is slightly worse than the zero-return baseline0.003332. This establishes usable numerical execution, not predictive superiority. The million-path7560-session run is a 30-year capacity probe; its stale internal result key says one_year, so its outputs are not presented as one-year forecasts. Existing first prospective forecasts and their errors remain unchanged.",
+  "not_claimed": [
+    "An asynchronous hours-long remote compute service",
+    "Native workbook authoring",
+    "Calibrated distributions or proven prediction improvement",
+    "A production deployment or complete conversation acceptance"
+  ],
+  "production_runtime_audit": {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda",
+    "api_revision": "sn-api-next--0000017",
+    "python": "3.10.22",
+    "scipy": "1.15.3",
+    "sklearn": "1.7.2",
+    "model": "deepseek-reasoner",
+    "thinking": "enabled",
+    "effort": "",
+    "model_configuration_review": "Retired alias; explicit Pro selection needs development verification and separate recorded settings adoption. No model settings changed yet."
+  },
+  "private_probe_source_hashes": {
+    "production-capability-probe.py": "584982cf89beae6914e41617476ae014ade8565a1713195cf6b5fda98174e98b",
+    "production-cancellation-probe.py": "0d33d79cdaf6befe8878cd24259a43ac0f59912e950031ff65c1274542ddeeab"
+  }
+}

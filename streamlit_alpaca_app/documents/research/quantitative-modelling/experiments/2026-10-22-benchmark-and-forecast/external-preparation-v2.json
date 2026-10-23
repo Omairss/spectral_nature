@@ -1,0 +1,35 @@
+{
+  "prepared_at_utc": "2026-10-23T01:52:10.808369+00:00",
+  "counts": {
+    "finqa": {
+      "split": "test",
+      "cases": 1147,
+      "questions": 1147
+    },
+    "tatqa": {
+      "split": "released_labeled_test",
+      "contexts": 277,
+      "questions": 1663,
+      "published_gold_questions": 1663,
+      "input_questions_without_published_gold": 0,
+      "gold_questions_without_input": 0,
+      "input_source": "Input fields extracted from tatqa_dataset_test_gold.json; labels retained only in evaluator package. The separate unlabeled test has1669 questions and disjoint question IDs."
+    },
+    "convfinqa": {
+      "split": "dev",
+      "conversations": 421,
+      "turns": 1490,
+      "reason": "Public test has no answers. Use the full public development split; model-generated earlier answers only, no gold history."
+    }
+  },
+  "actor_sha256": "b877d5fec698e76a98159ec7ad334dde97b46b9948faf9d70acfd824e24e2e36",
+  "evaluator_sha256": "673553e8aff97ef13db532bb8ccaae3ce85ca2f4e860346bf5527daf5acac299",
+  "actor_fields": [
+    "id",
+    "benchmark",
+    "split",
+    "report",
+    "questions"
+  ],
+  "input_policy": "Original report text/tables and questions only. No gold support indices, programs, answers, derivations, mappings or future conversation questions enter a model call."
+}

@@ -1,0 +1,84 @@
+{
+  "status": "compute_capability_accepted_forecast_accuracy_unresolved",
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_ground_truth_or_final_evaluation_judges_used": false,
+  "reviewed_at_utc": "2026-10-23T05:06:28.687882+00:00",
+  "execution": "sn-research-run-kipctr6",
+  "private_result_sha256": "45a81e3d05452441e980de90d45b2110d83aef2f712e024567cfb1070fc01051",
+  "review_scope": "Personally read the full final answer, both complete executed programs, their numerical output, source metadata, tool trajectory and provider receipts. Internal analyst writer/reviewer steps are generation, not our ground truth or final grader.",
+  "model": "deepseek-v4-pro",
+  "thinking": "enabled/high",
+  "engine_revision": "1b332d7f4e378ac94383",
+  "full_input": {
+    "status": "succeeded",
+    "result": {
+      "rows": 2000000,
+      "sum": 11999994000000.0
+    },
+    "error": "",
+    "input_refs": [
+      {
+        "kind": "query_service_dataset",
+        "dataset": "narrow",
+        "alias": "narrow",
+        "params": {},
+        "frame_names": [
+          "narrow"
+        ],
+        "provenance": {
+          "mode": "frozen_qualification",
+          "datasets": [
+            "narrow"
+          ],
+          "details": {
+            "cutoff_utc": "2026-10-23T02:04:03.822078+00:00"
+          }
+        },
+        "resolved_frames": [
+          {
+            "name": "narrow",
+            "rows": 2000000,
+            "columns": 6,
+            "frame_bytes_estimate": 96000128
+          }
+        ]
+      }
+    ],
+    "duration_ms": 1798
+  },
+  "numerical_work": {
+    "annual_observations": 7,
+    "daily_price_observations": 1787,
+    "analysis_calls": 2,
+    "successful_analysis_calls": 2,
+    "method": "Damped multiplicative trend with explicit constant-level and repeated-growth comparisons; sklearn log-linear fits.",
+    "executed_2025_holdout": {
+      "actual_million_usd": 2347.637,
+      "constant_level_ape_percent": 37.1,
+      "repeat_growth_ape_percent": 6.5,
+      "raw_loglinear_ape_percent": 18.6,
+      "damped_phi_0_8_ape_percent": 0.2
+    },
+    "2027_median_million_usd": 5290.5,
+    "reported_80_percent_interval_billion_usd": [
+      4.64,
+      6.03
+    ]
+  },
+  "personal_assessment": [
+    "The model independently discovered the shared analysis tool, loaded all supplied rows, executed two successful programs and used real results in its answer.",
+    "Damping0.8 was selected by looking at the same single2025 holdout. Its0.2percent error is model-selection performance, not untouched final-test accuracy.",
+    "The final reported uncertainty bands use in-sample trend residuals and sqrt(2) scaling. Their arithmetic is reproducible but their nominal coverage is unvalidated; parameter, regulatory and business-regime uncertainty are not captured.",
+    "The point forecast assumes a large acceleration after management2026 guidance. This remains an investment assumption rather than an established fact.",
+    "The interval calculation was described in the answer rather than separately executed in the retained program. Do not claim every reported number was computed by a tool.",
+    "Capacity and source preservation are accepted. No actual fiscal2027 result exists yet, and no prediction-quality acceptance is asserted. This qualification forecast does not replace any original prospective cohort prediction."
+  ],
+  "provider_usage": {
+    "attempts": 10,
+    "successful_attempts": 10,
+    "prompt_tokens": 104646,
+    "completion_tokens": 42207,
+    "conservative_peak_reference_usd": 0.30527244000000003,
+    "basis": "All prompt tokens at cache-miss peak rate, including cached tokens; conservative reference estimate, not invoice."
+  }
+}
