@@ -2,7 +2,6 @@
   "recorded_at_utc": "2026-10-23T04:12:01.700545+00:00",
   "status": "accepted",
   "reviewer": "primary_agent_personal_review",
-  "other_llm_ground_truth_or_judges_used": false,
   "scope": "Shared numerical execution/input/result/cancellation capabilities and the explicit Pro/high provider configuration. This is development acceptance of useful modeling execution, not proof of calibrated future forecasts or an asynchronous hours-long compute service.",
   "exact_images": {
     "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
@@ -48,5 +47,7 @@
     "param:engine_agent_run_timeout_seconds": "900",
     "param:agent_llm_step_timeout_seconds": "240"
   },
-  "production_release": "Explicit owner authorization recorded. Exact-image promotion and live production readback remain pending."
+  "production_release": "Explicit owner authorization recorded. Exact-image promotion and live production readback remain pending.",
+  "other_llm_ground_truth_or_final_evaluation_judges_used": false,
+  "analyst_internal_review": "The evaluated analyst retains its normal writer/reviewer steps. They generate the answer; they do not establish outcome ground truth or supply this final personal evaluation."
 }

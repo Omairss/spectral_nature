@@ -1542,5 +1542,18 @@
     "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
     "acceptance_revision": "fc73a4328860b2d69f9868d110625048fc25debb",
     "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/production-verification.json"
+  },
+  "production_deployment": {
+    "status": "deployed_and_runtime_verified",
+    "images": {
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab"
+    },
+    "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+    "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
+    "evidence": "documents/verification/quantitative-compute-2026-10-22/production.json",
+    "api_revision": "sn-api-next--0000018",
+    "configuration_preservation": "All36 Azure resource configurations preserved; five production-scoped LLM/research settings explicitly adopted."
   }
 }
