@@ -1,0 +1,16 @@
+{
+  "verified_at_utc": "2026-10-23T10:22:55.523478+00:00",
+  "checks": [
+    {
+      "name": "sn-next-ui",
+      "url": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io/health",
+      "status": 200
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "url": "https://sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io/health",
+      "status": 200
+    }
+  ],
+  "api_access": "Internal ingress; actual authenticated conversation read through the public frontend verified the updated API. Direct local request to internal hostname returned404and is not an application-health claim."
+}

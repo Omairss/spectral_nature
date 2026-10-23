@@ -1,0 +1,12 @@
+{
+  "verified_at_utc": "2026-10-23T10:22:08.934Z",
+  "url": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io/zopedia/conversations/zthread_d9fe33eb5d03428b97d2e71c",
+  "figure_count": 3,
+  "figure_titles": [
+    "Cumulative returns, HIMS vs SPYNov 2025Jan 2026Mar 2026May 2026Jul 2026Sep 2026−60.0%−40.0%−20.0%0.0%20.0%HIMS cumulative returnSPY cumulative returnDate (2025-10-22 to 2026-10-22)Cumulative return since first trading day in window",
+    "HIMS daily return histogram−10.0%0.0%10.0%20.0%30.0%40.0%01020304050HIMS daily returnFrequency (trading days)",
+    "Daily return correlation matrix"
+  ],
+  "screenshot": "production-charts.png",
+  "scope": "Fresh authenticated saved conversation after production API readiness. Original failed turn retained; no further model request or result mutation."
+}

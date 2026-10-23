@@ -1,5 +1,5 @@
 {
-  "status": "accepted_source_for_platform_verification",
+  "status": "accepted_source_and_platform_delivery",
   "reviewer": "primary_agent_personal_review",
   "recorded_at_utc": "2026-10-23T07:41:32.812612+00:00",
   "base": "883be852",
@@ -43,10 +43,7 @@
     "cold_scoped_settings": "9settings tests passed, including fresh budget getter and listing before any model/prompt call, plus environment-scope change. These checks cover configuration mechanics, not LLM quality.",
     "named_chart_versions": "Actual completed production run replay: stored6artifacts unchanged, latest3throughOct22selected identically by shared collector, safe projection and repository row projection, then actual publicDTO."
   },
-  "remaining_before_deployment": [
-    "Promote exact3development-acceptedpublication images on18productionPython consumers.",
-    "Refresh actual saved production conversation and confirm only latest3charts afterreadprojection; all36configurations and other18images must remain unchanged."
-  ],
+  "remaining_before_deployment": [],
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/verification/research-charts-20261023",
   "other_llm_ground_truth_or_final_evaluation_judges_used": false,
   "local_ui_review": {
@@ -77,5 +74,12 @@
       "finding": "Three correct-date charts and three earlier successful charts with identical names displayed together. Fix explicit name/version identity at shared publication, not either renderer."
     }
   },
-  "publication_exact_image_review": "publication-development.json"
+  "publication_exact_image_review": "publication-development.json",
+  "production_delivery": {
+    "status": "verified",
+    "record": "publication-production.json",
+    "fresh_ui": "production-ui.json",
+    "native_build": 13,
+    "native_physical_visual_check": "Not performed while device locked; signed Simulatorvisualreview andphysicalinstallationreadbackretained."
+  }
 }
