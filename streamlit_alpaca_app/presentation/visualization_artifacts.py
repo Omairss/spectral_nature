@@ -242,9 +242,23 @@ def analysis_chart_model(name: str, *, kind: str = "line", x: Any = None, y: Any
     return model
 
 
-def collect_research_visualizations(tool_calls: list[dict], *, run_id: str) -> list[dict]:
-    """Publish the latest successful version of each explicitly named chart."""
+def latest_research_visualizations(artifacts: list[dict]) -> list[dict]:
+    """Project stored or new artifacts using their explicit publication names."""
     published = {}
+    for artifact in artifacts:
+        if (not isinstance(artifact, dict) or artifact.get("schema_version") != "visualization.v1" or
+                artifact.get("artifact_type") != "visualization"):
+            continue
+        numerical = (artifact.get("provenance") or {}).get("details", {}).get("analysis_run_id")
+        name = artifact.get("title") if numerical else None
+        key = ("analysis_chart", name) if name else ("artifact", artifact.get("artifact_id"))
+        published[key] = artifact
+    return list(published.values())
+
+
+def collect_research_visualizations(tool_calls: list[dict], *, run_id: str) -> list[dict]:
+    """A failed or inherited computation cannot replace a successful chart."""
+    artifacts = []
     for call in tool_calls:
         if call.get("status") != "completed" or (call.get("origin_run_id") and call["origin_run_id"] != run_id):
             continue
@@ -258,16 +272,8 @@ def collect_research_visualizations(tool_calls: list[dict], *, run_id: str) -> l
             candidates = [build_plotly_visualization_artifact(model,
                 provenance=DataProvenance(mode="computed", datasets=tuple(raw["datasets"]),
                     details={"research_run_id": run_id, "tool_call_id": call.get("tool_call_id")})).to_dict()]
-        for artifact in candidates:
-            if (isinstance(artifact, dict) and artifact.get("schema_version") == "visualization.v1" and
-                artifact.get("artifact_type") == "visualization"):
-                # add_chart's name is its publication identity within a run.
-                # A successful correction replaces its earlier version; a
-                # failed calculation cannot displace a successful chart.
-                name = artifact.get("title") if analysis.get("status") == "succeeded" else None
-                key = ("analysis_chart", name) if name else ("artifact", artifact.get("artifact_id"))
-                published[key] = artifact
-    return list(published.values())
+        artifacts.extend(candidates)
+    return latest_research_visualizations(artifacts)
 
 
 def build_plotly_figure_visualization_artifact(

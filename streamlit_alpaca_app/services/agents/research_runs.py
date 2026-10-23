@@ -20,6 +20,7 @@ from services.aql_zopedia_engine import (
     research_engine_revision,
 )
 from services.agents.chat_log import bootstrap_chat_log
+from presentation.visualization_artifacts import latest_research_visualizations
 
 RUN_ID_PATTERN = re.compile(r"agrun_[a-zA-Z0-9_-]{8,64}")
 IDEMPOTENCY_KEY_PATTERN = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9._:-]{7,127}")
@@ -151,7 +152,7 @@ def _safe_result(raw: dict[str, Any]) -> dict[str, Any]:
         "confidence": _clean(raw.get("confidence"), limit=32).lower() or "low",
         "limitations": limitations,
         "citations": citations,
-        "visualizations": list(raw.get("visualizations") or []),
+        "visualizations": latest_research_visualizations(list(raw.get("visualizations") or [])),
         "provider": _clean(raw.get("provider"), limit=80),
         "model": _clean(raw.get("model"), limit=160),
         "evidence_pack_id": _clean(raw.get("aql_evidence_pack_id"), limit=160),
@@ -217,6 +218,9 @@ class ResearchRunRepository:
         if not isinstance(row, (list, tuple)) or len(row) != len(self._RUN_COLUMNS):
             return None
         record = dict(zip(self._RUN_COLUMNS, row))
+        result = _json_object(record.get("result_json"))
+        if result:
+            result = {**result, "visualizations": latest_research_visualizations(list(result.get("visualizations") or []))}
         return {
             "run_id": _clean(record.get("run_id"), limit=80),
             "conversation_id": _clean(record.get("conversation_id"), limit=80),
@@ -231,7 +235,7 @@ class ResearchRunRepository:
             "provider": _clean(record.get("provider"), limit=80),
             "model": _clean(record.get("model"), limit=160),
             "result_summary": _json_object(record.get("result_summary_json")),
-            "result": _json_object(record.get("result_json")) or None,
+            "result": result or None,
             "last_event_sequence": int(record.get("last_event_sequence") or 0),
             "created_at": record.get("started_at"),
             "updated_at": record.get("updated_at"),

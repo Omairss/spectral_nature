@@ -1,9 +1,12 @@
 {
   "status": "passed",
   "reviewer": "primary_agent",
-  "source": "Real retained3chart model-run replay with same-name previous versions, failed later computations and foreign-run calls. All3current successful artifacts preserved, superseded IDs removed; actual public Pydantic DTO retains3.",
+  "source": "Actual completed queued production run agrun_f83d6f3b031645ddae034f71 retained6chart revisions. Shared collection, final projection and stored-row read select its latest3successful named charts with identical IDs. Stored input remains6; no database rewrite.",
   "charts": 3,
+  "stored_read_preserves_original_evidence": true,
   "named_versions_superseded": true,
-  "failed_calculation_preserves_last_success": true,
-  "foreign_run_excluded": true
+  "last_price_date": "2026-10-22",
+  "return_observations": 251,
+  "public_dto_preserved": true,
+  "existing_analysis_checks": "11passed"
 }
