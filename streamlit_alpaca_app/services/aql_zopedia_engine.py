@@ -68,6 +68,8 @@ def research_engine_revision() -> str:
         "zopedia_agent.py",
         "zopedia_research.py",
         "agent_tools.py",
+        "analysis_files.py",
+        "analysis_files_runtime.py",
         "page_browsing.py",
         "agents/research_session.py",
         "aql_zopedia_gateway.py",

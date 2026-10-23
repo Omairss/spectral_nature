@@ -10,6 +10,7 @@ from data_access.contracts import QueryRequest, QueryValidationError, coerce_obj
 from data_access.query_service import QueryService
 from . import zopedia_research
 from . import zopedia_analysis
+from . import analysis_files
 from .aql_zopedia_engine import load_aql_zopedia_llm_client
 
 
@@ -824,6 +825,29 @@ def _scratchpad_tools() -> list[dict[str, Any]]:
     ]
 
 
+def _file_analysis_tools() -> list[dict[str, Any]]:
+    if analysis_files.current_workspace() is None:
+        return []
+    return [{
+        "name": "analysis.run_files",
+        "execution": {"timeout_argument": "timeout_seconds", "default_seconds": 120,
+                      "maximum_seconds": 900, "cleanup_seconds": 5},
+        "description": (
+            "Run Python on this investigation's supplied files in an isolated Linux workspace. "
+            "input_files maps filenames to read-only /input paths. Use /workspace for working files; "
+            "save final deliverables under /workspace/output. Files persist across calls in this investigation. "
+            "openpyxl and LibreOffice UNO are available. recalculate_workbook(path) calculates and saves "
+            "an editable workbook copy with macros and external updates disabled. Preserve original sheets, "
+            "formulas and formatting when editing an existing workbook. No network or application credentials. "
+            "Return outputs are limited to24files and64MiB total. Print concise inspection/calculation results."
+        ),
+        "inputSchema": {"type": "object", "properties": {
+            "code": {"type": "string"},
+            "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 900}},
+            "required": ["code"], "additionalProperties": False},
+    }]
+
+
 def _analysis_tools() -> list[dict[str, Any]]:
     return [
         {
@@ -930,7 +954,7 @@ def is_investigator_tool(tool_name: str) -> bool:
 
 
 def is_analysis_tool(tool_name: str) -> bool:
-    return str(tool_name or "").strip() in {"analysis.run_python", "analysis.read_raw_output"}
+    return str(tool_name or "").strip() in {"analysis.run_python", "analysis.read_raw_output", "analysis.run_files"}
 
 
 def is_tool_search_tool(tool_name: str) -> bool:
@@ -961,6 +985,7 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
         ])
     tools.extend(_zopedia_tools())
     tools.extend(_analysis_tools())
+    tools.extend(_file_analysis_tools())
     tools.extend(_hypothesis_tools())
     tools.extend(_scratchpad_tools())
     tools.extend(_anomaly_tools())
@@ -1268,6 +1293,14 @@ def _invoke_analysis_tool(
     arguments: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     args = coerce_object(arguments, field_name="arguments")
+    if tool_name == "analysis.run_files":
+        payload = analysis_files.run_file_analysis(code=str(args.get("code") or ""),
+            timeout_seconds=_int_arg(args.get("timeout_seconds"), default=120))
+        return {"request": {"operation": "analysis", "name": tool_name, "params": args},
+                "result_type": "analysis_result", "payload": payload,
+                "provenance": {"mode": "computed", "datasets": [],
+                               "details": {"tool_name": tool_name, "analysis_run_id": payload.get("analysis_run_id")}},
+                "messages": []}
     if tool_name == "analysis.read_raw_output":
         payload = zopedia_analysis.read_analysis_raw_output(
             analysis_run_id=str(args.get("analysis_run_id") or ""),
