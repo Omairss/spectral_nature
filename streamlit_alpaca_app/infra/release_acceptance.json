@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Validated executed chart artifacts and public result delivery to web/iPhone conversations; existing current production behavior retained. Source/numerical acceptance permits platform verification; deployment requires completed UI/model qualification.",
-  "source_revision": "0531ec1bc60cfa254d04120afc05f52eeab1bbfb",
+  "source_revision": "014f40b72f1a63f3a107c5c555de7c0a1587e1f9",
   "review_base_revision": "883be852",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -212,7 +212,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "600ce6c0613739f1d49f7599fb27330920c6cf78fc036f06e018eacbe295557d",
+    "services/zopedia_agent.py": "9016c5b5ca34918cb9c99e4c9c37037d1f6df372aae8bdcb3794d5dfa0ed850e",
     "services/zopedia_analysis.py": "b449d0b1ab0cd805a8cd7b6db18cf26b0bcb74300209c8623eae42d4b99fd409",
     "services/zopedia_learning.py": "21fd421b10d09041cb8015c4eed89b30a641d1b86fa23f0675591b391c4e977c",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
@@ -273,7 +273,7 @@
     "web/app/zopedia/conversations/[conversationId]/page.tsx": "914b4f73e487182d1e7c013a190eda55ff984bf55d9310d7e6af99b4089b3903",
     "web/app/zopedia/page.tsx": "c2cec2b1628f423df67fbc33ff16ab08ff673d6c157a128f32ace6ed5352b541",
     "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
-    "web/app/zopedia/runs/[runId]/research-run-view.tsx": "44f27188971961c2cb1219a376b6ec0fbe99868daa9b2deb486d03db95caa49d",
+    "web/app/zopedia/runs/[runId]/research-run-view.tsx": "a192dfa54d0ff726db3b2a2355d5f445e0f3ff627195676e42d72422050c5827",
     "web/components/admin/llm-settings.module.css": "f936da304aee9d85de91df24052a4bcfc2202437df3ee736ad6ec7acf252f9c8",
     "web/components/admin/llm-settings.tsx": "6b435cb03eb2048a15bbf8c88b0faeee6175061e5141a237d5b9ef5f11fbaaac",
     "web/components/admin/operational-health.module.css": "a225b003248a923be344e38342736b2d42f8638eddc5389ce0e1a80f4e73e004",
@@ -490,7 +490,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "600ce6c0613739f1d49f7599fb27330920c6cf78fc036f06e018eacbe295557d",
+    "services/zopedia_agent.py": "9016c5b5ca34918cb9c99e4c9c37037d1f6df372aae8bdcb3794d5dfa0ed850e",
     "services/zopedia_analysis.py": "b449d0b1ab0cd805a8cd7b6db18cf26b0bcb74300209c8623eae42d4b99fd409",
     "services/zopedia_learning.py": "21fd421b10d09041cb8015c4eed89b30a641d1b86fa23f0675591b391c4e977c",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
@@ -736,10 +736,7 @@
     "worker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:00fc1de3c361a8e924cb2ae93bd167d937ca0b26494d2ca5723c2738cbc5c148",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975"
       ],
       "development_targets": [],
       "production_targets": [
@@ -750,13 +747,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -766,13 +763,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -782,13 +779,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -798,13 +795,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -814,13 +811,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -830,13 +827,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:ac4945b49ddef4992c39fab7dc86292d50bc4a393f4c71799b15a0449bd50214",
-            "source_revision": "4869d9e2719990a28dbf4750a91112ff84fbbe0f",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -846,13 +843,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -862,13 +859,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -878,13 +875,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -894,13 +891,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -910,13 +907,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -926,13 +923,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "bd1d8e14811aff0707fc16153ede657502430fc9b741e088f5c3d8b645cec4ac",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -942,13 +939,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -958,13 +955,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -974,13 +971,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         },
         {
@@ -990,13 +987,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           },
           "execution_binding": {
             "name": "system-recovery",
@@ -1030,10 +1027,7 @@
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:6eaaf57cf9b6ae3dc54d3dfaf0df294d875c3c9be17db1759eb0c70a7adbeca5",
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97bd8d47ffdf09b5498f762c1a89bb951bf9e0898c68fb402334f3f95adfdbe9",
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda"
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f"
       ],
       "development_targets": [],
       "production_targets": [
@@ -1044,13 +1038,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:0cc65b7842be5876649063099ebe37b996739dab18a9cfc5f7feb5706c8b1eda",
-            "source_revision": "4869d9e2719990a28dbf4750a91112ff84fbbe0f",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         }
       ],
@@ -1073,13 +1067,43 @@
     "web": {
       "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:086901cc77ee9191493e12b68e6f2e5a57dbbaf5d7c7c17790a2a86949e34f3b",
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:a58aec888fd566bf4408ff6289b138c4572f39485599de2299bbe5e4c056ac70",
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf"
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660"
       ],
       "development_targets": [],
-      "production_targets": [],
+      "production_targets": [
+        {
+          "name": "sn-streamlit-ui",
+          "kind": "containerApps",
+          "role": "web",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
+            "source_revision": "a86286a3ddcf0da33c6f6127a62ae9fa6e529209",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+          }
+        },
+        {
+          "name": "sn-next-ui",
+          "kind": "containerApps",
+          "role": "web",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
+            "source_revision": "a86286a3ddcf0da33c6f6127a62ae9fa6e529209",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+          }
+        }
+      ],
       "accepted_images": {},
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
@@ -1135,7 +1159,7 @@
         "web/app/zopedia/conversations/[conversationId]/page.tsx": "914b4f73e487182d1e7c013a190eda55ff984bf55d9310d7e6af99b4089b3903",
         "web/app/zopedia/page.tsx": "c2cec2b1628f423df67fbc33ff16ab08ff673d6c157a128f32ace6ed5352b541",
         "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
-        "web/app/zopedia/runs/[runId]/research-run-view.tsx": "44f27188971961c2cb1219a376b6ec0fbe99868daa9b2deb486d03db95caa49d",
+        "web/app/zopedia/runs/[runId]/research-run-view.tsx": "a192dfa54d0ff726db3b2a2355d5f445e0f3ff627195676e42d72422050c5827",
         "web/components/admin/llm-settings.module.css": "f936da304aee9d85de91df24052a4bcfc2202437df3ee736ad6ec7acf252f9c8",
         "web/components/admin/llm-settings.tsx": "6b435cb03eb2048a15bbf8c88b0faeee6175061e5141a237d5b9ef5f11fbaaac",
         "web/components/admin/operational-health.module.css": "a225b003248a923be344e38342736b2d42f8638eddc5389ce0e1a80f4e73e004",
@@ -1176,8 +1200,7 @@
     "broker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-broker@sha256:94715ea21911b1441f67cde8dc03d640386adf14453c66df66ba225ea96e5941",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390",
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a"
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab"
       ],
       "development_targets": [],
       "production_targets": [
@@ -1188,13 +1211,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cc07d056a4db58a39726dd3fddfff9da97ea5b5b1edb5b8cbbe1d7581a1d7390",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-            "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-            "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab",
+            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
           }
         }
       ],
@@ -1217,23 +1240,6 @@
   },
   "untouched_consumers": [
     {
-      "name": "sn-streamlit-ui",
-      "kind": "containerApps",
-      "role": "web",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-        "source_revision": "a86286a3ddcf0da33c6f6127a62ae9fa6e529209",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660"
-    },
-    {
       "name": "sn-api-next-dev",
       "kind": "containerApps",
       "role": "api-next",
@@ -1245,8 +1251,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
         "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558"
     },
@@ -1262,27 +1268,10 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
         "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf"
-    },
-    {
-      "name": "sn-next-ui",
-      "kind": "containerApps",
-      "role": "web",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-        "source_revision": "a86286a3ddcf0da33c6f6127a62ae9fa6e529209",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660"
     },
     {
       "name": "trading-agent-build-dev",
@@ -1296,8 +1285,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1313,8 +1302,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1330,8 +1319,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1347,8 +1336,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a"
     },
@@ -1364,8 +1353,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1381,8 +1370,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1398,8 +1387,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1415,8 +1404,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1432,8 +1421,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1449,8 +1438,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1466,8 +1455,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1483,8 +1472,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1500,8 +1489,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
         "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
     },
@@ -1517,8 +1506,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/quantitative-compute-2026-10-22/retained-packages.json",
-        "evidence": "documents/verification/quantitative-compute-2026-10-22/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     }
