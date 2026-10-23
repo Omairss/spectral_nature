@@ -1,0 +1,41 @@
+[
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
+    "role": "api-next",
+    "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+    "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
+    "runtime_inventory_sha256": "e3e252dd7f012394cadd8bb33b26ff1a1d327c99ea9609b2909662b3bd55397d",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "engine_revision": "1b332d7f4e378ac94383",
+    "qualification_execution": "sn-research-run-dev-g13gogr",
+    "verification_program_sha256": "fa674d954ea58ad88fe7cb37a95a6917008d162f828ca3b291d7e4f6d88cb1ca"
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+    "role": "worker",
+    "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+    "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
+    "runtime_inventory_sha256": "e3e252dd7f012394cadd8bb33b26ff1a1d327c99ea9609b2909662b3bd55397d",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "engine_revision": "1b332d7f4e378ac94383",
+    "qualification_execution": "sn-research-run-dev-3yi2j5h",
+    "verification_program_sha256": "fa674d954ea58ad88fe7cb37a95a6917008d162f828ca3b291d7e4f6d88cb1ca"
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab",
+    "role": "broker",
+    "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
+    "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
+    "runtime_inventory_sha256": "e3e252dd7f012394cadd8bb33b26ff1a1d327c99ea9609b2909662b3bd55397d",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "engine_revision": "1b332d7f4e378ac94383",
+    "qualification_execution": "sn-research-run-dev-zk6z2fm",
+    "verification_program_sha256": "fa674d954ea58ad88fe7cb37a95a6917008d162f828ca3b291d7e4f6d88cb1ca"
+  }
+]
