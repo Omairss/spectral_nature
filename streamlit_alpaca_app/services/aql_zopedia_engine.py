@@ -594,6 +594,7 @@ def run_aql_zopedia_structured_agent(
                     "working_context": working_context,
                     "confidence": "low",
                     "error": f"{type(exc).__name__}: {exc}",
+                    "error_type": type(exc).__name__,
                     "engine": {
                         "name": "aql_zopedia",
                         "revision": research_engine_revision(),
@@ -611,6 +612,7 @@ def run_aql_zopedia_structured_agent(
                     else None
                 ),
                 "error": f"{type(exc).__name__}: {exc}",
+                "error_type": type(exc).__name__,
             }
         if isinstance(payload, dict):
             payload.pop("__reasoning_content", None)
