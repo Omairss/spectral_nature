@@ -1,8 +1,8 @@
 {
   "status": "accepted_locally",
-  "scope": "Complete numerical inputs and results, self-contained statistics/ML and owned extended computation/cancellation; preserve accepted product behavior and all concurrent development images.",
-  "source_revision": "8c7c9f55b38fd09dcbf53b5aa39af513f38e4578",
-  "review_base_revision": "2130a3c5",
+  "scope": "Validated executed chart artifacts and public result delivery to web/iPhone conversations; existing current production behavior retained. Source/numerical acceptance permits platform verification; deployment requires completed UI/model qualification.",
+  "source_revision": "b313abeedd35c97aa8c80ea7ff9691011273e784",
+  "review_base_revision": "883be852",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "411839b19dc8a7f9a5e4586766d414d9856e698b28a4d274a96363fc2dea9d1e",
@@ -61,7 +61,7 @@
     "data/stock_fundamental/us-cashflow-quarterly.csv": "71827f19b798b2541bb9bd7f3ee503e699a5e1bc5ee0b35ec08fd31e6d61799e",
     "data/stock_fundamental/us-income-quarterly.csv": "c4e1dc48cdc7f62efafd378f91c0caa1a0bb5be85783d0b52aa2b9ebc694ebff",
     "data_access/__init__.py": "714517f5f2507efc9121254104548b9f73b12e2608d901275caad31f4f656966",
-    "data_access/contracts.py": "b8f2b01863acfd7b8620c9223b99051e04dd71cbedfafa2d1180bf53f2693340",
+    "data_access/contracts.py": "2f98732cc588ea606fc44f35b1ba894a0351ca43158446067bba94001400009f",
     "data_access/layer.py": "11fb327cc853443e5e5b3ccfebf6e2ccf545add90945a60639933052286a67ee",
     "data_access/query_registry.py": "c85c5a6447549b0f785e91f918acc95ceb3872e0287952c3d5a7f48e82d91a6c",
     "data_access/query_service.py": "effe47edeabecef0a23736e9776b6839dd95f4412ec61840c6ad2b9cc9a9fec5",
@@ -74,8 +74,8 @@
     "pipeline/jobs/main.py": "d945e2b0fdff7fe4222e97e534caf1623fb9b8e08b9186f339de9456bd68b061",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
-    "presentation/plotly.py": "741a4fc6dfc3d55ddc12fb95a18069ec848803dc1f5f49377ebd34d7b9d73aa8",
-    "presentation/visualization_artifacts.py": "9528c07850e0cd89a821c2a94da2baa4265540da4f1fc6dc6c3c9b1653327e4e",
+    "presentation/plotly.py": "1d570e1c1801e14257504a75135beeab772b16230feee4f612f3dc9bdeec07c7",
+    "presentation/visualization_artifacts.py": "0ca214be95a99fbfc97c7fa66a294e02570aa83a58c9bc54185128837423570b",
     "requirements-dev.txt": "db4b72cc7ad1564caea9764996cce9b68a172cbe8effd6e61240f34664916062",
     "requirements.txt": "0c628568672feed30ff4a99b8b0406ebde17759fdc676e3bcecf0a3c3351ead4",
     "scripts/check_workbench_data.py": "1b2254a0b40abe84958ed7a7eb4ca4c5243490820daa4157d865de08fd7fd3bb",
@@ -102,10 +102,10 @@
     "services/__init__.py": "2b89a335db7fd9a3a4b6e016892a075558b1cda43d8ebfa5d5aa8d51eee7120b",
     "services/admin_security_status.py": "6211f37725c12c436f7e8208d6d9a0ccc1c13babfe0adeed3f2d0b0f0d79fff4",
     "services/admin_view.py": "e6113712481f1c1112ec42ac27fcf7669dcf98ddc756bb2ce11323efbf6fbc4f",
-    "services/agent_tools.py": "b496dcdcc8e2685aaae0ef39a4e295b503ca65857aee477134338bccc29cc47b",
+    "services/agent_tools.py": "a24ec850cfb2d1cb96f672bbbfc80fe90539a1528143a19fd1fe2e77d311ddd8",
     "services/agents/__init__.py": "5ea3a97bb8f820ba8a1a9c8f337655ca9aa349227a088757b958f201df3f7c29",
     "services/agents/chat_log.py": "827d526c6cd205d3e9f37725cee84db17696608857bbc4b4f1a2ac5377384ddf",
-    "services/agents/research_runs.py": "f99de2341c342cae32def4cc28e4dfc50330cc6bd83c34fd12f7f554e4abb77b",
+    "services/agents/research_runs.py": "5684217620dbdfb8c91dc8fa7e5b4d1eea2b5550b7eb16b886f2354ac777924c",
     "services/agents/research_session.py": "5c44b9453e26f6bab7a0c9e2f85b1b16d14b0ec6bec0b70d9a663978b7463423",
     "services/agents/scratchpad.py": "1e459bc8a44abc51db528055cc67aa6758b72f552ab2faf7f18f7a4027ac979f",
     "services/all_signal_ranker.py": "74342ce54b719fb8869f5fb01a48fd961bdebf391a24a3cb84d658ab876cd43c",
@@ -128,7 +128,7 @@
     "services/aql/pipeline.py": "7e215884f38e1aff62455ce96e01098a29864cdb1a2bc7768a01f6dd36ac358c",
     "services/aql/summarizer.py": "87a4ebd55c936bfce6f4e61a774c55a97c2f56153b83a037ee4d686144a27eb3",
     "services/aql/writer.py": "cda1c4c1a3ba4e437d0be2781848938c09cb2ed85c3decebe250241f9a327ad2",
-    "services/aql_zopedia_engine.py": "15d4978f36f5430e8c70982259402256a4bedb4fc4c25a5b116ce561a9ce1b7d",
+    "services/aql_zopedia_engine.py": "1283870f3f658fe61fab4397bcba3dacb14cbd561e568ffaa79a514edaa8700b",
     "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
     "services/attention_context_llm.py": "60b84285a114bf79c89bd7601219ffaed143534a8b4b214f4bd9fce3ac9b989a",
     "services/attention_graph_network.py": "9511f96ea29d213c1dd59d4f87fd880f84a7be36e276ae07ef88ef71e5204ebc",
@@ -212,8 +212,8 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "85aa0b0b1dba99d8a11dabbc4e3326932e77e3974665c8ea40437f8884ca53a4",
-    "services/zopedia_analysis.py": "3b37f9864cf8287f1b27a076648a2984b1e31cdf664b355e111a5646e70c1130",
+    "services/zopedia_agent.py": "600ce6c0613739f1d49f7599fb27330920c6cf78fc036f06e018eacbe295557d",
+    "services/zopedia_analysis.py": "b449d0b1ab0cd805a8cd7b6db18cf26b0bcb74300209c8623eae42d4b99fd409",
     "services/zopedia_learning.py": "21fd421b10d09041cb8015c4eed89b30a641d1b86fa23f0675591b391c4e977c",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
     "services/zopedia_research.py": "74ee819713bcda24f78c8604a5689fd198636c582ad15012af95b363c22d081f",
@@ -258,7 +258,7 @@
     "web/app/api/zopedia/sources/upload/route.ts": "8fd6cea3bcd5b27b5a1396b05f08eda573941ca5e1f623a457071b43997a0edd",
     "web/app/api/zopedia/workspace/route.ts": "1e989f335796ac073ee0613fe2ed08cf2f2fca1c2aa69dd556313938f91d58db",
     "web/app/broad-economy/page.tsx": "21619a2722d30578852df528f46cf0e768f28620338bb47a68c60cbf61cdaf45",
-    "web/app/globals.css": "dbf16c0c7adc7b922dd9e1d3a15e6f21254c6fab13b95017d5fbaf57d604d867",
+    "web/app/globals.css": "10206905f9b3c5f3675f99ed12b25fe49251ea51541fff4284779788fd90a196",
     "web/app/health/route.ts": "fbd86280d0a005e41947c611db300c2859bec610cf383e779cc01c06322c61a3",
     "web/app/layout.tsx": "85fe444f2059a58d0c89962c7a13032c829a316c69844708f9353dd902a80254",
     "web/app/login/login-form.tsx": "ed85bc9477761542aa2f79892332205a92f1b93d610f90a3d47906d9c7d617ff",
@@ -273,7 +273,7 @@
     "web/app/zopedia/conversations/[conversationId]/page.tsx": "914b4f73e487182d1e7c013a190eda55ff984bf55d9310d7e6af99b4089b3903",
     "web/app/zopedia/page.tsx": "c2cec2b1628f423df67fbc33ff16ab08ff673d6c157a128f32ace6ed5352b541",
     "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
-    "web/app/zopedia/runs/[runId]/research-run-view.tsx": "8994e39a233023a58d5f75596cc90e41d466b59366f65f0b9f811f77f4587204",
+    "web/app/zopedia/runs/[runId]/research-run-view.tsx": "1f7439a76580c308d48e0389e168f0b0c6a45a67f5d0bf434c66722b6d1cca33",
     "web/components/admin/llm-settings.module.css": "f936da304aee9d85de91df24052a4bcfc2202437df3ee736ad6ec7acf252f9c8",
     "web/components/admin/llm-settings.tsx": "6b435cb03eb2048a15bbf8c88b0faeee6175061e5141a237d5b9ef5f11fbaaac",
     "web/components/admin/operational-health.module.css": "a225b003248a923be344e38342736b2d42f8638eddc5389ce0e1a80f4e73e004",
@@ -300,7 +300,7 @@
     "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69",
     "web/lib/server/home.ts": "325e6314a9e069a49187e35bb6e5153f4db6b4a03d6a7c06f8dbe6a493d91202",
     "web/lib/server/http.ts": "88b7c9dd4d74b6e9fe6fbdde729c7567ec6e1d30ad49509eca6928ae0ca2d1a2",
-    "web/lib/types.ts": "f4d7e64d521ead2b9cd2259af477dec4100670c6c23b8a18bc38e88a138be45b",
+    "web/lib/types.ts": "ceb95f9aeb5d54bff4484cc8e8a4fd3a170bad1523864d4c88f5513b745f69cf",
     "web/next-env.d.ts": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
     "web/next.config.ts": "304db7c8cad0928ec4fd92fd1c56c1d6ec26b9078e45ed1a626bf95a92a8b440",
     "web/package-lock.json": "04f70dfd9398ad53693c7a481defd5be0b1ca2113943e5ace748b7b1670b0f6e",
@@ -361,7 +361,7 @@
     "data/stock_fundamental/us-cashflow-quarterly.csv": "71827f19b798b2541bb9bd7f3ee503e699a5e1bc5ee0b35ec08fd31e6d61799e",
     "data/stock_fundamental/us-income-quarterly.csv": "c4e1dc48cdc7f62efafd378f91c0caa1a0bb5be85783d0b52aa2b9ebc694ebff",
     "data_access/__init__.py": "714517f5f2507efc9121254104548b9f73b12e2608d901275caad31f4f656966",
-    "data_access/contracts.py": "b8f2b01863acfd7b8620c9223b99051e04dd71cbedfafa2d1180bf53f2693340",
+    "data_access/contracts.py": "2f98732cc588ea606fc44f35b1ba894a0351ca43158446067bba94001400009f",
     "data_access/layer.py": "11fb327cc853443e5e5b3ccfebf6e2ccf545add90945a60639933052286a67ee",
     "data_access/query_registry.py": "c85c5a6447549b0f785e91f918acc95ceb3872e0287952c3d5a7f48e82d91a6c",
     "data_access/query_service.py": "effe47edeabecef0a23736e9776b6839dd95f4412ec61840c6ad2b9cc9a9fec5",
@@ -373,17 +373,17 @@
     "pipeline/jobs/main.py": "d945e2b0fdff7fe4222e97e534caf1623fb9b8e08b9186f339de9456bd68b061",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
-    "presentation/plotly.py": "741a4fc6dfc3d55ddc12fb95a18069ec848803dc1f5f49377ebd34d7b9d73aa8",
-    "presentation/visualization_artifacts.py": "9528c07850e0cd89a821c2a94da2baa4265540da4f1fc6dc6c3c9b1653327e4e",
+    "presentation/plotly.py": "1d570e1c1801e14257504a75135beeab772b16230feee4f612f3dc9bdeec07c7",
+    "presentation/visualization_artifacts.py": "0ca214be95a99fbfc97c7fa66a294e02570aa83a58c9bc54185128837423570b",
     "scripts/collect_historical_corpus.py": "2e2b1a8c0093ade4daeed72fdfd1ca5bc98fd78d056122c2fb96ce15f8676b12",
     "scripts/sync_robinhood_main.py": "bf7e4c6eefce5b22935650f72f952a12f7745eeabe71e0d94d39c3ff7c766787",
     "services/__init__.py": "2b89a335db7fd9a3a4b6e016892a075558b1cda43d8ebfa5d5aa8d51eee7120b",
     "services/admin_security_status.py": "6211f37725c12c436f7e8208d6d9a0ccc1c13babfe0adeed3f2d0b0f0d79fff4",
     "services/admin_view.py": "e6113712481f1c1112ec42ac27fcf7669dcf98ddc756bb2ce11323efbf6fbc4f",
-    "services/agent_tools.py": "b496dcdcc8e2685aaae0ef39a4e295b503ca65857aee477134338bccc29cc47b",
+    "services/agent_tools.py": "a24ec850cfb2d1cb96f672bbbfc80fe90539a1528143a19fd1fe2e77d311ddd8",
     "services/agents/__init__.py": "5ea3a97bb8f820ba8a1a9c8f337655ca9aa349227a088757b958f201df3f7c29",
     "services/agents/chat_log.py": "827d526c6cd205d3e9f37725cee84db17696608857bbc4b4f1a2ac5377384ddf",
-    "services/agents/research_runs.py": "f99de2341c342cae32def4cc28e4dfc50330cc6bd83c34fd12f7f554e4abb77b",
+    "services/agents/research_runs.py": "5684217620dbdfb8c91dc8fa7e5b4d1eea2b5550b7eb16b886f2354ac777924c",
     "services/agents/research_session.py": "5c44b9453e26f6bab7a0c9e2f85b1b16d14b0ec6bec0b70d9a663978b7463423",
     "services/agents/scratchpad.py": "1e459bc8a44abc51db528055cc67aa6758b72f552ab2faf7f18f7a4027ac979f",
     "services/all_signal_ranker.py": "74342ce54b719fb8869f5fb01a48fd961bdebf391a24a3cb84d658ab876cd43c",
@@ -406,7 +406,7 @@
     "services/aql/pipeline.py": "7e215884f38e1aff62455ce96e01098a29864cdb1a2bc7768a01f6dd36ac358c",
     "services/aql/summarizer.py": "87a4ebd55c936bfce6f4e61a774c55a97c2f56153b83a037ee4d686144a27eb3",
     "services/aql/writer.py": "cda1c4c1a3ba4e437d0be2781848938c09cb2ed85c3decebe250241f9a327ad2",
-    "services/aql_zopedia_engine.py": "15d4978f36f5430e8c70982259402256a4bedb4fc4c25a5b116ce561a9ce1b7d",
+    "services/aql_zopedia_engine.py": "1283870f3f658fe61fab4397bcba3dacb14cbd561e568ffaa79a514edaa8700b",
     "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
     "services/attention_context_llm.py": "60b84285a114bf79c89bd7601219ffaed143534a8b4b214f4bd9fce3ac9b989a",
     "services/attention_graph_network.py": "9511f96ea29d213c1dd59d4f87fd880f84a7be36e276ae07ef88ef71e5204ebc",
@@ -490,8 +490,8 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "85aa0b0b1dba99d8a11dabbc4e3326932e77e3974665c8ea40437f8884ca53a4",
-    "services/zopedia_analysis.py": "3b37f9864cf8287f1b27a076648a2984b1e31cdf664b355e111a5646e70c1130",
+    "services/zopedia_agent.py": "600ce6c0613739f1d49f7599fb27330920c6cf78fc036f06e018eacbe295557d",
+    "services/zopedia_analysis.py": "b449d0b1ab0cd805a8cd7b6db18cf26b0bcb74300209c8623eae42d4b99fd409",
     "services/zopedia_learning.py": "21fd421b10d09041cb8015c4eed89b30a641d1b86fa23f0675591b391c4e977c",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
     "services/zopedia_research.py": "74ee819713bcda24f78c8604a5689fd198636c582ad15012af95b363c22d081f",
@@ -499,12 +499,7 @@
     "services/zopedia_runtime.py": "c5f6a8c9f6e9a8baab3aeab15429f7f028475dabe1cf22ba3b4e1e51b24ad188",
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
-  "reviewed_changes": {
-    "services/zopedia_analysis.py": "documents/verification/quantitative-compute-2026-10-22/local-review.json",
-    "services/agent_tools.py": "documents/verification/quantitative-compute-2026-10-22/local-review.json",
-    "services/zopedia_agent.py": "documents/verification/quantitative-compute-2026-10-22/local-review.json",
-    "services/aql_zopedia_engine.py": "documents/verification/quantitative-compute-2026-10-22/local-review.json"
-  },
+  "reviewed_changes": {},
   "retired_files": [
     "scripts/eval_critique_harness.py",
     "services/analytics.py",
@@ -699,6 +694,12 @@
         "services/aql_zopedia_engine.py"
       ],
       "evidence": "documents/verification/quantitative-compute-2026-10-22/local-review.json"
+    },
+    {
+      "name": "Shared research chart source and numerical publication",
+      "status": "accepted",
+      "files": [],
+      "evidence": "documents/verification/research-charts-2026-10-23/source-review.json"
     }
   ],
   "roles": {
@@ -1089,7 +1090,7 @@
         "web/app/api/zopedia/sources/upload/route.ts": "8fd6cea3bcd5b27b5a1396b05f08eda573941ca5e1f623a457071b43997a0edd",
         "web/app/api/zopedia/workspace/route.ts": "1e989f335796ac073ee0613fe2ed08cf2f2fca1c2aa69dd556313938f91d58db",
         "web/app/broad-economy/page.tsx": "21619a2722d30578852df528f46cf0e768f28620338bb47a68c60cbf61cdaf45",
-        "web/app/globals.css": "dbf16c0c7adc7b922dd9e1d3a15e6f21254c6fab13b95017d5fbaf57d604d867",
+        "web/app/globals.css": "10206905f9b3c5f3675f99ed12b25fe49251ea51541fff4284779788fd90a196",
         "web/app/health/route.ts": "fbd86280d0a005e41947c611db300c2859bec610cf383e779cc01c06322c61a3",
         "web/app/layout.tsx": "85fe444f2059a58d0c89962c7a13032c829a316c69844708f9353dd902a80254",
         "web/app/login/login-form.tsx": "ed85bc9477761542aa2f79892332205a92f1b93d610f90a3d47906d9c7d617ff",
@@ -1104,7 +1105,7 @@
         "web/app/zopedia/conversations/[conversationId]/page.tsx": "914b4f73e487182d1e7c013a190eda55ff984bf55d9310d7e6af99b4089b3903",
         "web/app/zopedia/page.tsx": "c2cec2b1628f423df67fbc33ff16ab08ff673d6c157a128f32ace6ed5352b541",
         "web/app/zopedia/runs/[runId]/page.tsx": "9727f47bf804d4145138b3958c4fc257862de539b2ca1e6efa44b9d1ffb713cc",
-        "web/app/zopedia/runs/[runId]/research-run-view.tsx": "8994e39a233023a58d5f75596cc90e41d466b59366f65f0b9f811f77f4587204",
+        "web/app/zopedia/runs/[runId]/research-run-view.tsx": "1f7439a76580c308d48e0389e168f0b0c6a45a67f5d0bf434c66722b6d1cca33",
         "web/components/admin/llm-settings.module.css": "f936da304aee9d85de91df24052a4bcfc2202437df3ee736ad6ec7acf252f9c8",
         "web/components/admin/llm-settings.tsx": "6b435cb03eb2048a15bbf8c88b0faeee6175061e5141a237d5b9ef5f11fbaaac",
         "web/components/admin/operational-health.module.css": "a225b003248a923be344e38342736b2d42f8638eddc5389ce0e1a80f4e73e004",
@@ -1131,7 +1132,7 @@
         "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69",
         "web/lib/server/home.ts": "325e6314a9e069a49187e35bb6e5153f4db6b4a03d6a7c06f8dbe6a493d91202",
         "web/lib/server/http.ts": "88b7c9dd4d74b6e9fe6fbdde729c7567ec6e1d30ad49509eca6928ae0ca2d1a2",
-        "web/lib/types.ts": "f4d7e64d521ead2b9cd2259af477dec4100670c6c23b8a18bc38e88a138be45b",
+        "web/lib/types.ts": "ceb95f9aeb5d54bff4484cc8e8a4fd3a170bad1523864d4c88f5513b745f69cf",
         "web/next-env.d.ts": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
         "web/next.config.ts": "304db7c8cad0928ec4fd92fd1c56c1d6ec26b9078e45ed1a626bf95a92a8b440",
         "web/package-lock.json": "04f70dfd9398ad53693c7a481defd5be0b1ca2113943e5ace748b7b1670b0f6e",
@@ -1511,18 +1512,10 @@
   ],
   "production_authorized": true,
   "production_authorization": {
-    "owner_instruction": "If Zopedia prod doesn't have some of these new skills, bring them to prod. Especially forecasting/modeling.",
-    "condition": "Local acceptance and exact-image development runtime/qualitative verification before promotion."
-  },
-  "development_acceptance": {
-    "status": "accepted",
-    "images": {
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab"
-    },
-    "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
-    "evidence": "documents/verification/quantitative-compute-2026-10-22/development-review.json"
+    "owner_instruction": "If Zopedia prod does not have these skills, bring them to prod; Connect them [web/iPhone analysis charts], then continue the goal.",
+    "date_local": "2026-10-23",
+    "scope": "Missing shared modeling/forecasting charts on both clients after local and exact-image development acceptance.",
+    "evidence": "documents/plans/ZOPEDIA_RESEARCH_CHARTS_2026-10-23.md"
   },
   "consumer_contract_reviews": {
     "database_lifecycle": {
@@ -1542,18 +1535,5 @@
     "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
     "acceptance_revision": "fc73a4328860b2d69f9868d110625048fc25debb",
     "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/production-verification.json"
-  },
-  "production_deployment": {
-    "status": "deployed_and_runtime_verified",
-    "images": {
-      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab"
-    },
-    "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-    "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
-    "evidence": "documents/verification/quantitative-compute-2026-10-22/production.json",
-    "api_revision": "sn-api-next--0000018",
-    "configuration_preservation": "All36 Azure resource configurations preserved; five production-scoped LLM/research settings explicitly adopted."
   }
 }
