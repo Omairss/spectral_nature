@@ -15,8 +15,9 @@ import traceback
 import uuid
 
 
-def recalculate_workbook(filename):
-    """Native formula calculation; macros and linked-document updates disabled."""
+@contextlib.contextmanager
+def edit_workbook(filename):
+    """Edit through native UNO; macros and linked-document updates disabled."""
     import uno
     from com.sun.star.beans import PropertyValue
     from com.sun.star.document.MacroExecMode import NEVER_EXECUTE
@@ -52,19 +53,28 @@ def recalculate_workbook(filename):
              property('MacroExecutionMode', NEVER_EXECUTE), property('UpdateDocMode', NO_UPDATE)))
         if document is None:
             raise ValueError('Native workbook engine could not open file')
+        yield document
         document.calculateAll()
         document.store()
     finally:
         if document is not None:
-            document.close(True)
+            with contextlib.suppress(Exception):
+                document.dispose()
         if desktop is not None:
-            desktop.terminate()
+            with contextlib.suppress(Exception):
+                desktop.terminate()
         if process.poll() is None:
             process.terminate()
         try:
             process.wait(timeout=5)
         except subprocess.TimeoutExpired:
             process.kill(); process.wait()
+
+
+def recalculate_workbook(filename):
+    with edit_workbook(filename):
+        pass
+    return filename
 
 
 def run():
@@ -75,6 +85,7 @@ def run():
     output, errors = io.StringIO(), io.StringIO()
     result = {'status': 'completed'}
     namespace = {'__name__': '__main__', 'recalculate_workbook': recalculate_workbook,
+                 'edit_workbook': edit_workbook,
                  'input_files': {r['name']: '/input/' + r['name'] for r in request['inputs']}}
     try:
         with contextlib.redirect_stdout(output), contextlib.redirect_stderr(errors):
@@ -89,9 +100,11 @@ def run():
 
 
 def export():
-    root = Path('/workspace/output')
+    root = Path('/workspace')
     files, total = [], 0
     for directory, dirs, names in os.walk(root, followlinks=False):
+        if Path(directory) == root:
+            dirs[:] = [name for name in dirs if name != 'home']
         for name in dirs + names:
             if (Path(directory) / name).is_symlink():
                 raise ValueError('Output symlinks are not file artifacts')
@@ -106,9 +119,11 @@ def export():
             finally:
                 os.close(fd)
             total += len(data)
-            if len(files) >= 24 or total > 64 * 1024 * 1024:
-                raise ValueError('Output exceeds24files or64MiB')
+            if len(files) >= 256 or total > 64 * 1024 * 1024:
+                raise ValueError('Working checkpoint exceeds256files or64MiB')
             files.append({'name': str(path.relative_to(root)), 'base64': base64.b64encode(data).decode()})
+    if sum(item['name'].startswith('output/') for item in files) > 24:
+        raise ValueError('Output exceeds24files')
     print(json.dumps(files))
 
 

@@ -71,6 +71,9 @@ class FileAnalysisWorkspace:
         self.files = []
         self._container = None
         self._lock = threading.RLock()
+        self._execution_lock = threading.Lock()
+        self._closed = False
+        self._checkpoint = None
         for name, source in files.items():
             if not name or Path(name).name != name or name in {".", ".."}:
                 raise ValueError("Input names must be unique plain filenames")
@@ -81,7 +84,7 @@ class FileAnalysisWorkspace:
             if len(data) > MAX_EXPORT_BYTES:
                 raise ValueError("One admitted file exceeds64MiB")
             (self.staging / name).write_bytes(data)
-            self.files.append({"name": name, "bytes": len(data),
+            self.files.append({"name": name, "path": "/input/" + name, "bytes": len(data),
                                "sha256": hashlib.sha256(data).hexdigest()})
         self._write("inputs.json", self.files)
 
@@ -103,6 +106,8 @@ class FileAnalysisWorkspace:
             _WORKSPACE.reset(token)
 
     def __enter__(self):
+        if self._closed:
+            raise RuntimeError("File workspace has been closed by its owner")
         runtime = Path(__file__).with_name("analysis_files_runtime.py").resolve()
         command = ["run", "-d", "--network", "none", "--read-only", "--cap-drop", "ALL",
                    "--security-opt", "no-new-privileges", "--user", "10001:10001",
@@ -114,16 +119,21 @@ class FileAnalysisWorkspace:
                    "--mount", f"type=bind,src={runtime},dst=/runtime.py,readonly",
                    "--workdir", "/workspace", "--env", "HOME=/workspace/home",
                    "--entrypoint", "/bin/sleep", self.image, "infinity"]
+        if self._checkpoint is not None:
+            command[1:1] = ["--mount", f"type=bind,src={self._checkpoint},dst=/checkpoint,readonly"]
         self._container = self._command(command).decode().strip()
         try:
             inspected = json.loads(self._command(["inspect", self._container]))[0]
-            self._write("container.json", inspected)
+            self._write("container-" + self._container[:12] + ".json", inspected)
+            if self._checkpoint is not None:
+                self._command(["exec", self._container, "python3", "-I", "-c",
+                    "import shutil; shutil.copytree('/checkpoint', '/workspace', dirs_exist_ok=True)"])
         except BaseException:
-            self.close()
+            self._destroy_container()
             raise
         return self
 
-    def close(self):
+    def _destroy_container(self):
         with self._lock:
             container, self._container = self._container, None
         if container:
@@ -133,10 +143,18 @@ class FileAnalysisWorkspace:
                 self._write("cleanup-error.json", {"container": container, "error": str(exc)})
                 raise
 
+    def close(self):
+        self._closed = True
+        self._destroy_container()
+
     def __exit__(self, *_):
         self.close()
 
     def run(self, code: str, *, timeout_seconds: int = 120):
+        with self._execution_lock:
+            return self._run(code, timeout_seconds=timeout_seconds)
+
+    def _run(self, code: str, *, timeout_seconds: int):
         check_work()
         timeout = remaining_work_seconds(min(max(int(timeout_seconds), 1), 900))
         identifier = "fileanalysis_" + uuid.uuid4().hex
@@ -148,7 +166,7 @@ class FileAnalysisWorkspace:
         unregister = register_cancellation(self.close)
         try:
             if not self._container:
-                raise RuntimeError("File workspace is no longer available")
+                self.__enter__()
             process = subprocess.Popen(self.docker + ["exec", "-i", self._container,
                 "python3", "-I", "/runtime.py", "run"], stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -156,7 +174,7 @@ class FileAnalysisWorkspace:
             try:
                 out, err = _bounded_output(process, request, timeout)
             except BaseException:
-                self.close()  # Terminate every descendant, including native calculation processes.
+                self._destroy_container()  # Terminate descendants; next call restores the last committed state.
                 process.kill()
                 process.wait()
                 raise
@@ -173,18 +191,24 @@ class FileAnalysisWorkspace:
                 relative = Path(name)
                 if relative.is_absolute() or ".." in relative.parts:
                     raise ValueError("Invalid output filename")
-                path = folder / "files" / relative
+                path = folder / "checkpoint" / relative
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(data)
                 digest = hashlib.sha256(data).hexdigest()
-                artifacts.append({"artifact_type": "file", "name": name,
-                    "artifact_id": f"{identifier}:{digest}", "bytes": len(data), "sha256": digest})
+                if relative.parts[0] == 'output':
+                    artifacts.append({"artifact_type": "file", "name": str(Path(*relative.parts[1:])),
+                        "artifact_id": f"{identifier}:{digest}", "bytes": len(data), "sha256": digest})
+            if result.get('status') == 'completed':
+                self._checkpoint = folder / 'checkpoint'
+                self._checkpoint.mkdir(exist_ok=True)
             result.update(analysis_run_id=identifier, artifacts=artifacts,
                           elapsed_ms=int((time.monotonic() - started) * 1000))
         except Exception as exc:
             result = {"status": "failed", "analysis_run_id": identifier,
                       "error": f"{type(exc).__name__}: {exc}", "artifacts": [],
                       "elapsed_ms": int((time.monotonic() - started) * 1000)}
+            if self._container is None and not self._closed:
+                result['workspace_recovery'] = 'Next call restores the last successful working files and original inputs; writes from the failed call are discarded.'
         finally:
             unregister()
         result['llm_context_text'] = json.dumps({k: v for k, v in result.items()

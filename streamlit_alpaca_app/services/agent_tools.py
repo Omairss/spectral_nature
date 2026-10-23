@@ -836,10 +836,14 @@ def _file_analysis_tools() -> list[dict[str, Any]]:
             "Run Python on this investigation's supplied files in an isolated Linux workspace. "
             "input_files maps filenames to read-only /input paths. Use /workspace for working files; "
             "save final deliverables under /workspace/output. Files persist across calls in this investigation. "
-            "openpyxl and LibreOffice UNO are available. recalculate_workbook(path) calculates and saves "
-            "an editable workbook copy with macros and external updates disabled. Preserve original sheets, "
+            "openpyxl can inspect files but saving existing workbooks can remove shapes. "
+            "Use `with edit_workbook(path) as document:` for native LibreOffice UNO edits to a writable copy; "
+            "it calculates and saves on exit with macros and external updates disabled. "
+            "recalculate_workbook(path) recalculates a writable copy. Preserve original sheets, "
             "formulas and formatting when editing an existing workbook. No network or application credentials. "
-            "Return outputs are limited to24files and64MiB total. Print concise inspection/calculation results."
+            "Successful working files are checkpointed (256files/64MiB); output is limited to24files. "
+            "After a computation timeout the next call restores the last successful checkpoint. "
+            "Print concise inspection/calculation results."
         ),
         "inputSchema": {"type": "object", "properties": {
             "code": {"type": "string"},
