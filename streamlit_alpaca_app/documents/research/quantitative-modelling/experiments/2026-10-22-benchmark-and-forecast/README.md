@@ -12,6 +12,8 @@ The primary agent personally defines custom targets, verifies actual outcomes fr
 
 The [production release](../../../../verification/quantitative-compute-2026-10-22/production.json) is live on all 18 Python consumers. The shared analysis tool preserves complete inputs within a 128 MiB estimated DataFrame allocation, supports NumPy, pandas, SciPy and scikit-learn, and retains numerical results for synthesis. Calculations receive 120 seconds by default and can request up to 900 seconds within the investigation's remaining budget. Cancellation terminates the numerical process. Production selects DeepSeek V4 Pro with high reasoning and a 900-second investigation budget.
 
+October23 queued-chat verification exposed an initialization-order bug: a fresh API process saved the old300/90-second run/model defaults before loading configured900/240values. The shared numeric getter fix is undergoing exact-image qualification. Until that completes, distinguish configured limits from what a newly queued run actually receives. Chart publication is implemented on both clients; the normal production continuation is the remaining integration check.
+
 Local execution reached two million rows and 96 columns in separate probes, including a numerical workload lasting 41 seconds. The live API completed a 100,001-row regression. The [full production model review](../../../../verification/quantitative-compute-2026-10-22/production-model-review.json) includes two successful real-data programs and a complete revenue forecast. Its parameter selection and uncertainty calibration remain weaknesses; execution success is not evidence of future accuracy. Native workbook authoring and an asynchronous service for hours of computation remain open.
 
 ## External benchmarks
