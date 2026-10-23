@@ -1170,3 +1170,7 @@ The first chart acceptance generator supplied a repository-root path while runni
 ## Chart transport must cross the actual public response schema — 2026-10-23
 
 The first chart connection preserved the repository result but missed the API response DTO, which would strip the new field. Full-path review caught this before deployment; numerical-to-public verification now includes the Pydantic run and nested conversation responses. Native visual review also caught an automatic numeric x-domain including zero for timestamp coordinates; the shared native chart domain now excludes zero, and long histories show observation years.
+
+
+### Research chart verification — October23
+Started packaging before checking the final refreshed categorical heatmap. Plotly requested pixelated SVG but the browser interpolated the2x2 raster. Explicit cell gaps fix it at the shared matrix renderer. Supersede the initial build requests and verify complete packaged hashes before accepting the replacement; never use their initial source-gate result as proof of later source. Native default selection cleared on release; a chart-owned tap/drag selection now persists and was personally checked.

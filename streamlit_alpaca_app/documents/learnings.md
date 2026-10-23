@@ -1248,3 +1248,7 @@ Renew from accepted Git source, verify the embedded profile’s dates, bundle, t
 ### October 22 — follow the active recovery and verify both serving paths
 
 Before manually retrying a failed scheduled producer, inspect current executions. The Home recovery was already running after provider credit returned; following it avoided duplicate research. Verify the actual billing credential’s availability without printing it, then check the newly published run identity on both the phone gateway and web API. The server-rendered page has a normal 30-second revalidating cache, so a fresh API response alone is not visible-page proof. Core Home publication precedes optional page summaries; record any independent summary failures without treating them as loss of the accepted main publication. See verification/home-refresh-2026-10-22/refresh.json.
+
+
+### Research chart transport — October23
+A saved numerical chart needs one typed data/trace artifact through the agent result, stored public projection, API response model and both clients. Check all boundaries: a missing Pydantic field silently removes charts. Keep histogram binning server-owned, preserve missing-observation segments, and inspect actual date bounds and categorical heatmap rasterization. Renderer metadata and successful imports do not establish the visible result.
