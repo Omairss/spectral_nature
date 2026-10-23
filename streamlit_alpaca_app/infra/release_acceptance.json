@@ -1009,18 +1009,19 @@
         }
       ],
       "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975": {
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7": {
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "role": "worker",
-          "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-          "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
-          "runtime_inventory_sha256": "e3e252dd7f012394cadd8bb33b26ff1a1d327c99ea9609b2909662b3bd55397d",
+          "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+          "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+          "runtime_inventory_sha256": "c68fdc0bc1f45e972bd7fb54830e98c0726e48b34b0b4d5f0a5b5af0f37b3617",
           "all_packaged_files_checked": true,
           "complete_git_inventory_matches": true,
           "packaged_file_count": 187,
-          "engine_revision": "1b332d7f4e378ac94383",
-          "qualification_execution": "sn-research-run-dev-3yi2j5h",
-          "verification_program_sha256": "fa674d954ea58ad88fe7cb37a95a6917008d162f828ca3b291d7e4f6d88cb1ca"
+          "qualification_execution": "sn-research-run-dev-ny63l22",
+          "verification_program_sha256": "db3db2230e0a6c47a86bd8c133e9693af0a38e65f9737c4e6a4457cc44fa0e1b",
+          "evidence": "documents/verification/research-charts-2026-10-23/development.json",
+          "engine_revision": "47bef52f5080c9772081"
         }
       }
     },
@@ -1049,18 +1050,19 @@
         }
       ],
       "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f": {
-          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3bb76c19b38655158ee6394139da5a300ca89d26640b8003573307f07fd6dc90": {
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3bb76c19b38655158ee6394139da5a300ca89d26640b8003573307f07fd6dc90",
           "role": "api-next",
-          "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-          "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
-          "runtime_inventory_sha256": "e3e252dd7f012394cadd8bb33b26ff1a1d327c99ea9609b2909662b3bd55397d",
+          "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+          "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+          "runtime_inventory_sha256": "c68fdc0bc1f45e972bd7fb54830e98c0726e48b34b0b4d5f0a5b5af0f37b3617",
           "all_packaged_files_checked": true,
           "complete_git_inventory_matches": true,
           "packaged_file_count": 187,
-          "engine_revision": "1b332d7f4e378ac94383",
-          "qualification_execution": "sn-research-run-dev-g13gogr",
-          "verification_program_sha256": "fa674d954ea58ad88fe7cb37a95a6917008d162f828ca3b291d7e4f6d88cb1ca"
+          "qualification_execution": "sn-research-run-dev-erf18zy",
+          "verification_program_sha256": "9dfa63b152cf8b9ce80efd360a410e4d232c8dabef844a34b2b9610f834d4b12",
+          "evidence": "documents/verification/research-charts-2026-10-23/development.json",
+          "engine_revision": "47bef52f5080c9772081"
         }
       }
     },
@@ -1104,7 +1106,21 @@
           }
         }
       ],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05": {
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+          "role": "web",
+          "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+          "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+          "runtime_inventory_sha256": "f3f013998fbbe0adcf3fdf23148fbe2816c95b3e139ccf7e60486bc641f022f9",
+          "all_packaged_files_checked": true,
+          "complete_git_inventory_matches": true,
+          "packaged_file_count": 1703,
+          "qualification_execution": "sn-research-run-dev-zuoaanu",
+          "verification_program_sha256": "d8587dd8189204bbc8e44f1049dd5b6ba5ceaeef272d3d2a50c224ab69163c4d",
+          "evidence": "documents/verification/research-charts-2026-10-23/development.json"
+        }
+      },
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -1222,18 +1238,19 @@
         }
       ],
       "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab": {
-          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab",
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:de1c5e81e79a10f5e268e0bb7bc199cd898385e6fbbbe9c8f63ef58dba806cca": {
+          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:de1c5e81e79a10f5e268e0bb7bc199cd898385e6fbbbe9c8f63ef58dba806cca",
           "role": "broker",
-          "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-          "source_inventory_sha256": "8b9e794f6f0db174978a165d89b5e6dce1ad214e826d52905754a2fbd7a130d0",
-          "runtime_inventory_sha256": "e3e252dd7f012394cadd8bb33b26ff1a1d327c99ea9609b2909662b3bd55397d",
+          "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+          "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+          "runtime_inventory_sha256": "c68fdc0bc1f45e972bd7fb54830e98c0726e48b34b0b4d5f0a5b5af0f37b3617",
           "all_packaged_files_checked": true,
           "complete_git_inventory_matches": true,
           "packaged_file_count": 187,
-          "engine_revision": "1b332d7f4e378ac94383",
-          "qualification_execution": "sn-research-run-dev-zk6z2fm",
-          "verification_program_sha256": "fa674d954ea58ad88fe7cb37a95a6917008d162f828ca3b291d7e4f6d88cb1ca"
+          "qualification_execution": "sn-research-run-dev-3as8o83",
+          "verification_program_sha256": "9a347b30d271381576d4fea3622e755a5318f3167a52ff4b47387cdd36e37d4c",
+          "evidence": "documents/verification/research-charts-2026-10-23/development.json",
+          "engine_revision": "47bef52f5080c9772081"
         }
       }
     }
@@ -1554,5 +1571,16 @@
     "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
     "acceptance_revision": "fc73a4328860b2d69f9868d110625048fc25debb",
     "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/production-verification.json"
+  },
+  "development_acceptance": {
+    "status": "accepted",
+    "images": {
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3bb76c19b38655158ee6394139da5a300ca89d26640b8003573307f07fd6dc90",
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:de1c5e81e79a10f5e268e0bb7bc199cd898385e6fbbbe9c8f63ef58dba806cca",
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05"
+    },
+    "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+    "evidence": "documents/verification/research-charts-2026-10-23/development.json"
   }
 }

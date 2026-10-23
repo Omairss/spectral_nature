@@ -1,0 +1,45 @@
+{
+  "status": "accepted_for_chart_publication",
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_ground_truth_or_final_grader_used": false,
+  "run_id": "agrun_chart_qual_20261023_api_next",
+  "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+  "engine_revision": "47bef52f5080c9772081",
+  "model": "deepseek-v4-pro",
+  "provider_attempts": 10,
+  "all_attempts_succeeded": true,
+  "conservative_reference_usage_usd": 0.32636075999999997,
+  "programs": {
+    "attempts": 3,
+    "succeeded": 2,
+    "failed": 1,
+    "recovery": "Model recovered an unterminated Python string and published only successful program output."
+  },
+  "chart_transport": {
+    "public_api_charts": 3,
+    "titles": [
+      "HIMS reported annual revenue with FY2027 forecast",
+      "HIMS daily stock-return distribution",
+      "HIMS and SPY daily return correlation matrix"
+    ],
+    "revenue_units": "USD millions on chart; USD in answer",
+    "return_units": "Percent points calculated in program and explicitly labeled; no double conversion.",
+    "histogram_samples": 1786,
+    "correlation": 0.287,
+    "forecast_2027_usd": 5710338519.385624,
+    "interval_80pct_usd": [
+      4927462541.7530985,
+      6617597948.16784
+    ],
+    "provenance": "Each generated chart links to its successful analysis/code/input references."
+  },
+  "personal_financial_review": {
+    "numerical_consistency": "Final forecast, conditional interval, holdout errors, return moments and correlation match the successful executed program. Revenue chart scales all three series consistently to millions.",
+    "validation_limit": "Model selected quadratic trend on only one held-out fiscal year, then refit7observations. This is model selection, not independent evidence of generalization.",
+    "interval_limit": "Program includes both residual and coefficient-estimation variance with Student-t df4, but assumes stable log-quadratic trend and iid errors. It does not establish empirical80% predictive coverage or account for model selection/business regime uncertainty.",
+    "business_limit": "Pure trend projectsFY2026 revenue3.74B without reconciling management/author anchors in supplied commentary. The answer explicitly labels trend extrapolation, but does not provide sufficient business grounding for accepting analyst forecast quality.",
+    "wording_limit": "Residual log standard deviation is0.0356; calling residual error large is imprecise. Extrapolation leverage and few observations widen the conditional interval.",
+    "acceptance_boundary": "Chart-producing capability accepted. Forecast quality and calibration remain study work; original prospective forecasts and targets are unchanged."
+  },
+  "internal_review": "The product internal reviewer accepted the answer. Its opinion is generation output, not this final review or ground truth."
+}

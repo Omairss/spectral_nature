@@ -1,0 +1,57 @@
+[
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3bb76c19b38655158ee6394139da5a300ca89d26640b8003573307f07fd6dc90",
+    "role": "api-next",
+    "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+    "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+    "runtime_inventory_sha256": "c68fdc0bc1f45e972bd7fb54830e98c0726e48b34b0b4d5f0a5b5af0f37b3617",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "qualification_execution": "sn-research-run-dev-erf18zy",
+    "verification_program_sha256": "9dfa63b152cf8b9ce80efd360a410e4d232c8dabef844a34b2b9610f834d4b12",
+    "evidence": "documents/verification/research-charts-2026-10-23/development.json",
+    "engine_revision": "47bef52f5080c9772081"
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+    "role": "worker",
+    "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+    "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+    "runtime_inventory_sha256": "c68fdc0bc1f45e972bd7fb54830e98c0726e48b34b0b4d5f0a5b5af0f37b3617",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "qualification_execution": "sn-research-run-dev-ny63l22",
+    "verification_program_sha256": "db3db2230e0a6c47a86bd8c133e9693af0a38e65f9737c4e6a4457cc44fa0e1b",
+    "evidence": "documents/verification/research-charts-2026-10-23/development.json",
+    "engine_revision": "47bef52f5080c9772081"
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:de1c5e81e79a10f5e268e0bb7bc199cd898385e6fbbbe9c8f63ef58dba806cca",
+    "role": "broker",
+    "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+    "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+    "runtime_inventory_sha256": "c68fdc0bc1f45e972bd7fb54830e98c0726e48b34b0b4d5f0a5b5af0f37b3617",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "qualification_execution": "sn-research-run-dev-3as8o83",
+    "verification_program_sha256": "9a347b30d271381576d4fea3622e755a5318f3167a52ff4b47387cdd36e37d4c",
+    "evidence": "documents/verification/research-charts-2026-10-23/development.json",
+    "engine_revision": "47bef52f5080c9772081"
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+    "role": "web",
+    "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+    "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+    "runtime_inventory_sha256": "f3f013998fbbe0adcf3fdf23148fbe2816c95b3e139ccf7e60486bc641f022f9",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 1703,
+    "qualification_execution": "sn-research-run-dev-zuoaanu",
+    "verification_program_sha256": "d8587dd8189204bbc8e44f1049dd5b6ba5ceaeef272d3d2a50c224ab69163c4d",
+    "evidence": "documents/verification/research-charts-2026-10-23/development.json"
+  }
+]
