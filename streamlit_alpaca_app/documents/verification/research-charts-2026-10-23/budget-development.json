@@ -1,0 +1,19 @@
+{
+  "status": "accepted",
+  "reviewer": "primary_agent_personal_review",
+  "source_revision": "f00660927509ff5dcf37fd5f21664964bef57ff9",
+  "source_inventory_sha256": "55487609c0fc78fb018cb5f23b7f3eba53d19072b4152343d8def53881323710",
+  "images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:39d9f957fc10fd8d6bd50d1d9e14513995746c1c9386d79d0ca1aaad3c96865b",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c4bab740612299684a23a8f0e391c844506316c6bfed3adfb0da37e61fbbded7",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:1acc92b4971421fec7a83b7ce7431321f5c5a749de139001ac9b0f3ad9b57f4a"
+  },
+  "package_evidence": "budget-packaged-images.json",
+  "source_review": "source-review.json",
+  "mechanical_checks": "9settings checks passed, including first-read budget/listing and scope change. Not a model-quality verdict.",
+  "runtime": "Each fresh image checked all187packaged files, read actual production-scoped900/240settings before model/prompt calls, executed4real numerical charts and passed public response projection.",
+  "execution_scope": "Existing development job with per-execution candidate image and APP_TRACK=production for read-only production settings. Existing DEV credentials/namespace retained; no template modification, LLM request, finding write or numerical persistence.",
+  "preservation": "Promote18productionPython consumers only. Retain the2accepted production web images, installed native13and all16development definitions/images. All36configuration baselines rechecked.",
+  "model_and_prompts": "Unchanged. Earlier full real-model chart review applies to unchanged chart implementation; the normal queued production continuation still needs verification.",
+  "initial_failed_run": "agrun_5a1086391d234307a64791f5 remains unchanged; next turn must obtain a fresh budget."
+}
