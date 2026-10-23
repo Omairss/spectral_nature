@@ -1060,6 +1060,8 @@ input:focus, select:focus, textarea:focus { border-color: #596a7a; box-shadow: 0
 .conversation-question .markdown > :first-child { margin-top: 0; }
 .conversation-question .markdown > :last-child { margin-bottom: 0; }
 .conversation-turn .answer-panel { background: transparent; border: 0; padding: 0.35rem 0; }
+.research-charts { display: grid; gap: 1.5rem; margin: 1.5rem 0; min-width: 0; }
+.research-charts .visualization-viewport { min-height: 22.5rem; }
 .research-activity { border-left: 2px solid var(--teal); color: var(--ink-soft); padding: 0.3rem 0 0.3rem 1rem; }
 .research-activity > summary { align-items: center; cursor: pointer; display: flex; font-size: 0.75rem; gap: 1rem; }
 .research-activity > summary span { color: var(--faint); font-size: 0.65rem; }

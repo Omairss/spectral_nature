@@ -81,6 +81,10 @@ def research_engine_revision() -> str:
         "pipeline_store.py",
         "database.py",
         "../data_access/query_service.py",
+        "../data_access/contracts.py",
+        "../presentation/plotly.py",
+        "../presentation/visualization_artifacts.py",
+        "agents/research_runs.py",
     ):
         digest.update(name.encode())
         digest.update((Path(__file__).parent / name).read_bytes())

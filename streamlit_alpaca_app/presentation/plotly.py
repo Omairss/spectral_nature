@@ -33,22 +33,49 @@ def _trace_series(frame: pd.DataFrame, field: str | None) -> pd.Series:
 def render_chart_model(model: ChartModel) -> go.Figure:
     fig = go.Figure()
 
-    for trace in model.traces:
+    for trace_index, trace in enumerate(model.traces):
         frame = _apply_filter(_dataset_frame(model, trace.dataset), trace)
         style: dict[str, Any] = dict(trace.style)
         options: dict[str, Any] = dict(trace.options)
         trace_type = trace.trace_type.lower()
 
-        if trace_type == "line":
+        if trace_type in {"line", "scatter"}:
             fig.add_trace(
                 go.Scatter(
                     x=_trace_series(frame, trace.x),
                     y=_trace_series(frame, trace.y),
                     name=trace.name,
-                    mode=style.pop("mode", "lines"),
+                    mode=style.pop("mode", "markers" if trace_type == "scatter" else "lines"),
                     **style,
                 )
             )
+            continue
+
+        if trace_type == "band":
+            # Independent closed polygons preserve missing intervals: a gap
+            # must not become a filled region joining unrelated observations.
+            valid = frame[[trace.lower, trace.upper]].notna().all(axis=1)
+            segments = valid.ne(valid.shift()).cumsum()
+            colors = model.layout.get("colorway") or ["#52d6c7", "#6cb8ff", "#a991f7", "#f08b72"]
+            fillcolor = style.pop("fillcolor", colors[trace_index % len(colors)])
+            first = True
+            for _, segment in frame[valid].groupby(segments[valid], sort=False):
+                x = _trace_series(segment, trace.x).tolist()
+                lo = _trace_series(segment, trace.lower).tolist()
+                hi = _trace_series(segment, trace.upper).tolist()
+                fig.add_trace(go.Scatter(x=x + x[::-1], y=hi + lo[::-1],
+                    name=trace.name, mode="lines", fill="toself", opacity=.22,
+                    line={"width": 0}, fillcolor=fillcolor, legendgroup=trace.name,
+                    showlegend=first, **style))
+                first = False
+            continue
+
+        if trace_type == "heatmap":
+            xs = list(dict.fromkeys(frame[trace.x]))
+            ys = list(dict.fromkeys(frame[trace.y]))
+            cells = {(row[trace.x], row[trace.y]): row.get(trace.z) for row in frame.to_dict("records")}
+            fig.add_trace(go.Heatmap(x=xs, y=ys, z=[[cells.get((x, y)) for x in xs] for y in ys],
+                name=trace.name, **style))
             continue
 
         if trace_type == "bar":

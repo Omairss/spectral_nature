@@ -203,6 +203,9 @@ struct ResearchRunView: View {
                 if let message = activity.errors[run.runId] { Text(message).font(.caption).foregroundStyle(Theme.coral) }
                 if let result = run.result, !result.answerMarkdown.isEmpty {
                   MarkdownView(text: result.answerMarkdown)
+                  ForEach(result.visualizations ?? [], id: \.researchChartID) { artifact in
+                    ResearchChart(artifact: artifact)
+                  }
                   if !result.citations.isEmpty {
                     DisclosureGroup("Sources · \(result.citations.count)") {
                       ForEach(result.citations) { source in

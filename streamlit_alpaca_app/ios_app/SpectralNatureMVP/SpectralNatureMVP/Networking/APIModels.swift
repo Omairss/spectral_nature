@@ -187,6 +187,7 @@ struct ResearchRun: Decodable, Identifiable, Hashable {
     }
     let answerMarkdown: String
     let citations: [Citation]
+    let visualizations: [JSONValue]?
     let confidence: String?
     let limitations: [String]?
     let model: String?

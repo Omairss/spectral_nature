@@ -1,0 +1,13 @@
+# Zopedia research charts
+
+Connect executed analytical results to web and native conversations, then resume the quantitative benchmark and prospective forecast study. The owner's existing production authorization covers missing forecasting/modeling capabilities; the October23 instruction requests the connection on both clients. Ground truth and final financial grading remain the primary agent's responsibility.
+
+Use the existing `visualization.v1` artifact and `ChartModel` data/trace contract. Analytical programs publish typed line, scatter, bar, histogram, band and heatmap data through `add_chart`. The server validates dimensions, finite values, units and explicit display bounds before constructing renderer specifications. Raw programs, generated JavaScript, remote image/data URLs and hidden diagnostics never become chart content. Histogram bins are computed once on the server so both clients display the same counts.
+
+The shared visualization producer adds the original data/trace description to the artifact beside its Plotly figure. Web reuses its interactive Plotly renderer. Native uses Swift Charts and a native matrix view over that same data. Preserve missing-value gaps, dates, axis labels, percent units and interval boundaries. Retain chart IDs, input/code provenance and analysis identity. Failed computations must not publish partial charts as completed results.
+
+The shared agent returns successful chart artifacts; the public run result retains them alongside the answer and citations. Both conversation views render that result. Existing replies without charts stay readable, and subsequent turns must not repeat every inherited chart. No database migration or separate chart agent is needed.
+
+Work is isolated from concurrent dirty source and unreleased native Trading/Home experiments. The base is accepted production compute Git883be852, whose web and native runtime files match the currently accepted client-refresh source. Verify actual calculation-to-result transport, chart interactions and complete native/browser screens before builds and deployment. The existing committed release gate applies to every build. Use exact development-accepted images for the authorized production release; preserve other consumers and configurations. Native delivery must preserve the currently installed client behavior.
+
+After chart delivery, continue from the October22 benchmark study. FinanceBench has completed all150 full-report responses; personal source comparison is still needed. Native workbook execution and prospective outcome resolution remain open. Do not substitute chart rendering for financial validation or rewrite issued forecasts.

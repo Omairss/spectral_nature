@@ -1,0 +1,47 @@
+{
+  "status": "accepted_source_for_platform_verification",
+  "reviewer": "primary_agent_personal_review",
+  "recorded_at_utc": "2026-10-23T07:41:32.812612+00:00",
+  "base": "883be852",
+  "scope": "Shared numerical chart publication, public research results and both conversation renderers. Existing accepted web/native9 behavior retained; concurrent unreleased Home12 and Alpaca/Trading changes remain outside this release.",
+  "runtime_review": {
+    "data_access/contracts.py": "Adds optional lower/upper/z fields; existing field defaults and serialization retained.",
+    "presentation/plotly.py": "Adds scatter, interval polygons split at gaps, and heatmap rendering; existing line/bar/histogram/candlestick paths preserved. Band segments share one color/legend.",
+    "presentation/visualization_artifacts.py": "Validates analytical values, dimensions and explicit display bounds; server bins histogram samples; retains typed datasets/traces alongside Plotly. Collects actual successful current-run tool artifacts only.",
+    "services/zopedia_analysis.py": "Preserves full chart arrays rather than shortening them as previews. Only successful numerical executions publish charts; source/code/run provenance persisted. Existing computation budgets and cancellation retained.",
+    "services/zopedia_agent.py": "Carries charts from completed tools into the shared agent result, independently of generated prose. Existing answer/review/tool ownership retained.",
+    "services/agents/research_runs.py": "Retains visualization field in public JSON alongside existing answer/citations; stored result schema and owner checks unchanged.",
+    "services/agent_tools.py": "Documents chart API in existing analysis tool; no intent classifier or separate planner.",
+    "services/aql_zopedia_engine.py": "Engine revision includes chart producers/contracts and public run projection.",
+    "web/lib/types.ts": "Optional visualization array; existing completed replies need no migration.",
+    "web/app/zopedia/runs/[runId]/research-run-view.tsx": "Renders existing Plotly artifact component within each answer; conversation history, activity, sources, cancellation and composer retained.",
+    "web/app/globals.css": "Adds only chart spacing/minimum viewport sizing; no navigation/dashboard changes.",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ResearchCharts.swift": "Native data/trace renderer; date/number/category axes, histogram bins, interval gaps, selection, matrix inspection and optional candle data. No generated JavaScript.",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift": "Renders optional result charts; all activity/citation/follow-up controls retained.",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift": "Optional chart JSON; old responses decode unchanged.",
+    "ios_app/SpectralNatureMVP/project.yml": "Native build13; same bundle identifier/team/provisioning and source architecture.",
+    "ios_app/SpectralNatureMVP/SpectralNature.xcodeproj/project.pbxproj": "Regenerated for the added native chart renderer and build13."
+  },
+  "actual_numerical_flow": {
+    "status": "passed",
+    "charts": 7,
+    "real_price_points": 1787,
+    "last_price_date": "2026-10-22",
+    "histogram_samples": 252,
+    "public_result_bytes": 274332,
+    "gaps": "One missing observation produces two interval polygons; current-run transport excludes inherited foreign-run artifacts.",
+    "source": "Private verify-flow.py, frozen SEC/HIMS/SPY files, actual shared multiprocessing tool and public-result projection. No financial future outcomes created."
+  },
+  "mechanical_checks": {
+    "analysis_regressions": "11 passed. One stale assertion was updated to match the already accepted production behavior of exposing numerical stdout.",
+    "web_types": "passed"
+  },
+  "remaining_before_deployment": [
+    "Personally inspect actual browser and native rendering/interaction.",
+    "Complete one real shared-model plot investigation; personally review code/output/answer.",
+    "Build through committed source gate; verify exact-image development behavior and consumer preservation.",
+    "Promote only accepted digests; verify production and native delivery."
+  ],
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/verification/research-charts-20261023",
+  "other_llm_ground_truth_or_final_evaluation_judges_used": false
+}

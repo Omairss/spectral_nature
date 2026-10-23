@@ -20,6 +20,8 @@ import pandas as pd
 
 from services.json_utils import frame_to_records, to_jsonable
 from data_access.query_service import QueryService
+from data_access.contracts import ChartModel, DataProvenance
+from presentation.visualization_artifacts import analysis_chart_model, build_plotly_visualization_artifact
 from services.saa.storage import _db_connection
 from services.work_scope import check_work, remaining_work_seconds
 
@@ -814,7 +816,7 @@ def _analysis_worker(
     artifacts: list[dict[str, Any]] = []
     metrics: list[dict[str, Any]] = []
     tables: list[dict[str, Any]] = []
-    charts: list[dict[str, Any]] = []
+    charts: list[ChartModel] = []
     result: dict[str, Any] = {}
 
     def add_metric(name: str, value: object, *, description: str = "") -> None:
@@ -845,24 +847,15 @@ def _analysis_worker(
             preview_text=f"{table['name']}: {len(rows)} preview rows",
         )
 
-    def add_chart(name: str, *, kind: str, x: object, y: object, series_name: str = "") -> None:
-        x_values = _jsonable_preview(list(x) if not isinstance(x, list) else x)
-        y_values = _jsonable_preview(list(y) if not isinstance(y, list) else y)
-        chart = {
-            "name": _coerce_text(name) or f"chart_{len(charts) + 1}",
-            "kind": _coerce_text(kind) or "line",
-            "x": x_values,
-            "y": y_values,
-            "series_name": _coerce_text(series_name),
-        }
-        charts.append(chart)
-        _worker_artifact(
-            artifacts=artifacts,
-            artifact_type="chart",
-            name=str(chart["name"]),
-            payload=chart,
-            preview_text=f"{chart['name']} ({chart['kind']})",
-        )
+    def add_chart(name: str, *, kind: str = "line", x: object = None, y: object = None,
+                  series_name: str = "", series: object = None, z: object = None, bins: int = 30,
+                  x_label: str = "", y_label: str = "", x_type: str = "auto",
+                  x_format: str = "number", y_format: str = "number") -> None:
+        if len(charts) >= 12:
+            raise ValueError("An analysis can publish at most12 charts.")
+        charts.append(analysis_chart_model(name, kind=kind, x=x, y=y,
+            series_name=series_name, series=series, z=z, bins=bins,
+            x_label=x_label, y_label=y_label, x_type=x_type, x_format=x_format, y_format=y_format))
 
     def add_artifact(name: str, payload: object, *, artifact_type: str = "artifact", preview_text: str = "") -> None:
         _worker_artifact(
@@ -901,7 +894,7 @@ def _analysis_worker(
                 "result": result,
                 "metrics": metrics,
                 "tables": tables[:6],
-                "charts": charts[:6],
+                "charts": charts,
                 "artifacts": artifacts[:MAX_ARTIFACTS],
             }
         )
@@ -916,7 +909,7 @@ def _analysis_worker(
                 "result": {},
                 "metrics": metrics,
                 "tables": tables[:6],
-                "charts": charts[:6],
+                "charts": charts,
                 "artifacts": artifacts[:MAX_ARTIFACTS],
             }
         )
@@ -1001,6 +994,10 @@ def _build_llm_context(payload: dict[str, Any]) -> str:
                 lines.append(
                     f"- {table.get('name')}: {table.get('row_count')} rows; columns={', '.join(list(table.get('columns') or [])[:12])}"
                 )
+    if payload.get("charts"):
+        lines.append("Published charts (shown alongside the answer):")
+        for chart in payload["charts"]:
+            lines.append(f"- {chart['title']}: {chart['performance']['row_count']} displayed data rows; artifact_id={chart['artifact_id']}")
     log_stats = [
         _format_text_stats("Stdout", payload.get("stdout")),
         _format_text_stats("Stderr", payload.get("stderr")),
@@ -1367,8 +1364,21 @@ def run_analysis_python(
         }
 
     status = str(worker_payload.get("status") or "failed")
+    # Only a completed computation publishes charts. Their source data stays
+    # separate from shortened textual previews and is persisted with the run.
+    charts = []
+    if status == "succeeded":
+        for model in worker_payload.get("charts") or []:
+            check_work()
+            artifact = build_plotly_visualization_artifact(model, provenance=DataProvenance(
+                mode="computed", datasets=tuple(sorted(frames)), details={
+                    "analysis_run_id": run_id, "code_hash": _sha256_text(clean_code),
+                    "input_refs": input_refs})).to_dict()
+            charts.append(artifact)
     artifacts: list[dict[str, Any]] = []
-    for idx, artifact in enumerate(list(worker_payload.get("artifacts") or [])[:MAX_ARTIFACTS], start=1):
+    chart_records = [{"artifact_type": "visualization", "name": a["title"], "payload": a,
+                      "metadata": {"analysis_run_id": run_id}} for a in charts]
+    for idx, artifact in enumerate((chart_records + list(worker_payload.get("artifacts") or []))[:MAX_ARTIFACTS], start=1):
         if not isinstance(artifact, dict):
             continue
         name = str(artifact.get("name") or f"artifact_{idx}")
@@ -1398,7 +1408,7 @@ def run_analysis_python(
         "result": to_jsonable(worker_payload.get("result") or {}),
         "metrics": to_jsonable(worker_payload.get("metrics") or []),
         "tables": to_jsonable(worker_payload.get("tables") or []),
-        "charts": to_jsonable(worker_payload.get("charts") or []),
+        "charts": charts,
         "artifacts": artifacts,
         "duration_ms": int((time.monotonic() - started_at) * 1000),
         "created_at_utc": _utc_now(),

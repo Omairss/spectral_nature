@@ -58,6 +58,9 @@ class ChartTraceModel:
     where: dict[str, Any] = field(default_factory=dict)
     style: dict[str, Any] = field(default_factory=dict)
     options: dict[str, Any] = field(default_factory=dict)
+    lower: str | None = None
+    upper: str | None = None
+    z: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return to_jsonable(self)

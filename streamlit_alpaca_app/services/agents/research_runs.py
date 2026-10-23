@@ -151,6 +151,7 @@ def _safe_result(raw: dict[str, Any]) -> dict[str, Any]:
         "confidence": _clean(raw.get("confidence"), limit=32).lower() or "low",
         "limitations": limitations,
         "citations": citations,
+        "visualizations": list(raw.get("visualizations") or []),
         "provider": _clean(raw.get("provider"), limit=80),
         "model": _clean(raw.get("model"), limit=160),
         "evidence_pack_id": _clean(raw.get("aql_evidence_pack_id"), limit=160),

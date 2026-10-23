@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Markdown } from "@/components/markdown";
+import { Visualization } from "@/components/visualizations/visualization";
 import { responseError, secureMutation } from "@/lib/client/api";
 import type { ResearchConversation, ResearchEvent, ResearchEvents, ResearchPublicUpdate, ResearchRun } from "@/lib/types";
 
@@ -166,6 +167,9 @@ export function ResearchConversationView({ conversationId, initialRunId }: { con
           <ResearchActivity events={journals[run.run_id] || []} active={active} />
           {run.result?.answer_markdown ? <article className="answer-panel">
             <Markdown>{run.result.answer_markdown}</Markdown>
+            {run.result.visualizations?.length ? <div className="research-charts">
+              {run.result.visualizations.map((artifact) => <Visualization key={artifact.artifact_id} artifact={artifact} />)}
+            </div> : null}
             {run.result.citations.length ? <details className="sources conversation-citations"><summary>Sources · {run.result.citations.length}</summary><ul>{run.result.citations.map((source) => <li key={source.url}><a href={source.url} rel="noreferrer noopener" target="_blank">{source.label}</a></li>)}</ul></details> : null}
           </article> : !active ? <p className="research-failure" role="status">{run.status === "cancelled" ? "Research cancelled." : "This reply did not complete. You can continue below."}</p> : null}
           {active ? <div className="conversation-run-controls"><span className="research-working" aria-label="Research in progress" /><button className="quiet-button" disabled={cancelling || run.status === "cancel_requested"} onClick={cancel} type="button">{cancelling || run.status === "cancel_requested" ? "Cancelling…" : "Stop"}</button></div> : null}

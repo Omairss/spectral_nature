@@ -160,6 +160,7 @@ export type ResearchResult = {
   confidence: string;
   limitations: string[];
   citations: ResearchCitation[];
+  visualizations?: VisualizationArtifact[];
   provider: string;
   model: string;
   evidence_pack_id: string;

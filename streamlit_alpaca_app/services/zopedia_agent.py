@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from presentation.visualization_artifacts import collect_research_visualizations
+
 from services.work_scope import WorkScope
 
 from contextvars import copy_context
@@ -678,7 +680,7 @@ def _build_render_payload(result: dict[str, Any]) -> dict[str, Any] | None:
                 "objective": payload.get("objective"),
                 "metrics": list(payload.get("metrics") or [])[:12],
                 "tables": list(payload.get("tables") or [])[:4],
-                "charts": list(payload.get("charts") or [])[:4],
+                "charts": list(payload.get("charts") or []),
                 "artifacts": [
                     {
                         "artifact_id": item.get("artifact_id"),
@@ -4078,6 +4080,7 @@ def _execute_zopedia_agent_loop(
         ),
         "tool_calls": tool_calls,
         "answer_markdown": answer_markdown,
+        "visualizations": collect_research_visualizations(tool_calls, run_id=run_id),
         "confidence": final_confidence,
         "limitations": limitations,
         "quality_review": quality_review,

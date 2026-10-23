@@ -43,7 +43,7 @@ add_chart("close_path", kind="line", x=prices["date"].tolist(), y=prices["close"
     assert result["analysis_run_id"].startswith("zopedia_analysis::")
     assert {metric["name"] for metric in result["metrics"]} == {"rows", "mean_return"}
     assert result["tables"][0]["name"] == "price_preview"
-    assert result["charts"][0]["name"] == "close_path"
+    assert result["charts"][0]["title"] == "close_path"
     assert "Zopedia analysis run" in result["llm_context_text"]
 
 
@@ -171,7 +171,7 @@ add_table("renamed_prices", prices)
     assert "line(s)" in result["llm_context_text"]
     assert "char(s)" in result["llm_context_text"]
     assert "analysis.read_raw_output" in result["llm_context_text"]
-    assert "rows=2 last=11" not in result["llm_context_text"]
+    assert "rows=2 last=11" in result["llm_context_text"]
 
 
 def test_read_analysis_raw_output_returns_bounded_explicit_log_text():

@@ -840,6 +840,12 @@ def _analysis_tools() -> list[dict[str, Any]]:
                 "Code must be valid multiline Python. Inputs are preloaded as pandas DataFrames in "
                 "`datasets` and as variables named by each dataset alias. Do not call load_dataset, "
                 "get_dataset, context, globals, open, or filesystem/network APIs from the code. "
+                "Publish plots with add_chart(name, kind='line'|'scatter'|'bar'|'histogram'|'heatmap', x=..., y=...). "
+                "Use series=[{'name':..., 'y':...}, {'name':..., 'kind':'band', 'lower':..., 'upper':...}] "
+                "for multiple series and uncertainty bands. Heatmaps use x=column_labels, y=row_labels, z=matrix; "
+                "histograms use x=samples and bins=30. Supply x_label/y_label with units, x_type='date'|'number'|'category' "
+                "when needed, and x_format/y_format='percent' for fractional rates. Charts appear in the answer on web and iPhone. "
+                "At most12 charts and20000 displayed points per chart; aggregate display data explicitly. "
                 "Results include retained numerical outputs as evidence. analysis.read_raw_output "
                 "can inspect retained logs by analysis_run_id."
             ),
