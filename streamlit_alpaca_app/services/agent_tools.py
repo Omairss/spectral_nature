@@ -828,22 +828,25 @@ def _analysis_tools() -> list[dict[str, Any]]:
     return [
         {
             "name": "analysis.run_python",
+            "execution": {"timeout_argument": "timeout_seconds", "default_seconds": zopedia_analysis.DEFAULT_TIMEOUT_SECONDS,
+                          "maximum_seconds": zopedia_analysis.MAX_TIMEOUT_SECONDS, "cleanup_seconds": 5},
             "description": (
                 "Run bounded pandas/numpy/scipy/scikit-learn analysis over approved Spectral Nature "
-                "datasets or small inline tables. Use this for EDA, statistical checks, regressions, "
+                "datasets, inline tables or self-contained numerical calculations. Analytical input data is preserved in full "
+                "within a 128 MiB estimated-frame input allocation; only display previews are shortened. Use this for EDA, statistical checks, regressions, "
                 "clustering, classification, feature importance, or other quantitative analysis that "
                 "needs computation beyond direct dataset lookup. Provide dataset_refs that name QueryService "
-                "datasets plus typed params, or inline_datasets for user-uploaded tabular data. "
+                "datasets plus typed params, or inline_datasets for supplied tabular data. Omit both for a self-contained calculation. "
                 "Code must be valid multiline Python. Inputs are preloaded as pandas DataFrames in "
                 "`datasets` and as variables named by each dataset alias. Do not call load_dataset, "
                 "get_dataset, context, globals, open, or filesystem/network APIs from the code. "
-                "Normal results summarize stdout/stderr by statistics only; call analysis.read_raw_output "
-                "with the returned analysis_run_id only when exact logs are required."
+                "Results include retained numerical outputs as evidence. analysis.read_raw_output "
+                "can inspect retained logs by analysis_run_id."
             ),
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "objective": {"type": "string"},
+                    "objective": {"type": "string", "description": "Optional description of the calculation; the research run retains the original user request."},
                     "code": {"type": "string"},
                     "dataset_refs": {
                         "type": "array",
@@ -870,10 +873,11 @@ def _analysis_tools() -> list[dict[str, Any]]:
                             "additionalProperties": False,
                         },
                     },
-                    "timeout_seconds": {"type": "integer"},
-                    "max_rows": {"type": "integer"},
+                    "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": zopedia_analysis.MAX_TIMEOUT_SECONDS,
+                                        "description": "Computation wall time; default 120 seconds, up to 900 when the remaining investigation budget permits."},
+                    "max_rows": {"type": "integer", "minimum": 1, "description": "Optional explicit input admission bound. Omit to use all rows within the byte allocation. Oversized input is rejected rather than sampled."},
                 },
-                "required": ["objective", "code"],
+                "required": ["code"],
                 "additionalProperties": False,
             },
         },
@@ -883,7 +887,7 @@ def _analysis_tools() -> list[dict[str, Any]]:
                 "Explicitly read bounded raw stdout, stderr, error, traceback, or all output for a persisted "
                 "analysis.run_python run. Use only when exact logs are needed for debugging or answering "
                 "a user question about what the analysis printed; ordinary analysis context already includes "
-                "summary statistics."
+                "retained numerical results."
             ),
             "inputSchema": {
                 "type": "object",
@@ -955,7 +959,7 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
                  "limit": {"type": "integer", "minimum": 1, "maximum": 100}}}},
             {"name": "research.read_supplied_evidence", "description": "Read a supplied source's complete original content, optionally at a JSON Pointer (e.g. /points). Continue with next_offset. All originals remain available; catalog metadata alone does not establish a trend or cause.",
              "inputSchema": {"type": "object", "additionalProperties": False, "required": ["source_id"], "properties": {
-                 "source_id": {"type": "string"}, "pointer": {"type": "string"}, "offset": {"type": "integer", "minimum": 0},
+                 "source_id": {"type": "string", "description": "Read handle from the catalog entry's source_id field. Original document IDs inside metadata may differ."}, "pointer": {"type": "string"}, "offset": {"type": "integer", "minimum": 0},
                  "max_characters": {"type": "integer", "minimum": 1, "maximum": 60000}}}},
         ])
     tools.extend(_zopedia_tools())
@@ -1313,7 +1317,7 @@ def _run_analysis_payload(*, service: QueryService, args: dict[str, Any]) -> dic
         dataset_refs=list(args.get("dataset_refs") or []),
         inline_datasets=list(args.get("inline_datasets") or []),
         timeout_seconds=_int_arg(args.get("timeout_seconds"), default=zopedia_analysis.DEFAULT_TIMEOUT_SECONDS),
-        max_rows=_int_arg(args.get("max_rows"), default=zopedia_analysis.MAX_DATASET_ROWS),
+        max_rows=args.get("max_rows"),
     )
     return payload
 

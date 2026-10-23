@@ -65,6 +65,7 @@ def research_engine_revision() -> str:
     for name in (
         "aql_zopedia_engine.py",
         "zopedia_agent.py",
+        "zopedia_analysis.py",
         "zopedia_research.py",
         "agent_tools.py",
         "page_browsing.py",

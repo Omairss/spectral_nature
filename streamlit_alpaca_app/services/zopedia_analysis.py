@@ -21,6 +21,7 @@ import pandas as pd
 from services.json_utils import frame_to_records, to_jsonable
 from data_access.query_service import QueryService
 from services.saa.storage import _db_connection
+from services.work_scope import check_work, remaining_work_seconds
 
 
 try:
@@ -29,12 +30,13 @@ except Exception:  # pragma: no cover - resource is POSIX-only.
     resource = None
 
 
-MAX_DATASET_ROWS = 10_000
-MAX_DATASET_COLUMNS = 80
-MAX_CELL_CHARS = 2_000
+MAX_PREVIEW_COLUMNS = 80
+MAX_PREVIEW_CELL_CHARS = 2_000
+MAX_ANALYSIS_INPUT_BYTES = 128 * 1024 * 1024
 MAX_TABLE_ROWS = 200
 MAX_ARTIFACTS = 24
-DEFAULT_TIMEOUT_SECONDS = 20
+DEFAULT_TIMEOUT_SECONDS = 120
+MAX_TIMEOUT_SECONDS = 900
 DEFAULT_MEMORY_MB = 2048
 DEFAULT_RAW_OUTPUT_MAX_CHARS = 2_000
 MAX_RAW_OUTPUT_MAX_CHARS = 12_000
@@ -199,28 +201,51 @@ def _normalize_numeric(value: object, *, default: int, minimum: int, maximum: in
     return max(min(parsed, maximum), minimum)
 
 
-def _truncate_cell(value: object) -> object:
-    if isinstance(value, str) and len(value) > MAX_CELL_CHARS:
-        return value[: MAX_CELL_CHARS - 3].rstrip() + "..."
+def _truncate_preview_cell(value: object) -> object:
+    if isinstance(value, str) and len(value) > MAX_PREVIEW_CELL_CHARS:
+        return value[: MAX_PREVIEW_CELL_CHARS - 3].rstrip() + "..."
     return value
 
 
-def _normalize_frame(frame: pd.DataFrame, *, max_rows: int = MAX_DATASET_ROWS) -> pd.DataFrame:
+def _normalize_frame(frame: pd.DataFrame, *, max_rows: int | None = None) -> pd.DataFrame:
+    """Normalize analytical data without selecting rows, columns or string content."""
     if not isinstance(frame, pd.DataFrame):
         frame = pd.DataFrame(frame)
+    if max_rows is not None:
+        if isinstance(max_rows, bool) or not isinstance(max_rows, int) or max_rows < 1:
+            raise AnalysisRejectedError("An explicit input row bound must be a positive integer.")
+        if len(frame) > max_rows:
+            raise AnalysisRejectedError(
+                f"Input has {len(frame)} rows, exceeding the explicit {max_rows}-row admission bound; no rows were sampled."
+            )
     frame = frame.copy()
-    if len(frame.columns) > MAX_DATASET_COLUMNS:
-        frame = frame.iloc[:, :MAX_DATASET_COLUMNS]
+    implicit_index = (
+        isinstance(frame.index, pd.RangeIndex)
+        and frame.index.equals(pd.RangeIndex(len(frame)))
+        and frame.index.name is None
+    )
+    frame = frame.reset_index(drop=implicit_index)
+    frame.columns = [str(column) for column in frame.columns]
+    if not frame.columns.is_unique:
+        raise AnalysisRejectedError("Analytical columns must have distinct names after normalization; rename ambiguous columns explicitly.")
+    return frame
+
+
+def _preview_frame(frame: pd.DataFrame, *, max_rows: int) -> pd.DataFrame:
+    """Bound display data separately from the frames supplied to computation."""
+    frame = _normalize_frame(frame)
+    if len(frame.columns) > MAX_PREVIEW_COLUMNS:
+        frame = frame.iloc[:, :MAX_PREVIEW_COLUMNS]
     if len(frame) > max_rows:
         frame = frame.tail(max_rows)
     frame.columns = [str(column) for column in frame.columns]
     object_columns = list(frame.select_dtypes(include=["object", "string"]).columns)
     for column in object_columns:
-        frame[column] = frame[column].map(_truncate_cell)
+        frame[column] = frame[column].map(_truncate_preview_cell)
     return frame.reset_index(drop=True)
 
 
-def _payload_to_frames(payload: object, *, alias: str, max_rows: int) -> dict[str, pd.DataFrame]:
+def _payload_to_frames(payload: object, *, alias: str, max_rows: int | None) -> dict[str, pd.DataFrame]:
     if isinstance(payload, pd.DataFrame):
         return {alias: _normalize_frame(payload, max_rows=max_rows)}
     if isinstance(payload, list):
@@ -264,10 +289,6 @@ def _dataset_ref_alias(ref: dict[str, Any], *, dataset_name: str, idx: int, used
             used_aliases.add(candidate)
             return candidate
         suffix += 1
-
-
-def _frame_payload(frame: pd.DataFrame) -> list[dict[str, Any]]:
-    return frame_to_records(_normalize_frame(frame))
 
 
 def _artifact_id(run_id: str, name: str, idx: int) -> str:
@@ -420,7 +441,7 @@ def resolve_analysis_input_frames(
     service: QueryService,
     dataset_refs: list[dict[str, Any]] | None = None,
     inline_datasets: list[dict[str, Any]] | None = None,
-    max_rows: int = MAX_DATASET_ROWS,
+    max_rows: int | None = None,
 ) -> tuple[dict[str, pd.DataFrame], list[dict[str, Any]], list[str]]:
     frames: dict[str, pd.DataFrame] = {}
     input_refs: list[dict[str, Any]] = []
@@ -475,6 +496,19 @@ def resolve_analysis_input_frames(
             }
         )
 
+    input_bytes = sum(int(frame.memory_usage(index=True, deep=True).sum()) for frame in frames.values())
+    if input_bytes > MAX_ANALYSIS_INPUT_BYTES:
+        raise AnalysisRejectedError(
+            f"Analytical inputs require approximately {input_bytes} frame bytes, exceeding the local "
+            f"{MAX_ANALYSIS_INPUT_BYTES}-byte input allocation; no rows, columns or cells were truncated."
+        )
+    for ref in input_refs:
+        names = ref.get("frame_names") or [ref.get("alias")]
+        ref["resolved_frames"] = [
+            {"name": name, "rows": len(frames[name]), "columns": len(frames[name].columns),
+             "frame_bytes_estimate": int(frames[name].memory_usage(index=True, deep=True).sum())}
+            for name in names if name in frames
+        ]
     return frames, input_refs, messages
 
 
@@ -483,7 +517,7 @@ def build_analysis_input_profile(
     service: QueryService,
     dataset_refs: list[dict[str, Any]] | None = None,
     inline_datasets: list[dict[str, Any]] | None = None,
-    max_rows: int = MAX_DATASET_ROWS,
+    max_rows: int | None = None,
     sample_rows: int = 3,
 ) -> dict[str, Any]:
     """Return a compact profile of the frames available to analysis code."""
@@ -492,7 +526,7 @@ def build_analysis_input_profile(
             service=service,
             dataset_refs=dataset_refs,
             inline_datasets=inline_datasets,
-            max_rows=_normalize_numeric(max_rows, default=MAX_DATASET_ROWS, minimum=1, maximum=MAX_DATASET_ROWS),
+            max_rows=max_rows,
         )
     except Exception as exc:
         return {
@@ -513,7 +547,7 @@ def build_analysis_input_profile(
                 "rows": int(len(normalized)),
                 "columns": list(normalized.columns),
                 "dtypes": {str(column): str(dtype) for column, dtype in normalized.dtypes.items()},
-                "sample": frame_to_records(normalized.head(row_limit)),
+                "sample": frame_to_records(_preview_frame(normalized.head(row_limit), max_rows=row_limit)),
             }
         )
 
@@ -732,7 +766,7 @@ def _safe_builtins() -> dict[str, Any]:
 
 def _jsonable_preview(value: object, *, max_rows: int = MAX_TABLE_ROWS) -> object:
     if isinstance(value, pd.DataFrame):
-        return frame_to_records(_normalize_frame(value, max_rows=max_rows).head(max_rows))
+        return frame_to_records(_preview_frame(value, max_rows=max_rows).head(max_rows))
     if isinstance(value, pd.Series):
         return to_jsonable(value.head(max_rows).tolist())
     if isinstance(value, np.generic):
@@ -765,7 +799,7 @@ def _worker_artifact(
 
 def _analysis_worker(
     code: str,
-    frame_records: dict[str, list[dict[str, Any]]],
+    frames: dict[str, pd.DataFrame],
     result_queue: Any,
     memory_mb: int,
 ) -> None:
@@ -776,7 +810,7 @@ def _analysis_worker(
         except Exception:
             pass
 
-    datasets = {name: pd.DataFrame(rows) for name, rows in dict(frame_records or {}).items()}
+    datasets = frames
     artifacts: list[dict[str, Any]] = []
     metrics: list[dict[str, Any]] = []
     tables: list[dict[str, Any]] = []
@@ -794,7 +828,7 @@ def _analysis_worker(
 
     def add_table(name: str, frame_or_records: object, *, max_rows: int = MAX_TABLE_ROWS) -> None:
         row_limit = _normalize_numeric(max_rows, default=MAX_TABLE_ROWS, minimum=1, maximum=MAX_TABLE_ROWS)
-        frame = _normalize_frame(pd.DataFrame(frame_or_records), max_rows=row_limit)
+        frame = _preview_frame(pd.DataFrame(frame_or_records), max_rows=row_limit)
         rows = frame_to_records(frame.head(row_limit))
         table = {
             "name": _coerce_text(name) or f"table_{len(tables) + 1}",
@@ -976,6 +1010,9 @@ def _build_llm_context(payload: dict[str, Any]) -> str:
     if log_stats:
         lines.append("Output logs:")
         lines.extend(f"- {item}" for item in log_stats)
+        for stream in ("stdout", "stderr", "traceback"):
+            if payload.get(stream):
+                lines.append(f"{stream}:\n{payload[stream]}")
     result_payload = payload.get("result")
     result_summary = _summarize_result_payload(result_payload)
     if result_summary:
@@ -1193,11 +1230,14 @@ def _base_result_payload(
         "created_at_utc": _utc_now(),
         "metadata": {
             "runner": "zopedia_analysis.v1",
-            "context_policy": "summary_only_logs",
+            "context_policy": "bounded_original_outputs",
             **({"failure_category": failure_category} if failure_category else {}),
         },
     }
     payload["llm_context_text"] = _build_llm_context(payload)
+    payload["evidence_context_text"] = json.dumps(
+        {key: value for key, value in payload.items() if key != "llm_context_text"}, default=str, ensure_ascii=False
+    )
     return payload
 
 
@@ -1209,7 +1249,7 @@ def run_analysis_python(
     dataset_refs: list[dict[str, Any]] | None = None,
     inline_datasets: list[dict[str, Any]] | None = None,
     timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
-    max_rows: int = MAX_DATASET_ROWS,
+    max_rows: int | None = None,
     memory_mb: int = DEFAULT_MEMORY_MB,
     persist: bool = True,
     conn: Any | None = None,
@@ -1244,7 +1284,7 @@ def run_analysis_python(
             service=service,
             dataset_refs=dataset_refs,
             inline_datasets=inline_datasets,
-            max_rows=_normalize_numeric(max_rows, default=MAX_DATASET_ROWS, minimum=1, maximum=MAX_DATASET_ROWS),
+            max_rows=max_rows,
         )
     except Exception as exc:
         payload = _base_result_payload(
@@ -1256,41 +1296,48 @@ def run_analysis_python(
             messages=messages,
             started_at=started_at,
             error=f"Input resolution failed: {type(exc).__name__}: {exc}",
-            failure_category="analysis_input_missing",
+            failure_category="analysis_input_rejected" if isinstance(exc, AnalysisRejectedError) else "analysis_input_missing",
         )
         if persist:
             _persist_best_effort(payload, conn=conn)
         return payload
 
-    if not frames:
-        payload = _base_result_payload(
-            status="failed",
-            run_id=run_id,
-            objective=objective_text,
-            code=clean_code,
-            input_refs=input_refs,
-            messages=messages,
-            started_at=started_at,
-            error="No analysis input datasets were available.",
-            failure_category="analysis_input_missing",
-        )
-        if persist:
-            _persist_best_effort(payload, conn=conn)
-        return payload
-
-    timeout = _normalize_numeric(timeout_seconds, default=DEFAULT_TIMEOUT_SECONDS, minimum=1, maximum=120)
-    frame_records = {name: _frame_payload(frame) for name, frame in frames.items()}
+    timeout = _normalize_numeric(timeout_seconds, default=DEFAULT_TIMEOUT_SECONDS, minimum=1, maximum=MAX_TIMEOUT_SECONDS)
+    check_work()
+    deadline = time.monotonic() + remaining_work_seconds(timeout)
     ctx = mp.get_context("spawn")
     result_queue = ctx.Queue(maxsize=1)
     process = ctx.Process(
         target=_analysis_worker,
-            args=(clean_code, frame_records, result_queue, _normalize_numeric(memory_mb, default=DEFAULT_MEMORY_MB, minimum=128, maximum=8192)),
+        args=(clean_code, frames, result_queue, _normalize_numeric(memory_mb, default=DEFAULT_MEMORY_MB, minimum=128, maximum=8192)),
     )
     process.start()
-    process.join(timeout=timeout)
-    if process.is_alive():
-        process.terminate()
+    worker_payload = None
+    try:
+        # Drain while the child is alive: joining first can deadlock on a full
+        # multiprocessing output pipe, even after successful computation.
+        while time.monotonic() < deadline:
+            check_work()
+            try:
+                worker_payload = result_queue.get(timeout=min(.2, max(deadline - time.monotonic(), .001)))
+                break
+            except queue.Empty:
+                if not process.is_alive():
+                    break
+    finally:
+        # Research cancellation and outer tool deadlines reach the actual CPU
+        # process. A timed-out tool must not leave detached numerical work.
+        if worker_payload is not None:
+            process.join(timeout=.5)
+        if process.is_alive():
+            process.terminate()
         process.join(timeout=2)
+        if process.is_alive():
+            process.kill()
+            process.join(timeout=2)
+        result_queue.close()
+        result_queue.join_thread()
+    if worker_payload is None and time.monotonic() >= deadline:
         payload = _base_result_payload(
             status="timeout",
             run_id=run_id,
@@ -1306,9 +1353,7 @@ def run_analysis_python(
             _persist_best_effort(payload, conn=conn)
         return payload
 
-    try:
-        worker_payload = result_queue.get_nowait()
-    except queue.Empty:
+    if worker_payload is None:
         worker_payload = {
             "status": "failed",
             "error": f"Analysis worker exited without output (exitcode={process.exitcode}).",
@@ -1359,13 +1404,16 @@ def run_analysis_python(
         "created_at_utc": _utc_now(),
         "metadata": {
             "runner": "zopedia_analysis.v1",
-            "context_policy": "summary_only_logs",
+            "context_policy": "bounded_original_outputs",
             "frame_names": sorted(frames),
             "timeout_seconds": timeout,
             **({"failure_category": "analysis_runtime_error"} if status not in {"succeeded", "success"} else {}),
         },
     }
     payload["llm_context_text"] = _build_llm_context(payload)
+    payload["evidence_context_text"] = json.dumps(
+        {key: value for key, value in payload.items() if key != "llm_context_text"}, default=str, ensure_ascii=False
+    )
     if persist:
         _persist_best_effort(payload, conn=conn)
     return payload

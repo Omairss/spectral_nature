@@ -1753,39 +1753,44 @@ def _invoke_tool_with_heartbeat(
     tool_thread.start()
     heartbeat_interval = 5.0
     elapsed = 0.0
-    while tool_thread.is_alive():
-        wait_seconds = max(min(heartbeat_interval, deadline - time.monotonic()), 0)
-        tool_thread.join(timeout=wait_seconds)
-        if not tool_thread.is_alive():
-            break
-        elapsed = timeout_seconds - max(deadline - time.monotonic(), 0)
-        if time.monotonic() >= deadline:
-            work.cancel()
+    try:
+        while tool_thread.is_alive():
+            wait_seconds = max(min(heartbeat_interval, deadline - time.monotonic()), 0)
+            tool_thread.join(timeout=wait_seconds)
+            if not tool_thread.is_alive():
+                break
+            elapsed = timeout_seconds - max(deadline - time.monotonic(), 0)
+            if time.monotonic() >= deadline:
+                work.cancel()
+                _emit_progress(
+                    progress_callback,
+                    stage="tool_timeout",
+                    message=f"{tool_name} timed out after {timeout_seconds}s.",
+                    progress=min(progress + 0.08, 0.91),
+                    tool_name=tool_name,
+                    tool_call_id=tool_call_id,
+                    tool_call_count=tool_call_count,
+                    tool_arguments=arguments,
+                    elapsed_seconds=int(elapsed),
+                )
+                raise ResearchStepTimeout(
+                    "source acquisition", f"{tool_name} timed out after {timeout_seconds}s."
+                )
             _emit_progress(
                 progress_callback,
-                stage="tool_timeout",
-                message=f"{tool_name} timed out after {timeout_seconds}s.",
-                progress=min(progress + 0.08, 0.91),
+                stage="tool_heartbeat",
+                message=f"Still checking {tool_name}... ({int(elapsed)}s)",
+                progress=min(progress + 0.02, 0.9),
                 tool_name=tool_name,
                 tool_call_id=tool_call_id,
                 tool_call_count=tool_call_count,
                 tool_arguments=arguments,
                 elapsed_seconds=int(elapsed),
             )
-            raise ResearchStepTimeout(
-                "source acquisition", f"{tool_name} timed out after {timeout_seconds}s."
-            )
-        _emit_progress(
-            progress_callback,
-            stage="tool_heartbeat",
-            message=f"Still checking {tool_name}... ({int(elapsed)}s)",
-            progress=min(progress + 0.02, 0.9),
-            tool_name=tool_name,
-            tool_call_id=tool_call_id,
-            tool_call_count=tool_call_count,
-            tool_arguments=arguments,
-            elapsed_seconds=int(elapsed),
-        )
+    finally:
+        if tool_thread.is_alive():
+            work.cancel()
+            tool_thread.join(timeout=2)
     if error_box[0] is not None:
         raise error_box[0]
     result = result_box[0]
@@ -3636,6 +3641,11 @@ def _execute_zopedia_agent_loop(
                         conversation_history or [], arguments.get("search_text", "")
                     )
                 else:
+                    execution = (tool_registry.get(tool_name) or {}).get("execution") or {}
+                    maximum_seconds = tool_call_timeout_seconds
+                    if execution:
+                        requested = arguments.get(execution["timeout_argument"], execution["default_seconds"])
+                        maximum_seconds = max(maximum_seconds, min(max(float(requested), 1), execution["maximum_seconds"]) + execution["cleanup_seconds"])
                     result = _invoke_tool_with_heartbeat(
                         service=resolved_service,
                         run_id=run_id,
@@ -3645,7 +3655,7 @@ def _execute_zopedia_agent_loop(
                         progress=step_progress,
                         tool_call_id=call_id,
                         tool_call_count=_budgeted_tool_count(tool_calls),
-                        timeout_seconds=budget.remaining(maximum=tool_call_timeout_seconds),
+                        timeout_seconds=budget.remaining(maximum=maximum_seconds),
                         tool_registry=tool_registry,
                         request_context=request_context,
                     )
