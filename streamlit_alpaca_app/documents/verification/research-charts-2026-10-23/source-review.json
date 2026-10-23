@@ -1,0 +1,85 @@
+{
+  "status": "accepted_source_and_platform_delivery",
+  "reviewer": "primary_agent_personal_review",
+  "recorded_at_utc": "2026-10-23T07:41:32.812612+00:00",
+  "base": "883be852",
+  "scope": "Shared numerical chart publication, public research results and both conversation renderers. Existing accepted web/native9 behavior retained; concurrent unreleased Home12 and Alpaca/Trading changes remain outside this release.",
+  "runtime_review": {
+    "data_access/contracts.py": "Adds optional lower/upper/z fields; existing field defaults and serialization retained.",
+    "presentation/plotly.py": "Adds scatter, interval polygons split at gaps, and heatmap rendering; existing line/bar/histogram/candlestick paths preserved. Band segments share one color/legend. Explicitly disables interpolation between categorical heatmap cells; visual review caught a smoothed2x2 correlation display before packaging. One-pixel cell gaps force full-resolution matrix rasterization; browser computed image-rendering was auto despite Plotly requesting pixelated SVG, so zsmooth=false alone was insufficient. Actual refreshed browser now shows4 discrete cells.",
+    "presentation/visualization_artifacts.py": "Validates analytical values, dimensions and explicit display bounds; server bins histogram samples; retains typed datasets/traces alongside Plotly. Collects actual successful current-run tool artifacts only. A chart name supplied to add_chart now identifies the latest successful version in a run. Preserve insertion order and distinct names; failed and inherited calls cannot replace completed current-run charts. This prevents successful corrected computations from displaying superseded intermediate versions. One shared named-artifact projection uses numerical analysis provenance and is reused for current collection and stored public reads; unrelated chart-model identities retain content-ID semantics.",
+    "services/zopedia_analysis.py": "Preserves full chart arrays rather than shortening them as previews. Only successful numerical executions publish charts; source/code/run provenance persisted. Existing computation budgets and cancellation retained.",
+    "services/zopedia_agent.py": "Carries charts from completed tools into the shared agent result, independently of generated prose. Existing answer/review/tool ownership retained. A failed synthesis retains charts from successful computations; it does not turn a failed numerical program into a successful chart.",
+    "services/agents/research_runs.py": "Retains visualization field in public JSON alongside existing answer/citations; stored result schema and owner checks unchanged. Both safe final projection and stored-row public reads apply the shared latest-name projection. Saved raw result/evidence remains unchanged; existing completed conversations display corrected charts without another paid model call or database migration.",
+    "services/agent_tools.py": "Documents chart API in existing analysis tool; no intent classifier or separate planner. One sentence explains reuse of an explicit chart name to replace an earlier version; no intent-specific instructions or name matching heuristics.",
+    "services/aql_zopedia_engine.py": "Engine revision includes chart producers/contracts and public run projection.",
+    "web/lib/types.ts": "Optional visualization array; existing completed replies need no migration.",
+    "web/app/zopedia/runs/[runId]/research-run-view.tsx": "Renders existing Plotly artifact component within each answer; conversation history, activity, sources, cancellation and composer retained.",
+    "web/app/globals.css": "Adds only chart spacing/minimum viewport sizing; no navigation/dashboard changes.",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ResearchCharts.swift": "Native data/trace renderer; date/number/category axes, histogram bins, interval gaps, selection, matrix inspection and optional candle data. No generated JavaScript. Continuous x domains exclude zero; date axes include year for long histories and selections show the exact UTC observation day. Uses explicit observed x bounds, including actual histogram/bin edges and bar widths; no zero/nice-domain padding before a dated source history. Tap/drag inspection persists after release; native axes abbreviate large magnitudes while selected values retain precision.",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift": "Renders optional result charts; all activity/citation/follow-up controls retained.",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift": "Optional chart JSON; old responses decode unchanged.",
+    "ios_app/SpectralNatureMVP/project.yml": "Native build13; same bundle identifier/team/provisioning and source architecture.",
+    "ios_app/SpectralNatureMVP/SpectralNature.xcodeproj/project.pbxproj": "Regenerated for the added native chart renderer and build13.",
+    "api/main.py": "Public Pydantic result response explicitly carries visualizations through run and nested conversation endpoints; unchanged owner/auth checks.",
+    "web/components/visualizations/visualization.tsx": "Optional title/axis-label configuration; defaults retain dashboard behavior.",
+    "web/components/visualizations/plotly-renderer.tsx": "Conversations use a wrapping external caption and retain axis units at compact width; existing renderer defaults preserve prior margins and title behavior.",
+    "services/llm.py": "Numeric getter and parameter listing now load the same scoped, cached settings snapshot as prompt/runtime getters. Cold queued creation previously persisted defaults300/90before any model loaded active settings900/240. Existing cache/TTL/reset/scoping, failure fallback and values are preserved; no prompt, model, credential, or dataset changes. Database bootstrap re-entry uses the existing5second failed-load/in-flight cache guard."
+  },
+  "actual_numerical_flow": {
+    "status": "passed",
+    "charts": 7,
+    "real_price_points": 1787,
+    "last_price_date": "2026-10-22",
+    "histogram_samples": 252,
+    "public_result_bytes": 274332,
+    "gaps": "One missing observation produces two interval polygons; current-run transport excludes inherited foreign-run artifacts.",
+    "source": "Private verify-flow.py, frozen SEC/HIMS/SPY files, actual shared multiprocessing tool and public-result projection. No financial future outcomes created.",
+    "public_api_projection": "Actual ResearchRunResultResponse Pydantic roundtrip preserves all7 plots; nested conversation response verified separately."
+  },
+  "mechanical_checks": {
+    "analysis_regressions": "11 passed. One stale assertion was updated to match the already accepted production behavior of exposing numerical stdout.",
+    "web_types": "passed",
+    "cold_scoped_settings": "9settings tests passed, including fresh budget getter and listing before any model/prompt call, plus environment-scope change. These checks cover configuration mechanics, not LLM quality.",
+    "named_chart_versions": "Actual completed production run replay: stored6artifacts unchanged, latest3throughOct22selected identically by shared collector, safe projection and repository row projection, then actual publicDTO."
+  },
+  "remaining_before_deployment": [],
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/verification/research-charts-20261023",
+  "other_llm_ground_truth_or_final_evaluation_judges_used": false,
+  "local_ui_review": {
+    "status": "accepted",
+    "web": "Personally inspected all7 plots at desktop and390px compact width, percent axes, gap polygons and zoom/reset controls. No browser warnings/errors.",
+    "native": "Signed iPhone16/iOS18.3 simulator personally inspected price/date domain, actual selected2024-06-24 price22.15, histogram, selectable correlation0.4, revenue forecast bands and gaps. Native tap persists. AX navigation brought offscreen charts into view; native scroll/drag automation did not reliably navigate the simulator.",
+    "boundary": "Loopback fixture uses actual shared numerical execution and actual API DTOs; it supplies data only and is not shipped."
+  },
+  "queued_production_findings": {
+    "initial_run": "agrun_5a1086391d234307a64791f5",
+    "status": "failed_retained",
+    "actual_budget": {
+      "run": 300,
+      "model_step": 90
+    },
+    "configured_budget": {
+      "run": 900,
+      "model_step": 240
+    },
+    "numerical_failure": "Model compared UTC-aware source dates with a naiveTimestamp. It did not publish charts before this error.",
+    "terminal_failure": "Planning/model step timed out and final synthesis exhausted its reserved phase.",
+    "source_cause": "get_config_param read process overrides without loading them; queued creation resolved numeric budget before a model/prompt initialized the snapshot.",
+    "fix": "Load scoped settings at both numeric read boundaries; do not patch generated calculations, rewrite the original run, or rely on warming an API process.",
+    "continuation": {
+      "run_id": "agrun_f83d6f3b031645ddae034f71",
+      "budget": "900/240persisted normally",
+      "status": "completed",
+      "finding": "Three correct-date charts and three earlier successful charts with identical names displayed together. Fix explicit name/version identity at shared publication, not either renderer."
+    }
+  },
+  "publication_exact_image_review": "publication-development.json",
+  "production_delivery": {
+    "status": "verified",
+    "record": "publication-production.json",
+    "fresh_ui": "production-ui.json",
+    "native_build": 13,
+    "native_physical_visual_check": "Not performed while device locked; signed Simulatorvisualreview andphysicalinstallationreadbackretained."
+  }
+}

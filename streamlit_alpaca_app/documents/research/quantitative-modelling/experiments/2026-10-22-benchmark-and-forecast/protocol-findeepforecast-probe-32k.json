@@ -1,0 +1,38 @@
+{
+  "app": "/Users/omairs/Library/Application Support/SpectralNature/research/checkouts/analyst-workspace-20261022/streamlit_alpaca_app",
+  "source_git": "4f21a3f84666fcc9eaa07c2e4c2ee34866a3fbd9",
+  "engine_revision": "2c0211f8b27bcbb53a6f",
+  "runtime_overrides": {
+    "runtime:deepseek:model": "deepseek-v4-pro",
+    "runtime:deepseek:thinking_mode": "enabled",
+    "runtime:deepseek:reasoning_effort": "high",
+    "runtime:deepseek:timeout_seconds": 480
+  },
+  "input_usd_per_million": 1.32,
+  "output_usd_per_million": 3.96,
+  "created_at_utc": "2026-10-23T09:39:55.835089+00:00",
+  "root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast",
+  "runner_sha256": "e17a360b2a16a516e3ca32e872b9a8144f7b199d6e844f4211883552ecdc1c24",
+  "actor_sha256": "18272d243b379bec83ed83c46eca8e3e92763d2cbbd437ff210e291784b21993",
+  "selected_ids": [
+    "8771",
+    "9790",
+    "6002",
+    "6056",
+    "10038",
+    "9351",
+    "6500",
+    "7548"
+  ],
+  "selection": "Same eight actor-only selected IDs as the frozen8k probe. All repeated, not only failures. Only completion allowance/time limit changes.",
+  "budget_usd": 2,
+  "completion_tokens": 32768,
+  "timeout_seconds": 480,
+  "max_provider_attempts": 32,
+  "accounting_root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/accounting",
+  "output_root": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions",
+  "condition": "official2025_release_retrospective_thinking_format_probe_32k",
+  "scope": "Eight original prompts through the same frozen shared gateway/model as prior native benchmarks; no evaluator labels or other model predictions, live web, serving memory, tools, internal answer reviewer or external submission. Outer JSON transports the original native table without an extraction LLM.",
+  "timing": "All2025deadlines have passed. Modern weights may know outcomes; this is a retrospective format/inference check, not genuine future-prediction accuracy. No score from this probe.",
+  "authorization": "Two-dollar conservative reference cap from remaining100-dollar study allowance; the first probe used0.14071068 upper bound. No credit purchase. All prior attempts retained."
+}

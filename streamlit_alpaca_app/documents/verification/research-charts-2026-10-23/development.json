@@ -1,0 +1,31 @@
+{
+  "status": "accepted",
+  "images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3bb76c19b38655158ee6394139da5a300ca89d26640b8003573307f07fd6dc90",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:de1c5e81e79a10f5e268e0bb7bc199cd898385e6fbbbe9c8f63ef58dba806cca",
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05"
+  },
+  "source_inventory_sha256": "48d8a97a0ec38fa1c850b4117fdc9a6ae13aff38f1e58923dfc6dd414e1e849c",
+  "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+  "mode": "Exact image per-execution development qualification; all16 development definitions/images preserved.",
+  "packaged_images": "packaged-images.json",
+  "local_visual_review": "source-review.json",
+  "model_review": "model-chart-review.json",
+  "native": {
+    "build": 13,
+    "installed_on_owner_phone": true,
+    "installed_version_read_back": true,
+    "visual_and_touch_review": "Signed iPhone16/iOS18.3 simulator; see native-bands.png.",
+    "physical_launch": "Blocked by locked device; installed update remains available when the owner unlocks.",
+    "source_baseline": "Installed build9 preserved; unrelated unreleased builds11/12 not included."
+  },
+  "failed_qualification_attempts": "Initial verification-script assumptions failed: named series dataset is series_0 rather than primary; client controls hydrate after the SSR shell. Application code was not changed for either correction. Original receipts retained privately.",
+  "production_authorization": {
+    "owner_instruction": "If Zopedia prod does not have these skills, bring them to prod; Connect them [web/iPhone analysis charts], then continue the goal.",
+    "date_local": "2026-10-23",
+    "scope": "Missing shared modeling/forecasting charts on both clients after local and exact-image development acceptance.",
+    "evidence": "documents/plans/ZOPEDIA_RESEARCH_CHARTS_2026-10-23.md"
+  },
+  "scope": "Accept shared chart publication and client rendering; do not claim forecast calibration or overall analyst readiness."
+}

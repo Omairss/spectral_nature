@@ -1,0 +1,51 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_grader_used": false,
+  "ticker": "HAL",
+  "prediction_sha256": "3181dbadaae3fec4a97749924d7aca1e518d48a90b631faed3e751b0e2959172",
+  "forecast_unchanged": true,
+  "outcome_status": "pending",
+  "scope": "Personally read the issued payload and full final revenue/return program code and stdout. Earlier execution errors and selected extraction output inspected; not a claim of an independent full source audit of every retained article.",
+  "execution": {
+    "program_attempts": 8,
+    "succeeded": 5,
+    "failed": 3
+  },
+  "financial_review": [
+    {
+      "finding": "Overlapping YTD and quarter revenue added together",
+      "evidence": "Final revenue program groups current revenue concept only by start date, retains H12026revenue11.116B and Q22026revenue5.714B, then sums to16.830B as available quarters. Q2is already included in H1. The2025quarter sum also mixes periods.",
+      "classification": "financial period/data-construction failure",
+      "final_impact": "Annual total-revenue series was separately reconstructed and used for fitted forecasts. Final answer cites Q2/H1as an anchor; its degree of numerical influence is not documented."
+    },
+    {
+      "finding": "Forecast horizon and entry definition differ from task",
+      "evidence": "Code samples64weekday increments without exchange holidays. Target requires60close-to-close exchange-session increments. Final explanation explicitly substitutesOct22close for the requiredOct23entry close.",
+      "source": "https://www.nyse.com/trade/hours-calendars",
+      "classification": "target implementation failure",
+      "final_impact": "Score original issued forecast against originally specifiedOct23toJan21total return, not the changed proxy interval."
+    },
+    {
+      "finding": "Judgmental final distribution is not a fitted ensemble",
+      "evidence": "OLS2027point22.551B, Theil-Sen24.019B and log-random-walk median21.905B with80percent interval14.017-34.231B were executed. Final20.5/24/28Bquantiles are a judgmental synthesis, with no explicit model weights or predictive recalibration.",
+      "classification": "uncertainty validation gap"
+    },
+    {
+      "finding": "No chronological forecast validation",
+      "evidence": "All annual models fit2016-2025or their growth history; no held-out forecast origin tests the model or its interval. Historical overlapping63/64/65session return frequencies are descriptive, not independent held-out validation of this issued forecast.",
+      "classification": "validation gap"
+    },
+    {
+      "finding": "Final probability and tails not uniquely reproducible from a declared blend",
+      "evidence": "Full-history paired bootstrap P(outperform)=0.44475,recent1year=0.5577,overlapping64sessionfrequency=0.42078; final0.47is said to weight the long sample but supplies no weights. Stock-quantile-25/+3/+40percent values differ from each single displayed distribution.",
+      "classification": "numerical-to-answer traceability gap",
+      "final_impact": "Judgmental forecasts are allowed; do not describe these exact final values as a directly reproduced calculation."
+    }
+  ],
+  "strengths": [
+    "Final annual series correctly separates total revenue from goods/services components and reconciles19annual observations.",
+    "Uses paired HAL/SPY resampling and compares recent/full-history sensitivity rather than independently drawing each stock.",
+    "Recovers multiple schema and acquisition mistakes within the allotted investigation and transparently identifies its entry proxy."
+  ],
+  "acceptance": "Useful completed investigation with material period-construction, target and uncertainty-validation errors. Future outcome accuracy remains unknown."
+}

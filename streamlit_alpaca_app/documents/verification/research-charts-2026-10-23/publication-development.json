@@ -1,0 +1,19 @@
+{
+  "status": "accepted",
+  "reviewer": "primary_agent_personal_review",
+  "recorded_at_utc": "2026-10-23T10:16:46.484549+00:00",
+  "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+  "source_inventory_sha256": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
+  "images": {
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+  },
+  "package_evidence": "publication-packaged-images.json",
+  "source_review": "source-review.json",
+  "local_review": "Actual queued production result replays identically through shared collection, final projection and stored-row public read; six raw artifacts remain, latest three valid artifacts selected. Browser shows corrected dates, histogram251observations and discrete0.398119matrix. Existing11analysismechanics checks passed after final source change.",
+  "exact_image_execution": "All187packaged files in each of3freshimages match acceptedGit. Each reads production-scoped900/240cold settings, executes4real numerical charts and replays actual production stored6chart case through collection/repository/publicDTOto3. No LLMcalls,persistencewrites or DEVtemplate mutation.",
+  "financial_review": "queued-model-review.json records both useful computations and remaining interpretation limits. Internal analyst reviewer is not a grader.",
+  "preservation": "18productionPython consumers selected;2productionweb and16DEVconsumers retained. Installednative13unchanged.",
+  "superseded_candidates": "Earlier9b198e8crevision-only images never promoted; finalf3d3393dsource also covers stored reads. Priorbuild/execution evidence retained privately."
+}

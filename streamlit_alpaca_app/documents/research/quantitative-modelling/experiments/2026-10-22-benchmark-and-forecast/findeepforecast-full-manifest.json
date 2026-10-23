@@ -1,0 +1,63 @@
+{
+  "condition": "official2025_release_retrospective_thinking_32k",
+  "total": 1370,
+  "new_attempts": 1362,
+  "carried_first32k_attempts": [
+    {
+      "id": "6002",
+      "prediction_path": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions/00431bea7c112c6c03ed.json",
+      "sha256": "d71d06dcc99c84211028d681d8a54c39079691d61ac0f1c0c37b642b21bc5a1c",
+      "protocol": "protocol-findeepforecast-probe-32k.json"
+    },
+    {
+      "id": "6056",
+      "prediction_path": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions/005fc4185b4f6096a1c6.json",
+      "sha256": "c559036aa8cdbd338da8dec2a95a510d2f324456f2f5aff195af94484d9105d2",
+      "protocol": "protocol-findeepforecast-probe-32k.json"
+    },
+    {
+      "id": "10038",
+      "prediction_path": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions/010c55734895e920e0d8.json",
+      "sha256": "75cc64c96abf55320d0feb55d0e49cb060c5b171ccdc06302a87b7426adedcd9",
+      "protocol": "protocol-findeepforecast-probe-32k.json"
+    },
+    {
+      "id": "6500",
+      "prediction_path": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions/01375f53651cff383d9a.json",
+      "sha256": "a477ecb4623bec27ee00607c177ff53980597b766752b4350f745f3bba4554b6",
+      "protocol": "protocol-findeepforecast-probe-32k.json"
+    },
+    {
+      "id": "8771",
+      "prediction_path": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions/0193d52e5b14627091d6.json",
+      "sha256": "472299db37b890e7956d0605876d7568a8e7323ce7b46f365f773a1c0e8edb20",
+      "protocol": "protocol-findeepforecast-probe-32k.json"
+    },
+    {
+      "id": "9790",
+      "prediction_path": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions/02710fc94f019128aa19.json",
+      "sha256": "36d7dd3e44b656a11e38deae44737c1d5b8411a004700083ee98e2cd1b0aa2e0",
+      "protocol": "protocol-findeepforecast-probe-32k.json"
+    },
+    {
+      "id": "7548",
+      "prediction_path": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions/02ee789c262b6c132f6f.json",
+      "sha256": "2eebb0236f4edee05c558a5a085f7ac4fc5ba80b1a42fd23ebf4b9d251173bd2",
+      "protocol": "protocol-findeepforecast-probe-32k.json"
+    },
+    {
+      "id": "9351",
+      "prediction_path": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/findeepforecast/contract-probe-32k/predictions/04786952027e5912b3b7.json",
+      "sha256": "c05be0ad5e97f117f6b2a23207d7236c6f34f78e534e6a922b38ab56ce95212a",
+      "protocol": "protocol-findeepforecast-probe-32k.json"
+    }
+  ],
+  "protocol": "protocol-findeepforecast-full.json",
+  "probe_protocol": "protocol-findeepforecast-probe-32k.json",
+  "runner_sha256": "e17a360b2a16a516e3ca32e872b9a8144f7b199d6e844f4211883552ecdc1c24",
+  "expected_peak_reference_cost_usd": 29.241827999999998,
+  "new_reference_ceiling_usd": 35,
+  "estimate_basis": "Eight-case32kactor-only stratified probe; not an invoice or assured total. Budget admission remains enforced.",
+  "timing_limit": "All original deadlines passed before this model. Not comparable to an on-time native submission; not a claim of uncontaminated forward forecasting.",
+  "grading": "Primary agent personally owns final assessment; published references kept separate; no LLM extraction/judge and no external submission."
+}

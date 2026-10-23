@@ -1,0 +1,41 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "reviewed_at_utc": "2026-10-23T10:11:55.903096+00:00",
+  "usable_forecasts_reviewed": 8,
+  "successful_primary_forecasts": 7,
+  "failed_primary_forecasts": 1,
+  "separate_successful_recoveries": 1,
+  "reviews": [
+    "forecast-personal-review-AMD.json",
+    "forecast-personal-review-GH.json",
+    "forecast-personal-review-GNK.json",
+    "forecast-personal-review-HAL.json",
+    "forecast-personal-review-HIMS.json",
+    "forecast-personal-review-LCID.json",
+    "forecast-personal-review-MAA.json",
+    "forecast-personal-review-O.json"
+  ],
+  "scope": "Issued final forecasts personally reviewed with selected complete executed programs/stdout. Reviews distinguish rejected intermediates, final program errors, judgmental adjustments and limited source coverage. Not every intermediate or article independently audited.",
+  "future_outcome_accuracy": "Pending. No labels invented, no issued forecasts rewritten, no otherLLMgrader used.",
+  "recurring_findings": [
+    "Weekdays or federal holidays substituted for exchange sessions; some counts are correct only by cancellation.",
+    "Filing year, observation year and duration confused; quarterly/YTDperiods mixed or current quarters dropped.",
+    "Seasonal feature names do not match generated columns, leaving features zero.",
+    "Fitted uncertainty and historical variability treated as predictive uncertainty without coverage validation.",
+    "Finalquantiles differ from executed distributions even when medians/probabilities agree.",
+    "Evidence-based scenario changes lack explicit financial bridges or weights."
+  ],
+  "positive_findings": [
+    "O rejects an acquisition-distorted extrapolation after poor chronological holdout performance.",
+    "GNK compares expanding historical baselines and reconstructs first-reported financial periods in its separate recovery.",
+    "LCID recovers omitted current-quarter data and reproduces final issued numerical values.",
+    "Mostinvestigations recover tool errors and execute useful financial calculations through the shared agent."
+  ],
+  "next_modeling_direction": {
+    "data": "Expose period start/end,duration,filing vintage,units and actual exchange sessions as shared input data. Keep concept selection/financial interpretation with the analyst. Preserve complete source frames.",
+    "method": "Compare the chosen final method with a chronological baseline; validation of a rejected model does not validate its replacement. Hold out new issuers/origins for qualitative evaluation.",
+    "numbers": "Publish calculated forecast metrics and reference selected numerical artifacts in final answers. Judgmental changes should be explicit executed scenarios with assumptions.",
+    "instructions": "Keep instructions concise and retain the larger model. Address shared failure mechanisms; no ticker rules or original-forecast patches.",
+    "acceptance": "Personally review complete new outputs and meaningful cases. Software checks alone do not establish forecasting quality."
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_grader_used": false,
+  "ticker": "MAA",
+  "prediction_sha256": "30df2097374376fca8baa0dbfa88536a72da8ee01220379494deafef813f9874",
+  "forecast_unchanged": true,
+  "outcome_status": "pending",
+  "scope": "Issued payload, full final annual/return model code and stdout, final source-inspection code, prior printedTTMand execution failures personally inspected. No complete independent audit of all articles claimed.",
+  "execution": {
+    "program_attempts": 8,
+    "succeeded": 5,
+    "failed": 3
+  },
+  "financial_review": [
+    {
+      "finding": "Chosen holding horizon does not equal the target",
+      "evidence": "Final explanation uses approximately63trading days. The exact exchange-calendar target is60close-to-close increments. Code did compute60as sensitivity, alongside63/65, but did not select it as the declared main horizon.",
+      "source": "https://www.nyse.com/trade/hours-calendars",
+      "classification": "target implementation failure"
+    },
+    {
+      "finding": "No chronological holdout",
+      "evidence": "OLS and log-levelAR1fit the nineFY2017-2025observations. Neither is compared at held-out forecast origins against persistence/another baseline.",
+      "classification": "validation gap"
+    },
+    {
+      "finding": "Parameter uncertainty omitted from small-sample forecasts",
+      "evidence": "OLS resamples a single fitted residual at the2027trend; AR1recursively draws two residuals using fixed coefficients estimated from eight transitions. Neither resamples/propagates fitted parameter uncertainty or tests coverage.",
+      "classification": "predictive uncertainty gap"
+    },
+    {
+      "finding": "Overlapping window bootstrap understates dependence for the mean",
+      "evidence": "Code samples overlapping60/63/65day excess returns as if independent observations when bootstrapping mean excess returns. Neighboring windows share almost all daily observations. Narrow mean confidence intervals are not future-return predictive intervals.",
+      "classification": "validation-method gap",
+      "final_impact": "Issued stock quantiles use the historical return distribution, not these narrow mean confidence limits; preserve this distinction."
+    },
+    {
+      "finding": "Current TTM is not incorporated into the fitted annual model",
+      "evidence": "Earlier program printed2026Q1TTM2.213556Bbefore later KeyError2016. Successful model fits only annualFY2017-2025. Final explanation says annual data plus Q12026TTMwas used; TTMwas observed but no update or model weight incorporates it in the fitted feature/target series.",
+      "classification": "method-to-execution fidelity gap"
+    }
+  ],
+  "strengths": [
+    "Reconstructs a coherentFY2017-2025total-revenue series and compares trend and AR1alternatives.",
+    "Uses adjusted-close histories and empirical MAA/SPYexcess-return frequencies. Final0.41probability agrees with rounded63sessionfrequency0.4144.",
+    "Recovers schema, alias and absent-history errors; forecasts remain monotone and timely."
+  ],
+  "acceptance": "Completed useful investigation; insufficient validation and material target-horizon mismatch remain. Future accuracy is pending."
+}

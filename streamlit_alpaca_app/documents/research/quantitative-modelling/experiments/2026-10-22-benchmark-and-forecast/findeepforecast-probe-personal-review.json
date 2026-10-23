@@ -1,0 +1,28 @@
+{
+  "reviewed_at_utc": "2026-10-23T09:39:55.835398+00:00",
+  "reviewer": "primary agent, personally read original prompts and all eight public final outputs",
+  "condition": "official2025_release_retrospective_thinking_format_probe",
+  "case_count": 8,
+  "completed": 6,
+  "failed_output_length": 2,
+  "failures": [
+    "8771",
+    "6002"
+  ],
+  "completed_answers": {
+    "9790": "YES",
+    "6056": "34.0 percent EBITDA margin",
+    "10038": "YES",
+    "9351": "NO",
+    "6500": "3.55 percent",
+    "7548": "3.62 percent"
+  },
+  "format_assessment": "All six completed outputs contain exactly the requested one-row native Markdown table in the outer JSON field, with the right field and units; no extra narrative. Two failed before emitting a public answer. No evaluator labels read for this review.",
+  "quality_assessment": "The original tasks request use of source data but provide none. This model-only condition does not establish evidence-based financial analysis. No tool use, financial derivation or source review can be inferred from a table. Modern model parameter knowledge may include the2025 outcome. No future-forecast accuracy claim.",
+  "budget": {
+    "accounted_upper_bound_usd": 0.14071068,
+    "priced_attempts": 8,
+    "unknown_attempts": 0
+  },
+  "next": "Compare a separate32k/480-second condition on all8IDs; keep model, actor, prompt and engine fixed. Do not launch full1370with25percent incomplete outputs."
+}

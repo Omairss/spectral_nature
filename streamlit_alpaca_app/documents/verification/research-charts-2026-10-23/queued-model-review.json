@@ -1,0 +1,42 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "recorded_at_utc": "2026-10-23T09:58:34.666907+00:00",
+  "run_id": "agrun_f83d6f3b031645ddae034f71",
+  "conversation_id": "zthread_d9fe33eb5d03428b97d2e71c",
+  "status": "completed",
+  "budget": {
+    "max_tool_calls": 10,
+    "run_timeout_seconds": 900.0,
+    "llm_step_timeout_seconds": 240,
+    "prefetch_timeout_seconds": 15,
+    "tool_call_timeout_seconds": 45
+  },
+  "initial_failed_attempt": "agrun_5a1086391d234307a64791f5",
+  "scope": "Normal authenticated production UI and queued worker, stored live price-history data; no frozen QA data copied into production and no generated-code repair injected.",
+  "personally_reviewed": "Complete final Python calculation, stdout/error records and final written answer; visible production charts. Analyst internal review is generation only, not our evaluator.",
+  "numerical_result": {
+    "common_price_dates": 252,
+    "return_observations": 251,
+    "date_start": "2025-10-22",
+    "date_end": "2026-10-22",
+    "hims_price_return": -0.3863827993254637,
+    "spy_price_return": 0.1564647473738383,
+    "correlation": 0.398119,
+    "histogram_min": -0.1603650586701435,
+    "histogram_median": -0.004716981132075526,
+    "histogram_max": 0.406984126984127
+  },
+  "execution_review": [
+    "Recovered initial timezone mismatch by explicitUTCparsing.",
+    "First successful calculation excludedOct22because end boundary wasUTCmidnight; model independently discovered and corrected it.",
+    "A scalar date-format call attempted blocked time import; model recovered using another formatting path. No chart published from failed programs.",
+    "Final successful charts and answer agree on dates, count, price returns and correlation."
+  ],
+  "financial_limitations": [
+    "Cumulative changes use stored close prices, not dividend-adjusted total returns. This request did not specify total return.",
+    "Positive correlation alone does not imply same-direction days exceed50percent; the answer overinterprets0.398as that probability without calculating sign agreement.",
+    "This is descriptive historical analysis, not forecasting accuracy."
+  ],
+  "publication_failure": "Stored6charts included earlier3same-name charts throughOct21and corrected3throughOct22. New shared name/version publication has passed a replay, exact-image qualification/promotion pending.",
+  "verification_scope": "Product calculation and chart transport, not a clean qualitative pass for all financial prose. Original failed run and complete intermediate execution evidence retained."
+}

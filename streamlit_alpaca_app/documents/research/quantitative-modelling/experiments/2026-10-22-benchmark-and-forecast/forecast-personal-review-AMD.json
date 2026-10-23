@@ -1,0 +1,50 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_grader_used": false,
+  "ticker": "AMD",
+  "prediction_sha256": "f623ec026f6ff092027c4868437e01b699e9cc7774225113f044147d42924c4a",
+  "forecast_unchanged": true,
+  "outcome_status": "pending",
+  "scope": "Personally read issued payload, final revenue and return code, and retained stdout/error records for all six numerical attempts. Recomputed original return bootstrap from frozen prices and checked generated seasonal column names. Earlier requests were also inspected, with final successful programs the basis of findings.",
+  "execution": {
+    "program_attempts": 6,
+    "succeeded": 5,
+    "failed": 1,
+    "failure": "One program omitted dataset_refs and could not resolve facts; later programs supplied them."
+  },
+  "financial_review": [
+    {
+      "finding": "Claimed quarter seasonality is absent",
+      "evidence": "pd.get_dummies(integer_quarters,prefix=Q) creates Q_1/Q_2/Q_3/Q_4. Code then checks and creates Q1/Q2/Q3 as zeros and fits those zero columns. Final printed dummy coefficients are all0. The successful model is an ordinary log-linear trend in quarter index.",
+      "classification": "model implementation and interpretation failure"
+    },
+    {
+      "finding": "NYSE horizon is too long",
+      "evidence": "Original code uses65 inclusive weekdays, excludes entry-day increment and samples64returns. Thanksgiving, Christmas, New Year and MLK are not removed. Official exchange calendar gives60close-to-close increments for the specified entry/exit.",
+      "source": "https://www.nyse.com/trade/hours-calendars",
+      "classification": "target implementation failure"
+    },
+    {
+      "finding": "Final return tails differ from executed distribution",
+      "evidence": "Original50,000-path paired bootstrap, seed42, same504frozen observations and65indexcolumns yields p10=-0.2197568,p50=0.1609852,p90=0.7391174 and P(outperform)=0.65792. Issued tails are-0.216/+0.748, while median/probability match rounding. No retained executed price code prints p10/p90.",
+      "classification": "numerical-to-answer fidelity failure",
+      "final_impact": "Small tail differences remain in original forecast; no replacement or rescore against a changed horizon."
+    },
+    {
+      "finding": "Revenue uncertainty is conditional on a narrow extrapolation",
+      "evidence": "Final FY2027 quantiles55.24/62.01/70.05B equal executed residual bootstrap. One held-out2025annual total is at about8thpercentile, showing overprediction. Independent quarter residual resampling omits fitted-parameter uncertainty and persistent future growth/regime changes.",
+      "classification": "validation and predictive uncertainty gap"
+    },
+    {
+      "finding": "Narrative upside not integrated into distribution",
+      "evidence": "Answer describes management expectation of data-center revenue near70B and upside total80-100B, while total-revenue p90 remains70.05B from historical trend. No scenario weight reconciles this claim with the quantiles. The management assertion is attributed to the supplied article, not independently verified guidance.",
+      "classification": "evidence-to-model integration gap"
+    }
+  ],
+  "strengths": [
+    "Recovers malformed quarter parsing, log-dollar clipping and FY period selection; final annual rows use duration and end-year, Q4reconstruction yields38quarter observations.",
+    "Uses a chronological holdout and reports its poor tail position rather than concealing it.",
+    "Preserves joint stock/SPY returns and derives revenue quantiles exactly from its final executed program."
+  ],
+  "acceptance": "Completed useful investigation with substantive seasonal-model, target and uncertainty errors; no observed future accuracy is yet available."
+}

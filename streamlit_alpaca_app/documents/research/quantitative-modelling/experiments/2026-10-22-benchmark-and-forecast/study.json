@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-10-23T09:00:00Z",
+  "updated_at_utc": "2026-10-23T10:23:59.042705+00:00",
   "owner_goals": [
     "Evaluate the model on every external benchmark in the retained source catalog.",
     "Create Seeking Alpha future-prediction tasks with extensive controlled context and no target leakage.",
@@ -41,7 +41,8 @@
     {
       "id": "financebench",
       "public_scope": "150 public questions over84 named reports; all84 PDFs and layout extracts acquired",
-      "status": "all150_full_report_inference_running"
+      "status": "all150_completed_and_final_answers_personally_compared_source_adjudication_pending",
+      "personal_review": "financebench-personal-review.json"
     },
     {
       "id": "finch",
@@ -66,11 +67,16 @@
     {
       "id": "findeepforecast",
       "public_scope": "Official1370 tasks:699 corporate recurrent,247 corporate event,296 macro recurrent,128 macro event;2025 forecast deadlines.",
-      "status": "official1370_task_release_acquired_retrospective_condition_pending",
+      "status": "full1370_retrospective_thinking32k_inference_running",
       "primary_source": "https://openfinarena.com/",
       "official_download": "https://huggingface.co/datasets/OpenFinArena/FinDeepForecast",
       "revision": "412a8c83bab78410238c97ee3dacf04d4aacfa8d",
-      "preparation": "findeepforecast-preparation.json"
+      "preparation": "findeepforecast-preparation.json",
+      "completed_probe_cases": 8,
+      "new_remaining_cases": 1362,
+      "manifest": "findeepforecast-full-manifest.json",
+      "protocol": "protocol-findeepforecast-full.json",
+      "personal_review": "findeepforecast-probe-32k-personal-review.json"
     },
     {
       "id": "finsheet",
@@ -110,7 +116,18 @@
     "failed_first_attempts": 1,
     "separate_successful_recoveries": 1,
     "forecast_receipts": "forecast-task-set.json",
-    "outcomes": "Pending; no accuracy claim."
+    "outcomes": "Pending; no accuracy claim.",
+    "personal_reviews": [
+      "forecast-personal-review-HIMS.json",
+      "forecast-personal-review-GH.json",
+      "forecast-personal-review-AMD.json",
+      "forecast-personal-review-HAL.json",
+      "forecast-personal-review-MAA.json",
+      "forecast-personal-review-O.json",
+      "forecast-personal-review-LCID.json",
+      "forecast-personal-review-GNK.json"
+    ],
+    "personal_review_status": "All8usable final forecasts personally reviewed; sevenprimary and separateGNKrecovery. Complete article and every intermediate program source audits are not claimed. Futureactualspending."
   },
   "execution": {
     "native_session": null,
@@ -137,15 +154,27 @@
     "native_resume_session": null,
     "native_original_end": "Stopped after3601 provider attempts because one24ms ConnectionError returned no usage. Original receipts and one failed first response retained.",
     "convfinqa_requested_units_session": null,
-    "financebench_session": 93335
+    "financebench_session": null,
+    "findeepforecast_session": 31840,
+    "chart_connection": {
+      "accepted_worktree": "/Users/omairs/Documents/code/spectral_nature_research_charts_20261023",
+      "plan": "../../../../plans/ZOPEDIA_RESEARCH_CHARTS_2026-10-23.md",
+      "native_build": 13,
+      "cold_budget_fix": "Deployed and verified in normal queued900/240run.",
+      "named_chart_revisions": "Deployed acceptedf3d3393dsource. Fresh saved production conversation displays exactly3latest charts;6raw execution artifacts unchanged.",
+      "root_runtime_integration": "Pending, preserve concurrent Home/Trading/Alpaca work; do not overwrite root older compute files.",
+      "source_inventory": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
+      "production_record": "../../../../verification/research-charts-2026-10-23/publication-production.json",
+      "all36_consumer_audit": "passed;allconfigurationspreserved,18productionPythonimagesupdated,2web+16DEVimagesretained."
+    }
   },
   "budget": {
     "native_benchmarks_reference_ceiling_usd": 82,
     "forecast_pilot_reference_ceiling_usd": 13,
-    "combined_declared_reference_ceiling_usd": 100,
+    "combined_declared_reference_ceiling_usd": 135,
     "basis": "Conservative peak input cache-miss/output rates; estimates not invoices. Separate ledgers avoid concurrent-process budget races; no top-up or GPU allocation.",
-    "previous_combined_declared_reference_ceiling_usd": 75,
-    "scope_extension": "Full150 FinanceBench original-report condition and complete requested-unit correction condition for public ConvFinQA. New protocols apply after current frozen run; old protocols/receipts unchanged. No automatic top-up or GPU allocation.",
+    "previous_combined_declared_reference_ceiling_usd": 100,
+    "scope_extension": "Additional35dollar reference ceiling declared before full1370FinDeepForecast model-only retrospective condition. Earlier100dollar declaration and all old receipts retained. No owner dollar cap identified, no credit top-up or GPU allocation.",
     "production_qualification_reference_allowance_usd": 5,
     "unknown_charges": "Native13 interrupted calls reserve$19.6804608 total maximum exposure; forecast1 interrupted call reserves$1.63756032. Usage remains unknown, not zero. See retained ledger summaries; estimates are not invoices.",
     "reallocation": "After the original forecast batch closed, unused forecast allowance moved to FinanceBench:82 native +13 prospective +5 qualification =100. Original protocols/receipts unchanged.",
@@ -154,12 +183,15 @@
       "unknown_charge_upper_bound_usd": 19.680460800000002,
       "accounted_spend_upper_bound_usd": 54.933097560000036,
       "pending_reservation_usd": 0
-    }
+    },
+    "findeepforecast_new_reference_ceiling_usd": 35,
+    "findeepforecast_probe_known_usd": 0.31146588,
+    "findeepforecast_estimated_full_usd": 29.241828
   },
   "next_actions": [
-    "Complete the shared cold-settings follow-up and normal queued production chart continuation. First live attempt persisted300/90instead of configured900/240; preserve failure. Accepted chart/native source is in feature/zopedia-research-charts-20261023 worktree.",
+    "Chart delivery complete. Continue fullFinDeepForecast run, source/definition FinanceBenchadjudication and nativeworkbook capability work. No completed goal claim.",
     "Finish source/definition adjudication and publish the personal FinanceBench comparison. All150 final answers reviewed; no final score. Keep published-reference agreement separate from source-supported corrections.",
-    "Personally review remaining complete prospective outputs and retain primary/recovery distinctions; do not rewrite issued forecasts.",
+    "Use personal reviews of all8usable forecast outputs to improve shared period/calendar/numerical handoffs and concise instructions, evaluated on newissuers/origins. Preserve original forecasts and failedGNKprimary.",
     "Resolve native workbook execution as a shared capability, not benchmark-local authoring; no native workbook successes claimed yet.",
     "Run official1370 FinDeepForecast tasks only as explicitly retrospective historical coverage; all native deadlines were2025.",
     "Score future SA predictions only once independent actual outcomes exist; primary agent resolves ground truth."

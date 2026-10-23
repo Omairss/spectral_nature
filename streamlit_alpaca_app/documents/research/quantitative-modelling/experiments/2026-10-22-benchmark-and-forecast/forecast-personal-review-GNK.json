@@ -1,0 +1,51 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_grader_used": false,
+  "ticker": "GNK",
+  "attempt": "separately_labeled_recovery",
+  "prediction_sha256": "62adbed7ff1242a1393c2f481142c4cc08bea89abf0992dfa588ea7dcad5a058",
+  "primary_prediction_sha256": "8cc69ecb492bc5340c744ad4e9e4ffbe74f01d204b20cc35b0c0083d0f31df37",
+  "forecast_unchanged": true,
+  "outcome_status": "pending",
+  "primary_status": "Failed with ResearchSpendExceeded after earlier provider charge was unknown. No primary usable prediction; this successful recovery does not replace that failure.",
+  "scope": "Personally read issued recovery payload, final successful scenario program17and return/backtest program15, intervening failed request16and their stdout. Recomputed exact original scenario/return distributions from frozen data. Earlier execution statuses inspected; not all earlier programs fully reviewed.",
+  "execution": {
+    "program_attempts": 15,
+    "succeeded": 9,
+    "failed": 3,
+    "rejected": 3
+  },
+  "financial_review": [
+    {
+      "finding": "Issued tail quantiles differ materially from executed bootstrap",
+      "evidence": "Same seed123,20,000paths,60increments and frozenGNK/SPYreturns yield stockp10=-0.2384118,p50=0.0427560,p90=0.4284085, P(outperform)=0.51. Issued-.26/.04/.49has correct median/probability rounding but wider tails, without a stated adjustment.",
+      "classification": "numerical-to-answer fidelity failure"
+    },
+    {
+      "finding": "Revenue lower tail does not reproduce original scenario simulation",
+      "evidence": "Same100,000paths,seed42,H1=250.843M,H2/H1normal1.247/.12anddeclaredgrowthmixture yieldp10=427.066M,p50=549.891M,p90=661.892M. Issued433/550/661Mdiffers, especiallyp10; these exact quantiles were not printed by the program.",
+      "classification": "numerical-to-answer fidelity gap"
+    },
+    {
+      "finding": "One-year seasonality and chosen scenario probabilities are unvalidated",
+      "evidence": "H2/H1comes from2025alone. Its0.12standarddeviation,growthmeans[-20,0,+15]percent,weights[.30,.50,.20]and0.08noise are assumptions, not fitted or coverage-tested estimates.",
+      "classification": "predictive uncertainty and assumption gap"
+    },
+    {
+      "finding": "Baseline validation does not validate replacement model",
+      "evidence": "Expanding2020-2025annualbacktests comparemean/median/persistence/linear; medianMAE75.075Mbeatslinear111.081M. FinalH1-anchoredmixture is different and is not replayed at those historical origins.",
+      "classification": "replacement-method validation gap"
+    },
+    {
+      "finding": "Recovery corrects financial periods and has correct sampled return count",
+      "evidence": "Program15incorrectly compared end.daytoend.monthand producedemptyquartertable; final17fixes that filter and reads first-reportedH1values. Return program lists all fourNYSEholidays and samples60increments.",
+      "classification": "positive recovery/target result"
+    }
+  ],
+  "strengths": [
+    "Checks expanding historical baselines and recognizes cyclicality.",
+    "Uses first-reportedtotalrevenue periods and actual2026H1anchor after correcting extraction.",
+    "Pairs GNK/SPYdailyreturns and retains separate failed primary/recovery identities."
+  ],
+  "acceptance": "Usable separate recovery with correct numerical horizon and meaningful baseline checks, but finalquantilefidelity and scenario-validation failures. Originalprimary remainsfailed; futureaccuracy pending."
+}

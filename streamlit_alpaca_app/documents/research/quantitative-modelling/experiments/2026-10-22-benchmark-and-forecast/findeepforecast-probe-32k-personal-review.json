@@ -1,0 +1,15 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_grader_used": false,
+  "reviewed_at_utc": "2026-10-23T09:52:21.106254+00:00",
+  "condition": "official2025_release_retrospective_thinking_format_probe_32k",
+  "all_original_prompts_and_public_answers_read": true,
+  "completed": 8,
+  "incomplete": 0,
+  "native_tables_and_units_correct": true,
+  "comparison": "Both8k-length failures complete under32k. Six previously completed tasks also repeat; no selective failure-only rerun. Numeric estimates change stochastically (APO34.0to34.6,HK3.55to3.10,UK3.62to3.55); no accuracy inference from format success.",
+  "source_limit": "Model-only thinking condition, no contemporaneous input reports/tools. Modern parameter knowledge may include2025outcomes. No evaluator labels were read for selection or this format judgment.",
+  "accounted_upper_bound_usd": 0.1707552,
+  "unknown_attempts": 0,
+  "decision": "Proceed with all1370as explicitly retrospective model-only benchmark coverage, carrying these8first32k outputs and preserving original8k attempts separately."
+}
