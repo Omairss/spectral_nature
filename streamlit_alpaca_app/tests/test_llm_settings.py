@@ -82,6 +82,28 @@ def test_failed_initial_load_can_retry(monkeypatch, store):
     assert llm._PROMPT_OVERRIDES['shared_prompt'] == 'legacy'
 
 
+@pytest.mark.parametrize('first_reader', ['budget', 'listing'])
+def test_cold_numeric_settings_load_before_any_model_or_prompt_call(store, monkeypatch, first_reader):
+    from services.aql_zopedia_engine import resolve_research_budget
+
+    key = 'param:engine_agent_run_timeout_seconds'
+    store.rows.update({
+        'production::' + key: '900',
+        'production::param:agent_llm_step_timeout_seconds': '240',
+        'development::' + key: '600',
+    })
+    monkeypatch.setenv('APP_TRACK', 'production')
+    if first_reader == 'listing':
+        entry = next(item for item in llm.list_config_params() if item['key'] == key)
+        assert entry['value'] == 900 and entry['is_override']
+    budget = resolve_research_budget()
+    assert budget['run_timeout_seconds'] == 900
+    assert budget['llm_step_timeout_seconds'] == 240
+
+    monkeypatch.setenv('APP_TRACK', 'development')
+    assert resolve_research_budget()['run_timeout_seconds'] == 600
+
+
 def test_language_policy_is_resolved_for_each_request_without_changing_machine_values(store):
     session = type('Session', (), {})()
     def post(url, **kwargs):

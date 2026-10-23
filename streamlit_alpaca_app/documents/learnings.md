@@ -1252,3 +1252,7 @@ Before manually retrying a failed scheduled producer, inspect current executions
 
 ### Research chart transport — October23
 A saved numerical chart needs one typed data/trace artifact through the agent result, stored public projection, API response model and both clients. Check all boundaries: a missing Pydantic field silently removes charts. Keep histogram binning server-owned, preserve missing-observation segments, and inspect actual date bounds and categorical heatmap rasterization. Renderer metadata and successful imports do not establish the visible result.
+
+
+### Read active settings at their own boundary — October23
+A numeric getter must load the same scoped settings snapshot as prompt/model getters. A configured value is not active merely because a later model client reads it. For persisted queued work, verify what the producer stores before any model or prompt call; the worker deliberately honors that saved budget.

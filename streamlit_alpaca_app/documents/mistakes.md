@@ -1174,3 +1174,7 @@ The first chart connection preserved the repository result but missed the API re
 
 ### Research chart verification — October23
 Started packaging before checking the final refreshed categorical heatmap. Plotly requested pixelated SVG but the browser interpolated the2x2 raster. Explicit cell gaps fix it at the shared matrix renderer. Supersede the initial build requests and verify complete packaged hashes before accepting the replacement; never use their initial source-gate result as proof of later source. Native default selection cleared on release; a chart-owned tap/drag selection now persists and was personally checked.
+
+
+### Cold queued settings — October23
+A production configuration probe loaded model settings before resolving numeric budgets, masking an initialization-order bug. The real chat producer resolved budget first and persisted300/90instead of saved900/240. Verify cold getters and a normal queued conversation, not only an explicitly configured direct agent. Keep the initial failure; loading settings at numeric getters fixes all callers rather than warming one process or overriding a single run.

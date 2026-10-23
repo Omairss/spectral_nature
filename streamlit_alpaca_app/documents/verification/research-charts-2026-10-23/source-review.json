@@ -23,7 +23,8 @@
     "ios_app/SpectralNatureMVP/SpectralNature.xcodeproj/project.pbxproj": "Regenerated for the added native chart renderer and build13.",
     "api/main.py": "Public Pydantic result response explicitly carries visualizations through run and nested conversation endpoints; unchanged owner/auth checks.",
     "web/components/visualizations/visualization.tsx": "Optional title/axis-label configuration; defaults retain dashboard behavior.",
-    "web/components/visualizations/plotly-renderer.tsx": "Conversations use a wrapping external caption and retain axis units at compact width; existing renderer defaults preserve prior margins and title behavior."
+    "web/components/visualizations/plotly-renderer.tsx": "Conversations use a wrapping external caption and retain axis units at compact width; existing renderer defaults preserve prior margins and title behavior.",
+    "services/llm.py": "Numeric getter and parameter listing now load the same scoped, cached settings snapshot as prompt/runtime getters. Cold queued creation previously persisted defaults300/90before any model loaded active settings900/240. Existing cache/TTL/reset/scoping, failure fallback and values are preserved; no prompt, model, credential, or dataset changes. Database bootstrap re-entry uses the existing5second failed-load/in-flight cache guard."
   },
   "actual_numerical_flow": {
     "status": "passed",
@@ -38,12 +39,12 @@
   },
   "mechanical_checks": {
     "analysis_regressions": "11 passed. One stale assertion was updated to match the already accepted production behavior of exposing numerical stdout.",
-    "web_types": "passed"
+    "web_types": "passed",
+    "cold_scoped_settings": "9settings tests passed, including fresh budget getter and listing before any model/prompt call, plus environment-scope change. These checks cover configuration mechanics, not LLM quality."
   },
   "remaining_before_deployment": [
-    "Complete one real shared-model plot investigation; personally review code/output/answer.",
-    "Build through committed source gate; verify exact-image development behavior and consumer preservation.",
-    "Promote only accepted digests; verify production and native delivery."
+    "Qualify the cold numeric getter with actual production settings in fresh exact images, then promote only the18Python consumers.",
+    "Continue the original production conversation with a new attempt and verify chart publication; retain the failed first attempt."
   ],
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/verification/research-charts-20261023",
   "other_llm_ground_truth_or_final_evaluation_judges_used": false,
@@ -52,5 +53,21 @@
     "web": "Personally inspected all7 plots at desktop and390px compact width, percent axes, gap polygons and zoom/reset controls. No browser warnings/errors.",
     "native": "Signed iPhone16/iOS18.3 simulator personally inspected price/date domain, actual selected2024-06-24 price22.15, histogram, selectable correlation0.4, revenue forecast bands and gaps. Native tap persists. AX navigation brought offscreen charts into view; native scroll/drag automation did not reliably navigate the simulator.",
     "boundary": "Loopback fixture uses actual shared numerical execution and actual API DTOs; it supplies data only and is not shipped."
+  },
+  "queued_production_findings": {
+    "initial_run": "agrun_5a1086391d234307a64791f5",
+    "status": "failed_retained",
+    "actual_budget": {
+      "run": 300,
+      "model_step": 90
+    },
+    "configured_budget": {
+      "run": 900,
+      "model_step": 240
+    },
+    "numerical_failure": "Model compared UTC-aware source dates with a naiveTimestamp. It did not publish charts before this error.",
+    "terminal_failure": "Planning/model step timed out and final synthesis exhausted its reserved phase.",
+    "source_cause": "get_config_param read process overrides without loading them; queued creation resolved numeric budget before a model/prompt initialized the snapshot.",
+    "fix": "Load scoped settings at both numeric read boundaries; do not patch generated calculations, rewrite the original run, or rely on warming an API process."
   }
 }

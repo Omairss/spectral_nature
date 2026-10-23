@@ -210,6 +210,7 @@ def register_config_param(name: str, group: str, default: int | float | str, des
 
 def get_config_param(key: str) -> int | float | str:
     """Resolve the active value for a registered config parameter."""
+    load_prompt_overrides()
     override = _PROMPT_OVERRIDES.get(key)
     if override is not None:
         try:
@@ -226,6 +227,7 @@ def get_config_param(key: str) -> int | float | str:
 
 def list_config_params() -> list[dict[str, Any]]:
     """Return all registered config parameters with active values, grouped."""
+    load_prompt_overrides()
     entries = []
     for key, info in _PARAM_REGISTRY.items():
         override = _PROMPT_OVERRIDES.get(key)
