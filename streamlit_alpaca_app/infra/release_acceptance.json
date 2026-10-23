@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Validated executed chart artifacts and public result delivery to web/iPhone conversations; existing current production behavior retained. Source/numerical acceptance permits platform verification; deployment requires completed UI/model qualification.",
-  "source_revision": "014f40b72f1a63f3a107c5c555de7c0a1587e1f9",
+  "source_revision": "3ba14337321722e05eee5657634b683ef0ae1f30",
   "review_base_revision": "883be852",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -74,7 +74,7 @@
     "pipeline/jobs/main.py": "d945e2b0fdff7fe4222e97e534caf1623fb9b8e08b9186f339de9456bd68b061",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
-    "presentation/plotly.py": "1d570e1c1801e14257504a75135beeab772b16230feee4f612f3dc9bdeec07c7",
+    "presentation/plotly.py": "366a22ac9146292ff8bebc7a96b04dc95be2b541240775d9b64168c73f947ca1",
     "presentation/visualization_artifacts.py": "1574aa43888dcae9d48fafc3def6de44d0ba32ee8b33fb9d50b9127c043c7640",
     "requirements-dev.txt": "db4b72cc7ad1564caea9764996cce9b68a172cbe8effd6e61240f34664916062",
     "requirements.txt": "0c628568672feed30ff4a99b8b0406ebde17759fdc676e3bcecf0a3c3351ead4",
@@ -373,7 +373,7 @@
     "pipeline/jobs/main.py": "d945e2b0fdff7fe4222e97e534caf1623fb9b8e08b9186f339de9456bd68b061",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
-    "presentation/plotly.py": "1d570e1c1801e14257504a75135beeab772b16230feee4f612f3dc9bdeec07c7",
+    "presentation/plotly.py": "366a22ac9146292ff8bebc7a96b04dc95be2b541240775d9b64168c73f947ca1",
     "presentation/visualization_artifacts.py": "1574aa43888dcae9d48fafc3def6de44d0ba32ee8b33fb9d50b9127c043c7640",
     "scripts/collect_historical_corpus.py": "2e2b1a8c0093ade4daeed72fdfd1ca5bc98fd78d056122c2fb96ce15f8676b12",
     "scripts/sync_robinhood_main.py": "bf7e4c6eefce5b22935650f72f952a12f7745eeabe71e0d94d39c3ff7c766787",
