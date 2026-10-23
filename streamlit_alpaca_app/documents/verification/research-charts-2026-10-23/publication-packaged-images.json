@@ -1,0 +1,92 @@
+[
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+    "role": "api-next",
+    "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+    "source_inventory_sha256": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
+    "runtime_inventory_sha256": "5bf9200092dd34ce5a35da36362aea48d0a4364f6867e737154ba45620f9ba64",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "engine_revision": "8f418b4f5ba6f4dd7741",
+    "qualification_execution": "sn-research-run-dev-vo8kjiy",
+    "verification_program_sha256": "e682d349c693cdc798227104e9ded487cbc37b2bfb82706b4bea88f33ab5f22d",
+    "cold_budget": {
+      "max_tool_calls": 10,
+      "run_timeout_seconds": 900,
+      "tool_call_timeout_seconds": 45,
+      "llm_step_timeout_seconds": 240,
+      "prefetch_timeout_seconds": 15
+    },
+    "named_chart_replay": {
+      "original_stored_charts": 6,
+      "published_charts": 3,
+      "latest_successful_versions_only": true,
+      "last_price_date": "2026-10-22",
+      "return_observations": 251,
+      "actual_public_dto_preserved": true,
+      "frozen_production_run": "agrun_f83d6f3b031645ddae034f71",
+      "stored_public_read_preserves_original": true
+    }
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e",
+    "role": "broker",
+    "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+    "source_inventory_sha256": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
+    "runtime_inventory_sha256": "5bf9200092dd34ce5a35da36362aea48d0a4364f6867e737154ba45620f9ba64",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "engine_revision": "8f418b4f5ba6f4dd7741",
+    "qualification_execution": "sn-research-run-dev-o8qslfc",
+    "verification_program_sha256": "98e321a7e496cdaee4fe6d3557709aecde260b3adbda91d54bd1693f9316dbb6",
+    "cold_budget": {
+      "max_tool_calls": 10,
+      "run_timeout_seconds": 900,
+      "tool_call_timeout_seconds": 45,
+      "llm_step_timeout_seconds": 240,
+      "prefetch_timeout_seconds": 15
+    },
+    "named_chart_replay": {
+      "original_stored_charts": 6,
+      "published_charts": 3,
+      "latest_successful_versions_only": true,
+      "last_price_date": "2026-10-22",
+      "return_observations": 251,
+      "actual_public_dto_preserved": true,
+      "frozen_production_run": "agrun_f83d6f3b031645ddae034f71",
+      "stored_public_read_preserves_original": true
+    }
+  },
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+    "role": "worker",
+    "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+    "source_inventory_sha256": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
+    "runtime_inventory_sha256": "5bf9200092dd34ce5a35da36362aea48d0a4364f6867e737154ba45620f9ba64",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "engine_revision": "8f418b4f5ba6f4dd7741",
+    "qualification_execution": "sn-research-run-dev-ah3lw0l",
+    "verification_program_sha256": "512521ee0a598d9a5b5536a5a3bdfab8f4aec93f6e0e785edeb51f9ab20462c9",
+    "cold_budget": {
+      "max_tool_calls": 10,
+      "run_timeout_seconds": 900,
+      "tool_call_timeout_seconds": 45,
+      "llm_step_timeout_seconds": 240,
+      "prefetch_timeout_seconds": 15
+    },
+    "named_chart_replay": {
+      "original_stored_charts": 6,
+      "published_charts": 3,
+      "latest_successful_versions_only": true,
+      "last_price_date": "2026-10-22",
+      "return_observations": 251,
+      "actual_public_dto_preserved": true,
+      "frozen_production_run": "agrun_f83d6f3b031645ddae034f71",
+      "stored_public_read_preserves_original": true
+    }
+  }
+]

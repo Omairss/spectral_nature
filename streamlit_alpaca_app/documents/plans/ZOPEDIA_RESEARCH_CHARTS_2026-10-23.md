@@ -14,3 +14,6 @@ After chart delivery, continue from the October22 benchmark study. FinanceBench 
 
 
 The first20-consumer chart promotion passed all36configuration/image checks and native build13installed. Its first normal production conversation exposed a pre-existing cold-settings bug: queued creation saved default300/90seconds before prompt loading made the configured900/240visible. Fix the common numeric settings getters, preserve the original failed run and repeat a normal queued continuation. This follow-up changes only Python; retain both accepted web images and all16development definitions. Current accepted source remains onfeature/zopedia-research-charts-20261023; the shared root has older unaccepted compute files and concurrent Home/Trading work, so source integration must preserve that work.
+
+
+The normal900/240production continuation completed and was personally reviewed. It independently corrected timezone, end-date and date-format errors. Final shared publication now treats each explicit chart name as its identity, selecting the latest successful version for both new and stored conversation results without rewriting execution evidence. Full source and client transport are accepted locally; final exact-image qualification/promotion follows. See the verification/research-charts-2026-10-23record.
