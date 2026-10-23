@@ -35,6 +35,7 @@ private struct ResearchPlot {
   let yPercent: Bool
   let matrix: [Record]
   let spansYears: Bool
+  let xDomain: ClosedRange<Double>
 
   init(_ artifact: JSONValue) {
     let chart = artifact["spec"]["chart"]
@@ -103,6 +104,19 @@ private struct ResearchPlot {
     matrix = cells
     let coordinates = output.flatMap { $0.points.map(\.x) }
     spansYears = (coordinates.max() ?? 0) - (coordinates.min() ?? 0) > 370 * 86_400
+    var bounds = coordinates
+    for group in output where group.kind == "bar" {
+      if !group.left.isEmpty {
+        bounds += group.points.flatMap { [$0.row.number(group.left), $0.row.number(group.right)].compactMap { $0 } }
+      } else {
+        let xs = Array(Set(group.points.map(\.x))).sorted()
+        let halfWidth = zip(xs, xs.dropFirst()).map { $1 - $0 }.min().map { $0 / 2 } ?? 0.5
+        bounds += group.points.flatMap { [$0.x - halfWidth, $0.x + halfWidth] }
+      }
+    }
+    let low = bounds.min() ?? 0, high = bounds.max() ?? 1
+    let padding = xType == "date" ? 43_200.0 : max(abs(low) * 0.01, 0.5)
+    xDomain = low < high ? low...high : (low - padding)...(high + padding)
   }
 
   func xLabel(_ value: Double, axis: Bool = false) -> String {
@@ -198,11 +212,16 @@ struct ResearchChart: View {
       }
     }.frame(height: 270)
       .chartXSelection(value: $selectedX)
-      .chartXScale(domain: .automatic(includesZero: false))
+      .chartXScale(domain: plot.xDomain, range: .plotDimension(startPadding: 12, endPadding: 16))
       .chartXAxisLabel(plot.xTitle).chartYAxisLabel(plot.yTitle)
       .chartXAxis {
         if plot.xType == "category" {
           AxisMarks(values: xTicks) { tick in
+            AxisGridLine(); AxisTick()
+            AxisValueLabel { if let x = tick.as(Double.self) { Text(plot.xLabel(x, axis: true)) } }
+          }
+        } else if plot.xType == "date" {
+          AxisMarks(values: (0...3).map { plot.xDomain.lowerBound + Double($0) * (plot.xDomain.upperBound - plot.xDomain.lowerBound) / 3 }) { tick in
             AxisGridLine(); AxisTick()
             AxisValueLabel { if let x = tick.as(Double.self) { Text(plot.xLabel(x, axis: true)) } }
           }
@@ -241,7 +260,7 @@ private struct ResearchMatrix: View {
     VStack(alignment: .leading, spacing: 8) {
       if !selected.isEmpty { Text(selected).font(.caption).monospacedDigit() }
       ScrollView([.horizontal, .vertical]) {
-        VStack(alignment: .leading, spacing: 3) {
+        LazyVStack(alignment: .leading, spacing: 3) {
           HStack(spacing: 3) {
             Color.clear.frame(width: 90, height: 34)
             ForEach(columns, id: \.self) { Text($0).font(.caption2).frame(width: 68, height: 34) }
