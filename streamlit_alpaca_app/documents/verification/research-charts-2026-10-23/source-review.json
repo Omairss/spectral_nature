@@ -6,7 +6,7 @@
   "scope": "Shared numerical chart publication, public research results and both conversation renderers. Existing accepted web/native9 behavior retained; concurrent unreleased Home12 and Alpaca/Trading changes remain outside this release.",
   "runtime_review": {
     "data_access/contracts.py": "Adds optional lower/upper/z fields; existing field defaults and serialization retained.",
-    "presentation/plotly.py": "Adds scatter, interval polygons split at gaps, and heatmap rendering; existing line/bar/histogram/candlestick paths preserved. Band segments share one color/legend.",
+    "presentation/plotly.py": "Adds scatter, interval polygons split at gaps, and heatmap rendering; existing line/bar/histogram/candlestick paths preserved. Band segments share one color/legend. Explicitly disables interpolation between categorical heatmap cells; visual review caught a smoothed2x2 correlation display before packaging.",
     "presentation/visualization_artifacts.py": "Validates analytical values, dimensions and explicit display bounds; server bins histogram samples; retains typed datasets/traces alongside Plotly. Collects actual successful current-run tool artifacts only.",
     "services/zopedia_analysis.py": "Preserves full chart arrays rather than shortening them as previews. Only successful numerical executions publish charts; source/code/run provenance persisted. Existing computation budgets and cancellation retained.",
     "services/zopedia_agent.py": "Carries charts from completed tools into the shared agent result, independently of generated prose. Existing answer/review/tool ownership retained. A failed synthesis retains charts from successful computations; it does not turn a failed numerical program into a successful chart.",

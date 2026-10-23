@@ -71,6 +71,7 @@ def render_chart_model(model: ChartModel) -> go.Figure:
             continue
 
         if trace_type == "heatmap":
+            style.setdefault("zsmooth", False)
             xs = list(dict.fromkeys(frame[trace.x]))
             ys = list(dict.fromkeys(frame[trace.y]))
             cells = {(row[trace.x], row[trace.y]): row.get(trace.z) for row in frame.to_dict("records")}
