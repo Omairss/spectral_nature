@@ -1123,3 +1123,8 @@ Corrected the release through the supported web-role gate using unchanged curren
 The frozen forecasting runner checked only raised provider exceptions. After oneHTTP402, the shared guard stopped network requests, but the runner wrote1001local unavailable records for the remaining cases. All original records are retained. A separate versioned runner now stops on returned failures and appends technical retries; replayed real failure/success envelopes proved stopping, history retention and completed-answer preservation with no model calls.
 
 I also began a local VM/worktree setup before checking disk headroom. The checkout failed for lack of space. I cancelled and removed only that temporary VM, cleared this task's generated web build/dependency output, and kept existing research and source intact. Check capacity before new execution environments.
+
+
+### The first workbook inspector misread shared formulas — October23
+
+The manual OOXML probe treated shared-formula followers as constants and compared merge ordering, exaggerating differences. Replaced its cell inspection with read-only openpyxl expansion and sorted merge ranges before assessment. The remaining17pivot-label changes, blank shape loss and added statement merges are genuine compatibility gaps; no blanket workbook-preservation acceptance or native benchmark success was claimed.

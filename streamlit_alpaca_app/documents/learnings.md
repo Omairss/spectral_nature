@@ -1210,3 +1210,8 @@ A working backend endpoint and code in Git do not deploy a Next.js feature. The 
 The shared engine returns provider failures as structured results as well as raised exceptions. Batch owners must honor both and stop before assigning unavailable work a prediction result. Append technical retries with predecessor hashes, preserve the first completed answer and choose recovery cases by execution status, never by correctness. A replay of the actual402envelope verified this without provider calls.
 
 Keep published-reference agreement separate from financial validity. FinDeepForecast uses the same percentage header for percentage points, fractional ratios and some multiples. Check issuer statements, publication dates and definitions before normalizing references or using them as training targets. One Williams source check found both a publisher discrepancy and a genuine model error.
+
+
+### Native calculation and workbook preservation are separate — October23
+
+An isolated LibreOffice engine computed an independently checked DCF, retained its formulas after save/reopen and recalculated a changed WACC. Five original workbook round trips still changed pivot labels, a blank shape and statement merges. Distinguish numerical serialization near15-digit precision from real content/layout changes. Inspect shared-formula expansion through an established read-only reader before blaming the engine. A valid calculation and preserved chart counts do not establish full workbook fidelity or a production-safe file executor.

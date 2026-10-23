@@ -1,0 +1,613 @@
+{
+  "uid": 10001,
+  "environment_keys": [
+    "HOME",
+    "HOSTNAME",
+    "LANG",
+    "PATH"
+  ],
+  "root_has_application": false,
+  "engine_version": "LibreOffice 25.2.3.2 520(Build:2)",
+  "workbooks": [
+    {
+      "input": "0_src_0.xlsx",
+      "input_sha256": "40397df4ff9ae47d84f071ca01886edcac90a28c2bc0aeb18556264222de807b",
+      "output_sha256": "c4c40f2bfe51c4c31d69b9e7849211782b18565d56815d09d80dea7dcb2c746d",
+      "comparison": {
+        "sheets_before": [
+          "00000",
+          "Recovered_Sheet1",
+          "Recovered_Sheet2",
+          "Recovered_Sheet3",
+          "Balance Sheet",
+          "Income Statement"
+        ],
+        "sheets_after": [
+          "00000",
+          "Recovered_Sheet1",
+          "Recovered_Sheet2",
+          "Recovered_Sheet3",
+          "Balance Sheet",
+          "Income Statement"
+        ],
+        "parts_before": {
+          "charts": 0,
+          "drawings": 2,
+          "pivots": 0,
+          "external_links": 0
+        },
+        "parts_after": {
+          "charts": 0,
+          "drawings": 2,
+          "pivots": 0,
+          "external_links": 0
+        },
+        "shapes_before": {
+          "sp": 12
+        },
+        "shapes_after": {
+          "sp": 12
+        },
+        "literal_changes_count": 0,
+        "literal_change_examples": [],
+        "removed_formulas_count": 0,
+        "removed_formula_examples": [],
+        "changed_formula_expressions_count": 0,
+        "changed_formula_examples": [],
+        "merges_changed": [
+          "Balance Sheet",
+          "Income Statement"
+        ]
+      }
+    },
+    {
+      "input": "157_src_0.xlsx",
+      "input_sha256": "368eff502997b9c9a509365476ef939b76a48ed7432f5a47308867a1b030e316",
+      "output_sha256": "0dd5d899775744a425abd1344385957a37d6d24c361e7e7748c5a06dc6a8b59a",
+      "comparison": {
+        "sheets_before": [
+          "Damage Calculations",
+          "Tenaska's i Adjustment",
+          "Brazos' i Adjustment",
+          "Offer Comparison",
+          "Cedar Brakes"
+        ],
+        "sheets_after": [
+          "Damage Calculations",
+          "Tenaska's i Adjustment",
+          "Brazos' i Adjustment",
+          "Offer Comparison",
+          "PPE-ENA Offer",
+          "Cedar Brakes"
+        ],
+        "parts_before": {
+          "charts": 1,
+          "drawings": 4,
+          "pivots": 0,
+          "external_links": 5
+        },
+        "parts_after": {
+          "charts": 1,
+          "drawings": 3,
+          "pivots": 0,
+          "external_links": 5
+        },
+        "shapes_before": {
+          "sp": 8,
+          "pic": 2,
+          "graphicFrame": 1
+        },
+        "shapes_after": {
+          "pic": 2,
+          "graphicFrame": 1,
+          "sp": 8
+        },
+        "literal_changes_count": 51,
+        "literal_change_examples": [
+          {
+            "cell": "Damage Calculations!H35",
+            "before": {
+              "type": "n",
+              "value": "11.919999999999998",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "11.92",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Damage Calculations!L35",
+            "before": {
+              "type": "n",
+              "value": "10.260000000000002",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "10.26",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Damage Calculations!N35",
+            "before": {
+              "type": "n",
+              "value": "14.799999999999999",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "14.8",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Damage Calculations!Q35",
+            "before": {
+              "type": "n",
+              "value": "14.389999999999999",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "14.39",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Damage Calculations!S35",
+            "before": {
+              "type": "n",
+              "value": "15.340000000000002",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "15.34",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Damage Calculations!U35",
+            "before": {
+              "type": "n",
+              "value": "13.479999999999999",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "13.48",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Damage Calculations!V35",
+            "before": {
+              "type": "n",
+              "value": "16.909999999999997",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "16.91",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Damage Calculations!Z35",
+            "before": {
+              "type": "n",
+              "value": "17.189999999999998",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "17.19",
+              "formula": null
+            }
+          }
+        ],
+        "removed_formulas_count": 0,
+        "removed_formula_examples": [],
+        "changed_formula_expressions_count": 0,
+        "changed_formula_examples": [],
+        "merges_changed": []
+      }
+    },
+    {
+      "input": "22_src_0.xlsx",
+      "input_sha256": "aa65e725ddfe7dc9d2dfa9885b915d69898f776b79caa03c353b92bd0b579298",
+      "output_sha256": "e703bbae58747f1ae9a82fdcc851f9da027dc1fc22a0a4ad908f45f2eeba2c11",
+      "comparison": {
+        "sheets_before": [
+          "LiquidationValue",
+          "Replacement Cost",
+          "ARAP"
+        ],
+        "sheets_after": [
+          "LiquidationValue",
+          "Replacement Cost",
+          "ARAP",
+          "DPCache_EES TRADE DETAIL"
+        ],
+        "parts_before": {
+          "charts": 0,
+          "drawings": 0,
+          "pivots": 1,
+          "external_links": 0
+        },
+        "parts_after": {
+          "charts": 0,
+          "drawings": 0,
+          "pivots": 1,
+          "external_links": 0
+        },
+        "shapes_before": {},
+        "shapes_after": {},
+        "literal_changes_count": 116,
+        "literal_change_examples": [
+          {
+            "cell": "Replacement Cost!AD4",
+            "before": {
+              "type": "text",
+              "value": "Grand Total",
+              "formula": null
+            },
+            "after": {
+              "type": "text",
+              "value": "Total Result",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Replacement Cost!C6",
+            "before": {
+              "type": "text",
+              "value": "Electricity          Total",
+              "formula": null
+            },
+            "after": {
+              "type": "text",
+              "value": "Electricity          Result",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Replacement Cost!B7",
+            "before": {
+              "type": "text",
+              "value": "CIN Total",
+              "formula": null
+            },
+            "after": {
+              "type": "text",
+              "value": "CIN Result",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Replacement Cost!C9",
+            "before": {
+              "type": "text",
+              "value": "Electricity          Total",
+              "formula": null
+            },
+            "after": {
+              "type": "text",
+              "value": "Electricity          Result",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Replacement Cost!B10",
+            "before": {
+              "type": "text",
+              "value": "EC Total",
+              "formula": null
+            },
+            "after": {
+              "type": "text",
+              "value": "EC Result",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Replacement Cost!C13",
+            "before": {
+              "type": "text",
+              "value": "Electricity          Total",
+              "formula": null
+            },
+            "after": {
+              "type": "text",
+              "value": "Electricity          Result",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Replacement Cost!B14",
+            "before": {
+              "type": "text",
+              "value": "ERC Total",
+              "formula": null
+            },
+            "after": {
+              "type": "text",
+              "value": "ERC Result",
+              "formula": null
+            }
+          },
+          {
+            "cell": "Replacement Cost!C16",
+            "before": {
+              "type": "text",
+              "value": "Electricity          Total",
+              "formula": null
+            },
+            "after": {
+              "type": "text",
+              "value": "Electricity          Result",
+              "formula": null
+            }
+          }
+        ],
+        "removed_formulas_count": 0,
+        "removed_formula_examples": [],
+        "changed_formula_expressions_count": 0,
+        "changed_formula_examples": [],
+        "merges_changed": []
+      }
+    },
+    {
+      "input": "33_src_0.xlsx",
+      "input_sha256": "63e5bf71ddca7de1227327bfc7759b71d7ef1be617fb4e70b321cd71c583b581",
+      "output_sha256": "5254ebb435bfdf0c9441addaa754a5fbae8dbdc79407e259196b3b5b7cb250a4",
+      "comparison": {
+        "sheets_before": [
+          "2Q",
+          "1Q",
+          "YTD",
+          "Orig Chart Data",
+          "By Team",
+          "By Originator",
+          "Originator",
+          "Top 10 Overall",
+          "Top 10 By Gas",
+          "Top 10 By Power",
+          "Asset Marketing",
+          "Canada Power",
+          "Ercot",
+          "Midwest Power",
+          "North East Power",
+          "Southeast Power",
+          "West Power",
+          "Assets",
+          "HPL",
+          "Canada Gas",
+          "Central Gas",
+          "Derivatives",
+          "East Gas",
+          "ECR",
+          "Mexico",
+          "Texas Gas",
+          "West Gas"
+        ],
+        "sheets_after": [
+          "2Q",
+          "1Q",
+          "YTD",
+          "Team Chart",
+          "Orig Chart Data",
+          "By Team",
+          "By Originator",
+          "Originator",
+          "Top 10 Overall",
+          "All Top 10 Chart",
+          "Top 10 By Gas",
+          "Gas Top 10 Chart",
+          "Top 10 By Power",
+          "Power Top 10 Chart",
+          "Asset Marketing",
+          "Canada Power",
+          "Ercot",
+          "Midwest Power",
+          "North East Power",
+          "Southeast Power",
+          "West Power",
+          "Assets",
+          "HPL",
+          "Canada Gas",
+          "Central Gas",
+          "Derivatives",
+          "East Gas",
+          "ECR",
+          "Mexico",
+          "Texas Gas",
+          "West Gas"
+        ],
+        "parts_before": {
+          "charts": 4,
+          "drawings": 4,
+          "pivots": 0,
+          "external_links": 1
+        },
+        "parts_after": {
+          "charts": 4,
+          "drawings": 4,
+          "pivots": 0,
+          "external_links": 1
+        },
+        "shapes_before": {
+          "graphicFrame": 4
+        },
+        "shapes_after": {
+          "graphicFrame": 4
+        },
+        "literal_changes_count": 1009,
+        "literal_change_examples": [
+          {
+            "cell": "2Q!G298",
+            "before": {
+              "type": "n",
+              "value": "124263.20784561847",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "124263.207845618",
+              "formula": null
+            }
+          },
+          {
+            "cell": "2Q!G299",
+            "before": {
+              "type": "n",
+              "value": "1825928.7758346582",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "1825928.77583466",
+              "formula": null
+            }
+          },
+          {
+            "cell": "2Q!G301",
+            "before": {
+              "type": "n",
+              "value": "28856.470887363335",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "28856.4708873633",
+              "formula": null
+            }
+          },
+          {
+            "cell": "2Q!G304",
+            "before": {
+              "type": "n",
+              "value": "1175.0798722044728",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "1175.07987220447",
+              "formula": null
+            }
+          },
+          {
+            "cell": "2Q!G306",
+            "before": {
+              "type": "n",
+              "value": "124263.20784561847",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "124263.207845618",
+              "formula": null
+            }
+          },
+          {
+            "cell": "2Q!G308",
+            "before": {
+              "type": "n",
+              "value": "220.71089439240345",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "220.710894392403",
+              "formula": null
+            }
+          },
+          {
+            "cell": "2Q!G309",
+            "before": {
+              "type": "n",
+              "value": "588.3485179006801",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "588.34851790068",
+              "formula": null
+            }
+          },
+          {
+            "cell": "2Q!G311",
+            "before": {
+              "type": "n",
+              "value": "5685.871936353138",
+              "formula": null
+            },
+            "after": {
+              "type": "n",
+              "value": "5685.87193635314",
+              "formula": null
+            }
+          }
+        ],
+        "removed_formulas_count": 0,
+        "removed_formula_examples": [],
+        "changed_formula_expressions_count": 0,
+        "changed_formula_examples": [],
+        "merges_changed": []
+      }
+    },
+    {
+      "input": "61_src_0.xlsx",
+      "input_sha256": "a9448659a5a8f6fdb8f5b59fd9b7d8d84da1517af281177bc6e7eb3b5a0bdcdf",
+      "output_sha256": "d8f0dc5952a3fb4831194d6b4195cd406e07bad2b9f1fb8c5631026731c13818",
+      "comparison": {
+        "sheets_before": [
+          "ENA Comps",
+          "CSFB Comps"
+        ],
+        "sheets_after": [
+          "ENA Comps",
+          "CSFB Comps"
+        ],
+        "parts_before": {
+          "charts": 0,
+          "drawings": 1,
+          "pivots": 0,
+          "external_links": 0
+        },
+        "parts_after": {
+          "charts": 0,
+          "drawings": 1,
+          "pivots": 0,
+          "external_links": 0
+        },
+        "shapes_before": {
+          "sp": 1
+        },
+        "shapes_after": {},
+        "literal_changes_count": 0,
+        "literal_change_examples": [],
+        "removed_formulas_count": 0,
+        "removed_formula_examples": [],
+        "changed_formula_expressions_count": 0,
+        "changed_formula_examples": [],
+        "merges_changed": []
+      }
+    }
+  ],
+  "network_probe": {
+    "errno": 101,
+    "type": "OSError"
+  },
+  "dcf": {
+    "base_per_share": 136.8855013318762,
+    "base_formula": "=B18/B8",
+    "reopened_base_per_share": 136.885501331876,
+    "wacc_12_percent_per_share": 104.50751856753698,
+    "reopened_formula": "=B18/B8"
+  },
+  "status": "engine_probe_executed_not_accepted"
+}

@@ -44,7 +44,7 @@ def number(value: str, header: str) -> Decimal:
     return Decimal(match[1].replace(',', ''))
 
 
-def score(manifest_path: Path, output: Path) -> dict:
+def score(manifest_path: Path, output: Path, recovery_protocol: Path | None = None) -> dict:
     manifest = json.loads(manifest_path.read_text())
     protocol_path = manifest_path.parent / manifest['protocol']
     protocol = json.loads(protocol_path.read_text())
@@ -74,6 +74,38 @@ def score(manifest_path: Path, output: Path) -> dict:
             predictions[identifier] = path
     if set(predictions) - set(actor):
         raise ValueError('Unexpected prediction ID')
+    primary_predictions = dict(predictions)
+    recovered_ids = set()
+    recovery = None
+    if recovery_protocol is not None:
+        recovery = json.loads(recovery_protocol.read_text())
+        for key in ['source_git', 'engine_revision', 'actor_sha256', 'runtime_overrides', 'completion_tokens', 'timeout_seconds']:
+            if recovery[key] != protocol[key]:
+                raise ValueError('Recovery changes the inference condition: ' + key)
+        parent_path = recovery_protocol.parent / recovery['parent_manifest']
+        if sha(parent_path) != recovery['parent_manifest_sha256']:
+            raise ValueError('Recovery parent inventory changed')
+        parent = json.loads(parent_path.read_text())
+        failed_ids = {row['id'] for row in parent['attempts'] if row['status'] == 'failed'}
+        if set(recovery['selected_ids']) != failed_ids:
+            raise ValueError('Recovery must cover all execution-failed cases, independent of score')
+        for identifier in recovery['selected_ids']:
+            previous_hash = None
+            case_dir = Path(recovery['output_root']) / hashlib.sha256(identifier.encode()).hexdigest()[:20]
+            completed = False
+            for number_, path in enumerate(sorted(case_dir.glob('attempt-*.json')), 1):
+                attempt = json.loads(path.read_text())
+                if (completed or attempt['id'] != identifier or attempt['attempt_number'] != number_
+                        or attempt['previous_attempt_sha256'] != previous_hash
+                        or attempt['primary_attempt_sha256'] != sha(primary_predictions[identifier])
+                        or attempt['protocol_sha256'] != sha(recovery_protocol)):
+                    raise ValueError('Recovery history changed or retried a completed answer: ' + identifier)
+                previous_hash = sha(path)
+                if (attempt.get('result') or {}).get('status') == 'completed':
+                    completed = True
+                    predictions[identifier] = path
+                    carried_protocols[identifier] = recovery_protocol
+                    recovered_ids.add(identifier)
 
     results = []
     for identifier, case in actor.items():
@@ -104,6 +136,10 @@ def score(manifest_path: Path, output: Path) -> dict:
                 or prediction['input_sha256'] != hashlib.sha256(expected_query.encode()).hexdigest()):
             raise ValueError('Prediction identity/input/protocol mismatch: ' + identifier)
         row.update(prediction_sha256=sha(path), issued_at_utc=prediction['issued_at_utc'])
+        if identifier in recovered_ids:
+            row.update(prediction_origin='technical_recovery',
+                       primary_prediction_sha256=sha(primary_predictions[identifier]),
+                       attempt_number=prediction['attempt_number'])
         result = prediction.get('result') or {}
         if result.get('status') != 'completed':
             row.update(status='execution_failed', score=0,
@@ -160,6 +196,9 @@ def score(manifest_path: Path, output: Path) -> dict:
 
     report = {'generated_at_utc': datetime.now(timezone.utc).isoformat(),
               'condition': manifest['condition'], 'comparison': 'paper_derived_no_llm_extraction',
+              'attempt_selection': 'Original first attempts, with explicitly carried first32k probes.' if recovery is None else 'Original completed answers plus first completed answer in each declared technical-recovery history; original failed records remain unchanged.',
+              'recovery_condition': recovery['condition'] if recovery else None,
+              'recovered_answers': len(recovered_ids),
               'financial_validity': 'Not adjudicated. Literal published-reference comparison; mixed corporate percentage units and a verified source discrepancy are recorded separately.',
               'timing': manifest['timing_limit'], 'inference_unchanged': True,
               'source_sha256': {'actor': sha(actor_path), 'references': sha(reference_path),
@@ -169,6 +208,8 @@ def score(manifest_path: Path, output: Path) -> dict:
               'groups': {group: summarize([r for r in results if r['task_group'] == group])
                          for group in sorted({r['task_group'] for r in results})},
               'cases': results}
+    if recovery_protocol:
+        report['source_sha256']['recovery_protocol'] = sha(recovery_protocol)
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
     return {k: report[k] for k in ['condition', 'summary', 'groups']}
 
@@ -177,5 +218,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--manifest', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--recovery-protocol', type=Path)
     args = parser.parse_args()
-    print(json.dumps(score(args.manifest, args.output), indent=2))
+    print(json.dumps(score(args.manifest, args.output, args.recovery_protocol), indent=2))

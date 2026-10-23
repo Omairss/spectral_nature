@@ -1,0 +1,59 @@
+{
+  "reviewed_at_utc": "2026-10-23T17:42:38.298481+00:00",
+  "reviewer": "Primary agent; no LLM evaluator",
+  "purpose": "Engine calculation and compatibility qualification, not model inference, a FINCH task success or a production release.",
+  "source_sha256": "b7c64faa67fc1f03b50d00afa735cd450d222f9d05aaa0f40f63e12a83529205",
+  "dependency_image": {
+    "id": "sha256:09d93a3de4de077ff2b607efbe30d64a481ef2a841ede9f4f00ca386802d2b7f",
+    "architecture": "arm64",
+    "os": "linux",
+    "base_index": "sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20be455898a9f034ad",
+    "installed_versions_sha256": "0180b64ea3b3a6cccb9031f58b0c0ea7ea60e45fac0e78903f82c6ef2c1f50ad",
+    "contains_application_source": false
+  },
+  "local_boundary": {
+    "network_mode": "none",
+    "read_only_root": true,
+    "capabilities_dropped": [
+      "ALL"
+    ],
+    "security_options": [
+      "no-new-privileges:true"
+    ],
+    "memory_bytes": 1610612736,
+    "pids_limit": 128,
+    "uid": "10001:10001",
+    "input_mount_readonly": true,
+    "application_directory_mounted": false
+  },
+  "calculation": {
+    "method": "Hypothetical five-year FCF DCF; growth5%, terminal growth2.5%, debt200, cash50, shares10, baseFCF100. Monetary quantities and shares use matching million units.",
+    "independent_python_value_per_share_wacc10": 136.8855013318762,
+    "native_value_per_share_wacc10": 136.8855013318762,
+    "reopened_value_per_share_wacc10": 136.885501331876,
+    "independent_python_value_per_share_wacc12": 104.50751856753698,
+    "native_value_per_share_wacc12": 104.50751856753698,
+    "formulas_survive_save_reopen": true,
+    "input_change_recalculates": true,
+    "financial_accuracy_on_actual_company": null
+  },
+  "preservation": {
+    "input_files": 5,
+    "worksheets_and_formulas": "All original worksheet names and expanded ordinary formulas retained; pivot cache materialized an additional sheet.",
+    "0_src_0.xlsx": "No literal value changes. Extra merged ranges appeared in two statement sheets; layout not accepted.",
+    "157_src_0.xlsx": "Chart, pictures and shapes retained despite one fewer drawing container. All51numeric changes are small serialization differences; maximum measured relative delta4.5031e-15. No nonnumeric value changes.",
+    "22_src_0.xlsx": "Pivot retained but17labels changed, including Grand Total to Total Result. Largest numeric serialization difference2.111e-15. This violates blanket original-content preservation.",
+    "33_src_0.xlsx": "Four chart objects retained. No nonnumeric value changes. Maximum relative numeric serialization delta4.5241e-15.",
+    "61_src_0.xlsx": "Cell content retained; one blank drawing shape inside AlternateContent was lost. Not a lost financial number, still a compatibility gap."
+  },
+  "harness_review": "The first manual XML reader treated shared-formula followers as constants and compared merge order. Replaced by established read-only openpyxl expansion and sorted merge ranges before assessing remaining changes. No openpyxl authoring.",
+  "decision": "Calculation capability demonstrated. Not accepted for blanket editing of complex existing workbooks. No generated-file production integration or native model benchmark success is claimed. Next qualify the shared owned-file executor on the actual production Linux boundary, artifact delivery and compatible native tasks.",
+  "resources": "Both owned probe containers removed; local Colima VM stopped. No GPU started or cloud resource changed.",
+  "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation/native-workflows/engine-probe-20261023-v2",
+  "references": [
+    "https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html",
+    "https://api.libreoffice.org/docs/idl/ref/interfacecom_1_1sun_1_1star_1_1sheet_1_1XCalculatable.html",
+    "https://openpyxl.readthedocs.io/en/stable/tutorial.html",
+    "https://huggingface.co/datasets/FinWorkBench/Finch/tree/530700c28f7eb68a66c7753d7857c5be80ca274d"
+  ]
+}

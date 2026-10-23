@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-10-23T17:22:46.858803+00:00",
+  "updated_at_utc": "2026-10-23T17:44:59.324838+00:00",
   "owner_goals": [
     "Evaluate the model on every external benchmark in the retained source catalog.",
     "Create Seeking Alpha future-prediction tasks with extensive controlled context and no target leakage.",
@@ -167,7 +167,16 @@
       "production_record": "../../../../verification/research-charts-2026-10-23/publication-production.json",
       "all36_consumer_audit": "passed;allconfigurationspreserved,18productionPythonimagesupdated,2web+16DEVimagesretained."
     },
-    "findeepforecast_primary_end": "One HTTP402 at2026-10-23T17:04UTC after360new completions;1001subsequent local provider-unavailable records. All original attempts retained."
+    "findeepforecast_primary_end": "One HTTP402 at2026-10-23T17:04UTC after360new completions;1001subsequent local provider-unavailable records. All original attempts retained.",
+    "findeepforecast_recovery_session": 81823,
+    "findeepforecast_recovery_pid": 92618,
+    "native_workbook_engine": {
+      "review": "../2026-10-23-native-workbook-engine/README.md",
+      "status": "calculation_demonstrated_preservation_not_accepted",
+      "model_workflows_executed": 0,
+      "local_vm": "stopped",
+      "production_resources_changed": false
+    }
   },
   "budget": {
     "native_benchmarks_reference_ceiling_usd": 82,
@@ -210,7 +219,8 @@
     "production": "../../../../verification/quantitative-compute-2026-10-22/production.json",
     "findeepforecast_scores": "findeepforecast-primary-scores.json",
     "findeepforecast_review": "findeepforecast-personal-review.json",
-    "finch_actor_audit": "finch-input-capability-audit.json"
+    "finch_actor_audit": "finch-input-capability-audit.json",
+    "native_workbook_engine": "../2026-10-23-native-workbook-engine/README.md"
   },
   "owner_constraints": {
     "custom_ground_truth": "Primary agent personally defines and verifies ground truth from source records. No other LLM labels outcomes or makes the final grading judgment. Code calculates numerical scores.",
@@ -250,7 +260,11 @@
     "personal_review": "findeepforecast-personal-review.json",
     "financial_accuracy": "Unadjudicated; mixed reference units and a source-confirmed discrepancy.",
     "recovery_protocol": "protocol-findeepforecast-recovery-01.json",
-    "recovery_status": "prepared; existing provider account available again",
-    "recovery_execution": null
+    "recovery_status": "running; first completed answers retained with original failures unchanged",
+    "recovery_execution": 81823,
+    "recovery_scoring": "findeepforecast-recovery-scores.json",
+    "recovery_completed_at_snapshot": 18,
+    "total_completed_at_snapshot": 386,
+    "snapshot_at_utc": "2026-10-23T17:44:59.291960+00:00"
   }
 }

@@ -1,0 +1,13 @@
+FROM debian:trixie-slim@sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20be455898a9f034ad
+
+# Dependency candidate only: no application or benchmark source is packaged.
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+       libreoffice-calc python3-uno python3-openpyxl fonts-liberation \
+    && dpkg-query -W > /usr/local/share/workbook-dependencies.txt \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --uid 10001 --create-home analyst
+
+USER 10001:10001
+ENV HOME=/tmp/home LANG=C.UTF-8
+ENTRYPOINT ["python3"]
