@@ -243,8 +243,8 @@ def analysis_chart_model(name: str, *, kind: str = "line", x: Any = None, y: Any
 
 
 def collect_research_visualizations(tool_calls: list[dict], *, run_id: str) -> list[dict]:
-    """Publish executed artifacts, never chart text invented during synthesis."""
-    output, seen = [], set()
+    """Publish the latest successful version of each explicitly named chart."""
+    published = {}
     for call in tool_calls:
         if call.get("status") != "completed" or (call.get("origin_run_id") and call["origin_run_id"] != run_id):
             continue
@@ -260,10 +260,14 @@ def collect_research_visualizations(tool_calls: list[dict], *, run_id: str) -> l
                     details={"research_run_id": run_id, "tool_call_id": call.get("tool_call_id")})).to_dict()]
         for artifact in candidates:
             if (isinstance(artifact, dict) and artifact.get("schema_version") == "visualization.v1" and
-                artifact.get("artifact_type") == "visualization" and artifact.get("artifact_id") not in seen):
-                seen.add(artifact["artifact_id"])
-                output.append(artifact)
-    return output
+                artifact.get("artifact_type") == "visualization"):
+                # add_chart's name is its publication identity within a run.
+                # A successful correction replaces its earlier version; a
+                # failed calculation cannot displace a successful chart.
+                name = artifact.get("title") if analysis.get("status") == "succeeded" else None
+                key = ("analysis_chart", name) if name else ("artifact", artifact.get("artifact_id"))
+                published[key] = artifact
+    return list(published.values())
 
 
 def build_plotly_figure_visualization_artifact(

@@ -845,6 +845,7 @@ def _analysis_tools() -> list[dict[str, Any]]:
                 "for multiple series and uncertainty bands. Heatmaps use x=column_labels, y=row_labels, z=matrix; "
                 "histograms use x=samples and bins=30. Supply x_label/y_label with units, x_type='date'|'number'|'category' "
                 "when needed, and x_format/y_format='percent' for fractional rates. Charts appear in the answer on web and iPhone. "
+                "Reuse a chart name to replace its earlier version in this run. "
                 "At most12 charts and20000 displayed points per chart; aggregate display data explicitly. "
                 "Results include retained numerical outputs as evidence. analysis.read_raw_output "
                 "can inspect retained logs by analysis_run_id."

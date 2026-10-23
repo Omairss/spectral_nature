@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "reviewer": "primary_agent",
+  "source": "Real retained3chart model-run replay with same-name previous versions, failed later computations and foreign-run calls. All3current successful artifacts preserved, superseded IDs removed; actual public Pydantic DTO retains3.",
+  "charts": 3,
+  "named_versions_superseded": true,
+  "failed_calculation_preserves_last_success": true,
+  "foreign_run_excluded": true
+}

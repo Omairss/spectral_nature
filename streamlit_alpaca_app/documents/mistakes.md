@@ -1178,3 +1178,8 @@ Started packaging before checking the final refreshed categorical heatmap. Plotl
 
 ### Cold queued settings — October23
 A production configuration probe loaded model settings before resolving numeric budgets, masking an initialization-order bug. The real chat producer resolved budget first and persisted300/90instead of saved900/240. Verify cold getters and a normal queued conversation, not only an explicitly configured direct agent. Keep the initial failure; loading settings at numeric getters fixes all callers rather than warming one process or overriding a single run.
+
+
+### Corrected analytical charts still showed prior versions — October23
+
+The live queued continuation succeeded and corrected its date window, but publication kept both successful versions of the same3named charts. Content IDs distinguish executions; they do not define which revision belongs in an answer. Use the explicit add_chart name as per-run publication identity. Retain all execution evidence and let only a later successful computation replace the named display.

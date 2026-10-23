@@ -7,11 +7,11 @@
   "runtime_review": {
     "data_access/contracts.py": "Adds optional lower/upper/z fields; existing field defaults and serialization retained.",
     "presentation/plotly.py": "Adds scatter, interval polygons split at gaps, and heatmap rendering; existing line/bar/histogram/candlestick paths preserved. Band segments share one color/legend. Explicitly disables interpolation between categorical heatmap cells; visual review caught a smoothed2x2 correlation display before packaging. One-pixel cell gaps force full-resolution matrix rasterization; browser computed image-rendering was auto despite Plotly requesting pixelated SVG, so zsmooth=false alone was insufficient. Actual refreshed browser now shows4 discrete cells.",
-    "presentation/visualization_artifacts.py": "Validates analytical values, dimensions and explicit display bounds; server bins histogram samples; retains typed datasets/traces alongside Plotly. Collects actual successful current-run tool artifacts only.",
+    "presentation/visualization_artifacts.py": "Validates analytical values, dimensions and explicit display bounds; server bins histogram samples; retains typed datasets/traces alongside Plotly. Collects actual successful current-run tool artifacts only. A chart name supplied to add_chart now identifies the latest successful version in a run. Preserve insertion order and distinct names; failed and inherited calls cannot replace completed current-run charts. This prevents successful corrected computations from displaying superseded intermediate versions.",
     "services/zopedia_analysis.py": "Preserves full chart arrays rather than shortening them as previews. Only successful numerical executions publish charts; source/code/run provenance persisted. Existing computation budgets and cancellation retained.",
     "services/zopedia_agent.py": "Carries charts from completed tools into the shared agent result, independently of generated prose. Existing answer/review/tool ownership retained. A failed synthesis retains charts from successful computations; it does not turn a failed numerical program into a successful chart.",
     "services/agents/research_runs.py": "Retains visualization field in public JSON alongside existing answer/citations; stored result schema and owner checks unchanged.",
-    "services/agent_tools.py": "Documents chart API in existing analysis tool; no intent classifier or separate planner.",
+    "services/agent_tools.py": "Documents chart API in existing analysis tool; no intent classifier or separate planner. One sentence explains reuse of an explicit chart name to replace an earlier version; no intent-specific instructions or name matching heuristics.",
     "services/aql_zopedia_engine.py": "Engine revision includes chart producers/contracts and public run projection.",
     "web/lib/types.ts": "Optional visualization array; existing completed replies need no migration.",
     "web/app/zopedia/runs/[runId]/research-run-view.tsx": "Renders existing Plotly artifact component within each answer; conversation history, activity, sources, cancellation and composer retained.",
@@ -43,8 +43,8 @@
     "cold_scoped_settings": "9settings tests passed, including fresh budget getter and listing before any model/prompt call, plus environment-scope change. These checks cover configuration mechanics, not LLM quality."
   },
   "remaining_before_deployment": [
-    "Qualify the cold numeric getter with actual production settings in fresh exact images, then promote only the18Python consumers.",
-    "Continue the original production conversation with a new attempt and verify chart publication; retain the failed first attempt."
+    "Qualify and deploy named-chart revision publication on18Python consumers; retain web/native and allDEVdefinitions.",
+    "Verify ordinary persisted production conversation retains exactly3corrected charts and inspect its calculations personally."
   ],
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/verification/research-charts-20261023",
   "other_llm_ground_truth_or_final_evaluation_judges_used": false,
@@ -68,6 +68,12 @@
     "numerical_failure": "Model compared UTC-aware source dates with a naiveTimestamp. It did not publish charts before this error.",
     "terminal_failure": "Planning/model step timed out and final synthesis exhausted its reserved phase.",
     "source_cause": "get_config_param read process overrides without loading them; queued creation resolved numeric budget before a model/prompt initialized the snapshot.",
-    "fix": "Load scoped settings at both numeric read boundaries; do not patch generated calculations, rewrite the original run, or rely on warming an API process."
+    "fix": "Load scoped settings at both numeric read boundaries; do not patch generated calculations, rewrite the original run, or rely on warming an API process.",
+    "continuation": {
+      "run_id": "agrun_f83d6f3b031645ddae034f71",
+      "budget": "900/240persisted normally",
+      "status": "completed",
+      "finding": "Three correct-date charts and three earlier successful charts with identical names displayed together. Fix explicit name/version identity at shared publication, not either renderer."
+    }
   }
 }

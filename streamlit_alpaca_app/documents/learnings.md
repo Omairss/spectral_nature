@@ -1256,3 +1256,8 @@ A saved numerical chart needs one typed data/trace artifact through the agent re
 
 ### Read active settings at their own boundary — October23
 A numeric getter must load the same scoped settings snapshot as prompt/model getters. A configured value is not active merely because a later model client reads it. For persisted queued work, verify what the producer stores before any model or prompt call; the worker deliberately honors that saved budget.
+
+
+### Publish the latest successful named analytical result — October23
+
+An explicit chart name is stable across a corrected calculation. Shared publication should retain the latest successful version for that name, preserve distinct names and ordering, and ignore failed or inherited executions. Replaying the real model result through the public API DTO checks this contract without changing or regrading the issued financial answer.
