@@ -100,6 +100,7 @@ class LocalResearchExecution:
                  input_usd_per_million: float, output_usd_per_million: float,
                  max_input_tokens: int = 1024 * 1024, max_output_tokens: int = 384 * 1024,
                  cost_basis: str = "provider_token_rates",
+                 unknown_charge_policy: str = "halt",
                  request_max_output_tokens: int | None = None,
                  max_provider_attempts: int | None = None,
                  retain_training_io: bool = False):
@@ -121,6 +122,9 @@ class LocalResearchExecution:
         self.max_provider_attempts = (int(max_provider_attempts)
                                       if max_provider_attempts is not None else None)
         self.cost_basis = cost_basis
+        if unknown_charge_policy not in {"halt", "reserve_maximum"}:
+            raise ValueError("Unknown charge policy must halt or retain the declared maximum exposure")
+        self.unknown_charge_policy = unknown_charge_policy
         if min(self.max_input_tokens, self.max_output_tokens) <= 0:
             raise ValueError("Positive token limits are required")
         if self.request_max_output_tokens is not None and not (
@@ -140,6 +144,7 @@ class LocalResearchExecution:
         self._lock = threading.RLock()
         self._reservations: dict[str, float] = {}
         self._charges: dict[str, float] = {}
+        self._charge_bounds: dict[str, float] = {}
         self._usage: dict[str, dict[str, Any]] = {}
         self._unknown: set[str] = set()
         self._pre_execution_rejections: dict[str, dict[str, Any]] = {}
@@ -163,6 +168,12 @@ class LocalResearchExecution:
             # An interrupted start has no trustworthy zero-cost interpretation.
             self._unknown.update(self._reservations)
             self._reservations.clear()
+        self.record("accounting_activations", {
+            "at_utc": datetime.now(timezone.utc).isoformat(), "budget_usd": self.budget_usd,
+            "unknown_charge_policy": self.unknown_charge_policy,
+            "input_token_limit": self.max_input_tokens, "output_token_limit": self.max_output_tokens,
+            "input_rate": self.input_rate, "output_rate": self.output_rate,
+        })
 
     @contextmanager
     def activate(self):
@@ -188,7 +199,9 @@ class LocalResearchExecution:
             raise ValueError("Unpriced local accounting requires local provider receipts")
         key = event["attempt_id"]
         if event["status"] == "started":
-            self._reservations.setdefault(key, 0.0)
+            maximum = (event.get("metadata") or {}).get("max_output_tokens") or self.max_output_tokens
+            self._charge_bounds.setdefault(key, self._maximum_charge(maximum))
+            self._reservations.setdefault(key, self._charge_bounds[key])
             return
         self._reservations.pop(key, None)
         usage = event.get("usage") or {}
@@ -210,27 +223,39 @@ class LocalResearchExecution:
             }
         elif usage.get("prompt_tokens") is None or usage.get("completion_tokens") is None:
             self._unknown.add(key)
+            # Older ledgers may contain a final receipt without its start.
+            # Reserve the declared model capacity when no narrower request cap
+            # was retained. The missing usage never becomes a zero charge.
+            self._charge_bounds.setdefault(key, self._maximum_charge(
+                (event.get("metadata") or {}).get("max_output_tokens") or self.max_output_tokens))
         else:
             self._charges[key] = (usage["prompt_tokens"] * self.input_rate
                                   + usage["completion_tokens"] * self.output_rate) / 1e6
             self._unknown.discard(key)
 
+    def _maximum_charge(self, output_tokens: int) -> float:
+        maximum = int(output_tokens)
+        if not 0 < maximum <= self.max_output_tokens:
+            raise ResearchSpendExceeded("Request output capacity exceeds its declared accounting bound")
+        return (self.max_input_tokens * self.input_rate + maximum * self.output_rate) / 1e6
+
     def reserve(self, attempt_id: str, payload: dict[str, Any]) -> None:
         # Reserve the declared model limits, including any server-side message
         # framing, rather than inferring a token upper bound from JSON bytes.
         maximum = int(payload.get("max_tokens") or self.max_output_tokens)
-        bound = (self.max_input_tokens * self.input_rate
-                 + maximum * self.output_rate) / 1e6
+        bound = self._maximum_charge(maximum)
         with self._lock:
-            if self._unknown and self.cost_basis == "provider_token_rates":
+            if self._unknown and self.cost_basis == "provider_token_rates" and self.unknown_charge_policy == "halt":
                 raise ResearchSpendExceeded("Earlier provider charge is unknown; further inference is stopped")
             if self.max_provider_attempts is not None and (
                 len(set(self._usage) | set(self._reservations) | self._unknown) >= self.max_provider_attempts
             ):
                 raise ResearchSpendExceeded("The declared provider attempt limit is exhausted")
-            if sum(self._charges.values()) + sum(self._reservations.values()) + bound > self.budget_usd:
+            unknown_bound = sum(self._charge_bounds[key] for key in self._unknown)
+            if sum(self._charges.values()) + unknown_bound + sum(self._reservations.values()) + bound > self.budget_usd:
                 raise ResearchSpendExceeded("The next request cannot fit within the declared experiment budget")
             self._reservations[attempt_id] = bound
+            self._charge_bounds[attempt_id] = bound
 
     def validate_transport(self, config: Any) -> None:
         if self.cost_basis == "local_resources_unpriced":
@@ -247,6 +272,13 @@ class LocalResearchExecution:
                         "input": self.input_rate, "output": self.output_rate},
                     "reservation_limits": {"input_tokens": self.max_input_tokens, "output_tokens": self.max_output_tokens},
                     "basis": "all input at cache-miss peak rate; output includes reasoning; estimate, not invoice"}
+            unknown_bound = sum(self._charge_bounds[key] for key in self._unknown)
+            result.update(unknown_charge_policy=self.unknown_charge_policy,
+                unknown_charge_upper_bound_usd=unknown_bound,
+                pending_reservation_usd=sum(self._reservations.values()),
+                accounted_spend_upper_bound_usd=sum(self._charges.values()) + unknown_bound,
+                inference_blocked_by_unknown_charge=bool(self._unknown and
+                    self.cost_basis == "provider_token_rates" and self.unknown_charge_policy == "halt"))
             result["unknown_usage_attempts"] = sorted(set(self._unknown) | {
                 key for key, usage in self._usage.items()
                 if usage.get("prompt_tokens") is None or usage.get("completion_tokens") is None
