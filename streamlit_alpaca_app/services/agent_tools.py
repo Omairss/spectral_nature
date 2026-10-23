@@ -1012,6 +1012,9 @@ def build_tool_registry(service: QueryService) -> ToolRegistry:
         )
     for tool in tools:
         tool["source_access"] = (
+            "none" if tool["name"] in {"tools.search", "system.capabilities"}
+            else "supplied" if tool["name"] == "analysis.run_files"
+            else
             "supplied" if tool["name"] in {"research.list_supplied_evidence", "research.read_supplied_evidence"} else
             "web"
             if tool["name"]

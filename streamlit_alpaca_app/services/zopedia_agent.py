@@ -3165,7 +3165,8 @@ def _execute_zopedia_agent_loop(
         if not isinstance(allowed_source_access, list) or not set(allowed_source_access) <= {"supplied", "retained_or_data", "web"}:
             raise ValueError("Invalid research source access scope")
         allowed_tool_catalog = [tool for tool in allowed_tool_catalog
-                                if tool.get("source_access") in allowed_source_access]
+                                if tool.get("source_access") == "none"
+                                or tool.get("source_access") in allowed_source_access]
     if source_policy == "retained_only":
         allowed_tool_catalog = [tool for tool in allowed_tool_catalog if tool.get("source_access") != "web"]
     tool_registry = ToolRegistry(allowed_tool_catalog)
