@@ -499,7 +499,19 @@
     "services/zopedia_runtime.py": "c5f6a8c9f6e9a8baab3aeab15429f7f028475dabe1cf22ba3b4e1e51b24ad188",
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
-  "reviewed_changes": {},
+  "reviewed_changes": {
+    "data_access/contracts.py": true,
+    "presentation/plotly.py": true,
+    "presentation/visualization_artifacts.py": true,
+    "services/agent_tools.py": true,
+    "services/agents/research_runs.py": true,
+    "services/aql_zopedia_engine.py": true,
+    "services/zopedia_agent.py": true,
+    "services/zopedia_analysis.py": true,
+    "web/app/globals.css": true,
+    "web/app/zopedia/runs/[runId]/research-run-view.tsx": true,
+    "web/lib/types.ts": true
+  },
   "retired_files": [
     "scripts/eval_critique_harness.py",
     "services/analytics.py",
@@ -698,7 +710,19 @@
     {
       "name": "Shared research chart source and numerical publication",
       "status": "accepted",
-      "files": [],
+      "files": [
+        "data_access/contracts.py",
+        "presentation/plotly.py",
+        "presentation/visualization_artifacts.py",
+        "services/agent_tools.py",
+        "services/agents/research_runs.py",
+        "services/aql_zopedia_engine.py",
+        "services/zopedia_agent.py",
+        "services/zopedia_analysis.py",
+        "web/app/globals.css",
+        "web/app/zopedia/runs/[runId]/research-run-view.tsx",
+        "web/lib/types.ts"
+      ],
       "evidence": "documents/verification/research-charts-2026-10-23/source-review.json"
     }
   ],

@@ -1160,3 +1160,8 @@ The initial local Markdown preview omitted the forecast ledger. The signed-in de
 ### October 22 — native installation documentation lagged the accepted release
 
 The native README still described build 7 as installed and build 8/Trading as held after the accepted October 16 installation and October 18 server release. Replaced those stale status claims with the current renewal receipt and retained historical evidence links. During verification, CoreDevice rejected a string-contains filter on its URL-valued executable field; use the numeric processIdentifier returned by launch.
+
+
+## Source review paths must resolve from the repository root — 2026-10-23
+
+The first chart acceptance generator supplied a repository-root path while running Git from the application subdirectory, producing an empty change set. The mandatory source gate rejected it before any build. Resolve Git paths from the repository root and check the expected nonempty changed-file list before committing acceptance; all11 actual chart runtime/web changes are now enumerated.
