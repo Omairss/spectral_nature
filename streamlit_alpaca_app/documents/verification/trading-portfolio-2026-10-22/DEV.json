@@ -1,0 +1,76 @@
+{
+  "status": "accepted_in_development",
+  "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
+  "source_inventory_sha256": "51639de46c627ff9ef4db30876693d1b030e33537c8d40d604d2fd8f4ecb5544",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558"
+  },
+  "targets": [
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
+      "configuration_sha256": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "role": "api-next",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:97568a0e62cdbfc817612b31d54ad7ae1fe06bc6f556f340d3c8077188bee274",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
+      "configuration_sha256": "b546d17b52c6345f1367ba8af379a99bb814599e0e35e17f7348fb69862ee9ce",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "readiness": [
+    {
+      "name": "sn-next-ui-dev",
+      "latest": "sn-next-ui-dev--0000034",
+      "ready": "sn-next-ui-dev--0000034",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf"
+    },
+    {
+      "name": "sn-api-next-dev",
+      "latest": "sn-api-next-dev--0000056",
+      "ready": "sn-api-next-dev--0000056",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558"
+    }
+  ],
+  "consumer_check": {
+    "consumers": 36,
+    "changed_images": [
+      "sn-api-next-dev",
+      "sn-next-ui-dev"
+    ],
+    "all_configurations_preserved": true,
+    "all_other_images_preserved": true,
+    "production_application_images_preserved": true,
+    "source_inventory_sha256": "51639de46c627ff9ef4db30876693d1b030e33537c8d40d604d2fd8f4ecb5544",
+    "images": {
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558"
+    }
+  },
+  "authenticated_checks": {
+    "web_account": "100000 USD equity and cash, 400000 buying power, zero broker positions/orders; API refresh observed 2026-10-22T23:56:45Z",
+    "native_account": "Signed build 10, retained dev login, successful real API refresh and same broker values",
+    "research_observation": "MARA original thesis and dated per-call return/SPY chart retained through lazy detail",
+    "review": "RIOT risk controls use shared defaults; normal authenticated Calculate size returned closed-market message and submitted no order",
+    "health": "Isolated dev maintenance panel displays preserved runs/results/usage; no research behavior changed"
+  },
+  "operator_paper_orders_submitted": 0,
+  "production_authorized": false,
+  "physical_phone_build": 9,
+  "new_native_build": 10,
+  "limits": [
+    "Sizing is a volatility/covariance budget; no calibrated alpha or Kelly-optimal claim. Holdout misses the 2025 shock by 3.33x.",
+    "No provider paper POST was used for QA. Confirmation, timeout recovery and receipt matching were checked with isolated protocol/UI fixtures.",
+    "Actual dev setup ran through the accepted service inside DEV API to use its Key Vault identity and control database. An earlier unused development-scoped binding in the local default control store was disconnected.",
+    "Compatible brokerage schema additions also remain in the local default control store from initial setup; existing production application images and other broker connections were preserved.",
+    "17 maintenance runtime files remain DEV-only and prevent incidental promotion of these integrated images to production."
+  ]
+}

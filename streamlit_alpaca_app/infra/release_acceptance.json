@@ -1655,7 +1655,13 @@
     "status": "not_requested"
   },
   "development_acceptance": {
-    "status": "not_deployed"
+    "status": "accepted",
+    "images": {
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558"
+    },
+    "source_inventory_sha256": "51639de46c627ff9ef4db30876693d1b030e33537c8d40d604d2fd8f4ecb5544",
+    "evidence": "documents/verification/trading-portfolio-2026-10-22/DEV.json"
   },
   "consumer_contract_reviews": {
     "database_lifecycle": {

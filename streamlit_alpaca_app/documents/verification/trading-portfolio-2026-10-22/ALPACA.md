@@ -61,7 +61,7 @@ call/order-review navigation use declared presentation fixtures. No broker order
 endpoint is connected to that fixture. The review shows its computed amount,
 policy limits, history dates and volatility before/after.
 
-Signed native build 10 compiled successfully and was inspected in the iPhone 16 simulator. The account view renders broker balances and ISO timestamps; the review shows exact shares, amount and shared risk inputs. Captures: alpaca-native-overview.png and alpaca-native-review.png. Native request handling rejects malformed objects and retains recoverable errors. Final exact-source packaging and authenticated development verification remain pending. No application image from this task is deployed and build 10 is not installed on the physical phone. Source/build
+Signed native build 10 compiled successfully and was inspected in the iPhone 16 simulator. The account view renders broker balances and ISO timestamps; the review shows exact shares, amount and shared risk inputs. Captures: alpaca-native-overview.png and alpaca-native-review.png. Native request handling rejects malformed objects and retains recoverable errors. Exact-source packaging and authenticated DEV verification are now complete (recorded below). Build 10 is not installed on the physical phone. Source/build
 qualification does not authorize production. Preserve the separately accepted
 seventeen-file dev maintenance runtime during integration, and do not promote
 that experimental research source to production incidentally.
@@ -71,3 +71,11 @@ still flags its pre-existing synchronous state update in an unchanged effect;
 new Trading files pass scoped lint. This distinction remains part of the review.
 
 The native review exposed broker decimal-string values masked by browser coercion. The shared public DTO now emits finite numbers for amounts/prices and ISO8601 timestamps, retaining exact order quantity strings. All 21 paper checks passed after this correction.
+
+## Development acceptance
+
+The exact API/web packages are verified and deployed only to DEV. See [DEV.json](DEV.json) and [packaged-images.json](packaged-images.json). Web revision 0000034 and API revision 0000056 are healthy/latest-ready. Authenticated web and signed native build 10 both refreshed the real broker account successfully with $100,000 cash/equity and zero orders/positions. The retained MARA thesis and dated return/SPY chart load correctly; RIOT sizing review reaches the expected closed-market response through normal authentication/CSRF without an order. The Health maintenance panel renders its retained records. All 36 consumer configurations and 34 other images are unchanged.
+
+The initial local setup resolved a different default control database. Its unused development-scoped paper binding was disconnected; actual setup ran inside the DEV API using its existing managed identity. Compatible brokerage schema additions from initial setup remain in that local default control store; no production app image or other broker connection was replaced.
+
+The integrated development images retain the 17 maintenance files and are not production-approved. Physical phone remains on build 9; build 10 is verified in Simulator. Production source/acceptance and installation need explicit owner authorization.
