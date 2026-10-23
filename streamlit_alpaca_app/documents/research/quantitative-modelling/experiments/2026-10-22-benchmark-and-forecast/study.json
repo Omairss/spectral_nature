@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-10-23T10:23:59.042705+00:00",
+  "updated_at_utc": "2026-10-23T17:22:46.858803+00:00",
   "owner_goals": [
     "Evaluate the model on every external benchmark in the retained source catalog.",
     "Create Seeking Alpha future-prediction tasks with extensive controlled context and no target leakage.",
@@ -155,7 +155,7 @@
     "native_original_end": "Stopped after3601 provider attempts because one24ms ConnectionError returned no usage. Original receipts and one failed first response retained.",
     "convfinqa_requested_units_session": null,
     "financebench_session": null,
-    "findeepforecast_session": 31840,
+    "findeepforecast_session": null,
     "chart_connection": {
       "accepted_worktree": "/Users/omairs/Documents/code/spectral_nature_research_charts_20261023",
       "plan": "../../../../plans/ZOPEDIA_RESEARCH_CHARTS_2026-10-23.md",
@@ -166,7 +166,8 @@
       "source_inventory": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
       "production_record": "../../../../verification/research-charts-2026-10-23/publication-production.json",
       "all36_consumer_audit": "passed;allconfigurationspreserved,18productionPythonimagesupdated,2web+16DEVimagesretained."
-    }
+    },
+    "findeepforecast_primary_end": "One HTTP402 at2026-10-23T17:04UTC after360new completions;1001subsequent local provider-unavailable records. All original attempts retained."
   },
   "budget": {
     "native_benchmarks_reference_ceiling_usd": 82,
@@ -186,10 +187,12 @@
     },
     "findeepforecast_new_reference_ceiling_usd": 35,
     "findeepforecast_probe_known_usd": 0.31146588,
-    "findeepforecast_estimated_full_usd": 29.241828
+    "findeepforecast_estimated_full_usd": 29.241828,
+    "findeepforecast_primary_new_known_usd": 8.89810944,
+    "findeepforecast_carried_32k_probe_known_usd": 0.1707552
   },
   "next_actions": [
-    "Chart delivery complete. Continue fullFinDeepForecast run, source/definition FinanceBenchadjudication and nativeworkbook capability work. No completed goal claim.",
+    "Resume all1002unavailable FinDeepForecast cases under the append-only recovery protocol and original cumulative35dollar reference cap. Preserve first attempts and keep raw reference agreement separate from financial validity.",
     "Finish source/definition adjudication and publish the personal FinanceBench comparison. All150 final answers reviewed; no final score. Keep published-reference agreement separate from source-supported corrections.",
     "Use personal reviews of all8usable forecast outputs to improve shared period/calendar/numerical handoffs and concise instructions, evaluated on newissuers/origins. Preserve original forecasts and failedGNKprimary.",
     "Resolve native workbook execution as a shared capability, not benchmark-local authoring; no native workbook successes claimed yet.",
@@ -204,7 +207,10 @@
     "private_store": "/Users/omairs/Library/Application Support/SpectralNature/research/2026-10-22-analyst-evaluation",
     "ground_truth_spec": "ground-truth-spec.json",
     "forecast_scores": "forecast-scores.json",
-    "production": "../../../../verification/quantitative-compute-2026-10-22/production.json"
+    "production": "../../../../verification/quantitative-compute-2026-10-22/production.json",
+    "findeepforecast_scores": "findeepforecast-primary-scores.json",
+    "findeepforecast_review": "findeepforecast-personal-review.json",
+    "finch_actor_audit": "finch-input-capability-audit.json"
   },
   "owner_constraints": {
     "custom_ground_truth": "Primary agent personally defines and verifies ground truth from source records. No other LLM labels outcomes or makes the final grading judgment. Code calculates numerical scores.",
@@ -235,5 +241,16 @@
     "native_accounting_upper_bound_usd": 78.165252,
     "pending_provider_attempts": 0,
     "review": "financebench-personal-review.json"
+  },
+  "findeepforecast_progress": {
+    "primary_completed_answers": 368,
+    "remaining_without_prediction": 1002,
+    "primary_attempt_inventory": "findeepforecast-primary-attempts.json",
+    "literal_reference_comparison": "findeepforecast-primary-scores.json",
+    "personal_review": "findeepforecast-personal-review.json",
+    "financial_accuracy": "Unadjudicated; mixed reference units and a source-confirmed discrepancy.",
+    "recovery_protocol": "protocol-findeepforecast-recovery-01.json",
+    "recovery_status": "prepared; existing provider account available again",
+    "recovery_execution": null
   }
 }

@@ -1,0 +1,10 @@
+{
+  "scope": "Deterministic orchestration replay using actual retained HTTP402 result envelope. All generated replay records are outside every benchmark output directory.",
+  "real_provider_calls": 0,
+  "first_returned_failure_halts_before_later_cases": true,
+  "technical_retry_appends_and_links_previous_attempt": true,
+  "first_completed_answer_is_not_replaced_or_retried": true,
+  "original_failure_is_unchanged": true,
+  "primary_attempt_manifest_sha256": "2f2801c1d3ecb845bc956b224b7dddff01cee23fb45d10ee5f3db3910aaad349",
+  "runner_sha256": "473d880bdfdc85ca5329645949c894ec943a3f7d2210602c20e01d3c6ecdf7a6"
+}

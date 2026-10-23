@@ -1,0 +1,158 @@
+{
+  "reviewed_at_utc": "2026-10-23T17:20:39.465342+00:00",
+  "reviewer": "Primary agent; no other LLM",
+  "scope": "Personally reviewed the published policy, all36macro target classes, selected scalar comparisons and one independent issuer source. Code verified all368completed table/field/unit contracts. Not an independent outcome audit of all1370published references.",
+  "primary_completion": {
+    "full_release": 1370,
+    "completed_answers": 368,
+    "provider_unavailable": 1002,
+    "native_literal_correct": 107,
+    "zero_reference_unresolved": 1,
+    "raw_completed_accuracy_percent_bounds": [
+      29.07608695652174,
+      29.347826086956523
+    ]
+  },
+  "event_comparison": {
+    "model_correct": 72,
+    "always_no_correct": 82,
+    "completed_events": 110,
+    "interpretation": "The model does not beat the fixed NO baseline on this completed subset."
+  },
+  "native_reference_findings": {
+    "unit_warning": "The same Value (%) header covers percentage points, fractional ratios and ordinary multiples. Do not rescale every percentage label or silently replace publisher labels.",
+    "corporate_percent_rows": 175,
+    "gross_margin_percent_rows": 24,
+    "other_percent_label_rows_requiring_unit_review": 151,
+    "completed_percent_rows": 49,
+    "metric_distributions": {
+      "Gross Margin": {
+        "count": 24,
+        "minimum": 16.6,
+        "maximum": 89.27,
+        "median": 32.974999999999994
+      },
+      "Operating Margin": {
+        "count": 19,
+        "minimum": -0.4840893,
+        "maximum": 0.33296362,
+        "median": 0.12320105
+      },
+      "EBITDA Margin": {
+        "count": 19,
+        "minimum": -0.0091673,
+        "maximum": 0.55326363,
+        "median": 0.13797409
+      },
+      "Net Margin": {
+        "count": 17,
+        "minimum": -0.3603003,
+        "maximum": 0.40267888,
+        "median": 0.11412399
+      },
+      "Return on Assets (RoA)": {
+        "count": 11,
+        "minimum": -0.1279915,
+        "maximum": 0.04929926,
+        "median": 0.0177443
+      },
+      "Equity Ratio": {
+        "count": 9,
+        "minimum": -1.136911,
+        "maximum": 0.73867324,
+        "median": 0.47460412
+      },
+      "Liability-to-Assets Ratio": {
+        "count": 17,
+        "minimum": 0.16849028,
+        "maximum": 1.03568836,
+        "median": 0.55347641
+      },
+      "Return on Equity (RoE)": {
+        "count": 17,
+        "minimum": -0.245614,
+        "maximum": 0.20538479,
+        "median": 0.04744684
+      },
+      "Current Ratio": {
+        "count": 13,
+        "minimum": 0.32225787,
+        "maximum": 3.99789162,
+        "median": 1.27377575
+      },
+      "Interest Coverage Ratio (Operating Income)": {
+        "count": 2,
+        "minimum": 0.31118335,
+        "maximum": 0.47268441,
+        "median": 0.39193388
+      },
+      "Profit Margin": {
+        "count": 24,
+        "minimum": -0.1894454,
+        "maximum": 0.40595087,
+        "median": 0.080235435
+      },
+      "Interest Coverage Ratio (EBITDA)": {
+        "count": 1,
+        "minimum": 6.05428571,
+        "maximum": 6.05428571,
+        "median": 6.05428571
+      },
+      "Interest Coverage Ratio (EBIT)": {
+        "count": 1,
+        "minimum": 2.58285714,
+        "maximum": 2.58285714,
+        "median": 2.58285714
+      },
+      "NPL Ratio": {
+        "count": 1,
+        "minimum": 0.01236107,
+        "maximum": 0.01236107,
+        "median": 0.01236107
+      }
+    },
+    "examples": {
+      "6056": {
+        "metric": "Apollo Q3 2025 EBITDA Margin",
+        "model_percent": 34.6,
+        "published_reference": "0.11835749",
+        "status": "Reference unit/definition unverified; literal mismatch does not establish 291x economic error."
+      },
+      "5952": {
+        "metric": "Williams Q3 2025 Profit Margin",
+        "model_percent": 40.1,
+        "published_reference": "0.18645228",
+        "source": "https://www.sec.gov/Archives/edgar/data/110019/000010726325000145/wmb-20250930.htm",
+        "filing_index": "https://www.sec.gov/Archives/edgar/data/107263/000010726325000145/0000107263-25-000145-index.htm",
+        "issuer_release": "https://investor.williams.com/news-releases/news-release-details/williams-delivers-strong-third-quarter-2025-results",
+        "source_table": "Consolidated Statement of Income, three months ended September30,2025, millions USD",
+        "revenue": 2923,
+        "consolidated_net_income": 683,
+        "attributable_parent_net_income": 647,
+        "common_net_income": 646,
+        "derived_margin_percent": {
+          "consolidated": "23.36640437906260691070817653",
+          "parent": "22.13479302086897023605884365",
+          "common": "22.10058159425248032842969552"
+        },
+        "publication_date": "2025-11-03",
+        "native_forecast_deadline": "2025-11-02",
+        "native_expected_release": "2025-11-03",
+        "judgment": "Both the literal0.18645228%and its18.645228%fractional interpretation differ from these standard quarter net-margin definitions. The model40.1%is also wrong under each. Keep raw native comparison; source/definition correction is a separate assessment. No date leakage established: the filing index and issuer release both confirm November3, after the deadline."
+      },
+      "4424": {
+        "metric": "NextEra Q3 2025 R&D Expense",
+        "model_millions_USD": 13,
+        "published_reference": "0",
+        "judgment": "Published relative-error formula is undefined at zero; retain unresolved native convention. Independently verifying the expense definition remains open."
+      },
+      "4296": {
+        "metric": "CoStar Q3 2025 Cash from Investing Activities",
+        "model": "-$220.4",
+        "reference": "-1688.4",
+        "judgment": "Currency formatting is unambiguous in the USDmillions column. The global scalar parser reads-220.4; this is a numerical mismatch, not an extraction failure."
+      }
+    }
+  },
+  "assessment": "Useful format acceptance, weak literal numeric agreement and event discrimination, plus external data-quality problems. This retrospective, model-only condition cannot establish uncontaminated future prediction. No prompt tuning, automatic reference repair or completed-answer replacement follows from these scores."
+}

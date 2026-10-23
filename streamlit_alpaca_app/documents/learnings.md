@@ -1203,3 +1203,10 @@ Database admission waits belong inside the complete execution deadline. An arbit
 
 ### October 18 — release every consumer needed by the requested feature
 A working backend endpoint and code in Git do not deploy a Next.js feature. The frontend's compiled route manifest and freshly loaded authenticated page must contain its adapter and control. An old open tab can retain removed JavaScript, data and UI for days; reload before using it as live acceptance. Preserve unrelated work by reviewing the complete current Git frontend and releasing through the same source/consumer gate, rather than treating a required missing consumer as an unrelated limitation.
+
+
+### Native benchmark availability and reference units — October23
+
+The shared engine returns provider failures as structured results as well as raised exceptions. Batch owners must honor both and stop before assigning unavailable work a prediction result. Append technical retries with predecessor hashes, preserve the first completed answer and choose recovery cases by execution status, never by correctness. A replay of the actual402envelope verified this without provider calls.
+
+Keep published-reference agreement separate from financial validity. FinDeepForecast uses the same percentage header for percentage points, fractional ratios and some multiples. Check issuer statements, publication dates and definitions before normalizing references or using them as training targets. One Williams source check found both a publisher discrepancy and a genuine model error.

@@ -1,0 +1,2164 @@
+{
+  "audited_at_utc": "2026-10-23T17:21:25.291228+00:00",
+  "publisher": "https://huggingface.co/datasets/FinWorkBench/Finch/tree/530700c28f7eb68a66c7753d7857c5be80ca274d",
+  "task_count": 172,
+  "declared_input_files": 198,
+  "input_file_types": {
+    ".xlsx": 150,
+    ".jpeg": 12,
+    ".pdf": 14,
+    ".docx": 1,
+    ".csv": 9,
+    ".json": 6,
+    ".md": 6
+  },
+  "xlsx_files_with_features": {
+    "drawings": 43,
+    "charts": 25,
+    "external_links": 34,
+    "pivot_tables": 3
+  },
+  "actor_only_audit": true,
+  "reference_files_exposed_to_model": 0,
+  "native_workflows_executed": 0,
+  "scoring_condition": "Official implementation uses a GPTjudge. Primary-agent review must be reported as a separate evaluation condition; no LLMjudge will be run.",
+  "source_preservation": "Openpyxl documents shape loss on round-trip. Do not use a successful save or file-count check as preservation acceptance. LibreOffice UNO remains a candidate requiring formula and layout compatibility review.",
+  "inputs": [
+    {
+      "task_id": "0",
+      "file": "0_src_0.xlsx",
+      "bytes": 79613,
+      "sha256": "40397df4ff9ae47d84f071ca01886edcac90a28c2bc0aeb18556264222de807b",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 2,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "1",
+      "file": "1_src_0.xlsx",
+      "bytes": 81237,
+      "sha256": "72c432fa03f6721b4a1a61d735e4fa0a749900ef89305ddced1e785fcc792295",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 2,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "2",
+      "file": "2_src_0.xlsx",
+      "bytes": 425059,
+      "sha256": "ba42c117eac3edee60486e3515559de1c832d3843fd60be20db235645936910d",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "3",
+      "file": "3_src_0.xlsx",
+      "bytes": 56776,
+      "sha256": "e0ab74e5ac67345f4abd714445c57d4ae252fdd66a74ca0fc02db6e066c8ea9c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "3",
+      "file": "3_src_1.xlsx",
+      "bytes": 425055,
+      "sha256": "70bfae19e2f0716db7009cb9ea8ce1fcd155e662a01ba8c9af8ebb8251f420f6",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_0.xlsx",
+      "bytes": 56776,
+      "sha256": "e0ab74e5ac67345f4abd714445c57d4ae252fdd66a74ca0fc02db6e066c8ea9c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_1.jpeg",
+      "bytes": 140188,
+      "sha256": "c4b5f735581d8d7708c4532e259e292b7e79587bdc90cd9a675706073c48dde3",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_2.jpeg",
+      "bytes": 310851,
+      "sha256": "0eb089b831ed070e78a0f01f9e2e93d5791c3ee9e9c24a7aa122e1a2d8e01afb",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_3.jpeg",
+      "bytes": 313584,
+      "sha256": "b0cefc9237a580b0102eb15f8ba7bb9067d2c2e239f49d630271667bd51068d4",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_4.jpeg",
+      "bytes": 269523,
+      "sha256": "9dbe79f01984ec9f2483f3542466c9105fdad5580ee41eadbf5a0c0638e3c270",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_5.jpeg",
+      "bytes": 330549,
+      "sha256": "89360384d40f6924cb135f8aa1a365ab78232557a4e047e439cd9a05de246c64",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_6.jpeg",
+      "bytes": 269220,
+      "sha256": "b618914ecbe38316f15f1222fc26e1848b4559b16e899f5d1978df70e58e4b56",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_7.pdf",
+      "bytes": 106797,
+      "sha256": "5d37c9643dda4385de5af6ab96314df7fd5a138419f7d45319a8f6b42a800c76",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_8.pdf",
+      "bytes": 108923,
+      "sha256": "501120e5e964852475c64b1b04e1308ef823279b9e4e3d0ce663ed2707deaf0d",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_9.pdf",
+      "bytes": 107904,
+      "sha256": "63c21528e6201adbf6f53838e8a44f510e599808e160139c621681924bd7ea88",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_10.pdf",
+      "bytes": 115781,
+      "sha256": "508e30fa8c3ee93a33fcd8b676c9dab2f4cbeceb984fb2c628e521e1b63b283a",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_11.pdf",
+      "bytes": 120695,
+      "sha256": "7cf78c6684343edec3a2d63cee8f3803ea82089619b9fb9560cb49ea3df0bf4b",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "4",
+      "file": "4_src_12.pdf",
+      "bytes": 112109,
+      "sha256": "12e410a19c9120a12985336f390580a44e8acf009c101f594702df1765dcdf76",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "5",
+      "file": "5_src_0.pdf",
+      "bytes": 157826,
+      "sha256": "67ff6decc583a74f3d40319cd91fa9bf1811db56ea1ba2c636c9accc75df3b78",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "5",
+      "file": "5_src_1.jpeg",
+      "bytes": 336832,
+      "sha256": "6d84cfa079e9dc84edc6254ca1addc0925c4ea4ef2e5098256a7bdeb0a7ef617",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "6",
+      "file": "6_src_0.xlsx",
+      "bytes": 28682,
+      "sha256": "b22b1eeae1dac0602d1282bdbb8c1d17d385be2132560ca2565d2c7d9c020f25",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "7",
+      "file": "7_src_0.docx",
+      "bytes": 143707,
+      "sha256": "4364d690a4588569cee44449f94afd9a685e6ddf240c62eda5473f1d62d7f6ec",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "10",
+      "file": "10_src_0.xlsx",
+      "bytes": 3639534,
+      "sha256": "7eccf4ca04b28439da59134b8c21792032d21a4f2b06f1b5c83019b65d520ac6",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "11",
+      "file": "11_src_0.xlsx",
+      "bytes": 3984528,
+      "sha256": "2d4aebc67086c9be842b7a545a3116abf1d0e7a0cca198a02ef47bd41fd6898f",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "12",
+      "file": "12_src_0.xlsx",
+      "bytes": 4034607,
+      "sha256": "99c9ddd64440afc273c08fc46ffa8e6599b702e4acc3861c18246d1be2c98495",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "13",
+      "file": "13_src_0.xlsx",
+      "bytes": 460324,
+      "sha256": "a18b9191a522e4d7d99f39eb691c8d12286bb85b0f58c4f661aa0dc60e29e099",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "14",
+      "file": "14_src_0.xlsx",
+      "bytes": 460584,
+      "sha256": "16696a352ad75b572f5f174921839cb0b52452c65230048a8804b8b670cec726",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "15",
+      "file": "15_src_0.xlsx",
+      "bytes": 4191506,
+      "sha256": "85b9e53de9f88eee7b7d2bf21785054975407bfb5c72850853e772518cffd6cc",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "16",
+      "file": "16_src_0.pdf",
+      "bytes": 287559,
+      "sha256": "c84f66f4f20ce0058e88c5b6e64af073172a19450b843257eeedf33a6933b4e1",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "16",
+      "file": "16_src_1.xlsx",
+      "bytes": 46076,
+      "sha256": "f6f24312f74defa90f4d75a8f78433e2d7fc5cc275f39760e413a4951b17d77e",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "17",
+      "file": "17_src_0.csv",
+      "bytes": 194,
+      "sha256": "6744cf1962e4b5086342821e627f4557c32f06c3c58e8b0ff3b449dcc634f37f",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "17",
+      "file": "17_src_1.json",
+      "bytes": 531118,
+      "sha256": "9a833666ae9be5a8e756dd1fe076c72e7c502d64161315ffa8fee9e5bf2599dc",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "17",
+      "file": "17_src_2.md",
+      "bytes": 22127,
+      "sha256": "bb7f4ca6fdc759af1f480702b3a3b12e17e9293b0d38a1dbfbbc8ffc1e572d2c",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "17",
+      "file": "17_src_3.csv",
+      "bytes": 26611,
+      "sha256": "83247d79f5ddcdd180e02f184b644f4912731942a2fc58d91f2a06b911d04b41",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "17",
+      "file": "17_src_4.json",
+      "bytes": 6857,
+      "sha256": "f158e834de27ee8407e99d9c32da690357981d2770958fd302a9bb79ced83581",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "17",
+      "file": "17_src_5.csv",
+      "bytes": 23581339,
+      "sha256": "5fbb26210a45427d7a6560cfab3a362a08e4067f27cd03695f211a51c47ffc25",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "17",
+      "file": "17_src_6.md",
+      "bytes": 1719,
+      "sha256": "8754b92d0b3127856ff72266ea482995d2a1f6a34d0a12732f7c26f527f2c4a5",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "18",
+      "file": "18_src_0.csv",
+      "bytes": 194,
+      "sha256": "6744cf1962e4b5086342821e627f4557c32f06c3c58e8b0ff3b449dcc634f37f",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "18",
+      "file": "18_src_1.json",
+      "bytes": 531118,
+      "sha256": "9a833666ae9be5a8e756dd1fe076c72e7c502d64161315ffa8fee9e5bf2599dc",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "18",
+      "file": "18_src_2.md",
+      "bytes": 22127,
+      "sha256": "bb7f4ca6fdc759af1f480702b3a3b12e17e9293b0d38a1dbfbbc8ffc1e572d2c",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "18",
+      "file": "18_src_3.csv",
+      "bytes": 26611,
+      "sha256": "83247d79f5ddcdd180e02f184b644f4912731942a2fc58d91f2a06b911d04b41",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "18",
+      "file": "18_src_4.json",
+      "bytes": 6857,
+      "sha256": "f158e834de27ee8407e99d9c32da690357981d2770958fd302a9bb79ced83581",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "18",
+      "file": "18_src_5.csv",
+      "bytes": 23581339,
+      "sha256": "5fbb26210a45427d7a6560cfab3a362a08e4067f27cd03695f211a51c47ffc25",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "18",
+      "file": "18_src_6.md",
+      "bytes": 1719,
+      "sha256": "8754b92d0b3127856ff72266ea482995d2a1f6a34d0a12732f7c26f527f2c4a5",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "20",
+      "file": "20_src_0.xlsx",
+      "bytes": 30038,
+      "sha256": "01f24e077eda9026d5a144cd3b894881f2c57d508c0e4d3d2c3427e42b55eddc",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "21",
+      "file": "21_src_0.xlsx",
+      "bytes": 29119,
+      "sha256": "1471369e7905b17e465ee7c64864084af2d8535995880b869a637bb67681aaf5",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "22",
+      "file": "22_src_0.xlsx",
+      "bytes": 73796,
+      "sha256": "aa65e725ddfe7dc9d2dfa9885b915d69898f776b79caa03c353b92bd0b579298",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 1,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "23",
+      "file": "23_src_0.xlsx",
+      "bytes": 68120,
+      "sha256": "58a5e136743fb62ab902183f4d2ae79f845989cc7b05b09bc6146671a0ae9521",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 1,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "24",
+      "file": "24_src_0.xlsx",
+      "bytes": 52512,
+      "sha256": "b35cede39defec37318688269cbbc9b1ee30231ab477fa5731dfe0bfc4cb1df0",
+      "xlsx_features": {
+        "charts": 4,
+        "drawings": 2,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "25",
+      "file": "25_src_0.xlsx",
+      "bytes": 62908,
+      "sha256": "13416773a63d917d767793821557bc853e4bd1031c9f8ee03448425cd81e5d6a",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 8,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "26",
+      "file": "26_src_0.xlsx",
+      "bytes": 50638,
+      "sha256": "cf2ca4ef5ec01a645fa2dd0f4d07552269de30fb8a36097cd3d0203c89f3dcb3",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 3,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "27",
+      "file": "27_src_0.xlsx",
+      "bytes": 82459,
+      "sha256": "5ffa48aa326e91f8fa0652b7985cc571c28554d621e5b6f60ea9a1d22f6f7833",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "28",
+      "file": "28_src_0.xlsx",
+      "bytes": 108111,
+      "sha256": "38649006760addc24b8421280c3bea7e3889bfa9737b15602e1d01dfec89f2ed",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "29",
+      "file": "29_src_0.xlsx",
+      "bytes": 108450,
+      "sha256": "af4d7a9d1c723d57efdfc4e63a3f5c73dcdc8a667592f6200a66def7835a0463",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "30",
+      "file": "30_src_0.xlsx",
+      "bytes": 1030406,
+      "sha256": "5b14d429c6c2c83f78bc2c01744ef29f09070a3f2e0aad93517db5bc4e967805",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 7,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "31",
+      "file": "31_src_0.xlsx",
+      "bytes": 17728,
+      "sha256": "4c75d597660d26c42ff8470fd9c511c19ab450766846548703f57ede216bf9c9",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "32",
+      "file": "32_src_0.xlsx",
+      "bytes": 18690,
+      "sha256": "70a306343cd8ebd60e3c142854525012bae5a5332f6edb918d40056825512aa1",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "33",
+      "file": "33_src_0.xlsx",
+      "bytes": 1334234,
+      "sha256": "63e5bf71ddca7de1227327bfc7759b71d7ef1be617fb4e70b321cd71c583b581",
+      "xlsx_features": {
+        "charts": 4,
+        "drawings": 4,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "34",
+      "file": "34_src_0.xlsx",
+      "bytes": 49644,
+      "sha256": "839721238c41b2936c6f11f6e200bf715cd159181fc229e2b04a9c0de0f3fc7c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "35",
+      "file": "35_src_0.xlsx",
+      "bytes": 273725,
+      "sha256": "a2b53bc2e870425d6170250882fa4b46304d666e818cd4eac555dff1be9e02e4",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "36",
+      "file": "36_src_0.xlsx",
+      "bytes": 98035,
+      "sha256": "3a31418f8d2ab16cb8f2802895bf8703ac3ea8af7d933e056b8e59aea55340d1",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "37",
+      "file": "37_src_0.xlsx",
+      "bytes": 106947,
+      "sha256": "b34190bf07d46e6b7a4d9a547881c9d15684d4d352203074b4f67792c2d7e73b",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "38",
+      "file": "38_src_0.xlsx",
+      "bytes": 15128,
+      "sha256": "ac29f15ab67fc02f265472333032fb390b8aa4831df5d87ac200b822eebe4269",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "39",
+      "file": "39_src_0.xlsx",
+      "bytes": 276761,
+      "sha256": "68753ef052a472db0dc8ef9a878c27c5689899b265eea297ebce75a605e568d2",
+      "xlsx_features": {
+        "charts": 41,
+        "drawings": 17,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "40",
+      "file": "40_src_0.xlsx",
+      "bytes": 174723,
+      "sha256": "ddefa7bc75f270d9e413453b8f5f7ae1365f4eb6fa251a947b3e3642bc7f3a0f",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 8,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "41",
+      "file": "41_src_0.xlsx",
+      "bytes": 56387,
+      "sha256": "42227cfcf7aa0c502036ab8c71dfd53ffd8a5b1ebe2f54c4a3168221e61d6a78",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "42",
+      "file": "42_src_0.xlsx",
+      "bytes": 142900,
+      "sha256": "1226f203edf7e6fda04dc82ffb59a6fbf0d9edd560b15cc1cbfe86dd2633aaa0",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 5,
+        "pivot_tables": 0,
+        "external_links": 6
+      }
+    },
+    {
+      "task_id": "43",
+      "file": "43_src_0.xlsx",
+      "bytes": 110794,
+      "sha256": "cda07b2f1c4e1e669a4bd2d6d13ec85b939a8e6da834db08a5e626689cabe10f",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 4,
+        "pivot_tables": 0,
+        "external_links": 5
+      }
+    },
+    {
+      "task_id": "44",
+      "file": "44_src_0.xlsx",
+      "bytes": 62462,
+      "sha256": "89bec82b981ec3abf2f63db740e7b34c1240aecff3d20f5eff4a7a6791bdf99d",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "45",
+      "file": "45_src_0.xlsx",
+      "bytes": 88973,
+      "sha256": "24872a38f52bb152a6e13f45770224d68ac2a366f195107d580b938a4dbf3bc2",
+      "xlsx_features": {
+        "charts": 6,
+        "drawings": 4,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "46",
+      "file": "46_src_0.xlsx",
+      "bytes": 22237,
+      "sha256": "a7dbd7833b19b40cb9bd8e9c6943df5118471785f1dc6892587c15da89e67dca",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "47",
+      "file": "47_src_0.xlsx",
+      "bytes": 21859,
+      "sha256": "2f7bdf83e3f357f347773b7482da550861b3d970c166b17fd2b70ae199b272b0",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "48",
+      "file": "48_src_0.xlsx",
+      "bytes": 22272,
+      "sha256": "ff86a57ad2305c36c00e1b39ef619035bd5411da1c1af5e78629f1b3a4601206",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "49",
+      "file": "49_src_0.xlsx",
+      "bytes": 17324,
+      "sha256": "6c771861bac9ab35c6c0741c07283fbdee80742dd3d7602b6a6760cc49a93dc9",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "50",
+      "file": "50_src_0.xlsx",
+      "bytes": 17018,
+      "sha256": "e027bc5d2a9421909620514aa09c8a9d94510c0df14117bdeafb5893b4a5c307",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "51",
+      "file": "51_src_0.jpeg",
+      "bytes": 67572,
+      "sha256": "9164c84c3f169ac66964757832e701fc5628178d558ae1b957f38d228f106d5f",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "52",
+      "file": "52_src_0.pdf",
+      "bytes": 96738,
+      "sha256": "df8be8bc57a033e6bb4b3904f277b44607490716edbaeb03b60a5c6bc099bf37",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "53",
+      "file": "53_src_0.xlsx",
+      "bytes": 27453,
+      "sha256": "74ae9632d6035a6408f61b3334d3ce55ef8c9d241debbdaac6c55f34e7e6fa1a",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "54",
+      "file": "54_src_0.xlsx",
+      "bytes": 22206,
+      "sha256": "1046170ee1e2ca8c780fe881ea921cb08d1ed9cc05f2de4031a20192e7e39d4e",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "55",
+      "file": "55_src_0.xlsx",
+      "bytes": 22555,
+      "sha256": "f0c17b62216d35c98eb7dd3f714776ad356e4711f707157c31a282a7338fbcb5",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "56",
+      "file": "56_src_0.xlsx",
+      "bytes": 24249,
+      "sha256": "eacf4d3fbfdc3d8dd8eebb91784a005b433056d9e4b488be5244e9b764a569d7",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "57",
+      "file": "57_src_0.xlsx",
+      "bytes": 32132,
+      "sha256": "715439c604514158e0524bbb86e2867cc17c8fc083d85d323472aa35fba28cb5",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "58",
+      "file": "58_src_0.xlsx",
+      "bytes": 33946,
+      "sha256": "3ea47d922027a8dd9c44ea0535c72a73e9e8eaee1c144fce9c4ea5832af2a05c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "59",
+      "file": "59_src_0.xlsx",
+      "bytes": 22242,
+      "sha256": "e29b1b16805f8834e2316c06bdd8abc073848d403eb2c02f9f7d89fcdcc454c4",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "60",
+      "file": "60_src_0.xlsx",
+      "bytes": 43324,
+      "sha256": "cf415dfb4b6683eb90fdbe266e69b45c3ec4c6667b28dbe7768aaccaf7cb0274",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "61",
+      "file": "61_src_0.xlsx",
+      "bytes": 41350,
+      "sha256": "a9448659a5a8f6fdb8f5b59fd9b7d8d84da1517af281177bc6e7eb3b5a0bdcdf",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "62",
+      "file": "62_src_0.xlsx",
+      "bytes": 17568,
+      "sha256": "18db17bdcdc8b7743ab14c642352354a5f8c4397ce9d010b3de536e6e554ca31",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "63",
+      "file": "63_src_0.xlsx",
+      "bytes": 236189,
+      "sha256": "f81792410796c7631ee3ad6ba07cfd45c0495f818f001856ba5e22bc7015b3cf",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "64",
+      "file": "64_src_0.xlsx",
+      "bytes": 12305,
+      "sha256": "a3a108ccd198363868c4a25064f680d4d297634632a5aad3b1579b2b54451230",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "65",
+      "file": "65_src_0.xlsx",
+      "bytes": 55521,
+      "sha256": "ad023951c5c5810d46a369213d034f537678ec64de3a784677c7030e1d80e40e",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "66",
+      "file": "66_src_0.xlsx",
+      "bytes": 52015,
+      "sha256": "95acb4a8bf7ab28486bde9970bd8e79859745d20f45aebf9bcc5c6c03c12e0de",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "67",
+      "file": "67_src_0.xlsx",
+      "bytes": 537438,
+      "sha256": "36336d97a8e2450d722dadf259e434a6dbe93a4d53a2b1e3c6c0bdc4c289e338",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "68",
+      "file": "68_src_0.xlsx",
+      "bytes": 534870,
+      "sha256": "d000a0ae05efeb48152023d70fb76e057279d842836957b7e630db093f1cba4b",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "69",
+      "file": "69_src_0.xlsx",
+      "bytes": 32636,
+      "sha256": "a9bf1924ce3b4396592ba4207942ff8c21b05fd98c8253606a921d6673134893",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "70",
+      "file": "70_src_0.xlsx",
+      "bytes": 107957,
+      "sha256": "fa65e5198ce63d45b405c29d9fc62cca66bd09480d649f0c5275bdf281da724c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "72",
+      "file": "72_src_0.pdf",
+      "bytes": 198988,
+      "sha256": "324144e5d8606e78051227c4cddc1d3acc8278436a9fca8d504a55bfa69601bb",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "72",
+      "file": "72_src_1.jpeg",
+      "bytes": 514382,
+      "sha256": "a8b12aba41eb9b0b137db2aa8b3d8567f6c1f25c42c593e5e74329ff10ddf61d",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "73",
+      "file": "73_src_0.csv",
+      "bytes": 194,
+      "sha256": "6744cf1962e4b5086342821e627f4557c32f06c3c58e8b0ff3b449dcc634f37f",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "73",
+      "file": "73_src_1.json",
+      "bytes": 531118,
+      "sha256": "9a833666ae9be5a8e756dd1fe076c72e7c502d64161315ffa8fee9e5bf2599dc",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "73",
+      "file": "73_src_2.md",
+      "bytes": 22127,
+      "sha256": "bb7f4ca6fdc759af1f480702b3a3b12e17e9293b0d38a1dbfbbc8ffc1e572d2c",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "73",
+      "file": "73_src_3.csv",
+      "bytes": 26611,
+      "sha256": "83247d79f5ddcdd180e02f184b644f4912731942a2fc58d91f2a06b911d04b41",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "73",
+      "file": "73_src_4.json",
+      "bytes": 6857,
+      "sha256": "f158e834de27ee8407e99d9c32da690357981d2770958fd302a9bb79ced83581",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "73",
+      "file": "73_src_5.csv",
+      "bytes": 23581339,
+      "sha256": "5fbb26210a45427d7a6560cfab3a362a08e4067f27cd03695f211a51c47ffc25",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "73",
+      "file": "73_src_6.md",
+      "bytes": 1719,
+      "sha256": "8754b92d0b3127856ff72266ea482995d2a1f6a34d0a12732f7c26f527f2c4a5",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "74",
+      "file": "74_src_0.xlsx",
+      "bytes": 117570,
+      "sha256": "abeec3f05a3a17a9a32c12b45013dc56c63bc9f1408ad96dec8c18badb7060b8",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 2,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "75",
+      "file": "75_src_0.xlsx",
+      "bytes": 107750,
+      "sha256": "4617b7f9f29a4835ac3d8eed8afe520ddc61536ea85f35f457dd051f39e173da",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "76",
+      "file": "76_src_0.xlsx",
+      "bytes": 15497,
+      "sha256": "59067ce083e763a3b680dd705df1a12af5d18fad16a1e3e64ae231e6c6bd7c36",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "77",
+      "file": "77_src_0.xlsx",
+      "bytes": 17715,
+      "sha256": "0fcf222e7953b67223b966a4878e5cfd8507281d89ef06216534090d3485e906",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "78",
+      "file": "78_src_0.xlsx",
+      "bytes": 78721,
+      "sha256": "1a2d090fc26b2a05cc7c255d6589022dfbd99f8e99fc0c824578ca346bd69722",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "79",
+      "file": "79_src_0.xlsx",
+      "bytes": 59145,
+      "sha256": "0e0f3d32d133b46022937818aaf6403c1ebe677cba426c15e575040decae34e8",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "80",
+      "file": "80_src_0.xlsx",
+      "bytes": 23513,
+      "sha256": "4e3d6f38f879951782233933b11ad4588c543dd186151011fe360df8db859214",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "81",
+      "file": "81_src_0.jpeg",
+      "bytes": 992225,
+      "sha256": "f0de4a8ffbea951d7c63fa9e2fa0c06c56d2059255653a367c30c5e17d910aae",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "81",
+      "file": "81_src_1.pdf",
+      "bytes": 318082,
+      "sha256": "a072fb64f6c544547c8f66f5db39ae3f184ed3177f20590553ed1161602e4ccd",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "82",
+      "file": "82_src_0.xlsx",
+      "bytes": 26346,
+      "sha256": "b89dc5d87fb27204d1b580ee93e7c38f5832f0149db982c65978c5a26aab0754",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "83",
+      "file": "83_src_0.xlsx",
+      "bytes": 26346,
+      "sha256": "b89dc5d87fb27204d1b580ee93e7c38f5832f0149db982c65978c5a26aab0754",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "84",
+      "file": "84_src_0.xlsx",
+      "bytes": 138978,
+      "sha256": "70cadeb6891d9a282618302e082e204257fb5addfbce6da02bda052bbaa805ef",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 2,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "85",
+      "file": "85_src_0.xlsx",
+      "bytes": 139865,
+      "sha256": "1d88921f62c2c20985d49460393f17db8036351d17e69194a96a1077afab7a48",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 2,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "86",
+      "file": "86_src_0.xlsx",
+      "bytes": 11014,
+      "sha256": "bde1e1e07cf163c1f25c5a0a09d4083e5523997da00b0db0a84b55e18e81ca3b",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "90",
+      "file": "90_src_0.xlsx",
+      "bytes": 110695,
+      "sha256": "318087fc5f4f3588971f8d8892316cee1122db450b698bf525728c001df7ef71",
+      "xlsx_features": {
+        "charts": 2,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "91",
+      "file": "91_src_0.xlsx",
+      "bytes": 45297,
+      "sha256": "b4ffc16860453f690da8a1411b7e054f6b513f26f57f947e20f63c00b0c32209",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "92",
+      "file": "92_src_0.xlsx",
+      "bytes": 45297,
+      "sha256": "b4ffc16860453f690da8a1411b7e054f6b513f26f57f947e20f63c00b0c32209",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "93",
+      "file": "93_src_0.xlsx",
+      "bytes": 25921,
+      "sha256": "b26ca978f05919bf735080d192619920bbb423363352e9078049fad2a949affe",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "94",
+      "file": "94_src_0.xlsx",
+      "bytes": 179256,
+      "sha256": "2002b8987158f27fb7766ae5a3caa4d2eb116d4e9a0633eae99694ca8c39d8dd",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "95",
+      "file": "95_src_0.xlsx",
+      "bytes": 127458,
+      "sha256": "bd6a4542bfd3949c6615658011da046e7cc86b231a330354c2c45dc1908ea687",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "96",
+      "file": "96_src_0.xlsx",
+      "bytes": 460584,
+      "sha256": "16696a352ad75b572f5f174921839cb0b52452c65230048a8804b8b670cec726",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "97",
+      "file": "97_src_0.xlsx",
+      "bytes": 720440,
+      "sha256": "3697faea8dbaad077d92b0449d821d92e28d9642f2dd001c0b63a5b879f6053c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "98",
+      "file": "98_src_0.xlsx",
+      "bytes": 686992,
+      "sha256": "fc9f5919eaa050f5c3377647afb99297b1863373730c013cfc1dde3d9b42943d",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "99",
+      "file": "99_src_0.xlsx",
+      "bytes": 18369,
+      "sha256": "64ee38de3c13070d678154c97129aba93f5ccdf5c1a94855c93fda1a249ff571",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "100",
+      "file": "100_src_0.xlsx",
+      "bytes": 19516,
+      "sha256": "e00aad1bf2978cefbe0a580354730694ac5a1150c97c4179194355cec57bc723",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "101",
+      "file": "101_src_0.xlsx",
+      "bytes": 23415,
+      "sha256": "afabcbc3b02c9abf5337c6d40e19960a7d4e0f82a65d4f0e34789ad50cd4c190",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "102",
+      "file": "102_src_0.xlsx",
+      "bytes": 16808,
+      "sha256": "23b68d067d17e7212be163cffbe113854f447edada969695cc27eab19b438690",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "103",
+      "file": "103_src_0.xlsx",
+      "bytes": 83762,
+      "sha256": "3d3009942b8d68e6ae66d7e53cd1f9d849993b6f0ff5c3051420288c99d17b77",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "104",
+      "file": "104_src_0.xlsx",
+      "bytes": 20565,
+      "sha256": "544836febbbdd310aa13103f54be3d1b0fe8a97ecd72fee9cc88965c75b74ea1",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "105",
+      "file": "105_src_0.xlsx",
+      "bytes": 28294,
+      "sha256": "d22c9a963e63c396b5793d66e764906956fed20d96ae8bb0fdcdea09644b93c1",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "106",
+      "file": "106_src_0.xlsx",
+      "bytes": 14568,
+      "sha256": "8c8a392da30d7cffe58555adc4003b538c53bd4a57f8bfcdc9c9e6270b8c2499",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "107",
+      "file": "107_src_0.xlsx",
+      "bytes": 17934,
+      "sha256": "2b5c6ccb18990cddb89585ff42b290939f27a6f525c1ec9023ddcbac9bc48df2",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "108",
+      "file": "108_src_0.xlsx",
+      "bytes": 151897,
+      "sha256": "6905b01780320945a2bc6555bab2651ad609956b4f0ab460c061be45865b1a7c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "108",
+      "file": "108_src_1.xlsx",
+      "bytes": 15984,
+      "sha256": "072b95dea3e385b78e63f59d2fc2d328ab15b26e6019b1cbd29dcd5f4d8cc370",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "109",
+      "file": "109_src_0.xlsx",
+      "bytes": 16723,
+      "sha256": "a6c1ed6990de71dc3f5625aca3b934848158bd5ceb70a918855025ec1bfde980",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "110",
+      "file": "110_src_0.xlsx",
+      "bytes": 309772,
+      "sha256": "234d5b57eb7610d8f2e428e3c4777701e27c303e5386d3474cb1101b3f3e22bc",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "111",
+      "file": "111_src_0.xlsx",
+      "bytes": 313748,
+      "sha256": "be9acd7e937b43c369724bd868614100fc7d2983e05fbd1a12ee829dd958c3c1",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "112",
+      "file": "112_src_0.xlsx",
+      "bytes": 22332,
+      "sha256": "4c2b6a99ed242bd8ad6c5fa3a29a2f81693d16a81746212d58477bb193df8ff3",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "113",
+      "file": "113_src_0.xlsx",
+      "bytes": 62121,
+      "sha256": "3aeb70dde5cec916034c8c1140954d819aa3c1294cf2e404858d917897dce78b",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "114",
+      "file": "114_src_0.xlsx",
+      "bytes": 40652,
+      "sha256": "7ce00a5afa79ee70908ed2c7e70b9c2ed877d571bfa5c1c2039bf72eac11867a",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 10
+      }
+    },
+    {
+      "task_id": "116",
+      "file": "116_src_0.xlsx",
+      "bytes": 179256,
+      "sha256": "2002b8987158f27fb7766ae5a3caa4d2eb116d4e9a0633eae99694ca8c39d8dd",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "117",
+      "file": "117_src_0.xlsx",
+      "bytes": 61242,
+      "sha256": "20540f2a52f5d2a1778c461b99861968ae16b4ac1dad73d9da35e826229bdd1d",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "118",
+      "file": "118_src_0.xlsx",
+      "bytes": 131652,
+      "sha256": "fa0b8b943ab728e4b3be39178f4e8b05fd71095706b1e0520149e022c1e40c3f",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 5,
+        "pivot_tables": 0,
+        "external_links": 3
+      }
+    },
+    {
+      "task_id": "119",
+      "file": "119_src_0.xlsx",
+      "bytes": 40000,
+      "sha256": "a3cf63aa836a798cd4f41836ecf4f46c6bd15e5fb3b2025013ed925fea40d47d",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "120",
+      "file": "120_src_0.xlsx",
+      "bytes": 16540,
+      "sha256": "15d43ed91cf01556bc686ae404a24c507d5c52f9333c67eaa03a9ad695f80375",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "121",
+      "file": "121_src_0.xlsx",
+      "bytes": 185628,
+      "sha256": "d79788a49fe6b1d13cc97dafeaa02e3828206b024e68648197e90ac7b210e3b6",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 3,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "122",
+      "file": "122_src_0.xlsx",
+      "bytes": 199406,
+      "sha256": "2856f51e79609b5ad961a9db9c38789b8e8c722ea2e68ef01907d28ad12c5ebb",
+      "xlsx_features": {
+        "charts": 4,
+        "drawings": 5,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "123",
+      "file": "123_src_0.xlsx",
+      "bytes": 179256,
+      "sha256": "2002b8987158f27fb7766ae5a3caa4d2eb116d4e9a0633eae99694ca8c39d8dd",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "124",
+      "file": "124_src_0.xlsx",
+      "bytes": 44513,
+      "sha256": "010d127f9e67cfc3810dbbb23d208bf2f54308eaebb51cdfac964e34dd5a56f8",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "125",
+      "file": "125_src_0.xlsx",
+      "bytes": 26599,
+      "sha256": "db668f100e6fe8a6af49a04f7d1b22de2ac63dde9a5542ea41cb159eec9228e1",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "126",
+      "file": "126_src_0.xlsx",
+      "bytes": 95001,
+      "sha256": "874c799d0b60c3c456606b1f6fa13b81585641ef68a1c53fcac6009069e7b462",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "127",
+      "file": "127_src_0.xlsx",
+      "bytes": 122311,
+      "sha256": "aaabd46f7a07280a59d195fe68b708eac8a2bb48e7e469450b9121035e07ca37",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "128",
+      "file": "128_src_0.xlsx",
+      "bytes": 114977,
+      "sha256": "808535b5a17a24a63063747a2791a98a6ff46e601b3c747475e82517ab289f4d",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "129",
+      "file": "129_src_0.xlsx",
+      "bytes": 114977,
+      "sha256": "808535b5a17a24a63063747a2791a98a6ff46e601b3c747475e82517ab289f4d",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "130",
+      "file": "130_src_0.xlsx",
+      "bytes": 21275,
+      "sha256": "9ef9735add937936f4e869a63c2d30210fa810fba0bd8a4a7129ea0b851dedcb",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "131",
+      "file": "131_src_0.xlsx",
+      "bytes": 23512,
+      "sha256": "0c57bb93cf11f2dbbdae3965aea4ac6c9a79e9754fcd4ed6b136c68b86c73e74",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "132",
+      "file": "132_src_0.xlsx",
+      "bytes": 48672,
+      "sha256": "bde43a39fe132150cc96b8a8249185f40b41f3b295e14468f6ca8ea1295e4c64",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "133",
+      "file": "133_src_0.xlsx",
+      "bytes": 42946,
+      "sha256": "294aa6eb7bc96fec9283e81d5b1dd8fbc3ef6a22a1d0ce2509bca2bba59d2615",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "134",
+      "file": "134_src_0.xlsx",
+      "bytes": 45522,
+      "sha256": "01788172faac9f1db1dcbd44164044a555a6d22b8aa6bad0fd8508189be5afaf",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 5
+      }
+    },
+    {
+      "task_id": "135",
+      "file": "135_src_0.xlsx",
+      "bytes": 134635,
+      "sha256": "9f63859b956a713ecf9f5089c672f45122b8a2edc9e7539041b63a2a4032fb99",
+      "xlsx_features": {
+        "charts": 4,
+        "drawings": 8,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "136",
+      "file": "136_src_0.xlsx",
+      "bytes": 87187,
+      "sha256": "758b9ae965e60af131728ea4a6969c29e80f7d0ef7b5a83a113291b761d910de",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "137",
+      "file": "137_src_0.xlsx",
+      "bytes": 541131,
+      "sha256": "173c165e8735df0cea7b0732d32f3473eeccc16224eca157c5de14fb73a29716",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 2,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "138",
+      "file": "138_src_0.xlsx",
+      "bytes": 129704,
+      "sha256": "81a23aa8daed16ff79d8482df97afa1d2def16fc536b1272a8ce417431461da0",
+      "xlsx_features": {
+        "charts": 3,
+        "drawings": 9,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "139",
+      "file": "139_src_0.xlsx",
+      "bytes": 128559,
+      "sha256": "2b66717869c1037f3d1f6e57a7a20c620ad7d057fb939cbcd0640c6ff65fc5fb",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 5,
+        "pivot_tables": 0,
+        "external_links": 6
+      }
+    },
+    {
+      "task_id": "140",
+      "file": "140_src_0.xlsx",
+      "bytes": 20386,
+      "sha256": "fd0fbe6be94969e9ef2a21e722d60c9b112e8870d1d798fa0736a67aba7724cb",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "141",
+      "file": "141_src_0.xlsx",
+      "bytes": 25211,
+      "sha256": "0d663d29e0ed47bd1de4989de3b641398025c2f083cd201b5cf786a612b7a25c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "142",
+      "file": "142_src_0.xlsx",
+      "bytes": 301848,
+      "sha256": "5ad5f60e21c2adbede4d88bb8d2a422ef11a271ff06e89018daf3cc10aa79c1a",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "143",
+      "file": "143_src_0.xlsx",
+      "bytes": 302640,
+      "sha256": "db384fcb7a4ccf410bc0ec4927f7f93fdc397c28adae3340a0fc67a5d942f8ba",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "144",
+      "file": "144_src_0.xlsx",
+      "bytes": 16147,
+      "sha256": "1a328c47474a33a49c149d0594bfaea728e51c2b51f4f4fbe63942081223b93f",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "147",
+      "file": "147_src_0.xlsx",
+      "bytes": 109735,
+      "sha256": "4e50db955956b7d1dc9aebcf35d10253faafd18dabf3344d2b6fb0e6b9f5a49c",
+      "xlsx_features": {
+        "charts": 2,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "148",
+      "file": "148_src_0.xlsx",
+      "bytes": 4189149,
+      "sha256": "0098fc07c9674397b4324f711114bcd78c4a0aeae23077e9a047c227d7f79b32",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "149",
+      "file": "149_src_0.xlsx",
+      "bytes": 28118,
+      "sha256": "d455a5d3de86ef979531c37ff134515338aeac5c2fd782dc89cdf615653fac66",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "150",
+      "file": "150_src_0.xlsx",
+      "bytes": 40660,
+      "sha256": "2cebd34e3c45aebab822c56fc59a1df95c3063cd4195c6c32efa24aa9b0df481",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "151",
+      "file": "151_src_0.xlsx",
+      "bytes": 37472,
+      "sha256": "67c5868414da465f167e39a5a18d61ab97453f40f6205984395f601cb6cb967c",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "152",
+      "file": "152_src_0.xlsx",
+      "bytes": 13540,
+      "sha256": "b3b1cae6a6e0c9d86ca527d6fd57a12775574516ad8e02a7af266a61a185d526",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "153",
+      "file": "153_src_0.xlsx",
+      "bytes": 15362,
+      "sha256": "6c5659cea9a0b2e22f4512d80b74206d089a9490cf2166995ccf581a1767046f",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "154",
+      "file": "154_src_0.xlsx",
+      "bytes": 55113,
+      "sha256": "2cf843b82e7b7356d8057999fe07489345442c515f222fa25c472ed1a6038477",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "155",
+      "file": "155_src_0.xlsx",
+      "bytes": 103012,
+      "sha256": "faac837fcfc129573ae02ab79fcbb3b41df7ef15c31d87e57eeef4bbe9bdff69",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 3
+      }
+    },
+    {
+      "task_id": "156",
+      "file": "156_src_0.pdf",
+      "bytes": 80677,
+      "sha256": "91fb8db6754acb25af672161163386da177b412d9174b2dd98f9fbec7a05ccc3",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "157",
+      "file": "157_src_0.xlsx",
+      "bytes": 111986,
+      "sha256": "368eff502997b9c9a509365476ef939b76a48ed7432f5a47308867a1b030e316",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 4,
+        "pivot_tables": 0,
+        "external_links": 5
+      }
+    },
+    {
+      "task_id": "158",
+      "file": "158_src_0.xlsx",
+      "bytes": 320524,
+      "sha256": "fa5471479f81e5a839ffbac852ea4554fce9d3cd928e30485ef0ae3f425a974e",
+      "xlsx_features": {
+        "charts": 11,
+        "drawings": 11,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "159",
+      "file": "159_src_0.xlsx",
+      "bytes": 4189051,
+      "sha256": "089528b551eff9dda70c229e1ada1a19058ddec1c88c4217f5307e3bb53a6d80",
+      "xlsx_features": {
+        "charts": 1,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "160",
+      "file": "160_src_0.pdf",
+      "bytes": 140606,
+      "sha256": "4e5e66da9d231b434cba9aa0a94d623603f10ca9c0b549313a55561e71156888",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "161",
+      "file": "161_src_0.pdf",
+      "bytes": 135485,
+      "sha256": "02825af7e44f55894bed56ce648e22b5bf5f72c695daa9e5d69efb4a03911734",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "162",
+      "file": "162_src_0.xlsx",
+      "bytes": 15128,
+      "sha256": "108c9272cdb80570d4681aef6eb728f5e34a9117d5a9f7c5e6b397597fb32cf0",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "163",
+      "file": "163_src_0.jpeg",
+      "bytes": 133206,
+      "sha256": "99a8b54ac81188e240f4f159a144c85ea80ec443c04829ea3e983ac029112014",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "164",
+      "file": "164_src_0.jpeg",
+      "bytes": 168940,
+      "sha256": "b835746b3305053dc3d9d2b910145df37675d5813e38984d60fbcb9b87ed6a1c",
+      "xlsx_features": {}
+    },
+    {
+      "task_id": "165",
+      "file": "165_src_0.xlsx",
+      "bytes": 30038,
+      "sha256": "01f24e077eda9026d5a144cd3b894881f2c57d508c0e4d3d2c3427e42b55eddc",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "166",
+      "file": "166_src_0.xlsx",
+      "bytes": 300568,
+      "sha256": "2606a4844049354d2e614773e9542fa03c1d675b81c1fbebc3da61e74139f534",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 2
+      }
+    },
+    {
+      "task_id": "167",
+      "file": "167_src_0.xlsx",
+      "bytes": 11849,
+      "sha256": "ec1b3990f93792a0204359359f0bc6ff862932f3aaad527187d6caae02ae3698",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "168",
+      "file": "168_src_0.xlsx",
+      "bytes": 53613,
+      "sha256": "c4d12aa66251ecb5b7196f82666d608d9a9698659af19ffecbab1f046f2ce9ca",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "169",
+      "file": "169_src_0.xlsx",
+      "bytes": 56387,
+      "sha256": "42227cfcf7aa0c502036ab8c71dfd53ffd8a5b1ebe2f54c4a3168221e61d6a78",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 1
+      }
+    },
+    {
+      "task_id": "170",
+      "file": "170_src_0.xlsx",
+      "bytes": 2530902,
+      "sha256": "08f133f0b9420ca1c15847f6a4e685f151ec85ad9e2dab312ec23d17d032c1b8",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 1,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    },
+    {
+      "task_id": "171",
+      "file": "171_src_0.xlsx",
+      "bytes": 78478,
+      "sha256": "e88d35eb2a85e5cc728bcc86e0cb8724244f79e9b4efcf7c0858e4ecaa845ea5",
+      "xlsx_features": {
+        "charts": 0,
+        "drawings": 0,
+        "pivot_tables": 0,
+        "external_links": 0
+      }
+    }
+  ]
+}
