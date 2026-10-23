@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-10-23T08:33:00Z",
+  "updated_at_utc": "2026-10-23T09:00:00Z",
   "owner_goals": [
     "Evaluate the model on every external benchmark in the retained source catalog.",
     "Create Seeking Alpha future-prediction tasks with extensive controlled context and no target leakage.",
@@ -157,7 +157,7 @@
     }
   },
   "next_actions": [
-    "Personally finish comparing all150 completed FinanceBench full-report answers with references and primary evidence;12 answer reviews started, no final score. Preserve financial-definition variants separately from native agreement.",
+    "Finish source/definition adjudication and publish the personal FinanceBench comparison. All150 final answers reviewed; no final score. Keep published-reference agreement separate from source-supported corrections.",
     "Personally review remaining complete prospective outputs and retain primary/recovery distinctions; do not rewrite issued forecasts.",
     "Resolve native workbook execution as a shared capability, not benchmark-local authoring; no native workbook successes claimed yet.",
     "Run official1370 FinDeepForecast tasks only as explicitly retrospective historical coverage; all native deadlines were2025.",
@@ -197,7 +197,7 @@
   "financebench_completion": {
     "responses": 150,
     "complete": true,
-    "personal_review_entries": 12,
+    "personal_review_entries": 150,
     "final_score": null,
     "native_accounting_upper_bound_usd": 78.165252,
     "pending_provider_attempts": 0,

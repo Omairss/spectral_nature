@@ -1,0 +1,48 @@
+{
+  "reviewer": "primary_agent_personal_review",
+  "other_llm_grader_used": false,
+  "ticker": "GH",
+  "prediction_sha256": "66e78b9dfb39c79889c12f1cd4c31946c3b6036bf73ec65a0b4701aefe92ede8",
+  "forecast_unchanged": true,
+  "outcome_status": "pending",
+  "scope": "Personal review of the issued answer and all7 executed analysis requests, including recovery attempts. No future outcomes are present.",
+  "execution": {
+    "program_attempts": 7,
+    "succeeded": 4,
+    "failed": 3,
+    "failures": "Mixed-type date inspection and missing parsed columns were recovered. Complete12302-row facts were available."
+  },
+  "financial_review": [
+    {
+      "finding": "Quarterly seasonal fit is not reliable",
+      "evidence": "Single-quarter duration filter did not reconstruct Q4 from annual minus nine-month totals. It indexed observed rows contiguously with arange, even though quarters were missing, then projected a Q4 seasonal reference with no observed Q4. An earlier review found implausible Q4 revenue near$10M against other quarters near$500M.",
+      "classification": "data construction and model validation failure",
+      "final_impact": "Later annual/guidance-anchored calculation superseded this path; do not treat the intermediate fit as a valid model."
+    },
+    {
+      "finding": "Posterior mean uncertainty is used as predictive uncertainty",
+      "evidence": "ModelC draws normal growth with sigma_post=1/sqrt(prior_precision+n*data_precision). This measures uncertainty in the mean growth parameter; it omits an additional future growth innovation.",
+      "classification": "uncertainty-model failure",
+      "final_impact": "Final revenue p10/p50/p90 of$1.50/$1.75/$2.05B are judgmentally widened; they are not demonstrated calibrated predictive quantiles."
+    },
+    {
+      "finding": "No chronological held-out evaluation",
+      "evidence": "Annual models fit all available history and compare extrapolations; there is no forecast-origin holdout comparison with a baseline.",
+      "classification": "validation gap"
+    },
+    {
+      "finding": "Return horizon has two extra increments",
+      "evidence": "Final code counts weekdays inclusively, removes Thanksgiving/Christmas/New Year but omits Martin Luther King Jr Day2027-01-18, and treats the entry session as a return increment. It samples62 daily returns.",
+      "correct_target": "Official NYSE2026/2027 calendars imply61 inclusive sessions and60 close-to-close increments from2026-10-23 close to2027-01-21 close.",
+      "source": "https://www.nyse.com/trade/hours-calendars",
+      "classification": "target implementation failure",
+      "final_impact": "Retain issued forecast and score the originally specified close-to-close dates; do not silently relabel its horizon."
+    }
+  ],
+  "strengths": [
+    "Uses full frozen facts/prices and joint GH/SPY bootstrap rather than independent stock paths.",
+    "Recognizes guidance as an explicit business anchor and considers legal/commercial risks.",
+    "Recovers several tool failures and finishes before issue deadline."
+  ],
+  "acceptance": "Useful completed investigation with material modeling and target-adherence problems; execution success does not establish forecasting quality."
+}
