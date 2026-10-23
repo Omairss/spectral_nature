@@ -229,7 +229,7 @@ def analysis_chart_model(name: str, *, kind: str = "line", x: Any = None, y: Any
                 dataset=key, x="x", y="y", lower="lower" if trace_kind == "band" else None,
                 upper="upper" if trace_kind == "band" else None))
     layout = {"xaxis": {"title": {"text": label(x_label)}, "type": "linear" if x_type == "number" else x_type},
-              "yaxis": {"title": {"text": label(y_label)}}, "height": 360,
+              "yaxis": {"title": {"text": label(y_label)}},
               "colorway": ["#52d6c7", "#6cb8ff", "#a991f7", "#f08b72"]}
     for axis, fmt in [("xaxis", x_format), ("yaxis", y_format)]:
         if fmt == "percent":

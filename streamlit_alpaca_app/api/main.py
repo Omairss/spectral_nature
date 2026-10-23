@@ -396,6 +396,7 @@ class ResearchReviewResponse(BaseModel):
 class ResearchRunResultResponse(BaseModel):
     status: str
     answer_markdown: str
+    visualizations: list[dict[str, Any]] = Field(default_factory=list)
     answer_status: str = ""
     quality_review: ResearchReviewResponse = Field(default_factory=ResearchReviewResponse)
     confidence: str

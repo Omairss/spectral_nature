@@ -16,11 +16,14 @@
     "web/lib/types.ts": "Optional visualization array; existing completed replies need no migration.",
     "web/app/zopedia/runs/[runId]/research-run-view.tsx": "Renders existing Plotly artifact component within each answer; conversation history, activity, sources, cancellation and composer retained.",
     "web/app/globals.css": "Adds only chart spacing/minimum viewport sizing; no navigation/dashboard changes.",
-    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ResearchCharts.swift": "Native data/trace renderer; date/number/category axes, histogram bins, interval gaps, selection, matrix inspection and optional candle data. No generated JavaScript.",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ResearchCharts.swift": "Native data/trace renderer; date/number/category axes, histogram bins, interval gaps, selection, matrix inspection and optional candle data. No generated JavaScript. Continuous x domains exclude zero; date axes include year for long histories and selections show the exact UTC observation day.",
     "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift": "Renders optional result charts; all activity/citation/follow-up controls retained.",
     "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift": "Optional chart JSON; old responses decode unchanged.",
     "ios_app/SpectralNatureMVP/project.yml": "Native build13; same bundle identifier/team/provisioning and source architecture.",
-    "ios_app/SpectralNatureMVP/SpectralNature.xcodeproj/project.pbxproj": "Regenerated for the added native chart renderer and build13."
+    "ios_app/SpectralNatureMVP/SpectralNature.xcodeproj/project.pbxproj": "Regenerated for the added native chart renderer and build13.",
+    "api/main.py": "Public Pydantic result response explicitly carries visualizations through run and nested conversation endpoints; unchanged owner/auth checks.",
+    "web/components/visualizations/visualization.tsx": "Optional title/axis-label configuration; defaults retain dashboard behavior.",
+    "web/components/visualizations/plotly-renderer.tsx": "Conversations use a wrapping external caption and retain axis units at compact width; existing renderer defaults preserve prior margins and title behavior."
   },
   "actual_numerical_flow": {
     "status": "passed",
@@ -30,7 +33,8 @@
     "histogram_samples": 252,
     "public_result_bytes": 274332,
     "gaps": "One missing observation produces two interval polygons; current-run transport excludes inherited foreign-run artifacts.",
-    "source": "Private verify-flow.py, frozen SEC/HIMS/SPY files, actual shared multiprocessing tool and public-result projection. No financial future outcomes created."
+    "source": "Private verify-flow.py, frozen SEC/HIMS/SPY files, actual shared multiprocessing tool and public-result projection. No financial future outcomes created.",
+    "public_api_projection": "Actual ResearchRunResultResponse Pydantic roundtrip preserves all7 plots; nested conversation response verified separately."
   },
   "mechanical_checks": {
     "analysis_regressions": "11 passed. One stale assertion was updated to match the already accepted production behavior of exposing numerical stdout.",

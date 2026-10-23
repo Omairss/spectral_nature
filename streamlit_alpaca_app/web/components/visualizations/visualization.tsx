@@ -13,9 +13,11 @@ const PlotlyRenderer = dynamic(
 type VisualizationProps = {
   artifact: VisualizationArtifact;
   onSelection?: (selection: VisualizationSelection) => void;
+  showTitle?: boolean;
+  preserveAxisTitles?: boolean;
 };
 
-export function Visualization({ artifact, onSelection }: VisualizationProps) {
+export function Visualization({ artifact, onSelection, showTitle = true, preserveAxisTitles = false }: VisualizationProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
 
@@ -40,7 +42,7 @@ export function Visualization({ artifact, onSelection }: VisualizationProps) {
   if (artifact.renderer === "plotly" && artifact.renderer_contract === "plotly.figure.v1") {
     return (
       <div className="visualization-viewport" ref={viewportRef}>
-        {visible ? <PlotlyRenderer artifact={artifact} onSelection={onSelection} /> : <div className="visualization-deferred" />}
+        {visible ? <PlotlyRenderer artifact={artifact} onSelection={onSelection} showTitle={showTitle} preserveAxisTitles={preserveAxisTitles} /> : <div className="visualization-deferred" />}
       </div>
     );
   }

@@ -168,7 +168,10 @@ export function ResearchConversationView({ conversationId, initialRunId }: { con
           {run.result?.answer_markdown ? <article className="answer-panel">
             <Markdown>{run.result.answer_markdown}</Markdown>
             {run.result.visualizations?.length ? <div className="research-charts">
-              {run.result.visualizations.map((artifact) => <Visualization key={artifact.artifact_id} artifact={artifact} />)}
+              {run.result.visualizations.map((artifact) => <figure className="research-chart" key={artifact.artifact_id}>
+                <figcaption>{artifact.title}</figcaption>
+                <Visualization artifact={artifact} showTitle={false} preserveAxisTitles />
+              </figure>)}
             </div> : null}
             {run.result.citations.length ? <details className="sources conversation-citations"><summary>Sources · {run.result.citations.length}</summary><ul>{run.result.citations.map((source) => <li key={source.url}><a href={source.url} rel="noreferrer noopener" target="_blank">{source.label}</a></li>)}</ul></details> : null}
           </article> : !active ? <p className="research-failure" role="status">{run.status === "cancelled" ? "Research cancelled." : "This reply did not complete. You can continue below."}</p> : null}

@@ -1165,3 +1165,8 @@ The native README still described build 7 as installed and build 8/Trading as he
 ## Source review paths must resolve from the repository root — 2026-10-23
 
 The first chart acceptance generator supplied a repository-root path while running Git from the application subdirectory, producing an empty change set. The mandatory source gate rejected it before any build. Resolve Git paths from the repository root and check the expected nonempty changed-file list before committing acceptance; all11 actual chart runtime/web changes are now enumerated.
+
+
+## Chart transport must cross the actual public response schema — 2026-10-23
+
+The first chart connection preserved the repository result but missed the API response DTO, which would strip the new field. Full-path review caught this before deployment; numerical-to-public verification now includes the Pydantic run and nested conversation responses. Native visual review also caught an automatic numeric x-domain including zero for timestamp coordinates; the shared native chart domain now excludes zero, and long histories show observation years.

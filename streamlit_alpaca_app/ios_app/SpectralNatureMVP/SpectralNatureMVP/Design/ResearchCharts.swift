@@ -34,6 +34,7 @@ private struct ResearchPlot {
   let xPercent: Bool
   let yPercent: Bool
   let matrix: [Record]
+  let spansYears: Bool
 
   init(_ artifact: JSONValue) {
     let chart = artifact["spec"]["chart"]
@@ -100,17 +101,20 @@ private struct ResearchPlot {
     }
     series = output
     matrix = cells
+    let coordinates = output.flatMap { $0.points.map(\.x) }
+    spansYears = (coordinates.max() ?? 0) - (coordinates.min() ?? 0) > 370 * 86_400
   }
 
-  func xLabel(_ value: Double) -> String {
+  func xLabel(_ value: Double, axis: Bool = false) -> String {
     if xType == "date" {
-      return Format.historyDate(Date(timeIntervalSince1970: value), years: false)
+      let date = Date(timeIntervalSince1970: value)
+      return axis ? Format.historyDate(date, years: spansYears) : Format.observationDay(date)
     }
     if xType == "category" {
       let i = Int(value.rounded())
       return categories.indices.contains(i) ? categories[i] : ""
     }
-    return xPercent ? Format.percent(value, fraction: true) : Format.number(value)
+    return xPercent ? Format.percent(value, fraction: true) : value.formatted(.number.grouping(.never).precision(.fractionLength(0...2)))
   }
 }
 
@@ -194,17 +198,18 @@ struct ResearchChart: View {
       }
     }.frame(height: 270)
       .chartXSelection(value: $selectedX)
+      .chartXScale(domain: .automatic(includesZero: false))
       .chartXAxisLabel(plot.xTitle).chartYAxisLabel(plot.yTitle)
       .chartXAxis {
         if plot.xType == "category" {
           AxisMarks(values: xTicks) { tick in
             AxisGridLine(); AxisTick()
-            AxisValueLabel { if let x = tick.as(Double.self) { Text(plot.xLabel(x)) } }
+            AxisValueLabel { if let x = tick.as(Double.self) { Text(plot.xLabel(x, axis: true)) } }
           }
         } else {
           AxisMarks(values: .automatic(desiredCount: 4)) { tick in
             AxisGridLine(); AxisTick()
-            AxisValueLabel { if let x = tick.as(Double.self) { Text(plot.xLabel(x)) } }
+            AxisValueLabel { if let x = tick.as(Double.self) { Text(plot.xLabel(x, axis: true)) } }
           }
         }
       }

@@ -13,9 +13,11 @@ export type VisualizationSelection = {
 type PlotlyRendererProps = {
   artifact: VisualizationArtifact;
   onSelection?: (selection: VisualizationSelection) => void;
+  showTitle?: boolean;
+  preserveAxisTitles?: boolean;
 };
 
-export function PlotlyRenderer({ artifact, onSelection }: PlotlyRendererProps) {
+export function PlotlyRenderer({ artifact, onSelection, showTitle = true, preserveAxisTitles = false }: PlotlyRendererProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
   const figure = artifact.spec.figure;
@@ -44,8 +46,8 @@ export function PlotlyRenderer({ artifact, onSelection }: PlotlyRendererProps) {
         paper_bgcolor: "rgba(0,0,0,0)",
         plot_bgcolor: "rgba(8,12,17,0.72)",
         font: { color: "#aeb8c2", family: "Inter, ui-sans-serif, system-ui, sans-serif", size: 11 },
-        margin: source.margin || (compact ? { l: 44, r: 12, t: 60, b: 48 } : { l: 58, r: 24, t: 52, b: 48 }),
-        title: compact ? { ...sourceTitle, font: { size: 14 }, x: 0, xanchor: "left" } : sourceTitle,
+        margin: source.margin || (compact ? { l: preserveAxisTitles ? 64 : 44, r: 12, t: showTitle ? 60 : 18, b: preserveAxisTitles ? 56 : 48 } : { l: preserveAxisTitles ? 68 : 58, r: 24, t: showTitle ? 52 : 18, b: preserveAxisTitles ? 56 : 48 }),
+        title: !showTitle ? {text: ""} : compact ? { ...sourceTitle, font: { size: 14 }, x: 0, xanchor: "left" } : sourceTitle,
         legend: compact
           ? {
               ...sourceLegend,
@@ -59,12 +61,12 @@ export function PlotlyRenderer({ artifact, onSelection }: PlotlyRendererProps) {
               yanchor: "top",
             }
           : sourceLegend,
-        xaxis: compact ? { ...sourceXAxis, nticks: 4, title: { text: "" } } : sourceXAxis,
-        yaxis: compact ? { ...sourceYAxis, nticks: 5, title: { text: "" } } : sourceYAxis,
+        xaxis: compact ? { ...sourceXAxis, nticks: 4, ...(preserveAxisTitles ? {} : {title: {text: ""}}) } : sourceXAxis,
+        yaxis: compact ? { ...sourceYAxis, nticks: 5, ...(preserveAxisTitles ? {} : {title: {text: ""}}) } : sourceYAxis,
         uirevision: artifact.artifact_id,
       };
     },
-    [artifact.artifact_id, compact, figure?.layout],
+    [artifact.artifact_id, compact, figure?.layout, showTitle, preserveAxisTitles],
   );
   const config = useMemo(
     () => {
