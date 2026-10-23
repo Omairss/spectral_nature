@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Validated executed chart artifacts and public result delivery to web/iPhone conversations; existing current production behavior retained. Source/numerical acceptance permits platform verification; deployment requires completed UI/model qualification.",
-  "source_revision": "7ddbdf31625dd5911d7171c0fd7beebbd74d1d3c",
+  "source_revision": "927e6ba5eebf9c53f0b224bd0a8cb554c30fbdb3",
   "review_base_revision": "883be852",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -173,7 +173,7 @@
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
     "services/knowledge_graph.py": "5c96484475c50a2d5e8823c64d50b875b2095d0c91d1510b812a301f8542b050",
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
-    "services/llm.py": "0a51596e8aebb31b72fce8031c2e04c2ce4bd60fa15ff061f35bdf6ff12ba971",
+    "services/llm.py": "61e636cd3ff00ece0cbb60a3b1a29c803368e86eb6f887cdff05e05eb90a6529",
     "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
     "services/llm_execution.py": "418618a19f4df625ce29ac31a1eb7b03bb8a81969ef2c55f4d7ef767e88e2f51",
     "services/llm_prices.json": "e6e8a6a76ebce48d8d584ce9fba66b8794cc2a3ab8c7d946a407eab9e0861a5b",
@@ -451,7 +451,7 @@
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
     "services/knowledge_graph.py": "5c96484475c50a2d5e8823c64d50b875b2095d0c91d1510b812a301f8542b050",
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
-    "services/llm.py": "0a51596e8aebb31b72fce8031c2e04c2ce4bd60fa15ff061f35bdf6ff12ba971",
+    "services/llm.py": "61e636cd3ff00ece0cbb60a3b1a29c803368e86eb6f887cdff05e05eb90a6529",
     "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
     "services/llm_execution.py": "418618a19f4df625ce29ac31a1eb7b03bb8a81969ef2c55f4d7ef767e88e2f51",
     "services/llm_prices.json": "e6e8a6a76ebce48d8d584ce9fba66b8794cc2a3ab8c7d946a407eab9e0861a5b",
@@ -507,6 +507,7 @@
     "services/agent_tools.py": true,
     "services/agents/research_runs.py": true,
     "services/aql_zopedia_engine.py": true,
+    "services/llm.py": true,
     "services/zopedia_agent.py": true,
     "services/zopedia_analysis.py": true,
     "web/app/globals.css": true,
@@ -721,6 +722,7 @@
         "services/agent_tools.py",
         "services/agents/research_runs.py",
         "services/aql_zopedia_engine.py",
+        "services/llm.py",
         "services/zopedia_agent.py",
         "services/zopedia_analysis.py",
         "web/app/globals.css",
@@ -736,7 +738,7 @@
     "worker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7"
       ],
       "development_targets": [],
       "production_targets": [
@@ -747,13 +749,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -763,13 +765,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -779,13 +781,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -795,13 +797,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -811,13 +813,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -827,13 +829,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -843,13 +845,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -859,13 +861,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -875,13 +877,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -891,13 +893,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -907,13 +909,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -923,13 +925,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "bd1d8e14811aff0707fc16153ede657502430fc9b741e088f5c3d8b645cec4ac",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -939,13 +941,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -955,13 +957,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -971,13 +973,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         },
         {
@@ -987,13 +989,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:74dce206eeb3962cd3ead7842e90f7f92ef40b400468f396bfd7e0a9bd162975",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:c631f0a86f28e1f977d1c3d47f52339b6bc3082d605b4084c9a7b32cd78521f7",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           },
           "execution_binding": {
             "name": "system-recovery",
@@ -1028,7 +1030,7 @@
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f"
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3bb76c19b38655158ee6394139da5a300ca89d26640b8003573307f07fd6dc90"
       ],
       "development_targets": [],
       "production_targets": [
@@ -1039,13 +1041,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3bb76c19b38655158ee6394139da5a300ca89d26640b8003573307f07fd6dc90",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:a07c63f95f94947baac2d063072d6b21f0217ce917bce52f3562d5ea1a9c6e0f",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:3bb76c19b38655158ee6394139da5a300ca89d26640b8003573307f07fd6dc90",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         }
       ],
@@ -1068,44 +1070,9 @@
     },
     "web": {
       "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
-      "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660"
-      ],
+      "baseline_images": [],
       "development_targets": [],
-      "production_targets": [
-        {
-          "name": "sn-streamlit-ui",
-          "kind": "containerApps",
-          "role": "web",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-            "source_revision": "a86286a3ddcf0da33c6f6127a62ae9fa6e529209",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
-          }
-        },
-        {
-          "name": "sn-next-ui",
-          "kind": "containerApps",
-          "role": "web",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:c02b71428bf367ed1b2531bbe7a3bf36113d162daf3a485bd9b436220b990660",
-            "source_revision": "a86286a3ddcf0da33c6f6127a62ae9fa6e529209",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
-          }
-        }
-      ],
+      "production_targets": [],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05": {
           "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
@@ -1216,7 +1183,7 @@
     "broker": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-broker@sha256:94715ea21911b1441f67cde8dc03d640386adf14453c66df66ba225ea96e5941",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab"
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:de1c5e81e79a10f5e268e0bb7bc199cd898385e6fbbbe9c8f63ef58dba806cca"
       ],
       "development_targets": [],
       "production_targets": [
@@ -1227,13 +1194,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:de1c5e81e79a10f5e268e0bb7bc199cd898385e6fbbbe9c8f63ef58dba806cca",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:f2eac4890f2b7739565fff46d427b44720de982fdbc2ea6aebfbb7944ca093ab",
-            "source_revision": "82958ac4502983fa7ad4c80cbc6a427ce80c1890",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+            "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:de1c5e81e79a10f5e268e0bb7bc199cd898385e6fbbbe9c8f63ef58dba806cca",
+            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+            "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
           }
         }
       ],
@@ -1257,6 +1224,40 @@
   },
   "untouched_consumers": [
     {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+        "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+        "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05"
+    },
+    {
       "name": "sn-api-next-dev",
       "kind": "containerApps",
       "role": "api-next",
@@ -1268,8 +1269,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
         "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558"
     },
@@ -1285,8 +1286,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
         "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf"
     },
@@ -1302,8 +1303,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1319,8 +1320,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1336,8 +1337,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1353,8 +1354,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a"
     },
@@ -1370,8 +1371,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1387,8 +1388,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1404,8 +1405,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1421,8 +1422,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1438,8 +1439,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1455,8 +1456,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1472,8 +1473,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1489,8 +1490,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
@@ -1506,8 +1507,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
         "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
     },
@@ -1523,8 +1524,8 @@
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
         "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/consumer-review.json"
+        "package_evidence": "documents/verification/research-charts-2026-10-23/budget-preceding-packages.json",
+        "evidence": "documents/verification/research-charts-2026-10-23/budget-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     }
