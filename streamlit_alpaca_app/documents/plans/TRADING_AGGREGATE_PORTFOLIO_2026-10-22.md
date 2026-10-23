@@ -1,9 +1,7 @@
 # Aggregate approved-paper portfolio — October 22
 
 The owner wants the Trading screen to open on one aggregate portfolio, rather than
-a list/selector of strategies. The owner confirmed approved paper calls as the
-portfolio membership. Keep unapproved research and all existing approval controls
-in Calls; this change neither approves calls nor places broker orders.
+a list/selector of strategies. The final accounting source is the owned Alpaca paper account. Calls remain the research/approval surface; a new approval opens a model-sized order review and only explicit confirmation may submit a paper order. Historical research approvals are retained separately and never backfilled as broker positions.
 
 ## Owner correction: Alpaca paper account
 
@@ -115,3 +113,7 @@ Status: replacing the local aggregate prototype with Alpaca-owned accounting.
 ## Native and source acceptance update
 
 Signed build 10 compiled and account/review screens were inspected in iPhone 16 Simulator. Shared account projection now normalizes broker amounts and timestamps for both clients. Development integration retains all 17 maintenance files byte-for-byte. API/web builds are in progress; production and physical-phone install remain unauthorized for this task.
+
+## Completed development delivery
+
+API/web images from integrated revision c452f799c5ac are verified and accepted in DEV: [account, review and preservation evidence](../verification/trading-portfolio-2026-10-22/DEV.json). The actual authenticated web and signed native build 10 refresh the Alpaca account; research observations remain separate. The 36-consumer check retains every configuration and all other images. No actual paper order was submitted. Production application/physical phone remain on prior releases. This feature branch keeps production-accepted research source separate from the seventeen additional DEV maintenance files; the integrated DEV images are not approved for production promotion.
