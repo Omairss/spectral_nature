@@ -165,8 +165,8 @@ export function ResearchConversationView({ conversationId, initialRunId }: { con
         return <section className="conversation-turn" key={turn.turn_id}>
           <div className="conversation-question"><Markdown>{turn.query}</Markdown></div>
           <ResearchActivity events={journals[run.run_id] || []} active={active} />
-          {run.result?.answer_markdown ? <article className="answer-panel">
-            <Markdown>{run.result.answer_markdown}</Markdown>
+          {run.result && (run.result.answer_markdown || run.result.visualizations?.length) ? <article className="answer-panel">
+            {run.result.answer_markdown ? <Markdown>{run.result.answer_markdown}</Markdown> : null}
             {run.result.visualizations?.length ? <div className="research-charts">
               {run.result.visualizations.map((artifact) => <figure className="research-chart" key={artifact.artifact_id}>
                 <figcaption>{artifact.title}</figcaption>

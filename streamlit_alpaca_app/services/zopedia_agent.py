@@ -3902,6 +3902,7 @@ def _execute_zopedia_agent_loop(
             "model": str(resolved_llm.config.model),
             "tool_calls": tool_calls,
             "answer_markdown": final_answer or best_draft,
+            "visualizations": collect_research_visualizations(tool_calls, run_id=run_id),
             "confidence": "low",
             "limitations": limitations + [limitation],
             "trajectory_reviews": trajectory_reviews,

@@ -201,8 +201,8 @@ struct ResearchRunView: View {
                 ResearchActivityView(events: activity.journals[run.runId] ?? [], active: !run.isTerminal,
                   status: run.status, checkedAt: activity.checkedAt[run.runId])
                 if let message = activity.errors[run.runId] { Text(message).font(.caption).foregroundStyle(Theme.coral) }
-                if let result = run.result, !result.answerMarkdown.isEmpty {
-                  MarkdownView(text: result.answerMarkdown)
+                if let result = run.result, !result.answerMarkdown.isEmpty || !(result.visualizations?.isEmpty ?? true) {
+                  if !result.answerMarkdown.isEmpty { MarkdownView(text: result.answerMarkdown) }
                   ForEach(result.visualizations ?? [], id: \.researchChartID) { artifact in
                     ResearchChart(artifact: artifact)
                   }
