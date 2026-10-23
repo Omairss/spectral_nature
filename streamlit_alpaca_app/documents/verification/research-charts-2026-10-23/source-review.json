@@ -16,7 +16,7 @@
     "web/lib/types.ts": "Optional visualization array; existing completed replies need no migration.",
     "web/app/zopedia/runs/[runId]/research-run-view.tsx": "Renders existing Plotly artifact component within each answer; conversation history, activity, sources, cancellation and composer retained.",
     "web/app/globals.css": "Adds only chart spacing/minimum viewport sizing; no navigation/dashboard changes.",
-    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ResearchCharts.swift": "Native data/trace renderer; date/number/category axes, histogram bins, interval gaps, selection, matrix inspection and optional candle data. No generated JavaScript. Continuous x domains exclude zero; date axes include year for long histories and selections show the exact UTC observation day. Uses explicit observed x bounds, including actual histogram/bin edges and bar widths; no zero/nice-domain padding before a dated source history.",
+    "ios_app/SpectralNatureMVP/SpectralNatureMVP/Design/ResearchCharts.swift": "Native data/trace renderer; date/number/category axes, histogram bins, interval gaps, selection, matrix inspection and optional candle data. No generated JavaScript. Continuous x domains exclude zero; date axes include year for long histories and selections show the exact UTC observation day. Uses explicit observed x bounds, including actual histogram/bin edges and bar widths; no zero/nice-domain padding before a dated source history. Tap/drag inspection persists after release; native axes abbreviate large magnitudes while selected values retain precision.",
     "ios_app/SpectralNatureMVP/SpectralNatureMVP/Features/Research/ResearchView.swift": "Renders optional result charts; all activity/citation/follow-up controls retained.",
     "ios_app/SpectralNatureMVP/SpectralNatureMVP/Networking/APIModels.swift": "Optional chart JSON; old responses decode unchanged.",
     "ios_app/SpectralNatureMVP/project.yml": "Native build13; same bundle identifier/team/provisioning and source architecture.",
@@ -41,11 +41,16 @@
     "web_types": "passed"
   },
   "remaining_before_deployment": [
-    "Personally inspect actual browser and native rendering/interaction.",
     "Complete one real shared-model plot investigation; personally review code/output/answer.",
     "Build through committed source gate; verify exact-image development behavior and consumer preservation.",
     "Promote only accepted digests; verify production and native delivery."
   ],
   "private_evidence": "/Users/omairs/Library/Application Support/SpectralNature/verification/research-charts-20261023",
-  "other_llm_ground_truth_or_final_evaluation_judges_used": false
+  "other_llm_ground_truth_or_final_evaluation_judges_used": false,
+  "local_ui_review": {
+    "status": "accepted",
+    "web": "Personally inspected all7 plots at desktop and390px compact width, percent axes, gap polygons and zoom/reset controls. No browser warnings/errors.",
+    "native": "Signed iPhone16/iOS18.3 simulator personally inspected price/date domain, actual selected2024-06-24 price22.15, histogram, selectable correlation0.4, revenue forecast bands and gaps. Native tap persists. AX navigation brought offscreen charts into view; native scroll/drag automation did not reliably navigate the simulator.",
+    "boundary": "Loopback fixture uses actual shared numerical execution and actual API DTOs; it supplies data only and is not shipped."
+  }
 }

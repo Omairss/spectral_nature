@@ -212,6 +212,11 @@ struct ResearchChart: View {
       }
     }.frame(height: 270)
       .chartXSelection(value: $selectedX)
+      .chartGesture { proxy in
+        DragGesture(minimumDistance: 0)
+          .onChanged { proxy.selectXValue(at: $0.location.x) }
+          .onEnded { proxy.selectXValue(at: $0.location.x) }
+      }
       .chartXScale(domain: plot.xDomain, range: .plotDimension(startPadding: 12, endPadding: 16))
       .chartXAxisLabel(plot.xTitle).chartYAxisLabel(plot.yTitle)
       .chartXAxis {
@@ -235,7 +240,11 @@ struct ResearchChart: View {
       .chartYAxis {
         AxisMarks(position: .leading, values: .automatic(desiredCount: 5)) { tick in
           AxisGridLine(); AxisTick()
-          AxisValueLabel { if let y = tick.as(Double.self) { Text(value(y)) } }
+          AxisValueLabel {
+            if let y = tick.as(Double.self) {
+              Text(plot.yPercent ? value(y) : y.formatted(.number.notation(.compactName).precision(.fractionLength(0...2))))
+            }
+          }
         }
       }
       .chartYScale(domain: .automatic(includesZero: plot.series.contains { $0.kind == "bar" }))
