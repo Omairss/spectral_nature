@@ -1,0 +1,865 @@
+{
+  "audited_at_utc": "2026-10-24T21:07:02.389274+00:00",
+  "objective_achieved": false,
+  "active_model_batches": 0,
+  "native_files": {
+    "public_cases": 184,
+    "carried_pilot03_attempts": 3,
+    "new_parseable_first_attempts": 133,
+    "new_completed_responses": 112,
+    "new_failed_responses": 21,
+    "total_recorded_attempts_including_carried": 136,
+    "total_completed_responses_including_carried": 115,
+    "cases_without_final_receipts": 48,
+    "stop": "ENOSPC while creating a final receipt; filesystem capacity was not monitored during the batch. No invalid final JSON found at audit. Cases without a final receipt may still have incurred provider work.",
+    "failure_categories": {
+      "final_synthesis_phase_timeout": 11,
+      "provider_request_deadline": 4,
+      "completion_output_limit": 6
+    },
+    "last_completed_receipt_utc": "2026-10-24T05:46:56Z",
+    "quality": "Full financial grading pending; completed response is not a correct workflow.",
+    "local_vm": "zopedia-workbooks stopped and shutdown verified; unrelated VM untouched.",
+    "new_first_attempt_receipts": [
+      {
+        "id": "1",
+        "status": "completed",
+        "receipt_sha256": "f863a141ea0d5d96167a97645886e8e7380f1103662d18a1ae11652294c2795e",
+        "error": null
+      },
+      {
+        "id": "10",
+        "status": "completed",
+        "receipt_sha256": "f0039698c2ee80ba456fbb3a5c78927427f21871ab30cd4d01725ed82271aa56",
+        "error": null
+      },
+      {
+        "id": "101",
+        "status": "completed",
+        "receipt_sha256": "1bfe5bbd0c2410bd5357aedb061d1b05f15a5e28790cad84dfeee5f83e61bbe3",
+        "error": null
+      },
+      {
+        "id": "102",
+        "status": "completed",
+        "receipt_sha256": "2f62fdc92dcc75a856beb4db307c6bda495e4d9b4600d332168ae1cfb91f6e39",
+        "error": null
+      },
+      {
+        "id": "103",
+        "status": "completed",
+        "receipt_sha256": "90509a1abb45719634eae14999a4fcf220ab5c932674126246f7995fa0745225",
+        "error": null
+      },
+      {
+        "id": "104",
+        "status": "completed",
+        "receipt_sha256": "04771573ccf3a0130774940652d8068178e9165455fa03bedf92a7d13c87ec95",
+        "error": null
+      },
+      {
+        "id": "105",
+        "status": "failed",
+        "receipt_sha256": "b6d72fbde2c42a010b879f856f2997efc7168f1138de630074c50f13915ca5b7",
+        "error": "LLMDeadlineExceeded: Provider HTTP wall-clock deadline expired"
+      },
+      {
+        "id": "106",
+        "status": "completed",
+        "receipt_sha256": "3d305ae08d725ad56d97ea6dc9e43d7420bc5429c2b691888f5889286f8d5d36",
+        "error": null
+      },
+      {
+        "id": "107",
+        "status": "completed",
+        "receipt_sha256": "8627338d3719c0b0b6e5be2981a6eb00ccc5e752a37d8fad0097215fd038f3d5",
+        "error": null
+      },
+      {
+        "id": "108",
+        "status": "failed",
+        "receipt_sha256": "93491d88be27a8d84b950d4c258b9ddc4a8d1ed46a45788a2ef4ac4b1ddc45e6",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "109",
+        "status": "completed",
+        "receipt_sha256": "d99ba9cf1398049e029fcf1bbce45bf65b120f5595f024ef93953732aa005143",
+        "error": null
+      },
+      {
+        "id": "11",
+        "status": "completed",
+        "receipt_sha256": "c111842a7a07089383b4afd937c6356f0bf13f6f52be7f1e6248c988a9ce58ad",
+        "error": null
+      },
+      {
+        "id": "110",
+        "status": "completed",
+        "receipt_sha256": "c903b93538cdc0bb502a9b77f8d2d68508c05909fdc25e6241fa0b47ca2ee07e",
+        "error": null
+      },
+      {
+        "id": "113",
+        "status": "completed",
+        "receipt_sha256": "80ac6c8bc557980b4702fa57dd67cf612cfd694b9b731653685ffa8dc0e3e129",
+        "error": null
+      },
+      {
+        "id": "114",
+        "status": "completed",
+        "receipt_sha256": "921ab06426478e7e6ba3e3a4fe2ff7ac24bd697f59af30ed62084d15361d8bbd",
+        "error": null
+      },
+      {
+        "id": "115",
+        "status": "completed",
+        "receipt_sha256": "cbbf526ce872a38ff0cd989fdfc60f0ef6fab639f33df101dfb03c0c498c032c",
+        "error": null
+      },
+      {
+        "id": "117",
+        "status": "failed",
+        "receipt_sha256": "711a309494fe0230ca69a945cf32f38945668a375e2384e941aa635536b380c8",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "118",
+        "status": "completed",
+        "receipt_sha256": "1d7f1278526171dc8d15cb35fab28f04bdd9e48cea47a70317e0d6ff3e33d153",
+        "error": null
+      },
+      {
+        "id": "119",
+        "status": "completed",
+        "receipt_sha256": "db62c04cf111c16e768924125c72ef4533af3d87fcefedd549c362c6e5bebb41",
+        "error": null
+      },
+      {
+        "id": "12",
+        "status": "completed",
+        "receipt_sha256": "0a019225b2fabd7e2774df65c6d078d81fb8412292da1d61d30fefd3761124cd",
+        "error": null
+      },
+      {
+        "id": "120",
+        "status": "completed",
+        "receipt_sha256": "df1b3934722f0f8666397f6f281939e0e621e6b5c5bac7f708d1da758f7c1ec3",
+        "error": null
+      },
+      {
+        "id": "121",
+        "status": "completed",
+        "receipt_sha256": "d7bb819dcb9325f68fa7dad8de6c05dfd8d874a1922805c112d40b07dbd8cd1c",
+        "error": null
+      },
+      {
+        "id": "122",
+        "status": "completed",
+        "receipt_sha256": "823a3115ceef454d7f709917febd77cc25397cff5febf02bda4e2d4ca63245a4",
+        "error": null
+      },
+      {
+        "id": "123",
+        "status": "completed",
+        "receipt_sha256": "24e054b34eff6e19577a7211182f89f4c347c76d614edfbf08d3f41a5ac09b70",
+        "error": null
+      },
+      {
+        "id": "124",
+        "status": "failed",
+        "receipt_sha256": "c3d06129ecadea654256d876b502e12746d1dd2294723a3dcda892bb690ac38e",
+        "error": "LLMCompletionInterrupted: LLM generation ended with finish_reason=length."
+      },
+      {
+        "id": "125",
+        "status": "completed",
+        "receipt_sha256": "3afa429aa4e3b30672e45353a36666f22ed61333048e5ddc4adad127ac3dfedc",
+        "error": null
+      },
+      {
+        "id": "126",
+        "status": "completed",
+        "receipt_sha256": "8c3276019bcd3666ba1bc1a5f940b78db8bd3452f56ad68367e0315f61b450cb",
+        "error": null
+      },
+      {
+        "id": "127",
+        "status": "completed",
+        "receipt_sha256": "1d7937ad482384384898e4dbcdc6ab4c2ff975434ef4c83222e8599639b91be2",
+        "error": null
+      },
+      {
+        "id": "128",
+        "status": "completed",
+        "receipt_sha256": "a50d0100a4efbb3d3e6d482f262ab2b32a3a42f18c4235a85f4a36b374fe501d",
+        "error": null
+      },
+      {
+        "id": "129",
+        "status": "failed",
+        "receipt_sha256": "9edde0ff6d5466006bfe9a474dabf6e8a3340349509a518d8cd7d90f805d6034",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "13",
+        "status": "completed",
+        "receipt_sha256": "59ca2f642f2fd2fe239f9adad1946af907e0de1208e052a0d2130b0d578a3ce4",
+        "error": null
+      },
+      {
+        "id": "130",
+        "status": "completed",
+        "receipt_sha256": "a57f447e5c99b2d457b42aedbe3c1e006e45848caa352fa04f61d2bf51be5887",
+        "error": null
+      },
+      {
+        "id": "134",
+        "status": "completed",
+        "receipt_sha256": "5ea935bb73b08f2da5da885361c7323f87ddd666d38965d20344e9cc64eb9447",
+        "error": null
+      },
+      {
+        "id": "135",
+        "status": "completed",
+        "receipt_sha256": "a7458ca43e1c2c9360a7de83ee05b484e118ee3360142fe3caa004eaf8cce1ab",
+        "error": null
+      },
+      {
+        "id": "136",
+        "status": "completed",
+        "receipt_sha256": "f34fb9676cd5d0aaa8cc07fe300bbdc4c125d454bcc40900731b7dce853e6cd7",
+        "error": null
+      },
+      {
+        "id": "139",
+        "status": "completed",
+        "receipt_sha256": "6c47a7704189382c468323bd9bf778b164f301ac23a1eab0516f7f73f11fe976",
+        "error": null
+      },
+      {
+        "id": "14",
+        "status": "completed",
+        "receipt_sha256": "41c8c8fae90bd784fe99ff5a3cfda83bca904fbd328d3177bc20ef49d6dc1a0c",
+        "error": null
+      },
+      {
+        "id": "141",
+        "status": "completed",
+        "receipt_sha256": "570fb094828d7eb23acd8acad1bf7d6a14ab1345a6e2047fbea795f7ef5846d7",
+        "error": null
+      },
+      {
+        "id": "144",
+        "status": "completed",
+        "receipt_sha256": "63b99d2d45018829566de8b8f3a1b0b2ff4dbbf8127e135cdaa0993d847bcf93",
+        "error": null
+      },
+      {
+        "id": "146",
+        "status": "completed",
+        "receipt_sha256": "5197d9b32b5b3f6e2a871129298de8cf68477691dfe8d113560e66cc1666624e",
+        "error": null
+      },
+      {
+        "id": "147",
+        "status": "completed",
+        "receipt_sha256": "0c6d950e7d40284c0d545c2a5e1e2b460d77117a99ef5602fa088a2bf9e65bc3",
+        "error": null
+      },
+      {
+        "id": "149",
+        "status": "completed",
+        "receipt_sha256": "35075e6d62cb817dc8110fda2634ae4dd6bfe3f2779970ef7313dfda133d1832",
+        "error": null
+      },
+      {
+        "id": "150",
+        "status": "failed",
+        "receipt_sha256": "fe6c83a7c903b0e98c1ff5d8bc43e1fdc42f2f59aed366d5d79829c238756565",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "151",
+        "status": "completed",
+        "receipt_sha256": "095580b1119306c00c316cfde64e33f09be1777e8d8c55da1f8f5c638de8cefe",
+        "error": null
+      },
+      {
+        "id": "152",
+        "status": "completed",
+        "receipt_sha256": "c71aaa791410ac8c4da4b50ed81973f782eb0ac38697f23cf90d8b4727579edd",
+        "error": null
+      },
+      {
+        "id": "153",
+        "status": "completed",
+        "receipt_sha256": "9dc1eb66377d8fdb38b5c48531f33f7b505f861aef1916af99821be42fac0c75",
+        "error": null
+      },
+      {
+        "id": "154",
+        "status": "completed",
+        "receipt_sha256": "e32ce5a1b3cbd3b08ed7119e0fb688405a31ac54e757679cb7cf644bb79fa819",
+        "error": null
+      },
+      {
+        "id": "155",
+        "status": "completed",
+        "receipt_sha256": "e377e8aa84677d0b6a14b8536ad0de35ee8df7512a2c785f87668c4431146eee",
+        "error": null
+      },
+      {
+        "id": "156",
+        "status": "completed",
+        "receipt_sha256": "e3c964598b02ed9e2a915aaa2ed4ae43853a579807bf5065d14cc3d4e456628c",
+        "error": null
+      },
+      {
+        "id": "158",
+        "status": "completed",
+        "receipt_sha256": "2309fc378a7d6716ccf5fb5afac0d3d9b768e6b343cd62a965bc32418414a54b",
+        "error": null
+      },
+      {
+        "id": "160",
+        "status": "completed",
+        "receipt_sha256": "19fd9a818a1aa41ba948591c3a0783e1c7bd19f9b9597dff4935948082c06480",
+        "error": null
+      },
+      {
+        "id": "162",
+        "status": "completed",
+        "receipt_sha256": "746208c0e34903d520e6c8fdf3823b77e8443dd721d90e0b4d855c4d317699db",
+        "error": null
+      },
+      {
+        "id": "163",
+        "status": "completed",
+        "receipt_sha256": "e80c1d783b87b3d8382021c14bb005fd15d8fb7fe4f9b0ea4d602cc3153c4752",
+        "error": null
+      },
+      {
+        "id": "164",
+        "status": "completed",
+        "receipt_sha256": "84739550f48be5026527b01851dd5fc158374f7056f162bcd9300f3749efd54b",
+        "error": null
+      },
+      {
+        "id": "167",
+        "status": "failed",
+        "receipt_sha256": "8ba6bf1788a91cf983e82f301cea0c8957a516643a3f823f86e126afc0900774",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "168",
+        "status": "completed",
+        "receipt_sha256": "774ebde4e96019ae4462b857022abe824b52061a04dd1fde11b4d43776150252",
+        "error": null
+      },
+      {
+        "id": "17",
+        "status": "completed",
+        "receipt_sha256": "a3f38068024cac430428169716a72e3471710638847b2424f376291e8cec0a44",
+        "error": null
+      },
+      {
+        "id": "170",
+        "status": "completed",
+        "receipt_sha256": "29b4b8b9e52d9ef5e27b9c8b1e54705f446ece6fa41069058e43f3edf9346043",
+        "error": null
+      },
+      {
+        "id": "171",
+        "status": "completed",
+        "receipt_sha256": "f3c4d583b8efb3623e47ae7820063456dce5e8aa95b02d5bfe3399f49db53dec",
+        "error": null
+      },
+      {
+        "id": "18",
+        "status": "completed",
+        "receipt_sha256": "446a96d19186898e74f0701bb27798b37c9d945e7b5506b86b01655ed33706ff",
+        "error": null
+      },
+      {
+        "id": "19",
+        "status": "completed",
+        "receipt_sha256": "9831578b2ffdb1e6c9404a35ac73b0a7f7d8ddc0f2eedb0c1a9d7783f159a8f5",
+        "error": null
+      },
+      {
+        "id": "21",
+        "status": "completed",
+        "receipt_sha256": "6974d1e7ec1647a18ec94acf2ec3818c2006f46d05c3c8a44ee16e155703a834",
+        "error": null
+      },
+      {
+        "id": "23",
+        "status": "completed",
+        "receipt_sha256": "5dd34fe5182d00b7c1a998a4088cbf907c3c31432090250114c2add9a836f3e4",
+        "error": null
+      },
+      {
+        "id": "26",
+        "status": "completed",
+        "receipt_sha256": "6a7ba802de053a31985ef5134dcfa15cb745a21453e0c2d9c4057fb06d45cd4d",
+        "error": null
+      },
+      {
+        "id": "27",
+        "status": "completed",
+        "receipt_sha256": "cf94f9072fc7b42f1508f52b2845314956d82db27c3ae20eb5fd7606d9bb34ec",
+        "error": null
+      },
+      {
+        "id": "28",
+        "status": "completed",
+        "receipt_sha256": "389b03fabcc73e3cc1f2b5b8a40d273d7bb7ccfa24a44a8b33cc7c4152e67161",
+        "error": null
+      },
+      {
+        "id": "29",
+        "status": "completed",
+        "receipt_sha256": "b58e4ecf81fbf0b9e8c869d943e23e906a360ee40dd7ccc76ba8b0b482d1f8ee",
+        "error": null
+      },
+      {
+        "id": "3",
+        "status": "completed",
+        "receipt_sha256": "21b1c8dcc8b792845b2f4b7c2c305d840eb0d3e45937265c5d2278c218d495fe",
+        "error": null
+      },
+      {
+        "id": "30",
+        "status": "failed",
+        "receipt_sha256": "beb50f2d985c1496fa98c0858e96dcdd9deb3cb8caa63a85e0546c0f2a64258e",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "34",
+        "status": "completed",
+        "receipt_sha256": "d12dfee2791c879a13b0910f87ea22dd87250143181b80d74eebfbe64cf9e4c7",
+        "error": null
+      },
+      {
+        "id": "35",
+        "status": "failed",
+        "receipt_sha256": "08cb1abc3d802633570e1512491f2ab8e09f8f9e292d2c9f207b2c50743c03b4",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "36",
+        "status": "completed",
+        "receipt_sha256": "f920b291db2c10a6ea4fc1b9ff195dd109849542bf520c94c98a666f295679fe",
+        "error": null
+      },
+      {
+        "id": "37",
+        "status": "failed",
+        "receipt_sha256": "1e7105ada237d3253acb7ea3757a4718a6d9695a6b56c895ed831cfa29ca2210",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "39",
+        "status": "completed",
+        "receipt_sha256": "4145e20978583c24bbc89f2b8b3d099669f36245520ba605c38a462eedac416d",
+        "error": null
+      },
+      {
+        "id": "4",
+        "status": "completed",
+        "receipt_sha256": "effe3dd10cfc018df019cd50db38038a49a79668a69fa11da52cb2907039d6d0",
+        "error": null
+      },
+      {
+        "id": "41",
+        "status": "completed",
+        "receipt_sha256": "8e712e9ee1e49febfcb1207ae77f16e24e6c7ed59216a8dd2f15b1b403ddca8a",
+        "error": null
+      },
+      {
+        "id": "42",
+        "status": "completed",
+        "receipt_sha256": "d6c426f31f474a8a86378dcc6475de3fd1761319c757bff98c10a07f7c6a2c70",
+        "error": null
+      },
+      {
+        "id": "43",
+        "status": "completed",
+        "receipt_sha256": "68c6b15e35b2d61007a293e2638e681d0ec57b304886f9fe1ed9d1f7174cf1d3",
+        "error": null
+      },
+      {
+        "id": "44",
+        "status": "completed",
+        "receipt_sha256": "7c1d6814913b8c39783f6f8bfae6bc58f1645c0fc9d97428db6716d0afd3c30f",
+        "error": null
+      },
+      {
+        "id": "45",
+        "status": "completed",
+        "receipt_sha256": "2bfe4190b92a378fbd2fca4afdd574cb231539de993ff260d26a16a42497448c",
+        "error": null
+      },
+      {
+        "id": "46",
+        "status": "completed",
+        "receipt_sha256": "51b42109e8473b89a9420f54a6a6d3734a70b640fbaaae0fb97b1ad0e8148ca8",
+        "error": null
+      },
+      {
+        "id": "47",
+        "status": "failed",
+        "receipt_sha256": "ca9aff685effef591350a4b11551dc22bcb72c5220831939947e1cd054566770",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "48",
+        "status": "completed",
+        "receipt_sha256": "6b939a74eaf8262df02c31e34b4753316a0ef6028676739a5af572806a450d50",
+        "error": null
+      },
+      {
+        "id": "49",
+        "status": "completed",
+        "receipt_sha256": "ea35fd1ed4a034a8d770d0135382cf34046f5a9b163a40c1f53f6cf735b3579a",
+        "error": null
+      },
+      {
+        "id": "50",
+        "status": "completed",
+        "receipt_sha256": "41ed436509d1c3dc3455991e1858c4b5775e47b7edecb10b642af8c9200b2891",
+        "error": null
+      },
+      {
+        "id": "51",
+        "status": "completed",
+        "receipt_sha256": "3431a069f4d71159c5219fa07c49a30639c9ca0392c71aae9648b791dbbf7717",
+        "error": null
+      },
+      {
+        "id": "52",
+        "status": "completed",
+        "receipt_sha256": "d01133dc4fe4576cc0246b522a205898fce10eed6da8ab4066aef239f2062358",
+        "error": null
+      },
+      {
+        "id": "53",
+        "status": "completed",
+        "receipt_sha256": "d4738890dbc72d1601b3785847e538838a8a11ca8d0f7595350831da9461bbe0",
+        "error": null
+      },
+      {
+        "id": "54",
+        "status": "completed",
+        "receipt_sha256": "377cf5a9aa024fb659793705d83fad2e7527bff737a4b9ae21f22a8df0a34bf3",
+        "error": null
+      },
+      {
+        "id": "55",
+        "status": "completed",
+        "receipt_sha256": "9095cb3d095db9040439ebe47f9d432b4195f7b7cff3e41e9197bc5fdbf2aa62",
+        "error": null
+      },
+      {
+        "id": "56",
+        "status": "completed",
+        "receipt_sha256": "d8203bb971848f992558a16092eb188ad54aa12b39e1a8e903b69ab0b33f3300",
+        "error": null
+      },
+      {
+        "id": "58",
+        "status": "completed",
+        "receipt_sha256": "9591c72a955b937dc93a5a3037b6bf191de5b17d0d907a2ac09a8e5e55495656",
+        "error": null
+      },
+      {
+        "id": "59",
+        "status": "completed",
+        "receipt_sha256": "d362a3698fdb0f8a684b29c9ef6a6c9d2d63f9380d5e6b79af85675e255018a8",
+        "error": null
+      },
+      {
+        "id": "60",
+        "status": "completed",
+        "receipt_sha256": "ac3dc0d10f87868cec2abc1fd7b7dc9fd041e5d5176d5156e3962235e822db4c",
+        "error": null
+      },
+      {
+        "id": "62",
+        "status": "failed",
+        "receipt_sha256": "6b0bdbc1198ba7df3e75c5dba7ed04e08b1c77f76253b7296a96524bce3f913f",
+        "error": "LLMDeadlineExceeded: Provider HTTP wall-clock deadline expired"
+      },
+      {
+        "id": "64",
+        "status": "completed",
+        "receipt_sha256": "6a4e4f5917a1783ead3184f75f1fab320636042139a9f96f45dc35869286f594",
+        "error": null
+      },
+      {
+        "id": "65",
+        "status": "completed",
+        "receipt_sha256": "e2d80d70f9199069fbe0e1ce29e41b07b3a60f0ea01e0d5d9db3a8b171bf8d2b",
+        "error": null
+      },
+      {
+        "id": "66",
+        "status": "completed",
+        "receipt_sha256": "0c0385711811a9687d5f48661e38ca3ee99f17da265af776e941416ca791db0b",
+        "error": null
+      },
+      {
+        "id": "67",
+        "status": "completed",
+        "receipt_sha256": "e269a7389e2708cd37d4ef311ce154c6ce23b2b71e3612ad71da13ff64bfdaaf",
+        "error": null
+      },
+      {
+        "id": "68",
+        "status": "completed",
+        "receipt_sha256": "3b8fcbe513818ca45c69db87b4e02ee1b572b208f3bd8c63334b77c01ad305e5",
+        "error": null
+      },
+      {
+        "id": "7",
+        "status": "completed",
+        "receipt_sha256": "c9e57784a9d8702008ed27d5b43321ec58e602caf7c59739e750e68444e3a092",
+        "error": null
+      },
+      {
+        "id": "71",
+        "status": "completed",
+        "receipt_sha256": "349644b80815e7cf0e21f70104ead5bbe8e58bde234eca8521c1572b80063c29",
+        "error": null
+      },
+      {
+        "id": "72",
+        "status": "completed",
+        "receipt_sha256": "d1487249ea25a6fdfcaa28b412b5b0bea155d692fb795823da3155db564b86e6",
+        "error": null
+      },
+      {
+        "id": "73",
+        "status": "completed",
+        "receipt_sha256": "9c0bd5fae1bfdc5335a4b01c840ab8e9d6b47fe1c14ed2875b347cbf18316ddb",
+        "error": null
+      },
+      {
+        "id": "78",
+        "status": "completed",
+        "receipt_sha256": "7f816d7697d56a8d8ea59a217d8eb7a1ba86213391f81bc7c8ade0841604e6bb",
+        "error": null
+      },
+      {
+        "id": "79",
+        "status": "failed",
+        "receipt_sha256": "9756f823e1fd43eac983f5de9abf894406f210fc595cd99ad29afe26c1c155b3",
+        "error": "LLMDeadlineExceeded: LLM request deadline expired."
+      },
+      {
+        "id": "8",
+        "status": "completed",
+        "receipt_sha256": "823b7604d2f9dbb7cd958fd52e24df04fb2794007e66958ca5710f1ccbc23ab1",
+        "error": null
+      },
+      {
+        "id": "80",
+        "status": "completed",
+        "receipt_sha256": "1e8a75c2a5dc9e524239978946af62625a96995e48d6bad0f2814273d4a522ca",
+        "error": null
+      },
+      {
+        "id": "81",
+        "status": "failed",
+        "receipt_sha256": "bfe9f4d57be2d45d4e90adad77a39664aee229c71bbbbb67b13c522583a30562",
+        "error": "LLMCompletionInterrupted: LLM generation ended with finish_reason=length."
+      },
+      {
+        "id": "82",
+        "status": "completed",
+        "receipt_sha256": "b65118dcc73ce64d8aa659da7f45c8e7b0b8073c858465287c390ad102c68e7c",
+        "error": null
+      },
+      {
+        "id": "84",
+        "status": "completed",
+        "receipt_sha256": "56432b3aa946a0ecebb45b054fc6b7ab984696d6f0d6540745aff4b74bf95141",
+        "error": null
+      },
+      {
+        "id": "86",
+        "status": "completed",
+        "receipt_sha256": "68501aa2200e50cf740728fba65de98396c4fe1df9d023e51e5e1d5f6faf1049",
+        "error": null
+      },
+      {
+        "id": "88",
+        "status": "completed",
+        "receipt_sha256": "fad22d595206fe6dbc275f28463483b0212d0ff497c5be58a8d70aef202031dd",
+        "error": null
+      },
+      {
+        "id": "9",
+        "status": "completed",
+        "receipt_sha256": "24d82343cc42543642758d123b0e993d161b30044674f30d65c916351a70556b",
+        "error": null
+      },
+      {
+        "id": "90",
+        "status": "failed",
+        "receipt_sha256": "effbca37fa8242b357069aff6ee704ba8df17dee737094a8822ee84f01ddfadd",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "91",
+        "status": "completed",
+        "receipt_sha256": "98d6e065ba39f488605cd28203f5544f1c242a52dc5049150c4dcef8ef363d3d",
+        "error": null
+      },
+      {
+        "id": "92",
+        "status": "completed",
+        "receipt_sha256": "f471856e3eb491f5cc609ce196d2f9506065dd6200b96d9be3f3b89293a9136f",
+        "error": null
+      },
+      {
+        "id": "93",
+        "status": "failed",
+        "receipt_sha256": "3ce1964f167a3fc93fdeb50e1ef993e9ce00c84d6fa7964e3e37c48cf2169a36",
+        "error": "TimeoutError: Final synthesis exceeded its remaining phase budget."
+      },
+      {
+        "id": "96",
+        "status": "failed",
+        "receipt_sha256": "c6c307226c26d0cb87a13a70a10e3aff799ebde8b7fc922c88b3286add17d951",
+        "error": "LLMDeadlineExceeded: Provider HTTP wall-clock deadline expired"
+      },
+      {
+        "id": "98",
+        "status": "completed",
+        "receipt_sha256": "36c1812ccec1de74eb5d1a47c7b0363e6eb961b7dc57fe9bfdd4cde92c78642b",
+        "error": null
+      },
+      {
+        "id": "99",
+        "status": "completed",
+        "receipt_sha256": "80b888c6381bcd2177256c6a401b4f154ee27ece566de868f4ffacf3c25dd30b",
+        "error": null
+      },
+      {
+        "id": "bluefin_0122_q1",
+        "status": "completed",
+        "receipt_sha256": "0dd7365eb268ebe32afa2b58fde01a3ed25e03faa3dc10e6550920d771a2faee",
+        "error": null
+      },
+      {
+        "id": "bluefin_0122_q2",
+        "status": "completed",
+        "receipt_sha256": "241265a95ba2f994e4341bad441bea2bf610fa90a070cc62b0e910143d970430",
+        "error": null
+      },
+      {
+        "id": "bluefin_0122_q3",
+        "status": "completed",
+        "receipt_sha256": "6d23f4fbbb2ed4b175b55fffbc75fbfba465324568e2876eb62808e629638bfe",
+        "error": null
+      },
+      {
+        "id": "bluefin_manipulation_2aac5a2a",
+        "status": "failed",
+        "receipt_sha256": "cf5ffcc40f83135221c8dbdd534848d939bdb2003511e477461c2cd1e1b90b34",
+        "error": "LLMCompletionInterrupted: LLM generation ended with finish_reason=length."
+      },
+      {
+        "id": "bluefin_manipulation_2bdd0f12",
+        "status": "completed",
+        "receipt_sha256": "cc613e84dbe147577dee6629ca6797863147f5d13daa0f20c0f65a1a5bfc9538",
+        "error": null
+      },
+      {
+        "id": "bluefin_manipulation_67cbe713",
+        "status": "failed",
+        "receipt_sha256": "e0e14f2a7a0d81accbff85a08ef08c3d4d990226943229c5e468ef8f2d2b8962",
+        "error": "LLMCompletionInterrupted: LLM generation ended with finish_reason=length."
+      },
+      {
+        "id": "bluefin_manipulation_95d3752e",
+        "status": "completed",
+        "receipt_sha256": "2d7eebb501ab88f6dcc28f9d483c4960ed411ee7321fbf2941a01693752a8659",
+        "error": null
+      },
+      {
+        "id": "bluefin_manipulation_d970b98b",
+        "status": "completed",
+        "receipt_sha256": "a0bc1c0b9ab9f524368065fe9f5a0bc7b07b20cf9724ce658d034778b709d32d",
+        "error": null
+      },
+      {
+        "id": "bluefin_manipulation_e13c5e9d",
+        "status": "completed",
+        "receipt_sha256": "dfbc5351df97d3073fee9e4f3ddd9fccc85a568b4cf212d7d771dd9bfdf2d1de",
+        "error": null
+      },
+      {
+        "id": "bluefin_manipulation_eae8665e",
+        "status": "failed",
+        "receipt_sha256": "ce6f36689268b2128127ab32d190173a766e2e747928b4bc25b8e70809fb1cf6",
+        "error": "LLMCompletionInterrupted: LLM generation ended with finish_reason=length."
+      },
+      {
+        "id": "bluefin_synthesis_TTWO_Operating_Model_DCF",
+        "status": "completed",
+        "receipt_sha256": "857c1b4e4f6e54d1459277d57a38eeeb63802af8b13267a498635040507466a5",
+        "error": null
+      },
+      {
+        "id": "emb_M003_template",
+        "status": "failed",
+        "receipt_sha256": "d91cc1aeb554d86dc3de58da70c0544847e4e722f7ec9ed660e77a1ea36eece9",
+        "error": "LLMCompletionInterrupted: LLM generation ended with finish_reason=length."
+      }
+    ]
+  },
+  "findeepforecast": {
+    "total": 1370,
+    "primary_completed": 368,
+    "recovery_completed": 939,
+    "usable_completed_total": 1307,
+    "without_completed_response": 63,
+    "recovery_attempt_records": 942,
+    "continuation_eligible_execution_cases": 62,
+    "retained_output_limit_failures": 1,
+    "original_recovery_stop": "Cumulative conservative $35 guard rejected the next maximum reservation at $33.50842704.",
+    "continuation_protocol": "protocol-findeepforecast-recovery-02.json",
+    "continuation_cumulative_reference_cap_usd": 40,
+    "continuation_status": "Stopped on returned LLMProviderUnavailable before any new model generation; latest provider balance independently verified unavailable.",
+    "new_generation_calls_during_continuation": 0,
+    "balance_verified_utc": "2026-10-24T21:06:02.868999+00:00",
+    "provider_available": false,
+    "known_conservative_usage_usd": 33.50842704,
+    "pending_provider_attempts": 0,
+    "unknown_provider_attempts": 0,
+    "reference_comparison": {
+      "completed": 1307,
+      "correct": 354,
+      "zero_reference_unresolved": 8,
+      "agreement_percent_bounds": [
+        27.084927314460597,
+        27.697016067329763
+      ],
+      "financial_accuracy": "Unadjudicated; published unit/definition discrepancies retained.",
+      "modern_model_weights": "2025 deadlines make this retrospective, not uncontaminated prospective accuracy."
+    }
+  },
+  "prospective_custom_forecasts": {
+    "usable_issued": 8,
+    "return_target_end": "2027-01-21",
+    "fiscal_revenue_target": "First-reported FY2027 revenue; later releases required.",
+    "outcomes": "Pending, issued values unchanged."
+  },
+  "gpu_instances_allocated": 0,
+  "compute_comparison": "compute-cost-findeepforecast-continuation-2026-10-24.json",
+  "native_full_protocol_sha256": "474a1a976bdeef93dde298e2ace7740a6a039724cc94da3ce197c118fd2c1b11",
+  "resume_safety": "No completed answer was replaced. Old protocols/receipts remain immutable; scorer accepts only hash-linked prior protocols with the same inference, selection, output and accounting contract."
+}

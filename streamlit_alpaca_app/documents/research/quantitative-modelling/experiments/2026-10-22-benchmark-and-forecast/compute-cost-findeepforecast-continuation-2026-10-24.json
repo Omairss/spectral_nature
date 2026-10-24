@@ -1,0 +1,65 @@
+{
+  "estimated_at_utc": "2026-10-24T21:04:08.668039+00:00",
+  "workload": {
+    "new_requests": 62,
+    "retained_output_limit_failure": 1,
+    "same_model": "deepseek-v4-pro / V4-Pro-0813 / high reasoning",
+    "same_completion_limit": 32768,
+    "same_context_limit": 1048576,
+    "completed_provider_calls_observed": 1301,
+    "observed_tokens": {
+      "prompt_tokens": 736503,
+      "completion_tokens": 8216223,
+      "total_tokens": 8952726,
+      "prompt_cache_hit_tokens": 512,
+      "prompt_cache_miss_tokens": 735991
+    }
+  },
+  "deepseek": {
+    "peak_cache_aware_projected_usd": 1.5968347203197542,
+    "weekend_offpeak_projected_usd": 0.7984173601598771,
+    "completion_includes_reasoning_once": true,
+    "cache": "Observed provider cache hit/miss counts; predominantly short uncached prompts.",
+    "cumulative_conservative_reference_cap_usd": 40,
+    "prior_conservative_usage_usd": 33.50842704,
+    "remaining_reference_allowance_usd": 6.49157296,
+    "request_admission": "Preserve maximum input/output reservation and all existing attempt histories."
+  },
+  "lambda": {
+    "comparable_model_fit": "Prior official recipe requires about 960GB weights; planning allocation 8xB200 180GB. A cheap single GPU does not fit this model. Public checkpoint equivalence to hosted0813 has not been established.",
+    "instance_hour_usd": 53.52,
+    "measured_throughput": null,
+    "startup_model_load_minutes_assumed": [
+      30,
+      60
+    ],
+    "startup_only_usd": [
+      26.76,
+      53.52
+    ],
+    "decode_only_sensitivities": [
+      {
+        "aggregate_output_tps_assumed": 1000,
+        "cold_30min_plus_decode_usd": 32.58103506010761
+      },
+      {
+        "aggregate_output_tps_assumed": 10000,
+        "cold_30min_plus_decode_usd": 27.342103506010762
+      }
+    ],
+    "other_costs": "Prefill, qualification, idle and shutdown time would increase GPU cost. Included local SSD is sufficient for these tiny prompts; no separate persistent storage is needed. No instance or filesystem is allocated. Any future allocation must be terminated and verified.",
+    "batching": "No qualified warm endpoint or measured saturated throughput exists for this continuation."
+  },
+  "local_storage": {
+    "free_bytes_at_preflight": 82804072448,
+    "reason": "Small text records; native-file executor remains stopped after its separate ENOSPC failure.",
+    "all_findeep_evidence_bytes_at_previous_audit_approx": 36700160
+  },
+  "decision": "Continue DeepSeek: approximately one dollar of expected weekend API inference versus at least $26.76 assumed comparable cold GPU loading before decoding. Keep prompt/model/inputs fixed. No GPU rented. Revisit if workload, measured throughput, model capability or prices change.",
+  "sources_checked_2026_10_24": [
+    "https://lambda.ai/instances",
+    "https://docs.lambda.ai/public-cloud/billing/",
+    "https://api-docs.deepseek.com/quick_start/pricing/"
+  ],
+  "model_fit_reference": "../2026-10-23-native-file-analyst/compute-cost-comparison.json"
+}

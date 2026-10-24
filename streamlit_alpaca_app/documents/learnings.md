@@ -1225,3 +1225,10 @@ The owner explicitly requires a cost estimate before studies and analysis, then 
 ### Give file investigations explicit paths and recoverable state — October 23
 
 Declared file descriptors should expose the actual isolated input path. Source-free tool discovery must remain available after source restrictions. A failed calculation should not permanently strand the analyst: restore the last successful working checkpoint on the next call and discard uncommitted failed writes. Native UNO editing preserved twelve shapes that openpyxl saving had removed. Keep that gain distinct from remaining merge compatibility changes. Primary inspection also confirmed a useful economic report and two charts while retaining its overly strong causal interpretation.
+
+
+### Resume from execution evidence and recheck account availability — October 24
+
+A saved launch PID and a running-state document do not establish that a study is still running. Audit processes, parseable final receipts, failed attempts and provider accounting; distinguish cases without final records from cases that never incurred work. Update canonical status after both budget and storage stops. Keep successful execution, native reference agreement and personally verified financial correctness separate.
+
+Budget amendments can preserve a study: hash-link earlier protocols, keep model/prompt/input/selection and accounting identity fixed, append technical retries and retain every completed answer. Replay all existing comparisons before new inference. The FinDeepForecast continuation preserved all 1,370 comparisons with zero calls and selected 62 execution cases, leaving one output-limit failure untouched. Recheck prepaid availability before describing the continuation as running; no new generation was made when the account reported unavailable.

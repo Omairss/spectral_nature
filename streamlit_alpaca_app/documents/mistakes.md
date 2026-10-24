@@ -1133,3 +1133,10 @@ The manual OOXML probe treated shared-formula followers as constants and compare
 ### Supplied-file access and timeout recovery — October23
 
 The first shared file-analysis pilot admitted inputs but the generic source filter removed file execution and even source-free discovery, leaving an empty tool catalog. Its three no-work attempts are retained. Classify admitted file analysis as supplied access and discovery/capability tools as source-free; verify the effective catalog before inference. The second pilot actually executed files. A model recursive filesystem search then timed out and destroyed its container, leaving later calls unable to recover. Checkpoint recovery was then corrected and qualified with a real timeout: the uncommitted overwrite was discarded and prior working files restored before expansion. Another task calculated useful controls but openpyxl authoring removed12original shapes, so its preservation claim fails despite correct control arithmetic. The next shared native-editing helper retained all12shapes, although LibreOffice merge changes remain a preservation limitation.
+
+
+### Overnight evaluation stopped without a fresh status — October 24
+
+The native batch stopped on ENOSPC while creating a final receipt after 133 new recorded attempts; the tracker still said running. Later free space does not explain the earlier exhaustion, and the retained batch is only about 747 MiB. Storage admission and failure-safe receipt persistence belong at the execution boundary; audit receipt-less paid work before resuming. Keep final-response completion separate from correct financial deliverables.
+
+FinDeepForecast reached 1,307 completed responses, then its self-declared $35 guard rejected the next maximum reservation at $33.5084. A hash-linked $40 continuation preserved all completed answers and prior protocols. It stopped before new generation because the account was unavailable; an independent balance read confirmed that. Retain the local failed continuation rather than clearing the provider guard or claiming an active job. The one output-limit failure remains a failure rather than an accuracy-selected retry.

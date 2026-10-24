@@ -79,6 +79,21 @@ def score(manifest_path: Path, output: Path, recovery_protocol: Path | None = No
     recovery = None
     if recovery_protocol is not None:
         recovery = json.loads(recovery_protocol.read_text())
+        recovery_protocols = {sha(recovery_protocol): recovery_protocol}
+        for receipt in recovery.get('prior_recovery_protocols', []):
+            prior_path = recovery_protocol.parent / receipt['path']
+            if sha(prior_path) != receipt['sha256']:
+                raise ValueError('Prior recovery protocol changed')
+            prior = json.loads(prior_path.read_text())
+            # A budget continuation must preserve inference and selection. Only
+            # spending admission and declared technical retry policy may change.
+            for key in ['source_git', 'engine_revision', 'actor_sha256', 'runtime_overrides',
+                        'completion_tokens', 'timeout_seconds', 'runner_sha256',
+                        'original_runner_sha256', 'selected_ids', 'output_root',
+                        'accounting_root', 'parent_manifest', 'parent_manifest_sha256', 'condition']:
+                if prior[key] != recovery[key]:
+                    raise ValueError('Budget continuation changes the recovery condition: ' + key)
+            recovery_protocols[receipt['sha256']] = prior_path
         for key in ['source_git', 'engine_revision', 'actor_sha256', 'runtime_overrides', 'completion_tokens', 'timeout_seconds']:
             if recovery[key] != protocol[key]:
                 raise ValueError('Recovery changes the inference condition: ' + key)
@@ -98,13 +113,13 @@ def score(manifest_path: Path, output: Path, recovery_protocol: Path | None = No
                 if (completed or attempt['id'] != identifier or attempt['attempt_number'] != number_
                         or attempt['previous_attempt_sha256'] != previous_hash
                         or attempt['primary_attempt_sha256'] != sha(primary_predictions[identifier])
-                        or attempt['protocol_sha256'] != sha(recovery_protocol)):
+                        or attempt['protocol_sha256'] not in recovery_protocols):
                     raise ValueError('Recovery history changed or retried a completed answer: ' + identifier)
                 previous_hash = sha(path)
                 if (attempt.get('result') or {}).get('status') == 'completed':
                     completed = True
                     predictions[identifier] = path
-                    carried_protocols[identifier] = recovery_protocol
+                    carried_protocols[identifier] = recovery_protocols[attempt['protocol_sha256']]
                     recovered_ids.add(identifier)
 
     results = []
@@ -210,6 +225,8 @@ def score(manifest_path: Path, output: Path, recovery_protocol: Path | None = No
               'cases': results}
     if recovery_protocol:
         report['source_sha256']['recovery_protocol'] = sha(recovery_protocol)
+        report['source_sha256']['prior_recovery_protocols'] = sorted(
+            value for value in recovery_protocols if value != sha(recovery_protocol))
     output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + '\n')
     return {k: report[k] for k in ['condition', 'summary', 'groups']}
 
