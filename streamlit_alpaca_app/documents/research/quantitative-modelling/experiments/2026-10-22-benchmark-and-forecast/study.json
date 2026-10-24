@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": "2026-10-24T21:07:02.389274+00:00",
+  "updated_at_utc": "2026-10-24T21:43:28.790826+00:00",
   "owner_goals": [
     "Evaluate the model on every external benchmark in the retained source catalog.",
     "Create Seeking Alpha future-prediction tasks with extensive controlled context and no target leakage.",
@@ -221,11 +221,12 @@
     "findeepforecast_estimated_full_usd": 29.241828,
     "findeepforecast_primary_new_known_usd": 8.89810944,
     "findeepforecast_carried_32k_probe_known_usd": 0.1707552,
-    "standing_owner_compute_preference": "Estimate Lambda GPU versus DeepSeek total cost before studies/batches and choose the cheaper suitable path. Include setup, caching/reasoning, throughput/idle time, storage and verified shutdown."
+    "standing_owner_compute_preference": "Superseded October24: Lambda on-demand GPUs only; explicit approval before research spending exceeds $25/day. See owner_constraints.research_compute. Historical reference allowances below/above remain evidence only.",
+    "historical_allowances_authorize_new_spending": false
   },
   "next_actions": [
+    "Before further model studies: prepare a Lambda on-demand execution plan with an adequate model, explicit daily cost and verified shutdown. Ask the owner before starting or continuing work projected to take combined research spend above $25/day. Do not resume historical DeepSeek protocols or use an API fallback.",
     "Native files: preserve all recorded attempts and tool/provider evidence; reconcile the receipt-less work, add storage admission and failure-safe result persistence at the shared batch boundary, then resume missing cases. Personally grade native financial outputs; completed responses are not accuracy.",
-    "FinDeepForecast: when the existing account is available, resume protocol-findeepforecast-recovery-02.json on its cumulative $40 reference ledger. Skip every completed answer, retain the output-limit failure, append eligible technical retries. Cost comparison projects about $0.80 weekend API cost for 62 cases; no GPU allocated.",
     "Finish FinanceBench source/definition adjudication. All150 answers personally compared,131reference alignment; final source accuracy remains unclaimed.",
     "Improve shared period/calendar, financial assumptions, numerical reporting and uncertainty validation using the personal reviews; evaluate on new issuers/origins, preserve every already-issued forecast.",
     "Score prospective Seeking Alpha predictions only after independent actual outcomes mature. Primary agent personally establishes ground truth; no LLM judge.",
@@ -258,6 +259,19 @@
       "candidate_base": "2130a3c5",
       "deployment_status": "deployed_and_runtime_verified",
       "production_record": "../../../../verification/quantitative-compute-2026-10-22/production.json"
+    },
+    "research_compute": {
+      "effective_date": "2026-10-24",
+      "provider": "Lambda on-demand GPU only",
+      "paid_inference_apis_for_research": "Not authorized; supersedes prior cheaper-provider policy.",
+      "daily_unapproved_limit_usd": 25,
+      "daily_scope": "Combined research studies, concurrent instances, retries and continuations. No reset by splitting or renaming runs.",
+      "timezone": "America/Los_Angeles",
+      "approval": "Ask before starting or continuing work projected to exceed $25/day; wait for explicit owner approval. No approval above this threshold has been given.",
+      "cost_basis": "All GPUs and billed startup/model loading, execution, idle time, storage and verified shutdown. Reserve termination headroom.",
+      "model_quality": "Preserve adequate model capability and context. Ask if a suitable run cannot fit; no silent downgrade or API fallback.",
+      "historical_protocols": "Retained unchanged as evidence; prior DeepSeek budgets and continuations are not authorization to resume.",
+      "production": "No production provider or schedule changes authorized by this research instruction."
     }
   },
   "accounting_repair": {
@@ -294,7 +308,7 @@
     "personal_review": "findeepforecast-personal-review.json",
     "financial_accuracy": "Unadjudicated; mixed reference units and a source-confirmed discrepancy.",
     "recovery_protocol": "protocol-findeepforecast-recovery-02.json",
-    "recovery_status": "stopped_provider_balance_unavailable; no paid generation during latest continuation",
+    "recovery_status": "stopped; prior DeepSeek continuation superseded by Lambda-only / $25-per-day owner policy; new suitable GPU condition required before inference",
     "recovery_execution": null,
     "recovery_scoring": "findeepforecast-recovery-scores.json",
     "recovery_completed_at_snapshot": 939,

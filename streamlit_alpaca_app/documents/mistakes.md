@@ -1145,3 +1145,8 @@ FinDeepForecast reached 1,307 completed responses, then its self-declared $35 gu
 ### Research budgets omitted concurrent production spend — October 24
 
 I reported study-specific spending guards without reconciling the production jobs drawing on the DeepSeek balance alongside them. A read-only audit of application records and unique local provider attempts found $97.36 in metered cache-aware estimates across the 27.82 hours between saved balance checks: $46.70 research and $50.66 application activity. Production company research alone cost $34.28 in that interval. The $35 FinDeepForecast guard was never an account-wide cap. Show the combined usage and time window; distinguish estimates, unknown failed-transport charges, recharges and actual provider invoices. Do not describe a completed inference batch as model training or demonstrated forecasting improvement.
+
+
+### The approval threshold is daily, not per study — October 24
+
+My first acknowledgment interpreted the owner's $25 limit as a total budget per study. The owner clarified: ask before running any study that costs more than $25 a day. The saved policy now uses a daily threshold, with combined research accounting to prevent concurrent studies or retries from bypassing it. Lambda on-demand only remains the provider rule. No study or instance was started during the clarification.

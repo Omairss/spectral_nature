@@ -1237,3 +1237,8 @@ Budget amendments can preserve a study: hash-link earlier protocols, keep model/
 ### Account-wide inference cost crosses study and product boundaries — October 24
 
 Compare local research ledgers with production/development provider attempts before attributing a balance drop to experiments. Deduplicate provider attempt IDs, count reasoning within completion usage once, preserve cache hits/misses and actual price windows, and retain unmetered failed transports as unresolved. Use explicit time windows anchored to recorded observations; balance differences do not identify spending when recharge history is missing. The October24 audit found production company research comparable in cost to native workbook evaluation, with research and application usage totaling $97.36 across 27.82 hours. Per-study budgets and choosing the cheaper qualified inference provider do not impose a shared account budget.
+
+
+### Research compute and daily approval rule — October 24
+
+The owner now requires Lambda on-demand GPUs only for research and explicit approval before a study starts or continues above $25 in a day. This supersedes choosing the cheaper Lambda/DeepSeek option and the earlier self-declared budgets. Track combined research spending across studies, instances, retries and continuations in America/Los_Angeles days; include loading, idle, storage and verified shutdown. Do not split runs to reset the allowance, use a paid API fallback or silently reduce model capability. Keep historical protocols unchanged and mark them unauthorized for new execution under the new rule.

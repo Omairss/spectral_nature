@@ -2,6 +2,10 @@
 
 Updated October 24, 2026. DeepSeek V4 Pro with high reasoning has completed the component benchmarks, all 150 FinanceBench responses and 1,307 of 1,370 FinDeepForecast responses. Native workbook evaluation is partial. Shared numerical computation and charts are in production, with native build 13 installed. The complete benchmark program and future outcome evaluation remain unfinished.
 
+## Current research spending rule
+
+The owner's October 24 instruction supersedes prior provider choices and self-declared budgets: **Lambda on-demand GPUs only for research; ask before starting or continuing work that would take combined research spending above $25/day, and wait for explicit approval.** Count concurrent studies, retries, every GPU, loading, idle time, storage and shutdown, using America/Los_Angeles days. No paid inference API fallback or silent model downgrade. Historical protocols and cost estimates below remain evidence, not permission to resume them. Existing research batches remain stopped; production settings and schedules are unchanged.
+
 ## Current execution state
 
 The [October 24 audit](status-2026-10-24.json) supersedes the historical running snapshots below. Neither unfinished model batch is running. The native workbook batch stopped on a filesystem-space error while writing a final receipt. It retains 136 of 184 attempts including three carried pilot cases: 115 completed responses and 21 failures. Another 48 cases lack final receipts; some may have incurred provider work. Full financial grading remains pending.
