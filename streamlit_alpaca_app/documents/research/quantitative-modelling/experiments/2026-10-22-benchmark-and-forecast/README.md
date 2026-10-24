@@ -12,6 +12,24 @@ The [updated reference comparison](findeepforecast-recovery-scores.json) finds 3
 
 The [continuation cost comparison](compute-cost-findeepforecast-continuation-2026-10-24.json) uses observed token/cache usage and rechecked official prices. It projects about $0.80 weekend API inference for 62 cases, below the assumed comparable GPU cold-start cost. No GPU was allocated. The idle local workbook VM is stopped and shutdown verified. Storage admission, failure-safe receipts, remaining inference, personal grading and production native-file delivery remain open.
 
+## DeepSeek cost reconciliation — October 24
+
+The [billing reconciliation](billing-reconciliation-2026-10-24.json) combines research receipts with application provider records from a read-only database transaction. Between the saved balance checks on October 23 at 10:16 AM PDT and October 24 at 2:06 PM PDT (27.82 hours), metered cache-aware usage estimates total **$97.36**:
+
+| Work | Estimated usage |
+| --- | ---: |
+| Native workbook evaluation and pilots | $34.40 |
+| FinDeepForecast evaluation during this interval | $12.30 |
+| Production company research: planning, follow-ups and reports | $34.28 |
+| Production news and source-event research | $8.47 |
+| Other production/development activity | $7.92 |
+
+Research accounts for $46.70 and application activity for $50.66 in this interval. Production company follow-ups alone account for $21.39. The workbook runs and pilots made 1,927 provider attempts and used 9.09 million completion tokens, including 8.14 million reasoning tokens. FinDeepForecast used 6.04 million completion tokens, including 6.00 million reasoning tokens. Reasoning is part of completion usage and is not charged twice in this estimate.
+
+These are usage estimates, not an invoice or a verified recharge history. The interval is anchored to recorded balance checks, not a known top-up time. Failed transports without token usage remain unresolved; not-sent requests and HTTP402 are not assigned generation costs. Earlier external benchmark runs fall outside this balance-check interval. The audit also retains calendar-day and UTC comparisons so different windows are not silently combined. No new model generation was used for the reconciliation.
+
+The earlier status report showed individual research budgets without the production spend consuming the balance alongside them. Per-study guards do not provide an account-wide spend cap. Research batches remain stopped; production schedules were not changed by this audit.
+
 ## Ground truth
 
 The primary agent personally defines custom targets, verifies actual outcomes from independent source records, and makes the final financial judgment. Another LLM must not create outcome labels or grade the predictions. Published external benchmark references remain separate native comparisons; code calculates their numerical scores. The analyst's internal writer and reviewer are generation steps, not ground truth or the final evaluator.

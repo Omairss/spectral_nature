@@ -1,0 +1,170 @@
+{
+  "window_start_utc": "2026-10-23T17:16:45.379688+00:00",
+  "window_end_utc": "2026-10-24T21:06:02.868999+00:00",
+  "hours": 27.82152480861111,
+  "balance_start_usd": 1.16,
+  "balance_end_usd": -0.03,
+  "topups_in_window": "Not independently verified; user reports about $100 spent. Balance delta alone cannot reconstruct charges when top-ups occur.",
+  "groups": {
+    "Native workbook evaluation and pilots": {
+      "attempts": 1927,
+      "usd_min": 34.395013796,
+      "usd_max": 34.395013796,
+      "priced_attempts": 1906,
+      "unpriced_attempts": 21,
+      "statuses": {
+        "success": 1906,
+        "failure": 21
+      },
+      "tokens": {
+        "prompt_tokens": 62556770,
+        "completion_tokens": 9090929,
+        "total_tokens": 71647699,
+        "prompt_cache_hit_tokens": 39016448,
+        "prompt_cache_miss_tokens": 23540322
+      },
+      "reasoning_tokens_subset_of_completion": 8136272
+    },
+    "FinDeepForecast evaluation": {
+      "attempts": 941,
+      "usd_min": 12.304832144,
+      "usd_max": 12.304832144,
+      "priced_attempts": 941,
+      "unpriced_attempts": 0,
+      "statuses": {
+        "success": 941
+      },
+      "tokens": {
+        "prompt_tokens": 532835,
+        "completion_tokens": 6037115,
+        "total_tokens": 6569950,
+        "prompt_cache_hit_tokens": 512,
+        "prompt_cache_miss_tokens": 532323
+      },
+      "reasoning_tokens_subset_of_completion": 5999028
+    },
+    "Other production and development calls": {
+      "attempts": 642,
+      "usd_min": 7.917047204,
+      "usd_max": 7.917047204,
+      "priced_attempts": 538,
+      "unpriced_attempts": 104,
+      "statuses": {
+        "success": 538,
+        "failure": 95,
+        "not_sent": 8,
+        "started": 1
+      },
+      "tokens": {
+        "total_tokens": 11533287,
+        "prompt_tokens": 10063968,
+        "completion_tokens": 1469319,
+        "prompt_cache_hit_tokens": 2561792,
+        "prompt_cache_miss_tokens": 7502176
+      },
+      "reasoning_tokens_subset_of_completion": 1097187
+    },
+    "Production company research: planning, follow-ups, reports": {
+      "attempts": 515,
+      "usd_min": 34.27905558,
+      "usd_max": 34.27905558,
+      "priced_attempts": 505,
+      "unpriced_attempts": 10,
+      "statuses": {
+        "success": 505,
+        "failure": 9,
+        "not_sent": 1
+      },
+      "tokens": {
+        "total_tokens": 69394335,
+        "prompt_tokens": 66526233,
+        "completion_tokens": 2868102,
+        "prompt_cache_hit_tokens": 23992320,
+        "prompt_cache_miss_tokens": 42533913
+      },
+      "reasoning_tokens_subset_of_completion": 1803872
+    },
+    "Production news and source-event research": {
+      "attempts": 109,
+      "usd_min": 8.466333216,
+      "usd_max": 8.466333216,
+      "priced_attempts": 107,
+      "unpriced_attempts": 2,
+      "statuses": {
+        "success": 107,
+        "not_sent": 2
+      },
+      "tokens": {
+        "total_tokens": 17448574,
+        "prompt_tokens": 17001513,
+        "completion_tokens": 447061,
+        "prompt_cache_hit_tokens": 5705088,
+        "prompt_cache_miss_tokens": 11296425
+      },
+      "reasoning_tokens_subset_of_completion": 304878
+    }
+  },
+  "estimated_usage_usd_min": 97.36228194,
+  "estimated_usage_usd_max": 97.36228194,
+  "production_company_research_by_phase": {
+    "pipeline.ticker_business_model_stack": {
+      "attempts": 46,
+      "usd": 2.156063184
+    },
+    "pipeline.ticker_business_model_stack.research_dossier": {
+      "attempts": 47,
+      "usd": 6.778366056
+    },
+    "pipeline.ticker_business_model_stack.research_followup": {
+      "attempts": 322,
+      "usd": 21.385349216
+    },
+    "pipeline.ticker_business_model_stack.research_plan": {
+      "attempts": 100,
+      "usd": 3.959277124
+    }
+  },
+  "provider_generation_fees_for_http402": "Excluded when there is no provider usage; rejection is not a completed generation.",
+  "audited_at_utc": "2026-10-24T21:19:33.987510+00:00",
+  "window_start_pacific": "2026-10-23 10:16:45 PDT",
+  "window_end_pacific": "2026-10-24 14:06:02 PDT",
+  "method": {
+    "research": "Read all retained local provider ledgers, select terminal records by unique provider attempt_id; no copied records counted twice.",
+    "application": "Read-only PostgreSQL transaction, provider attempts since October23 UTC, across production and development. No schema setup, job trigger or application mutation.",
+    "pricing": "Sum each metered attempt's recorded cache-aware price estimate. In the balance-check interval every metered call falls in an off-peak window and usd_min equals usd_max. Reasoning tokens are included in completion tokens once.",
+    "scope": "DeepSeek inference only. This is an evidence-based usage estimate, not a provider invoice or confirmed top-up reconstruction. Balance-check times define the interval; they are not a known recharge timestamp.",
+    "deduplication": "No overlap between local and application attempt IDs in the retrieved interval. Started and terminal versions in one ledger are one attempt.",
+    "missing_usage": "125 terminal failed attempts lack token usage:103ConnectionError,21deadline failures,oneHTTP402. There are also11not-sent records andoneunresolvedstarted record. Not-sent records and402 are not assigned a generation charge. Unknown transport charges are not silently priced as zero."
+  },
+  "summary": {
+    "research_workbooks_and_findeep_usd": 46.69984594,
+    "production_and_development_usd": 50.662436,
+    "expected_bill_reconciliation": "The recorded $97.36 estimate explains approximately the reported $100, but exact deductions and recharges require the provider statement and usage for failed transports.",
+    "accounting_gap": "Per-study research budgets do not cap background production costs against the shared balance. The prior status update omitted this combined view."
+  },
+  "additional_time_windows": {
+    "since_Oct23_0000_UTC": {
+      "attempts": 11506,
+      "usd_min": 161.174376144,
+      "usd_max": 173.88231804
+    },
+    "Oct23_Pacific_calendar_day": {
+      "attempts": 5300,
+      "usd_min": 135.61949016,
+      "usd_max": 136.248134836
+    },
+    "preceding24hours_at_2026_10_24T211409Z": {
+      "attempts": 2331,
+      "usd_min": 42.500702464,
+      "usd_max": 42.500702464
+    }
+  },
+  "evidence_sha256": {
+    "deepseek-local-attempts.json": "6d34df1e8315f83130fec724c554aa081e9c68e8c7dc2e8a395ab46380a8720f",
+    "database-deepseek-attempts.json": "5030701d2d7d3e671a21b26f3f956dfff91d5996bd6db09a3b2f34da57ef27ab",
+    "combined-attempts.json": "dbe664f36d28a52b2dd2e933e145caac6cc40cac77bf58cd484040d5ae8f8a61"
+  },
+  "price_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+  "price_source_checked_utc": "2026-10-24",
+  "new_model_generation_calls_during_audit": 0
+}
