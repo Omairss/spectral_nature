@@ -1,0 +1,157 @@
+[
+  {
+    "Log_s": "Traceback (most recent call last):",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/pipeline/jobs/main.py\", line 3492, in <module>",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    main()",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/pipeline/jobs/main.py\", line 3457, in main",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    result = handler(ctx, work_conn)",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "             ^^^^^^^^^^^^^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/pipeline/jobs/main.py\", line 3341, in run_evidence_index",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    result = refresh_evidence_index(conn=conn, max_batches=100)",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/services/saa/semantic_index.py\", line 127, in refresh_evidence_index",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    return index_pending_evidence(conn=conn, batch_size=batch_size, max_batches=max_batches)",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/services/saa/semantic_index.py\", line 84, in index_pending_evidence",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    vectors = client.generate_embeddings([row[1] for row in rows])",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/services/llm.py\", line 1301, in generate_embeddings",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    return _generate_openai_embedding_vectors(",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/services/llm.py\", line 1241, in _generate_openai_embedding_vectors",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    response = _embedding_post(",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "               ^^^^^^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/services/llm.py\", line 1184, in _embedding_post",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    response = provider_post(config=config, session=session, operation=\"embedding\", timeout=_remaining_request_timeout(deadline), **kwargs)",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/services/llm_execution.py\", line 230, in provider_post",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    composition = request_composition(payload)",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "  File \"/app/services/llm_execution.py\", line 202, in request_composition",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "    role = str(message.get(\"role\") or \"unknown\")",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "               ^^^^^^^^^^^",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  },
+  {
+    "Log_s": "AttributeError: 'list' object has no attribute 'get'",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:26:30.3252399Z"
+  }
+]

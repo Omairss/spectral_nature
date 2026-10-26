@@ -1,0 +1,49 @@
+{
+  "status": "accepted",
+  "accepted_at_utc": "2026-10-26T00:36:11.021610+00:00",
+  "selected_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+  "source_inventory_sha256": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
+  "runtime_changes": [],
+  "source_reproduction": "local-reproduction.json",
+  "transport_regression": {
+    "command": "python -m pytest tests/test_llm_execution.py -q -k 'tokenized_embeddings or transport_records_retry_and_repair_with_causal_root'",
+    "result": "2 passed, 29 deselected",
+    "coverage": "Token-array inputs reach the embedding adapter transport; vectors retain input ordering; usage is retained without source text. Existing chat retry/repair accounting remains."
+  },
+  "previous_exact_image_development_qualification": {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+    "role": "worker",
+    "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+    "source_inventory_sha256": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
+    "runtime_inventory_sha256": "5bf9200092dd34ce5a35da36362aea48d0a4364f6867e737154ba45620f9ba64",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_file_count": 187,
+    "engine_revision": "8f418b4f5ba6f4dd7741",
+    "qualification_execution": "sn-research-run-dev-ah3lw0l",
+    "verification_program_sha256": "512521ee0a598d9a5b5536a5a3bdfab8f4aec93f6e0e785edeb51f9ab20462c9",
+    "cold_budget": {
+      "max_tool_calls": 10,
+      "run_timeout_seconds": 900,
+      "tool_call_timeout_seconds": 45,
+      "llm_step_timeout_seconds": 240,
+      "prefetch_timeout_seconds": 15
+    },
+    "named_chart_replay": {
+      "original_stored_charts": 6,
+      "published_charts": 3,
+      "latest_successful_versions_only": true,
+      "last_price_date": "2026-10-22",
+      "return_observations": 251,
+      "actual_public_dto_preserved": true,
+      "frozen_production_run": "agrun_f83d6f3b031645ddae034f71",
+      "stored_public_read_preserves_original": true
+    }
+  },
+  "live_boundary": "live-embedding-validation.json",
+  "personal_review": "The live Azure embeddings gave the intended power-grid/AI source similarity 0.594, versus 0.090 for diabetes and 0.162 for oil. Useful semantic separation is present in this small boundary probe; no broad model-quality claim.",
+  "shared_database_before": "shared-index-before.json",
+  "pending_unique_texts_before": 2699,
+  "preservation_review": "consumer-preservation-review.json",
+  "note": "The source fix is already present in the accepted production image. No new runtime code or application build is needed."
+}

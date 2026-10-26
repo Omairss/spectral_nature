@@ -1,0 +1,20 @@
+{
+  "objective": "Restore shared evidence indexing without changing schedules, providers, model settings, schema or other consumers.",
+  "owner_instruction": "If this is production, it needs to be fixed asap",
+  "production_impact": "Scheduled index job uses the same PostgreSQL connection secret and shared evidence tables as production. Its older accounting adapter crashes on token-array embedding inputs before network transport.",
+  "approach": [
+    "Reproduce the failure against previous Git source and verify the accepted production source.",
+    "Verify actual Azure embedding transport and read shared index coverage.",
+    "Use the existing immutable, fully source-verified production worker image for evidence-index-dev only.",
+    "Preserve all 36 consumers and all non-image configuration, then observe index coverage and semantic retrieval."
+  ],
+  "deployment_scope": [
+    "evidence-index-dev"
+  ],
+  "runtime_changes": "None: source correction is already in the accepted production worker; this is a missed consumer rollout.",
+  "local_runtime_integration": "The original shared checkout has concurrent changes and already contains the corrected accounting implementation. It is not the deployment source.",
+  "operational_validation_budget": "A few Azure embedding inputs for boundary validation; normal existing scheduled indexing resumes under its existing eight-minute application budget. This is production repair, not a research study.",
+  "status": "accepted_locally_ready_for_existing_image_promotion",
+  "consumer_classification": "Production due to shared corpus; retain historical resource name and dataset namespace.",
+  "source_fix": "Already present in accepted production source f3d3393d. Promote the existing exact development-qualified image; no application build."
+}

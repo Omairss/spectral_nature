@@ -23,4 +23,4 @@ bash scripts/show_infra_inventory.sh --write-local
 
 The inventory tool reads modern API targets for shared runtime/mail settings. The frontend contains browser transport settings, not provider/database secrets. Provider ingestion, shared auth and research retain their existing data stores and identities.
 
-The five-minute development evidence-index job is `evidence-index-dev`; embeddings and original source projection remain independent background work. Job schedules are preserved during this recovery. Changing schedules, credentials, paid tiers or schema is outside an image-only release.
+The five-minute shared production evidence-index job is `evidence-index-dev`. Its historical resource name and development news dataset namespace do not isolate the corpus-wide evidence/embedding tables from production. Keep it in production worker release coverage. Embeddings and original source projection remain independent background work. Job schedules are preserved during this recovery. Changing schedules, credentials, paid tiers or schema is outside an image-only release.

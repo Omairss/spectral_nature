@@ -88,6 +88,45 @@ def test_transport_records_retry_and_repair_with_causal_root(store):
     assert "max_tokens" not in calls[0]["json"]
 
 
+def test_tokenized_embeddings_reach_transport_and_keep_usage_accounting(store):
+    calls = []
+
+    def post(**kwargs):
+        calls.append(kwargs)
+        result = requests.Response()
+        result.status_code = 200
+        result._content = json.dumps({
+            "model": "text-embedding-3-small",
+            "data": [
+                {"index": 1, "embedding": [0.0, 1.0, 0.0]},
+                {"index": 0, "embedding": [1.0, 0.0, 0.0]},
+            ],
+            "usage": {"prompt_tokens": 12, "total_tokens": 12},
+        }).encode()
+        return result
+
+    config = llm.LLMConfig(
+        provider="azure_openai", api_key="fake", model="text-embedding-3-small",
+        base_url="https://embedding.example.invalid/openai/v1",
+        embedding_model="text-embedding-3-small", embedding_deployment="evidence",
+        embedding_dimensions=3,
+    )
+    model = llm.AzureOpenAIEmbeddingClient(config, session=SimpleNamespace(post=post))
+    vectors = model.generate_embeddings(["Retained source about electricity.", "An unrelated source."])
+
+    assert vectors == [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]
+    assert len(calls) == 1
+    assert all(isinstance(token, int) for text in calls[0]["json"]["input"] for token in text)
+    events = store[1]
+    assert [event["status"] for event in events] == ["started", "success"]
+    assert all(event["operation"] == "embedding" for event in events)
+    assert events[-1]["usage"]["prompt_tokens"] == 12
+    composition = events[-1]["metadata"]["request_composition"]
+    assert composition["message_count"] == 0
+    assert composition["serialized_characters"] > 0
+    assert "Retained source" not in json.dumps(events, default=str)
+
+
 @pytest.mark.parametrize("provider,model_type", [
     ("deepseek", llm.DeepSeekChatJSONClient),
     ("openai", llm.OpenAIChatJSONClient),

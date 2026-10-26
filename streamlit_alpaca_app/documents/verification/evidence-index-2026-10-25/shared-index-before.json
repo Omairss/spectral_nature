@@ -1,0 +1,64 @@
+{
+  "database": "pipeline",
+  "schema": "public",
+  "source_kind_counts": [
+    [
+      "news",
+      15150
+    ],
+    [
+      "search",
+      8934
+    ],
+    [
+      "zopedia_memory",
+      3455
+    ],
+    [
+      "provider_snippet",
+      2448
+    ],
+    [
+      "research",
+      2435
+    ],
+    [
+      "sec",
+      816
+    ],
+    [
+      "agent_research",
+      546
+    ],
+    [
+      "context",
+      441
+    ],
+    [
+      "research_tool_result",
+      369
+    ],
+    [
+      "opened_page",
+      320
+    ],
+    [
+      "treasury",
+      15
+    ],
+    [
+      "original_reporting",
+      8
+    ]
+  ],
+  "embedding_spaces": [
+    [
+      "azure_openai:https://spectral-nature-oai.openai.azure.com/openai/v1:zopedia-embedding:text-embedding-3-small:1536",
+      26001,
+      "2026-10-21 18:05:48.383909+00:00"
+    ]
+  ],
+  "chunk_rows": 34937,
+  "covered_chunk_rows": 31874,
+  "pending_unique_texts": 2699
+}

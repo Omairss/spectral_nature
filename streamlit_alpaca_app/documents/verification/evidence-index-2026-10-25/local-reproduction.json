@@ -1,0 +1,18 @@
+{
+  "old_index_source": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+  "accepted_source": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+  "old_failure": {
+    "error_type": "AttributeError",
+    "error": "'list' object has no attribute 'get'"
+  },
+  "accepted_result": {
+    "serialized_characters": 110,
+    "message_count": 0,
+    "message_characters_by_role": {},
+    "tool_count": 0,
+    "tool_schema_characters": 2,
+    "response_schema_characters": 2,
+    "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+  },
+  "shared_index_implementation_unchanged": true
+}

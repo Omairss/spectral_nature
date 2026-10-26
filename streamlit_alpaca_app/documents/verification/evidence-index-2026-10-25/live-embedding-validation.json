@@ -1,0 +1,97 @@
+{
+  "embedding_space": "azure_openai:https://spectral-nature-oai.openai.azure.com/openai/v1:zopedia-embedding:text-embedding-3-small:1536",
+  "input_count": 4,
+  "dimensions": 1536,
+  "transport_success": true,
+  "events": [
+    {
+      "attempt_id": "llmhttp_d33a291b5ffd4191b7939ff91a705d73",
+      "model_call_id": null,
+      "root_run_id": null,
+      "parent_run_id": null,
+      "settings_scope": "local",
+      "surface": "provider.direct",
+      "purpose": "direct.embedding",
+      "provider": "azure_openai",
+      "requested_model": "zopedia-embedding",
+      "operation": "embedding",
+      "status": "started",
+      "started_at_utc": "2026-10-26 00:32:08.061770+00:00",
+      "duration_ms": 0,
+      "metadata": {
+        "request_composition": {
+          "serialized_characters": 324,
+          "message_count": 0,
+          "message_characters_by_role": {},
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 2,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "job_name": null
+      }
+    },
+    {
+      "attempt_id": "llmhttp_d33a291b5ffd4191b7939ff91a705d73",
+      "model_call_id": null,
+      "root_run_id": null,
+      "parent_run_id": null,
+      "settings_scope": "local",
+      "surface": "provider.direct",
+      "purpose": "direct.embedding",
+      "provider": "azure_openai",
+      "requested_model": "zopedia-embedding",
+      "reported_model": "text-embedding-3-small",
+      "operation": "embedding",
+      "status": "success",
+      "http_status": 200,
+      "started_at_utc": "2026-10-26 00:32:08.061770+00:00",
+      "duration_ms": 490.0865000090562,
+      "usage": {
+        "prompt_tokens": 37,
+        "total_tokens": 37
+      },
+      "metadata": {
+        "transport_attempted": true,
+        "request_composition": {
+          "serialized_characters": 324,
+          "message_count": 0,
+          "message_characters_by_role": {},
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 2,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "",
+        "provider_request_id": null,
+        "inference_effort": null,
+        "thinking": null,
+        "input_hash": "da287d8cde0428a8776fc2aed6cd4828286e054faaad4a579784a718a016001e",
+        "job_name": null,
+        "research_subject": null,
+        "artifact_input_id": null,
+        "literal_output": false,
+        "max_output_tokens": null,
+        "input_characters": null,
+        "estimated_charge": {
+          "status": "price_unavailable"
+        }
+      }
+    }
+  ],
+  "semantic_review": [
+    {
+      "passage": "Data centres face electricity supply constraints as AI computing demand grows.",
+      "cosine_similarity_to_query": 0.594047369990183
+    },
+    {
+      "passage": "A clinical trial evaluated a new treatment for diabetes.",
+      "cosine_similarity_to_query": 0.09034426954692587
+    },
+    {
+      "passage": "Oil producers reduced crude output targets.",
+      "cosine_similarity_to_query": 0.161888299419578
+    }
+  ],
+  "query": "Power-grid limits for artificial intelligence infrastructure."
+}

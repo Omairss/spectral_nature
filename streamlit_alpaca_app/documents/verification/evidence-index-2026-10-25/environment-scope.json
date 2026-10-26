@@ -1,0 +1,89 @@
+[
+  {
+    "name": "sn-api-next",
+    "containers": [
+      {
+        "name": "api-next",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+        "env": [
+          {
+            "name": "AZURE_KEY_VAULT_NAME",
+            "secretRef": null,
+            "value": "spectral-nature-kvault"
+          },
+          {
+            "name": "KEY_VAULT_NAME",
+            "secretRef": null,
+            "value": "spectral-nature-kvault"
+          },
+          {
+            "name": "POSTGRES_CONNECTION_STRING_SECRET_NAME",
+            "secretRef": null,
+            "value": "postgres-connection-string"
+          },
+          {
+            "name": "PIPELINE_DATASET_NAMESPACE",
+            "secretRef": null,
+            "value": "production"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "evidence-index-dev",
+    "containers": [
+      {
+        "name": "evidence-index",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+        "env": [
+          {
+            "name": "AZURE_KEY_VAULT_NAME",
+            "secretRef": null,
+            "value": "spectral-nature-kvault"
+          },
+          {
+            "name": "KEY_VAULT_NAME",
+            "secretRef": null,
+            "value": "spectral-nature-kvault"
+          },
+          {
+            "name": "POSTGRES_CONNECTION_STRING_SECRET_NAME",
+            "secretRef": null,
+            "value": "postgres-connection-string"
+          },
+          {
+            "name": "PIPELINE_DATASET_NAMESPACE",
+            "secretRef": null,
+            "value": "development"
+          },
+          {
+            "name": "EMBEDDING_PROVIDER",
+            "secretRef": null,
+            "value": "azure_openai"
+          },
+          {
+            "name": "EMBEDDING_BASE_URL",
+            "secretRef": null,
+            "value": "https://spectral-nature-oai.openai.azure.com"
+          },
+          {
+            "name": "EMBEDDING_DEPLOYMENT",
+            "secretRef": null,
+            "value": "zopedia-embedding"
+          },
+          {
+            "name": "EMBEDDING_MODEL",
+            "secretRef": null,
+            "value": "text-embedding-3-small"
+          },
+          {
+            "name": "EMBEDDING_API_KEY_SECRET_NAME",
+            "secretRef": null,
+            "value": "zopedia-embedding-api-key"
+          }
+        ]
+      }
+    ]
+  }
+]
