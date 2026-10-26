@@ -23,5 +23,8 @@
     "sn-pg-03130136",
     "sn-control-pg3-03130136"
   ],
-  "validation": "postgresql-archive-validation.json"
+  "validation": "postgresql-archive-validation.json",
+  "canonical_archive": "Private Azure blob account spectralnature7543865619, container retired-infrastructure, prefix 2026-10-25/retired-resources/. Exact files, SHA256 and full readback are in archive-retention.json.",
+  "local_backup_duplicates_and_temporary_passwords_removed_after_validation": true,
+  "isolated_restore_server_stopped_and_temporary_cluster_removed": true
 }

@@ -1,0 +1,23 @@
+{
+  "status": "verified",
+  "storage_account": "spectralnature7543865619",
+  "container": "retired-infrastructure",
+  "blob": "2026-10-25/shared-workspace/files.tar.gz.enc",
+  "bytes": 1032402400,
+  "sha256": "4521c01b4954e159f596a4773658d5c244d5d85357e0e44683bb75ecbe838478",
+  "full_blob_download_sha256_verified": true,
+  "decryption_gzip_crc_and_complete_tar_verified": true,
+  "encryption_key_secret_reference": "https://spectral-nature-kvault.vault.azure.net/secrets/retired-compute-20261025-workspace-archive-key/82157a2bc3bd47819748c0c839655b3e",
+  "retention_days": 30,
+  "original_share_preserved": true,
+  "scope": "All shared workspace user files, including all Users folders and the original Git working files. Excludes service Logs and this operation's RetiredComputeArchives staging directory. Original shared workspace remains intact.",
+  "verified_at_utc": "2026-10-26T17:23:53.708604+00:00",
+  "archive_encryption": {
+    "format": "POSIX tar, gzip compressed, OpenSSL salted AES-256-CBC",
+    "key_derivation": "PBKDF2-HMAC-SHA256,200000 iterations",
+    "salt_bytes": 8,
+    "passphrase": "Exact text of the named Key Vault secret; no secret value is retained in Git.",
+    "restore_note": "On the verified Mac OpenSSL3.6.5, use -saltlen 8 to read these archives. The original Linux encoder used an 8 byte salt. Decrypt then extract the gzip/tar into an isolated restore directory; do not use historical application files as release source.",
+    "key_expiry": "31 days after verification; blob deletion eligibility begins 30 days after modification."
+  }
+}

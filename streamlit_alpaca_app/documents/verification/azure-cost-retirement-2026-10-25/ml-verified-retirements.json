@@ -1,0 +1,48 @@
+{
+  "retired_instances": [
+    {
+      "name": "spectral-nature3",
+      "status": "retired",
+      "archive_account": "spectralnature7543865619",
+      "archive_container": "retired-infrastructure",
+      "archive_blob": "2026-10-25/ml/spectral-nature3/rootfs.tar.gz.enc",
+      "archive_bytes": 35841227584,
+      "sha256": "85b4dfa10d4e6972e863ec9d5fd16f97bc5417588f626cf8d6bfeb5ec5b60cbb",
+      "full_blob_readback_sha256_verified": true,
+      "decryption_gzip_crc_and_complete_tar_verified": true,
+      "verification_location": "existing Azure ML compute in same storage region",
+      "encryption_key_secret_reference": "https://spectral-nature-kvault.vault.azure.net/secrets/retired-compute-20261025-spectral-nature3-archive-key/3e03e406379f48a8a439633e10386fff",
+      "retention_days": 30,
+      "scope": "Root filesystem, excluding virtual/runtime mounts, temporary files and changing system logs. Shared workspace original files remain separately intact and have a separate user-file archive. The formerly deallocated temporary disk is not retained.",
+      "verified_at_utc": "2026-10-26T17:29:08Z",
+      "deleted_at_utc": "2026-10-26T17:38:17.222358+00:00"
+    },
+    {
+      "name": "spectral-nature",
+      "status": "retired",
+      "archive_account": "spectralnature7543865619",
+      "archive_container": "retired-infrastructure",
+      "archive_blob": "2026-10-25/ml/spectral-nature/rootfs.tar.gz.enc",
+      "archive_bytes": 23391891152,
+      "sha256": "b5969ece4877e0fe5469b413ece63d6baa2ff94d5bbe73321467f8d32e3541f6",
+      "full_blob_readback_sha256_verified": true,
+      "decryption_gzip_crc_and_complete_tar_verified": true,
+      "verification_location": "existing Azure ML compute in same storage region",
+      "encryption_key_secret_reference": "https://spectral-nature-kvault.vault.azure.net/secrets/retired-compute-20261025-spectral-nature-archive-key/8fceead085ca4a6d86d9ab5672ced434",
+      "retention_days": 30,
+      "scope": "Root filesystem, excluding virtual/runtime mounts, temporary files and changing system logs. Shared workspace original files remain separately intact and have a separate user-file archive. The formerly deallocated temporary disk is not retained.",
+      "verified_at_utc": "2026-10-26T17:37:18Z",
+      "deleted_at_utc": "2026-10-26T17:39:11.911954+00:00"
+    }
+  ],
+  "shared_workspace_files_preserved": true,
+  "remaining_instance": "spectral-nature2 is stopped; assigned-user local-disk export access required.",
+  "archive_encryption": {
+    "format": "POSIX tar, gzip compressed, OpenSSL salted AES-256-CBC",
+    "key_derivation": "PBKDF2-HMAC-SHA256,200000 iterations",
+    "salt_bytes": 8,
+    "passphrase": "Exact text of the named Key Vault secret; no secret value is retained in Git.",
+    "restore_note": "On the verified Mac OpenSSL3.6.5, use -saltlen 8 to read these archives. The original Linux encoder used an 8 byte salt. Decrypt then extract the gzip/tar into an isolated restore directory; do not use historical application files as release source.",
+    "key_expiry": "31 days after verification; blob deletion eligibility begins 30 days after modification."
+  }
+}

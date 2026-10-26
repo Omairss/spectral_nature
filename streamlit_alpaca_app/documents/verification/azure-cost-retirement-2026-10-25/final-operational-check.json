@@ -1,0 +1,98 @@
+{
+  "observed_at_utc": "2026-10-26T17:22:10.526517+00:00",
+  "consumer_count": 36,
+  "all_images_and_configurations_match_accepted_manifest": true,
+  "apps": [
+    {
+      "name": "sn-streamlit-ui",
+      "ready_revision": "sn-streamlit-ui--0000101",
+      "latest_revision": "sn-streamlit-ui--0000101",
+      "running_status": "Running",
+      "http_status": 200,
+      "resources": {
+        "cpu": 0.5,
+        "ephemeralStorage": "2Gi",
+        "memory": "1Gi"
+      }
+    },
+    {
+      "name": "sn-next-ui",
+      "ready_revision": "sn-next-ui--0000017",
+      "latest_revision": "sn-next-ui--0000017",
+      "running_status": "Running",
+      "http_status": 200,
+      "resources": {
+        "cpu": 0.5,
+        "ephemeralStorage": "2Gi",
+        "memory": "1Gi"
+      }
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "ready_revision": "sn-next-ui-dev--0000035",
+      "latest_revision": "sn-next-ui-dev--0000035",
+      "running_status": "Running",
+      "http_status": 200,
+      "resources": {
+        "cpu": 0.5,
+        "ephemeralStorage": "2Gi",
+        "memory": "1Gi"
+      }
+    },
+    {
+      "name": "sn-api-next",
+      "ready_revision": "sn-api-next--0000023",
+      "latest_revision": "sn-api-next--0000023",
+      "running_status": "Running",
+      "http_status": 200,
+      "resources": {
+        "cpu": 0.75,
+        "ephemeralStorage": "4Gi",
+        "memory": "1.5Gi"
+      },
+      "health": {
+        "status": "ok"
+      },
+      "health_probe": "Inside actual running API container at the declared target port8080; ingress remains internal."
+    },
+    {
+      "name": "sn-api-next-dev",
+      "ready_revision": "sn-api-next-dev--0000057",
+      "latest_revision": "sn-api-next-dev--0000057",
+      "running_status": "Running",
+      "http_status": 200,
+      "resources": {
+        "cpu": 0.75,
+        "ephemeralStorage": "4Gi",
+        "memory": "1.5Gi"
+      },
+      "health": {
+        "status": "ok"
+      },
+      "health_probe": "Inside actual running API container at the declared target port8080; ingress remains internal."
+    }
+  ],
+  "health_probe_completed_at_utc": "2026-10-26T17:25:09.712868+00:00",
+  "shared_index_recent_completed_executions": [
+    {
+      "name": "evidence-index-dev-29883920",
+      "status": "Succeeded",
+      "end_utc": "2026-10-26T17:20:52Z"
+    },
+    {
+      "name": "evidence-index-dev-29883915",
+      "status": "Succeeded",
+      "end_utc": "2026-10-26T17:16:34Z"
+    },
+    {
+      "name": "evidence-index-dev-29883910",
+      "status": "Succeeded",
+      "end_utc": "2026-10-26T17:10:59Z"
+    },
+    {
+      "name": "evidence-index-dev-29883905",
+      "status": "Succeeded",
+      "end_utc": "2026-10-26T17:07:24Z"
+    }
+  ]
+}

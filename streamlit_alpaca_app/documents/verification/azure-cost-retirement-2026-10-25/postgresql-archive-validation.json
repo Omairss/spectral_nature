@@ -95,5 +95,8 @@
     }
   ],
   "network_ownership": "Each original firewall allowed only104.209.33.127, the long-stopped ML3 instance; no private network. Current consumers bind only to the two retained03130136 servers.",
-  "credential_handling": "Only the retirement candidates received temporary random admin credentials to make backups; active application servers and credentials unchanged."
+  "credential_handling": "Only the retirement candidates received temporary random admin credentials to make backups; active application servers and credentials unchanged.",
+  "canonical_archive": "Private Azure blob account spectralnature7543865619, container retired-infrastructure, prefix 2026-10-25/retired-resources/. Exact files, SHA256 and full readback are in archive-retention.json.",
+  "local_backup_duplicates_and_temporary_passwords_removed_after_validation": true,
+  "isolated_restore_server_stopped_and_temporary_cluster_removed": true
 }

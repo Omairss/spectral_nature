@@ -1,0 +1,33 @@
+{
+  "resource": "spectral-nature2",
+  "workspace": "spectral-nature-ws",
+  "resource_group": "spectral-nature-2",
+  "subscription": "b69da224-4a61-4fc4-a5b2-3bb567436762",
+  "owner_instruction": "Archive the files and delete the resource.",
+  "status": "local_export_requires_access",
+  "resource_state": "Stopped",
+  "shared_files": {
+    "archive": "shared-workspace-archive.json",
+    "full_copy_checksum_decryption_and_archive_read_verified": true,
+    "original_shared_workspace_preserved": true
+  },
+  "local_files": {
+    "exported": false,
+    "jupyter_api_http": 403,
+    "ssh_admin_update": "Service returned400: The specified property sshSettings can only be updated by the owner of a Compute Instance.",
+    "setup_script_update": "Request returned success; fresh GET retained setupScripts:null. No startup export was installed or run.",
+    "assigned_user_directory_lookup": "Resource does not exist.",
+    "operator_ssh_keys": "Existing local SSH public keys do not match the instance key."
+  },
+  "preservation": {
+    "original_creation_date_preserved": true,
+    "ownership_identity_and_ssh_configuration_preserved": true,
+    "local_disk_not_reimaged_or_deleted": true
+  },
+  "required_next_step": "Use the existing matching SSH private key through its legitimate operator, or obtain a supported Microsoft Azure local-disk export/recovery path for this orphaned compute instance. Complete the archive validation before deletion.",
+  "support_request_draft": "The compute instance spectral-nature2 belongs to a directory object that Azure no longer finds. We administer the subscription and need to retire it while preserving its local OS-disk files. Runtime access returns403, changing sshSettings is restricted to the assigned user, and an existing-compute setupScripts update does not persist. Please provide a supported read-only local-disk export or authorized recovery route. Do not reimage or delete the instance before an archive is verified.",
+  "documentation": [
+    "https://learn.microsoft.com/en-us/azure/machine-learning/how-to-manage-compute-instance?view=azureml-api-2",
+    "https://learn.microsoft.com/en-us/azure/machine-learning/how-to-create-compute-instance?view=azureml-api-2#enable-ssh-access"
+  ]
+}

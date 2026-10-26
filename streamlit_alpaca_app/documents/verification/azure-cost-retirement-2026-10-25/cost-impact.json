@@ -1,0 +1,17 @@
+{
+  "basis": "October20-24 posted effective prices. Same-duration app usage. These estimates describe recurring allocation changes, not a measured invoice reduction.",
+  "components_usd_per_30_days": {
+    "two_empty_registries": 1.83134289490074,
+    "two_old_empty_postgresql_servers": 6.51597888563052,
+    "five_app_allocations": 8.684165403766945,
+    "two_compute_instances_after_verified_retirement": 8.30765415572496
+  },
+  "estimated_recurring_reduction_after_two_compute_retirements_usd": 25.33914134002317,
+  "compute_attribution": "Azure bills the three stopped instances through one workspace. The compute estimate allocates two-thirds of the observed workspace P10-disk and static-IPv4 cost to the two retired instances, based on the same fixed P10 OS-disk and public-IP allocation per instance. Per-instance invoice attribution is not available.",
+  "remaining_instance_estimated_usd_per_30_days": 4.15382707786248,
+  "additional_registry_storage_reduction": "Unknown until retired unique layers expire after30days. The old entire registry-storage charge of8.23/month is an upper bound, not a saving estimate. Shared live/rollback layers remain.",
+  "temporary_costs": "Operational CPU restarts and private archive storage retained for30days are additional temporary costs. Their posted invoice impact has not yet been measured.",
+  "remaining_work": "Archive and retire spectral-nature2 after local-disk access/export is available. Preserve the existing source and all running application images.",
+  "status": "implemented_for_two_compute_instances_and_other_retirements",
+  "all_three_compute_retirement_estimate_usd": 29.49296841788564
+}

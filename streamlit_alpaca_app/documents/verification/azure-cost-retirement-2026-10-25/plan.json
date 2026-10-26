@@ -6,9 +6,9 @@
     "Qualify smaller web/API resources in development, then apply authorized production sizing; preserve News headroom.",
     "Protect all live, retained-revision, execution, dependency and rollback digests; retire eligible images under a 30-day recoverable policy."
   ],
-  "source": "Isolated Git worktree based on 363c5a24; no application source build or image promotion is planned.",
+  "source": "Isolated Git worktree /Users/omairs/Documents/code/spectral_nature_azure_costs_20261025, branch chore/azure-cost-retirement-20261025, based on363c5a24. No application source build or image promotion.",
   "preservation": "Keep production/development features, model/provider settings, schemas, schedules, identities, domains, secrets and all image digests unchanged during sizing. No inference or research study is started for this task.",
-  "status": "database_registry_and_sizing_complete_ml_archives_running",
+  "status": "completed_except_spectral_nature2_local_archive_access",
   "retention_days": 30,
   "verification": "Targeted archive readback/restorability, full consumer/image configuration diffs, dev sizing workload probes and healthy production revision readback.",
   "private_receipts": "/Users/omairs/Library/Application Support/SpectralNature/operations/azure-cost-retirement-2026-10-25",
@@ -16,10 +16,16 @@
     "Two empty registries retired",
     "Two empty old PostgreSQL servers backed up, restore-qualified and retired",
     "Five app resource allocations reduced after dev qualification",
-    "608 obsolete registry manifests in verified30day native recovery;687 retained manifests read back"
+    "608 obsolete registry manifests in verified 30 day native recovery; 687 retained manifests read back",
+    "Shared workspace user files encrypted, copied to private Azure blob storage and fully SHA256/decryption/gzip/tar verified; originals remain intact.",
+    "spectral-nature and spectral-nature3 root-filesystem archives fully verified, encryption passphrases read back from Key Vault, both compute resources deleted and absence verified."
   ],
   "pending": [
-    "Complete and verify encrypted filesystem archives before retiring spectral-nature and spectral-nature3",
-    "Owner decision for spectral-nature2 local data: its runtime returns403 and it is stopped"
-  ]
+    "Export and verify spectral-nature2 local files with its existing authorized SSH credential or a Microsoft-supported recovery/export route, then delete the stopped compute resource."
+  ],
+  "owner_followup": "Archive the files and delete the resource. Owner explicitly rejected a choice to discard unexported files.",
+  "source_integration": "The current consumer configuration fingerprints are maintained in this isolated accepted operational branch. The original spectral_nature checkout retains concurrent unaccepted runtime work; reconcile accepted records in Git before a future application release. Do not overwrite its runtime or acceptance manifest from this branch.",
+  "archive_release_boundary": "Filesystem archives preserve historical files and cannot seed a new application release.",
+  "cost_impact": "cost-impact.json",
+  "operational_readback": "final-operational-check.json"
 }

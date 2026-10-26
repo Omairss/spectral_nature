@@ -1276,3 +1276,8 @@ An index and reader need the same independent provider, normalized endpoint, dep
 ### Retire infrastructure with portable archives and exact consumer preservation — October 25
 
 Verify what a resource actually retains before deletion. Both older PostgreSQL servers were unreachable under their original sole-ML-IP firewall and contained no application tables after backup access was established. Full user-database dumps preserve managed-service metadata; local restore qualification must explicitly distinguish proprietary Azure extensions/ACLs from application objects. Preserve actual serving images and provider settings when resizing, qualify concurrency and cgroup peaks in dev, and verify every consumer afterward. Registry age alone is insufficient: inventory retained revisions, running executions, all active source/rollback records and dependency digests, then prove the native 30-day recovery path with a real restore before retirement. Soft-deleted storage remains billable until native expiry.
+
+
+### Compute archival has separate management and local-disk access — October 26
+
+Workspace owners can manage another user’s Azure ML instance without having access to its local disk. Preserve shared workspace files independently, retain the stopped instance when local export is blocked, and request the assigned user’s legitimate sign-in/export rather than repeatedly requesting permission to discard data. For accessible instances, archive encryption keys belong in Key Vault, encrypted blobs receive the scoped native30day deletion rule, and verification must read the complete copied blob, match its hash, decrypt it and read the full gzip/tar stream before deleting compute. Full OS archives are historical data only and never application release source.

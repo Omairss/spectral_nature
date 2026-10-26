@@ -1,11 +1,24 @@
 {
-  "status": "two_encrypted_archives_in_progress_one_access_decision_pending",
+  "status": "two_instances_archived_and_retired_one_local_export_blocked",
   "instances": {
-    "spectral-nature": "Encrypted root-filesystem archive running; shared workspace files retained.",
-    "spectral-nature3": "Encrypted root-filesystem archive running; shared workspace files retained.",
-    "spectral-nature2": "Stopped again after Azure returned403 for another user's runtime. No local files were read or deleted; owner decision requested before any retirement."
+    "spectral-nature": "Encrypted root-filesystem blob fully read back, SHA256/decryption/gzip/tar verified; compute deleted and absence verified.",
+    "spectral-nature3": "Encrypted root-filesystem blob fully read back, SHA256/decryption/gzip/tar verified; compute deleted and absence verified.",
+    "spectral-nature2": "Stopped. Shared files and original resource definition archived and verified. Local-disk export remains blocked by assigned-user access; compute retained until that archive is possible."
   },
-  "retention": "Existing workspace storage account now has a private retired-infrastructure blob container with a scoped30day automatic deletion rule. Server-side archive copy and encrypted readback verification precede compute deletion.",
+  "retention": "Existing workspace storage account now has a private retired-infrastructure blob container with a scoped 30 day automatic deletion rule. Server-side archive copy and encrypted readback verification precede compute deletion.",
   "scope": "These are file-archival operations on existing CPU instances, not research/inference. No model study or GPU instance was started.",
-  "archive_locations_private": true
+  "archive_locations_private": true,
+  "remaining_access_details": {
+    "assigned_user_object_id": "8851d995-a6f2-4395-8229-ceef35510247",
+    "directory_lookup": "Azure directory reports user does not exist.",
+    "existing_operator_ssh_public_keys_match": false,
+    "owner_requested_action": "Archive files, then delete the resource.",
+    "required_for_local_export": "Existing authorized matching SSH credential or Microsoft Azure supported local-disk export.",
+    "resource_state": "Stopped",
+    "setup_script_update_persisted": false,
+    "original_identity_ownership_and_ssh_settings_preserved": true
+  },
+  "verified_retirements": "ml-verified-retirements.json",
+  "shared_workspace_archive": "shared-workspace-archive.json",
+  "remaining_access_record": "spectral-nature2-export-blocker.json"
 }
