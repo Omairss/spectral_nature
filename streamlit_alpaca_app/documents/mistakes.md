@@ -1,5 +1,9 @@
 # Mistakes — Active Guidelines
 
+## Home cache growth — 2026-10-26
+
+The October 22 Home refresh introduced a size-limited persistent fetch cache. On October 26 revalidation repeatedly refused the larger entry while retaining Friday’s response, despite a current saved publication and backend. The scoped repair removes this intermediary cache; large-publication HTTP review and development acceptance are recorded separately from source review. See [diagnosis](verification/home-freshness-2026-10-26/README.md).
+
 ## Aggregate accounting assumption corrected — 2026-10-22
 
 A repeated SQL-pattern patch initially matched a sibling function. Immediate source inspection caught it before execution; the correction uses function-scoped edits. Repeated SQL and mock-class structures need exact function anchors, not broad text matches.
