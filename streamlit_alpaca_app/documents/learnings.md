@@ -2,9 +2,9 @@
 
 ## Home cache growth — 2026-10-26
 
-The complete materialized Home response can exceed Next.js’s 2 MB fetch-cache entry limit. Keep versioned backend caching and client/ETag retention while reading the complete publication through the gateway. Check replacement by a larger publication, not just initial availability. See [Home cache repair](verification/home-freshness-2026-10-26/LOCAL.md).
+Trace freshness across the saved publication, direct backend and public gateway. The October 26 producer and FastAPI were current while Next.js retained Friday’s response because the serialized fetch-cache entry exceeded its 2 MB limit. A short TTL does not bound staleness when replacement fails. Keep complete research and charts; review replacement by a larger publication, conditional reads, independent updates, replay and recovery.
 
-Development acceptance is now recorded in [Home cache verification](verification/home-freshness-2026-10-26/DEV.json): actual large-body replacement and 304 behavior pass locally and on the exact Linux image, the live gateway matches FastAPI, and all unrelated images/configurations are preserved. Production remains unchanged. The release gate also caught Next’s generated `next-env.d.ts` path rewrite after the local build; restored the committed input rather than adding another application change.
+The shared loader now reads the existing materialized publication directly. Local captured-data checks above 4 MB and exact-image Node 22 checks above 3 MB pass. Production and DEV have different accepted Trading frontends, so the same loader change was applied to each accepted Git source and the exact production image qualified independently. Both production gateways now serve October 26; all other 34 images and all 36 configurations were preserved. The separate Highlights synthesis timeout remains open. [Production verification](verification/home-freshness-2026-10-26/PRODUCTION.json).
 
 ## Paper portfolio authority and sizing — 2026-10-22
 

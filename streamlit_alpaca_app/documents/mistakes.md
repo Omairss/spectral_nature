@@ -2,9 +2,11 @@
 
 ## Home cache growth — 2026-10-26
 
-The October 22 Home refresh introduced a size-limited persistent fetch cache. On October 26 revalidation repeatedly refused the larger entry while retaining Friday’s response, despite a current saved publication and backend. The scoped repair removes this intermediary cache. Large-publication HTTP review passes; development acceptance is recorded separately from source review. The first operator probe treated HTTP header names as case-sensitive and stopped before its assertions; the corrected probe normalizes header names and passes without another runtime change. See [diagnosis](verification/home-freshness-2026-10-26/README.md).
+The October 22 refresh change added a persistent Next.js fetch cache without covering replacement by a larger real publication. On October 26 the new entry exceeded 2 MB; revalidation repeatedly failed to replace Friday’s response despite a current saved publication and FastAPI response. Producer success and a configured TTL did not establish public freshness.
 
-Development acceptance is now recorded in [Home cache verification](verification/home-freshness-2026-10-26/DEV.json): actual large-body replacement and 304 behavior pass locally and on the exact Linux image, the live gateway matches FastAPI, and all unrelated images/configurations are preserved. Production remains unchanged. The release gate also caught Next’s generated `next-env.d.ts` path rewrite after the local build; restored the committed input rather than adding another application change.
+The repair changes only the shared Home loader. After the owner’s explicit “push to prod”, its exact production-baseline image passed isolated development qualification and both gateways were promoted and verified. The open browser updated automatically to October 26. DEV-only Trading work was preserved, along with all unrelated images/configurations. Highlights still use their separate October 23 selection after the producer timeout. [Evidence](verification/home-freshness-2026-10-26/PRODUCTION.json).
+
+Operator probes also needed case-insensitive HTTP header handling and restoration of Next’s generated `next-env.d.ts` path rewrite before packaging. Neither required another application change.
 
 ## Aggregate accounting assumption corrected — 2026-10-22
 

@@ -1,0 +1,156 @@
+{
+  "status": "production_verified",
+  "recorded_at_utc": "2026-10-26T18:04:50.837466+00:00",
+  "owner_instruction": "push to prod",
+  "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+  "source_inventory_sha256": "9b3c016be8dae716ed253191c03936a03de53062e9545753fd20d00f6722fd39",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+  },
+  "accepted_source_revision": "8146009d567ce93f0dfe8852a21a87493724f531",
+  "development_qualification": "PRODUCTION_IMAGE_DEV.json",
+  "package_verification": "production-packaged-image.json",
+  "deployment": {
+    "environment": "production",
+    "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+    "source_inventory_sha256": "9b3c016be8dae716ed253191c03936a03de53062e9545753fd20d00f6722fd39",
+    "images": {
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+    },
+    "targets": [
+      {
+        "name": "sn-streamlit-ui",
+        "kind": "containerApps",
+        "role": "web",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+        "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+        "provisioning_state": "Succeeded"
+      },
+      {
+        "name": "sn-next-ui",
+        "kind": "containerApps",
+        "role": "web",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+        "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+        "provisioning_state": "Succeeded"
+      }
+    ],
+    "recorded_at": "2026-10-26T18:01:15.161935+00:00",
+    "job_executions_started": 0
+  },
+  "configuration_audit": {
+    "consumer_count": 36,
+    "changed_images": [
+      "sn-streamlit-ui",
+      "sn-next-ui"
+    ],
+    "configuration_changes": [],
+    "all_34_other_images_preserved": true,
+    "all_36_non_image_configurations_preserved": true,
+    "targets": [
+      {
+        "name": "sn-streamlit-ui",
+        "latest": "sn-streamlit-ui--0000102",
+        "ready": "sn-streamlit-ui--0000102",
+        "traffic": [
+          {
+            "latestRevision": true,
+            "weight": 100
+          }
+        ],
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+      },
+      {
+        "name": "sn-next-ui",
+        "latest": "sn-next-ui--0000018",
+        "ready": "sn-next-ui--0000018",
+        "traffic": [
+          {
+            "latestRevision": true,
+            "weight": 100
+          }
+        ],
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+      }
+    ]
+  },
+  "health": [
+    {
+      "name": "sn-streamlit-ui",
+      "revision": "sn-streamlit-ui--0000102",
+      "health": "Healthy",
+      "active": true,
+      "running": "RunningAtMaxScale"
+    },
+    {
+      "name": "sn-next-ui",
+      "revision": "sn-next-ui--0000018",
+      "health": "Healthy",
+      "active": true,
+      "running": "RunningAtMaxScale"
+    }
+  ],
+  "gateways": [
+    {
+      "host": "https://spectral-nature.com",
+      "old_etag_response": 200,
+      "current_etag_response": 304,
+      "body_bytes": 1792471,
+      "body_sha256": "29d60dec4037461cbe7bf6ce0857c7aae2be86f40a75007b766b0736b9ae3859",
+      "direct_backend_body_matches": true,
+      "run_id": "a374e295-9952-45c1-bd0c-a60f817ebbde",
+      "as_of": "2026-10-26T16:50:35.273912+00:00",
+      "daily_datapoints_as_of": "2026-10-23T18:50:38.374915+00:00",
+      "signals": 8,
+      "highlights": 5,
+      "audio_available": true,
+      "seconds_for_two_reads": 2.263
+    },
+    {
+      "host": "https://sn-streamlit-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+      "old_etag_response": 200,
+      "current_etag_response": 304,
+      "body_bytes": 1792471,
+      "body_sha256": "29d60dec4037461cbe7bf6ce0857c7aae2be86f40a75007b766b0736b9ae3859",
+      "direct_backend_body_matches": true,
+      "run_id": "a374e295-9952-45c1-bd0c-a60f817ebbde",
+      "as_of": "2026-10-26T16:50:35.273912+00:00",
+      "daily_datapoints_as_of": "2026-10-23T18:50:38.374915+00:00",
+      "signals": 8,
+      "highlights": 5,
+      "audio_available": true,
+      "seconds_for_two_reads": 3.069
+    },
+    {
+      "host": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io",
+      "old_etag_response": 200,
+      "current_etag_response": 304,
+      "body_bytes": 1792471,
+      "body_sha256": "29d60dec4037461cbe7bf6ce0857c7aae2be86f40a75007b766b0736b9ae3859",
+      "direct_backend_body_matches": true,
+      "run_id": "a374e295-9952-45c1-bd0c-a60f817ebbde",
+      "as_of": "2026-10-26T16:50:35.273912+00:00",
+      "daily_datapoints_as_of": "2026-10-23T18:50:38.374915+00:00",
+      "signals": 8,
+      "highlights": 5,
+      "audio_available": true,
+      "seconds_for_two_reads": 2.501
+    }
+  ],
+  "browser": {
+    "automatic_refresh_from_october_23_to_october_26_observed": true,
+    "fresh_reload": true,
+    "displayed_date": "Oct 26, 4:50 PM UTC",
+    "signals": 8,
+    "highlights": 5,
+    "ticker_groups": 8,
+    "audio_present": true,
+    "graph_present": true,
+    "console_warnings_or_errors": []
+  },
+  "scheduled_jobs_started_by_release": 0,
+  "model_inference_started_by_release": 0,
+  "remaining_issue": "Highlights remain selected October 23. The independent daily datapoint synthesis timeout is outside the cache-only release; the main October 26 publication is now delivered in full."
+}

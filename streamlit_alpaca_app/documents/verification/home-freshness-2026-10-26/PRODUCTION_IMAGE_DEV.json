@@ -1,0 +1,26 @@
+{
+  "status": "accepted",
+  "environment": "isolated_development_linux_container",
+  "recorded_at_utc": "2026-10-26T18:00:22.167357+00:00",
+  "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+  "source_inventory_sha256": "9b3c016be8dae716ed253191c03936a03de53062e9545753fd20d00f6722fd39",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+  },
+  "evidence": "documents/verification/home-freshness-2026-10-26/production-packaged-image.json",
+  "runtime": "Node v22.23.3 / Next.js 16.3.8",
+  "http_checks": [
+    "initial publication",
+    "immediate complete replacement above 2 MiB",
+    "unchanged bodyless 304",
+    "current server-rendered Home",
+    "independent update invalidates ETag",
+    "complete replay",
+    "failure does not validate stale response",
+    "exact recovery"
+  ],
+  "fixture_body_bytes": 3146181,
+  "shared_development_deployment_preserved": true,
+  "production_fixtures_or_inference": 0,
+  "review": "Exact production-baseline image qualified independently in development to preserve the separate accepted paper-Trading DEV frontend. Complete source/package checks and all eight actual standalone HTTP scenarios pass. The loader is identical to the live DEV-accepted fix."
+}
