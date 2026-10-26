@@ -4,6 +4,8 @@
 
 The October 22 Home refresh introduced a size-limited persistent fetch cache. On October 26 revalidation repeatedly refused the larger entry while retaining Friday’s response, despite a current saved publication and backend. The scoped repair removes this intermediary cache. Large-publication HTTP review passes; development acceptance is recorded separately from source review. The first operator probe treated HTTP header names as case-sensitive and stopped before its assertions; the corrected probe normalizes header names and passes without another runtime change. See [diagnosis](verification/home-freshness-2026-10-26/README.md).
 
+Development acceptance is now recorded in [Home cache verification](verification/home-freshness-2026-10-26/DEV.json): actual large-body replacement and 304 behavior pass locally and on the exact Linux image, the live gateway matches FastAPI, and all unrelated images/configurations are preserved. Production remains unchanged. The release gate also caught Next’s generated `next-env.d.ts` path rewrite after the local build; restored the committed input rather than adding another application change.
+
 ## Aggregate accounting assumption corrected — 2026-10-22
 
 A repeated SQL-pattern patch initially matched a sibling function. Immediate source inspection caught it before execution; the correction uses function-scoped edits. Repeated SQL and mock-class structures need exact function anchors, not broad text matches.

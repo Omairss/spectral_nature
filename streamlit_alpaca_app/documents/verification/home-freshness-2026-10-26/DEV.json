@@ -1,0 +1,50 @@
+{
+  "status": "development_accepted",
+  "recorded_at_utc": "2026-10-26T17:36:08.071180+00:00",
+  "source_revision": "4a945281a4c9232b7d1cb098ecc20a0d42c55150",
+  "source_inventory_sha256": "9c4e3625fdf269f86c7d99c63602af82f22911307004da52eed2eb2ce7d52220",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c"
+  },
+  "consumer_count": 36,
+  "changed_images": [
+    "sn-next-ui-dev"
+  ],
+  "configuration_changes": [],
+  "all_35_other_images_preserved": true,
+  "all_36_non_image_configurations_preserved": true,
+  "latest_revision": "sn-next-ui-dev--0000036",
+  "ready_revision": "sn-next-ui-dev--0000036",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c",
+  "revision_health": "Healthy",
+  "gateway": {
+    "status": "passed",
+    "url": "https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io/api/home",
+    "run_id": "972a1ceb-47bc-4eb0-9bad-2d8bc690102b",
+    "as_of": "2026-10-18T20:24:34.140109+00:00",
+    "etag": "\"231f5f08f3e19d199e52bfeaf21bb7f19da5cad11ca8095d9b631fc74e61f694\"",
+    "body_bytes": 1164216,
+    "body_sha256": "231f5f08f3e19d199e52bfeaf21bb7f19da5cad11ca8095d9b631fc74e61f694",
+    "http_unchanged": 304,
+    "beats": 6,
+    "highlights": 5,
+    "audio_available": true,
+    "seconds_for_two_reads": 1.625,
+    "checked_after_latest_ready": true,
+    "direct_backend_body_matches": true,
+    "direct_backend_seconds": 0.19962440599920228
+  },
+  "browser": {
+    "fresh_reload": true,
+    "heading": "Market signal",
+    "signals": 6,
+    "highlights": 5,
+    "audio_present": true,
+    "graph_present": true,
+    "console_warnings_or_errors": []
+  },
+  "qualification": "local-http.json and packaged-image.json; complete payloads above Next cache limit; independent updates; conditional responses; replay; failure and recovery",
+  "production_changed": false,
+  "production_scope": "Production requires its separately accepted source; preserve DEV-only Trading and current production chart behavior. No production promotion authorized by this record.",
+  "development_data": "DEV retains its existing isolated October 18 publication. No production data was copied into DEV; this date is not claimed to be fresh October 26 data."
+}

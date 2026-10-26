@@ -4,6 +4,8 @@
 
 The complete materialized Home response can exceed Next.js’s 2 MB fetch-cache entry limit. Keep versioned backend caching and client/ETag retention while reading the complete publication through the gateway. Check replacement by a larger publication, not just initial availability. See [Home cache repair](verification/home-freshness-2026-10-26/LOCAL.md).
 
+Development acceptance is now recorded in [Home cache verification](verification/home-freshness-2026-10-26/DEV.json): actual large-body replacement and 304 behavior pass locally and on the exact Linux image, the live gateway matches FastAPI, and all unrelated images/configurations are preserved. Production remains unchanged. The release gate also caught Next’s generated `next-env.d.ts` path rewrite after the local build; restored the committed input rather than adding another application change.
+
 ## Paper portfolio authority and sizing — 2026-10-22
 
 The owner selected Alpaca paper trading for cash, quantities, fills and account performance. Reuse the broker ledger rather than reconstructing an allocated portfolio from research approvals. Keep the broker account separate from historical call observations and from the main Portfolio provider. Bind Key Vault references to the account owner/environment; never distribute credentials to either client.

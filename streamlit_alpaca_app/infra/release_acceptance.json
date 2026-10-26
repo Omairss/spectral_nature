@@ -1572,7 +1572,14 @@
   ],
   "production_authorized": false,
   "production_authorization": {},
-  "development_acceptance": {},
+  "development_acceptance": {
+    "status": "accepted",
+    "images": {
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c"
+    },
+    "source_inventory_sha256": "9c4e3625fdf269f86c7d99c63602af82f22911307004da52eed2eb2ce7d52220",
+    "evidence": "documents/verification/home-freshness-2026-10-26/DEV.json"
+  },
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",

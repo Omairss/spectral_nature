@@ -1,0 +1,12 @@
+{
+  "consumer_count": 36,
+  "changed_images": [
+    "sn-next-ui-dev"
+  ],
+  "configuration_changes": [],
+  "all_35_other_images_preserved": true,
+  "all_36_non_image_configurations_preserved": true,
+  "latest_revision": "sn-next-ui-dev--0000036",
+  "ready_revision": "sn-next-ui-dev--0000036",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c"
+}
