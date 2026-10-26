@@ -1,0 +1,28 @@
+[
+  {
+    "name": "sn-next-ui-dev",
+    "resources": {
+      "cpu": 0.5,
+      "memory": "1Gi",
+      "ephemeralStorage": "2Gi"
+    },
+    "image_preserved": true,
+    "unrelated_configuration_preserved": true,
+    "latestRevisionName": "sn-next-ui-dev--0000035",
+    "latestReadyRevisionName": "sn-next-ui-dev--0000034",
+    "recorded_at_utc": "2026-10-26T02:47:28.839322+00:00"
+  },
+  {
+    "name": "sn-api-next-dev",
+    "resources": {
+      "cpu": 0.75,
+      "memory": "1.5Gi",
+      "ephemeralStorage": "4Gi"
+    },
+    "image_preserved": true,
+    "unrelated_configuration_preserved": true,
+    "latestRevisionName": "sn-api-next-dev--0000057",
+    "latestReadyRevisionName": "sn-api-next-dev--0000056",
+    "recorded_at_utc": "2026-10-26T02:47:42.780481+00:00"
+  }
+]

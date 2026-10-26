@@ -1,0 +1,79 @@
+{
+  "account": "spectralnature7543865619",
+  "container": "retired-infrastructure",
+  "retention_days": 30,
+  "archives": [
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130125.before.json",
+      "bytes": 2300,
+      "sha256": "0d40bbdec8f52f0df102aba11225a395fe921bcd7761f635340792455f142ab2",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130125.firewalls.before.json",
+      "bytes": 504,
+      "sha256": "24ceea57188045c819cac80326791e51c82450d8753961db39410b8312f638cf",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130125.flexibleserverdb.dump",
+      "bytes": 19569,
+      "sha256": "0fac8616da489b3f3847c9838eed9a6a4ce3662a5b3e5cdd8e03c3c5c3344427",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130125.pipeline.dump",
+      "bytes": 19537,
+      "sha256": "7b03b05f20f5ff4cbc06b93a6f1d36fa77fc4d597b29200cb540efccda451561",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130125.postgres.dump",
+      "bytes": 20599,
+      "sha256": "d9b35419d67d23d0aa7229f83030c6a1f7118f8e03e748e82b9f6348bf0e4c7c",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130132.before.json",
+      "bytes": 2300,
+      "sha256": "84ae728d05fd0013523959d12f3fb1913a77ded69253e11a618c75db6a2d83df",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130132.firewalls.before.json",
+      "bytes": 504,
+      "sha256": "beaa5e9d69b9f477e1f9e5943dc6d9388c01ab308ee1603248e3ae5f1e09eaa9",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130132.flexibleserverdb.dump",
+      "bytes": 19569,
+      "sha256": "c6dea713a384cfabe72324df1dabd5f7bbf3fa659ebd5e8b9d5ca2a2e59fba0c",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130132.pipeline.dump",
+      "bytes": 19537,
+      "sha256": "17e996a8215367b201218375155caa45347350adbb316366afd2e0bab1572d87",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/sn-pg-03130132.postgres.dump",
+      "bytes": 20599,
+      "sha256": "f062c0670e8a21adb33cf315abd43c63cb6b0f99d14896e81d72b3a3af023d06",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/snpipelineacr03130125.before.json",
+      "bytes": 2092,
+      "sha256": "eb3eca75d08ddb934969bd1aafbd123da6170d4bff585e9b41163835a993b8d0",
+      "download_readback_verified": true
+    },
+    {
+      "name": "2026-10-25/retired-resources/snpipelineacr03130132.before.json",
+      "bytes": 2092,
+      "sha256": "3ac9eb90ed4e9498f2aceae14c0e1492f93d52748487fcd305877b926e2b97ad",
+      "download_readback_verified": true
+    }
+  ]
+}

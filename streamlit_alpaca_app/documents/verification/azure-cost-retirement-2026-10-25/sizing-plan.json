@@ -1,0 +1,35 @@
+{
+  "owner_instruction": "Do 3-5",
+  "plan": {
+    "sn-next-ui-dev": {
+      "cpu": 0.5,
+      "memory": "1Gi",
+      "ephemeralStorage": "2Gi"
+    },
+    "sn-api-next-dev": {
+      "cpu": 0.75,
+      "memory": "1.5Gi",
+      "ephemeralStorage": "4Gi"
+    }
+  },
+  "production_candidates": {
+    "sn-streamlit-ui": {
+      "cpu": 0.5,
+      "memory": "1Gi",
+      "ephemeralStorage": "2Gi"
+    },
+    "sn-next-ui": {
+      "cpu": 0.5,
+      "memory": "1Gi",
+      "ephemeralStorage": "2Gi"
+    },
+    "sn-api-next": {
+      "cpu": 0.75,
+      "memory": "1.5Gi",
+      "ephemeralStorage": "4Gi"
+    }
+  },
+  "reason": "Observed web peaks below250MiB support0.5CPU/1GiB; API peaks up to793MiB call for1.5GiB to retain headroom. Preserve minimum/maximum replicas, all36 images, identities, chat/embedding settings and schedules. CPU-derived ephemeral storage follows the documented platform mapping.",
+  "qualification": "Dev cold revision readiness, real read paths, concurrent requests and process/cgroup memory observation; then same-image production sizing and readback.",
+  "rollback": "Restore original resource allocation from the private before template if readiness, responses or memory regress."
+}

@@ -1,0 +1,13 @@
+{
+  "observed_at_utc": "2026-10-26T02:49:15.927539+00:00",
+  "repositories": 64,
+  "manifests": 1295,
+  "protected_references": 528,
+  "reference_files": 4808,
+  "retained_app_revisions": 235,
+  "active_git_checkouts": 51,
+  "media_types": {
+    "application/vnd.docker.distribution.manifest.v2+json": 1279,
+    "application/vnd.oci.image.manifest.v1+json": 16
+  }
+}

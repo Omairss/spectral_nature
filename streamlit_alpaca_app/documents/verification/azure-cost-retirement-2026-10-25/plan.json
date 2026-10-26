@@ -1,0 +1,25 @@
+{
+  "owner_instruction": "Do 3-5",
+  "scope": [
+    "Archive retained files and retire the three stopped Azure ML compute instances; retire two empty registries.",
+    "Validate old PostgreSQL ownership and retained data; create restorable archives before retirement.",
+    "Qualify smaller web/API resources in development, then apply authorized production sizing; preserve News headroom.",
+    "Protect all live, retained-revision, execution, dependency and rollback digests; retire eligible images under a 30-day recoverable policy."
+  ],
+  "source": "Isolated Git worktree based on 363c5a24; no application source build or image promotion is planned.",
+  "preservation": "Keep production/development features, model/provider settings, schemas, schedules, identities, domains, secrets and all image digests unchanged during sizing. No inference or research study is started for this task.",
+  "status": "database_registry_and_sizing_complete_ml_archives_running",
+  "retention_days": 30,
+  "verification": "Targeted archive readback/restorability, full consumer/image configuration diffs, dev sizing workload probes and healthy production revision readback.",
+  "private_receipts": "/Users/omairs/Library/Application Support/SpectralNature/operations/azure-cost-retirement-2026-10-25",
+  "completed": [
+    "Two empty registries retired",
+    "Two empty old PostgreSQL servers backed up, restore-qualified and retired",
+    "Five app resource allocations reduced after dev qualification",
+    "608 obsolete registry manifests in verified30day native recovery;687 retained manifests read back"
+  ],
+  "pending": [
+    "Complete and verify encrypted filesystem archives before retiring spectral-nature and spectral-nature3",
+    "Owner decision for spectral-nature2 local data: its runtime returns403 and it is stopped"
+  ]
+}

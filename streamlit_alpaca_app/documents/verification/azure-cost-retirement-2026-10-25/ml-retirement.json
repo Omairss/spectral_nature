@@ -1,0 +1,11 @@
+{
+  "status": "two_encrypted_archives_in_progress_one_access_decision_pending",
+  "instances": {
+    "spectral-nature": "Encrypted root-filesystem archive running; shared workspace files retained.",
+    "spectral-nature3": "Encrypted root-filesystem archive running; shared workspace files retained.",
+    "spectral-nature2": "Stopped again after Azure returned403 for another user's runtime. No local files were read or deleted; owner decision requested before any retirement."
+  },
+  "retention": "Existing workspace storage account now has a private retired-infrastructure blob container with a scoped30day automatic deletion rule. Server-side archive copy and encrypted readback verification precede compute deletion.",
+  "scope": "These are file-archival operations on existing CPU instances, not research/inference. No model study or GPU instance was started.",
+  "archive_locations_private": true
+}

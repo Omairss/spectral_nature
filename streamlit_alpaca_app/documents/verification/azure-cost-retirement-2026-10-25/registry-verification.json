@@ -1,0 +1,15 @@
+{
+  "status": "retirement_verified",
+  "verified_at_utc": "2026-10-26T03:24:01.097983+00:00",
+  "manifests_before": 1295,
+  "active_manifests_after": 687,
+  "soft_deleted_manifests": 608,
+  "all687_retained_manifests_present": true,
+  "retired_manifests_no_longer_active": true,
+  "recovery_probe": "registry-recovery-validation.json",
+  "retention_days": 30,
+  "earliest_auto_purge_date_utc": "2026-11-25T03:10:28.876370+00:00",
+  "savings_timing": "Soft-deleted storage remains billable until native automatic purge after30days. Unique released layer storage is measured after purge; no image-size sum used.",
+  "protected_sources": "All36 consumers,235 retained app revisions,active executions,51 active Git checkouts and retained release/archive/dependency/rollback references.",
+  "retirement_plan": "registry-retirement-plan.json"
+}

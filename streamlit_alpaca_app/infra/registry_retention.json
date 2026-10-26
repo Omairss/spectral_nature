@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "registry": "snpipelineacr03130136",
+  "resource_group": "sn-pipeline-rg-03130136",
+  "native_soft_delete": {
+    "enabled": true,
+    "retention_days": 30
+  },
+  "retirement_eligibility": "Unreferenced, unlocked, unchanged manifests last updated more than30days ago. Plan and compare exact digests; do not use broad acr purge tag filters.",
+  "protect": [
+    "Current app/job templates",
+    "All retained app revisions",
+    "Running/pending executions",
+    "Accepted release and rollback images",
+    "Pinned dependency bases",
+    "Images referenced by active Git worktrees and retained release metadata",
+    "Recent or locked manifests"
+  ],
+  "release_lifecycle": "Preserve current and rollback image digests at release time. Refresh this complete consumer/source inventory before each cleanup; archive retirement record and verify native recovery before removing manifests. Native expiry performs final purge after30days.",
+  "latest_verification": "documents/verification/azure-cost-retirement-2026-10-25/registry-verification.json"
+}

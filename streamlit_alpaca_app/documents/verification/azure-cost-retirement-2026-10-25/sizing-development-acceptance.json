@@ -1,0 +1,33 @@
+{
+  "status": "accepted",
+  "development_revisions": {
+    "sn-next-ui-dev": "sn-next-ui-dev--0000035",
+    "sn-api-next-dev": "sn-api-next-dev--0000057"
+  },
+  "web": {
+    "concurrent_ssr_requests": 8,
+    "all_http_statuses": 200,
+    "response_bytes_each": 1659408,
+    "elapsed_seconds": 8.703,
+    "cgroup_peak_bytes": 239939584,
+    "cgroup_limit_bytes": 1073741824,
+    "memory_allocation_failures": 0
+  },
+  "api": {
+    "shared_retained_query_requests": 8,
+    "concurrency": 4,
+    "elapsed_seconds": 20.06,
+    "health": "ok",
+    "response_contract": [
+      "request",
+      "result_type",
+      "payload",
+      "provenance",
+      "messages"
+    ],
+    "cgroup_peak_bytes": 636342272,
+    "cgroup_limit_bytes": 1610612736,
+    "memory_allocation_failures": 0
+  },
+  "preservation": "Images, provider/embedding settings, min/max replicas and all unrelated configuration preserved. Existing development embedding accounting bug is not changed by sizing. No chat inference or full scheduled job was started."
+}

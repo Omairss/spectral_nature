@@ -1,0 +1,27 @@
+{
+  "status": "retired",
+  "servers": [
+    {
+      "name": "sn-pg-03130125",
+      "status": "deleted",
+      "archived_databases": 3,
+      "application_tables_before": 0,
+      "backup_restore_verified": true,
+      "deleted_at_utc": "2026-10-26T03:11:32.955241+00:00"
+    },
+    {
+      "name": "sn-pg-03130132",
+      "status": "deleted",
+      "archived_databases": 3,
+      "application_tables_before": 0,
+      "backup_restore_verified": true,
+      "deleted_at_utc": "2026-10-26T03:12:36.581936+00:00"
+    }
+  ],
+  "estimated_monthly_saving_usd": 6.51597888563052,
+  "retained_active_servers": [
+    "sn-pg-03130136",
+    "sn-control-pg3-03130136"
+  ],
+  "validation": "postgresql-archive-validation.json"
+}

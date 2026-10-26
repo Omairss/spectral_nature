@@ -1,0 +1,12 @@
+{
+  "status": "recovery_verified",
+  "image": "snpipelineacr03130136.azurecr.io/api@sha256:07768425212b21ea1ae3e07aa5126942bf4b5263b994b8d49940e601c401c749",
+  "original_tags": [
+    "dev-20260519080912"
+  ],
+  "restored_tags": [
+    "dev-20260519080912"
+  ],
+  "retention_days": 30,
+  "observed_at_utc": "2026-10-26T03:02:37.417582+00:00"
+}

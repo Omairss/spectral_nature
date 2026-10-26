@@ -1,0 +1,27 @@
+{
+  "status": "retired",
+  "registries": [
+    {
+      "name": "snpipelineacr03130125",
+      "status": "deleted",
+      "repositories_before": 0,
+      "tasks_before": 0,
+      "webhooks_before": 0,
+      "configuration_archive": "/Users/omairs/Library/Application Support/SpectralNature/operations/azure-cost-retirement-2026-10-25/snpipelineacr03130125.before.json",
+      "archive_sha256": "eb3eca75d08ddb934969bd1aafbd123da6170d4bff585e9b41163835a993b8d0",
+      "deleted_at_utc": "2026-10-26T02:44:29.791140+00:00"
+    },
+    {
+      "name": "snpipelineacr03130132",
+      "status": "deleted",
+      "repositories_before": 0,
+      "tasks_before": 0,
+      "webhooks_before": 0,
+      "configuration_archive": "/Users/omairs/Library/Application Support/SpectralNature/operations/azure-cost-retirement-2026-10-25/snpipelineacr03130132.before.json",
+      "archive_sha256": "3ac9eb90ed4e9498f2aceae14c0e1492f93d52748487fcd305877b926e2b97ad",
+      "deleted_at_utc": "2026-10-26T02:44:46.919492+00:00"
+    }
+  ],
+  "estimated_monthly_saving_usd": 1.83134289490074,
+  "basis": "Observed October20-24 effective rates; configuration is archived, both registries were empty."
+}

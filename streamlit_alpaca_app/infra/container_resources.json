@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "owner_instruction": "Do 3-5",
+  "status": "applied",
+  "resources": {
+    "sn-next-ui-dev": {
+      "cpu": 0.5,
+      "memory": "1Gi",
+      "ephemeralStorage": "2Gi"
+    },
+    "sn-api-next-dev": {
+      "cpu": 0.75,
+      "memory": "1.5Gi",
+      "ephemeralStorage": "4Gi"
+    },
+    "sn-streamlit-ui": {
+      "cpu": 0.5,
+      "memory": "1Gi",
+      "ephemeralStorage": "2Gi"
+    },
+    "sn-next-ui": {
+      "cpu": 0.5,
+      "memory": "1Gi",
+      "ephemeralStorage": "2Gi"
+    },
+    "sn-api-next": {
+      "cpu": 0.75,
+      "memory": "1.5Gi",
+      "ephemeralStorage": "4Gi"
+    }
+  },
+  "keep_min_replicas": 1,
+  "keep_max_replicas": 1,
+  "worker_resources_changed": false,
+  "evidence": "documents/verification/azure-cost-retirement-2026-10-25/sizing-development-acceptance.json"
+}

@@ -1317,7 +1317,7 @@
       "role": "api-next",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "9bba40586e2afac875bf79ece72bc3fd1931154c5a11eeb75d4e338d9c05ae8d",
+      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
       "preservation_review": {
         "status": "accepted",
@@ -1334,7 +1334,7 @@
       "role": "api-next",
       "environment": "development",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "b546d17b52c6345f1367ba8af379a99bb814599e0e35e17f7348fb69862ee9ce",
+      "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
       "preservation_review": {
         "status": "accepted",
@@ -1351,7 +1351,7 @@
       "role": "web",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
       "preservation_review": {
         "status": "accepted",
@@ -1368,7 +1368,7 @@
       "role": "web",
       "environment": "development",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
       "preservation_review": {
         "status": "accepted",
@@ -1419,7 +1419,7 @@
       "role": "web",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
       "preservation_review": {
         "status": "accepted",
@@ -1668,5 +1668,11 @@
     "profile": "infra/production_embeddings.json",
     "evidence": "documents/verification/evidence-index-2026-10-25/reader-deployment-verification.json",
     "runtime_source_and_images_preserved": true
+  },
+  "container_resource_optimization": {
+    "owner_instruction": "Do 3-5",
+    "profile": "infra/container_resources.json",
+    "evidence": "documents/verification/azure-cost-retirement-2026-10-25/sizing-verification.json",
+    "images_preserved": true
   }
 }

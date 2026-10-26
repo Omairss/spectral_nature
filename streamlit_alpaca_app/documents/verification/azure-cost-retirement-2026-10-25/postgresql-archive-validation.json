@@ -1,0 +1,99 @@
+{
+  "status": "accepted_for_retirement",
+  "restored_at_utc": "2026-10-26T03:09:02.523767+00:00",
+  "verification": "All six complete custom-format database dumps restored locally after excluding only proprietary Azure platform extensions and managed-service ACLs/owners. Original dumps retain those objects for Azure restoration. Both source servers contain zero application tables and only Azure localhost service sessions.",
+  "local_platform_extension_omissions": [
+    "azure",
+    "pgaadauth"
+  ],
+  "servers": [
+    {
+      "name": "sn-pg-03130125",
+      "application_tables": 0,
+      "databases": [
+        {
+          "name": "postgres",
+          "dump_bytes": 20599,
+          "sha256": "d9b35419d67d23d0aa7229f83030c6a1f7118f8e03e748e82b9f6348bf0e4c7c"
+        },
+        {
+          "name": "flexibleserverdb",
+          "dump_bytes": 19569,
+          "sha256": "0fac8616da489b3f3847c9838eed9a6a4ce3662a5b3e5cdd8e03c3c5c3344427"
+        },
+        {
+          "name": "pipeline",
+          "dump_bytes": 19537,
+          "sha256": "7b03b05f20f5ff4cbc06b93a6f1d36fa77fc4d597b29200cb540efccda451561"
+        }
+      ]
+    },
+    {
+      "name": "sn-pg-03130132",
+      "application_tables": 0,
+      "databases": [
+        {
+          "name": "postgres",
+          "dump_bytes": 20599,
+          "sha256": "f062c0670e8a21adb33cf315abd43c63cb6b0f99d14896e81d72b3a3af023d06"
+        },
+        {
+          "name": "flexibleserverdb",
+          "dump_bytes": 19569,
+          "sha256": "c6dea713a384cfabe72324df1dabd5f7bbf3fa659ebd5e8b9d5ca2a2e59fba0c"
+        },
+        {
+          "name": "pipeline",
+          "dump_bytes": 19537,
+          "sha256": "17e996a8215367b201218375155caa45347350adbb316366afd2e0bab1572d87"
+        }
+      ]
+    }
+  ],
+  "restores": [
+    {
+      "server": "sn-pg-03130125",
+      "database": "postgres",
+      "restore_succeeded": true,
+      "restored_user_relations": 0,
+      "dump_sha256": "d9b35419d67d23d0aa7229f83030c6a1f7118f8e03e748e82b9f6348bf0e4c7c"
+    },
+    {
+      "server": "sn-pg-03130125",
+      "database": "flexibleserverdb",
+      "restore_succeeded": true,
+      "restored_user_relations": 0,
+      "dump_sha256": "0fac8616da489b3f3847c9838eed9a6a4ce3662a5b3e5cdd8e03c3c5c3344427"
+    },
+    {
+      "server": "sn-pg-03130125",
+      "database": "pipeline",
+      "restore_succeeded": true,
+      "restored_user_relations": 0,
+      "dump_sha256": "7b03b05f20f5ff4cbc06b93a6f1d36fa77fc4d597b29200cb540efccda451561"
+    },
+    {
+      "server": "sn-pg-03130132",
+      "database": "postgres",
+      "restore_succeeded": true,
+      "restored_user_relations": 0,
+      "dump_sha256": "f062c0670e8a21adb33cf315abd43c63cb6b0f99d14896e81d72b3a3af023d06"
+    },
+    {
+      "server": "sn-pg-03130132",
+      "database": "flexibleserverdb",
+      "restore_succeeded": true,
+      "restored_user_relations": 0,
+      "dump_sha256": "c6dea713a384cfabe72324df1dabd5f7bbf3fa659ebd5e8b9d5ca2a2e59fba0c"
+    },
+    {
+      "server": "sn-pg-03130132",
+      "database": "pipeline",
+      "restore_succeeded": true,
+      "restored_user_relations": 0,
+      "dump_sha256": "17e996a8215367b201218375155caa45347350adbb316366afd2e0bab1572d87"
+    }
+  ],
+  "network_ownership": "Each original firewall allowed only104.209.33.127, the long-stopped ML3 instance; no private network. Current consumers bind only to the two retained03130136 servers.",
+  "credential_handling": "Only the retirement candidates received temporary random admin credentials to make backups; active application servers and credentials unchanged."
+}
