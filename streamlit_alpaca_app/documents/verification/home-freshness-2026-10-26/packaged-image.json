@@ -1,0 +1,30 @@
+{
+  "role": "web",
+  "source_revision": "4a945281a4c9232b7d1cb098ecc20a0d42c55150",
+  "source_inventory_sha256": "9c4e3625fdf269f86c7d99c63602af82f22911307004da52eed2eb2ce7d52220",
+  "runtime_inventory_sha256": "ddf09d5ae5f830d1d034e1952d5f48f287201a552554f197f55992abce6b79d6",
+  "complete_git_inventory_matches": true,
+  "all_packaged_files_checked": true,
+  "input_files": 92,
+  "compiled_files": 1713,
+  "symlinks": 0,
+  "node": "v22.23.3",
+  "next": "16.3.8",
+  "http_checks": [
+    "initial publication",
+    "immediate complete replacement above 2 MiB",
+    "unchanged bodyless 304",
+    "current server-rendered Home",
+    "independent update invalidates ETag",
+    "complete replay",
+    "failure does not validate stale response",
+    "exact recovery"
+  ],
+  "large_body_bytes": 3146181,
+  "backend_reads": 8,
+  "external_inference_calls": 0,
+  "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c",
+  "verification_run": "cj1bx",
+  "build_run": "cj1bw",
+  "evidence": "documents/verification/home-freshness-2026-10-26/packaged-image.json"
+}
