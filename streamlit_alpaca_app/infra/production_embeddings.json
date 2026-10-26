@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "status": "authorized",
+  "subscription": "b69da224-4a61-4fc4-a5b2-3bb567436762",
+  "resource_group": "sn-pipeline-rg-03130136",
+  "owner_instruction": "Enable the existing Azure semantic search",
+  "environment": {
+    "EMBEDDING_PROVIDER": "azure_openai",
+    "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+    "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+    "EMBEDDING_MODEL": "text-embedding-3-small",
+    "EMBEDDING_DIMENSIONS": "1536",
+    "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+  },
+  "consumers": [
+    {
+      "name": "attention-home-build",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "commodities-regime",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "evidence-index-dev",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "macro-fred-daily",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "options-liquid-universe",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "role": "api-next"
+    },
+    {
+      "name": "sn-research-run",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "system-health",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "system-recovery",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "trading-agent-build",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "universe-builder",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "zopedia-learning",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "kind": "jobs",
+      "role": "worker"
+    }
+  ],
+  "preservation": "Configuration only. All images, chat providers/models, identities, secrets, commands, schedules, resource allocations and unrelated environment variables must remain as reviewed.",
+  "evidence": "documents/verification/evidence-index-2026-10-25/reader-activation-acceptance.json"
+}

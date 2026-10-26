@@ -1,0 +1,368 @@
+{
+  "observed_at_utc": "2026-10-26T01:20:44.564174+00:00",
+  "source": "Accepted Git application source, local development execution; live existing Azure service and read-only shared PostgreSQL",
+  "embedding_space": "azure_openai:https://spectral-nature-oai.openai.azure.com/openai/v1:zopedia-embedding:text-embedding-3-small:1536",
+  "queries": [
+    {
+      "query": "Recent analyst revisions to RTX share price targets",
+      "elapsed_seconds": 40.868,
+      "match_sources": {
+        "hybrid": 5
+      },
+      "results": [
+        {
+          "chunk_record_id": "saa_chunk::a1332e699c2168d2c7ce0661",
+          "title": "RTX Stock: $8 Billion Nuclear Deal and Drone Contract Fuel Growth",
+          "chunk_text": "Securing a Position in the Aerospace Shield With third-quarter earnings approaching, the market will look for evidence that recent contract momentum is flowing into operating margins. During the second quarter, Raytheon beat expectations, posting earnings of $1.89 per share against a $1.66 estimate on approximately $24.71 billion in revenue. RTX Stock Forecast Today Shares are trading around $186, down about 18% from their 52-week peak near $226.88. This consolidation comes despite average analyst price targets around $227, implying healthy upside over the coming year. The recent string of multi-billion-dollar awards confirms that global demand for both strategic deterrence and tactical air defense is accelerating. With a fortified balance sheet, expanding foreign military sales, and a 10-year runway in nuclear communications, the fundamental thesis remains intact.",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::5c1c01dcf941235184f7e756",
+          "title": "MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally",
+          "chunk_text": "On 2026-10-07 MU closed at $1,087.42, up 4.02% from $1,045.41 on 467,917 shares. Peer SNDK rose 3.98% to $1,726.98 while NVDA fell 0.92%, WDC fell 1.80%, STX fell 0.63%, AMAT fell 2.09%, and LRCX fell 2.12%. The split between memory names and logic/equipment names argues against a broad chip-rally driver. Same-day headlines at 12:24 UTC and 14:21 UTC named MU in analyst price-target forecasts and a +100% revenue-growth screen. Seeking Alpha listed MU among Wednesday's four stocks to watch, dated 2026-10-07. Full article texts were not reviewed, so the exact price target and estimate revision are headline-level, not confirmed. Business context: MU's sensitivity to AI memory pricing means target revisions can move the stock quickly; that is background, not today's trigger. Watch the next analyst note that revises the MU target and whether MU and SNDK hold together at the next close.",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::0c76714a850d0a17f5c52016",
+          "title": "DA Davidson Adjusts Price Target on RTX to $201 From $219",
+          "chunk_text": "DA Davidson has updated its outlook on RTX Corporation, reducing the price target to $201 from the previous $219. The firm continues to maintain a Neutral rating on the stock. This analyst action was reported on October 22, 2026.",
+          "published_at": "2026-10-22 18:01:47+00:00",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::51181015e095eebec92a39c1",
+          "title": "TSMC Doubles Down on CapEx as Agentic AI Expands, Say Bullish Analysts - Taiwan Semiconductor (NYSE:TSM) - Benzinga Flipboard",
+          "chunk_text": "Trading Options flow, trade calculators, and ideas for active traders. Screeners & Lists Filter the market your way, or start from a curated list. Learn Pick a broker, grow your savings, and protect what you've built. Premium Services Edge Ratings, signals & screens Pro Real-time news & data terminal Research Trade alerts & newsletters APIs Market data licensing All sections October 16, 2026 2:29 PM 2 min read Taiwan Semiconductor Manufacturing Doubles Down on CapEx as Agentic AI Expands, Say Bullish Analysts Taiwan Semiconductor Manufacturing Co Ltd (NYSE: TSM ) shares are down on Friday, despite the company reporting record profits . Here are some key analyst takeaways: Needham analyst Charles Shi reiterated a Buy rating, while raising the price target from $530 to $560. DA Davidson analyst Gil Luria reiterated a Buy rating and price target of $500. Check out other analyst stock ratings .",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::32a9c7a40236182577e0edde",
+          "title": "RTX Corporation Common Stock Business Memory",
+          "chunk_text": "wth produces durable adjusted profit growth. (Benzinga RTX Q3 2026 coverage)\n\n## Confirmation Events\n- DA Davidson Adjusts Price Target on RTX to $201 From $219 DA Davidson has lowered its price target for RTX Corporation to $201 from $219 while maintaining a Neutral rating. DA Davidson has updated its outlook on RTX Corporation, reducing the price target to $201 from the previous $219. The firm continues to maintain a Neutral rating on the stock. This analyst action was reported on October 22, 2026. (news_articles)\n- On 22 October 2026, DA Davidson lowered its RTX target to $201 from $219 and maintained a Neutral rating. The item gives no reason for the change. (MarketScreener / fiscal.ai)\n- Other available analyst actions were not uniform: UBS kept Neutral with a $212 target on 21 October; Barclays kept Overweight with a $235 target on 21 October; Goldman Sachs moved its target to $208 from $206 on 22 October. These are separate opinions, not company disclosures. (Benzinga analyst-action reports; MarketScreener)",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        }
+      ],
+      "provider_events": [
+        {
+          "attempt_id": "llmhttp_e01bb9014b3b4dd3a82954bd4b49e715",
+          "model_call_id": null,
+          "root_run_id": null,
+          "parent_run_id": null,
+          "settings_scope": "local",
+          "surface": "operations.semantic_reader",
+          "purpose": "activation_validation",
+          "provider": "azure_openai",
+          "requested_model": "zopedia-embedding",
+          "operation": "embedding",
+          "status": "started",
+          "started_at_utc": "2026-10-26 01:21:01.005017+00:00",
+          "duration_ms": 0,
+          "metadata": {
+            "request_composition": {
+              "serialized_characters": 147,
+              "message_count": 0,
+              "message_characters_by_role": {},
+              "tool_count": 0,
+              "tool_schema_characters": 2,
+              "response_schema_characters": 2,
+              "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+            },
+            "job_name": null
+          }
+        },
+        {
+          "attempt_id": "llmhttp_e01bb9014b3b4dd3a82954bd4b49e715",
+          "model_call_id": null,
+          "root_run_id": null,
+          "parent_run_id": null,
+          "settings_scope": "local",
+          "surface": "operations.semantic_reader",
+          "purpose": "activation_validation",
+          "provider": "azure_openai",
+          "requested_model": "zopedia-embedding",
+          "reported_model": "text-embedding-3-small",
+          "operation": "embedding",
+          "status": "success",
+          "http_status": 200,
+          "started_at_utc": "2026-10-26 01:21:01.005017+00:00",
+          "duration_ms": 341.3507500081323,
+          "usage": {
+            "prompt_tokens": 9,
+            "total_tokens": 9
+          },
+          "metadata": {
+            "transport_attempted": true,
+            "request_composition": {
+              "serialized_characters": 147,
+              "message_count": 0,
+              "message_characters_by_role": {},
+              "tool_count": 0,
+              "tool_schema_characters": 2,
+              "response_schema_characters": 2,
+              "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+            },
+            "error_type": "",
+            "provider_request_id": null,
+            "inference_effort": null,
+            "thinking": null,
+            "input_hash": "d781a4cd0b330590e6da50679c197580df5bd434d8eace442cfe945987b3c09c",
+            "job_name": null,
+            "research_subject": null,
+            "artifact_input_id": null,
+            "literal_output": false,
+            "max_output_tokens": null,
+            "input_characters": null,
+            "estimated_charge": {
+              "status": "price_unavailable"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "query": "Electricity supply bottlenecks for artificial intelligence data centers",
+      "elapsed_seconds": 20.415,
+      "match_sources": {
+        "hybrid": 5
+      },
+      "results": [
+        {
+          "chunk_record_id": "saa_chunk::4788df1bfcbbbf8e1aa2d01d",
+          "title": "AI data-center growth may now be limited by financing costs, not chip supply",
+          "chunk_text": "\u201cIn 2026, AI providers are expected to spend nearly $1 ... | source=serper | published_at=2026-10-14T18:56:29.731282+00:00 | url=https://x.com/pequityresearch/status/2110443444443439439 market_event: CRWV, NBIS, IREN Stocks Tumble After Gartner Forecasts ... | snippet=Gartner warns that over $3.5 trillion in artificial intelligence capital spending faces potential impairment through 2030 due to a widening ... | source=serper | published_at=2026-10-14T17:56:29.731016+00:00 | url=https://finance.yahoo.com/technology/ai/articles/crwv-nbis-iren-stocks-tumble-181012372.html",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::54c8041d022c0f7d3d82eaf6",
+          "title": "Microsoft Walks Away From AI Data Center Deal, but SemiAnalysis Predicts 50-GW Boom in 2027",
+          "chunk_text": "<p>More than 24 gigawatts of data center capacity is already in advanced construction across just 40 campuses, most of it expected to come online in 2027, according to new research from SemiAnalysis.</p>\n\n\n\n<p>The research firm forecasts 50 gigawatts of new data center capacity outside China in 2027, roughly as much as the industry had built in those markets over its entire history up to the end of 2024.</p>\n\n\n\n<p>The bullish outlook comes as <strong>Microsoft Corp.</strong> <a href=\"https://www.benzinga.com/quote/MSFT\" target=\"_blank\" class=\"ticker-link\" data-ticker=\"MSFT\" data-exchange=\"NASDAQ\" rel=\"noopener\">(NASDAQ:<a class=\"ticker\" href=\"https://www.benzinga.com/quote/MSFT\">MSFT</a>)</a> <a href=\"https://www.benzinga.com/markets/tech/26/10/62433053/ai-boom-hits-a-power-wall-microsoft-walks-away-from-nscales-uk-data-center-deal\">walked away from</a> a U.K. data center agreement because of electricity delays. The 50-megawatt facility was expected to house approximately 23,000 <strong>Nvidia Corp.</strong> <a href=\"https://www.benzinga.com/quote/NVDA\" target=\"_blank\" class=\"ticker-link\" data-ticker=\"NVDA\" data-exchange=\"NASDAQ\" rel=\"noopener\">(NASDAQ:<a class=\"ticker\" href=\"https://www.benzinga.com/quote/NVDA\">NVDA</a>)</a> GB300 chips.</p>\n\n\n\n<h3 class=\"wp-block-heading\">Why SemiAnalysis Expects the Boom to Continue</h3>\n\n\n\n<p>Most of the 40 campuses are more than halfway completed, with cooling and electrical equipment already installed.</p>\n\n\n\n<p>The researchers wrote that &#8220;gigantic sites are simply getting built, and many are on time&#8221; in Monday&#8217;s <a href=\"https://newsletter.semianalysis.com/p/datacenters-2027-the-year-of-acceleration\">report</a>.</p>\n\n\n\n<p>Their confidence rests on a surge in long-term leases. Developers typically spend only 5% to 10% of a project&#8217;s budget before securing a customer, using signed contracts to raise financing.</p>\n\n\n\n<p>SemiAnalysis estimates roughly $1 trillion in multiyear data center leases have been signed this year, helping fund construction scheduled for 2027 and 2028.</p>\n\n\n\n<p>The firm also argues that &#8220;the power generation problem has broadly been solved.&#8221;</p>\n\n\n\n<p>Rather than waiting five to 10 years for grid connections, developers are increasingly installing their own electricity generation, including fuel cells, refurbished turbines and engines originally designed for trucks.</p>\n\n\n\n<p>These alternatives could bypass the kind of grid delays that derailed Microsoft&#8217;s Essex deal, although they may not be practical at every location.</p>\n\n\n\n<p>Construction is accelerating, too. SemiAnalysis says Singapore-based DayOne has cut building timelines from more than 18 months to around nine. The firm estimates that modular construction can reduce certain on-site labor requirements by up to 63%.</p>\n\n\n\n<h3 class=\"wp-block-heading\">Could Chips Become the Next Bottleneck?</h3>\n\n\n\n<p>Not everyone shares SemiAnalysis&#8217;s optimism.</p>\n\n\n\n<p>Altimeter Capital founder <strong>Brad Gerstner</strong> challenged an earlier 43-gigawatt projection from SemiAnalysis founder <strong>Dylan Patel</strong> on the <a href=\"https://www.youtube.com/watch?v=PJrntzMA4iQ\">All-In</a> podcast.</p>\n\n\n\n<p>&#8220;I would suggest Dylan&#8217;s forecast of 43 gigawatts next year is too aggressive,&#8221; Gerstner said, estimating actual delivery closer to 25 gigawatts. His comments focused on U.S. infrastructure, while SemiAnalysis&#8217;s latest forecast covers a broader market.</p>\n\n\n\n<p>Meanwhile, traders on <a href=\"https://polymarket.com/event/ai-bubble-burst-by\">Polymarket</a> put roughly 9% odds on an AI industry downturn by Dec. 31. The contract requires three qualifying events within 90 days, potentially including a 50% drop in Nvidia shares from their all-time high.</p>\n\n\n\n<p>SemiAnalysis expects memory and processor shortages to become a bigger constraint in 2027 and 2028.</p>\n\n\n\n<p>For Nvidia, that could mean demand for its chips continues to outstrip supply even as developers overcome the construction and electricity problems holding up projects today.</p>\n\n\n\n<p><em>Image: Shutterstock</em></p>\n\n\n\n<div class=\"bz-read-next-block\"\n     data-variant=\"card\"\n     data-news-mode=\"manual\"\n\n    >\n\n\n<p>\n<strong>\nRead Also:\n<a href=\"https://www.benzinga.com/markets/prediction-markets/26/10/62446382/corning-optical-fiber-prices-ai\" target=\"_blank\" rel=\"noopener\">\nCan Meta\u2019s Fiber Partner Corning Capitalize On Rising AI Fiber Prices?</a>\n</strong>\n</p>\n\n\n</div>",
+          "published_at": "2026-10-19 18:46:26+00:00",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::87475d4c3eaebe5f53ffec74",
+          "title": "AI Data Center Power and Cooling Demand",
+          "chunk_text": "# AI Data Center Power and Cooling Demand\n\nTheme: AI data-center buildout drives demand for power, cooling, and networking infrastructure.\n\n- INDmoney (2026-08-10): \"US Stocks Supplying AI Data Centres: Power, Cooling, Networking & More\" \u2014 describes the AI infrastructure value chain.\n- Simply Wall St (2026-08-05): \"Vertiv Stock And 2 AI Infrastructure Picks For Data Center Power Demand\" \u2014 ties AI infrastructure demand to data-center power.\n\nThese articles predate 2026-08-12 and are background context for the same-day move in MOD, VRT, NVT. No current macro or rates datapoint was available in the 2026-08-12 thread (macro datasets returned zero rows).",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::970ac1782b3b9b89921e7a0a",
+          "title": "AI data-center growth may now be limited by financing costs, not chip supply",
+          "chunk_text": "[]",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::991d8dd51d8f58da14492b55",
+          "title": "Top 3 Electricity Stocks to Watch in the AI-Data-Center Boom",
+          "chunk_text": "Top 3 Electricity Stocks to Watch in the AI-Data-Center Boom",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        }
+      ],
+      "provider_events": [
+        {
+          "attempt_id": "llmhttp_45faccdc727c471a8be107299a0417f9",
+          "model_call_id": null,
+          "root_run_id": null,
+          "parent_run_id": null,
+          "settings_scope": "local",
+          "surface": "operations.semantic_reader",
+          "purpose": "activation_validation",
+          "provider": "azure_openai",
+          "requested_model": "zopedia-embedding",
+          "operation": "embedding",
+          "status": "started",
+          "started_at_utc": "2026-10-26 01:21:31.142391+00:00",
+          "duration_ms": 0,
+          "metadata": {
+            "request_composition": {
+              "serialized_characters": 161,
+              "message_count": 0,
+              "message_characters_by_role": {},
+              "tool_count": 0,
+              "tool_schema_characters": 2,
+              "response_schema_characters": 2,
+              "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+            },
+            "job_name": null
+          }
+        },
+        {
+          "attempt_id": "llmhttp_45faccdc727c471a8be107299a0417f9",
+          "model_call_id": null,
+          "root_run_id": null,
+          "parent_run_id": null,
+          "settings_scope": "local",
+          "surface": "operations.semantic_reader",
+          "purpose": "activation_validation",
+          "provider": "azure_openai",
+          "requested_model": "zopedia-embedding",
+          "reported_model": "text-embedding-3-small",
+          "operation": "embedding",
+          "status": "success",
+          "http_status": 200,
+          "started_at_utc": "2026-10-26 01:21:31.142391+00:00",
+          "duration_ms": 327.7839579968713,
+          "usage": {
+            "prompt_tokens": 11,
+            "total_tokens": 11
+          },
+          "metadata": {
+            "transport_attempted": true,
+            "request_composition": {
+              "serialized_characters": 161,
+              "message_count": 0,
+              "message_characters_by_role": {},
+              "tool_count": 0,
+              "tool_schema_characters": 2,
+              "response_schema_characters": 2,
+              "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+            },
+            "error_type": "",
+            "provider_request_id": null,
+            "inference_effort": null,
+            "thinking": null,
+            "input_hash": "4f017992e57bc65743138364529c28bdd58c637146d93a75847726dc78c79992",
+            "job_name": null,
+            "research_subject": null,
+            "artifact_input_id": null,
+            "literal_output": false,
+            "max_output_tokens": null,
+            "input_characters": null,
+            "estimated_charge": {
+              "status": "price_unavailable"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "query": "How anti-obesity medicines are changing diabetes treatment markets",
+      "elapsed_seconds": 18.428,
+      "match_sources": {
+        "hybrid": 4,
+        "lexical": 1
+      },
+      "results": [
+        {
+          "chunk_record_id": "saa_chunk::e0821ef78f7e45cbc6e9aaf2",
+          "title": "Eli Lilly's Oral GLP-1 Pill Wins Key European Backing for Obesity and Diabetes",
+          "chunk_text": "[]",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::29aec9867e15f35650ced260",
+          "title": "Eli Lilly's GLP-1 Pill Wins Key European Backing for Obesity and Diabetes",
+          "chunk_text": "Eli Lilly gains positive CHMP opinion for Foundayo (orforglipron), a new oral GLP-1 tablet for weight loss and type 2 diabetes.",
+          "published_at": "2026-10-16 15:04:31+00:00",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::0330e3b3aab8126dc7ba9c58",
+          "title": "Eli Lilly and Company Common Stock Business Memory",
+          "chunk_text": "# Eli Lilly and Company Common Stock Business Memory\n\nSymbol: LLY\n\n## Business Model\n- Eli Lilly is a research-based drug company that earns most of its money from prescription medicines. Its largest visible franchise is incretin obesity and diabetes drugs; immunology, which includes the bowel-disease drug Omvoh, is a second growth area. (Lilly Q2 2026 earnings call transcript, Benzinga, published 2026-10-08) (news_articles)\n- Eli Lilly earns most of its money from prescription medicines. Incretin obesity and diabetes drugs are the largest visible franchise, and immunology, including Omvoh, is a second growth area. (zopedia_memory)\n- A statutory manufacturer rebate changes the net price Lilly receives for patent-protected drugs sold to German statutory insurers. It acts through the same payer-set price mechanism that already shapes Lilly's revenue. (inference)\n\n## Products And Services\n- Omvoh (mirikizumab) is Lilly's IL-23 p19 antibody. The 2026-10-15 data cover ulcerative colitis and Crohn's disease and claim several treatment goals reached at once after one year. Omvoh is already an approved product, so the headline's 'new drug' wording means new data, not a first launch. (news_articles)\n- Omvoh (mirikizumab) is already an approved IL-23 p19 antibody. The 15 October 2026 item reports one-year inflammatory bowel disease data, not a first launch. (news_articles)\n- Lilly reported positive Phase 3 obesity results for retatrutide on 23 July 2026, and a European regulator committee backed oral GLP-1 Foundayo (orforglipron) on 16 October 2026. These show product momentum that the German pricing dispute does not touch directly. (news_articles)\n\n## Customer Segments\n- The buyers are gastroenterologists and other prescribers, plus the payers that decide coverage; the patients are adults with moderate-to-severe ulcerative colitis or Crohn's disease. This is an inference from how prescription drugs reach patients, not something the retrieved evidence states. (inference)\n\n## Fundamentals\n- Operating Cash Flow: 5333000000.0 (2026-03-31 00:00:00) (quarterly_fundamentals)\n- Free Cash Flow: 3007000000.0 (2026-03-31 00:00:00) (quarterly_fundamentals)\n- Capital Expenditure: -2326000000.0 (2026-03-31 00:00:00) (quarterly_fundamentals)\n- Net Income: 7396000000.0 (2026-03-31 00:00:00) (quarterly_fundamentals)\n- Operating Income: 9778000000.0 (2026-03-31 00:00:00) (quarterly_fundamentals)\n- Total Revenue: 19799000000.0 (2026-03-31 00:00:00) (quarterly_fundamentals)\n\n## Workforce And Hiring\n- No Lilly workforce number or hiring effect was retrieved. Roche's roughly 18,600 German employees and its statement that current headcount is secure do not transfer to Lilly. (news_articles)\n\n## Employee Sentiment\n- No employee-sentiment evidence for Lilly or Roche was retrieved. (none)\n\n## Web Or Developer Attention\n- No web-attention or developer-attention evidence relevant to this item was retrieved. (none)\n\n## Policy Or Regulatory Environment\n- Germany's GKV Contribution Rate Stabilization Act (GKV-BStabG) raises statutory manufacturer discounts on patent-protected drugs from 7% to 15.5% starting in January 2027. Germany's health ministry expects about \u20ac12 billion of insurer savings by 2030 against an estimated \u20ac19 billion financing shortfall. (news_articles)\n- The Bundestag adopted the act on 10 July 2026, the same day it cleared the Council of German States. A June 2026 report said Berlin was dropping plans for variable discounts after industry pushback, so the pushback won a partial concession, not a reversal of the flat rebate increase. (news_articles)\n- Roche's Germany chief, Daniel Steiners, put all future German investment decisions on hold on 19 October 2026. Roche says the freeze covers only unapproved future projects, so current construction at its Penzberg site and current headcount remain secure for now. (news_articles)\n- On 9 June 2026, Roche said it would keep a \u20ac600 million German diagnostics investment and would not follow Lilly and Boehringer out \u2014 'for now'. The October freeze shows that holdout position changed. (news_articles)\n- The article says Lilly recently halved a planned \u20ac2.3 billion German manufacturing investment. It also says Pfizer put domestic allocations under review and Boehringer Ingelheim scrapped a \u20ac900 million plan. The Lilly figure is reported through the Financial Times, not a Lilly statement. (news_articles)\n\n## Supply Chain Or Capacity Constraints\n- A halved German manufacturing plan could slow European c",
+          "published_at": "NaT",
+          "match_source": "lexical"
+        },
+        {
+          "chunk_record_id": "saa_chunk::14c8a8f7c49ed69e1d0063c1",
+          "title": "Eli Lilly's Oral GLP-1 Pill Wins Key European Backing for Obesity and Diabetes",
+          "chunk_text": "Live evidence rows are provider headlines/snippets with source URLs, not opened article bodies. These are source reports. They do not establish a causal ranking. Focused symbols: LLY, NVO. market_event: The Oral GLP-1 Tracker: Novo's Wegovy pill vs Lilly's ... | snippet=Fierce Pharma's weekly Oral GLP-1 Tracker monitors prescription trends of Novo Nordisk's Wegovy pill and Eli Lilly's Foundayo. | source=serper | published_at=2026-10-09T17:07:20.840430+00:00 | url=https://www.fiercepharma.com/pharma/oral-glp-1-tracker-launch-trajectories-lilly-foundayo-novo-wegovy-pill market_event: GLP-1 pill: is the weight-loss pill coming to the Nethe | snippet=The first is the Wegovy pill, oral semaglutide at a dose of 25 mg from Novo Nordisk, which received FDA approval in December 2025. The second is Foundayo ... | source=serper | url=https://www.goodweigh.nl/en/blog/glp-1-pill-the-netherlands",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        },
+        {
+          "chunk_record_id": "saa_chunk::92bcdc089e82d724f02df4c6",
+          "title": "RFK Jr. is a 'big fan' of this treatment and plans to widen access",
+          "chunk_text": "\u2018One of the biggest medical experiments\u2019 in history Yet some pharmacists and doctors warn that any move by the FDA to loosen current regulations around peptides could pose serious health risks because of the lack of scientific data to support many of them. Peptides, which are usually injected under the skin, include the FDA-approved diabetes therapy insulin and GLP-1 weight-loss drugs, like Ozempic and Wegovy. The global market for the mini-proteins is projected to reach $100 billion in the next decade as pharma companies chase the spectacular success of the GLP-1s and growing demand for precision medicine. But Kennedy and the biohacking corner of the MAHA movement hype dubiously legal chemicals known by alphanumeric names \u2014 like BPC-157 and CJC-1295 \u2014 for their health benefits, despite questions around their efficacy and FDA safety approval. These products are now often manufactured in China and sold on the black market.",
+          "published_at": "NaT",
+          "match_source": "hybrid"
+        }
+      ],
+      "provider_events": [
+        {
+          "attempt_id": "llmhttp_f1abf7bcefe3448fb11cfdca425bf262",
+          "model_call_id": null,
+          "root_run_id": null,
+          "parent_run_id": null,
+          "settings_scope": "local",
+          "surface": "operations.semantic_reader",
+          "purpose": "activation_validation",
+          "provider": "azure_openai",
+          "requested_model": "zopedia-embedding",
+          "operation": "embedding",
+          "status": "started",
+          "started_at_utc": "2026-10-26 01:21:50.083455+00:00",
+          "duration_ms": 0,
+          "metadata": {
+            "request_composition": {
+              "serialized_characters": 156,
+              "message_count": 0,
+              "message_characters_by_role": {},
+              "tool_count": 0,
+              "tool_schema_characters": 2,
+              "response_schema_characters": 2,
+              "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+            },
+            "job_name": null
+          }
+        },
+        {
+          "attempt_id": "llmhttp_f1abf7bcefe3448fb11cfdca425bf262",
+          "model_call_id": null,
+          "root_run_id": null,
+          "parent_run_id": null,
+          "settings_scope": "local",
+          "surface": "operations.semantic_reader",
+          "purpose": "activation_validation",
+          "provider": "azure_openai",
+          "requested_model": "zopedia-embedding",
+          "reported_model": "text-embedding-3-small",
+          "operation": "embedding",
+          "status": "success",
+          "http_status": 200,
+          "started_at_utc": "2026-10-26 01:21:50.083455+00:00",
+          "duration_ms": 280.2092499914579,
+          "usage": {
+            "prompt_tokens": 10,
+            "total_tokens": 10
+          },
+          "metadata": {
+            "transport_attempted": true,
+            "request_composition": {
+              "serialized_characters": 156,
+              "message_count": 0,
+              "message_characters_by_role": {},
+              "tool_count": 0,
+              "tool_schema_characters": 2,
+              "response_schema_characters": 2,
+              "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+            },
+            "error_type": "",
+            "provider_request_id": null,
+            "inference_effort": null,
+            "thinking": null,
+            "input_hash": "c965a1acae7951c60576e828874949363340a38ec3b8d64683eed7d38690e64e",
+            "job_name": null,
+            "research_subject": null,
+            "artifact_input_id": null,
+            "literal_output": false,
+            "max_output_tokens": null,
+            "input_characters": null,
+            "estimated_charge": {
+              "status": "price_unavailable"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "observed_at_utc": "2026-10-26T01:22:28.401099+00:00",
+  "mode": "process_scoped_preflight_no_persisted_environment_changes",
+  "embedding_space": "azure_openai:https://spectral-nature-oai.openai.azure.com/openai/v1:zopedia-embedding:text-embedding-3-small:1536",
+  "elapsed_seconds": 17.08,
+  "results": [
+    {
+      "chunk_record_id": "saa_chunk::4788df1bfcbbbf8e1aa2d01d",
+      "title": "AI data-center growth may now be limited by financing costs, not chip supply",
+      "chunk_text": "\u201cIn 2026, AI providers are expected to spend nearly $1 ... | source=serper | published_at=2026-10-14T18:56:29.731282+00:00 | url=https://x.com/pequityresearch/status/2110443444443439439 market_event: CRWV, NBIS, IREN Stocks Tumble After Gartner Forecasts ... | snippet=Gartner warns that over $3.5 trillion in artificial intelligence capital spending faces potential impairment through 2030 due to a widening ... | source=serper | published_at=2026-10-14T17:56:29.731016+00:00 | url=https://finance.yahoo.com/technology/ai/articles/crwv-nbis-iren-stocks-tumble-181012372.html",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::54c8041d022c0f7d3d82eaf6",
+      "title": "Microsoft Walks Away From AI Data Center Deal, but SemiAnalysis Predicts 50-GW Boom in 2027",
+      "chunk_text": "<p>More than 24 gigawatts of data center capacity is already in advanced construction across just 40 campuses, most of it expected to come online in 2027, according to new research from SemiAnalysis.</p>\n\n\n\n<p>The research firm forecasts 50 gigawatts of new data center capacity outside China in 2027, roughly as much as the industry had built in those markets over its entire history up to the end of 2024.</p>\n\n\n\n<p>The bullish outlook comes as <strong>Microsoft Corp.</strong> <a href=\"https://www.benzinga.com/quote/MSFT\" target=\"_blank\" class=\"ticker-link\" data-ticker=\"MSFT\" data-exchange=\"NASDAQ\" rel=\"noopener\">(NASDAQ:<a class=\"ticker\" href=\"https://www.benzinga.com/quote/MSFT\">MSFT</a>)</a> <a href=\"https://www.benzinga.com/markets/tech/26/10/62433053/ai-boom-hits-a-power-wall-microsoft-walks-away-from-nscales-uk-data-center-deal\">walked away from</a> a U.K. data center agreement because of electricity delays. The 50-megawatt facility was expected to house approximately 23,000 <strong>Nvidia Corp.</strong> <a href=\"https://www.benzinga.com/quote/NVDA\" target=\"_blank\" class=\"ticker-link\" data-ticker=\"NVDA\" data-exchange=\"NASDAQ\" rel=\"noopener\">(NASDAQ:<a class=\"ticker\" href=\"https://www.benzinga.com/quote/NVDA\">NVDA</a>)</a> GB300 chips.</p>\n\n\n\n<h3 class=\"wp-block-heading\">Why SemiAnalysis Expects the Boom to Continue</h3>\n\n\n\n<p>Most of the 40 campuses are more than halfway completed, with cooling and electrical equipment already installed.</p>\n\n\n\n<p>The researchers wrote that &#8220;gigantic sites are simply getting built, and many are on time&#8221; in Monday&#8217;s <a href=\"https://newsletter.semianalysis.com/p/datacenters-2027-the-year-of-acceleration\">report</a>.</p>\n\n\n\n<p>Their confidence rests on a surge in long-term leases. Developers typically spend only 5% to 10% of a project&#8217;s budget before securing a customer, using signed contracts to raise financing.</p>\n\n\n\n<p>SemiAnalysis estimates roughly $1 trillion in multiyear data center leases have been signed this year, helping fund construction scheduled for 2027 and 2028.</p>\n\n\n\n<p>The firm also argues that &#8220;the power generation problem has broadly been solved.&#8221;</p>\n\n\n\n<p>Rather than waiting five to 10 years for grid connections, developers are increasingly installing their own electricity generation, including fuel cells, refurbished turbines and engines originally designed for trucks.</p>\n\n\n\n<p>These alternatives could bypass the kind of grid delays that derailed Microsoft&#8217;s Essex deal, although they may not be practical at every location.</p>\n\n\n\n<p>Construction is accelerating, too. SemiAnalysis says Singapore-based DayOne has cut building timelines from more than 18 months to around nine. The firm estimates that modular construction can reduce certain on-site labor requirements by up to 63%.</p>\n\n\n\n<h3 class=\"wp-block-heading\">Could Chips Become the Next Bottleneck?</h3>\n\n\n\n<p>Not everyone shares SemiAnalysis&#8217;s optimism.</p>\n\n\n\n<p>Altimeter Capital founder <strong>Brad Gerstner</strong> challenged an earlier 43-gigawatt projection from SemiAnalysis founder <strong>Dylan Patel</strong> on the <a href=\"https://www.youtube.com/watch?v=PJrntzMA4iQ\">All-In</a> podcast.</p>\n\n\n\n<p>&#8220;I would suggest Dylan&#8217;s forecast of 43 gigawatts next year is too aggressive,&#8221; Gerstner said, estimating actual delivery closer to 25 gigawatts. His comments focused on U.S. infrastructure, while SemiAnalysis&#8217;s latest forecast covers a broader market.</p>\n\n\n\n<p>Meanwhile, traders on <a href=\"https://polymarket.com/event/ai-bubble-burst-by\">Polymarket</a> put roughly 9% odds on an AI industry downturn by Dec. 31. The contract requires three qualifying events within 90 days, potentially including a 50% drop in Nvidia shares from their all-time high.</p>\n\n\n\n<p>SemiAnalysis expects memory and processor shortages to become a bigger constraint in 2027 and 2028.</p>\n\n\n\n<p>For Nvidia, that could mean demand for its chips continues to outstrip supply even as developers overcome the construction and electricity problems holding up projects today.</p>\n\n\n\n<p><em>Image: Shutterstock</em></p>\n\n\n\n<div class=\"bz-read-next-block\"\n     data-variant=\"card\"\n     data-news-mode=\"manual\"\n\n    >\n\n\n<p>\n<strong>\nRead Also:\n<a href=\"https://www.benzinga.com/markets/prediction-markets/26/10/62446382/corning-optical-fiber-prices-ai\" target=\"_blank\" rel=\"noopener\">\nCan Meta\u2019s Fiber Partner Corning Capitalize On Rising AI Fiber Prices?</a>\n</strong>\n</p>\n\n\n</div>",
+      "published_at": "2026-10-19 18:46:26+00:00",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::87475d4c3eaebe5f53ffec74",
+      "title": "AI Data Center Power and Cooling Demand",
+      "chunk_text": "# AI Data Center Power and Cooling Demand\n\nTheme: AI data-center buildout drives demand for power, cooling, and networking infrastructure.\n\n- INDmoney (2026-08-10): \"US Stocks Supplying AI Data Centres: Power, Cooling, Networking & More\" \u2014 describes the AI infrastructure value chain.\n- Simply Wall St (2026-08-05): \"Vertiv Stock And 2 AI Infrastructure Picks For Data Center Power Demand\" \u2014 ties AI infrastructure demand to data-center power.\n\nThese articles predate 2026-08-12 and are background context for the same-day move in MOD, VRT, NVT. No current macro or rates datapoint was available in the 2026-08-12 thread (macro datasets returned zero rows).",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::970ac1782b3b9b89921e7a0a",
+      "title": "AI data-center growth may now be limited by financing costs, not chip supply",
+      "chunk_text": "[]",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::991d8dd51d8f58da14492b55",
+      "title": "Top 3 Electricity Stocks to Watch in the AI-Data-Center Boom",
+      "chunk_text": "Top 3 Electricity Stocks to Watch in the AI-Data-Center Boom",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    }
+  ],
+  "runtime": "sn-api-next--0000021; existing API image and managed identity; no persisted settings changed",
+  "credential_check": "Default embedding loader resolved the existing Key Vault reference inside the actual production container; actual Azure embedding request and corpus query succeeded."
+}

@@ -1,0 +1,54 @@
+{
+  "status": "accepted_for_configuration_activation",
+  "owner_instruction": "Enable the existing Azure semantic search",
+  "runtime_source_changed": false,
+  "development_runtime_limitation": "Running sn-api-next-dev--0000056 already has embedding env but reproduces the older token-array request accounting crash; it is separate experimental source and remains unchanged. Local accepted Git source and real production runtime were qualified instead.",
+  "local_queries": [
+    {
+      "query": "Recent analyst revisions to RTX share price targets",
+      "elapsed_seconds": 40.868,
+      "match_sources": {
+        "hybrid": 5
+      }
+    },
+    {
+      "query": "Electricity supply bottlenecks for artificial intelligence data centers",
+      "elapsed_seconds": 20.415,
+      "match_sources": {
+        "hybrid": 5
+      }
+    },
+    {
+      "query": "How anti-obesity medicines are changing diabetes treatment markets",
+      "elapsed_seconds": 18.428,
+      "match_sources": {
+        "hybrid": 4,
+        "lexical": 1
+      }
+    }
+  ],
+  "production_preflight": {
+    "elapsed_seconds": 17.08,
+    "semantic_branch_proven": true,
+    "managed_identity_secret_resolution_proven": true
+  },
+  "personal_review": "Read all returned passages. RTX query includes the newly indexed DA Davidson revision and company memory; broad source diversity also brings MU/TSMC analyst noise. AI power query finds a complete Microsoft electricity-delay article and power/cooling memory, plus broader financing context. Held-out obesity query finds oral GLP-1 news and Lilly company memory. Existing placeholder [] passages and duplicate reports remain quality gaps in the stored corpus/ranker; no query-specific filtering or ranking changes are justified by this configuration repair. Semantic/hybrid labels and successful real embedding events establish activation, not comprehensive retrieval-quality acceptance.",
+  "quota": {
+    "deployment": "zopedia-embedding",
+    "model": "text-embedding-3-small",
+    "dimensions": 1536,
+    "sku": "Standard",
+    "capacity": 350,
+    "requests_per_10_seconds": 350,
+    "tokens_per_minute": 350000,
+    "provisioning_state": "Succeeded",
+    "changed": false
+  },
+  "additional_existing_behavior": "Shared knowledge-graph resolution also uses the independent embedding capability. Its node vectors are cached by embedding space and content in durable execution states, so first use may populate missing vectors; subsequent queries embed the query and reuse node vectors. No chat provider/model change.",
+  "cost_scope": "No new Azure resource, allocated capacity, size or schedule. Query-time token usage increases for actual semantic retrieval; existing shared index continues unchanged.",
+  "evidence": [
+    "reader-local-validation.json",
+    "reader-production-preflight.json",
+    "reader-configuration-plan.json"
+  ]
+}
