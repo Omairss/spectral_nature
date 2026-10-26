@@ -1,0 +1,10 @@
+{
+  "observed_at_utc": "2026-10-26T00:47:35.493649+00:00",
+  "resource": "sn-api-next",
+  "revision": "sn-api-next--0000021",
+  "inspection": "Read-only az containerapp exec: python -c \"from services.llm import load_embedding_client; print(bool(load_embedding_client()))\"",
+  "result": false,
+  "inference_requests_sent": 0,
+  "production_configuration_changed": false,
+  "conclusion": "The running API has no configured embedding client. The current retained-evidence reader falls back to lexical search. The indexing recovery is complete; enabling the existing Azure embedding capability for readers is a separate pending owner decision."
+}

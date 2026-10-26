@@ -1,0 +1,49 @@
+{
+  "status": "shared_index_recovered",
+  "completed_at_utc": "2026-10-26T00:46:40.047066+00:00",
+  "selected_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+  "accepted_source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+  "release_revision": "bee821dfaaf347e334442bb929baa146887a98ca",
+  "source_fix": "Existing accepted production accounting does not interpret token arrays as chat messages. The old index job missed that rollout.",
+  "pending_unique_texts_before": 2699,
+  "pending_unique_texts_after": 0,
+  "embeddings_before": 26001,
+  "embeddings_after": 28700,
+  "covered_chunk_rows": 34937,
+  "total_chunk_rows": 34937,
+  "scheduled_successes_after_deployment": [
+    {
+      "end": "2026-10-26T00:45:55+00:00",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "name": "evidence-index-dev-29882925",
+      "start": "2026-10-26T00:45:00+00:00",
+      "status": "Succeeded"
+    },
+    {
+      "end": "2026-10-26T00:41:03+00:00",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "name": "evidence-index-dev-29882920",
+      "start": "2026-10-26T00:40:00+00:00",
+      "status": "Succeeded"
+    }
+  ],
+  "configuration_preserved": true,
+  "other_35_images_preserved": true,
+  "semantic_retrieval_review": "Actual semantic_candidates query against shared PostgreSQL returned five relevant RTX analyst-target records, including three rows newly indexed during recovery. Meaning and source dates were inspected personally; no broad retrieval-quality claim.",
+  "catchup_throttling": "The manual catch-up execution persisted progress but hit Azure HTTP429 rate limits. The subsequent normal scheduled execution resumed retained work and completed 34937/34937 chunks. No quota, retry, timeout or schedule change was made.",
+  "production_reader_activation": {
+    "configured": false,
+    "inspection": "A read-only Python call inside the running production API returned False for bool(load_embedding_client()).",
+    "decision": "Owner question pending; proposed configuration is in reader-activation-proposal.json. No reader configuration changed.",
+    "evidence": "production-reader-check.json"
+  },
+  "verification_files": [
+    "deployment-verification.json",
+    "local-acceptance.json",
+    "shared-index-before.json",
+    "shared-index-after.json",
+    "executions-after.json",
+    "recovery-job-logs.json"
+  ],
+  "personal_review": "The real shared-index semantic query returned RTX analyst revisions, including the newly indexed October22 Goldman and DA Davidson reports. These results are relevant to the query. Retained duplicate reports remain a separate retrieval-quality consideration; no broad redesign was made."
+}

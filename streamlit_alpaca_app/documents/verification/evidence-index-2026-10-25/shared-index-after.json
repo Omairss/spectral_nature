@@ -1,0 +1,119 @@
+{
+  "observed_at_utc": "2026-10-26T00:42:18.685497+00:00",
+  "query": "Recent analyst revisions to RTX share price targets",
+  "retrieval_function": "services.saa.semantic_index.semantic_candidates",
+  "embedding_client": "Explicit existing indexer Azure embedding configuration; no changes to production reader configuration.",
+  "results": [
+    {
+      "chunk_id": "saa_chunk::46e3500e8b0229ac78273de4",
+      "title": "Barclays Maintains Overweight on RTX, Raises Price Target to $235",
+      "excerpt": "Barclays Maintains Overweight on RTX, Raises Price Target to $235",
+      "indexed_at": "2026-10-21 15:36:04.138879+00:00"
+    },
+    {
+      "chunk_id": "saa_chunk::8e7c412b624856ca3b484f0e",
+      "title": "Barclays Maintains Overweight on RTX, Raises Price Target to $235",
+      "excerpt": "Barclays Maintains Overweight on RTX, Raises Price Target to $235",
+      "indexed_at": "2026-10-21 14:12:15.694516+00:00"
+    },
+    {
+      "chunk_id": "saa_chunk::2b5fe6e6a28595ae98471b9a",
+      "title": "DA Davidson Adjusts Price Target on RTX to $201 From $219",
+      "excerpt": "DA Davidson has updated its outlook on RTX Corporation, reducing the price target to $201 from the previous $219. The firm continues to maintain a Neutral rating on the stock. This analyst action was reported on October 22, 2026.",
+      "indexed_at": "2026-10-26 00:39:50.523380+00:00"
+    },
+    {
+      "chunk_id": "saa_chunk::0c76714a850d0a17f5c52016",
+      "title": "DA Davidson Adjusts Price Target on RTX to $201 From $219",
+      "excerpt": "DA Davidson has updated its outlook on RTX Corporation, reducing the price target to $201 from the previous $219. The firm continues to maintain a Neutral rating on the stock. This analyst action was reported on October 22, 2026.",
+      "indexed_at": "2026-10-26 00:38:48.771236+00:00"
+    },
+    {
+      "chunk_id": "saa_chunk::c2053131bb7021ab5b9cac3b",
+      "title": "Goldman Sachs Adjusts RTX Price Target",
+      "excerpt": "Goldman Sachs has revised its price target for RTX Corporation, raising the target from $206 to $208. This adjustment reflects the firm's updated analysis of the aerospace and defense company. The change was reported on October 22, 2026.",
+      "indexed_at": "2026-10-26 00:38:33.177660+00:00"
+    }
+  ],
+  "embedding_rows": 28700,
+  "last_indexed_at": "2026-10-26 00:40:57.921825+00:00",
+  "chunk_rows": 34937,
+  "covered_chunk_rows": 34937,
+  "pending_unique_texts": 0,
+  "provider_events": [
+    {
+      "attempt_id": "llmhttp_89af33020e054f1ca82215c3e8b24d33",
+      "model_call_id": null,
+      "root_run_id": null,
+      "parent_run_id": null,
+      "settings_scope": "local",
+      "surface": "provider.direct",
+      "purpose": "direct.embedding",
+      "provider": "azure_openai",
+      "requested_model": "zopedia-embedding",
+      "operation": "embedding",
+      "status": "started",
+      "started_at_utc": "2026-10-26 00:42:03.005046+00:00",
+      "duration_ms": 0,
+      "metadata": {
+        "request_composition": {
+          "serialized_characters": 147,
+          "message_count": 0,
+          "message_characters_by_role": {},
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 2,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "job_name": null
+      }
+    },
+    {
+      "attempt_id": "llmhttp_89af33020e054f1ca82215c3e8b24d33",
+      "model_call_id": null,
+      "root_run_id": null,
+      "parent_run_id": null,
+      "settings_scope": "local",
+      "surface": "provider.direct",
+      "purpose": "direct.embedding",
+      "provider": "azure_openai",
+      "requested_model": "zopedia-embedding",
+      "reported_model": "text-embedding-3-small",
+      "operation": "embedding",
+      "status": "success",
+      "http_status": 200,
+      "started_at_utc": "2026-10-26 00:42:03.005046+00:00",
+      "duration_ms": 317.8949999855831,
+      "usage": {
+        "prompt_tokens": 9,
+        "total_tokens": 9
+      },
+      "metadata": {
+        "transport_attempted": true,
+        "request_composition": {
+          "serialized_characters": 147,
+          "message_count": 0,
+          "message_characters_by_role": {},
+          "tool_count": 0,
+          "tool_schema_characters": 2,
+          "response_schema_characters": 2,
+          "measurement": "serialized JSON characters; provider usage supplies actual tokens"
+        },
+        "error_type": "",
+        "provider_request_id": null,
+        "inference_effort": null,
+        "thinking": null,
+        "input_hash": "d781a4cd0b330590e6da50679c197580df5bd434d8eace442cfe945987b3c09c",
+        "job_name": null,
+        "research_subject": null,
+        "artifact_input_id": null,
+        "literal_output": false,
+        "max_output_tokens": null,
+        "input_characters": null,
+        "estimated_charge": {
+          "status": "price_unavailable"
+        }
+      }
+    }
+  ]
+}

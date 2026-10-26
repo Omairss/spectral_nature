@@ -1,0 +1,108 @@
+{
+  "status": "awaiting_owner_decision_not_applied",
+  "reason": "Direct inspection in running production API revision sn-api-next--0000021 showed load_embedding_client() returns None. Its ARM configuration sets DeepSeek chat but no independent embedding provider, so retained evidence semantic candidates are disabled and lexical fallback remains.",
+  "proposed_configuration": {
+    "EMBEDDING_PROVIDER": "azure_openai",
+    "EMBEDDING_BASE_URL": "https://spectral-nature-oai.openai.azure.com",
+    "EMBEDDING_DEPLOYMENT": "zopedia-embedding",
+    "EMBEDDING_MODEL": "text-embedding-3-small",
+    "EMBEDDING_DIMENSIONS": "1536",
+    "EMBEDDING_API_KEY_SECRET_NAME": "zopedia-embedding-api-key"
+  },
+  "production_python_consumers": [
+    {
+      "name": "attention-home-build",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "commodities-regime",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "evidence-index-dev",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "macro-fred-daily",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "options-liquid-universe",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "role": "api-next"
+    },
+    {
+      "name": "sn-research-run",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "system-health",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "system-recovery",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "trading-agent-build",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "universe-builder",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "zopedia-learning",
+      "kind": "jobs",
+      "role": "worker"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "kind": "jobs",
+      "role": "worker"
+    }
+  ],
+  "scope": "Enable the existing independent Azure embedding capability consistently for production research/search consumers; no chat model/provider, schedule, resource size or data-schema changes. Broker and web consumers do not need the embedding capability.",
+  "credential_handling": "Reference the existing Key Vault secret; do not copy its value into configuration or receipts.",
+  "validation_required_before_applying": "Review exact per-consumer diffs, Key Vault access, Azure embedding quota/latency, real retained-source query results and preservation of all unrelated configuration; then make the approved configuration changes with readback.",
+  "authorization_reason": "Project philosophy requires explicit scope for production provider settings. The owner authorized repairing the failed shared index; enabling production semantic retrieval is presented separately."
+}

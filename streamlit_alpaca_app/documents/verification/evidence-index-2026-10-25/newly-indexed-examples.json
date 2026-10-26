@@ -1,0 +1,50 @@
+[
+  {
+    "chunk_id": "saa_chunk::0615f735d5cac008b9dd0105",
+    "title": "research.supplied_context",
+    "source_kind": "research_tool_result",
+    "indexed_at": "2026-10-26 00:38:30.276739+00:00"
+  },
+  {
+    "chunk_id": "saa_chunk::fece8bb9abd787d7cc1dbd63",
+    "title": "Rosenblatt Maintains Neutral on Spotify Technology, Raises Price Target to $576",
+    "source_kind": "news",
+    "indexed_at": "2026-10-26 00:38:30.276739+00:00"
+  },
+  {
+    "chunk_id": "saa_chunk::aa420cf285692c6fbbef5cfe",
+    "title": "Nvidia Analyst Warns 45% of AI Data Center Capacity Planned for 2027 May Not Get Built",
+    "source_kind": "news",
+    "indexed_at": "2026-10-26 00:38:30.276739+00:00"
+  },
+  {
+    "chunk_id": "saa_chunk::1afdddb9c6a008b6280cfd2a",
+    "title": "These Analysts Revise Their Forecasts On Texas Instruments Following Q3 Results",
+    "source_kind": "news",
+    "indexed_at": "2026-10-26 00:38:30.276739+00:00"
+  },
+  {
+    "chunk_id": "saa_chunk::35550d63a18393e7b560b92a",
+    "title": "MACOM Technology Solutions Holdings Inc (MTSI) Stock",
+    "source_kind": "provider_snippet",
+    "indexed_at": "2026-10-26 00:38:30.276739+00:00"
+  },
+  {
+    "chunk_id": "saa_chunk::99391d43c85f870ec5cbcf9a",
+    "title": "Hexcel Reports 2026 Third Quarter Results",
+    "source_kind": "provider_snippet",
+    "indexed_at": "2026-10-26 00:38:30.276739+00:00"
+  },
+  {
+    "chunk_id": "saa_chunk::d2c5cfa4d1a168f918340f57",
+    "title": "What's Going On with AST SpaceMobile Shares On Thursday?",
+    "source_kind": "news",
+    "indexed_at": "2026-10-26 00:38:30.276739+00:00"
+  },
+  {
+    "chunk_id": "saa_chunk::415a23a9197acb1eb9f45a09",
+    "title": "Goldman Sachs Adjusts RTX Price Target",
+    "source_kind": "news",
+    "indexed_at": "2026-10-26 00:38:30.276739+00:00"
+  }
+]

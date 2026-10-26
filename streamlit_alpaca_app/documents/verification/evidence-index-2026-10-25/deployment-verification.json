@@ -1,0 +1,14 @@
+{
+  "status": "image_and_all_configurations_verified",
+  "observed_at_utc": "2026-10-26T00:38:30.135771+00:00",
+  "release_revision": "bee821dfaaf347e334442bb929baa146887a98ca",
+  "consumer_count": 36,
+  "changed_images": [
+    "evidence-index-dev"
+  ],
+  "other_images_preserved": 35,
+  "configuration_changes": [],
+  "selected_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+  "private_receipts": "/Users/omairs/Library/Application Support/SpectralNature/operations/evidence-index-2026-10-25",
+  "production_release_coverage": "evidence-index-dev is declared a shared production worker consumer with the exact existing execution binding."
+}

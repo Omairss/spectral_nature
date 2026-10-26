@@ -1,0 +1,80 @@
+[
+  {
+    "ContainerGroupName_s": "evidence-index-dev-29882920-znnq2",
+    "Log_s": "[info] job_progress stage=done progress=100.0% message=Indexed evidence: 34937/34937 chunks.",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:40:59.4175647Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-pf987",
+    "Log_s": "Traceback (most recent call last):",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:39:54.2946644Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-pf987",
+    "Log_s": "services.llm.LLMAPIError: Embedding request failed status=429: {\"error\":{\"code\":\"RateLimitReached\",\"message\": \"Your requests to zopedia-embedding for text-embedding-3-small in West US have exceeded the call rate limit for your current OpenAI S0 pricing tier. This request was for Creates an embedding vector representing the input text. under OpenAI Language Model Instance API. Please retry after 42 seconds. To increase your default rate limit, visit: https://a",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:39:54.2946644Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-pf987",
+    "Log_s": "  File \"/app/pipeline/jobs/main.py\", line 3317, in run_evidence_index",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:39:54.2946644Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-pf987",
+    "Log_s": "    result = refresh_evidence_index(conn=conn, max_batches=100)",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:39:54.2946644Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-pf987",
+    "Log_s": "    raise LLMAPIError(f\"Embedding request failed status={response.status_code}: {response.text[:400]}\")",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:39:54.2946644Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-pf987",
+    "Log_s": "  File \"/app/services/saa/semantic_index.py\", line 127, in refresh_evidence_index",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:39:54.2946644Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-fqrsz",
+    "Log_s": "Traceback (most recent call last):",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:38:50.822415Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-fqrsz",
+    "Log_s": "  File \"/app/pipeline/jobs/main.py\", line 3317, in run_evidence_index",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:38:50.822415Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-fqrsz",
+    "Log_s": "    result = refresh_evidence_index(conn=conn, max_batches=100)",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:38:50.822415Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-fqrsz",
+    "Log_s": "    raise LLMAPIError(f\"Embedding request failed status={response.status_code}: {response.text[:400]}\")",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:38:50.822415Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-fqrsz",
+    "Log_s": "  File \"/app/services/saa/semantic_index.py\", line 127, in refresh_evidence_index",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:38:50.822415Z"
+  },
+  {
+    "ContainerGroupName_s": "evidence-index-dev-fhns929-fqrsz",
+    "Log_s": "services.llm.LLMAPIError: Embedding request failed status=429: {\"error\":{\"code\":\"RateLimitReached\",\"message\": \"Your requests to zopedia-embedding for text-embedding-3-small in West US have exceeded the call rate limit for your current OpenAI S0 pricing tier. This request was for Creates an embedding vector representing the input text. under OpenAI Language Model Instance API. Please retry after 40 seconds. To increase your default rate limit, visit: https://a",
+    "TableName": "PrimaryResult",
+    "TimeGenerated": "2026-10-26T00:38:50.822415Z"
+  }
+]

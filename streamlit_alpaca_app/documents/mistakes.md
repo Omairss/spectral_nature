@@ -1183,3 +1183,10 @@ A production configuration probe loaded model settings before resolving numeric 
 ### Corrected analytical charts still showed prior versions — October23
 
 The live queued continuation succeeded and corrected its date window, but publication kept both successful versions of the same3named charts. Content IDs distinguish executions; they do not define which revision belongs in an answer. Use the explicit add_chart name as per-run publication identity. Retain all execution evidence and let only a later successful computation replace the named display.
+
+
+### Trace the full indexing failure before naming its cause — October 25
+
+I initially described the index as development-only and the exception as embedding-response parsing. The full deployed traceback showed a pre-request usage-accounting failure: a native Responses extension treated integer token arrays as message dictionaries. Database and runtime inspection also separated a shared index from production readers that currently lack embedding configuration. The accepted production worker already contained the source correction; the missed index consumer needed an exact-image promotion. Do not infer impact or root cause from a resource suffix or the final exception line.
+
+A local release check also rejected untracked private Azure receipts under output. Moved those receipts outside the checkout and reran the actual source gate successfully before deploying; no acceptance rule was weakened.

@@ -1261,3 +1261,10 @@ A numeric getter must load the same scoped settings snapshot as prompt/model get
 ### Publish the latest successful named analytical result — October23
 
 An explicit chart name is stable across a corrected calculation. Shared publication should retain the latest successful version for that name, preserve distinct names and ordering, and ignore failed or inherited executions. Replaying the real model result through the public API DTO checks this contract without changing or regrading the issued financial answer.
+
+
+### Shared indexing needs release coverage and separate reader capability checks — October 25
+
+The historically named evidence-index-dev job writes the same corpus-wide tables as production; a news dataset namespace is not database isolation. Its older image retained a Responses-accounting path that interpreted embedding token arrays as chat messages and crashed before the provider request. Accepted production source already handled these payloads correctly. Promote the verified immutable worker through normal source/consumer checks rather than rebuilding or patching the live image, and include this shared index in future production worker coverage.
+
+The repair indexed all 2,699 pending unique texts and covered 34,937/34,937 retained passages. A catch-up HTTP 429 preserved completed batches and the next scheduled run completed the backlog. Check actual vector timestamps, coverage and semantic retrieval, rather than relying only on an execution status. Separately, the running production API returned no configured embedding client; healthy stored vectors do not establish that readers use them. Treat activating that independent production capability as explicit scope. See the [recovery record](./verification/evidence-index-2026-10-25/verification.json).
