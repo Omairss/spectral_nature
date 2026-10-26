@@ -1,0 +1,36 @@
+{
+  "consumer_count": 36,
+  "changed_images": [
+    "sn-streamlit-ui",
+    "sn-next-ui"
+  ],
+  "configuration_changes": [],
+  "all_34_other_images_preserved": true,
+  "all_36_non_image_configurations_preserved": true,
+  "targets": [
+    {
+      "name": "sn-streamlit-ui",
+      "latest": "sn-streamlit-ui--0000102",
+      "ready": "sn-streamlit-ui--0000102",
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+    },
+    {
+      "name": "sn-next-ui",
+      "latest": "sn-next-ui--0000018",
+      "ready": "sn-next-ui--0000018",
+      "traffic": [
+        {
+          "latestRevision": true,
+          "weight": 100
+        }
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+    }
+  ]
+}

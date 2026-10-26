@@ -2,7 +2,11 @@
 
 ## Home production source preservation — 2026-10-26
 
-The Home cache repair must not promote the entire current DEV frontend: its paper Trading/Health changes have separate acceptance from production’s research-chart frontend. Production preparation starts from its verified current Git source and changes only the shared Home loader. No old image, extracted source or temporary overlay is used. See [source review](verification/home-freshness-2026-10-26/PRODUCTION_REVIEW.md).
+The October 22 refresh change added a persistent Next.js fetch cache without covering replacement by a larger real publication. On October 26 the new entry exceeded 2 MB; revalidation repeatedly failed to replace Friday’s response despite a current saved publication and FastAPI response. Producer success and a configured TTL did not establish public freshness.
+
+The repair changes only the shared Home loader. After the owner’s explicit “push to prod”, its exact production-baseline image passed isolated development qualification and both gateways were promoted and verified. The open browser updated automatically to October 26. DEV-only Trading work was preserved, along with all unrelated images/configurations. Highlights still use their separate October 23 selection after the producer timeout. [Evidence](verification/home-freshness-2026-10-26/PRODUCTION.json).
+
+Operator probes also needed case-insensitive HTTP header handling and restoration of Next’s generated `next-env.d.ts` path rewrite before packaging. Neither required another application change.
 
 ## Client refresh acceptance — 2026-10-22
 

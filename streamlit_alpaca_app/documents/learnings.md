@@ -2,7 +2,9 @@
 
 ## Home production source preservation — 2026-10-26
 
-For a shared transport repair, preserve each environment’s accepted frontend source. Production and DEV currently carry different Trading work. Apply the same scoped loader change in Git, qualify the exact production image in isolated development, and preserve the shared DEV deployment. See [production source review](verification/home-freshness-2026-10-26/PRODUCTION_REVIEW.md).
+Trace freshness across the saved publication, direct backend and public gateway. The October 26 producer and FastAPI were current while Next.js retained Friday’s response because the serialized fetch-cache entry exceeded its 2 MB limit. A short TTL does not bound staleness when replacement fails. Keep complete research and charts; review replacement by a larger publication, conditional reads, independent updates, replay and recovery.
+
+The shared loader now reads the existing materialized publication directly. Local captured-data checks above 4 MB and exact-image Node 22 checks above 3 MB pass. Production and DEV have different accepted Trading frontends, so the same loader change was applied to each accepted Git source and the exact production image qualified independently. Both production gateways now serve October 26; all other 34 images and all 36 configurations were preserved. The separate Highlights synthesis timeout remains open. [Production verification](verification/home-freshness-2026-10-26/PRODUCTION.json).
 
 ## Client refresh and gateway checks — 2026-10-22
 
