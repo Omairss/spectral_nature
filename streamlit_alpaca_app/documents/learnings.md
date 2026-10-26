@@ -1,5 +1,9 @@
 # Learnings — Active Guidelines
 
+## Home production source preservation — 2026-10-26
+
+For a shared transport repair, preserve each environment’s accepted frontend source. Production and DEV currently carry different Trading work. Apply the same scoped loader change in Git, qualify the exact production image in isolated development, and preserve the shared DEV deployment. See [production source review](verification/home-freshness-2026-10-26/PRODUCTION_REVIEW.md).
+
 ## Client refresh and gateway checks — 2026-10-22
 
 Conditional refresh must cover independent ticker and Highlight publications as well as the narrative run. Keep a mounted renderer, stable item identities, foreground-only requests, last-good state on failures and audio continuity. Check SSR/browser formatting across time zones. Compare the production Node/ICU version with Chrome too: compact currency defaults differed between Node 22 and Node 25/Chrome. Set both minimum and maximum precision in shared formatters. Native API paths must match the exposed Next.js gateway; populated authenticated detail checks caught the paper-performance route mismatch that compilation missed.

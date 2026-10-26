@@ -1,5 +1,9 @@
 # Mistakes — Active Guidelines
 
+## Home production source preservation — 2026-10-26
+
+The Home cache repair must not promote the entire current DEV frontend: its paper Trading/Health changes have separate acceptance from production’s research-chart frontend. Production preparation starts from its verified current Git source and changes only the shared Home loader. No old image, extracted source or temporary overlay is used. See [source review](verification/home-freshness-2026-10-26/PRODUCTION_REVIEW.md).
+
 ## Client refresh acceptance — 2026-10-22
 
 Moving Home across the server/client boundary exposed host-dependent timestamp and compact-currency formatting. The first DEV browser load reported React hydration error 418. Explicit UTC time and count locale did not finish the repair: a complete server/browser text comparison found 139 compact-currency precision differences, such as $3.0B versus $3B. Node 25 local rendering matched Chrome and hid the Node 22 server default. Set precision and locale in the shared chart/ticker formatters and compare the production Node version with the actual browser. No production promotion occurred during this repair.
