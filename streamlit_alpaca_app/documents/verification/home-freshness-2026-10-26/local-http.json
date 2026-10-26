@@ -1,0 +1,58 @@
+{
+  "status": "passed",
+  "runtime": "actual Next.js 16.3.8 optimized standalone server",
+  "fixture": "captured public Friday and October 26 publications, with 2500 KiB transport-only padding on October 26; no inference",
+  "checks": [
+    {
+      "check": "initial Friday publication",
+      "status": 200,
+      "body_bytes": 1184860,
+      "seconds": 0.042
+    },
+    {
+      "check": "immediate replacement above 2 MiB, complete body",
+      "status": 200,
+      "body_bytes": 4069256,
+      "seconds": 0.058
+    },
+    {
+      "check": "unchanged large publication",
+      "status": 304,
+      "body_bytes": 0,
+      "seconds": 0.048
+    },
+    {
+      "check": "server-rendered Home reads current publication",
+      "status": 200,
+      "body_bytes": 4745446,
+      "seconds": 0.225
+    },
+    {
+      "check": "independent update invalidates unchanged narrative ETag",
+      "status": 200,
+      "body_bytes": 4069281,
+      "seconds": 0.061
+    },
+    {
+      "check": "complete dated publication",
+      "status": 200,
+      "body_bytes": 4069290,
+      "seconds": 0.054
+    },
+    {
+      "check": "backend failure does not validate old response",
+      "status": 503,
+      "body_bytes": 24,
+      "seconds": 0.038
+    },
+    {
+      "check": "recovery preserves exact full response",
+      "status": 200,
+      "body_bytes": 4069256,
+      "seconds": 0.05
+    }
+  ],
+  "backend_reads": 9,
+  "fixed_waits": 0,
+  "source_branch": "fix/home-cache-20261026"
+}

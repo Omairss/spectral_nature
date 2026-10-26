@@ -2,7 +2,7 @@
 
 ## Home cache growth — 2026-10-26
 
-The October 22 Home refresh introduced a size-limited persistent fetch cache. On October 26 revalidation repeatedly refused the larger entry while retaining Friday’s response, despite a current saved publication and backend. The scoped repair removes this intermediary cache; large-publication HTTP review and development acceptance are recorded separately from source review. See [diagnosis](verification/home-freshness-2026-10-26/README.md).
+The October 22 Home refresh introduced a size-limited persistent fetch cache. On October 26 revalidation repeatedly refused the larger entry while retaining Friday’s response, despite a current saved publication and backend. The scoped repair removes this intermediary cache. Large-publication HTTP review passes; development acceptance is recorded separately from source review. The first operator probe treated HTTP header names as case-sensitive and stopped before its assertions; the corrected probe normalizes header names and passes without another runtime change. See [diagnosis](verification/home-freshness-2026-10-26/README.md).
 
 ## Aggregate accounting assumption corrected — 2026-10-22
 
