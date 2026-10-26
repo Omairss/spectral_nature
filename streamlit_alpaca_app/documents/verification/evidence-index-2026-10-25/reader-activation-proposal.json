@@ -1,5 +1,5 @@
 {
-  "status": "owner_authorized_validation_in_progress",
+  "status": "applied_production_api_and_worker_verified",
   "reason": "Direct inspection in running production API revision sn-api-next--0000021 showed load_embedding_client() returns None. Its ARM configuration sets DeepSeek chat but no independent embedding provider, so retained evidence semantic candidates are disabled and lexical fallback remains.",
   "proposed_configuration": {
     "EMBEDDING_PROVIDER": "azure_openai",

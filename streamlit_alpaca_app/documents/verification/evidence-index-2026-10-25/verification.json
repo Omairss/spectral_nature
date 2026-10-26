@@ -32,10 +32,23 @@
   "semantic_retrieval_review": "Actual semantic_candidates query against shared PostgreSQL returned five relevant RTX analyst-target records, including three rows newly indexed during recovery. Meaning and source dates were inspected personally; no broad retrieval-quality claim.",
   "catchup_throttling": "The manual catch-up execution persisted progress but hit Azure HTTP429 rate limits. The subsequent normal scheduled execution resumed retained work and completed 34937/34937 chunks. No quota, retry, timeout or schedule change was made.",
   "production_reader_activation": {
-    "configured": false,
-    "inspection": "A read-only Python call inside the running production API returned False for bool(load_embedding_client()).",
-    "decision": "Owner question pending; proposed configuration is in reader-activation-proposal.json. No reader configuration changed.",
-    "evidence": "production-reader-check.json"
+    "configured": true,
+    "owner_instruction": "Enable the existing Azure semantic search",
+    "production_consumers": 18,
+    "api_revision": "sn-api-next--0000022",
+    "api_healthy": true,
+    "actual_hybrid_query_seconds": 17.553,
+    "embedding_space": "azure_openai:https://spectral-nature-oai.openai.azure.com/openai/v1:zopedia-embedding:text-embedding-3-small:1536",
+    "evidence": [
+      "reader-production-validation.json",
+      "reader-deployment-verification.json",
+      "reader-worker-validation.json"
+    ],
+    "development_gap": "Existing development API uses separate older experimental source with the token-array accounting bug; its image and settings are preserved and the issue is recorded separately.",
+    "followup": "Exact-vector search latency and duplicate/thin retained passages remain optimization opportunities; activation makes no ranking/source-content change.",
+    "worker_execution": "sn-research-run-u40gy7n",
+    "worker_status": "Succeeded",
+    "worker_query_seconds": 18.816
   },
   "verification_files": [
     "deployment-verification.json",
@@ -45,5 +58,8 @@
     "executions-after.json",
     "recovery-job-logs.json"
   ],
-  "personal_review": "The real shared-index semantic query returned RTX analyst revisions, including the newly indexed October22 Goldman and DA Davidson reports. These results are relevant to the query. Retained duplicate reports remain a separate retrieval-quality consideration; no broad redesign was made."
+  "personal_review": "The real shared-index semantic query returned RTX analyst revisions, including the newly indexed October22 Goldman and DA Davidson reports. These results are relevant to the query. Retained duplicate reports remain a separate retrieval-quality consideration; no broad redesign was made.",
+  "configuration_preservation_scope": "Indexer recovery preserved all non-image settings. The subsequent explicitly authorized reader activation adds only declared embedding keys to 18 production consumers; all other settings and all 36 current images are preserved.",
+  "reader_activation_status": "production_api_and_worker_verified",
+  "reader_activation_completed_at_utc": "2026-10-26T01:32:00.089912+00:00"
 }

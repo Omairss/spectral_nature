@@ -1,0 +1,50 @@
+{
+  "observed_at_utc": "2026-10-26T01:25:04.594924+00:00",
+  "mode": "persisted_environment_default_loader_no_overrides",
+  "embedding_space": "azure_openai:https://spectral-nature-oai.openai.azure.com/openai/v1:zopedia-embedding:text-embedding-3-small:1536",
+  "health": {
+    "status": "ok"
+  },
+  "elapsed_seconds": 17.553,
+  "results": [
+    {
+      "chunk_record_id": "saa_chunk::a1332e699c2168d2c7ce0661",
+      "title": "RTX Stock: $8 Billion Nuclear Deal and Drone Contract Fuel Growth",
+      "chunk_text": "Securing a Position in the Aerospace Shield With third-quarter earnings approaching, the market will look for evidence that recent contract momentum is flowing into operating margins. During the second quarter, Raytheon beat expectations, posting earnings of $1.89 per share against a $1.66 estimate on approximately $24.71 billion in revenue. RTX Stock Forecast Today Shares are trading around $186, down about 18% from their 52-week peak near $226.88. This consolidation comes despite average analyst price targets around $227, implying healthy upside over the coming year. The recent string of multi-billion-dollar awards confirms that global demand for both strategic deterrence and tactical air defense is accelerating. With a fortified balance sheet, expanding foreign military sales, and a 10-year runway in nuclear communications, the fundamental thesis remains intact.",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::5c1c01dcf941235184f7e756",
+      "title": "MU 2026-10-07 move: +4.02% on analyst-target headlines, not a chip rally",
+      "chunk_text": "On 2026-10-07 MU closed at $1,087.42, up 4.02% from $1,045.41 on 467,917 shares. Peer SNDK rose 3.98% to $1,726.98 while NVDA fell 0.92%, WDC fell 1.80%, STX fell 0.63%, AMAT fell 2.09%, and LRCX fell 2.12%. The split between memory names and logic/equipment names argues against a broad chip-rally driver. Same-day headlines at 12:24 UTC and 14:21 UTC named MU in analyst price-target forecasts and a +100% revenue-growth screen. Seeking Alpha listed MU among Wednesday's four stocks to watch, dated 2026-10-07. Full article texts were not reviewed, so the exact price target and estimate revision are headline-level, not confirmed. Business context: MU's sensitivity to AI memory pricing means target revisions can move the stock quickly; that is background, not today's trigger. Watch the next analyst note that revises the MU target and whether MU and SNDK hold together at the next close.",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::0c76714a850d0a17f5c52016",
+      "title": "DA Davidson Adjusts Price Target on RTX to $201 From $219",
+      "chunk_text": "DA Davidson has updated its outlook on RTX Corporation, reducing the price target to $201 from the previous $219. The firm continues to maintain a Neutral rating on the stock. This analyst action was reported on October 22, 2026.",
+      "published_at": "2026-10-22 18:01:47+00:00",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::51181015e095eebec92a39c1",
+      "title": "TSMC Doubles Down on CapEx as Agentic AI Expands, Say Bullish Analysts - Taiwan Semiconductor (NYSE:TSM) - Benzinga Flipboard",
+      "chunk_text": "Trading Options flow, trade calculators, and ideas for active traders. Screeners & Lists Filter the market your way, or start from a curated list. Learn Pick a broker, grow your savings, and protect what you've built. Premium Services Edge Ratings, signals & screens Pro Real-time news & data terminal Research Trade alerts & newsletters APIs Market data licensing All sections October 16, 2026 2:29 PM 2 min read Taiwan Semiconductor Manufacturing Doubles Down on CapEx as Agentic AI Expands, Say Bullish Analysts Taiwan Semiconductor Manufacturing Co Ltd (NYSE: TSM ) shares are down on Friday, despite the company reporting record profits . Here are some key analyst takeaways: Needham analyst Charles Shi reiterated a Buy rating, while raising the price target from $530 to $560. DA Davidson analyst Gil Luria reiterated a Buy rating and price target of $500. Check out other analyst stock ratings .",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::32a9c7a40236182577e0edde",
+      "title": "RTX Corporation Common Stock Business Memory",
+      "chunk_text": "wth produces durable adjusted profit growth. (Benzinga RTX Q3 2026 coverage)\n\n## Confirmation Events\n- DA Davidson Adjusts Price Target on RTX to $201 From $219 DA Davidson has lowered its price target for RTX Corporation to $201 from $219 while maintaining a Neutral rating. DA Davidson has updated its outlook on RTX Corporation, reducing the price target to $201 from the previous $219. The firm continues to maintain a Neutral rating on the stock. This analyst action was reported on October 22, 2026. (news_articles)\n- On 22 October 2026, DA Davidson lowered its RTX target to $201 from $219 and maintained a Neutral rating. The item gives no reason for the change. (MarketScreener / fiscal.ai)\n- Other available analyst actions were not uniform: UBS kept Neutral with a $212 target on 21 October; Barclays kept Overweight with a $235 target on 21 October; Goldman Sachs moved its target to $208 from $206 on 22 October. These are separate opinions, not company disclosures. (Benzinga analyst-action reports; MarketScreener)",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    }
+  ],
+  "revision": "sn-api-next--0000022",
+  "revision_ready": true,
+  "traffic_percent": 100,
+  "health_endpoint": "http://127.0.0.1:8080/health"
+}

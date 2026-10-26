@@ -759,7 +759,7 @@
           "name": "evidence-index-dev",
           "kind": "jobs",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc",
+          "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
           "preservation_review": {
             "status": "accepted",
@@ -1011,7 +1011,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
+      "configuration_sha256": "3ae7f941b1c1b2faf696d094657adf6b886bd6a2d322bd0ce74772c5ba688fb1",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1079,7 +1079,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
+      "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1096,7 +1096,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
+      "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1147,7 +1147,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
+      "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1164,7 +1164,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
+      "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1198,7 +1198,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
+      "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1215,7 +1215,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
+      "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1249,7 +1249,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
+      "configuration_sha256": "bac26afce386dfe20cbfa56574a85c89ff426a7f5d0c98681d42f71619d26869",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1266,7 +1266,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
+      "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1317,7 +1317,7 @@
       "role": "api-next",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
+      "configuration_sha256": "9bba40586e2afac875bf79ece72bc3fd1931154c5a11eeb75d4e338d9c05ae8d",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
       "preservation_review": {
         "status": "accepted",
@@ -1385,7 +1385,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
+      "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1436,7 +1436,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
+      "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1453,7 +1453,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
+      "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1515,7 +1515,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
+      "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1549,7 +1549,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
+      "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1566,7 +1566,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
+      "configuration_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1583,7 +1583,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "bd1d8e14811aff0707fc16153ede657502430fc9b741e088f5c3d8b645cec4ac",
+      "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1662,5 +1662,11 @@
     "source_inventory_sha256": "a2425bb2fcae83bba2421031e67e63faceb7b47488e3ed254ec0fbbdb23a5bcb",
     "evidence": "documents/verification/evidence-index-2026-10-25/local-acceptance.json",
     "basis": "This exact immutable image previously passed development qualification sn-research-run-dev-ah3lw0l; existing full-package verification and production acceptance are retained. The incident additionally reproduces the old failure, verifies transport accounting, and calls the configured Azure embedding endpoint successfully."
+  },
+  "production_embedding_activation": {
+    "owner_instruction": "Enable the existing Azure semantic search",
+    "profile": "infra/production_embeddings.json",
+    "evidence": "documents/verification/evidence-index-2026-10-25/reader-deployment-verification.json",
+    "runtime_source_and_images_preserved": true
   }
 }

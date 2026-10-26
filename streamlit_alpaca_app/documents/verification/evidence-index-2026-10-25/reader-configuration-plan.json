@@ -16,51 +16,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "commodities-regime",
@@ -68,51 +32,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "company-baseline-prefetch",
@@ -120,51 +48,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "entity-taxonomy-refresh",
@@ -172,51 +64,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "equities-intraday-preload",
@@ -224,51 +80,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "evidence-index-dev",
@@ -276,16 +96,10 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc",
-      "changes": {
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_DIMENSIONS"
+      ]
     },
     {
       "name": "fundamentals-quarterly-refresh",
@@ -293,51 +107,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "macro-fred-daily",
@@ -345,51 +123,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "news-ingest-and-features",
@@ -397,51 +139,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "options-liquid-universe",
@@ -449,51 +155,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "sn-api-next",
@@ -501,51 +171,15 @@
       "role": "api-next",
       "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
       "configuration_sha256_before": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "4f7c0e9a-2828-45cf-9153-86bbf52acf4e"
+      "credential_identity_client_id": "4f7c0e9a-2828-45cf-9153-86bbf52acf4e",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "sn-research-run",
@@ -553,51 +187,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "system-health",
@@ -605,51 +203,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "system-recovery",
@@ -657,51 +219,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "trading-agent-build",
@@ -709,51 +235,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "universe-builder",
@@ -761,51 +251,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "zopedia-learning",
@@ -813,51 +267,15 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     },
     {
       "name": "zopedia-maintenance",
@@ -865,54 +283,19 @@
       "role": "worker",
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "configuration_sha256_before": "bd1d8e14811aff0707fc16153ede657502430fc9b741e088f5c3d8b645cec4ac",
-      "changes": {
-        "EMBEDDING_PROVIDER": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_PROVIDER",
-            "value": "azure_openai"
-          }
-        },
-        "EMBEDDING_BASE_URL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_BASE_URL",
-            "value": "https://spectral-nature-oai.openai.azure.com"
-          }
-        },
-        "EMBEDDING_DEPLOYMENT": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DEPLOYMENT",
-            "value": "zopedia-embedding"
-          }
-        },
-        "EMBEDDING_MODEL": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_MODEL",
-            "value": "text-embedding-3-small"
-          }
-        },
-        "EMBEDDING_DIMENSIONS": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_DIMENSIONS",
-            "value": "1536"
-          }
-        },
-        "EMBEDDING_API_KEY_SECRET_NAME": {
-          "before": null,
-          "after": {
-            "name": "EMBEDDING_API_KEY_SECRET_NAME",
-            "value": "zopedia-embedding-api-key"
-          }
-        }
-      },
-      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7"
+      "credential_identity_client_id": "5c450af5-944d-403d-85f7-0b94437d90a7",
+      "add_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ]
     }
   ],
   "preserve": "All images; all env outside the declared six keys; identities, secrets, chat settings, commands, trigger/schedule, resource allocation, database configuration and all other consumers.",
   "rollback": "Restore the exact before template from private receipts only after fresh config/image comparison against this operation after state.",
-  "private_receipts": "/Users/omairs/Library/Application Support/SpectralNature/operations/evidence-index-2026-10-25/reader-activation"
+  "private_receipts": "/Users/omairs/Library/Application Support/SpectralNature/operations/evidence-index-2026-10-25/reader-activation",
+  "change_review": "All existing embedding keys already match the approved profile; only missing keys are appended. Every target retains the same image and exact existing env entries. Before templates and exact patches are retained privately."
 }

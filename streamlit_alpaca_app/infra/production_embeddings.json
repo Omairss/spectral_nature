@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "authorized",
+  "status": "applied",
   "subscription": "b69da224-4a61-4fc4-a5b2-3bb567436762",
   "resource_group": "sn-pipeline-rg-03130136",
   "owner_instruction": "Enable the existing Azure semantic search",

@@ -6,5 +6,7 @@
   "result": false,
   "inference_requests_sent": 0,
   "production_configuration_changed": false,
-  "conclusion": "The running API has no configured embedding client. The current retained-evidence reader falls back to lexical search. The indexing recovery is complete; enabling the existing Azure embedding capability for readers is a separate pending owner decision."
+  "conclusion": "The running API has no configured embedding client. The current retained-evidence reader falls back to lexical search. The indexing recovery is complete; enabling the existing Azure embedding capability for readers is a separate pending owner decision.",
+  "observation_context": "Historical before-activation read. Superseded by reader-production-validation.json after explicit owner authorization.",
+  "superseded_by": "reader-production-validation.json"
 }

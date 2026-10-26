@@ -18,5 +18,5 @@
   "consumer_classification": "Production due to shared corpus; retain historical resource name and dataset namespace.",
   "source_fix": "Already present in accepted production source f3d3393d. Promote the existing exact development-qualified image; no application build.",
   "verification": "verification.json",
-  "reader_activation": "Separate owner decision pending; indexing repair is complete."
+  "reader_activation": "Owner subsequently instructed: Enable the existing Azure semantic search. Applied the existing profile to all18 production Python consumers and verified the real API and worker readers; see reader-deployment-verification.json."
 }

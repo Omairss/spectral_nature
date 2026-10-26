@@ -1,0 +1,44 @@
+{
+  "observed_at_utc": "2026-10-26T01:30:23.924109+00:00",
+  "mode": "production_worker_persisted_environment_default_loader",
+  "embedding_space": "azure_openai:https://spectral-nature-oai.openai.azure.com/openai/v1:zopedia-embedding:text-embedding-3-small:1536",
+  "elapsed_seconds": 18.816,
+  "results": [
+    {
+      "chunk_record_id": "saa_chunk::4788df1bfcbbbf8e1aa2d01d",
+      "title": "AI data-center growth may now be limited by financing costs, not chip supply",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::54c8041d022c0f7d3d82eaf6",
+      "title": "Microsoft Walks Away From AI Data Center Deal, but SemiAnalysis Predicts 50-GW Boom in 2027",
+      "published_at": "2026-10-19 18:46:26+00:00",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::87475d4c3eaebe5f53ffec74",
+      "title": "AI Data Center Power and Cooling Demand",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::970ac1782b3b9b89921e7a0a",
+      "title": "AI data-center growth may now be limited by financing costs, not chip supply",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    },
+    {
+      "chunk_record_id": "saa_chunk::991d8dd51d8f58da14492b55",
+      "title": "Top 3 Electricity Stocks to Watch in the AI-Data-Center Boom",
+      "published_at": "NaT",
+      "match_source": "hybrid"
+    }
+  ],
+  "execution": "sn-research-run-u40gy7n",
+  "status": "Succeeded",
+  "started_at_utc": "2026-10-26T01:29:25+00:00",
+  "ended_at_utc": "2026-10-26T01:30:30+00:00",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+  "verification_scope": "Per-execution command override runs a bounded shared-reader query only. No research queue item is consumed, chat request made or job definition changed."
+}

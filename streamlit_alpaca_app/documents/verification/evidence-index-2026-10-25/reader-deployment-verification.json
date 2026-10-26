@@ -1,0 +1,850 @@
+{
+  "status": "production_semantic_readers_verified",
+  "observed_at_utc": "2026-10-26T01:28:24.131817+00:00",
+  "owner_instruction": "Enable the existing Azure semantic search",
+  "consumer_count": 36,
+  "configured_production_consumers": 18,
+  "all_36_images_preserved": true,
+  "other_18_configurations_preserved": true,
+  "only_declared_embedding_keys_added": true,
+  "targets": [
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
+      "configuration_sha256_after": "9bba40586e2afac875bf79ece72bc3fd1931154c5a11eeb75d4e338d9c05ae8d",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "latest_revision": "sn-api-next--0000022",
+      "latest_ready_revision": "sn-api-next--0000021",
+      "recorded_at_utc": "2026-10-26T01:24:11.419528+00:00"
+    },
+    {
+      "name": "attention-home-build",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
+      "configuration_sha256_after": "3ae7f941b1c1b2faf696d094657adf6b886bd6a2d322bd0ce74772c5ba688fb1",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:25:49.474941+00:00"
+    },
+    {
+      "name": "commodities-regime",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
+      "configuration_sha256_after": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:25:58.616178+00:00"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
+      "configuration_sha256_after": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:26:05.332299+00:00"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
+      "configuration_sha256_after": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:26:12.511093+00:00"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
+      "configuration_sha256_after": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:26:19.102601+00:00"
+    },
+    {
+      "name": "evidence-index-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_DIMENSIONS"
+      ],
+      "configuration_sha256_before": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc",
+      "configuration_sha256_after": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:26:25.666119+00:00"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
+      "configuration_sha256_after": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:26:34.709641+00:00"
+    },
+    {
+      "name": "macro-fred-daily",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
+      "configuration_sha256_after": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:26:41.325537+00:00"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
+      "configuration_sha256_after": "bac26afce386dfe20cbfa56574a85c89ff426a7f5d0c98681d42f71619d26869",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:26:47.768544+00:00"
+    },
+    {
+      "name": "options-liquid-universe",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
+      "configuration_sha256_after": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:26:56.812291+00:00"
+    },
+    {
+      "name": "sn-research-run",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
+      "configuration_sha256_after": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:27:05.660165+00:00"
+    },
+    {
+      "name": "system-health",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
+      "configuration_sha256_after": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:27:14.981645+00:00"
+    },
+    {
+      "name": "system-recovery",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
+      "configuration_sha256_after": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:27:21.490395+00:00"
+    },
+    {
+      "name": "trading-agent-build",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
+      "configuration_sha256_after": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:27:28.102852+00:00"
+    },
+    {
+      "name": "universe-builder",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
+      "configuration_sha256_after": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:27:34.659584+00:00"
+    },
+    {
+      "name": "zopedia-learning",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
+      "configuration_sha256_after": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:27:43.633387+00:00"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "kind": "jobs",
+      "role": "worker",
+      "changed_environment_keys": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "configuration_sha256_before": "bd1d8e14811aff0707fc16153ede657502430fc9b741e088f5c3d8b645cec4ac",
+      "configuration_sha256_after": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
+      "image_preserved": true,
+      "all_unrelated_configuration_preserved": true,
+      "provisioning_state": "Succeeded",
+      "recorded_at_utc": "2026-10-26T01:27:50.067714+00:00"
+    }
+  ],
+  "all_consumer_review": [
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+      "image_preserved": true,
+      "configuration_sha256_before": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
+      "configuration_sha256_after": "3703f375afedac1439dcb1e5fb0f5a6ffd741a7414b9fc28e5abf9e532bd3b06",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "sn-api-next-dev",
+      "kind": "containerApps",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
+      "image_preserved": true,
+      "configuration_sha256_before": "b546d17b52c6345f1367ba8af379a99bb814599e0e35e17f7348fb69862ee9ce",
+      "configuration_sha256_after": "b546d17b52c6345f1367ba8af379a99bb814599e0e35e17f7348fb69862ee9ce",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
+      "image_preserved": true,
+      "configuration_sha256_before": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4",
+      "configuration_sha256_after": "746c33b665c4d6af84369919e3e6ecaf70d5a92875cd7b8b00f75d977dcb12b4",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+      "image_preserved": true,
+      "configuration_sha256_before": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
+      "configuration_sha256_after": "eeb5ffc789d635a4aedebe5167b208a39018e6323f2fcd3971e111d33ff785a0",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "sn-api-next",
+      "kind": "containerApps",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+      "image_preserved": true,
+      "configuration_sha256_before": "9aaf6f0d2cd0f8ff6fe45148ad874863094ee1db0c901ac5e7eaff808b4fa8d0",
+      "configuration_sha256_after": "9bba40586e2afac875bf79ece72bc3fd1931154c5a11eeb75d4e338d9c05ae8d",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "universe-builder",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "55a15be309ba5248593eb3c5af2ae3bb8827400634f786a52567097d4161d763",
+      "configuration_sha256_after": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "equities-intraday-preload",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "d4791694e181b84ca75fedf2a6ac96bf75de71aab2aa903ff703929fb4c0f505",
+      "configuration_sha256_after": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "macro-fred-daily",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "f0d0b1906d185ab424f1d5cf1466679bad78ba3f9391892d29187c31efbca603",
+      "configuration_sha256_after": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "commodities-regime",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "8b8f0a7ee92810f691963127f4a88152a62a881a9c3d6f85c1d68aa129b6604b",
+      "configuration_sha256_after": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "options-liquid-universe",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "31de05b41cc915b91f60f4e2f229c82eb4d77cc7f362cf51bf4fe5ee92c956ae",
+      "configuration_sha256_after": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "news-ingest-and-features",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "f5134e79d02c2c9e866a0a339cd83073bfbe73fbd86a38b201b2c95939bbcb00",
+      "configuration_sha256_after": "bac26afce386dfe20cbfa56574a85c89ff426a7f5d0c98681d42f71619d26869",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "942ea2aa842dc709c3903e272866bea8271a9e3a023c4bc9f7260bc6ac69f5e2",
+      "configuration_sha256_after": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "attention-home-build",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "811a861db41a2c9a4e2ff1e5a7521eb882261df3a9e4f14c63f44ca2c31b99ea",
+      "configuration_sha256_after": "3ae7f941b1c1b2faf696d094657adf6b886bd6a2d322bd0ce74772c5ba688fb1",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "12d0d378fb6cade3b8a0254386deb2b86023d972e000f842150b9c2486655704",
+      "configuration_sha256_after": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "1c75778c93cb59bbe16afa3b5a7fe1cd4cdcfdd77e8980a950c10395eb6ca2de",
+      "configuration_sha256_after": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "trading-agent-build",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "53165f882dc9e8d7cb30fa8ca8ee564af755e7237d089746e9480ebc10e8652f",
+      "configuration_sha256_after": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "zopedia-maintenance",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "bd1d8e14811aff0707fc16153ede657502430fc9b741e088f5c3d8b645cec4ac",
+      "configuration_sha256_after": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "zopedia-learning",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "2ec4e4a4a002c70cb659e27c189213f4540297d6affde6b9e329328b43f0878d",
+      "configuration_sha256_after": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "system-health",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "23f2a1faf43b4f1efb70a7b4b066365fabbad2dfeb74e293a0a821b1dc8a9c68",
+      "configuration_sha256_after": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "configuration_sha256_after": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "configuration_sha256_after": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "sn-research-run-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "configuration_sha256_after": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
+      "image_preserved": true,
+      "configuration_sha256_before": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+      "configuration_sha256_after": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e",
+      "image_preserved": true,
+      "configuration_sha256_before": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+      "configuration_sha256_after": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+      "configuration_sha256_after": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "configuration_sha256_after": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+      "configuration_sha256_after": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "configuration_sha256_after": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "technical-history-next-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+      "configuration_sha256_after": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "sn-research-run",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "f066a95c6705958f87b0475f493623e1e9392a3c6d88cf67e69b18df7df7db91",
+      "configuration_sha256_after": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "equities-next-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "configuration_sha256_after": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "evidence-index-dev",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_DIMENSIONS"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "7fefd4e62be831c72faa96a162283cccc8246df70caff034c7567a57eec532bc",
+      "configuration_sha256_after": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "system-recovery-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+      "configuration_sha256_after": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "system-recovery",
+      "kind": "jobs",
+      "environment_keys_added": [
+        "EMBEDDING_PROVIDER",
+        "EMBEDDING_BASE_URL",
+        "EMBEDDING_DEPLOYMENT",
+        "EMBEDDING_MODEL",
+        "EMBEDDING_DIMENSIONS",
+        "EMBEDDING_API_KEY_SECRET_NAME"
+      ],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image_preserved": true,
+      "configuration_sha256_before": "84dcf3a8979b5ef79ce7152c87f26b37cc8aeed90c0cb14ec4f658e0f7e2ad1a",
+      "configuration_sha256_after": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "cleanup-trial-observer-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+      "image_preserved": true,
+      "configuration_sha256_before": "53bb353f0f3d61d4267ce77f049c5f505e867485eecddc0b198cac048dceb2c8",
+      "configuration_sha256_after": "53bb353f0f3d61d4267ce77f049c5f505e867485eecddc0b198cac048dceb2c8",
+      "unrelated_configuration_preserved": true
+    },
+    {
+      "name": "zopedia-maintenance-dev",
+      "kind": "jobs",
+      "environment_keys_added": [],
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+      "image_preserved": true,
+      "configuration_sha256_before": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
+      "configuration_sha256_after": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
+      "unrelated_configuration_preserved": true
+    }
+  ],
+  "api": {
+    "latestRevisionName": "sn-api-next--0000022",
+    "latestReadyRevisionName": "sn-api-next--0000022",
+    "runningStatus": "Running",
+    "provisioningState": "Succeeded"
+  },
+  "private_receipts": "/Users/omairs/Library/Application Support/SpectralNature/operations/evidence-index-2026-10-25/reader-activation",
+  "verified_at_utc": "2026-10-26T01:32:00.089912+00:00",
+  "worker_execution": "sn-research-run-u40gy7n",
+  "worker_status": "Succeeded",
+  "verification_did_not_change_job_definition": true,
+  "api_semantic_query_seconds": 17.553,
+  "worker_semantic_query_seconds": 18.816,
+  "source_builds": 0,
+  "new_azure_resources": 0,
+  "observation": "No Corpus semantic retrieval failed or AttributeError API log entries were returned by the bounded 20-minute Log Analytics query after activation. This is a short operational check, not sustained-load coverage.",
+  "verification_launch": "One initial raw ARM start was rejected before creating an execution. Read-only execution/activity checks found no new execution; the supported CLI per-execution override then launched the single bounded worker probe successfully. No job template was changed by this probe."
+}

@@ -49,6 +49,15 @@
   "evidence": [
     "reader-local-validation.json",
     "reader-production-preflight.json",
-    "reader-configuration-plan.json"
-  ]
+    "reader-configuration-plan.json",
+    "reader-production-validation.json",
+    "reader-worker-validation.json",
+    "reader-deployment-verification.json"
+  ],
+  "latency_observation": {
+    "production_process_scoped_hybrid_seconds": 17.08,
+    "subsequent_production_lexical_seconds": 2.385,
+    "interpretation": "Small single-query observations using different connection wrappers; most additional hybrid time is existing full-corpus exact vector retrieval, not embedding generation. This is acceptable for the existing background research budget; interactive search latency remains an optimization opportunity, without claiming a controlled latency benchmark."
+  },
+  "production_verification": "Persisted default embedding configuration succeeds in healthy serving API revision22 and production worker execution sn-research-run-u40gy7n, with actual hybrid retrieval. All36 final templates read back unchanged after verification."
 }
