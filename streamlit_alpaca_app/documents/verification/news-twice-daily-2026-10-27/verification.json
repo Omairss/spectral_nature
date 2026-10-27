@@ -1,0 +1,46 @@
+{
+  "verified_at_utc": "2026-10-27T07:46:30.913712+00:00",
+  "owner_request": "For tomorrow's run schedule only 2 runs. I hope this cuts the cost by 50% while we optimize the pipeline",
+  "resource": "news-ingest-and-features",
+  "resource_group": "sn-pipeline-rg-03130136",
+  "environment": "production",
+  "change": "Reduce news/research from four to two weekday executions while optimizing the pipeline. Retain first and last existing slots.",
+  "old_cron_utc": "5 14,16,18,20 * * 1-5",
+  "new_cron_utc": "5 14,20 * * 1-5",
+  "tomorrow": "2026-10-28",
+  "tomorrow_runs_pacific": [
+    "2026-10-28T07:05:00-07:00",
+    "2026-10-28T13:05:00-07:00"
+  ],
+  "timezone_note": "Azure cron is UTC; local times shift with daylight saving time.",
+  "provisioning_state": "Succeeded",
+  "configuration_api_version": "2025-07-01",
+  "before_configuration_sha256": "bac26afce386dfe20cbfa56574a85c89ff426a7f5d0c98681d42f71619d26869",
+  "after_configuration_sha256": "50c2675e6fcef899fc72c3a0e703f449f0dcd72faa7040428fafc095300a54da",
+  "image_preserved": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+  "resources_verified": {
+    "containerApps": 5,
+    "jobs": 31,
+    "other_resources_unchanged": 35,
+    "target_only_cron_changed": true
+  },
+  "archive_directory": "/Users/omairs/Library/Application Support/SpectralNature/operations/news-twice-daily-2026-10-27",
+  "archive_retention_days": 30,
+  "archive_sha256": {
+    "containerApps.after.json": "fef4ee7889361425300653ab698f9576e5ebcb2e927879214d38868740e72d08",
+    "containerApps.before.json": "66266d2c65e97a2af46be2cbf551a2f4fdf80ba674e987449a10b869d3d4c97e",
+    "jobs.after.json": "bcee306728ebc5aee9a8798f67f697c4ab308db7e623bf26d72d82bc4c8905ae",
+    "jobs.before.json": "7db589380a007878fc610bf9a23f0af7729b16af07946ea97b6dd6ff2fc7124e",
+    "update.stdout.json": "3ef858aa0d172c273bb5378e5b5bb9ef763668fc4e5b38dea10f42345d50afa0"
+  },
+  "manual_executions_started": 0,
+  "application_release": false,
+  "cost_expectation": "50% fewer scheduled executions for this job. Dollar savings depend on work per run; other DeepSeek workloads continue on their existing schedules.",
+  "source_record": {
+    "branch": "fix/news-schedule-20261027",
+    "base_revision": "dbeba5ad0f9f3b1b09d7cc115138a5526e584f26",
+    "schedule_file": "infra/job_schedules.env",
+    "acceptance_file": "infra/release_acceptance.json",
+    "integration_note": "Main checkout schedule and evidence updated narrowly. Its older release acceptance and concurrent runtime work are preserved; integration must retain this operational change before any later release."
+  }
+}

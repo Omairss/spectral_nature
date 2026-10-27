@@ -1219,3 +1219,8 @@ A controller initially expected a temporary workspace completion marker after th
 ### Cost optimization scope — October 27
 
 The cost audit moved from timed-out runs to a 24-hour company reuse implementation before presenting twice-daily scheduling and cheaper model alternatives. The owner asked for those recurring-cost comparisons first. The changes are held in an isolated Git worktree, with no deployment or paid inference; compare the options and align the workload policy before continuing.
+
+
+### Read archive shape before verification — October 27
+
+The first schedule comparison assumed both inventory archives used Azure’s `value` envelope; the earlier archive was a direct resource list. Normalized both forms and reran the complete comparison successfully. The failed read-only check changed no resources.

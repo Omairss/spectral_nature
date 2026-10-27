@@ -1078,7 +1078,7 @@
       "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "bac26afce386dfe20cbfa56574a85c89ff426a7f5d0c98681d42f71619d26869",
+      "configuration_sha256": "50c2675e6fcef899fc72c3a0e703f449f0dcd72faa7040428fafc095300a54da",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
