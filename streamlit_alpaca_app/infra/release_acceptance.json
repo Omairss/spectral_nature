@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Owner-authorized production news/research cost candidate for October28. Exact-image development execution qualifies package and real replica fallback; all persisted DEV configurations and other production consumers remain retained.",
-  "source_revision": "b4f56ecc1828c33e7c591f45fb2e713441c70cd1",
+  "source_revision": "3239a6cb38ecd79452f29edca0a0dbe14e79c359",
   "review_base_revision": "dbeba5ad0f9f3b1b09d7cc115138a5526e584f26",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -115,7 +115,7 @@
     "services/aql/__init__.py": "d05432fed36047bc04e334e9bded8d421ebb306d80fca4f834078c348bb70a01",
     "services/aql/_shared.py": "214dec2aad9cfcd4760ab384da78946733da9eecb7150818e0a0ca30b48eeedb",
     "services/aql/assembler.py": "1aad6a729dec240f210de208781270a658733f0faba3bcfaa4d9ee51fe5515fc",
-    "services/aql/business_model_stack.py": "0e3f0911959b4a93b90dd7908a469e1531f936400228422b6801c230ce956a5f",
+    "services/aql/business_model_stack.py": "d59e99c9f0bc3e7f2a7e124de63ac9b6908333958f543f466fbc4c02afb2c725",
     "services/aql/clusterer.py": "f75cd2a9b414c33d58403d73ec946ba3fce32cff877ccae6c347d893dafd049d",
     "services/aql/collector.py": "97d0e2736c1063c75cb3cebe8fdacd506f9cca7e7aa8f8b05cd3810c51608939",
     "services/aql/config.py": "2eb5fd7b967608205ec93c49c3e218e02ffc5d622d30377530dd3305dddda634",
@@ -395,7 +395,7 @@
     "services/aql/__init__.py": "d05432fed36047bc04e334e9bded8d421ebb306d80fca4f834078c348bb70a01",
     "services/aql/_shared.py": "214dec2aad9cfcd4760ab384da78946733da9eecb7150818e0a0ca30b48eeedb",
     "services/aql/assembler.py": "1aad6a729dec240f210de208781270a658733f0faba3bcfaa4d9ee51fe5515fc",
-    "services/aql/business_model_stack.py": "0e3f0911959b4a93b90dd7908a469e1531f936400228422b6801c230ce956a5f",
+    "services/aql/business_model_stack.py": "d59e99c9f0bc3e7f2a7e124de63ac9b6908333958f543f466fbc4c02afb2c725",
     "services/aql/clusterer.py": "f75cd2a9b414c33d58403d73ec946ba3fce32cff877ccae6c347d893dafd049d",
     "services/aql/collector.py": "97d0e2736c1063c75cb3cebe8fdacd506f9cca7e7aa8f8b05cd3810c51608939",
     "services/aql/config.py": "2eb5fd7b967608205ec93c49c3e218e02ffc5d622d30377530dd3305dddda634",
@@ -1551,7 +1551,8 @@
         "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
         "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION.json"
       },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "role": "web"
     },
     {
       "name": "sn-next-ui",
@@ -1567,7 +1568,8 @@
         "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
         "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION.json"
       },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "role": "web"
     }
   ],
   "retired_consumers": [

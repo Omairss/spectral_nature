@@ -70,7 +70,7 @@
     }
   },
   "operational_checks": {
-    "targeted_passed": 69,
+    "targeted_passed": 70,
     "broader_passed": 140,
     "broader_failed": 7,
     "same_seven_failures_on_accepted_baseline": true,
@@ -81,12 +81,13 @@
       "Policy changes invalidate reuse; Pacific activation date controls profile selection.",
       "Failed/interrupted rollout switches the next replica to baseline and retains rollback for later executions.",
       "A resumed platform execution waits for the killed replica's lease to expire.",
-      "Lost execution ownership cancels the existing shared I/O scope, protecting subsequent provider/SQL/blob work."
+      "Lost execution ownership cancels the existing shared I/O scope, protecting subsequent provider/SQL/blob work.",
+      "Missing/older eligible profiles precede fresh ones across bounded research batches; caller eligibility and retained analyses are preserved."
     ]
   },
   "source_review": {
     "pipeline/jobs/main.py": "Producer ownership, stable retry identity, bounded company admission and finalization reserve; retained prior analyses and narrow inference rollout boundary. Original publication/database lifecycle definitions remain intact.",
-    "services/aql/business_model_stack.py": "Full-workflow checkpoint with original provenance, no duplicate memory writes, materiality assessment, complete prompt/model/engine/policy identity, and maximum age. Full-model delta synthesis and final company narrative own interpretation, replacing redundant follow-up review.",
+    "services/aql/business_model_stack.py": "Full-workflow checkpoint with original provenance, no duplicate memory writes, materiality assessment, complete prompt/model/engine/policy identity, and maximum age. Full-model delta synthesis and final company narrative own interpretation, replacing redundant follow-up review. Eligible missing/older company investigations are processed before fresh profiles so bounded batches do not repeat the same first names.",
     "services/aql_zopedia_engine.py": "Company workflow and routing implementation both participate in the complete research engine/cache identity; implementation changes cannot reuse preceding policy output.",
     "services/aql_zopedia_gateway.py": "One central declared-task router records actual selected model/role, with one full-model recovery for a failed economy transport/API call.",
     "services/llm.py": "Explicit config-to-client construction without mutating clients shared by threads. Work deadlines bound nested requests.",
