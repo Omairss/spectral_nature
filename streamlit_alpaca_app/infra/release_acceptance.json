@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Owner-authorized production news/research cost candidate for October28. Exact-image development execution qualifies package and real replica fallback; all persisted DEV configurations and other production consumers remain retained.",
-  "source_revision": "4d8fffdb2b3fe0ce7ffa53f2daa6f60015e9be83",
+  "source_revision": "b58e43a536aaeafe89c952fcec0c26e081926b7b",
   "review_base_revision": "dbeba5ad0f9f3b1b09d7cc115138a5526e584f26",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -177,7 +177,7 @@
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
     "services/llm.py": "67e5d4728fcc851e07c3d1673dec51e8684ded21203b6775ee043c458e1eeb49",
     "services/llm_context.py": "8c67e133f4636fc1c262a9d0fc506fb111e7ee98f3820688d3ff7381543a6f0d",
-    "services/llm_execution.py": "8d6b77240d010523eb2ad9edbf872ad949d22627a22cfe63cc4e2f3a87e7e181",
+    "services/llm_execution.py": "0627ab3c0014d8b8a1f019ff9fcc616e4b077123a9e16f299bd3ac9545a41eb9",
     "services/llm_prices.json": "91e07720ef97aaf1a58f7b7a4d8b17241e9978312b1d4f01fc1cff3f26a51c63",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
@@ -457,7 +457,7 @@
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
     "services/llm.py": "67e5d4728fcc851e07c3d1673dec51e8684ded21203b6775ee043c458e1eeb49",
     "services/llm_context.py": "8c67e133f4636fc1c262a9d0fc506fb111e7ee98f3820688d3ff7381543a6f0d",
-    "services/llm_execution.py": "8d6b77240d010523eb2ad9edbf872ad949d22627a22cfe63cc4e2f3a87e7e181",
+    "services/llm_execution.py": "0627ab3c0014d8b8a1f019ff9fcc616e4b077123a9e16f299bd3ac9545a41eb9",
     "services/llm_prices.json": "91e07720ef97aaf1a58f7b7a4d8b17241e9978312b1d4f01fc1cff3f26a51c63",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",

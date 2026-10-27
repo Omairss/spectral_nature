@@ -70,7 +70,7 @@
     }
   },
   "operational_checks": {
-    "targeted_passed": 71,
+    "targeted_passed": 72,
     "broader_passed": 140,
     "broader_failed": 7,
     "same_seven_failures_on_accepted_baseline": true,
@@ -83,7 +83,8 @@
       "A resumed platform execution waits for the killed replica's lease to expire.",
       "Lost execution ownership cancels the existing shared I/O scope, protecting subsequent provider/SQL/blob work.",
       "Missing/older eligible profiles precede fresh ones across bounded research batches; caller eligibility and retained analyses are preserved.",
-      "An inherited context cannot issue I/O after its owner has released the lease and a new owner acquired it."
+      "An inherited context cannot issue I/O after its owner has released the lease and a new owner acquired it.",
+      "Lease renewal does not shorten existing 600-second model/tool request budgets; renewal I/O has its own bounded deadline."
     ]
   },
   "source_review": {
@@ -93,7 +94,7 @@
     "services/aql_zopedia_gateway.py": "One central declared-task router records actual selected model/role, with one full-model recovery for a failed economy transport/API call.",
     "services/llm.py": "Explicit config-to-client construction without mutating clients shared by threads. Work deadlines bound nested requests.",
     "services/llm_context.py": "Complete evidence stays first for prefix caching; changing task/date follows it. Timeline contract separates event dates from source dates.",
-    "services/llm_execution.py": "Renewable ownership integrates existing cancellation scopes, shared credential credit reservations and settlement, policy-aware artifact identity, and per-attempt routing/cost telemetry. No generated response is reused without its contract. Closing ownership also cancels inherited I/O and invalidates its local owner check before releasing the distributed lease.",
+    "services/llm_execution.py": "Renewable ownership integrates existing cancellation scopes, shared credential credit reservations and settlement, policy-aware artifact identity, and per-attempt routing/cost telemetry. No generated response is reused without its contract. Closing ownership also cancels inherited I/O and invalidates its local owner check before releasing the distributed lease. Renewable lease validity is checked on every I/O without acting as a fixed operation deadline; renewal itself is bounded and cancels owned work on failure.",
     "services/pipeline_store.py": "Atomic short SQL renewals and state arithmetic; no provider operation inside the locked transform.",
     "services/zopedia_agent.py": "Stable tool catalog precedes mutable planning history; no context is removed.",
     "services/inference_policy.py": "Baseline default, dated activation, configurable role/profile selection and durable one-retry fallback. Alternate providers require their own explicit endpoint/model/credential.",
