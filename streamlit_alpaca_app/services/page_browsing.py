@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from html.parser import HTMLParser
 import os
@@ -19,6 +20,7 @@ import requests
 
 from .secrets import resolve_secret_value
 from .seeking_alpha_access import browse_seeking_alpha_page, is_seeking_alpha_url
+from .work_scope import check_work, remaining_work_seconds, register_cancellation, WorkCancelled
 
 
 DEFAULT_PAGE_TIMEOUT_SECONDS = 12
@@ -88,22 +90,45 @@ _BROWSER_CAPACITY = threading.BoundedSemaphore(
 _SEEKING_ALPHA_PROFILE_LOCK = threading.Lock()
 
 
+@contextmanager
+def _owned_browser_slot(*locks):
+    """Queue scarce browser capacity inside the caller's execution deadline."""
+    acquired = []
+    try:
+        for lock in locks:
+            while not lock.acquire(timeout=remaining_work_seconds(0.25)):
+                check_work()
+            acquired.append(lock)
+        check_work()
+        yield
+    finally:
+        for lock in reversed(acquired):
+            lock.release()
+
+
 def _run_browser_process(
     method: str, url: str, *, timeout_seconds: int, max_text_chars: int, warning: str = ""
 ) -> dict[str, Any]:
     """Own the driver and its descendants, including a crashed driver's cleanup."""
     request = {"method": method, "url": url, "timeout_seconds": timeout_seconds,
                "max_text_chars": max_text_chars, "warning": warning}
-    worker_timeout = max(timeout_seconds, _env_int(
+    worker_timeout = remaining_work_seconds(max(timeout_seconds, _env_int(
         "PAGE_BROWSING_WORKER_DEADLINE_SECONDS", 90, minimum=1, maximum=600
-    ))
+    )))
     with tempfile.TemporaryDirectory(prefix="source-browser-") as directory:
         result_path = Path(directory) / "result.json"
         process = subprocess.Popen(
             [sys.executable, "-m", "services.page_browsing", "--browser-result", str(result_path)],
             stdin=subprocess.PIPE, text=True, start_new_session=True,
         )
+        def stop_process():
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        unregister = lambda: None
         try:
+            unregister = register_cancellation(stop_process)
             try:
                 process.communicate(json.dumps(request), timeout=worker_timeout)
             except subprocess.TimeoutExpired as exc:
@@ -117,10 +142,8 @@ def _run_browser_process(
         finally:
             # Drivers can leave Chromium/Node alive even after their Python parent
             # exits. The whole process group belongs to this single attempt.
-            try:
-                os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
+            unregister()
+            stop_process()
             process.wait()
 
 
@@ -547,7 +570,7 @@ def _browse_with_firecrawl(
             endpoint,
             headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             json=payload,
-            timeout=max(int(timeout_seconds), 1),
+            timeout=remaining_work_seconds(max(float(timeout_seconds), 0.001)),
         )
     except requests.RequestException as exc:
         raise PageBrowsingError(f"Firecrawl page browse failed: {type(exc).__name__}: {exc}") from exc
@@ -605,7 +628,7 @@ def _browse_with_http(
     try:
         response = requests.get(
             url,
-            timeout=max(int(timeout_seconds), 1),
+            timeout=remaining_work_seconds(max(float(timeout_seconds), 0.001)),
             headers={"User-Agent": DEFAULT_BROWSER_USER_AGENT},
             allow_redirects=True,
         )
@@ -655,6 +678,7 @@ def browse_page(
     require_main_content: bool = False,
     min_text_chars: int = 500,
 ) -> dict[str, Any]:
+    check_work()
     normalized_url = _normalized_url(url)
     safe_timeout = max(int(timeout_seconds), 1)
     safe_max_chars = max(int(max_text_chars), 500)
@@ -678,7 +702,7 @@ def browse_page(
     if prefer_browser and is_seeking_alpha_url(normalized_url):
         try:
             # A persistent authenticated profile has one browser owner.
-            with _SEEKING_ALPHA_PROFILE_LOCK, _BROWSER_CAPACITY:
+            with _owned_browser_slot(_SEEKING_ALPHA_PROFILE_LOCK, _BROWSER_CAPACITY):
                 payload = _run_browser_process(
                     "seeking_alpha", normalized_url,
                     timeout_seconds=safe_timeout, max_text_chars=safe_max_chars,
@@ -686,12 +710,14 @@ def browse_page(
             if not require_main_content or not _remember(payload):
                 return payload
             fallback_warning = _warning_with(fallback_warning, f"Seeking Alpha browse quality issue: {best_issue}.")
+        except WorkCancelled:
+            raise
         except Exception as exc:
             fallback_warning = _trim(str(exc), limit=220)
 
     if prefer_browser:
         try:
-            with _BROWSER_CAPACITY:
+            with _owned_browser_slot(_BROWSER_CAPACITY):
                 payload = _run_browser_process(
                     "playwright", normalized_url,
                     timeout_seconds=safe_timeout, max_text_chars=safe_max_chars,
@@ -699,6 +725,8 @@ def browse_page(
             if not require_main_content or not _remember(payload):
                 return payload
             fallback_warning = _warning_with(fallback_warning, f"Playwright quality issue: {best_issue}.")
+        except WorkCancelled:
+            raise
         except Exception as exc:
             fallback_warning = _warning_with(fallback_warning, _trim(str(exc), limit=220))
 
@@ -712,12 +740,14 @@ def browse_page(
         if not require_main_content or not _remember(payload):
             return payload
         fallback_warning = _warning_with(fallback_warning, f"HTTP quality issue: {best_issue}.")
+    except WorkCancelled:
+        raise
     except Exception as exc:
         fallback_warning = _warning_with(fallback_warning, _trim(str(exc), limit=220))
 
     if require_main_content:
         try:
-            with _BROWSER_CAPACITY:
+            with _owned_browser_slot(_BROWSER_CAPACITY):
                 payload = _run_browser_process(
                     "scrapling", normalized_url,
                     timeout_seconds=safe_timeout,
@@ -727,6 +757,8 @@ def browse_page(
             if not _remember(payload):
                 return payload
             fallback_warning = _warning_with(fallback_warning, f"Scrapling quality issue: {best_issue}.")
+        except WorkCancelled:
+            raise
         except Exception as exc:
             fallback_warning = _warning_with(fallback_warning, _trim(str(exc), limit=220))
 
@@ -740,6 +772,8 @@ def browse_page(
             if not _remember(payload):
                 return payload
             fallback_warning = _warning_with(fallback_warning, f"Firecrawl quality issue: {best_issue}.")
+        except WorkCancelled:
+            raise
         except Exception as exc:
             fallback_warning = _warning_with(fallback_warning, _trim(str(exc), limit=220))
 

@@ -12,6 +12,7 @@ from .json_utils import to_jsonable
 from .llm import apply_narrative_style, get_active_narrative_style_rule, llm_request_deadline, llm_settings_scope
 from .zopedia_runtime import zopedia_surface_from_client
 from .llm_execution import model_call_context
+from .llm_context import RESEARCH_TIMELINE_GUIDANCE
 
 
 _ALLOWED_CALL_TYPES = {
@@ -169,7 +170,7 @@ def generate_json_via_aql_zopedia_gateway(
 
     The gateway keeps prompt content out of telemetry, records provider/model
     routing, and makes every native model call declare its owning surface and
-    purpose. It does not change model behavior or apply local narrative fixes.
+    purpose. The shared evidence-timing contract applies to research and review.
     """
     clean_surface = _clean(surface)
     clean_purpose = _clean(purpose)
@@ -192,7 +193,10 @@ def generate_json_via_aql_zopedia_gateway(
     model_call_id = f"aqlzmc_{uuid.uuid4().hex}"
     started_at = datetime.now(timezone.utc)
     t0 = time.perf_counter()
-    effective_system = system_prompt if literal_output else apply_narrative_style(system_prompt)
+    request_system = system_prompt
+    if not literal_output and clean_call_type in {"research_grade", "formatter_over_aql"}:
+        request_system += "\n\nEvidence timing: " + RESEARCH_TIMELINE_GUIDANCE
+    effective_system = request_system if literal_output else apply_narrative_style(request_system)
     prompt_hash = _hash_text(f"{effective_system}\n\n{user_prompt}")
     schema_hash = _hash_json(schema)
     safe_metadata = _safe_metadata(metadata or {})
@@ -215,7 +219,7 @@ def generate_json_via_aql_zopedia_gateway(
             **({"inference_effort": inference_effort} if inference_effort else {}),
         }):
             payload = llm_client.generate_json(
-                system_prompt=system_prompt,
+                system_prompt=request_system,
                 user_prompt=user_prompt,
                 schema_name=clean_schema_name,
                 schema=schema,

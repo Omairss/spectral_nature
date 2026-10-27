@@ -117,6 +117,7 @@ class JobContext:
     universe_version: str
     tracking_connection: Any | None = field(default=None, repr=False, compare=False)
     degraded_components: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
+    continuations: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
     published_datasets: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
     started_at_monotonic: float = field(default_factory=time.monotonic, repr=False, compare=False)
 
@@ -2338,7 +2339,7 @@ def _iter_news_business_research_output_phases(
             "zopedia_business_model_search_requests": pd.DataFrame(),
             "zopedia_business_model_search_results": pd.DataFrame(),
             "zopedia_ticker_business_model_stacks": _load_latest_materialized_frame("zopedia_ticker_business_model_stacks"),
-            "zopedia_news_business_resolutions": pd.DataFrame(),
+            "zopedia_news_business_resolutions": _load_latest_materialized_frame("zopedia_news_business_resolutions"),
             "zopedia_company_business_memory_pages": pd.DataFrame(),
             "zopedia_memory_commit_report": commit_report,
         }
@@ -2374,12 +2375,12 @@ def _iter_news_business_research_output_phases(
         progress(event)
         if event.get("stage") == "business_research_deferred":
             deferred.append(str(event.get("symbol") or ""))
-    # Retain a complete investigation window and enough tail time for current
-    # news interpretation/publication inside the existing three-hour job.
+    # One producer clock, including interpretation and publication. Admission
+    # stops early enough to finish useful work before the two-hour bound.
+    work_deadline = ctx.started_at_monotonic + _parse_int_env("PIPELINE_JOB_WORK_TIMEOUT_SECONDS", 7200, minimum=60)
     research_deadline = min(
         time.monotonic() + _parse_int_env("ZOPEDIA_TICKER_BUSINESS_BATCH_BUDGET_SECONDS", 5400, minimum=60),
-        ctx.started_at_monotonic + _parse_int_env("PIPELINE_JOB_WORK_TIMEOUT_SECONDS", 9000, minimum=60)
-        - _parse_int_env("PIPELINE_JOB_FINALIZATION_RESERVE_SECONDS", 2700, minimum=60),
+        work_deadline - _parse_int_env("PIPELINE_JOB_FINALIZATION_RESERVE_SECONDS", 2700, minimum=60),
     )
     business_stack_frames = build_ticker_business_model_stack_frames(
         symbols=symbols,
@@ -2403,7 +2404,7 @@ def _iter_news_business_research_output_phases(
         research_deadline_monotonic=research_deadline,
     )
     if deferred:
-        ctx.degraded_components["company_research_continuation"] = f"{len(deferred)} investigations retained for the next execution."
+        ctx.continuations["company_research"] = f"{len(deferred)} investigations retained for the next execution."
     stack_frame = business_stack_frames.get("zopedia_ticker_business_model_stacks", pd.DataFrame())
     yield {
         "zopedia_business_model_research_plans": business_stack_frames.get("zopedia_business_model_research_plans", pd.DataFrame()),
@@ -2413,6 +2414,7 @@ def _iter_news_business_research_output_phases(
     }
     _job_progress(ctx, conn, stage="news_story_resolution",
                   message="Company research persisted; resolving news against company memory.", progress_pct=88.0)
+    deferred_interpretations: list[str] = []
     resolution_frames = build_news_business_resolution_frames(
         news_frame=news,
         company_baselines_frame=company_baselines,
@@ -2426,7 +2428,22 @@ def _iter_news_business_research_output_phases(
         asof_time_utc=ctx.asof,
         write_policy=write_policy,
         limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_LIMIT", 12, minimum=1),
+        research_deadline_monotonic=work_deadline - _parse_int_env("PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS", 180, minimum=60),
+        progress_callback=lambda event: deferred_interpretations.append(str(event.get("symbol") or "")),
     )
+    if deferred_interpretations:
+        ctx.continuations["news_interpretation"] = f"{len(deferred_interpretations)} interpretations retained for the next execution."
+    # A bounded batch must retain dated interpretations outside this batch and
+    # any earlier useful result whose refresh did not finish.
+    previous_resolutions = _load_latest_materialized_frame("zopedia_news_business_resolutions")
+    current_resolutions = resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame())
+    if not previous_resolutions.empty:
+        completed = current_resolutions[
+            current_resolutions["coherent_story_markdown"].fillna("").astype(str).str.strip().ne("")
+        ] if not current_resolutions.empty else current_resolutions
+        retained = pd.concat([completed, previous_resolutions], ignore_index=True)
+        resolution_frames["zopedia_news_business_resolutions"] = retained.drop_duplicates(
+            subset=["source_event_id", "symbol"], keep="first").reset_index(drop=True)
     memory_parts = [
         business_stack_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
         resolution_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
@@ -2477,8 +2494,10 @@ def _iter_news_business_research_output_phases(
     missing_narratives: dict[str, int] = {}
     for dataset_name, column, frame in (
         ("company profiles", "business_story_markdown", stack_frame),
-        ("news interpretations", "coherent_story_markdown", resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame())),
+        ("news interpretations", "coherent_story_markdown", current_resolutions),
     ):
+        if "run_id" in frame:
+            frame = frame[frame["run_id"].astype(str) == ctx.run_id]
         if not frame.empty:
             count = int(frame[column].fillna("").astype(str).str.strip().eq("").sum()) if column in frame else len(frame)
             if count:
@@ -3320,11 +3339,13 @@ def run_system_recovery(ctx: JobContext, conn: Any | None = None) -> dict[str, A
     except WorkCancelled:
         conn.rollback()
     complete = bool(manifests and manifests["scan_complete"] and receipts and receipts["scan_complete"])
+    healthy_batch = bool(manifests and not manifests["failed"] and receipts and receipts["scan_complete"])
     details = {"manifests": manifests, "receipts": receipts, "scan_complete": complete,
                "budget_seconds": budget, "elapsed_seconds": round(time.monotonic() - started, 3)}
     print("[info] recovery=" + json.dumps(details, sort_keys=True), flush=True)
-    return {**details, "job_status": "Succeeded" if complete else "Warning",
+    return {**details, "job_status": "Succeeded" if healthy_batch else "Warning",
             "job_message": ("Recovery scan completed." if complete else
+                            "Healthy recovery batch completed; the manifest scan continues." if healthy_batch else
                             "Recovery batch completed; remaining durable work resumes in a later batch.")}
 
 
@@ -3385,7 +3406,11 @@ def main() -> None:
             raise RuntimeError("Pipeline execution identity could not be read back.")
         resumed_execution = retained["run_id"] != ctx.run_id
         ctx = replace(ctx, run_id=retained["run_id"], asof=datetime.fromisoformat(retained["asof"]),
-                      universe_version=retained["universe_version"])
+                      universe_version=retained["universe_version"],
+                      # Replica recovery shares the original producer clock;
+                      # retrying must not create another full work allowance.
+                      started_at_monotonic=time.monotonic() - max(
+                          0.0, (_utc_now() - datetime.fromisoformat(retained["asof"])).total_seconds()))
     os.environ["PIPELINE_JOB_NAME"] = ctx.name
     os.environ["PIPELINE_RUN_ID"] = ctx.run_id
     print(f"[info] job={ctx.name} run_id={ctx.run_id} asof={ctx.asof.isoformat()}")
@@ -3480,6 +3505,7 @@ def main() -> None:
                    "platform_execution_name": execution or None, "status": status,
                    "asof_time_utc": ctx.asof.isoformat(), "finished_at_utc": _utc_now().isoformat(),
                    "datasets": ctx.published_datasets, "components": ctx.degraded_components,
+                   "continuations": ctx.continuations,
                    "error": error_summary}
         try:
             retain_job_execution_receipt(receipt)

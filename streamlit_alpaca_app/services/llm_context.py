@@ -9,6 +9,16 @@ from typing import Any
 from .json_utils import to_jsonable
 
 
+RESEARCH_TIMELINE_GUIDANCE = (
+    "Distinguish when an event happened, when a source reported it, and when we observed it. "
+    "A newly published recap does not make its underlying event new. When older developments matter to the "
+    "current briefing, date them and explain the current continuation or reaction. Do not imply a statement "
+    "was repeated today unless a source supports a new statement. Attribute a speaker's assessment to the "
+    "speaker rather than presenting it as an independently established market fact. An article's publication "
+    "or capture date alone does not establish an event date. Preserve explicit historical as-of constraints."
+)
+
+
 def render_research_prompt(*, evidence: Any, request: Any, instructions: str) -> str:
     """Stable complete evidence precedes the changing task and question.
 
@@ -20,8 +30,7 @@ def render_research_prompt(*, evidence: Any, request: Any, instructions: str) ->
                 "execution_date_utc": datetime.now(timezone.utc).date().isoformat(),
                 "task": request,
             })
-            + "\n\nTimeline: source publication and capture dates do not establish the underlying event date. "
-            "Use an event date only when the evidence explicitly supports it. Preserve explicit historical as-of constraints.\n\n"
+            + "\n\nTimeline: " + RESEARCH_TIMELINE_GUIDANCE + "\n\n"
             + instructions)
 
 

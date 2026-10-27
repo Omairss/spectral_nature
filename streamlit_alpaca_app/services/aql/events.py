@@ -46,7 +46,7 @@ _P_EVENT_TIMEOUT = register_config_param(
 _P_NOMINATION_TIMEOUT = register_config_param(
     "Source event nomination timeout seconds",
     group="AQL / Zopedia Engine",
-    default=180,
+    default=600,
     description="Budget for allocating focused research across source reports; all reports remain available to final synthesis.",
 )
 _P_EVENT_TOOLS = register_config_param(

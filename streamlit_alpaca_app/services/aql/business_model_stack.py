@@ -2156,7 +2156,16 @@ def _checkpoint_company_research(function):
         refresh_seconds = int(os.getenv("ZOPEDIA_TICKER_BUSINESS_REFRESH_SECONDS") or
                               refresh_policy["company_refresh_seconds"])
         if not access or client is None or refresh_seconds <= 0:
-            return function(**kwargs)
+            deadline = kwargs.get("research_deadline_monotonic")
+            if deadline is None:
+                return function(**kwargs)
+            # Baseline/model rollback changes inference, not the producer's
+            # execution budget. It must stop admitting work at the same bound.
+            if deadline - time.monotonic() < _business_research_budget_seconds():
+                raise ResearchWorkDeferred("The remaining producer window cannot cover a company investigation.")
+            from ..work_scope import WorkScope
+            with WorkScope(deadline).activate():
+                return function(**kwargs)
         symbol = _normalize_symbol(kwargs["symbol"])
         baseline = _company_baseline_row(kwargs.get("company_baselines_frame"), symbol)
         name = _company_name(symbol, baseline, pd.Series(dtype=object))
@@ -2240,7 +2249,8 @@ def _checkpoint_company_research(function):
                 if not pipeline_store.write_execution_state(namespace, symbol, state):
                     raise RuntimeError("Company investigation identity could not be retained.")
             from ..work_scope import WorkScope
-            work_deadline = time.monotonic() + _business_research_budget_seconds()
+            work_deadline = min(time.monotonic() + _business_research_budget_seconds(),
+                                deadline if deadline is not None else float("inf"))
             with research_work_context(state["work_id"], prior=state["prior"]) as status, \
                     WorkScope(work_deadline).activate(), llm.llm_request_deadline(work_deadline):
                 result = function(**{**kwargs, "run_id": state["run_id"], "asof_time_utc": state["asof"]})
@@ -2425,7 +2435,7 @@ def build_ticker_business_model_stack(
             ordered_search_results: list[tuple[list[dict[str, Any]], list[dict[str, Any]]] | None] = [None] * len(search_jobs)
             with ThreadPoolExecutor(max_workers=search_max_workers) as pool:
                 future_map = {
-                    pool.submit(_run_search_query, query_spec): index
+                    pool.submit(copy_context().run, _run_search_query, query_spec): index
                     for index, query_spec in enumerate(search_jobs)
                 }
                 for future in as_completed(future_map):

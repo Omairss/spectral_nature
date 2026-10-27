@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-27.2",
+  "version": "2026-10-27.3",
   "profiles": {
     "baseline": {
       "models": {},
@@ -45,7 +45,7 @@
           "news-ingest-and-features"
         ],
         "fallback_profile": "baseline",
-        "attempt_seconds": 9900
+        "attempt_seconds": 7200
       }
     }
   }

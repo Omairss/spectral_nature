@@ -2977,6 +2977,7 @@ def _run_zopedia_agent_loop(
         run_timeout_seconds,
         llm_step_timeout_seconds or 60,
         research_required=int(max_tool_calls) > 0,
+        review_required=answer_review_owner == "agent",
     )
     resolved_run_id = _clean(run_id) or f"agrun_{uuid.uuid4().hex[:10]}"
     if not re.fullmatch(r"agrun_[a-zA-Z0-9_-]{8,64}", resolved_run_id):

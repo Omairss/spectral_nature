@@ -387,7 +387,15 @@ def build_regression_eval_case(event: dict[str, Any], critique: dict[str, Any]) 
     }
 
 
-def persist_regression_eval_case(eval_case: dict[str, Any], *, base_dir: str | Path | None = None) -> str:
+def persist_regression_eval_case(eval_case: dict[str, Any], *, conn: Any | None = None,
+                                 base_dir: str | Path | None = None) -> str:
+    """Keep scheduled reviews in their durable event; local files are exports."""
+    if conn is not None:
+        event_id = _clean(eval_case.get("learning_event_id"))
+        if not event_id:
+            raise ValueError("A durable learning review requires its event identity.")
+        _merge_learning_event_metadata(conn, event_id, {"eval_case": eval_case})
+        return "zopedia_learning_event:" + event_id
     directory = Path(base_dir or os.getenv("ZOPEDIA_LEARNING_EVAL_CASE_DIR") or DEFAULT_EVAL_CASE_DIR)
     directory.mkdir(parents=True, exist_ok=True)
     name = _slug(eval_case.get("name"), default="zopedia_learning_eval")
@@ -656,13 +664,14 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
         "events_triaged": 0,
         "critiques_pending": 0,
         "critiques_reused": 0,
+        "reviews_pending": 0,
         "evals_generated": 0,
         "safe_updates_applied": 0,
         "verified": 0,
         "rejected": 0,
         "regressed": 0,
     }
-    generated_eval_events: list[tuple[str, str]] = []
+    generated_eval_events: dict[str, str] = {}
     try:
         if db_conn.info.transaction_status != 0:
             raise ValueError("Zopedia learning requires a connection outside a transaction.")
@@ -688,9 +697,10 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
             summary["events_detected"] += len(events)
             for event in events:
                 with db_conn.cursor() as cur:
-                    cur.execute("SELECT metadata_json, eval_case_path, eval_status FROM saa_zopedia_learning_events WHERE event_id = %s", (event["event_id"],))
+                    cur.execute("SELECT row_to_json(e) FROM saa_zopedia_learning_events e WHERE event_id = %s", (event["event_id"],))
                     prior_row = cur.fetchone()
-                prior_metadata = _json_dict(prior_row[0] if prior_row else {})
+                prior = dict(prior_row[0]) if prior_row else {}
+                prior_metadata = _json_dict(prior.get("metadata_json"))
                 db_conn.commit()
                 # Save pending state before inference, so process death cannot masquerade as success.
                 event["status"] = "critique_pending"
@@ -706,8 +716,19 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                     continue
                 # A previously committed update/evaluation must not be applied or bought twice.
                 if critique.get("_reused"):
-                    if prior_row and prior_row[1] and prior_row[2] not in {"reviewed", "verified"}:
-                        generated_eval_events.append((event["event_id"], str(prior_row[1])))
+                    if prior.get("eval_case_path") and prior.get("eval_status") not in {"reviewed", "verified", "not_required"}:
+                        # Older replicas retained only a local path. Reconstruct
+                        # once from the saved event/critic, never from a new chat
+                        # interpretation, then persist before starting a replay.
+                        saved_case = prior_metadata.get("eval_case")
+                        if not isinstance(saved_case, dict):
+                            saved_case = build_regression_eval_case(
+                                {**prior, "metadata": prior_metadata,
+                                 "successful_path": _json_list(prior.get("successful_path_json"))}, critique)
+                        reference = persist_regression_eval_case(saved_case, conn=db_conn)
+                        _update_learning_event_fields(db_conn, event["event_id"], eval_case_path=reference)
+                        db_conn.commit()
+                        generated_eval_events[event["event_id"]] = reference
                     continue
                 event["status"] = "triaged"
                 event["root_cause"] = _clean(critique.get("root_cause")) or event.get("root_cause")
@@ -725,7 +746,7 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                     continue
 
                 eval_case = build_regression_eval_case(saved, critique)
-                eval_path = persist_regression_eval_case(eval_case)
+                eval_path = persist_regression_eval_case(eval_case, conn=db_conn)
                 _update_learning_event_fields(
                     db_conn,
                     saved["event_id"],
@@ -734,7 +755,7 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                     eval_status="generated",
                 )
                 summary["evals_generated"] += 1
-                generated_eval_events.append((saved["event_id"], eval_path))
+                generated_eval_events[saved["event_id"]] = eval_path
 
                 if event["proposed_change_type"] == "tool_affordance_memory" and event["confidence"] >= 0.7:
                     update = build_tool_affordance_update(saved, critique)
@@ -763,9 +784,9 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
 
         if _env_bool("ZOPEDIA_LEARNING_VERIFY_EVALS", True):
             verify_limit = _env_int("ZOPEDIA_LEARNING_VERIFY_LIMIT", 3, minimum=0)
-            for event_id, eval_path in generated_eval_events[:verify_limit]:
+            for event_id, eval_path in list(generated_eval_events.items())[:verify_limit]:
                 try:
-                    replay = replay_learning_eval(eval_path, run_agent=True)
+                    replay = replay_learning_eval(eval_path, run_agent=True, conn=db_conn)
                 except Exception as exc:
                     _merge_learning_event_metadata(
                         db_conn,
@@ -784,15 +805,20 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                 replay_status = _clean(replay.get("status"))
                 if replay_status != "reviewed":
                     summary["status"] = "partial"
+                else:
+                    generated_eval_events.pop(event_id)
                 _merge_learning_event_metadata(db_conn, event_id, {"verification": {
                     "status": replay_status, "quality_review": replay.get("quality_review") or {},
                     "tool_names": list(replay.get("tool_names") or []),
-                }})
+                }, "verification_error": None})
                 _update_learning_event_fields(db_conn, event_id, status="reviewed" if replay_status == "reviewed" else "review_pending", eval_status=replay_status)
                 db_conn.commit()
             db_conn.commit()
-        if summary["critiques_pending"] or summary["status"] == "partial":
-            summary.update(status="partial", job_status="Warning", job_message=f"{summary['critiques_pending']} learning critiques remain pending; see retained review outcomes.")
+        summary["reviews_pending"] = len(generated_eval_events)
+        if summary["critiques_pending"] or summary["reviews_pending"] or summary["status"] == "partial":
+            summary.update(status="partial", job_status="Warning", job_message=(
+                f"{summary['critiques_pending']} learning critiques and {summary['reviews_pending']} reviews remain pending; "
+                "completed work is retained."))
         return summary
     except Exception:
         try:
@@ -805,9 +831,20 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
             db_conn.close()
 
 
-def replay_learning_eval(eval_case_path: str, *, run_agent: bool = False) -> dict[str, Any]:
-    path = Path(eval_case_path)
-    payload = json.loads(path.read_text())
+def replay_learning_eval(eval_case_path: str, *, run_agent: bool = False, conn: Any | None = None) -> dict[str, Any]:
+    if eval_case_path.startswith("zopedia_learning_event:"):
+        if conn is None:
+            raise ValueError("A database connection is required to read a durable learning review.")
+        with conn.cursor() as cur:
+            cur.execute("SELECT metadata_json->'eval_case' FROM saa_zopedia_learning_events WHERE event_id = %s",
+                        (eval_case_path.split(":", 1)[1],))
+            row = cur.fetchone()
+        payload = _json_dict(row[0] if row else {})
+        if not payload:
+            raise ValueError("The learning event has no retained review input.")
+        conn.commit()  # Model/tool work never retains the input read transaction.
+    else:
+        payload = json.loads(Path(eval_case_path).read_text())
     if not run_agent:
         return {"status": "loaded", "eval_case": payload}
     from services.aql_zopedia_engine import run_aql_zopedia_agent

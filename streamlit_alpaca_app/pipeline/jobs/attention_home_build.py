@@ -25,6 +25,7 @@ from services.aql_zopedia_engine import (
     load_aql_zopedia_llm_client,
     run_aql_zopedia_agent,
     run_aql_zopedia_structured_agent,
+    resolve_research_budget,
 )
 from services.attention_surface import clean_attention_text, hydrate_home_item_with_bundle
 from services.attention_home_1d import build_attention_entity_master, resolve_macro_anchor_symbols, shortlist_attention_symbols_1d
@@ -484,25 +485,17 @@ def _zopedia_enrichment_limit() -> int:
 
 
 def _zopedia_enrichment_timeout_seconds() -> int:
-    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS", 90)
-
-
-def _zopedia_agent_tool_timeout_seconds(total_timeout_seconds: int) -> int:
-    configured = _env_positive_int("ATTENTION_HOME_ZOPEDIA_AGENT_TOOL_TIMEOUT_SECONDS", 120)
-    return max(30, min(configured, max(int(total_timeout_seconds), 1)))
+    return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS", 600)
 
 
 def _zopedia_agent_llm_timeout_seconds(total_timeout_seconds: int) -> int:
-    configured = _env_positive_int("ATTENTION_HOME_ZOPEDIA_AGENT_LLM_TIMEOUT_SECONDS", 120)
+    configured = _env_positive_int("ATTENTION_HOME_ZOPEDIA_AGENT_LLM_TIMEOUT_SECONDS",
+                                   int(resolve_research_budget()["llm_step_timeout_seconds"]))
     return max(30, min(configured, max(int(total_timeout_seconds), 1)))
 
 
 def _zopedia_enrichment_max_workers() -> int:
     return _env_positive_int("ATTENTION_HOME_ZOPEDIA_ENRICHMENT_MAX_WORKERS", 4)
-
-
-def _zopedia_agent_max_tool_calls() -> int:
-    return min(_env_positive_int("ATTENTION_HOME_ZOPEDIA_AGENT_MAX_TOOL_CALLS", 8), 40)
 
 
 def _home_surface_quality_timeout_seconds() -> int:
@@ -710,24 +703,17 @@ def _zopedia_asof_text(asof_time_utc: object) -> str:
 
 def _build_zopedia_enrichment_query(symbol: str, *, asof_text: str) -> str:
     return (
-        f"Resolve what is driving {symbol} right now through Zopedia/AQL. "
-        f"As-of timestamp: {asof_text}. Compare every source date to this timestamp. "
-        "Use widening circles of recall: exact ticker/company, direct peers, customers, suppliers, "
-        "sector themes, private-company leaders, IPO speculation, policy, rates, liquidity, commodities, "
-        "and other macro forces when they plausibly explain the move. "
-        "Do not stop at ticker-specific news if the best explanation is sector or macro. "
-        "Treat retained memory and older or undated sources as business background only. A current-driver "
-        "claim must come from recent evidence that directly ties that force to today's ticker, peer, sector, "
-        "or macro move. If the evidence only supports a broad rally, say broad rally rather than inventing "
-        "a precise macro or geopolitical cause. "
-        "If investigator.recent_news returns headline-only rows with URLs, call research.open_page on the most "
-        "important current source before using the article as verified evidence. "
+        f"Compose the investor explanation for {symbol} from the supplied completed research and source captures. "
+        f"As-of timestamp: {asof_text}. This is the composition pass after acquisition, not a second investigation. "
+        "Use the acquired company, peer, customer, supplier, sector, private-company, policy and macro context "
+        "when it helps explain the business. Generated research is dated, fallible analysis, not independent "
+        "corroboration. Preserve useful indirect connections and distinguish observations from hypotheses. "
+        "A source report may describe an older event and a new reaction: keep both dates and explain the distinction. "
+        "If the evidence supports a broad sector move, describe that mechanism without inventing a precise cause. "
         "Distinguish direct data from proxies: if you only have ETF/proxy evidence such as USO, XLE, SMH, "
         "or peer moves, describe the proxy or peer move; do not convert it into a confirmed commodity, "
         "rate, or macro fact. "
-        "If a source is older than the current move, use it only to explain business sensitivity, not as the "
-        "driver of today's move. If source dates conflict, say the date evidence is unreliable instead of "
-        "using that source as today's driver. "
+        "Older developments can remain relevant context; do not present them as new disclosures. "
         "The answer must be a useful investor synthesis, not an inventory of missing evidence. "
         "Name the best supported sector, macro, peer, customer, supplier, policy, or financing mechanism; "
         "if none is supported, write one short watch-next sentence and stop. "
@@ -755,12 +741,12 @@ def _run_single_zopedia_enrichment(
         result = run_aql_zopedia_agent(
             query=query, task="attention_ticker_enrichment",
             surface="attention_home.zopedia_ticker_enrichment", force_refresh=True,
-            max_tool_calls=_zopedia_agent_max_tool_calls(),
+            max_tool_calls=0,
             run_timeout_seconds=timeout_seconds,
-            tool_call_timeout_seconds=_zopedia_agent_tool_timeout_seconds(timeout_seconds),
             llm_step_timeout_seconds=_zopedia_agent_llm_timeout_seconds(timeout_seconds),
-            prefetch_timeout_seconds=min(_zopedia_agent_tool_timeout_seconds(timeout_seconds), 15),
             initial_evidence=initial_evidence, persist_findings=False,
+            request_context={"asof_time_utc": _zopedia_asof_text(asof_time_utc),
+                             "allowed_source_access": ["supplied"]},
             write_policy=_zopedia_write_policy(),
         )
     except Exception as exc:
@@ -1133,6 +1119,16 @@ def _build_zopedia_enrichment_frame(
             for index, item in enumerate(bundle.get("research_evidence") or [])
             if isinstance(item, dict) and item.get("text") and item.get("tool_name") != "research.supplied_context"
         )
+        evidence.append({
+            "kind": "completed_research_context",
+            "bundle_id": bundle_id,
+            "asof_time_utc": bundle.get("asof_time_utc"),
+            "company_context": bundle.get("business_contexts") or bundle.get("business_context") or {},
+            "draft_analysis": {key: bundle.get(key) for key in (
+                "what_happened_text", "what_changed_text", "why_happened_text", "why_now_text",
+                "business_context_text", "watch_next_text", "observed_members", "instrument_context",
+            )},
+        })
         for symbol in bundle.get("supporting_symbols") or []:
             if symbol in evidence_by_symbol:
                 evidence_by_symbol[symbol].extend(evidence)

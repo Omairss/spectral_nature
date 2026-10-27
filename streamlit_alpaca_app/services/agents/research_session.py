@@ -97,17 +97,27 @@ class ResearchBudget:
 
     @classmethod
     def start(
-        cls, timeout_seconds: float | None, step_seconds: float, *, research_required: bool = True
+        cls, timeout_seconds: float | None, step_seconds: float, *, research_required: bool = True,
+        review_required: bool = True,
     ) -> "ResearchBudget":
         started = time.monotonic()
         if timeout_seconds is None:
             return cls(started, None, None, None)
         total = max(float(timeout_seconds), 0.0)
-        if not research_required:
-            return cls(started, started + total, started, started + total * 0.65)
-        completion = min(1.5 * float(step_seconds), total * 0.35)
         end = started + total
-        return cls(started, end, end - completion, end - completion / 3)
+        if not research_required:
+            # Preserve the accepted editor allocation: the artifact writer
+            # needs more time than review. A downstream-owned review gives
+            # its entire clock to this synthesis.
+            return cls(started, end, started, started + total * 0.65 if review_required else end)
+        # Reserve a model step for each required completion phase before
+        # admitting more research. Short runs share their clock across the
+        # declared phases instead of leaving synthesis/review a small tail.
+        phases = 1 + int(research_required) + int(review_required)
+        step = min(max(float(step_seconds), 0.0), total / phases)
+        review = step if review_required else 0.0
+        research_end = end - review - step if research_required else started
+        return cls(started, end, research_end, end - review)
 
     def remaining(self, phase: str = "research", maximum: float | None = None) -> float:
         end = self.research_deadline if phase == "research" else self.synthesis_deadline if phase == "synthesis" else self.deadline

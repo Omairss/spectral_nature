@@ -9,11 +9,12 @@ import json
 import math
 import os
 import re
+import time
 from typing import Any, Callable
 
 import pandas as pd
 
-from ..llm_context import serialize_llm_context
+from ..llm_context import serialize_llm_context, render_research_prompt
 
 from ..saa import (
     build_zopedia_change_proposal,
@@ -770,6 +771,8 @@ def _news_resolution_query(
             "summary": _coerce_text(news_row.get("summary")),
             "url": _coerce_text(news_row.get("url")),
             "published_at": _coerce_text(news_row.get("published_at")),
+            "source_text": _coerce_text(news_row.get("content")) or _coerce_text(news_row.get("raw_text"))
+                           or _coerce_text(news_row.get("text")),
         },
         "company_baseline": baseline,
         "fundamentals": fundamentals,
@@ -783,6 +786,7 @@ def _news_resolution_query(
             for page in business_memory_pages[:3]
         ],
         "ticker_business_model_stack": {
+            "asof_time_utc": _coerce_text(business_model_stack.get("asof_time_utc")),
             "status": _coerce_text(business_model_stack.get("status")),
             "confidence": _coerce_text(business_model_stack.get("confidence")),
             "business_story_markdown": _coerce_text(business_model_stack.get("business_story_markdown")),
@@ -796,16 +800,16 @@ def _news_resolution_query(
         "allowed_slots": list(BUSINESS_MEMORY_SLOTS),
         "allowed_resolution_labels": list(RESOLUTION_LABELS),
     }
-    return (
-        "Use the AQL/Zopedia tool path to resolve this incoming company news item against durable business memory. "
-        "Read relevant Zopedia business memory pages and source evidence when available. "
+    return render_research_prompt(evidence=context, request={"symbol": symbol, "company_name": company_name}, instructions=(
+        "Resolve this incoming company report against the supplied dated investigation and durable business memory. "
+        "Use the complete acquired source text before asking for another copy. Acquire additional evidence only "
+        "when it can resolve a consequential missing fact or contradiction. Distinguish the underlying event, "
+        "what this report newly adds, and any current market reaction; an old quote in a new article remains old. "
         "Connect the news to the operating business: products, customers, demand, fundamentals, workforce, employee sentiment, web attention, policy, and execution risk. "
         "Write a coherent business story explaining what the news confirms, extends, contradicts, or leaves unresolved. "
         "Return explicit verdicts; do not say that evidence exists without explaining what it means. "
-        "Do not write stock-price, chart, or technical-analysis commentary.\n\n"
-        "Context JSON:\n"
-        f"{_compact_json(context, limit=20000)}"
-    )
+        "Do not write stock-price, chart, or technical-analysis commentary."
+    ))
 
 
 def _zopedia_resolution(
@@ -1287,6 +1291,8 @@ def build_news_business_resolution_results(
     surface: str = "pipeline.news_business_resolution",
     write_policy: str = "propose",
     limit: int = 12,
+    research_deadline_monotonic: float | None = None,
+    progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> list[NewsBusinessResolutionResult]:
     selected = _news_symbol_rows(news_frame, symbols=symbols, limit=limit)
     if not selected:
@@ -1307,18 +1313,35 @@ def build_news_business_resolution_results(
     )
     print(f"[info] news business resolution starting events={len(selected)} workers={workers}", flush=True)
 
-    def resolve(index: int, row: pd.Series, symbol: str) -> NewsBusinessResolutionResult:
+    def resolve(index: int, row: pd.Series, symbol: str) -> NewsBusinessResolutionResult | None:
+        from ..work_scope import WorkScope, WorkCancelled
+        from ..llm import LLMDeadlineExceeded
+        budget = max(int(os.getenv("ZOPEDIA_NEWS_BUSINESS_TIMEOUT_SECONDS", "900")), 60)
+        if research_deadline_monotonic is not None and research_deadline_monotonic - time.monotonic() < budget:
+            if progress_callback:
+                progress_callback({"stage": "news_interpretation_deferred", "symbol": symbol})
+            return None
         print(f"[info] news business resolution started index={index} symbol={symbol}", flush=True)
-        result = resolve_news_business_event(row, symbol=symbol, **kwargs)
+        work = WorkScope(min(time.monotonic() + budget, research_deadline_monotonic or float("inf")))
+        try:
+            with work.activate():
+                result = resolve_news_business_event(row, symbol=symbol, **kwargs)
+        except (WorkCancelled, LLMDeadlineExceeded):
+            if progress_callback:
+                progress_callback({"stage": "news_interpretation_deferred", "symbol": symbol})
+            return None
+        finally:
+            work.cancel()  # Inherited contexts cannot keep buying work after return.
         print(f"[info] news business resolution completed index={index} symbol={symbol} status={result.status}", flush=True)
         return result
 
     if workers == 1:
-        return [resolve(index, row, symbol) for index, (row, symbol) in enumerate(selected)]
+        return [result for index, (row, symbol) in enumerate(selected)
+                if (result := resolve(index, row, symbol)) is not None]
     with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="news-resolution") as pool:
         futures = [pool.submit(copy_context().run, resolve, index, row, symbol)
                    for index, (row, symbol) in enumerate(selected)]
-        return [future.result() for future in futures]
+        return [result for future in futures if (result := future.result()) is not None]
 
 
 def serialize_news_business_resolution_results(results: list[NewsBusinessResolutionResult]) -> pd.DataFrame:
@@ -1357,6 +1380,8 @@ def build_news_business_resolution_frames(
     surface: str = "pipeline.news_business_resolution",
     write_policy: str = "propose",
     limit: int = 12,
+    research_deadline_monotonic: float | None = None,
+    progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, pd.DataFrame]:
     results = build_news_business_resolution_results(
         news_frame=news_frame,
@@ -1373,6 +1398,8 @@ def build_news_business_resolution_frames(
         surface=surface,
         write_policy=write_policy,
         limit=limit,
+        research_deadline_monotonic=research_deadline_monotonic,
+        progress_callback=progress_callback,
     )
     return {
         "zopedia_news_business_resolutions": serialize_news_business_resolution_results(results),
