@@ -39,5 +39,12 @@
     "alternate_provider_roles": "A model role may reference env_prefix; requires its own explicit provider, endpoint and credential. No credential forwarding across hosts.",
     "activation_env": "LLM_POLICY_NOT_BEFORE"
   },
-  "release": "Build only after local behavioral review and committed source acceptance. Qualify the exact immutable worker in isolated development execution, then promote only the intended production worker. Preserve all other consumers and the two-run cron."
+  "release": "Build only after local behavioral review and committed source acceptance. Qualify the exact immutable worker in isolated development execution, then promote only the intended production worker. Preserve all other consumers and the two-run cron.",
+  "status": "deployed_for_2026-10-28_pacific",
+  "verification": {
+    "local": "local-review.json",
+    "development": "development.json",
+    "production": "production.json",
+    "release_and_tuning": "release.json"
+  }
 }

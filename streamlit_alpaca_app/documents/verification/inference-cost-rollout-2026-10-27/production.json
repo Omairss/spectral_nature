@@ -1,0 +1,57 @@
+{
+  "recorded_at": "2026-10-27T17:15:15.868404+00:00",
+  "subscription": "b69da224-4a61-4fc4-a5b2-3bb567436762",
+  "resource_group": "sn-pipeline-rg-03130136",
+  "api_version": "2025-07-01",
+  "resource_count": 36,
+  "unchanged_other_resources": 35,
+  "changed_resource_paths": {
+    "news-ingest-and-features": [
+      "/template/containers/0/env (list length)",
+      "/template/containers/0/image"
+    ]
+  },
+  "target": {
+    "name": "news-ingest-and-features",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc",
+    "configuration_sha256": "41f6a88085c9518377edb16060397e4fb2904b2e8c008228ca89dc02aea92c06",
+    "provisioning_state": "Succeeded",
+    "cron_utc": "5 14,20 * * 1-5",
+    "replica_timeout_seconds": 10800,
+    "replica_retry_limit": 1,
+    "policy_profile": "balanced",
+    "not_before_pacific": "2026-10-28",
+    "policy_version": "2026-10-27.2",
+    "policy_json_sha256": "e73a4491f8a910a9e98af74da24dceb3c7cefe1e1494ef7943b62077d58fa4cf",
+    "changed_environment_keys": [
+      "LLM_POLICY_JSON",
+      "LLM_POLICY_NOT_BEFORE",
+      "LLM_POLICY_PROFILE"
+    ],
+    "previous_environment_entries_preserved": true
+  },
+  "manual_production_executions_started": 0,
+  "deployment": {
+    "environment": "production",
+    "source_revision": "ce616ace888afb6e2f0eba19d1f25d8a2c87e65b",
+    "accepted_source_revision": "b58e43a536aaeafe89c952fcec0c26e081926b7b",
+    "source_inventory_sha256": "b88f78fcc3388454660a1bdbabc5857bbccd4b9be1c0cc6c4583913c93147c9a",
+    "runtime_inventory_sha256": "d550f3f8fa2f1f8be6af783a5eba75bbabc4e930d0bc18a576d458ac57496af2",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc"
+    },
+    "targets": [
+      {
+        "name": "news-ingest-and-features",
+        "kind": "jobs",
+        "role": "worker",
+        "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc",
+        "configuration_sha256": "41f6a88085c9518377edb16060397e4fb2904b2e8c008228ca89dc02aea92c06",
+        "provisioning_state": "Succeeded"
+      }
+    ],
+    "recorded_at": "2026-10-27T17:10:28.892571+00:00",
+    "job_executions_started": 0
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "status": "deployed_for_2026-10-28_pacific",
+  "recorded_at_utc": "2026-10-27T17:17:02.720219+00:00",
+  "owner_authorization": "Push latest version; fewer expensive research runs, cheaper models by task and cache optimization; compare alternatives; deploy for tomorrow; retry with today's config on failure; adaptable configuration; final goal 90% lower costs.",
+  "source": {
+    "branch": "fix/recurring-inference-costs-20261026",
+    "worktree": "/Users/omairs/Documents/code/spectral_nature_inference_costs_20261026",
+    "image_source_revision": "ce616ace888afb6e2f0eba19d1f25d8a2c87e65b",
+    "accepted_runtime_revision": "b58e43a536aaeafe89c952fcec0c26e081926b7b",
+    "source_inventory_sha256": "b88f78fcc3388454660a1bdbabc5857bbccd4b9be1c0cc6c4583913c93147c9a",
+    "runtime_inventory_sha256": "d550f3f8fa2f1f8be6af783a5eba75bbabc4e930d0bc18a576d458ac57496af2",
+    "shared_checkout_integration": "Unresolved concurrent runtime work remains in the original checkout; no partial runtime copy or wholesale promotion of that checkout."
+  },
+  "production": {
+    "name": "news-ingest-and-features",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc",
+    "configuration_sha256": "41f6a88085c9518377edb16060397e4fb2904b2e8c008228ca89dc02aea92c06",
+    "provisioning_state": "Succeeded",
+    "cron_utc": "5 14,20 * * 1-5",
+    "replica_timeout_seconds": 10800,
+    "replica_retry_limit": 1,
+    "policy_profile": "balanced",
+    "not_before_pacific": "2026-10-28",
+    "policy_version": "2026-10-27.2",
+    "policy_json_sha256": "e73a4491f8a910a9e98af74da24dceb3c7cefe1e1494ef7943b62077d58fa4cf"
+  },
+  "schedule": {
+    "timezone": "UTC",
+    "cron": "5 14,20 * * 1-5",
+    "october_28_pacific": [
+      "2026-10-28T07:05:00-07:00",
+      "2026-10-28T13:05:00-07:00"
+    ],
+    "recurrence": "Two weekday runs; UTC schedule means local clock times change with DST."
+  },
+  "model_roles": {
+    "deepseek-flash": "Acquisition planning, acquisition tool decisions, retrieval planning and semantic refresh assessment.",
+    "deepseek-v4-pro": "Analytical dossiers, research delta/final synthesis, company analysis, substantive news interpretation, answer review, trading decisions and unknown tasks."
+  },
+  "quality_decision": {
+    "released": [
+      "Acquisition planning",
+      "Acquisition tool decisions",
+      "Retrieval planning",
+      "Semantic company refresh assessment"
+    ],
+    "held": [
+      "Analytical dossier generation with Flash",
+      "Research delta/final synthesis with Flash"
+    ],
+    "reason": "Personal comparison on captured MRNA, TEAM and XP inputs found repeated unsupported exact event-day inference in Flash XP dossiers. Pro retained for substantive interpretation; no company-specific patch."
+  },
+  "reuse": {
+    "maximum_seconds_from_original_investigation_start": 86400,
+    "exact_inputs": "Reuse only with matching evidence and model/prompt/engine/policy identity. Preserve original date/provenance; do not republish prior memory or proposals.",
+    "changed_evidence": "Semantic materiality assessment. Material or uncertain changes refresh.",
+    "cold_start": "New implementation/policy identity invalidates old artifacts. Initial runs can have less reuse than steady state.",
+    "batch_admission": "Missing or older eligible company profiles precede fresh ones; preserve retained analyses for deferred or unsuccessful refreshes."
+  },
+  "fallback": {
+    "trigger": "Candidate exception, missing required narratives or an interrupted started attempt recorded in durable state.",
+    "mechanism": "Existing Azure single replica retry selects baseline full-model settings in the same exact worker image. Subsequent executions retain baseline until policy identity changes.",
+    "baseline_model": "deepseek-v4-pro",
+    "baseline_thinking": "enabled/high",
+    "baseline_company_workflow_reuse": "Disabled; baseline profile has empty task routes.",
+    "attempt_seconds": 9900,
+    "azure_replica_timeout_seconds": 10800,
+    "actual_azure_retry_verified": true,
+    "development_execution": "macro-fred-daily-dev-kl0whlm",
+    "development_models": [
+      "deepseek-flash",
+      "deepseek-v4-pro"
+    ],
+    "prior_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+    "prior_image_note": "Retained as separate rollback evidence; automatic fallback does not redeploy an old image."
+  },
+  "tuning": {
+    "canonical_document": "config/inference_policy.json",
+    "configuration_override": "LLM_POLICY_JSON contains the complete versioned policy document; editing the repository file alone does not alter this live override.",
+    "profile_selection": "LLM_POLICY_PROFILE=balanced or baseline; baseline is also the default when unset.",
+    "activation": "LLM_POLICY_NOT_BEFORE=2026-10-28 uses America/Los_Angeles.",
+    "knobs": [
+      "Per-task surface/purpose routes",
+      "Model role/provider configuration",
+      "company_refresh_seconds",
+      "semantic_reuse",
+      "rollout.attempt_seconds"
+    ],
+    "change_process": "Edit and review the central document, increment its version, qualify affected model behavior, update only the intended job environment, verify the complete live definition, and commit the new acceptance fingerprint. No image rebuild is required for policy-only changes.",
+    "manual_baseline": "Select LLM_POLICY_PROFILE=baseline on the intended job, verify the configuration, and update its accepted configuration fingerprint.",
+    "retry_candidate_after_rollback": "A policy identity change is required; do not erase rollback state just to retry a failed candidate.",
+    "alternate_provider": "Use a model role env_prefix with its own explicit provider, endpoint, model and credential; default provider keys are never forwarded across hosts."
+  },
+  "verification": {
+    "local": "local-review.json",
+    "development": "development.json",
+    "production": "production.json",
+    "configured_development_resource_unchanged": true,
+    "all_other_35_resources_unchanged": true,
+    "manual_production_executions_started": 0,
+    "scheduled_candidate_execution": "Not yet observed; activation is tomorrow. No measured daily savings claimed."
+  },
+  "cost_goal": {
+    "target_reduction": 0.9,
+    "status": "Not achieved or measured by this rollout.",
+    "baseline_day": "2026-10-26",
+    "baseline_production_total_usd": 45.21534226000001,
+    "baseline_news_usd": 37.81735623600001,
+    "baseline_other_production_usd": 7.397986024000001,
+    "scenario_account_reduction_before_additional_reuse": 0.5966439614870671,
+    "scenario_account_reduction_with_50_percent_news_reuse": 0.7165136204146472,
+    "next_measurement": "Compare successful daily work/publications, actual provider spend and tokens by task/profile/model, cache hits, completed/deferred companies and fallback state. Do not count missing work as savings.",
+    "remaining_options": [
+      "Measure Home, Trading and interactive spend; remaining baseline cost alone exceeds the account-wide 10% target.",
+      "Qualify additional narrow economy routes on representative real inputs while keeping full-model final interpretation.",
+      "Evaluate Ling, Qwen or GLM for independent evidence tasks and asynchronous provider batch where dependencies permit.",
+      "Consider rented GPU batching only after measuring complete throughput, model loading, idle allocation and shutdown cost; no instance rented."
+    ],
+    "scenario_evidence": "cost-scenarios.json",
+    "provider_comparison": "pricing.json"
+  },
+  "preserved": "All other application consumers, Home/Trading/interactive models, Azure resources/identities, replica limits and the already-approved two-run cron."
+}
