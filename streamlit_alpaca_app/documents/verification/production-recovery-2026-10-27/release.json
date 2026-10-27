@@ -1,0 +1,48 @@
+{
+  "status": "deployed_verified",
+  "date_pacific": "2026-10-27",
+  "branch": "fix/recurring-inference-costs-20261026",
+  "accepted_worktree": "/Users/omairs/Documents/code/spectral_nature_inference_costs_20261026",
+  "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+  "accepted_runtime_source_revision": "ca0d2e3fc021ef79bed26f5e54d7c174dcc54d65",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+  "source_inventory_sha256": "9d02453088c9e47fd9e707d2bd061eb6bfa364884bc14aa389fa3ca44365452e",
+  "runtime_inventory_sha256": "edbad6f626b58ad4c76b2f25591876523735ae8d5571e1b8a29c903aac4cbe0c",
+  "targets": [
+    "news-ingest-and-features",
+    "attention-home-build",
+    "zopedia-learning",
+    "system-recovery"
+  ],
+  "activation_pacific": "2026-10-27",
+  "configuration": "documents/verification/production-recovery-2026-10-27/configuration.json",
+  "development": "documents/verification/production-recovery-2026-10-27/development.json",
+  "production": "documents/verification/production-recovery-2026-10-27/production.json",
+  "issue_ledger": "documents/verification/production-recovery-2026-10-27/plan.json",
+  "qualitative_acceptance": "documents/verification/production-recovery-2026-10-27/local-review.json",
+  "next_scheduled": {
+    "attention_home_utc": "2026-10-27T18:50:00Z",
+    "learning_utc": "2026-10-27T19:20:00Z",
+    "news_utc": "2026-10-27T20:05:00Z",
+    "news_pacific": "2026-10-27 13:05 PDT"
+  },
+  "rollback": "Native single replica retry selects baseline routing/reuse within the same qualified image and shared original execution clock. Prior0abeb59b news and40cd5c6f other-worker images remain historical explicit rollback evidence.",
+  "cost_target": {
+    "reduction_goal_percent": 90,
+    "measured_achieved": false,
+    "levers": [
+      "Two news executions per weekday",
+      "Task-specific Flash organization/planning with full Pro analytical writing/review",
+      "Original-date24h company research reuse and checkpoint continuation",
+      "Compose Home enrichment from acquired evidence instead of reacquiring it"
+    ],
+    "concurrency": "Eight workers can improve elapsed time and completed coverage; concurrency is not itself a cost saving.",
+    "measurement_pending": "Actual full scheduled run cost and completed/deferred coverage."
+  },
+  "verification_limits": [
+    "The next complete scheduled news/Home/learning run has not yet been observed after release.",
+    "The90% account-wide reduction remains unmeasured.",
+    "Cgroup peak-memory metrics were unavailable; the8-request probe completed on the existing allocation."
+  ],
+  "main_checkout": "Concurrent unaccepted runtime work preserved. Only documentation and evidence mirrored into the original checkout."
+}

@@ -15,37 +15,37 @@
       "id": "activation",
       "finding": "The live worker was deployed, but its balanced profile was gated until October28 Pacific.",
       "fix": "Activate October27 with the combined qualified release.",
-      "status": "pending_deployment"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "news_completion",
       "finding": "14:05UTC news run on prior40cd5c6f image was killed at17:05UTC. It investigated25 companies, completed23 profiles, and blocked the aggregate publication on the remaining work.",
       "fix": "One two-hour total budget, earlier admission cutoff, interpretation/publication reserves, retain completed subset and dated prior outputs. Apply same deadline when baseline caching/routing is disabled.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "home_timeouts",
       "finding": "14:50UTC Home published, but8/12 ticker enrichments timed out in90-second second investigations after candidate research. Four initial candidates also lacked final synthesis.",
       "fix": "Compose enrichments from already acquired complete evidence and dated research, retaining Pro synthesis/review. Reserve completion steps before research uses the clock. Give composition a600-second total budget and480-second per-call ceiling.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "source_nomination",
       "finding": "Home source-event nomination expired at180 seconds despite retaining all50 source reports.",
       "fix": "Give this one complete-source allocation step a600-second budget; whole-job acquisition remains bounded.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "learning_storage",
       "finding": "Learning reused completed critiques but retried missing /app/.../generated/*.json files from earlier containers. Warning incorrectly said0 critiques pending without reporting pending reviews.",
       "fix": "Retain frozen review input in the durable learning event. Reconstruct older cases from saved event/critic once, skip reviews markednot_required, report actual pending review count.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "event_timeline",
       "finding": "New October27 Benzinga report explicitly says Musk's warning was postedOctober25. Home summary omitted that event date; no evidence yet supports a newOctober27 repetition.",
       "fix": "Shared gateway contract separates event, publication and observation times, dates continuing context, and attributes a speaker's assessment. Personally replay full Home editorial output against retained sources. Preserve full source bodies and original company-investigation dates in news interpretation handoff.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "credit_failures",
@@ -57,31 +57,37 @@
       "id": "recovery_queue",
       "finding": "39 warnings were healthy bounded manifest scans. Five inspected batches had no manifest failures, completed receipt recovery and an advancing cursor.",
       "fix": "Report a healthy bounded batch as Succeeded while preserving scan_complete=false and the continuation cursor. Actual repair failures remain Warning.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "company_parallelism",
       "finding": "Current producer hasfour company workers on4CPU/8Gi. Model/tool waiting dominates13\u201316-minute follow-up loops; page acquisition1\u20135minutes, dossiers3\u20136minutes, final writing1\u20132minutes in slow examples.",
       "fix": "Eight company workers, twelve search workers per company and two shared browsers on the existing 4CPU/8Gi. Eight-by-twelve preserves the former four-by-twenty-four aggregate search capacity. Counts remain environment configuration.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "cancellation_ownership",
       "finding": "Company search ThreadPool did not copy parent execution context. Browser capacity waits and child processes also ignored that ownership deadline.",
       "fix": "Propagate existing WorkScope into search workers, use cancellation-aware shared browser slots, bound HTTP/browser operations by remaining time, and terminate owned driver processes on cancellation.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "retry_clock",
       "finding": "A replica retry restored run/data identity but started a new monotonic work clock.",
       "fix": "Reconstruct the original execution clock from retained first-run time so retry shares the same overall work allowance.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
     },
     {
       "id": "editor_phase_qualification",
       "finding": "The initial common phase allocation shortened the accepted no-tool editor writing window from65%to50%; its full-source replay timed out. No deployment occurred.",
       "fix": "Keep the accepted65/35 editor allocation; reserve explicit completion steps before research in tool-using runs. Repeat full editorial replay.",
-      "status": "qualified_pending_production"
+      "status": "deployed_verified_pending_scheduled_observation"
+    },
+    {
+      "id": "composed_budget_feasibility",
+      "finding": "The initial45min completion reserve left only51min after observed19min preparation, below the full60min investigation admission allowance. Caught before the next news execution.",
+      "fix": "Use30min completion reserve. The first investigation admission has66min available, while interpretation retains its full per-item allowance and publication keeps3min.",
+      "status": "configuration_corrected_and_read_back"
     }
   ],
   "release_scope": [
@@ -92,5 +98,13 @@
   ],
   "quality_acceptance": "Personal review of captured production source inputs and complete Pro outputs; software checks cover budgets, cancellation, durable storage and contracts only.",
   "production_authorization": "Owner explicitly requested patching and deploying the combined release today.",
-  "status": "exact_image_development_accepted_pending_production"
+  "status": "deployed_verified",
+  "production_evidence": "documents/verification/production-recovery-2026-10-27/production.json",
+  "development_evidence": "documents/verification/production-recovery-2026-10-27/development.json",
+  "configuration_evidence": "documents/verification/production-recovery-2026-10-27/configuration.json",
+  "remaining": [
+    "Observe the next complete scheduled news/Home/learning executions, their completed/deferred coverage and actual provider cost.",
+    "Measure progress toward90% account-wide reduction; the release does not establish that target.",
+    "The learning input is durable; assess a separate whole-job admission clock if cold critique volume approaches its one-hour cap."
+  ]
 }

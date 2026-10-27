@@ -809,7 +809,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "8239d1c27b641989341b6cecf25f699778ab28535be8f0cdc7b7d0847a889d75",
+          "configuration_sha256": "4b2b09a796fd648d3c7e053bcf0ecc3b01ba92be8fe2112ecce7c2106b3eaf12",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc",
           "preservation_review": {
             "status": "accepted",

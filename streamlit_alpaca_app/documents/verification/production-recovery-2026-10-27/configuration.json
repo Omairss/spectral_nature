@@ -13,7 +13,7 @@
         "ZOPEDIA_TICKER_BUSINESS_SEARCH_MAX_WORKERS": "12",
         "PAGE_BROWSING_MAX_CONCURRENT_BROWSERS": "2",
         "PIPELINE_JOB_WORK_TIMEOUT_SECONDS": "6900",
-        "PIPELINE_JOB_FINALIZATION_RESERVE_SECONDS": "2700",
+        "PIPELINE_JOB_FINALIZATION_RESERVE_SECONDS": "1800",
         "PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS": "180"
       }
     },
@@ -40,7 +40,7 @@
     "company_search_workers": "12 per company keeps theoretical aggregate query workers96, equal to prior4x24.",
     "shared_browsers": "2, unchanged capacity.",
     "work_budget_seconds": "6900, leaving5minutes within platform7200 for startup/finalization. Replica retry shares original producer clock.",
-    "company_admission_reserve_seconds": "2700 for news interpretation and publication; individual investigation must fit before admission.",
+    "company_admission_reserve_seconds": "1800 for interpretation/publication. At observed19min preparation, the85min company cutoff leaves66min, so a full60min investigation can start. The prior45min reserve would have left51min and deferred all fresh investigations.",
     "publication_reserve_seconds": "180, do not admit interpretation that cannot fit its full900-second window.",
     "models": "Flash for explicit organization/plan/follow-up routes; Pro default for analytical writing/review and unknown tasks.",
     "cache": "24h maximum original investigation age, changed evidence assessment, prompt/model/engine identity and ownership policy preserved.",
@@ -51,7 +51,7 @@
     {
       "name": "news-ingest-and-features",
       "before_sha256": "41f6a88085c9518377edb16060397e4fb2904b2e8c008228ca89dc02aea92c06",
-      "after_sha256": "8239d1c27b641989341b6cecf25f699778ab28535be8f0cdc7b7d0847a889d75",
+      "after_sha256": "4b2b09a796fd648d3c7e053bcf0ecc3b01ba92be8fe2112ecce7c2106b3eaf12",
       "only_reviewed_changes": true
     },
     {
@@ -72,5 +72,13 @@
       "after_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
       "only_reviewed_changes": true
     }
-  ]
+  ],
+  "admission_feasibility": {
+    "work_seconds": 6900,
+    "completion_reserve_seconds": 1800,
+    "observed_preparation_seconds": 1140,
+    "individual_research_seconds": 3600,
+    "remaining_at_first_admission_seconds": 3960,
+    "passed": true
+  }
 }

@@ -1,0 +1,91 @@
+{
+  "status": "verified",
+  "recorded_at_utc": "2026-10-27T18:18:18.562341+00:00",
+  "targets": [
+    {
+      "name": "news-ingest-and-features",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+      "configuration_sha256": "4b2b09a796fd648d3c7e053bcf0ecc3b01ba92be8fe2112ecce7c2106b3eaf12",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "attention-home-build",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+      "configuration_sha256": "965ba45294d34c7511ca1a7036383d6273c3a63bb415c29979337ea5ebd5a342",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "zopedia-learning",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+      "configuration_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-recovery",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+      "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "total_consumers": 36,
+  "unchanged_consumers": [
+    "sn-streamlit-ui",
+    "sn-api-next-dev",
+    "sn-next-ui-dev",
+    "sn-next-ui",
+    "sn-api-next",
+    "universe-builder",
+    "equities-intraday-preload",
+    "macro-fred-daily",
+    "commodities-regime",
+    "options-liquid-universe",
+    "entity-taxonomy-refresh",
+    "fundamentals-quarterly-refresh",
+    "company-baseline-prefetch",
+    "trading-agent-build",
+    "zopedia-maintenance",
+    "system-health",
+    "trading-agent-build-dev",
+    "macro-fred-daily-dev",
+    "sn-research-run-dev",
+    "robinhood-main-sync-dev",
+    "robinhood-main-sync-prod",
+    "dataset-refresh-dev",
+    "attention-home-next-dev",
+    "attention-ticker-next-dev",
+    "daily-datapoints-next-dev",
+    "technical-history-next-dev",
+    "sn-research-run",
+    "equities-next-dev",
+    "evidence-index-dev",
+    "system-recovery-dev",
+    "cleanup-trial-observer-dev",
+    "zopedia-maintenance-dev"
+  ],
+  "all_untargeted_definitions_unchanged": true,
+  "stored_development_job_unchanged": true,
+  "news": {
+    "activation_pacific": "2026-10-27",
+    "profile": "balanced",
+    "policy_version": "2026-10-27.3",
+    "cron_utc": "5 14,20 * * 1-5",
+    "replica_timeout_seconds": 7200,
+    "replica_retry_limit": 1,
+    "company_workers": 8,
+    "query_workers_per_company": 12,
+    "shared_browsers": 2,
+    "resources": {
+      "cpu": 4.0,
+      "memory": "8Gi"
+    },
+    "work_timeout_seconds": 6900,
+    "completion_reserve_seconds": 1800,
+    "publication_reserve_seconds": 180
+  },
+  "production_executions_manually_started": 0,
+  "complete_scheduled_run_observed_after_release": false
+}
