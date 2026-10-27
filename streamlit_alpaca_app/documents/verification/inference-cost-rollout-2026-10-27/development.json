@@ -1,0 +1,62 @@
+{
+  "status": "accepted",
+  "environment": "development",
+  "recorded_at_utc": "2026-10-27T17:00:27.426285+00:00",
+  "source_revision": "ce616ace888afb6e2f0eba19d1f25d8a2c87e65b",
+  "accepted_source_revision": "b58e43a536aaeafe89c952fcec0c26e081926b7b",
+  "source_inventory_sha256": "b88f78fcc3388454660a1bdbabc5857bbccd4b9be1c0cc6c4583913c93147c9a",
+  "runtime_inventory_sha256": "d550f3f8fa2f1f8be6af783a5eba75bbabc4e930d0bc18a576d458ac57496af2",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc"
+  },
+  "job": "macro-fred-daily-dev",
+  "execution": "macro-fred-daily-dev-kl0whlm",
+  "execution_status": "Succeeded",
+  "configured_development_job_unchanged": true,
+  "package_proof": {
+    "role": "worker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc",
+    "source_revision": "ce616ace888afb6e2f0eba19d1f25d8a2c87e65b",
+    "source_inventory_sha256": "b88f78fcc3388454660a1bdbabc5857bbccd4b9be1c0cc6c4583913c93147c9a",
+    "runtime_inventory_sha256": "d550f3f8fa2f1f8be6af783a5eba75bbabc4e930d0bc18a576d458ac57496af2",
+    "all_packaged_files_checked": true,
+    "complete_git_inventory_matches": true,
+    "packaged_files": 189,
+    "build_run": "cj1c3",
+    "development_execution": "macro-fred-daily-dev-kl0whlm",
+    "evidence": "documents/verification/inference-cost-rollout-2026-10-27/development.json"
+  },
+  "checks": {
+    "actual_azure_replica_retry": true,
+    "replicas": 2,
+    "worker_entrypoint_imported": true,
+    "pacific_activation_gate": true,
+    "economy_model": "deepseek-flash",
+    "fallback_model": "deepseek-v4-pro",
+    "baseline_retained_after_failure": true
+  },
+  "provider_attempts": [
+    [
+      "deepseek-flash",
+      "deepseek-flash",
+      "success",
+      {
+        "role": "economy",
+        "profile": "balanced",
+        "policy_version": "2026-10-27.2",
+        "policy_identity": "22e24d917e5b803d34d56eaa5a3a2bde228bb45c412dc12ef45894dfe664b94e"
+      }
+    ],
+    [
+      "deepseek-v4-pro",
+      "deepseek-v4-pro",
+      "success",
+      {
+        "role": "full",
+        "profile": "baseline"
+      }
+    ]
+  ],
+  "console_sha256": "58cd0f0e7cf1b2059585a25f1402068c8f8d9b568137fefb74d64ff2afdd8c61",
+  "private_evidence_directory": "/Users/omairs/Library/Application Support/SpectralNature/operations/inference-rollout-2026-10-27"
+}

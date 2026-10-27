@@ -801,7 +801,21 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc": {
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc",
+          "source_revision": "ce616ace888afb6e2f0eba19d1f25d8a2c87e65b",
+          "source_inventory_sha256": "b88f78fcc3388454660a1bdbabc5857bbccd4b9be1c0cc6c4583913c93147c9a",
+          "runtime_inventory_sha256": "d550f3f8fa2f1f8be6af783a5eba75bbabc4e930d0bc18a576d458ac57496af2",
+          "all_packaged_files_checked": true,
+          "complete_git_inventory_matches": true,
+          "packaged_files": 189,
+          "build_run": "cj1c3",
+          "development_execution": "macro-fred-daily-dev-kl0whlm",
+          "evidence": "documents/verification/inference-cost-rollout-2026-10-27/development.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -1615,8 +1629,11 @@
     "evidence": "documents/verification/research-charts-2026-10-23/development.json"
   },
   "development_acceptance": {
-    "status": "pending",
-    "images": {},
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc"
+    },
+    "source_inventory_sha256": "b88f78fcc3388454660a1bdbabc5857bbccd4b9be1c0cc6c4583913c93147c9a",
     "evidence": "documents/verification/inference-cost-rollout-2026-10-27/development.json"
   },
   "production_embedding_activation": {
