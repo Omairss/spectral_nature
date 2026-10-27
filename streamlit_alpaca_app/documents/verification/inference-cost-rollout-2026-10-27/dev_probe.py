@@ -1,5 +1,7 @@
 """Exact-image development qualification, including a real Azure replica retry."""
 from datetime import datetime, timezone
+from dataclasses import replace
+from zoneinfo import ZoneInfo
 import hashlib
 import json
 import os
@@ -24,6 +26,14 @@ from services.inference_policy import execute_with_fallback, policy
 client = llm.load_llm_client()
 if not client:
     raise RuntimeError("Managed-identity provider credential was not resolved")
+client = llm.client_from_config(replace(client.config,
+    model=os.environ["EXPECTED_FULL_MODEL"], thinking_mode="enabled", reasoning_effort="high"))
+activation = os.environ.get("QUALIFICATION_ACTIVATION_DATE", "")
+if activation:
+    os.environ["LLM_POLICY_NOT_BEFORE"] = activation
+    print(json.dumps({"probe": "activation", "date_pacific": datetime.now(ZoneInfo("America/Los_Angeles")).date().isoformat(),
+                      "not_before": activation, "effective_profile": policy()["profile"]}), flush=True)
+    os.environ["LLM_POLICY_NOT_BEFORE"] = ""
 context = SimpleNamespace(name="news-ingest-and-features", run_id=uuid.uuid4().hex,
                           started_at_monotonic=time.monotonic(), degraded_components={})
 schema = {"type": "object", "additionalProperties": False,
