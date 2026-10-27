@@ -789,7 +789,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "50c2675e6fcef899fc72c3a0e703f449f0dcd72faa7040428fafc095300a54da",
+          "configuration_sha256": "41f6a88085c9518377edb16060397e4fb2904b2e8c008228ca89dc02aea92c06",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
           "preservation_review": {
             "status": "accepted",
@@ -1647,5 +1647,13 @@
     "profile": "infra/container_resources.json",
     "evidence": "documents/verification/azure-cost-retirement-2026-10-25/sizing-verification.json",
     "images_preserved": true
+  },
+  "production_inference_policy": {
+    "owner_instruction": "Fewer expensive research runs, cheaper models by task and cache optimization; deploy for tomorrow and retry with today's configuration on failure.",
+    "policy_file": "config/inference_policy.json",
+    "profile": "balanced",
+    "not_before_pacific": "2026-10-28",
+    "configuration_evidence": "documents/verification/inference-cost-rollout-2026-10-27/configuration.json",
+    "development_evidence": "documents/verification/inference-cost-rollout-2026-10-27/development.json"
   }
 }

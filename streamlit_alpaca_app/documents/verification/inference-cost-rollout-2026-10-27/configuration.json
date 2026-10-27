@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "resource": "news-ingest-and-features",
+  "changed_environment_keys": [
+    "LLM_POLICY_PROFILE",
+    "LLM_POLICY_NOT_BEFORE",
+    "LLM_POLICY_JSON"
+  ],
+  "image_preserved": true,
+  "activation_pacific": "2026-10-28",
+  "profile": "balanced",
+  "baseline_profile": "baseline",
+  "cron_utc": "5 14,20 * * 1-5",
+  "configuration_api_version": "2025-07-01",
+  "configuration_sha256": "41f6a88085c9518377edb16060397e4fb2904b2e8c008228ca89dc02aea92c06",
+  "policy_sha256": "e73a4491f8a910a9e98af74da24dceb3c7cefe1e1494ef7943b62077d58fa4cf"
+}
