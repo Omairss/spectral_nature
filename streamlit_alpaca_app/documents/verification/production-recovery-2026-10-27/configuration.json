@@ -1,5 +1,5 @@
 {
-  "status": "reviewed_pending_exact_image_development",
+  "status": "applied_verified",
   "changes": {
     "news-ingest-and-features": {
       "configuration": {
@@ -46,5 +46,31 @@
     "cache": "24h maximum original investigation age, changed evidence assessment, prompt/model/engine identity and ownership policy preserved.",
     "rollback": "Single native replica retry uses baseline routing/reuse; retain new execution deadline, data integrity and date fixes."
   },
-  "cost_goal": "90% total account reduction is not yet measured or established; more concurrency can complete more work and increase spend."
+  "cost_goal": "90% total account reduction is not yet measured or established; more concurrency can complete more work and increase spend.",
+  "receipts": [
+    {
+      "name": "news-ingest-and-features",
+      "before_sha256": "41f6a88085c9518377edb16060397e4fb2904b2e8c008228ca89dc02aea92c06",
+      "after_sha256": "8239d1c27b641989341b6cecf25f699778ab28535be8f0cdc7b7d0847a889d75",
+      "only_reviewed_changes": true
+    },
+    {
+      "name": "attention-home-build",
+      "before_sha256": "3ae7f941b1c1b2faf696d094657adf6b886bd6a2d322bd0ce74772c5ba688fb1",
+      "after_sha256": "965ba45294d34c7511ca1a7036383d6273c3a63bb415c29979337ea5ebd5a342",
+      "only_reviewed_changes": true
+    },
+    {
+      "name": "zopedia-learning",
+      "before_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
+      "after_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
+      "only_reviewed_changes": true
+    },
+    {
+      "name": "system-recovery",
+      "before_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "after_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "only_reviewed_changes": true
+    }
+  ]
 }
