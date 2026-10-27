@@ -1,7 +1,7 @@
 {
   "status": "accepted_locally",
   "scope": "Owner-authorized production news/research cost candidate for October28. Exact-image development execution qualifies package and real replica fallback; all persisted DEV configurations and other production consumers remain retained.",
-  "source_revision": "64547245ad299b2c1a1b14f3235bc2f7788bba83",
+  "source_revision": "b4f56ecc1828c33e7c591f45fb2e713441c70cd1",
   "review_base_revision": "dbeba5ad0f9f3b1b09d7cc115138a5526e584f26",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
@@ -129,7 +129,7 @@
     "services/aql/pipeline.py": "7e215884f38e1aff62455ce96e01098a29864cdb1a2bc7768a01f6dd36ac358c",
     "services/aql/summarizer.py": "87a4ebd55c936bfce6f4e61a774c55a97c2f56153b83a037ee4d686144a27eb3",
     "services/aql/writer.py": "cda1c4c1a3ba4e437d0be2781848938c09cb2ed85c3decebe250241f9a327ad2",
-    "services/aql_zopedia_engine.py": "4d30ef148e5c6e7927526555c3a338b152f55b4f6be34b950a5bdfba04105514",
+    "services/aql_zopedia_engine.py": "40dc00efd6d08c12f3e88507c3f4cda3c7b4459098d7e96041f05160a95c067d",
     "services/aql_zopedia_gateway.py": "6ffe4be9ba98b0a8c995077fd003487d49da520617f49ef2763aa111c97d0f97",
     "services/attention_context_llm.py": "60b84285a114bf79c89bd7601219ffaed143534a8b4b214f4bd9fce3ac9b989a",
     "services/attention_graph_network.py": "9511f96ea29d213c1dd59d4f87fd880f84a7be36e276ae07ef88ef71e5204ebc",
@@ -409,7 +409,7 @@
     "services/aql/pipeline.py": "7e215884f38e1aff62455ce96e01098a29864cdb1a2bc7768a01f6dd36ac358c",
     "services/aql/summarizer.py": "87a4ebd55c936bfce6f4e61a774c55a97c2f56153b83a037ee4d686144a27eb3",
     "services/aql/writer.py": "cda1c4c1a3ba4e437d0be2781848938c09cb2ed85c3decebe250241f9a327ad2",
-    "services/aql_zopedia_engine.py": "4d30ef148e5c6e7927526555c3a338b152f55b4f6be34b950a5bdfba04105514",
+    "services/aql_zopedia_engine.py": "40dc00efd6d08c12f3e88507c3f4cda3c7b4459098d7e96041f05160a95c067d",
     "services/aql_zopedia_gateway.py": "6ffe4be9ba98b0a8c995077fd003487d49da520617f49ef2763aa111c97d0f97",
     "services/attention_context_llm.py": "60b84285a114bf79c89bd7601219ffaed143534a8b4b214f4bd9fce3ac9b989a",
     "services/attention_graph_network.py": "9511f96ea29d213c1dd59d4f87fd880f84a7be36e276ae07ef88ef71e5204ebc",

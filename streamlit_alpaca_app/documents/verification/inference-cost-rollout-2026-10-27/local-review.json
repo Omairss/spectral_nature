@@ -87,7 +87,7 @@
   "source_review": {
     "pipeline/jobs/main.py": "Producer ownership, stable retry identity, bounded company admission and finalization reserve; retained prior analyses and narrow inference rollout boundary. Original publication/database lifecycle definitions remain intact.",
     "services/aql/business_model_stack.py": "Full-workflow checkpoint with original provenance, no duplicate memory writes, materiality assessment, complete prompt/model/engine/policy identity, and maximum age. Full-model delta synthesis and final company narrative own interpretation, replacing redundant follow-up review.",
-    "services/aql_zopedia_engine.py": "Business workflow source participates in cache/research engine identity.",
+    "services/aql_zopedia_engine.py": "Company workflow and routing implementation both participate in the complete research engine/cache identity; implementation changes cannot reuse preceding policy output.",
     "services/aql_zopedia_gateway.py": "One central declared-task router records actual selected model/role, with one full-model recovery for a failed economy transport/API call.",
     "services/llm.py": "Explicit config-to-client construction without mutating clients shared by threads. Work deadlines bound nested requests.",
     "services/llm_context.py": "Complete evidence stays first for prefix caching; changing task/date follows it. Timeline contract separates event dates from source dates.",
