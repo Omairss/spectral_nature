@@ -1256,6 +1256,10 @@ def load_llm_client(env_prefix: str = "") -> JSONLLMClient | None:
     config = load_llm_config(env_prefix=env_prefix)
     if config is None:
         return None
+    return client_from_config(config)
+
+
+def client_from_config(config: LLMConfig) -> JSONLLMClient:
     if config.provider == "openai":
         return OpenAIChatJSONClient(config)
     if config.provider == "azure_openai":

@@ -44,6 +44,7 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
     worker's ownership expires; its durable checkpoints remain resumable.
     """
     from . import pipeline_store
+    from .work_scope import WorkScope
     from contextvars import copy_context
     owner = uuid.uuid4().hex
     deadline = time.monotonic() + wait_seconds
@@ -56,8 +57,10 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
     stop = threading.Event()
     lost = threading.Event()
     renewed_at = time.monotonic()
+    work = WorkScope(renewed_at + lease_seconds)
     def check():
         if lost.is_set() or time.monotonic()-renewed_at >= lease_seconds:
+            work.cancel()
             raise RuntimeError("Execution ownership was lost; completed work remains checkpointed.")
     def heartbeat():
         nonlocal renewed_at
@@ -65,18 +68,22 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
             try:
                 if not pipeline_store.renew_execution_state(namespace, key, owner=owner, seconds=lease_seconds):
                     lost.set()
+                    work.cancel()
                     return
                 renewed_at = time.monotonic()
+                work.deadline = renewed_at + lease_seconds
             except Exception:
                 lost.set()
+                work.cancel()
                 return
     thread = threading.Thread(target=copy_context().run, args=(heartbeat,), daemon=True,
                               name="execution-ownership")
     token = _OWNERSHIP.set((*_OWNERSHIP.get(), check))
     thread.start()
     try:
-        yield True
-        check()
+        with work.activate():
+            yield True
+            check()
     finally:
         _OWNERSHIP.reset(token)
         stop.set()
@@ -384,7 +391,8 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         "purpose": context.get("purpose") or "direct." + operation,
         "provider": config.provider, "requested_model": payload.get("model") or config.model,
         "operation": operation, "status": "started", "started_at_utc": started, "duration_ms": 0,
-        "metadata": {"request_composition": composition, "job_name": os.getenv("PIPELINE_JOB_NAME")},
+        "metadata": {"request_composition": composition, "job_name": os.getenv("PIPELINE_JOB_NAME"),
+                     "routing": context.get("routing")},
     }
     try:
         if not record_provider_attempt(initial_event):
@@ -448,6 +456,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                 "inference_effort": payload.get("reasoning_effort"), "thinking": payload.get("thinking"),
                 "input_hash": hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest(),
                 "job_name": os.getenv("PIPELINE_JOB_NAME"),
+                "routing": context.get("routing"),
                 "research_subject": context.get("research_subject"),
                 "artifact_input_id": context.get("artifact_input_id"),
                 "literal_output": bool(context.get("literal_output")),
@@ -481,7 +490,9 @@ def research_artifact_key(*, access_scope: str, subject: str, query: str,
     from .llm import get_active_narrative_style_rule, llm_settings_scope
     namespace = f"research_artifact:{llm_settings_scope()}:{access_scope}"
     from .aql_zopedia_engine import research_engine_revision
+    from .inference_policy import policy_identity
     contract = {"engine_revision": research_engine_revision(), "query": query, "schema": schema, "provider": config.provider,
+                "inference_policy": policy_identity(),
                 "endpoint": config.base_url, "model": config.model,
                 "thinking": config.thinking_mode, "effort": execution_effort(config.reasoning_effort),
                 "temperature": config.temperature, "style": get_active_narrative_style_rule(),

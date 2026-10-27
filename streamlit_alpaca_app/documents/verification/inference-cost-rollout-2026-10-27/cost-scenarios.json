@@ -1,0 +1,11 @@
+{
+  "basis": "Oct26 captured production usage; identical tokens and cache ratios assumed; retained four-run workload scaled by half; new profile routing and one downstream company synthesis owner; no quality-equivalence or invoice claim. Reuse scenarios uniformly scale news work as an illustration, although non-company work continues.",
+  "news_before": 37.81735623600001,
+  "news_after_model_routing_same_tokens": 10.335665916000004,
+  "other_production_cost": 7.397986024000001,
+  "account_reduction_without_additional_reuse": 0.7220894865786205,
+  "account_reduction_with_50pct_news_workflow_reuse": 0.779236382960424,
+  "account_reduction_with_75pct_news_workflow_reuse": 0.8078098311513257,
+  "target": 0.9,
+  "remaining_to_goal": "Home, Trading and interactive work remain. Even eliminating news cost entirely would leave their baseline spending; account-wide 90% needs subsequent measured optimization of these consumers too."
+}

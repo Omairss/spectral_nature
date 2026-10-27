@@ -1,0 +1,43 @@
+{
+  "owner_instruction": "Push latest version; fewer expensive research runs, cheaper models by task and cache optimization; compare alternatives; deploy for tomorrow; retry with today's config on failure; adaptable configuration; final goal 90% lower costs.",
+  "date_pacific": "2026-10-27",
+  "target_day_pacific": "2026-10-28",
+  "scope": "Production news/research job; shared inference policy implementation. Preserve unrelated runtime and experimental DEV features.",
+  "baseline": {
+    "cron_utc": "5 14,20 * * 1-5",
+    "model": "deepseek-v4-pro",
+    "thinking": "enabled/high",
+    "profile": "baseline",
+    "worker_digest": "40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+  },
+  "candidate": {
+    "profile": "balanced",
+    "model_roles": {
+      "deepseek-flash": "Acquisition planning, acquisition tool decisions, retrieval planning and semantic refresh assessment.",
+      "deepseek-v4-pro": "Analytical dossiers, research delta/final synthesis, company analysis, substantive news interpretation, answer review, trading decisions and unknown tasks."
+    },
+    "company_reuse": "Maximum 24 hours from original investigation start. Exact evidence and model/prompt/policy contracts reuse directly; changed inputs require a semantic materiality assessment. Material or unclear changes refresh. Reuse preserves original dates/provenance and does not republish memory.",
+    "failure_policy": "Durable rollout record; a failed/interrupted candidate uses baseline on Azure's existing single replica retry, then remains baseline until policy identity changes. Each attempt stops before the existing 3-hour replica deadline.",
+    "activate_on_pacific": "2026-10-28"
+  },
+  "qualification": {
+    "kind": "Production change qualification using captured production inputs, outside academic/research studies.",
+    "providers": "Existing production DeepSeek account only. No GPU rentals, new provider accounts or model migration.",
+    "estimated_maximum_usd": 3.0,
+    "method": "Personally compare Pro/Flash dossiers for MRNA, TEAM and XP, and inspect duplicate/material/earnings/correction/uncertain cache decisions. Operational checks separately cover routing, concurrency and replica fallback."
+  },
+  "cost_goal": {
+    "reduction_target": 0.9,
+    "status": "Target, not a measured result.",
+    "measurement": "Same-date provider usage by job, task, requested/reported model, policy profile, cache reuse and completed publications. Compare successful daily work and quality; do not count missing work as savings.",
+    "limits": "Cadence and per-token arithmetic are scenarios. Freshness, cold starts, new companies and remaining Home/Trading/interactive work determine realized account-wide savings."
+  },
+  "config": {
+    "file": "config/inference_policy.json",
+    "profile_env": "LLM_POLICY_PROFILE",
+    "live_override_env": "LLM_POLICY_JSON",
+    "alternate_provider_roles": "A model role may reference env_prefix; requires its own explicit provider, endpoint and credential. No credential forwarding across hosts.",
+    "activation_env": "LLM_POLICY_NOT_BEFORE"
+  },
+  "release": "Build only after local behavioral review and committed source acceptance. Qualify the exact immutable worker in isolated development execution, then promote only the intended production worker. Preserve all other consumers and the two-run cron."
+}

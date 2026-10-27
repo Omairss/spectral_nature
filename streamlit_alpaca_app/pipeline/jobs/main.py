@@ -57,7 +57,7 @@ from services.entity_taxonomy import (
 )
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
 from services.llm import LLMAPIError
-from services.llm_execution import current_research_access_scope, execution_ownership, check_execution_ownership
+from services.llm_execution import current_research_access_scope, execution_ownership
 from services.market_data import (
     build_correlation_phase_shifts_from_bars,
     build_momentum_profiles_from_bars,
@@ -708,7 +708,6 @@ def _upload_manifest(
 
 
 def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, conn: Any | None) -> None:
-    check_execution_ownership()
     prepared_frame = frame.copy(deep=False) if isinstance(frame, pd.DataFrame) else pd.DataFrame()
     if dataset_name == "attention_source_documents" and not prepared_frame.empty:
         try:
@@ -3374,6 +3373,7 @@ def main() -> None:
         ).strip(),
     )
     execution = (os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or "").strip()
+    resumed_execution = False
     if execution and os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE"):
         namespace = "pipeline_execution:" + dataset_namespace()
         state_key = ctx.name + ":" + execution
@@ -3383,6 +3383,7 @@ def main() -> None:
         retained = read_execution_state(namespace, state_key, strict=True)
         if retained is None:
             raise RuntimeError("Pipeline execution identity could not be read back.")
+        resumed_execution = retained["run_id"] != ctx.run_id
         ctx = replace(ctx, run_id=retained["run_id"], asof=datetime.fromisoformat(retained["asof"]),
                       universe_version=retained["universe_version"])
     os.environ["PIPELINE_JOB_NAME"] = ctx.name
@@ -3449,11 +3450,13 @@ def main() -> None:
             work_conn = _db_connection(workload="interactive" if ctx.name in {"system-health", "research-run-execute"} else "background")
             if work_conn is None:
                 raise RuntimeError("Pipeline work database connection is unavailable.")
-        ownership = (execution_ownership("pipeline_job:" + dataset_namespace(), ctx.name)
+        ownership = (execution_ownership("pipeline_job:" + dataset_namespace(), ctx.name,
+                                        wait_seconds=315 if resumed_execution else 0)
                      if execution and current_research_access_scope() else nullcontext(True))
         with ownership as owned, database_workload("interactive" if ctx.name in {"system-health", "research-run-execute"} else "background"):
             if owned:
-                result = handler(ctx, work_conn)
+                from services.inference_policy import execute_with_fallback
+                result = execute_with_fallback(handler, ctx, work_conn)
             else:
                 status = "Skipped"
                 result = None

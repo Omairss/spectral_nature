@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections import Counter
+from datetime import datetime, timezone
 import hashlib
 import json
 from typing import Any
@@ -15,8 +16,13 @@ def render_research_prompt(*, evidence: Any, request: Any, instructions: str) ->
     representation retains every supplied value and lets roles share evidence.
     """
     return ("Evidence JSON:\n" + serialize_llm_context(evidence)
-            + "\n\nRequest JSON:\n" + serialize_llm_context(request)
-            + "\n\n" + instructions)
+            + "\n\nRequest JSON:\n" + serialize_llm_context({
+                "execution_date_utc": datetime.now(timezone.utc).date().isoformat(),
+                "task": request,
+            })
+            + "\n\nTimeline: source publication and capture dates do not establish the underlying event date. "
+            "Use an event date only when the evidence explicitly supports it. Preserve explicit historical as-of constraints.\n\n"
+            + instructions)
 
 
 def organize_source_captures(records: list[dict[str, Any]]) -> list[dict[str, Any]]:

@@ -163,6 +163,7 @@ def generate_json_via_aql_zopedia_gateway(
     deadline_monotonic: float | None = None,
     inference_effort: str = "",
     literal_output: bool = False,
+    force_full_model: bool = False,
 ) -> dict[str, Any]:
     """Run a JSON model call through the enforceable AQL/Zopedia boundary.
 
@@ -183,6 +184,11 @@ def generate_json_via_aql_zopedia_gateway(
     if llm_client is None or not hasattr(llm_client, "generate_json"):
         raise ValueError("AQL/Zopedia model call requires an LLM client with generate_json")
 
+    from .inference_policy import client_for_task
+    full_client = llm_client
+    llm_client, routing = ((full_client, {"role": "full", "reason": "economy_attempt_failed"})
+                          if force_full_model else client_for_task(llm_client, surface=clean_surface, purpose=clean_purpose))
+
     model_call_id = f"aqlzmc_{uuid.uuid4().hex}"
     started_at = datetime.now(timezone.utc)
     t0 = time.perf_counter()
@@ -198,6 +204,7 @@ def generate_json_via_aql_zopedia_gateway(
             "schema_name": clean_schema_name,
             "language_policy_hash": _hash_text(get_active_narrative_style_rule()),
             "settings_scope": llm_settings_scope(),
+            "routing": routing,
         }
     )
 
@@ -229,6 +236,16 @@ def generate_json_via_aql_zopedia_gateway(
             metadata=safe_metadata,
             error=exc,
         )
+        from .llm import LLMAPIError
+        import requests
+        if llm_client is not full_client and isinstance(exc, (LLMAPIError, requests.RequestException)):
+            return generate_json_via_aql_zopedia_gateway(
+                llm_client=full_client, surface=surface, purpose=purpose, call_type=call_type,
+                system_prompt=system_prompt, user_prompt=user_prompt,
+                schema_name=schema_name, schema=schema,
+                metadata={**(metadata or {}), "economy_failure_call_id": model_call_id},
+                deadline_monotonic=deadline_monotonic, inference_effort=inference_effort,
+                literal_output=literal_output, force_full_model=True)
         raise
 
     response_metadata = getattr(payload, "response_metadata", {})

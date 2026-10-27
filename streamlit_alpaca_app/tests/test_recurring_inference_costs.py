@@ -17,6 +17,7 @@ def durable_store(monkeypatch):
     values = {}
     lock = threading.RLock()
     monkeypatch.setenv("APP_TRACK", "development")
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "balanced")
     monkeypatch.setenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "cost-contracts")
     monkeypatch.setattr(llm, "load_prompt_overrides", lambda: None)
     monkeypatch.setattr(llm, "list_narrative_prompts", lambda: [])
@@ -71,6 +72,101 @@ def result_for(kwargs):
 def model():
     return SimpleNamespace(config=llm.LLMConfig(provider="deepseek", api_key="not-a-real-key",
         model="deepseek-v4-pro", base_url="https://api.deepseek.com", thinking_mode="enabled"))
+
+
+def test_policy_routes_evidence_work_but_preserves_analysis_and_review(monkeypatch):
+    from services.inference_policy import client_for_task, policy_identity
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "balanced")
+    full = model()
+    fast, metadata = client_for_task(full, surface="pipeline.ticker_business_model_stack.research_plan",
+                                     purpose="agent.research_step")
+    assert fast.config.model == "deepseek-flash" and metadata["role"] == "economy"
+    for surface, purpose in [("pipeline.ticker_business_model_stack.research_dossier", "ticker_business_model_research_dossier.direct"),
+                             ("pipeline.ticker_business_model_stack", "ticker_business_model_stack.direct"),
+                             ("pipeline.ticker_business_model_stack.research_followup", "agent.answer_judge"),
+                             ("trading_agent.synthesis", "candidate_synthesis.direct")]:
+        assert client_for_task(full, surface=surface, purpose=purpose)[0] is full
+    candidate = policy_identity()
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "baseline")
+    assert policy_identity() != candidate
+    assert client_for_task(full, surface="pipeline.ticker_business_model_stack.research_dossier", purpose="anything")[0] is full
+
+
+def test_policy_activation_uses_pacific_date(monkeypatch):
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+    from services.inference_policy import policy
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "balanced")
+    tomorrow = datetime.now(ZoneInfo("America/Los_Angeles")).date() + timedelta(days=1)
+    monkeypatch.setenv("LLM_POLICY_NOT_BEFORE", tomorrow.isoformat())
+    assert policy()["profile"] == "baseline"
+    monkeypatch.setenv("LLM_POLICY_NOT_BEFORE", (tomorrow - timedelta(days=1)).isoformat())
+    assert policy()["profile"] == "balanced"
+
+
+def test_replica_retry_switches_to_baseline_and_retains_rollback(durable_store, monkeypatch):
+    from services.inference_policy import execute_with_fallback
+    import os
+    ctx = SimpleNamespace(name="news-ingest-and-features", run_id="attempt", started_at_monotonic=time.monotonic(),
+                          degraded_components={})
+    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "scheduled-execution")
+    calls = []
+    def handler(context, connection):
+        calls.append(os.environ["LLM_POLICY_PROFILE"])
+        if calls[-1] == "balanced":
+            raise RuntimeError("candidate failed")
+        return "retained baseline result"
+    with pytest.raises(RuntimeError, match="candidate failed"):
+        execute_with_fallback(handler, ctx, None)
+    assert calls == ["balanced"]
+    assert execute_with_fallback(handler, ctx, None) == "retained baseline result"
+    assert calls == ["balanced", "baseline"]
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "balanced")
+    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "next-scheduled-execution")
+    execute_with_fallback(handler, ctx, None)
+    assert calls[-1] == "baseline"
+
+
+def test_interrupted_candidate_uses_baseline_on_next_replica(durable_store, monkeypatch):
+    from services.inference_policy import execute_with_fallback, policy_identity
+    import os
+    ctx = SimpleNamespace(name="news-ingest-and-features", run_id="attempt", started_at_monotonic=time.monotonic(),
+                          degraded_components={})
+    ns = "inference_rollout:" + pipeline_store.dataset_namespace()
+    durable_store[(ns, ctx.name + ":" + policy_identity())] = {"status": "started", "execution": "previous-replica"}
+    assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], ctx, None) == "baseline"
+
+
+def test_platform_retry_waits_for_a_dead_replicas_producer_lease(durable_store, monkeypatch):
+    from contextlib import contextmanager
+    from pipeline.jobs import main as jobs
+    waited = []
+    @contextmanager
+    def ownership(namespace, key, **options):
+        waited.append(options.get("wait_seconds", 0))
+        yield True
+    monkeypatch.setenv("PIPELINE_JOB_NAME", "news-ingest-and-features")
+    monkeypatch.setenv("PIPELINE_RUN_ID", "retry-test")
+    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "same-platform-execution")
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "baseline")
+    monkeypatch.setattr(jobs, "_db_connection", lambda **kwargs: None)
+    monkeypatch.setattr(jobs, "read_execution_state", lambda *args, **kwargs: {
+        "run_id": "original-replica", "asof": "2026-10-26T14:05:00+00:00", "universe_version": "original"})
+    monkeypatch.setattr(jobs, "write_execution_state", lambda *args, **kwargs: True)
+    monkeypatch.setattr(jobs, "execution_ownership", ownership)
+    monkeypatch.setattr(jobs, "run_news", lambda *args: None)
+    monkeypatch.setattr(pipeline_store, "retain_job_execution_receipt", lambda *args: None)
+    jobs.main()
+    assert waited == [315]
+
+
+def test_lost_ownership_cancels_existing_io_scope(durable_store, monkeypatch):
+    from services.work_scope import check_work, WorkCancelled
+    monkeypatch.setattr(pipeline_store, "renew_execution_state", lambda *args, **kwargs: False)
+    with pytest.raises(WorkCancelled):
+        with execution.execution_ownership("producer", "lost-owner", lease_seconds=.06):
+            time.sleep(.04)
+            check_work()
 
 
 def test_company_refresh_reuses_across_runs_but_reacts_to_evidence_and_deadline(durable_store, monkeypatch):

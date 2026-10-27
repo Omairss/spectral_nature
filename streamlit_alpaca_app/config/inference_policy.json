@@ -1,0 +1,52 @@
+{
+  "version": "2026-10-27.2",
+  "profiles": {
+    "baseline": {
+      "models": {},
+      "routes": [],
+      "company_refresh_seconds": 0,
+      "semantic_reuse": false
+    },
+    "balanced": {
+      "models": {
+        "economy": {
+          "provider": "deepseek",
+          "model": "deepseek-flash",
+          "thinking_mode": "enabled",
+          "reasoning_effort": "high"
+        }
+      },
+      "routes": [
+        {
+          "surface": "pipeline.ticker_business_model_stack.refresh",
+          "purpose": "*",
+          "role": "economy"
+        },
+        {
+          "surface": "pipeline.ticker_business_model_stack.research_plan",
+          "purpose": "*",
+          "role": "economy"
+        },
+        {
+          "surface": "pipeline.ticker_business_model_stack.research_followup",
+          "purpose": "agent.research_step",
+          "role": "economy"
+        },
+        {
+          "surface": "research.search_evidence",
+          "purpose": "retrieval.plan.direct",
+          "role": "economy"
+        }
+      ],
+      "company_refresh_seconds": 86400,
+      "semantic_reuse": true,
+      "rollout": {
+        "jobs": [
+          "news-ingest-and-features"
+        ],
+        "fallback_profile": "baseline",
+        "attempt_seconds": 9900
+      }
+    }
+  }
+}

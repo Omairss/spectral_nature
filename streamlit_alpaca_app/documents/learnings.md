@@ -1296,3 +1296,8 @@ Compare execution cadence, model roles, provider batch discounts and GPU utiliza
 ### News/research schedule cost control — October 27
 
 The owner requested two runs while pipeline optimization continues. Production now retains the first and last existing UTC slots (`5 14,20 * * 1-5`); October 28 local times are 7:05 AM and 1:05 PM Pacific. Halving executions does not establish a 50% reduction in the total inference bill: work per run and other producers still matter. Verify the live cron and preserve its accepted configuration fingerprint independently of held application changes. All 36 consumer definitions were compared; only this cron changed. [Verification](verification/news-twice-daily-2026-10-27/verification.json).
+
+
+### Task routing and incremental company refresh — October 27
+
+Use one versioned inference policy with explicit task roles, a full-model default and a baseline rollback. Preserve context and model capability; cheaper evidence organization still feeds the full company writer. Give the model the execution date and distinguish source publication from event dates. Route not-yet-released earnings checks into dated future work. Exact-input reuse and semantic assessment have different contracts; neither can extend the original investigation age or silently reuse work after a prompt/model/engine change. A killed replica leaves a short lease, so its retry must wait for expiry rather than be reported as successfully skipped. Integrate lease loss with the existing I/O cancellation scope. News alone cannot deliver a 90% account reduction when other producers exceed 10% of baseline cost.

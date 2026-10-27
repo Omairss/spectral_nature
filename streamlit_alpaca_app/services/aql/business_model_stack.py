@@ -1758,7 +1758,7 @@ def _business_research_dossier_query(
         "Do not turn a single earnings beat into a broad customer-demand verdict, a valuation/yield article into a fundamentals verdict, or related-platform liquidity news into a direct company risk unless the source ties it to this company. "
         "Keep event location and spillover separate: if a source says one company, platform, fund, or peer had an issue, do not rewrite it as sector-wide. Say it may affect sector sentiment only when the source says that. "
         "Keep adjacent company, peer, platform, sector, credit-cycle, rate-cycle, and policy evidence organized around the primary company. "
-        "Request follow_up_questions only when additional evidence could materially improve this investigation. Explain the expected information gain in reason. Missing data is not itself a reason to repeat searches. Keep longer-term possibilities in next_research_actions. Preserve broad exploration and company/sector/private-entity connections without requiring exact source identity. Do not use stock-price, chart, or technical-analysis commentary.\n\n"
+        "Request follow_up_questions only when evidence obtainable during this run could materially improve this investigation. Explain the expected information gain in reason. Use the execution date and source dates: put not-yet-released results and future publication checks in next_research_actions, with their expected timing, rather than sending the acquisition agent to search for them now. Missing data is not itself a reason to repeat searches. Keep longer-term possibilities in next_research_actions. Preserve broad exploration and company/sector/private-entity connections without requiring exact source identity. Do not use stock-price, chart, or technical-analysis commentary.\n\n"
     )
     return render_research_prompt(evidence=shared, request=request, instructions=instructions)
 
@@ -1877,6 +1877,7 @@ def _zopedia_dossier_followup(
         zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client, query=query,
         schema_name="research_dossier_delta", schema=delta_schema,
         task="ticker_business_model_research_followup", surface="pipeline.ticker_business_model_stack.research_followup",
+        answer_review_owner="downstream",
         max_tool_calls=_business_stack_max_tool_calls(), research_subject="company:" + symbol,
         progress_callback=progress_callback,
     )
@@ -2109,6 +2110,33 @@ def _proposal_rows(
     return [proposal]
 
 
+def _assess_company_refresh(*, previous_inputs, current_inputs, retained_analysis, symbol, original_asof,
+                            client, runner=None, progress_callback=None):
+    return _structured_agent_payload(
+        zopedia_agent_runner=runner, llm_client=client,
+        query=render_research_prompt(evidence={
+            "previous_inputs": previous_inputs, "current_inputs": current_inputs,
+            "retained_analysis": retained_analysis,
+        }, request={"company": symbol, "original_asof": original_asof},
+        instructions=("Decide whether the changes require refreshing this company investigation. "
+            "The current news interpretation runs independently. Reuse the dated company analysis only "
+            "when the new inputs add no consequential fact, contradiction, meaningful confirmation, "
+            "changed financial observation, source correction or changed uncertainty relevant to its claims. "
+            "Duplicate reports, storage timestamps and repetition alone do not require research. "
+            "New earnings, filings, guidance, material developments and corrections must be incorporated. "
+            "If the evidence or effect is unclear, require refresh. Never treat absence of a retrieved "
+            "source as proof that nothing changed. Explain the decision and identify changed claims.")),
+        schema_name="company_refresh_assessment", schema={
+            "type": "object", "additionalProperties": False,
+            "properties": {"refresh_required": {"type": "boolean"},
+                "reason": {"type": "string"},
+                "changed_claims": {"type": "array", "items": {"type": "string"}}},
+            "required": ["refresh_required", "reason", "changed_claims"]},
+        task="company_refresh_assessment", surface="pipeline.ticker_business_model_stack.refresh",
+        max_tool_calls=0, research_subject="company:" + symbol,
+        answer_review_owner="downstream", progress_callback=progress_callback)
+
+
 def _checkpoint_company_research(function):
     """Refresh company knowledge on changed evidence or its freshness deadline.
 
@@ -2119,12 +2147,15 @@ def _checkpoint_company_research(function):
     @wraps(function)
     def run(**kwargs):
         from .. import llm, pipeline_store
+        from ..inference_policy import policy
         from .. import zopedia_agent, zopedia_research  # register the complete prompt contract
         from ..json_utils import to_jsonable
         access = current_research_access_scope()
         client = kwargs.get("llm_client")
-        refresh_seconds = _env_positive_int("ZOPEDIA_TICKER_BUSINESS_REFRESH_SECONDS", 86400)
-        if not access or client is None:
+        refresh_policy = policy()
+        refresh_seconds = int(os.getenv("ZOPEDIA_TICKER_BUSINESS_REFRESH_SECONDS") or
+                              refresh_policy["company_refresh_seconds"])
+        if not access or client is None or refresh_seconds <= 0:
             return function(**kwargs)
         symbol = _normalize_symbol(kwargs["symbol"])
         baseline = _company_baseline_row(kwargs.get("company_baselines_frame"), symbol)
@@ -2153,6 +2184,11 @@ def _checkpoint_company_research(function):
         }
         namespace, contract = research_artifact_key(access_scope=access, subject="company:" + symbol,
             query=serialize_llm_context(inputs), schema={}, config=client.config)
+        evidence_fields = {"baseline", "fundamentals", "filings", "news", "research"}
+        _, policy_contract = research_artifact_key(access_scope=access, subject="company:" + symbol,
+            query=serialize_llm_context({k: v for k, v in inputs.items() if k not in evidence_fields}),
+            schema={}, config=client.config)
+        evidence = {**{k: v for k, v in inputs.items() if k in evidence_fields}, "memory": pages}
         namespace += ":company_workflow"
         with execution_ownership(namespace + ":leases", symbol,
                                  wait_seconds=_business_research_budget_seconds()) as owned:
@@ -2165,6 +2201,21 @@ def _checkpoint_company_research(function):
                 and set(state.get("memory_input_ids", [])) <= memory.keys()
                 and all(version in state.get("memory_versions", {}).get(identity, [])
                         for identity, version in memory.items()))
+            if (not compatible and refresh_policy.get("semantic_reuse") and state.get("result")
+                    and state.get("policy_contract") == policy_contract and state.get("evidence")
+                    and 0 <= now - state.get("started_at", 0) < refresh_seconds):
+                assessment = _assess_company_refresh(
+                    previous_inputs=state["evidence"], current_inputs=evidence, retained_analysis=state["result"],
+                    symbol=symbol, original_asof=state["asof"], client=client,
+                    runner=kwargs.get("zopedia_agent_runner"), progress_callback=kwargs.get("progress_callback"))
+                verdict = assessment.get("payload") or {}
+                if assessment.get("status") == "completed" and verdict.get("refresh_required") is False:
+                    state.update(contract=contract, evidence=evidence, refresh_assessment=verdict)
+                    for identity, version in memory.items():
+                        state["memory_versions"].setdefault(identity, []).append(version)
+                    if not pipeline_store.write_execution_state(namespace, symbol, state):
+                        raise RuntimeError("Company reuse assessment could not be retained.")
+                    compatible = True
             if compatible and state.get("result"):
                 _emit_business_progress(kwargs.get("progress_callback"), stage="company_research_reused",
                     symbol=symbol, progress=1.0, message="Reusing the completed company investigation for unchanged evidence.",
@@ -2180,6 +2231,7 @@ def _checkpoint_company_research(function):
                         raise RuntimeError("Previous company investigation could not be retained.")
                 subject_task = "company:" + symbol + ":ticker_business_model_research_dossier"
                 state = {"contract": contract, "work_id": uuid.uuid4().hex, "started_at": now,
+                    "policy_contract": policy_contract, "evidence": evidence,
                     "asof": _asof_iso(kwargs.get("asof_time_utc") or datetime.now(timezone.utc)),
                     "run_id": kwargs.get("run_id", ""), "memory_input_ids": list(memory),
                     "memory_versions": {key: [value] for key, value in memory.items()},

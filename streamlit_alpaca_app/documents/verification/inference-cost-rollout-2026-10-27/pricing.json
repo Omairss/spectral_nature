@@ -1,0 +1,94 @@
+{
+  "verified_date": "2026-10-27",
+  "unit": "USD per million tokens",
+  "rows": [
+    {
+      "provider": "DeepSeek direct",
+      "model": "DeepSeek Flash",
+      "uncached_input": 0.15,
+      "cached_input": 0.003,
+      "output": 0.6,
+      "conditions": "Off-peak; peak doubles all three. Current 14:05/20:05 UTC jobs are off-peak.",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/"
+    },
+    {
+      "provider": "DeepSeek direct",
+      "model": "DeepSeek V4 Pro",
+      "uncached_input": 0.66,
+      "cached_input": 0.022,
+      "output": 1.98,
+      "conditions": "Off-peak; peak doubles all three.",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/"
+    },
+    {
+      "provider": "Novita",
+      "model": "Ling 3.0 Flash Fin",
+      "uncached_input": 0.075,
+      "cached_input": 0.015,
+      "output": 0.22,
+      "context": "256K",
+      "source": "https://novita.ai/pricing"
+    },
+    {
+      "provider": "Novita",
+      "model": "Qwen3.8 Flash",
+      "uncached_input": 0.15,
+      "cached_input": 0.016,
+      "output": 0.47,
+      "source": "https://novita.ai/pricing"
+    },
+    {
+      "provider": "Novita",
+      "model": "GLM 5.3 Flash",
+      "uncached_input": 0.15,
+      "cached_input": 0.03,
+      "output": 0.5,
+      "context": "1M",
+      "source": "https://novita.ai/pricing"
+    },
+    {
+      "provider": "Novita",
+      "model": "Kimi K2.5",
+      "uncached_input": 0.6,
+      "cached_input": 0.1,
+      "output": 3,
+      "source": "https://novita.ai/pricing"
+    },
+    {
+      "provider": "Google",
+      "model": "Gemini 3.5 Flash-Lite",
+      "uncached_input": 0.3,
+      "cached_input": 0.03,
+      "output": 2.5,
+      "batch_input": 0.15,
+      "batch_output": 1.25,
+      "conditions": "Explicit cache storage costs extra; batch is asynchronous.",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    {
+      "provider": "Google",
+      "model": "Gemini 2.5 Flash-Lite",
+      "uncached_input": 0.1,
+      "cached_input": 0.01,
+      "output": 0.4,
+      "batch_input": 0.05,
+      "batch_output": 0.2,
+      "conditions": "Older model/account availability must be checked.",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    {
+      "provider": "OpenAI",
+      "model": "GPT-6 Luna",
+      "uncached_input": 0.1,
+      "cached_input": 0.01,
+      "output": 0.5,
+      "batch_input": 0.05,
+      "batch_output": 0.25,
+      "conditions": "Additional cache writes and different service tiers have separate rates. Closed model; comparison only under current open-model preference.",
+      "source": "https://developers.openai.com/api/docs/pricing"
+    }
+  ],
+  "decision": "Qualify existing-account DeepSeek Flash for bounded evidence tasks first. Retain Pro for substantive synthesis. Ling/GLM/Qwen are additional open-model candidates; they require independent quality, context, API compatibility and billing qualification. Gemini is not the cheapest current option; Kimi K2.5 output is materially dearer than Flash.",
+  "qualification_limits": "Published rates do not prove equal quality, availability, context, tokenizer counts, caching behavior, latency or tool costs. No other provider was enabled or charged.",
+  "batching": "Provider batch discounts suit independent extraction with flexible completion time. Multi-step acquisition depends on prior tool results and cannot be submitted as one flat batch. GPU batching needs measured throughput including model loading and idle time; no Lambda instance was rented for this production rollout."
+}

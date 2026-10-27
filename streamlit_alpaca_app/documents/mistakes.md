@@ -1224,3 +1224,8 @@ The cost audit moved from timed-out runs to a 24-hour company reuse implementati
 ### Read archive shape before verification — October 27
 
 The first schedule comparison assumed both inventory archives used Azure’s `value` envelope; the earlier archive was a direct resource list. Normalized both forms and reran the complete comparison successfully. The failed read-only check changed no resources.
+
+
+### Production cost qualification boundaries — October 27
+
+The initial isolated qualification inherited the unconfigured 300-second research budget instead of production's longer budget, timing out two Pro replays; final qualification sets the budget explicitly. A synthetic safety event labeled fictional inside its model input was correctly ignored as news; keep fixture labels outside the scenario and retain both attempts. An XP replay also inferred an event day from an article date; the common research prompt now separates these dates. During source review, moved lost-lease cancellation into the existing shared I/O scope instead of changing the publication contract only on one consumer. All were caught before a new application build or deployment.

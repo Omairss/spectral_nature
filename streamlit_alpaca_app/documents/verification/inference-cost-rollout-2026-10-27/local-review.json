@@ -1,0 +1,79 @@
+{
+  "status": "review_in_progress",
+  "production_qualification": {
+    "scope": "Existing production model change qualification, not an academic research study. No Lambda rental or alternative paid provider.",
+    "captured_source_companies": [
+      "MRNA",
+      "TEAM",
+      "XP"
+    ],
+    "captured_source_rows": {
+      "MRNA": 60,
+      "TEAM": 64,
+      "XP": 68
+    },
+    "qualitative_findings": [
+      "Inspected final Flash dossiers against supplied raw captures and retained accepted Pro work: fiscal periods, financial units and primary-versus-secondary source limits remain explicit.",
+      "MRNA retains trial endpoints and immature overall survival, avoids treating a procurement maximum as firm backlog, and distinguishes reimbursement benchmarks from realized price.",
+      "TEAM distinguishes ARR, RPO, revenue, GAAP/non-GAAP and reported results versus guidance; Data Center security exposure remains separate from unconfirmed Cloud compromise.",
+      "XP separates client assets, asset-manager AUM, inflows and revenue; consolidated bank-like liabilities do not become parent-company debt or a cash runway calculation.",
+      "Immediate follow-ups now concern currently obtainable evidence. Future earnings releases move to dated next_research_actions after adding the current execution date and the common timing contract.",
+      "Read the actual full Pro company narrative produced from the cheaper TEAM dossier. It retains the growth/margin tension, dates, financial observations, source limitations and indirect developer/workforce connections."
+    ],
+    "semantic_refresh_review": {
+      "scenarios": 8,
+      "observed": "Three duplicate/timestamp-only reports reused; material safety/regulatory developments, earnings update, original-source numeric correction and unresolved material allegation require refresh. Decisions and explanations personally inspected.",
+      "original_dates_preserved": true
+    },
+    "limitations": [
+      "This does not establish equal forecasting accuracy or a full scheduled-job completion. Tomorrow is the owner-authorized monitored candidate with a retained baseline retry.",
+      "Two initial Pro replay calls hit the qualification scope's 300-second default. Final qualification uses explicit production-compatible budgets. Existing accepted Pro outputs remain the comparison evidence for those companies.",
+      "The first simulated safety event was labeled fictional inside the model input and was correctly ignored as news. Corrected the acceptance fixture, keeping simulation labels outside the supplied scenario; no fixture entered product memory.",
+      "An exact XP event-day inference persisted on a repeat despite a general date instruction. Those analytical economy roles are held; full-model dossier interpretation and synthesis are preserved."
+    ],
+    "decision": {
+      "held_roles": [
+        "Analytical dossier generation with Flash",
+        "Research delta/final synthesis with Flash"
+      ],
+      "reason": "XP repeatedly inferred an exact event day from a source publication day, while Pro avoided the unsupported day. Do not keep prompting one case until it passes. Keep substantive financial/regulatory interpretation on full model in the first rollout.",
+      "released_economy_roles": [
+        "Acquisition planning",
+        "Acquisition tool decisions",
+        "Retrieval planning",
+        "Company refresh assessment"
+      ]
+    }
+  },
+  "operational_checks": {
+    "targeted_passed": 69,
+    "broader_passed": 140,
+    "broader_failed": 7,
+    "same_seven_failures_on_accepted_baseline": true,
+    "new_broader_failures": 0,
+    "prior_real_postgresql_concurrency": "documents/infra/costs/2026-10-27/inference-options.json; atomic increments, ownership renewal/reclaim and shared-account reservations verified.",
+    "new_checks": [
+      "Explicit task routing keeps company synthesis, answer review and trading decisions on full model.",
+      "Policy changes invalidate reuse; Pacific activation date controls profile selection.",
+      "Failed/interrupted rollout switches the next replica to baseline and retains rollback for later executions.",
+      "A resumed platform execution waits for the killed replica's lease to expire.",
+      "Lost execution ownership cancels the existing shared I/O scope, protecting subsequent provider/SQL/blob work."
+    ]
+  },
+  "source_review": {
+    "pipeline/jobs/main.py": "Producer ownership, stable retry identity, bounded company admission and finalization reserve; retained prior analyses and narrow inference rollout boundary. Original publication/database lifecycle definitions remain intact.",
+    "services/aql/business_model_stack.py": "Full-workflow checkpoint with original provenance, no duplicate memory writes, materiality assessment, complete prompt/model/engine/policy identity, and maximum age. Full-model delta synthesis and final company narrative own interpretation, replacing redundant follow-up review.",
+    "services/aql_zopedia_engine.py": "Business workflow source participates in cache/research engine identity.",
+    "services/aql_zopedia_gateway.py": "One central declared-task router records actual selected model/role, with one full-model recovery for a failed economy transport/API call.",
+    "services/llm.py": "Explicit config-to-client construction without mutating clients shared by threads. Work deadlines bound nested requests.",
+    "services/llm_context.py": "Complete evidence stays first for prefix caching; changing task/date follows it. Timeline contract separates event dates from source dates.",
+    "services/llm_execution.py": "Renewable ownership integrates existing cancellation scopes, shared credential credit reservations and settlement, policy-aware artifact identity, and per-attempt routing/cost telemetry. No generated response is reused without its contract.",
+    "services/pipeline_store.py": "Atomic short SQL renewals and state arithmetic; no provider operation inside the locked transform.",
+    "services/zopedia_agent.py": "Stable tool catalog precedes mutable planning history; no context is removed.",
+    "services/inference_policy.py": "Baseline default, dated activation, configurable role/profile selection and durable one-retry fallback. Alternate providers require their own explicit endpoint/model/credential.",
+    "config/inference_policy.json": "Flash handles planning, acquisition tool decisions and refresh assessment. Pro retains analytical dossiers, delta/final synthesis, answer review and unknown tasks. 24-hour reuse and 9900-second attempt budget under the existing 10800-second Azure limit.",
+    "services/llm_prices.json": "Same published DeepSeek rates reverified October27; model tokens/usage drive the actual estimator."
+  },
+  "release_scope": "One production news worker. Exact-image development qualification uses an execution-template override on the existing manual macro-fred-daily-dev job; no configured development consumer or feature is replaced. All 36 stored consumer definitions are preserved apart from the approved news worker image and inference-profile environment.",
+  "private_evidence_directory": "/Users/omairs/Library/Application Support/SpectralNature/operations/inference-rollout-2026-10-27"
+}

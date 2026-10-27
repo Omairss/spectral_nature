@@ -39,9 +39,11 @@ class Store:
 
 @pytest.fixture
 def store(monkeypatch):
+    from services import llm_execution
     db = Store()
     monkeypatch.setenv('APP_TRACK', 'development')
     monkeypatch.setattr(pipeline_store, 'open_database_connection', db.connect)
+    monkeypatch.setattr(llm_execution, 'reserve_provider_budget', lambda *args, **kwargs: False)
     monkeypatch.setattr(llm, '_PROMPT_OVERRIDES', {})
     monkeypatch.setattr(llm, '_OVERRIDES_LOADED', False)
     monkeypatch.setattr(llm, '_OVERRIDES_SCOPE', '')
