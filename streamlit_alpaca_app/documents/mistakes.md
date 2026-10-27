@@ -1215,3 +1215,7 @@ A full-blob download stalled in the first instance’s finalization, leaving a s
 The final API readback initially used the internal ingress URL externally and then assumed port8000. Read the declared ingress boundary and target port8080 first; both actual runtime health checks returned200/ok. The resource and configuration check correctly required the previously accepted worker-image map for the already-promoted shared index. Neither failed read-only probe changed any consumer.
 
 A controller initially expected a temporary workspace completion marker after the workspace finalizer had already removed its staging files. Corrected the dependency to accept the canonical verified archive receipt before retirement. Verification completed and both compute resources were deleted; no completed controller remains running.
+
+### Cost optimization scope — October 27
+
+The cost audit moved from timed-out runs to a 24-hour company reuse implementation before presenting twice-daily scheduling and cheaper model alternatives. The owner asked for those recurring-cost comparisons first. The changes are held in an isolated Git worktree, with no deployment or paid inference; compare the options and align the workload policy before continuing.

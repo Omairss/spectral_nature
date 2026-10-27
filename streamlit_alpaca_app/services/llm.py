@@ -57,10 +57,11 @@ def _request_deadline(timeout_seconds: float) -> float:
 
 
 def _remaining_request_timeout(deadline: float) -> float:
+    from .work_scope import remaining_work_seconds
     remaining = deadline - time.monotonic()
     if remaining <= 0:
         raise LLMDeadlineExceeded("LLM request deadline expired.")
-    return remaining
+    return remaining_work_seconds(remaining)
 
 
 def remaining_request_timeout(maximum_seconds: float) -> float:

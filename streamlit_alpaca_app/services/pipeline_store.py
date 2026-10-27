@@ -2520,6 +2520,41 @@ def release_execution_state(namespace: str, state_key: str, *, owner: str) -> No
         conn.commit()
 
 
+def renew_execution_state(namespace: str, state_key: str, *, owner: str, seconds: float) -> bool:
+    conn = open_database_connection()
+    if conn is None:
+        raise RuntimeError("Execution ownership store is unavailable.")
+    with closing(conn):
+        with conn.cursor() as cur:
+            cur.execute("""UPDATE aql_zopedia_execution_state SET payload=jsonb_set(payload,
+                '{expires_at}',to_jsonb(clock_timestamp()+%s*interval '1 second')),updated_at_utc=now()
+                WHERE namespace=%s AND state_key=%s AND payload->>'owner'=%s
+                  AND (payload->>'expires_at')::timestamptz > clock_timestamp()
+                RETURNING state_key""", (seconds, namespace, state_key, owner))
+            renewed = cur.fetchone() is not None
+        conn.commit()
+        return renewed
+
+
+def mutate_execution_state(namespace: str, state_key: str, transform) -> dict[str, Any]:
+    """Serialize an arithmetic state update; never perform remote work in transform."""
+    conn = open_database_connection()
+    if conn is None:
+        raise RuntimeError("Execution accounting store is unavailable.")
+    with closing(conn):
+        _ensure_execution_store(conn)
+        with conn.cursor() as cur:
+            cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
+                VALUES (%s,%s,'{}'::jsonb) ON CONFLICT DO NOTHING""", (namespace, state_key))
+            cur.execute("""SELECT payload FROM aql_zopedia_execution_state
+                WHERE namespace=%s AND state_key=%s FOR UPDATE""", (namespace, state_key))
+            value = transform(dict(cur.fetchone()[0]))
+            cur.execute("""UPDATE aql_zopedia_execution_state SET payload=%s::jsonb,updated_at_utc=now()
+                WHERE namespace=%s AND state_key=%s""", (json.dumps(value, default=str), namespace, state_key))
+        conn.commit()
+        return value
+
+
 def write_execution_state(namespace: str, state_key: str, payload: dict[str, Any], *, immutable: bool = False) -> bool:
     conn = open_database_connection()
     if conn is None:

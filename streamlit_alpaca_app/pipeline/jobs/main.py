@@ -3,6 +3,7 @@ from __future__ import annotations
 from services.database import open_database_session, database_workload
 from services.work_scope import WorkScope
 from contextvars import copy_context
+from contextlib import nullcontext
 
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
@@ -56,6 +57,7 @@ from services.entity_taxonomy import (
 )
 from services.fred import FredAPIError, load_fred_api_key, load_fred_dashboard
 from services.llm import LLMAPIError
+from services.llm_execution import current_research_access_scope, execution_ownership, check_execution_ownership
 from services.market_data import (
     build_correlation_phase_shifts_from_bars,
     build_momentum_profiles_from_bars,
@@ -116,6 +118,7 @@ class JobContext:
     tracking_connection: Any | None = field(default=None, repr=False, compare=False)
     degraded_components: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
     published_datasets: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
+    started_at_monotonic: float = field(default_factory=time.monotonic, repr=False, compare=False)
 
 
 class _PipelineStepTimeout(TimeoutError):
@@ -705,6 +708,7 @@ def _upload_manifest(
 
 
 def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, conn: Any | None) -> None:
+    check_execution_ownership()
     prepared_frame = frame.copy(deep=False) if isinstance(frame, pd.DataFrame) else pd.DataFrame()
     if dataset_name == "attention_source_documents" and not prepared_frame.empty:
         try:
@@ -2365,6 +2369,19 @@ def _iter_news_business_research_output_phases(
         except Exception as exc:
             print(f"[warn] ticker business research clients unavailable: {type(exc).__name__}: {exc}")
             execute_business_research = False
+    deferred: list[str] = []
+    progress = _make_stdout_zopedia_progress_callback(scope="ticker_business_model_stack")
+    def company_progress(event):
+        progress(event)
+        if event.get("stage") == "business_research_deferred":
+            deferred.append(str(event.get("symbol") or ""))
+    # Retain a complete investigation window and enough tail time for current
+    # news interpretation/publication inside the existing three-hour job.
+    research_deadline = min(
+        time.monotonic() + _parse_int_env("ZOPEDIA_TICKER_BUSINESS_BATCH_BUDGET_SECONDS", 5400, minimum=60),
+        ctx.started_at_monotonic + _parse_int_env("PIPELINE_JOB_WORK_TIMEOUT_SECONDS", 9000, minimum=60)
+        - _parse_int_env("PIPELINE_JOB_FINALIZATION_RESERVE_SECONDS", 2700, minimum=60),
+    )
     business_stack_frames = build_ticker_business_model_stack_frames(
         symbols=symbols,
         company_baselines_frame=company_baselines,
@@ -2383,8 +2400,11 @@ def _iter_news_business_research_output_phases(
         asof_time_utc=ctx.asof,
         write_policy=write_policy,
         limit=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_STACK_LIMIT", 25, minimum=1),
-        progress_callback=_make_stdout_zopedia_progress_callback(scope="ticker_business_model_stack"),
+        progress_callback=company_progress,
+        research_deadline_monotonic=research_deadline,
     )
+    if deferred:
+        ctx.degraded_components["company_research_continuation"] = f"{len(deferred)} investigations retained for the next execution."
     stack_frame = business_stack_frames.get("zopedia_ticker_business_model_stacks", pd.DataFrame())
     yield {
         "zopedia_business_model_research_plans": business_stack_frames.get("zopedia_business_model_research_plans", pd.DataFrame()),
@@ -3429,8 +3449,16 @@ def main() -> None:
             work_conn = _db_connection(workload="interactive" if ctx.name in {"system-health", "research-run-execute"} else "background")
             if work_conn is None:
                 raise RuntimeError("Pipeline work database connection is unavailable.")
-        with database_workload("interactive" if ctx.name in {"system-health", "research-run-execute"} else "background"):
-            result = handler(ctx, work_conn)
+        ownership = (execution_ownership("pipeline_job:" + dataset_namespace(), ctx.name)
+                     if execution and current_research_access_scope() else nullcontext(True))
+        with ownership as owned, database_workload("interactive" if ctx.name in {"system-health", "research-run-execute"} else "background"):
+            if owned:
+                result = handler(ctx, work_conn)
+            else:
+                status = "Skipped"
+                result = None
+                error_summary = "A previous execution still owns this producer; its progress is retained."
+                _job_progress(ctx, db_conn, stage="coalesced", message=error_summary, progress_pct=100)
         if isinstance(result, dict) and result.get("job_status") == "Warning":
             status = "Warning"
             error_summary = str(result.get("job_message") or "Research completed with degraded stages.")

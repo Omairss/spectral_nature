@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Promote only the Home fetch-cache correction on the current accepted production frontend; preserve existing DEV frontend and all Python consumers.",
+  "status": "held_for_cost_design_review",
+  "scope": "Held local recurring-inference controls; compare cadence, model roles and Lambda batching with owner before release acceptance.",
   "source_revision": "8146009d567ce93f0dfe8852a21a87493724f531",
   "review_base_revision": "86d3ba129aa3095960362d2511899d93def7459b",
   "files": {
@@ -1551,7 +1551,7 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": true,
+  "production_authorized": false,
   "production_authorization": {
     "owner_instruction": "push to prod",
     "scope": "Cache-only Home repair on both production Next.js gateways, following verified development behavior; preserve all other application images and non-image configuration.",

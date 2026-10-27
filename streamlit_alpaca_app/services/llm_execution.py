@@ -28,10 +28,85 @@ log = logging.getLogger(__name__)
 _CALL: ContextVar[dict[str, Any]] = ContextVar("llm_execution_call", default={})
 _ACCOUNTS: dict[str, tuple[float, bool]] = {}
 _ACCOUNT_LOCK = threading.RLock()
+_OWNERSHIP: ContextVar[tuple] = ContextVar("execution_ownership", default=())
+
+
+def check_execution_ownership() -> None:
+    for check in _OWNERSHIP.get():
+        check()
+
+
+@contextmanager
+def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, lease_seconds: float = 300):
+    """Coordinate work across processes without holding a database connection.
+
+    A lost lease stops subsequent provider requests and publication. A killed
+    worker's ownership expires; its durable checkpoints remain resumable.
+    """
+    from . import pipeline_store
+    from contextvars import copy_context
+    owner = uuid.uuid4().hex
+    deadline = time.monotonic() + wait_seconds
+    while not pipeline_store.claim_execution_state(namespace, key, owner=owner, seconds=lease_seconds):
+        if time.monotonic() >= deadline:
+            yield False
+            return
+        check_execution_ownership()
+        time.sleep(min(1, max(deadline-time.monotonic(), 0)))
+    stop = threading.Event()
+    lost = threading.Event()
+    renewed_at = time.monotonic()
+    def check():
+        if lost.is_set() or time.monotonic()-renewed_at >= lease_seconds:
+            raise RuntimeError("Execution ownership was lost; completed work remains checkpointed.")
+    def heartbeat():
+        nonlocal renewed_at
+        while not stop.wait(lease_seconds / 3):
+            try:
+                if not pipeline_store.renew_execution_state(namespace, key, owner=owner, seconds=lease_seconds):
+                    lost.set()
+                    return
+                renewed_at = time.monotonic()
+            except Exception:
+                lost.set()
+                return
+    thread = threading.Thread(target=copy_context().run, args=(heartbeat,), daemon=True,
+                              name="execution-ownership")
+    token = _OWNERSHIP.set((*_OWNERSHIP.get(), check))
+    thread.start()
+    try:
+        yield True
+        check()
+    finally:
+        _OWNERSHIP.reset(token)
+        stop.set()
+        thread.join(timeout=2)
+        try:
+            pipeline_store.release_execution_state(namespace, key, owner=owner)
+        except Exception:
+            log.warning("Execution ownership release unavailable; lease will expire")
+
+
+@contextmanager
+def research_work_context(identity: str, *, prior: dict[str, Any]):
+    """Freeze a dated investigation's identity and prior knowledge across retries."""
+    status = {"failed": False}
+    with model_call_context(work_instance=identity, prior_research=prior, work_status=status):
+        yield status
+
+
+def mark_research_work_incomplete() -> None:
+    status = _CALL.get().get("work_status")
+    if status is not None:
+        status["failed"] = True
 
 
 class LLMContextWindowExceeded(RuntimeError):
     """Capacity feedback for the agent; retrying an unchanged request cannot help."""
+
+
+class ResearchWorkDeferred(RuntimeError):
+    """The producer retains this investigation for a later execution window."""
 
 
 def request_context_budget(config: Any, payload: dict[str, Any]) -> dict[str, Any]:
@@ -52,7 +127,12 @@ def request_context_budget(config: Any, payload: dict[str, Any]) -> dict[str, An
     encoding = tiktoken.get_encoding("cl100k_base")
     text = json.dumps(payload, ensure_ascii=False, default=str)
     tokens = len(encoding.encode_ordinary(text))
-    reserve = int(payload.get("max_tokens") or os.getenv("LLM_CONTEXT_OUTPUT_RESERVE_TOKENS") or 65536)
+    default_output = 65536
+    if config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com":
+        effort = payload.get("reasoning_effort") or getattr(config, "reasoning_effort", "high")
+        thinking = (payload.get("thinking") or {}).get("type") or getattr(config, "thinking_mode", "enabled")
+        default_output = 131072 if effort == "max" else 8192 if effort == "none" or thinking == "disabled" else 65536
+    reserve = int(payload.get("max_tokens") or max(default_output, int(os.getenv("LLM_CONTEXT_OUTPUT_RESERVE_TOKENS") or 0)))
     estimate = (tokens * 5 + 3) // 4
     return {"window_tokens": window, "estimated_input_tokens": estimate,
             "reserved_output_tokens": reserve, "fits": estimate + reserve <= window,
@@ -124,7 +204,10 @@ def estimated_charge(*, provider: str, model: str, usage: dict[str, Any] | None,
 def _account_key(config: Any) -> str:
     # Only the digest is retained. It identifies the billing account across
     # development/production workers without persisting credentials.
-    return hashlib.sha256(f"{config.provider}:{config.base_url}:{config.api_key}".encode()).hexdigest()
+    endpoint = config.base_url
+    if config.provider == "deepseek" and urlparse(endpoint).hostname == "api.deepseek.com":
+        endpoint = "https://api.deepseek.com"
+    return hashlib.sha256(f"{config.provider}:{endpoint}:{config.api_key}".encode()).hexdigest()
 
 
 def _read_state(namespace: str, key: str) -> dict[str, Any] | None:
@@ -175,6 +258,80 @@ def ensure_provider_available(config: Any, *, timeout: float) -> None:
         raise LLMProviderUnavailable("DeepSeek account has insufficient funds; provider execution is paused until credit is restored.")
 
 
+def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id: str,
+                            timeout: float) -> bool:
+    """Reserve request headroom across workers sharing the official DeepSeek key.
+
+    The balance is authoritative; reservations protect concurrent in-flight
+    work. No generated request or arbitrary daily production allowance is used.
+    """
+    if config.provider != "deepseek" or urlparse(config.base_url).hostname != "api.deepseek.com":
+        return False
+    from . import pipeline_store
+    from .llm import LLMProviderUnavailable
+    key = _account_key(config)
+    namespace = "provider_budget"
+    state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
+    if time.time()-float(state.get("observed_at", 0)) >= 30:
+        with execution_ownership(namespace + ":balance", key, wait_seconds=min(timeout, 15)) as owned:
+            if not owned:
+                raise LLMProviderUnavailable("Provider balance refresh is still in progress.")
+            state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
+            if time.time()-float(state.get("observed_at", 0)) >= 30:
+                probe_started = time.time()
+                response = requests.get(config.base_url.rstrip("/") + "/user/balance",
+                    headers={"Authorization": "Bearer " + config.api_key}, timeout=min(timeout, 15))
+                response.raise_for_status()
+                data = response.json()
+                balances = [value for value in data["balance_infos"] if value["currency"] == "USD"]
+                if len(balances) != 1:
+                    raise LLMProviderUnavailable("Provider USD balance could not be established.")
+                balance = float(balances[0]["total_balance"])
+                def refresh(current):
+                    reservations = {identity: value for identity, value in current.get("reservations", {}).items()
+                        if (value.get("status") in {"pending", "unknown"} and value["expires_at"] > time.time())
+                        or value.get("finished_at", 0) >= probe_started}
+                    return {"observed_at": probe_started, "balance_usd": balance,
+                            "available": data.get("is_available") is True, "reservations": reservations}
+                state = pipeline_store.mutate_execution_state(namespace, key, refresh)
+    price = _price_snapshot()["models"].get(config.provider + ":" + str(payload.get("model") or config.model))
+    if price is None:
+        raise LLMProviderUnavailable("Provider budget requires a published price for the configured model.")
+    context = request_context_budget(config, payload)
+    amount = (context["estimated_input_tokens"] * price["offpeak"]["input"]
+              + context["reserved_output_tokens"] * price["offpeak"]["output"]) / 1e6
+    amount *= price.get("peak_multiplier", 1)
+    free = 0.0
+    def reserve(current):
+        nonlocal free
+        free = current["balance_usd"] - sum(value["amount_usd"] for value in current["reservations"].values())
+        if not current["available"] or free < amount:
+            raise LLMProviderUnavailable(
+                f"Provider credit cannot cover the next request and active work (${free:.2f} unreserved). Progress is retained.")
+        current["reservations"][attempt_id] = {"amount_usd": amount, "status": "pending",
+                                               "expires_at": time.time()+timeout+300}
+        return current
+    pipeline_store.mutate_execution_state(namespace, key, reserve)
+    if free < float(os.getenv("LLM_PROVIDER_BALANCE_ALERT_USD", "10")):
+        log.warning("provider_balance_low available_usd=%.2f reserved_request_usd=%.2f", free, amount)
+    return True
+
+
+def settle_provider_budget(config: Any, *, attempt_id: str, charge: dict[str, Any],
+                           definitely_unbilled: bool) -> None:
+    from .pipeline_store import mutate_execution_state
+    def settle(state):
+        value = state["reservations"][attempt_id]
+        value["finished_at"] = time.time()
+        if charge.get("status") == "estimated" or definitely_unbilled:
+            value.update(status="settled", amount_usd=float(charge.get("usd_max") or 0))
+        else:
+            # A disconnected response is unknown usage, never a free request.
+            value["status"] = "unknown"
+        return state
+    mutate_execution_state("provider_budget", _account_key(config), settle)
+
+
 def request_composition(payload: dict[str, Any]) -> dict[str, Any]:
     """Measure the final transport payload without retaining any prompt text."""
     encoder = json.JSONEncoder(ensure_ascii=True, default=str)
@@ -199,6 +356,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     from .pipeline_store import record_provider_attempt
     config = config or client.config
     session = session or client.session
+    check_execution_ownership()
     timeout = float(kwargs.get("timeout") or config.timeout_seconds)
     deadline = time.monotonic() + timeout
     ensure_provider_available(config, timeout=timeout)
@@ -236,9 +394,13 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     response = None
     error_type = ""
     transport_attempted = False
+    budget_reserved = False
     try:
         if context_budget and not context_budget["fits"]:
             raise LLMContextWindowExceeded(json.dumps(context_budget))
+        budget_reserved = reserve_provider_budget(config, payload, attempt_id=attempt_id,
+                                                  timeout=_remaining_request_timeout(deadline))
+        check_execution_ownership()
         kwargs["timeout"] = _remaining_request_timeout(deadline)
         transport_attempted = True
         response = session.post(**kwargs)
@@ -296,6 +458,13 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                     usage=data.get("usage"), started_at=started),
             },
         }
+        if budget_reserved:
+            try:
+                settle_provider_budget(config, attempt_id=attempt_id,
+                    charge=event["metadata"]["estimated_charge"],
+                    definitely_unbilled=not transport_attempted or (response is not None and response.status_code == 402))
+            except Exception:
+                log.warning("Provider budget settlement unavailable; reservation retained: %s", attempt_id)
         try:
             if not record_provider_attempt(event):
                 log.warning("Provider attempt usage was not persisted: %s", event["attempt_id"])
@@ -349,6 +518,10 @@ def retain_research_artifact(namespace: str, key: str, *, subject: str, task: st
 def latest_research_artifact(*, access_scope: str, subject: str, task: str) -> dict[str, Any] | None:
     from .llm import llm_settings_scope
     namespace = f"research_artifact:{llm_settings_scope()}:{access_scope}"
+    frozen = _CALL.get().get("prior_research") or {}
+    identity = subject + ":" + task
+    if identity in frozen:
+        return frozen[identity]
     pointer = _read_state(namespace + ":latest", subject + ":" + task)
     artifact = _read_state(namespace, pointer["artifact_id"]) if pointer else None
     if not artifact:
@@ -385,7 +558,7 @@ def checkpoint_structured_research(function):
                     or kwargs.get("review_answer") or kwargs.get("max_tool_calls") is None):
                 return execute()
             live_acquisition = kwargs["max_tool_calls"] > 0
-            run_instance = os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or os.getenv("PIPELINE_RUN_ID")
+            run_instance = _CALL.get().get("work_instance") or os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or os.getenv("PIPELINE_RUN_ID")
             if live_acquisition and not run_instance:
                 return execute()
             client = kwargs.get("llm_client") or load_aql_zopedia_llm_client(
@@ -458,7 +631,7 @@ def checkpoint_agent_research(function):
     @wraps(function)
     def run(**kwargs):
         access = current_research_access_scope()
-        execution = os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or os.getenv("PIPELINE_RUN_ID")
+        execution = _CALL.get().get("work_instance") or os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or os.getenv("PIPELINE_RUN_ID")
         request_context = kwargs.get("request_context") or {}
         if (not access or not execution or kwargs.get("persist_findings", True)
                 or kwargs.get("conversation_history") or kwargs.get("force_refresh")

@@ -64,6 +64,7 @@ def research_engine_revision() -> str:
     digest = hashlib.sha256()
     for name in (
         "aql_zopedia_engine.py",
+        "aql/business_model_stack.py",
         "zopedia_agent.py",
         "zopedia_analysis.py",
         "zopedia_research.py",

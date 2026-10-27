@@ -1287,3 +1287,7 @@ Verify what a resource actually retains before deletion. Both older PostgreSQL s
 ### Compute archival has separate management and local-disk access — October 26
 
 Workspace owners can manage another user’s Azure ML instance without having access to its local disk. Preserve shared workspace files independently, retain the stopped instance when local export is blocked, and request the assigned user’s legitimate sign-in/export rather than repeatedly requesting permission to discard data. For accessible instances, archive encryption keys belong in Key Vault, encrypted blobs receive the scoped native30day deletion rule, and verification must read the complete copied blob, match its hash, decrypt it and read the full gzip/tar stream before deleting compute. Full OS archives are historical data only and never application release source.
+
+### Recurring inference cost decisions — October 27
+
+Compare execution cadence, model roles, provider batch discounts and GPU utilization before implementing a cache policy. Use observed complete-workflow costs and distinguish analytical synthesis from mechanical summarization. Cache validity must retain original dates, react to changed evidence and avoid its own generated memory invalidating reuse. Pricing arithmetic is not a quality comparison. See [the options review](infra/costs/2026-10-27/inference-options.json).

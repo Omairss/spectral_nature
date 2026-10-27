@@ -1,0 +1,213 @@
+{
+  "status": "options_review; implementation held locally",
+  "observed_at_utc": "2026-10-27T07:38:00.943898+00:00",
+  "timezone": "America/Los_Angeles",
+  "worktree": "/Users/omairs/Documents/code/spectral_nature_inference_costs_20261026",
+  "branch": "fix/recurring-inference-costs-20261026",
+  "production_changes": 0,
+  "paid_inference_calls": 0,
+  "gpu_rentals": 0,
+  "owner_steering": "Compare twice-daily runs, cheaper summarization, Kimi/Gemini and Lambda batching before continuing implementation or deployment.",
+  "workload": {
+    "day": "2026-10-26",
+    "provider_billed_usd": 49.8,
+    "captured_production_estimate_usd": 45.21534226,
+    "news_captured_usd": 37.817356236,
+    "company_followups_usd": 20.342807144,
+    "company_dossier_usd": 8.639701092,
+    "company_planning_usd": 4.967910948,
+    "company_final_story_usd": 2.588551724,
+    "actual_input_tokens": 69926676,
+    "actual_output_tokens": 4818183,
+    "actual_cached_tokens": 16420480
+  },
+  "provider_rate_comparison": {
+    "input_tokens": 69926676,
+    "output_tokens": 4818183,
+    "cached_input_tokens": 16420480,
+    "rows": [
+      {
+        "model": "DeepSeek Pro",
+        "input_per_million": 0.66,
+        "output_per_million": 1.98,
+        "cache_per_million": 0.022,
+        "same_tokens_no_cache_usd": 55.6916085,
+        "same_tokens_existing_cache_ratio_usd": 45.21534226000001
+      },
+      {
+        "model": "DeepSeek Flash",
+        "input_per_million": 0.15,
+        "output_per_million": 0.6,
+        "cache_per_million": 0.003,
+        "same_tokens_no_cache_usd": 13.379911199999999,
+        "same_tokens_existing_cache_ratio_usd": 10.96610064
+      },
+      {
+        "model": "Ling 3.0 Flash Fin",
+        "input_per_million": 0.075,
+        "output_per_million": 0.22,
+        "cache_per_million": 0.015,
+        "same_tokens_no_cache_usd": 6.3045009599999995,
+        "same_tokens_existing_cache_ratio_usd": 5.319272160000001
+      },
+      {
+        "model": "Qwen3.8 Flash",
+        "input_per_million": 0.15,
+        "output_per_million": 0.47,
+        "cache_per_million": 0.016,
+        "same_tokens_no_cache_usd": 12.75354741,
+        "same_tokens_existing_cache_ratio_usd": 10.55320309
+      },
+      {
+        "model": "GLM5.3 Flash",
+        "input_per_million": 0.15,
+        "output_per_million": 0.5,
+        "cache_per_million": 0.03,
+        "same_tokens_no_cache_usd": 12.8980929,
+        "same_tokens_existing_cache_ratio_usd": 10.927635300000002
+      },
+      {
+        "model": "MiniMax M3.1 Flash",
+        "input_per_million": 0.15,
+        "output_per_million": 0.6,
+        "cache_per_million": 0.015,
+        "same_tokens_no_cache_usd": 13.379911199999999,
+        "same_tokens_existing_cache_ratio_usd": 11.163146400000002
+      },
+      {
+        "model": "Gemini2.5 Flash Lite",
+        "input_per_million": 0.1,
+        "output_per_million": 0.4,
+        "cache_per_million": 0.01,
+        "same_tokens_no_cache_usd": 8.919940800000001,
+        "same_tokens_existing_cache_ratio_usd": 7.442097600000001
+      },
+      {
+        "model": "Gemini2.5 Flash Lite Batch",
+        "input_per_million": 0.05,
+        "output_per_million": 0.2,
+        "cache_per_million": 0.01,
+        "same_tokens_no_cache_usd": 4.4599704000000004,
+        "same_tokens_existing_cache_ratio_usd": 3.8031512000000003
+      },
+      {
+        "model": "Gemini3.5 Flash Lite",
+        "input_per_million": 0.3,
+        "output_per_million": 2.5,
+        "cache_per_million": 0.03,
+        "same_tokens_no_cache_usd": 33.023460299999996,
+        "same_tokens_existing_cache_ratio_usd": 28.589930700000004
+      },
+      {
+        "model": "Kimi K2.5 Novita",
+        "input_per_million": 0.6,
+        "output_per_million": 3,
+        "cache_per_million": 0.1,
+        "same_tokens_no_cache_usd": 56.4105546,
+        "same_tokens_existing_cache_ratio_usd": 48.200314600000006
+      },
+      {
+        "model": "Kimi K3.1 Pro Novita",
+        "input_per_million": 2,
+        "output_per_million": 10,
+        "cache_per_million": 0.2,
+        "same_tokens_no_cache_usd": 188.03518200000002,
+        "same_tokens_existing_cache_ratio_usd": 158.478318
+      }
+    ],
+    "basis": "Rate comparison only. Identical token counts assumed; no claims of matched quality, tokenizer, reasoning length, caching or latency. Excludes search, explicit cache storage and provider-specific extra charges."
+  },
+  "summarization_candidate_repricing": {
+    "agent.final_synthesis": {
+      "calls": 215,
+      "pro_usd": 11.575856115999992,
+      "flash_same_tokens_usd": 2.8158350940000005,
+      "saving_usd": 8.760021021999991
+    },
+    "ticker_business_model_stack.direct": {
+      "calls": 57,
+      "pro_usd": 2.5885517240000016,
+      "flash_same_tokens_usd": 0.6325508460000001,
+      "saving_usd": 1.9560008780000016
+    }
+  },
+  "caveats": [
+    "Same-token comparisons are arithmetic, not equivalent-quality or final-invoice forecasts.",
+    "Actual reasoning length, tokenizer, cache behavior, extra tool fees, context capacity and retries vary by model.",
+    "Gemini 2.5 access is restricted to accounts with prior usage.",
+    "Kimi K2 official retirement is planned for end of December; avoid a new long-lived dependency.",
+    "Novita Batch discount is introductory and model support must be verified.",
+    "The all-final-synthesis bucket includes substantive reasoning; it is not all mechanical summarization.",
+    "Two daily runs can cut run count by half; accumulated evidence and adaptive tool work can change cost per run.",
+    "API-only balance probes and all local accounting fixtures are free of inference charges.",
+    "Kimi K3.1 Pro, Qwen/GLM/Ling/MiniMax and Kimi K2.5 USD rates in this comparison are hosted Novita quotes; native-provider offers may differ."
+  ],
+  "lambda_scenarios": {
+    "basis": "22 weekdays, two rented one-hour windows per weekday; loading, active and idle time must all fit each window. Storage, taxes and extra startup time not included. Throughput and quality are unmeasured.",
+    "one_h100_sxm": {
+      "gpu_count": 1,
+      "usd_per_gpu_hour": 4.29,
+      "monthly_gpu_usd": 188.76
+    },
+    "two_h100_sxm": {
+      "gpu_count": 2,
+      "usd_per_gpu_hour": 4.19,
+      "monthly_gpu_usd": 368.72
+    },
+    "eight_h100_sxm": {
+      "gpu_count": 8,
+      "usd_per_gpu_hour": 3.99,
+      "monthly_gpu_usd": 1404.48
+    },
+    "one_h100_continuous_30_days_usd": 3088.8,
+    "single_h100_hours_to_match_flash_same_recorded_tokens": 2.5562006153846153
+  },
+  "held_implementation": {
+    "policy": "At most 24 hours of reuse for completed company workflows when input evidence and model/prompt/parameter contracts are unchanged; changed evidence invalidates sooner. Original dates and provenance are preserved.",
+    "mechanics": [
+      "Distributed producer and company ownership with heartbeat and expiry.",
+      "Stable logical work identity and frozen prior research across platform-execution retries.",
+      "Complete per-company workflow checkpoint and no repeated memory writes on cache hit.",
+      "Stable tool catalog moved before mutable planner history.",
+      "Pre-request shared-credential wallet reservation and free balance checks.",
+      "A bounded company batch defers work without enough execution time and retains time for final publication."
+    ],
+    "quality_acceptance": "Not accepted for release; existing generated artifacts are retained, no new model quality comparison has been run.",
+    "local_checks": {
+      "targeted_passed": 41,
+      "broader_pipeline_existing_baseline_failures": 6,
+      "new_broader_failures": 0,
+      "postgres_concurrency": {
+        "atomic_increments_expected": 120,
+        "atomic_increments_actual": 120,
+        "heartbeat_renewal": true,
+        "overlap_rejected": true,
+        "expired_owner_reclaimed": true,
+        "stale_release_rejected": true,
+        "concurrent_requests": 16,
+        "accepted_with_080_usd": 3,
+        "reserved_usd": 0.77870628,
+        "balance_api_fixtures": 1,
+        "external_requests": 0,
+        "new_inference_calls": 0
+      }
+    }
+  },
+  "sources": {
+    "deepseek": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "gemini_pricing": "https://ai.google.dev/gemini-api/docs/pricing",
+    "gemini_access": "https://ai.google.dev/gemini-api/docs/deprecations",
+    "gemini_batch": "https://ai.google.dev/gemini-api/docs/batch-api",
+    "kimi_pricing": "https://platform.kimi.ai/docs/pricing/chat",
+    "kimi_api_lifecycle": "https://platform.kimi.com/docs/pricing/chat",
+    "hosted_open_models": "https://novita.ai/pricing",
+    "lambda": "https://lambda.ai/instances",
+    "qwen_model": "https://huggingface.co/Qwen/Qwen3.8-27B",
+    "qwen_serving": "https://recipes.vllm.ai/Qwen/Qwen3.5-122B-A10B"
+  },
+  "next_decisions": [
+    "Choose production cadence and summary/research model roles.",
+    "Perform a representative qualitative comparison using the permitted provider/budget before model changes.",
+    "Reconcile held changes and accepted development features before a development release; production permission and exact-image acceptance remain required."
+  ]
+}

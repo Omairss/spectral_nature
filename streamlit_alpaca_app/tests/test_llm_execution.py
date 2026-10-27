@@ -306,13 +306,13 @@ def test_provider_receipts_survive_database_outage_and_reconcile_once(monkeypatc
     pointers = {}; objects = {}; inserted = {}
     class Blob:
         def __init__(self, name): self.name = name
-        def download_blob(self): return SimpleNamespace(readall=lambda: json.dumps(pointers[self.name]).encode())
-        def delete_blob(self): pointers.pop(self.name)
+        def download_blob(self, **kwargs): return SimpleNamespace(readall=lambda: json.dumps(pointers[self.name]).encode())
+        def delete_blob(self, **kwargs): pointers.pop(self.name)
     class Archive:
         def __init__(self, *, namespace, root):
             self.root = namespace + '/' + root
             self.container = SimpleNamespace(
-                list_blobs=lambda **kwargs: [SimpleNamespace(name=name) for name in list(pointers) if name.startswith(kwargs['name_starts_with'])],
+                walk_blobs=lambda **kwargs: [SimpleNamespace(name=name) for name in list(pointers) if name.startswith(kwargs['name_starts_with'])],
                 get_blob_client=lambda name: Blob(name))
         def put(self, data, **kwargs): objects['object'] = data; return {'object': 'object'}
         def point(self, name, receipt): pointers[self.root+'/'+name] = receipt; return self.root+'/'+name

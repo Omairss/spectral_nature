@@ -3,7 +3,8 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
 from contextvars import copy_context
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict, replace
+from functools import wraps
 from datetime import datetime, timezone
 import json
 import hashlib
@@ -11,13 +12,16 @@ import os
 import re
 import threading
 import time
+import uuid
 from typing import Any, Callable
 from urllib.parse import urlparse
 
 import pandas as pd
 
 from ..llm_context import serialize_llm_context, render_research_prompt, organize_source_captures
-from ..llm_execution import latest_research_artifact, current_research_access_scope, retain_research_artifact, research_artifact_key
+from ..llm_execution import (latest_research_artifact, current_research_access_scope, retain_research_artifact,
+    research_artifact_key, execution_ownership, research_work_context, mark_research_work_incomplete,
+    check_execution_ownership, ResearchWorkDeferred)
 
 from ..saa import build_zopedia_change_proposal, prepare_zopedia_pages
 from ..web_research import WebResearchError, search_client_provider
@@ -1296,11 +1300,14 @@ def _structured_agent_payload(
                 **_business_agent_runtime_kwargs(),
             )
     except Exception as exc:
+        mark_research_work_incomplete()
         return {
             "status": "failed",
             "payload": None,
             "error": f"{type(exc).__name__}: {_safe_error_text(exc, limit=260)}",
         }
+    if not isinstance(result, dict) or result.get("status") != "completed":
+        mark_research_work_incomplete()
     return result if isinstance(result, dict) else {"status": "failed", "payload": None, "error": "AQL/Zopedia agent returned a non-dict result."}
 
 
@@ -2102,6 +2109,101 @@ def _proposal_rows(
     return [proposal]
 
 
+def _checkpoint_company_research(function):
+    """Refresh company knowledge on changed evidence or its freshness deadline.
+
+    News interpretation keeps its own current cadence. This checkpoint owns a
+    complete company investigation, including searches, provenance and story.
+    Its original dates survive reuse and replica/platform-execution recovery.
+    """
+    @wraps(function)
+    def run(**kwargs):
+        from .. import llm, pipeline_store
+        from .. import zopedia_agent, zopedia_research  # register the complete prompt contract
+        from ..json_utils import to_jsonable
+        access = current_research_access_scope()
+        client = kwargs.get("llm_client")
+        refresh_seconds = _env_positive_int("ZOPEDIA_TICKER_BUSINESS_REFRESH_SECONDS", 86400)
+        if not access or client is None:
+            return function(**kwargs)
+        symbol = _normalize_symbol(kwargs["symbol"])
+        baseline = _company_baseline_row(kwargs.get("company_baselines_frame"), symbol)
+        name = _company_name(symbol, baseline, pd.Series(dtype=object))
+        pages = _matching_zopedia_pages(kwargs.get("zopedia_pages_frame"), symbol=symbol, company_name=name,
+            query=f"{symbol} {name} business model products customers demand fundamentals workforce policy risks", limit=8)
+        def page_version(page):
+            # Storage timestamps are outside the prompt. Metadata, including
+            # actual observation dates and edits, remains part of identity.
+            return hashlib.sha256(serialize_llm_context({
+                **{key: page.get(key) for key in ("page_id", "page_type", "title", "summary", "body_markdown")},
+                "metadata": _json_dict(page.get("metadata") or page.get("metadata_json")),
+            }).encode()).hexdigest()
+        memory = {str(page["page_id"]): page_version(page) for page in pages}
+        llm.load_prompt_overrides()
+        inputs = {
+            "baseline": baseline, "fundamentals": _fundamental_rows(kwargs.get("fundamentals_frame"), symbol, limit=10),
+            "filings": _edgar_rows(kwargs.get("edgar_evidence_frame"), symbol, limit=4),
+            "news": _news_rows_for_symbol(kwargs.get("news_frame"), symbol, limit=4),
+            "research": _research_rows_for_symbol(kwargs.get("research_results_frame"), symbol),
+            "research_options": {key: kwargs.get(key, default) for key, default in (
+                ("execute_research", False), ("max_research_queries", 24),
+                ("max_search_results_per_query", 4), ("write_policy", "propose"))},
+            "prompts": llm.list_narrative_prompts(), "parameters": llm.list_config_params(),
+            "environment": {key: value for key, value in os.environ.items() if key.startswith("ZOPEDIA_TICKER_BUSINESS_")},
+        }
+        namespace, contract = research_artifact_key(access_scope=access, subject="company:" + symbol,
+            query=serialize_llm_context(inputs), schema={}, config=client.config)
+        namespace += ":company_workflow"
+        with execution_ownership(namespace + ":leases", symbol,
+                                 wait_seconds=_business_research_budget_seconds()) as owned:
+            if not owned:
+                raise TimeoutError("Company research is still owned by another worker.")
+            state = pipeline_store.read_execution_state(namespace, symbol, strict=True) or {}
+            now = time.time()
+            compatible = (state.get("contract") == contract
+                and 0 <= now - state.get("started_at", 0) < refresh_seconds
+                and set(state.get("memory_input_ids", [])) <= memory.keys()
+                and all(version in state.get("memory_versions", {}).get(identity, [])
+                        for identity, version in memory.items()))
+            if compatible and state.get("result"):
+                _emit_business_progress(kwargs.get("progress_callback"), stage="company_research_reused",
+                    symbol=symbol, progress=1.0, message="Reusing the completed company investigation for unchanged evidence.",
+                    original_asof_time_utc=state["result"]["asof_time_utc"], work_id=state["work_id"])
+                return replace(TickerBusinessModelStackResult(**state["result"]), proposed_pages=[], proposal_rows=[])
+            deadline = kwargs.get("research_deadline_monotonic")
+            if deadline is not None and deadline-time.monotonic() < _business_research_budget_seconds():
+                raise ResearchWorkDeferred("The remaining producer window cannot cover a company investigation.")
+            if not compatible:
+                if state:
+                    retained_key = hashlib.sha256(serialize_llm_context(state).encode()).hexdigest()
+                    if not pipeline_store.write_execution_state(namespace + ":history", retained_key, state, immutable=True):
+                        raise RuntimeError("Previous company investigation could not be retained.")
+                subject_task = "company:" + symbol + ":ticker_business_model_research_dossier"
+                state = {"contract": contract, "work_id": uuid.uuid4().hex, "started_at": now,
+                    "asof": _asof_iso(kwargs.get("asof_time_utc") or datetime.now(timezone.utc)),
+                    "run_id": kwargs.get("run_id", ""), "memory_input_ids": list(memory),
+                    "memory_versions": {key: [value] for key, value in memory.items()},
+                    "prior": {subject_task: latest_research_artifact(access_scope=access, subject="company:" + symbol,
+                                                                  task="ticker_business_model_research_dossier")}}
+                if not pipeline_store.write_execution_state(namespace, symbol, state):
+                    raise RuntimeError("Company investigation identity could not be retained.")
+            from ..work_scope import WorkScope
+            work_deadline = time.monotonic() + _business_research_budget_seconds()
+            with research_work_context(state["work_id"], prior=state["prior"]) as status, \
+                    WorkScope(work_deadline).activate(), llm.llm_request_deadline(work_deadline):
+                result = function(**{**kwargs, "run_id": state["run_id"], "asof_time_utc": state["asof"]})
+            check_execution_ownership()
+            if result.business_story_markdown and result.status in {"ready", "partial"} and not status["failed"]:
+                state["result"] = to_jsonable(asdict(result))
+                for page in result.proposed_pages:
+                    state["memory_versions"].setdefault(str(page["page_id"]), []).append(page_version(page))
+                if not pipeline_store.write_execution_state(namespace, symbol, state):
+                    raise RuntimeError("Completed company investigation could not be retained.")
+            return result
+    return run
+
+
+@_checkpoint_company_research
 def build_ticker_business_model_stack(
     *,
     symbol: str,
@@ -2122,6 +2224,7 @@ def build_ticker_business_model_stack(
     asof_time_utc: object = "",
     write_policy: str = "propose",
     progress_callback: ProgressCallback | None = None,
+    research_deadline_monotonic: float | None = None,
 ) -> TickerBusinessModelStackResult:
     normalized_symbol = _normalize_symbol(symbol)
     asof_iso = _asof_iso(asof_time_utc)
@@ -2648,6 +2751,7 @@ def build_ticker_business_model_stack_results(
     write_policy: str = "propose",
     limit: int = 25,
     progress_callback: ProgressCallback | None = None,
+    research_deadline_monotonic: float | None = None,
 ) -> list[TickerBusinessModelStackResult]:
     normalized_symbols = list(dict.fromkeys(_normalize_symbol(symbol) for symbol in list(symbols or []) if _normalize_symbol(symbol)))
     selected = normalized_symbols[: max(int(limit), 1)]
@@ -2672,14 +2776,24 @@ def build_ticker_business_model_stack_results(
         asof_time_utc=asof_time_utc,
         write_policy=write_policy,
         progress_callback=progress_callback,
+        research_deadline_monotonic=research_deadline_monotonic,
     )
+    def research(symbol):
+        from ..work_scope import WorkCancelled
+        from ..llm import LLMDeadlineExceeded
+        try:
+            return build_ticker_business_model_stack(symbol=symbol, **kwargs)
+        except (ResearchWorkDeferred, WorkCancelled, LLMDeadlineExceeded):
+            _emit_business_progress(progress_callback, stage="business_research_deferred", symbol=symbol,
+                message="Company research is retained for the next producer window.", progress=1.0)
+            return None
     if max_workers == 1:
-        return [build_ticker_business_model_stack(symbol=symbol, **kwargs) for symbol in selected]
+        return [result for symbol in selected if (result := research(symbol)) is not None]
     with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="company-research") as pool:
-        futures = [pool.submit(copy_context().run, build_ticker_business_model_stack, symbol=symbol, **kwargs) for symbol in selected]
+        futures = [pool.submit(copy_context().run, research, symbol) for symbol in selected]
         # Preserve caller order while every submitted company finishes. Browser
         # and provider capacity are controlled independently at their shared owners.
-        return [future.result() for future in futures]
+        return [result for future in futures if (result := future.result()) is not None]
 
 
 def _result_row(result: TickerBusinessModelStackResult) -> dict[str, Any]:
@@ -2792,6 +2906,7 @@ def build_ticker_business_model_stack_frames(
     write_policy: str = "propose",
     limit: int = 25,
     progress_callback: ProgressCallback | None = None,
+    research_deadline_monotonic: float | None = None,
 ) -> dict[str, pd.DataFrame]:
     results = build_ticker_business_model_stack_results(
         symbols=symbols,
@@ -2813,6 +2928,7 @@ def build_ticker_business_model_stack_frames(
         write_policy=write_policy,
         limit=limit,
         progress_callback=progress_callback,
+        research_deadline_monotonic=research_deadline_monotonic,
     )
     stacks = serialize_ticker_business_model_stack_results(results)
     if isinstance(existing_stacks_frame, pd.DataFrame) and not existing_stacks_frame.empty:
