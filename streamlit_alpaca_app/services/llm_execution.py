@@ -86,6 +86,8 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
             check()
     finally:
         _OWNERSHIP.reset(token)
+        lost.set()
+        work.cancel()
         stop.set()
         thread.join(timeout=2)
         try:

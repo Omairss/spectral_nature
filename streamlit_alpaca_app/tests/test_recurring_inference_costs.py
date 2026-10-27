@@ -180,6 +180,18 @@ def test_lost_ownership_cancels_existing_io_scope(durable_store, monkeypatch):
             check_work()
 
 
+def test_released_owner_cannot_do_io_from_an_inherited_context(durable_store):
+    from contextvars import copy_context
+    from services.work_scope import check_work, WorkCancelled
+    with execution.execution_ownership("producer", "closed-owner"):
+        inherited = copy_context()
+    with execution.execution_ownership("producer", "closed-owner"):
+        with pytest.raises(WorkCancelled):
+            inherited.run(check_work)
+        with pytest.raises(RuntimeError, match="ownership was lost"):
+            inherited.run(execution.check_execution_ownership)
+
+
 def test_company_refresh_reuses_across_runs_but_reacts_to_evidence_and_deadline(durable_store, monkeypatch):
     calls = []
     @company._checkpoint_company_research
