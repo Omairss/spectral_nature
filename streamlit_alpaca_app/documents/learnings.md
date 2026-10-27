@@ -1287,3 +1287,8 @@ Verify what a resource actually retains before deletion. Both older PostgreSQL s
 ### Compute archival has separate management and local-disk access — October 26
 
 Workspace owners can manage another user’s Azure ML instance without having access to its local disk. Preserve shared workspace files independently, retain the stopped instance when local export is blocked, and request the assigned user’s legitimate sign-in/export rather than repeatedly requesting permission to discard data. For accessible instances, archive encryption keys belong in Key Vault, encrypted blobs receive the scoped native30day deletion rule, and verification must read the complete copied blob, match its hash, decrypt it and read the full gzip/tar stream before deleting compute. Full OS archives are historical data only and never application release source.
+
+
+### News/research schedule cost control — October 27
+
+The owner requested two runs while pipeline optimization continues. Production now retains the first and last existing UTC slots (`5 14,20 * * 1-5`); October 28 local times are 7:05 AM and 1:05 PM Pacific. Halving executions does not establish a 50% reduction in the total inference bill: work per run and other producers still matter. Verify the live cron and preserve its accepted configuration fingerprint independently of held application changes. All 36 consumer definitions were compared; only this cron changed. [Verification](verification/news-twice-daily-2026-10-27/verification.json).
