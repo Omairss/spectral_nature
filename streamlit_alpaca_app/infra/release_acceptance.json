@@ -1,8 +1,8 @@
 {
-  "status": "held_for_cost_design_review",
-  "scope": "Held local recurring-inference controls; compare cadence, model roles and Lambda batching with owner before release acceptance.",
-  "source_revision": "8146009d567ce93f0dfe8852a21a87493724f531",
-  "review_base_revision": "86d3ba129aa3095960362d2511899d93def7459b",
+  "status": "accepted_locally",
+  "scope": "Owner-authorized production news/research cost candidate for October28. Exact-image development execution qualifies package and real replica fallback; all persisted DEV configurations and other production consumers remain retained.",
+  "source_revision": "64547245ad299b2c1a1b14f3235bc2f7788bba83",
+  "review_base_revision": "dbeba5ad0f9f3b1b09d7cc115138a5526e584f26",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "411839b19dc8a7f9a5e4586766d414d9856e698b28a4d274a96363fc2dea9d1e",
@@ -45,6 +45,7 @@
     "compute/signals.py": "b19f6a35a09ba90bf70f0c11820f1dc9ed3557cd0bb4e724e6ba6b7865a323c3",
     "compute/treasury_yields.py": "9c0344edbc24767365043b785d5d958b068c6f9dfb353f163a48467e3d1bfacb",
     "config/attention_macro_signal_profile.v1.yaml": "4ed15c3b0ac050802db3f8abc5f98e93c5e2f6811cf5185b6b8363bf35e460cd",
+    "config/inference_policy.json": "af5c2e0f08fbe166a8f9b29e549b5407204c3b60b2d96ec7d430258704cf4591",
     "config/release_contracts.json": "375bb4789952d2671a9931ab5ddbf2d99daf87a4da77645990eb862ce8829769",
     "data/dependency_graphs/README.md": "68364f3e92146cf972d4e61acfa656ea8e3e320aba540f6c2ee844c8289dd647",
     "data/dependency_graphs/graphs/commodity_agriculture_softs.json": "0e69dcc72c14804b64e9d523d34d19b73f57a2e5d67d6d6943e057298c861f67",
@@ -71,7 +72,7 @@
     "pipeline/jobs/attention_home_build.py": "92140b7ea8cb0d75277c8be23d822cff3922fea049db8040096559b547af3243",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
-    "pipeline/jobs/main.py": "d945e2b0fdff7fe4222e97e534caf1623fb9b8e08b9186f339de9456bd68b061",
+    "pipeline/jobs/main.py": "0a452ef2a938c5f375733435d0ed266015421f24ab5f8197b0eb387b2d999109",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
     "presentation/plotly.py": "7ef6af17b02eab45f29a43e1e19ae7130f326d25bd592b9f026e2baf2bfda918",
@@ -114,7 +115,7 @@
     "services/aql/__init__.py": "d05432fed36047bc04e334e9bded8d421ebb306d80fca4f834078c348bb70a01",
     "services/aql/_shared.py": "214dec2aad9cfcd4760ab384da78946733da9eecb7150818e0a0ca30b48eeedb",
     "services/aql/assembler.py": "1aad6a729dec240f210de208781270a658733f0faba3bcfaa4d9ee51fe5515fc",
-    "services/aql/business_model_stack.py": "a3c89c4b9f75c5c167bbf1a9d115530f9772f182a1e1b618c6a7142bd42dba2d",
+    "services/aql/business_model_stack.py": "0e3f0911959b4a93b90dd7908a469e1531f936400228422b6801c230ce956a5f",
     "services/aql/clusterer.py": "f75cd2a9b414c33d58403d73ec946ba3fce32cff877ccae6c347d893dafd049d",
     "services/aql/collector.py": "97d0e2736c1063c75cb3cebe8fdacd506f9cca7e7aa8f8b05cd3810c51608939",
     "services/aql/config.py": "2eb5fd7b967608205ec93c49c3e218e02ffc5d622d30377530dd3305dddda634",
@@ -128,8 +129,8 @@
     "services/aql/pipeline.py": "7e215884f38e1aff62455ce96e01098a29864cdb1a2bc7768a01f6dd36ac358c",
     "services/aql/summarizer.py": "87a4ebd55c936bfce6f4e61a774c55a97c2f56153b83a037ee4d686144a27eb3",
     "services/aql/writer.py": "cda1c4c1a3ba4e437d0be2781848938c09cb2ed85c3decebe250241f9a327ad2",
-    "services/aql_zopedia_engine.py": "1283870f3f658fe61fab4397bcba3dacb14cbd561e568ffaa79a514edaa8700b",
-    "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
+    "services/aql_zopedia_engine.py": "4d30ef148e5c6e7927526555c3a338b152f55b4f6be34b950a5bdfba04105514",
+    "services/aql_zopedia_gateway.py": "6ffe4be9ba98b0a8c995077fd003487d49da520617f49ef2763aa111c97d0f97",
     "services/attention_context_llm.py": "60b84285a114bf79c89bd7601219ffaed143534a8b4b214f4bd9fce3ac9b989a",
     "services/attention_graph_network.py": "9511f96ea29d213c1dd59d4f87fd880f84a7be36e276ae07ef88ef71e5204ebc",
     "services/attention_graph_topology.py": "a3497f7cd4e1831724948e842721c1909fee57fb9d83a196c1f562f1e4553f0d",
@@ -170,13 +171,14 @@
     "services/historical_training.py": "f36b5c9d792538d438bb66bfda8ca80b8e73e59666cd9ffd8f39bbeb226617ac",
     "services/home_view.py": "3a1eee1fc2ede52f52f7146facf933d65171ae5f0daf649da4d1bd0db2709c1a",
     "services/homepage_support.py": "143a973c91c57420d60c16a8811fe79c75b154cf1be7efffce4f82714968be7e",
+    "services/inference_policy.py": "259fa5bc709587a72c5d62308c833be7566e854a60d76d320097446784027533",
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
     "services/knowledge_graph.py": "5c96484475c50a2d5e8823c64d50b875b2095d0c91d1510b812a301f8542b050",
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
-    "services/llm.py": "61e636cd3ff00ece0cbb60a3b1a29c803368e86eb6f887cdff05e05eb90a6529",
-    "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
-    "services/llm_execution.py": "418618a19f4df625ce29ac31a1eb7b03bb8a81969ef2c55f4d7ef767e88e2f51",
-    "services/llm_prices.json": "e6e8a6a76ebce48d8d584ce9fba66b8794cc2a3ab8c7d946a407eab9e0861a5b",
+    "services/llm.py": "67e5d4728fcc851e07c3d1673dec51e8684ded21203b6775ee043c458e1eeb49",
+    "services/llm_context.py": "8c67e133f4636fc1c262a9d0fc506fb111e7ee98f3820688d3ff7381543a6f0d",
+    "services/llm_execution.py": "1aaae18117eff453f36fa2116ae73cd314b01a0addee1a7d4ffe9d08fc2fb5c9",
+    "services/llm_prices.json": "91e07720ef97aaf1a58f7b7a4d8b17241e9978312b1d4f01fc1cff3f26a51c63",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
     "services/market_opportunity.py": "c8222b52b472818d3bc593e7144275a250a22fd28ea538da696b868642be0588",
@@ -185,7 +187,7 @@
     "services/options.py": "0451f958398c313c08ff8b9b66f1d3e1863e068b98af78907328ad51728c09e4",
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
     "services/page_browsing.py": "53a2602e454879c3cf3afd921ba886bc3e2dbacd33145b8e4a3e0679f4e4d38a",
-    "services/pipeline_store.py": "8af7f484a48283dec28b3d49c49b550bf97f61b99fe9ae7eaa51d232e1a01489",
+    "services/pipeline_store.py": "d9d018215304c05426e1b56fc1b27f9b88f4e4f6e79395688453c6b6323ad118",
     "services/portfolio_view.py": "5f6a572174d42e5776b6c1f3be2c06ec3b9d4297d5759a39c51b6181db84bc3e",
     "services/research_export.py": "7b4519950688050950f2e8424b78a47bcf0bce8b148a98bb958f1bbe7e1d01ad",
     "services/robinhood_main.py": "118febce7cb314a46fa69f1a1500ab25abfc509bbff8b6fed3af25cb48764ac0",
@@ -212,7 +214,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "9016c5b5ca34918cb9c99e4c9c37037d1f6df372aae8bdcb3794d5dfa0ed850e",
+    "services/zopedia_agent.py": "da14906a2b4f1648d3215b576047abad00277ffa17677e718ff96085656993fa",
     "services/zopedia_analysis.py": "b449d0b1ab0cd805a8cd7b6db18cf26b0bcb74300209c8623eae42d4b99fd409",
     "services/zopedia_learning.py": "21fd421b10d09041cb8015c4eed89b30a641d1b86fa23f0675591b391c4e977c",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
@@ -345,6 +347,7 @@
     "compute/signals.py": "b19f6a35a09ba90bf70f0c11820f1dc9ed3557cd0bb4e724e6ba6b7865a323c3",
     "compute/treasury_yields.py": "9c0344edbc24767365043b785d5d958b068c6f9dfb353f163a48467e3d1bfacb",
     "config/attention_macro_signal_profile.v1.yaml": "4ed15c3b0ac050802db3f8abc5f98e93c5e2f6811cf5185b6b8363bf35e460cd",
+    "config/inference_policy.json": "af5c2e0f08fbe166a8f9b29e549b5407204c3b60b2d96ec7d430258704cf4591",
     "config/release_contracts.json": "375bb4789952d2671a9931ab5ddbf2d99daf87a4da77645990eb862ce8829769",
     "data/dependency_graphs/README.md": "68364f3e92146cf972d4e61acfa656ea8e3e320aba540f6c2ee844c8289dd647",
     "data/dependency_graphs/graphs/commodity_agriculture_softs.json": "0e69dcc72c14804b64e9d523d34d19b73f57a2e5d67d6d6943e057298c861f67",
@@ -370,7 +373,7 @@
     "pipeline/jobs/attention_home_build.py": "92140b7ea8cb0d75277c8be23d822cff3922fea049db8040096559b547af3243",
     "pipeline/jobs/attention_ticker_snapshot_build.py": "4c8976ffba4ba15d4d543785f16956052f0dca109fc1b6a844cf876e96ff535e",
     "pipeline/jobs/daily_market_datapoints_build.py": "b0c804c77125dfa8aadbe3e006ce251701b3c0d9854ce25d47bb70a72a865fad",
-    "pipeline/jobs/main.py": "d945e2b0fdff7fe4222e97e534caf1623fb9b8e08b9186f339de9456bd68b061",
+    "pipeline/jobs/main.py": "0a452ef2a938c5f375733435d0ed266015421f24ab5f8197b0eb387b2d999109",
     "pipeline/jobs/namespace_refresh.py": "3fab4caf73873cdc71c5fca478145695ced57f001e08e80aa829ba825791f0be",
     "presentation/__init__.py": "e7f0199725582c52f1f32ee3a5fe82db29b0b4dbbc24d27e33e2125077a5462f",
     "presentation/plotly.py": "7ef6af17b02eab45f29a43e1e19ae7130f326d25bd592b9f026e2baf2bfda918",
@@ -392,7 +395,7 @@
     "services/aql/__init__.py": "d05432fed36047bc04e334e9bded8d421ebb306d80fca4f834078c348bb70a01",
     "services/aql/_shared.py": "214dec2aad9cfcd4760ab384da78946733da9eecb7150818e0a0ca30b48eeedb",
     "services/aql/assembler.py": "1aad6a729dec240f210de208781270a658733f0faba3bcfaa4d9ee51fe5515fc",
-    "services/aql/business_model_stack.py": "a3c89c4b9f75c5c167bbf1a9d115530f9772f182a1e1b618c6a7142bd42dba2d",
+    "services/aql/business_model_stack.py": "0e3f0911959b4a93b90dd7908a469e1531f936400228422b6801c230ce956a5f",
     "services/aql/clusterer.py": "f75cd2a9b414c33d58403d73ec946ba3fce32cff877ccae6c347d893dafd049d",
     "services/aql/collector.py": "97d0e2736c1063c75cb3cebe8fdacd506f9cca7e7aa8f8b05cd3810c51608939",
     "services/aql/config.py": "2eb5fd7b967608205ec93c49c3e218e02ffc5d622d30377530dd3305dddda634",
@@ -406,8 +409,8 @@
     "services/aql/pipeline.py": "7e215884f38e1aff62455ce96e01098a29864cdb1a2bc7768a01f6dd36ac358c",
     "services/aql/summarizer.py": "87a4ebd55c936bfce6f4e61a774c55a97c2f56153b83a037ee4d686144a27eb3",
     "services/aql/writer.py": "cda1c4c1a3ba4e437d0be2781848938c09cb2ed85c3decebe250241f9a327ad2",
-    "services/aql_zopedia_engine.py": "1283870f3f658fe61fab4397bcba3dacb14cbd561e568ffaa79a514edaa8700b",
-    "services/aql_zopedia_gateway.py": "c9800972f71bdadaf991e7f8b030413bde4c8d1f34387144104a8ba1aaf372d8",
+    "services/aql_zopedia_engine.py": "4d30ef148e5c6e7927526555c3a338b152f55b4f6be34b950a5bdfba04105514",
+    "services/aql_zopedia_gateway.py": "6ffe4be9ba98b0a8c995077fd003487d49da520617f49ef2763aa111c97d0f97",
     "services/attention_context_llm.py": "60b84285a114bf79c89bd7601219ffaed143534a8b4b214f4bd9fce3ac9b989a",
     "services/attention_graph_network.py": "9511f96ea29d213c1dd59d4f87fd880f84a7be36e276ae07ef88ef71e5204ebc",
     "services/attention_graph_topology.py": "a3497f7cd4e1831724948e842721c1909fee57fb9d83a196c1f562f1e4553f0d",
@@ -448,13 +451,14 @@
     "services/historical_training.py": "f36b5c9d792538d438bb66bfda8ca80b8e73e59666cd9ffd8f39bbeb226617ac",
     "services/home_view.py": "3a1eee1fc2ede52f52f7146facf933d65171ae5f0daf649da4d1bd0db2709c1a",
     "services/homepage_support.py": "143a973c91c57420d60c16a8811fe79c75b154cf1be7efffce4f82714968be7e",
+    "services/inference_policy.py": "259fa5bc709587a72c5d62308c833be7566e854a60d76d320097446784027533",
     "services/json_utils.py": "5f18985844cbfb425afb98cc0d16753c33fa929592acef8151b7825ebf858735",
     "services/knowledge_graph.py": "5c96484475c50a2d5e8823c64d50b875b2095d0c91d1510b812a301f8542b050",
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
-    "services/llm.py": "61e636cd3ff00ece0cbb60a3b1a29c803368e86eb6f887cdff05e05eb90a6529",
-    "services/llm_context.py": "bcc8f92728cdd6e9f3c506f8cd9be6aa6eeca5a4f392ca4cdb9779855ded594b",
-    "services/llm_execution.py": "418618a19f4df625ce29ac31a1eb7b03bb8a81969ef2c55f4d7ef767e88e2f51",
-    "services/llm_prices.json": "e6e8a6a76ebce48d8d584ce9fba66b8794cc2a3ab8c7d946a407eab9e0861a5b",
+    "services/llm.py": "67e5d4728fcc851e07c3d1673dec51e8684ded21203b6775ee043c458e1eeb49",
+    "services/llm_context.py": "8c67e133f4636fc1c262a9d0fc506fb111e7ee98f3820688d3ff7381543a6f0d",
+    "services/llm_execution.py": "1aaae18117eff453f36fa2116ae73cd314b01a0addee1a7d4ffe9d08fc2fb5c9",
+    "services/llm_prices.json": "91e07720ef97aaf1a58f7b7a4d8b17241e9978312b1d4f01fc1cff3f26a51c63",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
     "services/market_opportunity.py": "c8222b52b472818d3bc593e7144275a250a22fd28ea538da696b868642be0588",
@@ -463,7 +467,7 @@
     "services/options.py": "0451f958398c313c08ff8b9b66f1d3e1863e068b98af78907328ad51728c09e4",
     "services/page_agentic_summary.py": "07c3bbe22ba2f488226a45cd5afd770e6041f2491fd23de13c7909a499e38a1e",
     "services/page_browsing.py": "53a2602e454879c3cf3afd921ba886bc3e2dbacd33145b8e4a3e0679f4e4d38a",
-    "services/pipeline_store.py": "8af7f484a48283dec28b3d49c49b550bf97f61b99fe9ae7eaa51d232e1a01489",
+    "services/pipeline_store.py": "d9d018215304c05426e1b56fc1b27f9b88f4e4f6e79395688453c6b6323ad118",
     "services/portfolio_view.py": "5f6a572174d42e5776b6c1f3be2c06ec3b9d4297d5759a39c51b6181db84bc3e",
     "services/research_export.py": "7b4519950688050950f2e8424b78a47bcf0bce8b148a98bb958f1bbe7e1d01ad",
     "services/robinhood_main.py": "118febce7cb314a46fa69f1a1500ab25abfc509bbff8b6fed3af25cb48764ac0",
@@ -490,7 +494,7 @@
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "f8880fa83038f277c2c8dc649e0863864648f9b5a3a96ca5018f659c27d0ecf1",
     "services/work_scope.py": "b16e8f66dc2568004311a50624ab6acdf21ceb22f67ce0f0fde445b45b2ee848",
-    "services/zopedia_agent.py": "9016c5b5ca34918cb9c99e4c9c37037d1f6df372aae8bdcb3794d5dfa0ed850e",
+    "services/zopedia_agent.py": "da14906a2b4f1648d3215b576047abad00277ffa17677e718ff96085656993fa",
     "services/zopedia_analysis.py": "b449d0b1ab0cd805a8cd7b6db18cf26b0bcb74300209c8623eae42d4b99fd409",
     "services/zopedia_learning.py": "21fd421b10d09041cb8015c4eed89b30a641d1b86fa23f0675591b391c4e977c",
     "services/zopedia_presentation.py": "cc4cc07b02856c9572e946598e65f435f5c00662167d716742b93c60f94d3829",
@@ -500,7 +504,18 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "web/lib/server/home.ts": true
+    "config/inference_policy.json": true,
+    "pipeline/jobs/main.py": true,
+    "services/aql/business_model_stack.py": true,
+    "services/aql_zopedia_engine.py": true,
+    "services/aql_zopedia_gateway.py": true,
+    "services/inference_policy.py": true,
+    "services/llm.py": true,
+    "services/llm_context.py": true,
+    "services/llm_execution.py": true,
+    "services/llm_prices.json": true,
+    "services/pipeline_store.py": true,
+    "services/zopedia_agent.py": true
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -737,6 +752,25 @@
       "files": [
         "web/lib/server/home.ts"
       ]
+    },
+    {
+      "name": "Incremental company research and configurable inference cost policy",
+      "status": "accepted",
+      "evidence": "documents/verification/inference-cost-rollout-2026-10-27/local-review.json",
+      "files": [
+        "config/inference_policy.json",
+        "pipeline/jobs/main.py",
+        "services/aql/business_model_stack.py",
+        "services/aql_zopedia_engine.py",
+        "services/aql_zopedia_gateway.py",
+        "services/inference_policy.py",
+        "services/llm.py",
+        "services/llm_context.py",
+        "services/llm_execution.py",
+        "services/llm_prices.json",
+        "services/pipeline_store.py",
+        "services/zopedia_agent.py"
+      ]
     }
   ],
   "roles": {
@@ -748,7 +782,25 @@
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
       ],
       "development_targets": [],
-      "production_targets": [],
+      "production_targets": [
+        {
+          "name": "news-ingest-and-features",
+          "kind": "jobs",
+          "role": "worker",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "50c2675e6fcef899fc72c3a0e703f449f0dcd72faa7040428fafc095300a54da",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
+            "evidence": "documents/verification/inference-cost-rollout-2026-10-27/local-review.json"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+        }
+      ],
       "accepted_images": {}
     },
     "api-next": {
@@ -768,38 +820,7 @@
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05"
       ],
       "development_targets": [],
-      "production_targets": [
-        {
-          "name": "sn-streamlit-ui",
-          "kind": "containerApps",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
-            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/revision-consumer-review.json"
-          }
-        },
-        {
-          "name": "sn-next-ui",
-          "kind": "containerApps",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
-            "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/revision-consumer-review.json"
-          }
-        }
-      ],
+      "production_targets": [],
       "accepted_images": {
         "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd": {
           "role": "web",
@@ -1062,23 +1083,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-        "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-        "evidence": "documents/verification/evidence-index-2026-10-25/consumer-preservation-review.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
-    },
-    {
-      "name": "news-ingest-and-features",
-      "kind": "jobs",
-      "role": "worker",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "50c2675e6fcef899fc72c3a0e703f449f0dcd72faa7040428fafc095300a54da",
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
@@ -1532,6 +1536,38 @@
         "evidence": "documents/verification/research-charts-2026-10-23/revision-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+        "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+        "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
+        "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+        "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+        "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
+        "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
     }
   ],
   "retired_consumers": [
@@ -1551,11 +1587,11 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "production_authorization": {
-    "owner_instruction": "push to prod",
-    "scope": "Cache-only Home repair on both production Next.js gateways, following verified development behavior; preserve all other application images and non-image configuration.",
-    "received_at_utc": "2026-10-26T17:50:29+00:00"
+    "owner_instruction": "Once the changes are done, deploy it for tomorrow. If it fails, retry with today's config. Keep the config easily adaptable so we can find a sweet spot. Our final goal is a 90% reduction in costs.",
+    "scope": "Production news/research worker and its inference policy. Activate balanced profile October28 Pacific, retain two UTC slots, baseline replica retry and all other consumer definitions.",
+    "date_pacific": "2026-10-27"
   },
   "consumer_contract_reviews": {
     "database_lifecycle": {
@@ -1577,12 +1613,9 @@
     "evidence": "documents/verification/research-charts-2026-10-23/development.json"
   },
   "development_acceptance": {
-    "status": "accepted",
-    "images": {
-      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd"
-    },
-    "source_inventory_sha256": "9b3c016be8dae716ed253191c03936a03de53062e9545753fd20d00f6722fd39",
-    "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION_IMAGE_DEV.json"
+    "status": "pending",
+    "images": {},
+    "evidence": "documents/verification/inference-cost-rollout-2026-10-27/development.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",

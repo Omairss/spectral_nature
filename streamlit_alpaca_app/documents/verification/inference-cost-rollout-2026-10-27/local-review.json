@@ -1,5 +1,5 @@
 {
-  "status": "review_in_progress",
+  "status": "accepted_locally",
   "production_qualification": {
     "scope": "Existing production model change qualification, not an academic research study. No Lambda rental or alternative paid provider.",
     "captured_source_companies": [
@@ -43,6 +43,30 @@
         "Retrieval planning",
         "Company refresh assessment"
       ]
+    },
+    "planning_review": "Actual shared agent planning replay with retained company research returned concrete source queries and resolved aliases. Planner outputs are acquisition requests, not published financial claims. Confirming latest release availability remains a further optimization opportunity.",
+    "released_candidate": "Narrow task routing, original-date workflow reuse, materiality assessment and bounded retry. Broad analytical economy roles are held after direct review.",
+    "output_sha256": {
+      "dossier-baseline-TEAM.json": "3bccf10e1e0029885ef0bdefc2e20aefff4dd2f494e7e7c68f3c092ec3df0e36",
+      "dossier-balanced-XP.json": "31970e28bd1d387ef6047e68865df8c81280fee98e422905bf7944d989b024cc",
+      "dossier-balanced-MRNA.json": "fe582d5ef1a18ab457135d389504aafd2909b10ddc13f9aeb054da3e550e5157",
+      "timeline-dossier-balanced-XP.json": "bbd086bcd0ff45359c1dbf36477646fe6e6d9a7cc89f3c83458a4b119f41342c",
+      "final-dossier-balanced-MRNA.json": "eb1fdc9b0e1fb5040534c63c5ccbaad3ae9cd9eaf5e2123c01fc6cf9cc105e28",
+      "dossier-baseline-XP.json": "248d408fb67c9c337ac91fa954e073fca4e300a1101eec884d93e1c96085227c",
+      "final-dossier-balanced-TEAM.json": "95716a6f42b6faaee67943ccabb28da73b9a0d36490bd6fd13591268c6ffb7d7",
+      "dossier-balanced-TEAM.json": "c64ae10eafb49fdf46ac951e05b152993753457852da625172a81367e98a0453",
+      "final-dossier-balanced-XP.json": "9067144e76e99e9f778451a878692d957dd379a662937606c539faae25fce671",
+      "dossier-baseline-MRNA.json": "5a47d146fe38afa8a4201db1a4e2f473205601bdf1fda2980d83e4f3956e02a9"
+    },
+    "refresh_output_sha256": {
+      "final-refresh-MRNA-duplicate.json": "bc26d2ebce5c3a1b475998a895fd948e423e30b7b783d6dcbf7421ee5b8bc6d3",
+      "final-refresh-MRNA-correction.json": "079c8765b6d6dbb275d5e09338b856c50b6a58fbb6095c1bceb7103cefc0a6ba",
+      "final-refresh-XP-duplicate.json": "4bc35cb3c669769b570ba8f0b184c0a0327c55a83f0fccef5e2001a6d0c7edde",
+      "final-refresh-XP-material.json": "0ecd905464fbb2225ed32eb4909882162a7af9b87e059297caabe003cc31a6d5",
+      "final-refresh-TEAM-earnings.json": "5ad963c553d19edbff879aa46d82d4e5a8cf8f157695581b3c31e197fff20be7",
+      "final-refresh-MRNA-material.json": "87be413cd51db7ec2df43861c9f3217cc3ca1d80eb41d866fae214826bdf920a",
+      "final-refresh-TEAM-duplicate.json": "18ef8adefcf1271fb70c6ffaa38a3b789db07be614e1bcc08c41f1f97a211818",
+      "final-refresh-TEAM-unresolved.json": "770c1c014439d8874910752cd14cdf321e4e701149185e029c497229533d0026"
     }
   },
   "operational_checks": {
