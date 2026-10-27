@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Accepted bounded production recovery and same-day inference policy; four reviewed worker jobs, other32 consumers retained.",
+  "status": "pending_qualification",
+  "scope": "Held follow-up after primary-candidate synthesis qualification failed; application build and production promotion prohibited.",
   "source_revision": "ca0d2e3fc021ef79bed26f5e54d7c174dcc54d65",
   "review_base_revision": "45c832fccd509e00ca54c34d95c0cabcb79a06e4",
   "files": {
@@ -1638,8 +1638,8 @@
   ],
   "production_authorized": true,
   "production_authorization": {
-    "owner_instruction": "Why28th? I want it out today. Identify today's failures and patch them in the same release. Stop and return completed work at two hours. Can't we have more workers?",
-    "scope": "Four production worker jobs; same-day balanced policy, eight company workers and bounded two-hour news execution, Home completion, durable learning and healthy recovery status. Keep two news slots.",
+    "owner_instruction": "You have approval to promote to prod once you have veriifed the new release fixes everything I've asked for",
+    "scope": "Conditional on complete acceptance; condition has not been met. Existing67d56e85 production release remains the accepted release.",
     "date_pacific": "2026-10-27"
   },
   "consumer_contract_reviews": {
@@ -1662,12 +1662,8 @@
     "evidence": "documents/verification/research-charts-2026-10-23/development.json"
   },
   "development_acceptance": {
-    "status": "accepted",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
-    },
-    "source_inventory_sha256": "9d02453088c9e47fd9e707d2bd061eb6bfa364884bc14aa389fa3ca44365452e",
-    "evidence": "documents/verification/production-recovery-2026-10-27/development.json"
+    "status": "not_started",
+    "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",

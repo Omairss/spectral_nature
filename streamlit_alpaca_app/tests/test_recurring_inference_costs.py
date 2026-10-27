@@ -74,6 +74,39 @@ def model():
         model="deepseek-v4-pro", base_url="https://api.deepseek.com", thinking_mode="enabled"))
 
 
+def test_balance_waiter_uses_a_competing_workers_fresh_result(durable_store, monkeypatch):
+    from contextlib import contextmanager
+    config = model().config
+    key = execution._account_key(config)
+    @contextmanager
+    def competing_refresh(namespace, identity, **kwargs):
+        durable_store[("provider_budget", key)] = {
+            "observed_at": time.time(), "available": True, "balance_usd": 100,
+            "reservations": {},
+        }
+        yield False
+    monkeypatch.setattr(execution, "execution_ownership", competing_refresh)
+    monkeypatch.setattr(execution.requests, "get", lambda *args, **kwargs:
+        pytest.fail("A fresh shared balance must not be fetched again"))
+    assert execution.reserve_provider_budget(config, {"model": config.model,
+        "messages": [{"role": "user", "content": "Coordination check"}]},
+        attempt_id="waiter", timeout=60)
+    assert "waiter" in durable_store[("provider_budget", key)]["reservations"]
+
+
+def test_balance_contention_stays_inside_the_request_deadline(durable_store, monkeypatch):
+    from contextlib import contextmanager
+    clock = [0.0]
+    monkeypatch.setattr(execution.time, "monotonic", lambda: clock[0])
+    @contextmanager
+    def unavailable_refresh(*args, **kwargs):
+        clock[0] += 10
+        yield False
+    monkeypatch.setattr(execution, "execution_ownership", unavailable_refresh)
+    with pytest.raises(llm.LLMProviderUnavailable, match="request deadline"):
+        execution.reserve_provider_budget(model().config, {}, attempt_id="expired", timeout=5)
+
+
 def test_bounded_batch_rotates_older_and_missing_profiles_before_fresh_ones(monkeypatch):
     captured = []
     monkeypatch.setattr(company, "build_ticker_business_model_stack_results", lambda **kw: captured.extend(kw["symbols"]) or [])
@@ -150,8 +183,10 @@ def test_interrupted_candidate_uses_baseline_on_next_replica(durable_store, monk
 
 def test_platform_retry_waits_for_a_dead_replicas_producer_lease(durable_store, monkeypatch):
     from contextlib import contextmanager
+    from datetime import datetime, timezone
     from pipeline.jobs import main as jobs
     waited = []
+    resumed = []
     @contextmanager
     def ownership(namespace, key, **options):
         waited.append(options.get("wait_seconds", 0))
@@ -165,10 +200,14 @@ def test_platform_retry_waits_for_a_dead_replicas_producer_lease(durable_store, 
         "run_id": "original-replica", "asof": "2026-10-26T14:05:00+00:00", "universe_version": "original"})
     monkeypatch.setattr(jobs, "write_execution_state", lambda *args, **kwargs: True)
     monkeypatch.setattr(jobs, "execution_ownership", ownership)
-    monkeypatch.setattr(jobs, "run_news", lambda *args: None)
+    monkeypatch.setattr(jobs, "run_news", lambda ctx, conn: resumed.append(ctx))
     monkeypatch.setattr(pipeline_store, "retain_job_execution_receipt", lambda *args: None)
     jobs.main()
     assert waited == [315]
+    assert len(resumed) == 1 and resumed[0].run_id == "original-replica"
+    original = datetime.fromisoformat("2026-10-26T14:05:00+00:00")
+    assert abs((time.monotonic() - resumed[0].started_at_monotonic)
+               - (datetime.now(timezone.utc) - original).total_seconds()) < 1
 
 
 def test_lost_ownership_cancels_existing_io_scope(durable_store, monkeypatch):

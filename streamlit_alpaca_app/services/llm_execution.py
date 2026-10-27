@@ -288,15 +288,22 @@ def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id:
     key = _account_key(config)
     namespace = "provider_budget"
     state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
-    if time.time()-float(state.get("observed_at", 0)) >= 30:
-        with execution_ownership(namespace + ":balance", key, wait_seconds=min(timeout, 15)) as owned:
-            if not owned:
-                raise LLMProviderUnavailable("Provider balance refresh is still in progress.")
+    refresh_deadline = time.monotonic() + timeout
+    while time.time()-float(state.get("observed_at", 0)) >= 30:
+        check_execution_ownership()
+        remaining = refresh_deadline - time.monotonic()
+        if remaining <= 0:
+            raise LLMProviderUnavailable("Provider balance refresh exceeded the request deadline. Progress is retained.")
+        with execution_ownership(namespace + ":balance", key,
+                                 wait_seconds=min(remaining, 15), lease_seconds=60) as owned:
+            # A competing refresher may have published while this worker
+            # waited. Fresh shared state, not winning its lease, admits work.
             state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
-            if time.time()-float(state.get("observed_at", 0)) >= 30:
+            if owned and time.time()-float(state.get("observed_at", 0)) >= 30:
                 probe_started = time.time()
                 response = requests.get(config.base_url.rstrip("/") + "/user/balance",
-                    headers={"Authorization": "Bearer " + config.api_key}, timeout=min(timeout, 15))
+                    headers={"Authorization": "Bearer " + config.api_key},
+                    timeout=min(max(refresh_deadline-time.monotonic(), 0.001), 15))
                 response.raise_for_status()
                 data = response.json()
                 balances = [value for value in data["balance_infos"] if value["currency"] == "USD"]

@@ -1,0 +1,141 @@
+{
+  "status": "held_not_qualified",
+  "owner_authorization": "You have approval to promote to prod once you have verified the new release fixes everything I've asked for.",
+  "current_live_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+  "current_live_release_commit": "67d56e8581ef400f43ce8cc594f56d82edf8fbca",
+  "additional_promotion_started": false,
+  "findings": [
+    {
+      "issue": "Plain-text final review",
+      "evidence": "Actual enrichment adapter replay completed12/12 in166.67seconds, but all12 were answer_status=draft and quality_review=not_run. Earlier enrichment acceptance used broader supplied inputs and incorrectly described individual review as retained.",
+      "source_cause": "The shared final review condition required response_schema. No-tool plain-text synthesis skipped both the planner review and final review.",
+      "source_fix": "Apply the existing agent-owned final review regardless of output schema. Keep downstream-owned review and completed review exemptions.",
+      "status": "source_fixed_review_executed_but_follow_up_held"
+    },
+    {
+      "issue": "Recovery warnings",
+      "evidence": "The first new-image scheduled execution system-recovery-29885422 completed18:22UTC. Its application run75ae0d67-f88a-4adb-b161-1b367c9e4183 is Succeeded; the three preceding inspected application runs were Warning.",
+      "status": "verified_scheduled_production"
+    },
+    {
+      "issue": "Whole execution boundaries",
+      "evidence": "103 selected operational checks passed, including actual deployed budget admission, retained original-date output across deferred phases and original clock restoration on replica retry.",
+      "status": "verified_operational_contracts"
+    },
+    {
+      "issue": "Earlier primary candidate synthesis failures",
+      "evidence": "Four frozen captured acquisition replays use the real collector,240-second production budget and full model. Supplied-only acquisition preserves the captured evidence boundary.",
+      "status": "failed_acceptance_three_of_four"
+    },
+    {
+      "issue": "Shared provider balance refresh contention",
+      "evidence": "Three candidate qualification attempts and two enrichment writers reported balance-refresh-in-progress; another enrichment review failed for the same reason. Authoritative credit remained available.",
+      "source_fix": "Wait for fresh shared balance state within the original request deadline, reuse the competing refresher result and use a shorter renewable refresh lease. Retain atomic reservations and authoritative credit checks.",
+      "status": "source_fixed_operational_checks_passed_not_qualified_for_promotion"
+    },
+    {
+      "issue": "Composition inherited automatic memory writing",
+      "evidence": "After restoring final review, the inherited safe_auto policy activated memory reflection. The replay created7 new pages and1 proposal; source-version and timestamp checks confirmed no newer edits before rollback.",
+      "source_fix": "Composition explicitly uses write_policy=none; qualification configuration also declares none. Full Pro answer review consumes the retained source input.",
+      "cleanup": "All7 pages were archived using native audited rollback; the1 proposal was rejected. Full pre-rollback records retained through at least2026-11-26. No pre-existing page was overwritten.",
+      "status": "source_corrected_cleanup_verified_follow_up_held"
+    },
+    {
+      "issue": "Candidate replay capture limitation",
+      "evidence": "The four originally failed candidates have no retained acquisition documents in the morning source-document snapshot. The initial supplied-only replays with0 documents cannot qualify their research path and are not accepted as evidence.",
+      "follow_up": "Four real collector/acquisition calls are being qualified with600-second candidate budgets, original observed market inputs and current explicit as-of times. No product publication or knowledge mutations.",
+      "status": "initial_fixture_inconclusive_live_replacement_failed_acceptance"
+    }
+  ],
+  "request_checks": [
+    {
+      "request": "Today activation and two weekday news runs",
+      "status": "verified_live_configuration"
+    },
+    {
+      "request": "Cheaper task models and configurable baseline retry",
+      "status": "verified_routing_and_native_retry"
+    },
+    {
+      "request": "Original-date cache reuse, material changes and model/prompt invalidation",
+      "status": "prior_operational_and_personal_refresh_review_accepted"
+    },
+    {
+      "request": "Eight workers on existing compute",
+      "status": "verified_native_controller_and_eight_real_concurrent_requests"
+    },
+    {
+      "request": "Two-hour completed subset and continuation",
+      "status": "verified_local_boundaries_pending_full_scheduled_run"
+    },
+    {
+      "request": "Home failures and date quality",
+      "status": "qualifying_exact_adapter_follow_up"
+    },
+    {
+      "request": "Learning missing local files",
+      "status": "verified_native_fresh_connection_durability_pending_next_learning_run"
+    },
+    {
+      "request": "Actual recurring cost improvement and90% target",
+      "status": "measurement_pending"
+    }
+  ],
+  "promotion_rule": "Do not promote the follow-up until complete model outputs are personally accepted, appropriate operational checks pass, the exact image passes DEV and all consumer configurations are reviewed. Do not describe pending whole-run/cost measurement as verified.",
+  "operational_checks": {
+    "selected_passed": 106,
+    "seconds": 1.74,
+    "quality_scoring": false
+  },
+  "new_image_built": false,
+  "primary_candidate_live_results": [
+    {
+      "symbol": "KNSA",
+      "seconds": 419.24,
+      "status": "failed",
+      "error": "TimeoutError: Final synthesis exceeded its remaining phase budget.",
+      "captured_tool_calls": 2,
+      "continuation_retained": true
+    },
+    {
+      "symbol": "PNR",
+      "seconds": 575.9,
+      "status": "completed",
+      "error": null,
+      "captured_tool_calls": 2,
+      "continuation_retained": true
+    },
+    {
+      "symbol": "CLS",
+      "seconds": 397.78,
+      "status": "failed",
+      "error": "WorkCancelled: Research work has expired.",
+      "captured_tool_calls": 2,
+      "continuation_retained": true
+    },
+    {
+      "symbol": "NIB",
+      "seconds": 420.2,
+      "status": "failed",
+      "error": "TimeoutError: Final synthesis exceeded its remaining phase budget.",
+      "captured_tool_calls": 4,
+      "continuation_retained": true
+    }
+  ],
+  "decision": "Do not build or promote this follow-up. Three real primary-candidate investigations still fail to synthesize under a600-second run budget. Passing boundary checks and9 completed individual reviews do not establish full acceptance.",
+  "next_diagnosis": "Replay the retained complete acquisition and continuation records for KNSA,CLS andNIB at final writing/review, without buying acquisition again. Separate provider/SQL wait from model time before changing the phase allocation. Use DEV integration to assess near-Azure latency. Do not raise production timeouts or claim90% savings from this failed qualification.",
+  "remaining_replay": "Stopped the subsequent local12-item replay after primary acceptance failed. No owned browser workers remain; in-flight usage from process termination remains explicitly unknown in existing provider accounting.",
+  "qualification_write_cleanup": {
+    "native_mutations_rolled_back": 7,
+    "new_pages_archived": 7,
+    "proposal_statuses": [
+      [
+        "zopedia_proposal::create_page::1d1426a89fac3a7b",
+        "rejected"
+      ]
+    ],
+    "archive_sha256": "98b85236662899a935d0b4b60a69d969a92d44a4f6282a6070a6255ccb4e888f",
+    "retention_minimum_until": "2026-11-26",
+    "no_preexisting_page_changed": true
+  }
+}

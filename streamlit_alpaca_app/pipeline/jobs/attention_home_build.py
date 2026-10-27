@@ -747,7 +747,7 @@ def _run_single_zopedia_enrichment(
             initial_evidence=initial_evidence, persist_findings=False,
             request_context={"asof_time_utc": _zopedia_asof_text(asof_time_utc),
                              "allowed_source_access": ["supplied"]},
-            write_policy=_zopedia_write_policy(),
+            write_policy="none",
         )
     except Exception as exc:
         result = {"status": "failed", "error": f"{type(exc).__name__}: {exc}", "limitations": [f"{type(exc).__name__}: {exc}"]}

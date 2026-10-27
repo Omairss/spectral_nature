@@ -1314,3 +1314,10 @@ Company concurrency is independent of CPU count when model/tool waiting dominate
 Composition should consume already acquired complete evidence rather than buy another investigation. Reserve writing and review before tool research exhausts the clock; preserve the accepted no-tool editor allocation. Publication time does not establish an event time: preserve source bodies and investigation dates through every handoff, and give the common model boundary the timing/attribution contract. Scheduled learning inputs belong in durable events, not files inside a discarded container. A healthy paginated maintenance batch can succeed while its whole scan continues. [Acceptance record](verification/production-recovery-2026-10-27/local-review.json).
 
 The later same-day promotion activates the balanced policy October27, superseding the earlier October28 gate. Validate the composed admission clock: with115min work,30min completion reserve and19min observed preparation, a full60min investigation still fits. The exact-image8-request/native retry check passed; all32 unselected resource definitions remained unchanged. See the current [release record](verification/production-recovery-2026-10-27/release.json).
+
+
+### Review ownership, composition permissions and shared credit refresh — October 27
+
+The owning agent’s final review must work for plain-text and structured answers, including runs that use only supplied evidence. Composition consumes acquired evidence and returns the reviewed explanation; it should not launch another knowledge-writing workflow. Declare write_policy=none explicitly for read-only qualification. Settings namespaces and persist_findings=False are not database-mutation sandboxes. Native mutation audits support restoring earlier pages or archiving newly created pages without deleting their history.
+
+A caller waiting on a shared balance refresh needs a fresh authoritative balance, not ownership of the refresh lease. Re-read the published state after contention and wait inside the original request deadline. Keep credit reservations atomic; a busy refresher is distinct from insufficient funds.

@@ -99,3 +99,77 @@ def test_recovery_distinguishes_scan_progress_from_actual_failed_repairs(monkeyp
     assert result["job_status"] == "Succeeded" and result["scan_complete"] is False
     manifest["failed"] = {"dataset": "OperationalError"}
     assert main.run_system_recovery(SimpleNamespace(), SimpleNamespace())["job_status"] == "Warning"
+
+
+def test_deployed_budget_admits_a_full_investigation_after_observed_preparation(monkeypatch):
+    import json
+    from pathlib import Path
+    from services.work_scope import remaining_work_seconds
+    config = json.loads((Path(__file__).parents[1] /
+        "documents/verification/production-recovery-2026-10-27/configuration.json").read_text())
+    env = config["changes"]["news-ingest-and-features"]["environment"]
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "baseline")
+    monkeypatch.setenv("ZOPEDIA_TICKER_BUSINESS_RESEARCH_BUDGET_SECONDS", "3600")
+    prepared_at = time.monotonic()
+    deadline = (prepared_at - config["admission_feasibility"]["observed_preparation_seconds"]
+        + int(env["PIPELINE_JOB_WORK_TIMEOUT_SECONDS"])
+        - int(env["PIPELINE_JOB_FINALIZATION_RESERVE_SECONDS"]))
+    admitted = company._checkpoint_company_research(
+        lambda **kwargs: remaining_work_seconds(10000))
+    assert admitted(symbol="SUBJECT", llm_client=None,
+                    research_deadline_monotonic=deadline) >= 3600
+
+
+def test_news_phases_retain_completed_dated_outputs_for_deferred_work(monkeypatch):
+    from datetime import datetime, timezone
+    from pipeline.jobs import main
+    ctx = main.JobContext(name="news-ingest-and-features", run_id="current",
+                          asof=datetime.now(timezone.utc), universe_version="qualification")
+    previous_date = "2026-10-26T14:05:00Z"
+    previous = pd.DataFrame([dict(source_event_id="retained-source", symbol="RETAINED",
+        run_id="earlier", asof_time_utc=previous_date, coherent_story_markdown="Retained output.")])
+    monkeypatch.setenv("ZOPEDIA_TICKER_BUSINESS_RESEARCH_ENABLED", "false")
+    monkeypatch.setattr(main, "_configure_news_business_research_budget_env", lambda: None)
+    monkeypatch.setattr(main, "_load_latest_materialized_frame", lambda name:
+        previous.copy() if name == "zopedia_news_business_resolutions" else pd.DataFrame())
+    monkeypatch.setattr(main, "_zopedia_pages_for_news_resolution", lambda conn: pd.DataFrame())
+    monkeypatch.setattr(main, "_job_progress", lambda *args, **kwargs: None)
+    monkeypatch.setattr(main, "_make_stdout_zopedia_progress_callback", lambda **kwargs: lambda event: None)
+    def company_phase(**kwargs):
+        kwargs["progress_callback"]({"stage": "business_research_deferred", "symbol": "LATER"})
+        return {"zopedia_ticker_business_model_stacks": pd.DataFrame([dict(
+            symbol="COMPLETED", run_id="current", business_story_markdown="Completed output.")])}
+    def interpretation_phase(**kwargs):
+        kwargs["progress_callback"]({"stage": "news_interpretation_deferred", "symbol": "LATER"})
+        return {"zopedia_news_business_resolutions": pd.DataFrame([dict(
+            source_event_id="current-source", symbol="COMPLETED", run_id="current",
+            coherent_story_markdown="Completed output.")])}
+    monkeypatch.setattr(main, "build_ticker_business_model_stack_frames", company_phase)
+    monkeypatch.setattr(main, "build_news_business_resolution_frames", interpretation_phase)
+    monkeypatch.setattr(main, "_commit_zopedia_memory_pages", lambda **kwargs: {"status": "skipped"})
+    monkeypatch.setattr(main, "_zopedia_memory_commit_report_frame", lambda **kwargs: pd.DataFrame())
+    phases = main._iter_news_business_research_output_phases(news=pd.DataFrame(),
+        edgar_evidence=pd.DataFrame(), symbols=["COMPLETED", "LATER"], llm_client=None, ctx=ctx, conn=None)
+    assert next(phases)["zopedia_ticker_business_model_stacks"].iloc[0]["symbol"] == "COMPLETED"
+    published = next(phases)["zopedia_news_business_resolutions"].set_index("symbol")
+    assert published.loc["RETAINED", "asof_time_utc"] == previous_date
+    assert set(published.index) == {"COMPLETED", "RETAINED"}
+    assert list(phases) == []
+    assert set(ctx.continuations) == {"company_research", "news_interpretation"}
+    assert ctx.degraded_components == {}
+
+
+def test_home_composition_does_not_start_another_knowledge_write(monkeypatch):
+    from pipeline.jobs import attention_home_build as home
+    requests = []
+    monkeypatch.setattr(home, "_zopedia_agent_llm_timeout_seconds", lambda total: 480)
+    monkeypatch.setattr(home, "run_aql_zopedia_agent", lambda **kwargs:
+        requests.append(kwargs) or {"status": "completed", "answer_markdown": "Retained composition."})
+    supplied = [{"text": "Previously acquired input", "published_at": "2026-10-26T14:05:00Z"}]
+    home._run_single_zopedia_enrichment("SUBJECT", timeout_seconds=600,
+        asof_time_utc="2026-10-27T14:05:00Z", initial_evidence=supplied)
+    assert requests[0]["initial_evidence"] is supplied
+    assert requests[0]["max_tool_calls"] == 0
+    assert requests[0]["write_policy"] == "none"

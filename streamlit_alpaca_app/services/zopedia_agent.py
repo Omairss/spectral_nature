@@ -3944,7 +3944,6 @@ def _execute_zopedia_agent_loop(
         final_answer
         and answer_review_owner == "agent"
         and quality_review.get("status") != "completed"
-        and response_schema
         and not direct_structured_payload_used
         and budget.remaining("completion") > 0
     ):
