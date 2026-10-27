@@ -75,6 +75,7 @@ def research_engine_revision() -> str:
         "aql/evidence_pack.py",
         "llm_context.py",
         "llm_execution.py",
+        "inference_policy.py",
         "zopedia_runtime.py",
         "llm.py",
         "saa/storage.py",
