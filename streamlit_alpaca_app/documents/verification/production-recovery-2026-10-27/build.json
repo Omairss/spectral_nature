@@ -1,0 +1,14 @@
+{
+  "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+  "accepted_source_revision": "ca0d2e3fc021ef79bed26f5e54d7c174dcc54d65",
+  "source_inventory_sha256": "9d02453088c9e47fd9e707d2bd061eb6bfa364884bc14aa389fa3ca44365452e",
+  "runtime_inventory_sha256": "edbad6f626b58ad4c76b2f25591876523735ae8d5571e1b8a29c903aac4cbe0c",
+  "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+  "tag": "accepted-worker:b83d2bb296af",
+  "build_run": "cj1c4",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+  "source_gate_passed_before_build": true,
+  "inherited_application_removed": true,
+  "application_source": "Accepted Git only",
+  "development_execution": "macro-fred-daily-dev-8nqzhio"
+}

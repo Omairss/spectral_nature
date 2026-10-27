@@ -896,6 +896,19 @@
           "build_run": "cj1c3",
           "development_execution": "macro-fred-daily-dev-kl0whlm",
           "evidence": "documents/verification/inference-cost-rollout-2026-10-27/development.json"
+        },
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1": {
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+          "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+          "source_inventory_sha256": "9d02453088c9e47fd9e707d2bd061eb6bfa364884bc14aa389fa3ca44365452e",
+          "runtime_inventory_sha256": "edbad6f626b58ad4c76b2f25591876523735ae8d5571e1b8a29c903aac4cbe0c",
+          "all_packaged_files_checked": true,
+          "complete_git_inventory_matches": true,
+          "packaged_files": 189,
+          "build_run": "cj1c4",
+          "development_execution": "macro-fred-daily-dev-8nqzhio",
+          "evidence": "documents/verification/production-recovery-2026-10-27/development.json"
         }
       }
     },
@@ -1649,8 +1662,12 @@
     "evidence": "documents/verification/research-charts-2026-10-23/development.json"
   },
   "development_acceptance": {
-    "status": "pending_exact_image",
-    "evidence": "documents/verification/production-recovery-2026-10-27/local-review.json"
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+    },
+    "source_inventory_sha256": "9d02453088c9e47fd9e707d2bd061eb6bfa364884bc14aa389fa3ca44365452e",
+    "evidence": "documents/verification/production-recovery-2026-10-27/development.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",
@@ -1669,7 +1686,7 @@
     "policy_file": "config/inference_policy.json",
     "profile": "balanced",
     "not_before_pacific": "2026-10-27",
-    "configuration_evidence": "documents/verification/production-recovery-2026-10-27/plan.json",
-    "development_evidence": "documents/verification/production-recovery-2026-10-27/local-review.json"
+    "configuration_evidence": "documents/verification/production-recovery-2026-10-27/configuration.json",
+    "development_evidence": "documents/verification/production-recovery-2026-10-27/development.json"
   }
 }
