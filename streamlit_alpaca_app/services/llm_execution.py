@@ -57,33 +57,40 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
     stop = threading.Event()
     lost = threading.Event()
     renewed_at = time.monotonic()
-    work = WorkScope(renewed_at + lease_seconds)
-    def check():
+    def check_owner():
         if lost.is_set() or time.monotonic()-renewed_at >= lease_seconds:
             work.cancel()
             raise RuntimeError("Execution ownership was lost; completed work remains checkpointed.")
+    class OwnershipWork(WorkScope):
+        def check(self):
+            super().check()
+            check_owner()
+    # Renewal validity must not shorten a longer model/tool timeout. Every new
+    # I/O still checks the owner, and failed renewal cancels active operations.
+    work = OwnershipWork(float("inf"))
     def heartbeat():
         nonlocal renewed_at
         while not stop.wait(lease_seconds / 3):
             try:
-                if not pipeline_store.renew_execution_state(namespace, key, owner=owner, seconds=lease_seconds):
+                with WorkScope(time.monotonic() + min(30, lease_seconds / 3)).activate():
+                    renewed = pipeline_store.renew_execution_state(namespace, key, owner=owner, seconds=lease_seconds)
+                if not renewed:
                     lost.set()
                     work.cancel()
                     return
                 renewed_at = time.monotonic()
-                work.deadline = renewed_at + lease_seconds
             except Exception:
                 lost.set()
                 work.cancel()
                 return
     thread = threading.Thread(target=copy_context().run, args=(heartbeat,), daemon=True,
                               name="execution-ownership")
-    token = _OWNERSHIP.set((*_OWNERSHIP.get(), check))
+    token = _OWNERSHIP.set((*_OWNERSHIP.get(), check_owner))
     thread.start()
     try:
         with work.activate():
             yield True
-            check()
+            check_owner()
     finally:
         _OWNERSHIP.reset(token)
         lost.set()

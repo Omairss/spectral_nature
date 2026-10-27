@@ -192,6 +192,12 @@ def test_released_owner_cannot_do_io_from_an_inherited_context(durable_store):
             inherited.run(execution.check_execution_ownership)
 
 
+def test_renewable_ownership_preserves_existing_long_operation_budgets(durable_store):
+    from services.work_scope import remaining_work_seconds
+    with execution.execution_ownership("producer", "long-operation", lease_seconds=.3):
+        assert remaining_work_seconds(600) == 600
+
+
 def test_company_refresh_reuses_across_runs_but_reacts_to_evidence_and_deadline(durable_store, monkeypatch):
     calls = []
     @company._checkpoint_company_research

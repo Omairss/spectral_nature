@@ -19,6 +19,10 @@ if fingerprint != os.environ["EXPECTED_RUNTIME_INVENTORY_SHA256"]:
 print(json.dumps({"probe": "package", "all_packaged_files_checked": True, "files": len(files),
                   "runtime_inventory_sha256": fingerprint, "source_revision": os.getenv("GIT_SHA")}), flush=True)
 
+import pipeline.jobs.main
+import services.aql.business_model_stack
+print(json.dumps({"probe": "worker_entrypoint", "status": "imported"}), flush=True)
+
 from services import llm
 from services.aql_zopedia_gateway import generate_json_via_aql_zopedia_gateway
 from services.inference_policy import execute_with_fallback, policy
