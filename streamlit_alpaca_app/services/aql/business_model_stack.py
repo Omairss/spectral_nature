@@ -2960,8 +2960,17 @@ def build_ticker_business_model_stack_frames(
     progress_callback: ProgressCallback | None = None,
     research_deadline_monotonic: float | None = None,
 ) -> dict[str, pd.DataFrame]:
+    eligible = list(dict.fromkeys(_normalize_symbol(s) for s in symbols if _normalize_symbol(s)))[:max(int(limit), 1)]
+    if isinstance(existing_stacks_frame, pd.DataFrame) and not existing_stacks_frame.empty:
+        previous = existing_stacks_frame.copy()
+        previous["symbol"] = previous["symbol"].map(_normalize_symbol)
+        previous["_observed"] = pd.to_datetime(previous["asof_time_utc"], utc=True, errors="coerce")
+        latest = previous.groupby("symbol")["_observed"].max().to_dict()
+        # Preserve the caller's eligible universe; rotate its older/missing
+        # investigations ahead of recently completed profiles across batches.
+        eligible.sort(key=lambda s: latest[s].value if s in latest and pd.notna(latest[s]) else float("-inf"))
     results = build_ticker_business_model_stack_results(
-        symbols=symbols,
+        symbols=eligible,
         company_baselines_frame=company_baselines_frame,
         fundamentals_frame=fundamentals_frame,
         zopedia_pages_frame=zopedia_pages_frame,

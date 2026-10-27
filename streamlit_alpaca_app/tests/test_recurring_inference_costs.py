@@ -74,6 +74,17 @@ def model():
         model="deepseek-v4-pro", base_url="https://api.deepseek.com", thinking_mode="enabled"))
 
 
+def test_bounded_batch_rotates_older_and_missing_profiles_before_fresh_ones(monkeypatch):
+    captured = []
+    monkeypatch.setattr(company, "build_ticker_business_model_stack_results", lambda **kw: captured.extend(kw["symbols"]) or [])
+    previous = pd.DataFrame([
+        dict(symbol="FRESH", asof_time_utc="2026-10-26T14:05Z", business_story_markdown="Fresh analysis"),
+        dict(symbol="OLDER", asof_time_utc="2026-10-20T14:05Z", business_story_markdown="Older analysis")])
+    company.build_ticker_business_model_stack_frames(symbols=["FRESH", "OLDER", "MISSING", "OUTSIDE"],
+        existing_stacks_frame=previous, limit=3)
+    assert captured == ["MISSING", "OLDER", "FRESH"]
+
+
 def test_policy_routes_evidence_work_but_preserves_analysis_and_review(monkeypatch):
     from services.inference_policy import client_for_task, policy_identity
     monkeypatch.setenv("LLM_POLICY_PROFILE", "balanced")
