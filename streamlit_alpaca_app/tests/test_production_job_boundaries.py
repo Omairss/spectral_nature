@@ -18,14 +18,17 @@ def test_baseline_company_work_respects_the_batch_deadline(monkeypatch):
     monkeypatch.setenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "")
     monkeypatch.setattr(company, "_business_research_budget_seconds", lambda: 60)
     calls = []
-    bounded = company._checkpoint_company_research(lambda **kwargs: calls.append(kwargs) or "completed")
-    with pytest.raises(company.ResearchWorkDeferred):
-        bounded(symbol="SUBJECT", llm_client=object(), research_deadline_monotonic=time.monotonic() + 1)
-    assert not calls
-    assert bounded(symbol="SUBJECT", llm_client=object(), research_deadline_monotonic=time.monotonic() + 120) == "completed"
+    from services.llm_execution import _CALL
+    bounded = company._checkpoint_company_research(lambda **kwargs:
+        calls.append(_CALL.get()["completion_only"]) or SimpleNamespace(business_story_markdown=""))
+    bounded(symbol="SUBJECT", llm_client=object(), research_deadline_monotonic=time.monotonic() + 1)
+    bounded(symbol="SUBJECT", llm_client=object(), research_deadline_monotonic=time.monotonic() + 120)
+    assert calls == [True, False]
+    with pytest.raises(WorkCancelled):
+        bounded(symbol="SUBJECT", llm_client=object(), research_deadline_monotonic=time.monotonic() - 1)
 
 
-def test_news_batch_returns_completed_work_and_defers_the_next_item(monkeypatch):
+def test_news_batch_uses_remaining_window_for_current_best_effort(monkeypatch):
     monkeypatch.setenv("ZOPEDIA_NEWS_BUSINESS_MAX_WORKERS", "1")
     monkeypatch.setenv("ZOPEDIA_NEWS_BUSINESS_TIMEOUT_SECONDS", "900")
     clock = [0.0]
@@ -33,13 +36,13 @@ def test_news_batch_returns_completed_work_and_defers_the_next_item(monkeypatch)
     monkeypatch.setattr(news, "_news_symbol_rows", lambda *args, **kwargs: [(pd.Series(), "FIRST"), (pd.Series(), "SECOND")])
     def resolve(*args, **kwargs):
         clock[0] += 100
-        return SimpleNamespace(status="ready", symbol=kwargs["symbol"])
+        return SimpleNamespace(status="ready", symbol=kwargs["symbol"], coherent_story_markdown="")
     monkeypatch.setattr(news, "resolve_news_business_event", resolve)
     deferred = []
     results = news.build_news_business_resolution_results(
         news_frame=pd.DataFrame(), research_deadline_monotonic=950, progress_callback=deferred.append)
-    assert [result.symbol for result in results] == ["FIRST"]
-    assert [event["symbol"] for event in deferred] == ["SECOND"]
+    assert [result.symbol for result in results] == ["FIRST", "SECOND"]
+    assert not deferred
 
 
 def test_browser_queue_expires_without_launching_a_process():
@@ -95,6 +98,7 @@ def test_recovery_distinguishes_scan_progress_from_actual_failed_repairs(monkeyp
     monkeypatch.setattr(pipeline_store, "write_execution_state", lambda *args, **kwargs: True)
     monkeypatch.setattr(pipeline_store, "reconcile_dataset_manifests", lambda *args, **kwargs: manifest)
     monkeypatch.setattr(pipeline_store, "reconcile_provider_attempt_receipts", lambda **kwargs: {"reconciled": 3, "scan_complete": True})
+    monkeypatch.setattr(pipeline_store, "reconcile_provider_budget_reservations", lambda **kwargs: {"settled": 2, "scan_complete": True})
     result = main.run_system_recovery(SimpleNamespace(), SimpleNamespace())
     assert result["job_status"] == "Succeeded" and result["scan_complete"] is False
     manifest["failed"] = {"dataset": "OperationalError"}
@@ -117,12 +121,12 @@ def test_deployed_budget_admits_a_full_investigation_after_observed_preparation(
         + int(env["PIPELINE_JOB_WORK_TIMEOUT_SECONDS"])
         - int(env["PIPELINE_JOB_FINALIZATION_RESERVE_SECONDS"]))
     admitted = company._checkpoint_company_research(
-        lambda **kwargs: remaining_work_seconds(10000))
+        lambda **kwargs: SimpleNamespace(remaining=remaining_work_seconds(10000), business_story_markdown=""))
     assert admitted(symbol="SUBJECT", llm_client=None,
-                    research_deadline_monotonic=deadline) >= 3600
+                    research_deadline_monotonic=deadline).remaining >= 3600
 
 
-def test_news_phases_retain_completed_dated_outputs_for_deferred_work(monkeypatch):
+def test_news_phases_publish_current_outputs_without_merging_old_interpretations(monkeypatch):
     from datetime import datetime, timezone
     from pipeline.jobs import main
     ctx = main.JobContext(name="news-ingest-and-features", run_id="current",
@@ -138,11 +142,11 @@ def test_news_phases_retain_completed_dated_outputs_for_deferred_work(monkeypatc
     monkeypatch.setattr(main, "_job_progress", lambda *args, **kwargs: None)
     monkeypatch.setattr(main, "_make_stdout_zopedia_progress_callback", lambda **kwargs: lambda event: None)
     def company_phase(**kwargs):
-        kwargs["progress_callback"]({"stage": "business_research_deferred", "symbol": "LATER"})
+        kwargs["progress_callback"]({"stage": "business_research_incomplete", "symbol": "LATER"})
         return {"zopedia_ticker_business_model_stacks": pd.DataFrame([dict(
             symbol="COMPLETED", run_id="current", business_story_markdown="Completed output.")])}
     def interpretation_phase(**kwargs):
-        kwargs["progress_callback"]({"stage": "news_interpretation_deferred", "symbol": "LATER"})
+        kwargs["progress_callback"]({"stage": "news_interpretation_incomplete", "symbol": "LATER"})
         return {"zopedia_news_business_resolutions": pd.DataFrame([dict(
             source_event_id="current-source", symbol="COMPLETED", run_id="current",
             coherent_story_markdown="Completed output.")])}
@@ -154,11 +158,10 @@ def test_news_phases_retain_completed_dated_outputs_for_deferred_work(monkeypatc
         edgar_evidence=pd.DataFrame(), symbols=["COMPLETED", "LATER"], llm_client=None, ctx=ctx, conn=None)
     assert next(phases)["zopedia_ticker_business_model_stacks"].iloc[0]["symbol"] == "COMPLETED"
     published = next(phases)["zopedia_news_business_resolutions"].set_index("symbol")
-    assert published.loc["RETAINED", "asof_time_utc"] == previous_date
-    assert set(published.index) == {"COMPLETED", "RETAINED"}
+    assert set(published.index) == {"COMPLETED"}
     assert list(phases) == []
-    assert set(ctx.continuations) == {"company_research", "news_interpretation"}
-    assert ctx.degraded_components == {}
+    assert not ctx.continuations
+    assert set(ctx.degraded_components) == {"company_research", "news_interpretation"}
 
 
 def test_home_composition_does_not_start_another_knowledge_write(monkeypatch):

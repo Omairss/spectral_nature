@@ -159,6 +159,7 @@ def news_execution(durable_store, monkeypatch):
     def ownership(*args, **kwargs):
         yield True
     monkeypatch.setenv("PIPELINE_JOB_NAME", "news-ingest-and-features")
+    monkeypatch.setenv("PIPELINE_RUN_ID", "controller-contract")
     monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "scheduled-execution")
     monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "10")
     monkeypatch.delenv("PIPELINE_JOB_MAX_DURATION_SECONDS", raising=False)
@@ -369,7 +370,7 @@ def test_completed_pages_do_not_invalidate_their_own_reuse_or_get_republished(du
     assert len(calls) == 2
 
 
-def test_incomplete_company_resumes_same_work_identity_and_clock(durable_store):
+def test_company_retry_keeps_identity_but_a_new_briefing_has_current_identity(durable_store):
     identities = []
     @company._checkpoint_company_research
     def work(**kwargs):
@@ -378,22 +379,30 @@ def test_incomplete_company_resumes_same_work_identity_and_clock(durable_store):
         return result_for(kwargs)
     kwargs = dict(symbol="EXAMPLE", llm_client=model(), run_id="first", asof_time_utc="2026-10-26T14:00Z")
     work(**kwargs)
+    work(**kwargs)
     work(**{**kwargs, "run_id": "next-execution", "asof_time_utc": "2026-10-26T16:00Z"})
-    assert len(identities) == 2 and identities[0] == identities[1]
+    assert len(identities) == 3 and identities[0] == identities[1]
+    assert identities[2][0] != identities[0][0]
+    assert identities[2][1] == "2026-10-26T16:00:00+00:00"
 
 
-def test_batch_deadline_still_allows_reuse_and_defers_new_paid_work(durable_store):
+def test_short_company_window_completes_economically_and_expired_window_stops(durable_store, monkeypatch):
+    from services.work_scope import WorkCancelled
+    monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "10")
+    monkeypatch.setenv("PIPELINE_RUN_ID", "deadline-contract")
     calls = []
     @company._checkpoint_company_research
     def work(**kwargs):
-        calls.append(kwargs)
+        calls.append(execution.best_effort_required())
         return result_for(kwargs)
     kwargs = dict(symbol="EXAMPLE", llm_client=model(), run_id="first", asof_time_utc="2026-10-26T14:00Z")
     work(**kwargs)
     assert work(**{**kwargs, "research_deadline_monotonic": time.monotonic()-1}).business_story_markdown
-    with pytest.raises(execution.ResearchWorkDeferred):
+    result = work(**{**kwargs, "symbol": "CURRENT", "research_deadline_monotonic": time.monotonic()+60})
+    assert result.business_story_markdown and calls == [False, True]
+    with pytest.raises(WorkCancelled):
         work(**{**kwargs, "symbol": "ANOTHER", "research_deadline_monotonic": time.monotonic()-1})
-    assert len(calls) == 1
+    assert len(calls) == 2
 
 
 def test_ownership_reaches_threads_before_they_send_a_request(durable_store):

@@ -5,7 +5,7 @@ from presentation.visualization_artifacts import collect_research_visualizations
 from services.work_scope import WorkScope
 
 from contextvars import copy_context
-from .llm_execution import LLMContextWindowExceeded, research_run_context, research_spending_context
+from .llm_execution import LLMContextWindowExceeded, research_run_context, research_spending_context, best_effort_required
 
 from dataclasses import replace
 
@@ -3023,30 +3023,41 @@ def _run_zopedia_agent_loop(
     )
     try:
         with research_run_context(resolved_run_id):
-            result = _execute_zopedia_agent_loop(
-                run_id=resolved_run_id,
-                query=query,
-                task=task,
-                surface=surface,
-                force_refresh=force_refresh,
-                max_tool_calls=max_tool_calls,
-                service=service,
-                llm_client=resolved_llm,
-                progress_callback=session_progress_callback,
-                conversation_history=conversation_history,
-                persist_findings=persist_findings,
-                write_policy=write_policy,
-                tool_call_timeout_seconds=tool_call_timeout_seconds,
-                llm_step_timeout_seconds=llm_step_timeout_seconds,
-                prefetch_timeout_seconds=prefetch_timeout_seconds,
-                run_budget=run_budget,
-                initial_evidence=initial_evidence,
-                response_schema=response_schema,
-                response_schema_name=response_schema_name,
-                request_context=effective_context,
-                resume_state=resume_state,
-                answer_review_owner=answer_review_owner,
-            )
+            from .llm_execution import _CALL, model_call_context, protect_core_research, complete_core_research
+            inherited_core = _CALL.get().get("core_work_id")
+            core_id = inherited_core or resolved_run_id
+            if resolved_llm is not None:
+                protect_core_research(config=resolved_llm.config, work={core_id: {
+                    "query": query, "initial_evidence": initial_evidence,
+                    "conversation": conversation_history, "schema": response_schema,
+                }}, stages=1 + int(answer_review_owner == "agent"))
+            with model_call_context(core_work_id=core_id):
+                result = _execute_zopedia_agent_loop(
+                    run_id=resolved_run_id,
+                    query=query,
+                    task=task,
+                    surface=surface,
+                    force_refresh=force_refresh,
+                    max_tool_calls=max_tool_calls,
+                    service=service,
+                    llm_client=resolved_llm,
+                    progress_callback=session_progress_callback,
+                    conversation_history=conversation_history,
+                    persist_findings=persist_findings,
+                    write_policy=write_policy,
+                    tool_call_timeout_seconds=tool_call_timeout_seconds,
+                    llm_step_timeout_seconds=llm_step_timeout_seconds,
+                    prefetch_timeout_seconds=prefetch_timeout_seconds,
+                    run_budget=run_budget,
+                    initial_evidence=initial_evidence,
+                    response_schema=response_schema,
+                    response_schema_name=response_schema_name,
+                    request_context=effective_context,
+                    resume_state=resume_state,
+                    answer_review_owner=answer_review_owner,
+                )
+            if not inherited_core and result.get("answer_markdown"):
+                complete_core_research(core_id)
     except BaseException as exc:
         session.finish(error=exc)
         session.close()
@@ -3366,6 +3377,10 @@ def _execute_zopedia_agent_loop(
     structured_repair_attempted = False
     try:
         while int(max_tool_calls) > 0 and budget.remaining() > 0:
+            if best_effort_required():
+                # Current supplied evidence survives; optional discovery must
+                # not consume the remaining writer/reviewer window.
+                break
             if _budgeted_tool_count(tool_calls) >= int(max_tool_calls):
                 break
             iteration += 1

@@ -339,27 +339,28 @@
   },
   "adaptive_budget_requirement": {
     "owner_instruction": "The budget should be able to scale from $10 per run all the way to $1000+ per run. So the research quality/depth all should be variable.",
-    "status": "shared_ledger_and_planner_context_implemented_depth_and_recovery_work_remaining",
+    "status": "protected_completion_and_economical_current_reporting_implemented_locally_qualitative_and_release_acceptance_pending",
     "scope": "Shared production research engine. Configuration range does not itself start a run, approve spending, change production schedules or supersede the separate offline-study provider/daily approval policy.",
-    "budget_meaning": "Maximum incremental research spend for one logical objective, including child tasks, retries and fallback. A larger ceiling permits deeper work; it is not a requirement to consume the allowance.",
+    "budget_meaning": "Soft incremental spending target for one current logical run. Protect the configured full model for core interpretation, final synthesis and review before optional research. Allow and record small completion overruns. A new scheduled briefing starts from current observations; unfinished news is not deferred to the next run.",
     "controls": {
-      "max_cost_usd": "Any supported positive finite USD ceiling, including10,1000 and above; no hardcoded quality tiers.",
+      "max_cost_usd": "Nonnegative finite USD target; 10 to 1000+ supported continuously. Blank or zero on a scheduled producer selects the configured best-effort model. A positive funded target protects full-model core work even when optional headroom is exhausted.",
       "max_duration_seconds": "Independent run limit; preserve the existing two-hour production setting unless explicitly configured otherwise.",
       "concurrency": "Independent capacity limits for model calls, acquisition, browsers and database work; money alone does not increase them.",
       "research_objective": "The requested question and scope, carried to the shared LLM planner."
     },
     "adaptive_behavior": [
-      "The LLM planner allocates remaining money and time among breadth, depth, source acquisition, counterevidence, numerical work, eligible task models, synthesis and review. It can conclude early when further work has little expected value.",
-      "Use declared supported model/tool capabilities, versioned price bounds and observed latency. Reserve the cost of each paid action before admission; completion and publication need funded time/effort rather than a fixed percentage imposed on every task.",
-      "Each child sees an allocation from the parent allowance. Concurrent workers cannot each treat the full run ceiling as their own budget.",
-      "Budget and depth can change the research performed and model choice; provenance, truthful dates, execution outcome, permissions and accounting remain required at every budget."
+      "The shared LLM planner sees optional headroom, protected core funds, actual/reserved spending, model/tool prices and remaining time. Greater targets permit more useful exploration, not compulsory spending.",
+      "The news producer declares all selected company writing and current-event interpretation obligations before optional research starts. The shared agent protects writing/review before its own planning, and core gateway calls preserve the configured full model.",
+      "Optional acquisition cannot consume completion funds. Core requests move protected money into in-flight reservations atomically with applicable provider credit. Settling returns unused funds to the obligation; completing its owning result releases the remainder.",
+      "If no funded target exists, use the configured cheapest suitable model to synthesize this run\u2019s current inputs. A short window stops optional deep research; it does not downgrade funded core calls or queue a news story for another day.",
+      "Use actual source/event/observation dates throughout. Completed company background can be reused with its original date. A new run cannot inherit an unfinished investigation\u2019s old as-of date, and current news is not merged with older interpretation rows."
     ],
     "accounting": {
-      "available": "approved ceiling minus settled spending minus outstanding maximum reservations, including ambiguous attempts",
+      "available": "Target minus settled charges, in-flight/unknown reservations and unspent protected core obligations. Moving protected funds into an actual request does not count them twice. Provider-account credit remains separately enforced.",
       "atomicity": "Coordinate account affordability and run allowance reservations so failure in one cannot leak the other reservation.",
       "retry": "A replica retry retains the original logical run identity, spending, reservations and deadline without changing model policy.",
       "paid_tools": "Include incremental paid inference and acquisition; rented compute requires allocation-wide reservation. Fixed shared hosting is reported separately rather than silently represented as per-request spend. Unpriced paid actions need a bounded quote before admission.",
-      "changes": "Freeze the approved profile for a run; an explicit owner budget amendment can increase its ceiling while retaining all earlier spending and work."
+      "changes": "Initial target is retained across replica recovery. Audited owner amendments retain all incurred/reserved obligations. Changing the configured target does not reset spending."
     },
     "reuse_and_depth": [
       "Preserve complete captured inputs and completed research stages independently of the allowance used to obtain them. Increasing the requested budget/depth should extend useful work rather than discard it.",
@@ -381,11 +382,11 @@
       "ninety_percent_target_usd": 4.521534226,
       "implication": "News-only optimization cannot meet the account-wide target while other producers remain unchanged."
     },
-    "acceptance": "Compare the same objectives and retained inputs across materially different budgets, personally evaluate complete outputs and attained depth, verify hard concurrent spend bounds and resume behavior, and qualify production recovery/publication. No new model calls were started to write this design.",
+    "acceptance": "Personally compare complete current outputs and attained depth, verify protected funding and unknown-charge accounting with concurrent workers/retries, and qualify actual producer publication/recovery. Software checks do not establish model quality.",
     "allocation_design": {
-      "status": "allocation_controller_design_runtime_not_implemented",
-      "recorded_at_utc": "2026-10-28T05:30:58.024977+00:00",
-      "current_runtime_gap": "The shared ledger enforces a ceiling but admits requests in arrival order. Planner context is advisory; no funded completion escrow, parent-assigned investigation grants or coordinated allocation among subjects exists yet.",
+      "status": "core_funding_runtime_implemented_advanced_priority_grants_and_qualitative_depth_not_yet_accepted",
+      "recorded_at_utc": "2026-10-28T06:30:19.578875+00:00",
+      "current_runtime_gap": "Protected core obligations now exist and optional acquisition cannot debit them. Fine-grained LLM-prioritized child investigation grants and complete-output depth/quality comparison remain separate work.",
       "objective": "Maximize useful research within the approved objective, dollars and deadline. Greater allowance permits deeper or broader work; it neither requires expenditure nor silently expands the requested scope.",
       "funding_order": [
         {
@@ -410,14 +411,14 @@
         },
         {
           "stage": "Complete within the original limits",
-          "behavior": "Finish funded work using its protected allowance, publish completed results and retain unfinished investigations. Replica recovery retains the original configuration, clock, spending and evidence. No automatic whole-run baseline switch."
+          "behavior": "Finish funded core work on the configured full model, allowing a small recorded completion overrun; publish current completed results. Replica recovery retains this run\u2019s original identity, clock and spending. A later scheduled run starts current research, not an unfinished prior news investigation."
         }
       ],
       "ledger_contract": {
-        "invariant": "cap = settled charges + in-flight/unknown maximum reservations + protected future completion + unspent investigation grants + unallocated funds",
+        "invariant": "target + recorded commitment excess = settled charges + in-flight/unknown reservations + unspent protected core obligations + nonnegative free headroom. A protected amount moves into its request reservation once, then unused request headroom returns to its obligation until completion.",
         "no_double_counting": "Starting a funded request atomically moves funds from its grant/completion hold into an in-flight reservation; it does not reserve those dollars a second time. Settlement debits actual/bounded cost and returns unused headroom.",
         "admission": "Commit run allowance, allocation authority and applicable provider-account affordability together. Remote planning/price queries occur outside the SQL transaction.",
-        "completion_growth": "No new investigation, source-context expansion or more expensive model may create an unfunded finish obligation. If the requested scope cannot fit, retain honest partial completion rather than silently declaring the objective satisfied.",
+        "completion_growth": "Core completion retains the configured full model under a positive target. Quote/context growth and small completion overruns are recorded; optional research cannot borrow these funds. Blank/zero targets use economical current reporting.",
         "handoff": "Reclaim unspent grants only with fenced allocation authority. In-flight and unknown paid attempts remain obligations after worker loss; reconciliation, not lease expiry alone, releases them.",
         "amendments": "An explicit owner amendment retains spending, outstanding requests and all protected/granted funds. An ordinary retry or configuration change cannot increase the retained allowance."
       },
@@ -427,7 +428,7 @@
         "measurement": "Route suitability and completion quotes must be calibrated on complete retained-source outputs and actual attempt costs; no claim that cheap routing or more spending guarantees quality."
       },
       "scaling_examples": {
-        "ten_dollars": "Favor retained knowledge and focused research on the most consequential unresolved changes. Protect full-model interpretation/review for admitted work; broader subjects can retain dated prior findings or honest pending status.",
+        "ten_dollars": "Protect current core interpretation/writing/review first. Use economical planning/organization and reusable dated context; reduce optional exploration to the remaining allowance. Do not carry old stories into the next briefing.",
         "one_thousand_plus": "Permit more eligible investigations, fuller primary-source acquisition, alternative explanations, numerical scenarios and additional useful checking, within the same configured time and physical capacity.",
         "not_tiers": "These illustrate expected behavior, not coded dollar thresholds, source counts or compulsory spending."
       },
@@ -439,66 +440,81 @@
         "Personally compare complete outputs and achieved breadth/depth for the same retained objectives under materially different allowances, respecting the separate offline-study provider/spending rules."
       ]
     },
-    "recovery": "Resume retained work and retry eligible operations under the original logical run identity, selected inference configuration, allowance and deadline. Whole-run automatic baseline fallback is removed at the owner's instruction; deliberate deployment rollback remains separate."
+    "recovery": "Resume retained work and retry eligible operations under the original logical run identity, selected inference configuration, allowance and deadline. Whole-run automatic baseline fallback is removed at the owner's instruction; deliberate deployment rollback remains separate.",
+    "owner_clarifications_2026_10_27": [
+      "With no budget, produce a best-effort current report using the cheapest suitable model rather than deferring to the next run.",
+      "The budget need not be exactly strict; a little overrun is tolerated.",
+      "Core parts run on the best configured model, with budget reserved for them before optional research."
+    ]
   },
   "implementation_progress": {
     "status": "partial_implementation_locally_verified_release_held",
-    "recorded_at_utc": "2026-10-28T05:24:02.668595+00:00",
+    "recorded_at_utc": "2026-10-28T06:54:28.229044+00:00",
     "implementation": [
       "All execution-state persistence paths normalize nested pandas/NumPy missing and nonfinite values through shared to_jsonable; JSON encoding rejects remaining nonfinite numbers. Artifact result hashes use the normalized representation.",
-      "Company worker failures emit a recorded failure and allow independent completed companies to reach aggregate materialization; the producer records degraded research and continuation.",
+      "Company worker failures emit a recorded failure and allow independent completed companies to reach aggregate materialization; the producer records degraded current research.",
       "Automatic whole-run model fallback and its rollout audit/state are removed. Unexpected producer exceptions propagate unchanged; partial results retain the existing Warning status.",
       "Short ownership claim/renew/release operations use existing reserved interactive database capacity. Transient renewal errors retry within confirmed lease validity; confirmed lease loss still cancels work. Renewal errors retain their type and validity remaining.",
-      "The logical run ledger supports continuous positive USD caps, integer microdollar accounting, atomic account/run reservation, bounded waits for active requests to return headroom, idempotent settlement and retained unknown charges.",
+      "The logical run ledger supports continuous nonnegative USD targets, integer microdollar accounting, atomic account/run reservation, idempotent settlement and retained unknown charges.",
       "Replica identity retains its original configured allowance. Later configuration does not reset a retained ledger. Explicit audited amendments change the cap while retaining spending and reservations.",
       "Shared planning receives live remaining dollars, reserved/settled spending and model/tool prices alongside its existing clock and research state.",
-      "Paid Serper, SerpApi and Tavily transport requests share the ledger. Capped runs require configured maximum search charges. Disconnected or ambiguous requests keep their reservation."
+      "Paid Serper, SerpApi and Tavily transport requests share the ledger. Capped runs require configured maximum search charges. Disconnected or ambiguous requests keep their reservation.",
+      "Zero/missing producer allowances select the configured best-effort model. Optional paid acquisition stops, current supplied observations still reach synthesis, and a shared budget transition is retained across retries.",
+      "Protected core obligations are quoted before the news batch starts. The shared agent funds its completion before planning. Core routing keeps the configured full model for interpretation, synthesis and review under positive funded targets, independently of optional-budget exhaustion.",
+      "Core request admission atomically moves funds from its protected obligation to its in-flight reservation; settlement is idempotent and returns unused protected funds. Completing the owning result releases the balance. Actual overruns and protected funds are exposed separately.",
+      "Incomplete company investigations reset their identity/as-of on a later logical run. Replica retries of the same run preserve identity. Current news datasets no longer merge old interpretations; completed company memory retains original dates.",
+      "Learning journals discovered cases before model work, bounds each critic/replay inside the producer clock, prioritizes pending reviews durably, and leaves finalization time before Azure termination. The historical Azure termination cause remains unconfirmed.",
+      "Final provider receipts carry explicit original run/account reservation identities. The bounded recovery worker reconciles known retained receipts against outstanding obligations, including older runs, independently of its own run configuration. Unknown usage remains reserved.",
+      "A bounded metering-retention scope persists usage and settlements after child cancellation. It rejects new inference, acquisition and application publication. Immutable receipt archive I/O now inherits explicit remaining-time bounds."
     ],
     "configuration": {
-      "RESEARCH_RUN_BUDGET_USD": "Initial positive finite USD allowance for a new logical run; blank preserves existing uncapped configuration. Examples10,1000,10000.75 are contract fixtures, not approved spending.",
+      "RESEARCH_RUN_BUDGET_USD": "Nonnegative finite USD target; 10 to 1000+ supported continuously. Blank or zero on a scheduled producer selects the configured best-effort model. A positive funded target protects full-model core work even when optional headroom is exhausted.",
       "RESEARCH_TOOL_MAX_COST_USD_JSON": "Deployment-owned maximum prices per paid search request; missing quotes block that paid acquisition in capped runs. Explicit zero requires an actually covered/free plan.",
-      "LLM_PRICE_SNAPSHOT_PATH": "Versioned model prices; capped transport reserves a known context/output bound and refunds unused headroom against metered usage.",
+      "LLM_PRICE_SNAPSHOT_PATH": "Versioned prices and actual supplied-context estimates with tokenizer headroom, plus configured output allowance. Actual usage settles reservations; this is a soft target, not an exact input-token hard ceiling.",
       "amend_research_budget": "Administrative service function, not an agent tool; requires an authorization reference, approving identity and idempotent amendment identity.",
-      "independence": "Dollar changes do not change worker count, producer deadline or production schedules."
+      "independence": "Dollar changes do not change worker count, producer deadline or production schedules.",
+      "core_tasks": "Editable surface/purpose rules in config/inference_policy.json identify core interpretation/writing/review. They preserve the configured full model when a positive target funds the run.",
+      "best_effort_model": "Explicit editable model/credential definition in config/inference_policy.json, independent of whole-run rollback. Currently DeepSeek Flash; it does not replace funded core Pro work."
     },
     "verification": {
-      "result": "88 passed in4.41seconds",
-      "new_real_postgres_cases": 13,
+      "result": "114 passed in 4.40 seconds",
       "files": [
         "tests/test_adaptive_run_budget.py",
-        "tests/test_llm_execution.py",
+        "tests/test_aql_zopedia_gateway.py",
         "tests/test_recurring_inference_costs.py",
-        "tests/test_production_job_boundaries.py",
-        "tests/test_web_research.py",
         "tests/test_zopedia_learning.py",
-        "tests/test_zopedia_learning_evals.py"
+        "tests/test_zopedia_learning_evals.py",
+        "tests/test_news_business_resolution.py",
+        "tests/test_llm_execution.py",
+        "tests/test_production_job_boundaries.py",
+        "tests/test_database_publication.py",
+        "tests/test_web_research.py"
       ],
-      "scope": "Operational/accounting contracts only. Actual isolated PostgreSQL, real admission and ownership code, simulated provider/search responses. No paid inference, research GPU or production execution started.",
+      "scope": "Actual isolated PostgreSQL and shared gateway/client/financial code with simulated HTTP responses. Covers zero/missing allowance, economical completion, full-model protected writing/review, overrun accounting, discovery exclusion, same-run retry/new-run freshness, ownership and learning contracts. No NLP-quality acceptance claimed. The expanded set also verifies late usage reconciliation from a different recovery process, idempotency, metering retention after child cancellation, publication/read separation and paid search transport contracts.",
       "actual_spend_usd": 0,
-      "database_cleanup": "Every diagnostic cluster stopped and postmaster.pid absence checked before archiving.",
-      "additional_baseline_failure": "A broader research-session test expects resumable=False although unchanged source returns durable=True. Reproduced the same failure on the prior release branch. Not changed or counted as passing.",
+      "database_cleanup": "Every diagnostic cluster stopped; postmaster.pid absence verified before private archival.",
+      "broader_checks": "32 existing failures in tests/test_zopedia_agent.py and tests/test_pipeline_jobs.py reproduced as the identical failure-name set on the prior accepted release worktree. Do not count them as passes or rewrite semantic phrase expectations to claim acceptance.",
       "source_hashes": {
-        "pipeline/jobs/main.py": "27cbb04f210d1702f2fda12c0756e167fea612fd6123e73b56950392cd568c4b",
-        "services/aql/business_model_stack.py": "8b6e7937e0a414c24c3276632a9157fa1d470e79443440afc8896edc4727e674",
-        "services/inference_policy.py": "e700590cb08fe3aa351b11f9b8d5151e7aff8a055b89ed940d04229475c20eda",
-        "services/llm_execution.py": "bfcd75e871a00251a1d3611a52c5df259dec9680d33bb2da7889986cf532483e",
-        "services/llm_prices.json": "eeee5cdfd39271f38eab8492b5c6fefa95418ffac876b6a47b09eb9b2a88651f",
-        "services/pipeline_store.py": "b01ac3a5174b0e3812eaae486bd48e07d556e495dce779fbf8fa31f9dc6fe762",
-        "services/web_research.py": "5be2ba6bfd4c70530a106c70376dc52fadb0e3324f3e508b24d645898640f3e3",
-        "services/zopedia_agent.py": "0a3f28494e6f507c678eccc0a7176756d2be0597719d65d40c7d0fa8e4b774cf",
-        "config/inference_policy.json": "e2cc12735d5170daba4b7c2a3cd1d7a743125408f8cc36eb3f21b1a0d58e1887",
-        ".env.example": "157ce4d937aa2c6de487d701e843efbb06c12533de313e6ec9c34d2f3504e898"
+        "pipeline/jobs/main.py": "144a2bfb58b65c2ab944c6b9dea5fefdfe5098f948e47e9da002be12c7ecca5a",
+        "services/aql_zopedia_gateway.py": "4be18bcd47a124593acc25cb6123c79ca34a30dc3aeb36f9a9853e7508b7622a",
+        "services/llm_execution.py": "4f1818b76fadb3c569594a256a42e1497165d03461418087d227450c1d518984",
+        "services/inference_policy.py": "0971f0b573c90eee5e9f12b650018e5c027e44e7ec8f54de968034bfad8c0114",
+        "services/zopedia_agent.py": "c56f6bbe3885b282a3338371a3ac0ab12b759dee204edeef32e3fe1ee4f458b8",
+        "services/zopedia_learning.py": "d97997c8eb52c2bc47d8f048fdae796827c974f4a624752ce7e48c90c6106c87",
+        "services/pipeline_store.py": "4c2bd35037e19c201050759ccd83b54eec4032bfda4873bab5b4d65418eb4d60",
+        "services/work_scope.py": "479a7abf581333e4a6f6804d68483bc58fbdee21aff93c26eeb4a9d2de3777ee",
+        "config/inference_policy.json": "043455c47d5883a75e2b2174b742972b5104c4ebf7cc1c38e492f2f4b71de001"
       }
     },
     "remaining_implementation_and_acceptance": [
-      "Fund and qualify completion phases while varying breadth/depth and task-model choices; planner financial context alone does not establish adaptive research quality.",
+      "Qualify the implemented protected completion bank and optional-depth behavior on complete outputs; implement finer LLM-prioritized child grants only where useful.",
       "Decouple completed evidence identity from execution capacity/budget parameters; assess adequacy of retained shallow answers for deeper objectives and reuse captured work across replica recovery.",
-      "Complete deadline-driven publication of the completed subset, durable incremental aggregate recovery and storage-native publication fencing. Per-company isolation alone does not establish whole-run publication.",
-      "Reconcile interrupted or late accounting receipts into run and account ledgers, and qualify bounded retention of received paid results after child cancellation. Unknown obligations currently remain conservatively reserved.",
+      "Complete deadline-driven publication of the completed subset, durable incremental current aggregate recovery and storage-native publication fencing. Per-company isolation alone does not establish whole-run publication.",
+      "Known late metering receipts now reconcile to original run/account reservations, including after child cancellation; qualify this integration in DEV. Retention and adoption of complete paid answer content after cancellation remains unfinished. Unknown usage stays reserved.",
       "Include bounded incremental rented-compute/tool categories beyond the integrated inference/search transports before claiming complete research-spend coverage; fixed shared hosting remains separately reported.",
       "Qualify ownership renewal with mixed interactive/background production-shaped load and actual producer persistence/retry; short-TTL local checks are not complete scheduled-run acceptance.",
       "Resolve primary-candidate synthesis failures using retained complete evidence and personally evaluate full outputs, including dated event wording.",
-      "Bound learning case admission/continuation and establish the afternoon platform termination cause.",
+      "Verify the bounded learning/journal change in the production-shaped runner and establish the historical afternoon platform termination cause.",
       "Review all affected consumers, accept complete local behavior, build only accepted Git source, qualify the exact image in DEV, then use the existing conditional production authorization.",
       "Measure whole-account recurring cost and useful research coverage against the original baseline. No90percent reduction claim is supported yet."
     ],
@@ -562,5 +578,30 @@
       ".env.example": "157ce4d937aa2c6de487d701e843efbb06c12533de313e6ec9c34d2f3504e898"
     },
     "live_state_note": "The old production image still contains the removed mechanism. Historical rollout records are preserved as evidence; this source change takes effect when the accepted follow-up release is deployed. Existing live configuration was not changed."
+  },
+  "qualification_capacity": {
+    "checked_at_utc": "2026-10-28T06:13:26.955732+00:00",
+    "pacific_day": "2026-10-27",
+    "provider": "Lambda",
+    "active_instances": 0,
+    "gpu_8x_b200_sxm6_usd_per_hour": 53.52,
+    "available_regions": [],
+    "launches": 0,
+    "spend_usd": 0,
+    "constraint": "The exact-model complete-output comparison is not started. Required B200 allocation currently has no capacity. The separate $25 Pacific-day offline research allowance still applies and must be explicitly increased before any allocation estimate exceeds it.",
+    "owner_exception_requested": "One offline DeepSeek API comparison, at most $15, explicitly waiving the Lambda-only rule for that comparison; awaiting owner reply. No comparison has started."
+  },
+  "planned_follow_up_environment": {
+    "status": "proposal_for_accepted_release_not_applied",
+    "news-ingest-and-features": {
+      "RESEARCH_RUN_BUDGET_USD": "10"
+    },
+    "attention-home-build": {
+      "RESEARCH_RUN_BUDGET_USD": "10"
+    },
+    "zopedia-learning": {
+      "RESEARCH_RUN_BUDGET_USD": "10"
+    },
+    "note": "A positive target preserves full-model core work. Missing/zero budgets intentionally use the best-effort model; do not deploy into unset producer allowances accidentally. These targets do not require spending or change schedules. Final values remain reviewable before exact-image DEV qualification."
   }
 }

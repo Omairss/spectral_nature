@@ -2339,7 +2339,7 @@ def _iter_news_business_research_output_phases(
             "zopedia_business_model_search_requests": pd.DataFrame(),
             "zopedia_business_model_search_results": pd.DataFrame(),
             "zopedia_ticker_business_model_stacks": _load_latest_materialized_frame("zopedia_ticker_business_model_stacks"),
-            "zopedia_news_business_resolutions": _load_latest_materialized_frame("zopedia_news_business_resolutions"),
+            "zopedia_news_business_resolutions": pd.DataFrame(),
             "zopedia_company_business_memory_pages": pd.DataFrame(),
             "zopedia_memory_commit_report": commit_report,
         }
@@ -2358,6 +2358,29 @@ def _iter_news_business_research_output_phases(
     except Exception:
         fundamentals = pd.DataFrame()
     zopedia_pages = _zopedia_pages_for_news_resolution(conn)
+    # Declare the complete current batch before any worker can buy optional
+    # research. Core writing/review uses the configured full model; discovery
+    # receives only the money left after these obligations.
+    from services.llm_execution import protect_core_research
+    from services.aql import business_model_stack as company_research
+    from services.aql import news_business_resolution as news_research
+    core_work = {}
+    for symbol in symbols[:_parse_int_env("ZOPEDIA_TICKER_BUSINESS_STACK_LIMIT", 25, minimum=1)]:
+        core_work["company:" + symbol] = {
+            "asof": ctx.asof.isoformat(), "symbol": symbol,
+            "baseline": company_research._company_baseline_row(company_baselines, symbol),
+            "fundamentals": company_research._fundamental_rows(fundamentals, symbol, limit=10),
+            "filings": company_research._edgar_rows(edgar_evidence, symbol, limit=4),
+            "news": company_research._news_rows_for_symbol(news, symbol, limit=4),
+        }
+    for row, symbol in news_research._news_symbol_rows(news, symbols=symbols,
+            limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_LIMIT", 12, minimum=1)):
+        core_work["news:" + news_research._source_event_id(row, symbol) + ":" + symbol] = {
+            "asof": ctx.asof.isoformat(), "event": row.to_dict(),
+            "company": core_work.get("company:" + symbol),
+        }
+    if llm_client is not None:
+        protect_core_research(config=llm_client.config, work=core_work)
     write_policy = _normalize_zopedia_write_policy(os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "safe_auto"))
     execute_business_research = _parse_bool_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_ENABLED", True)
     _configure_news_business_research_budget_env()
@@ -2373,7 +2396,7 @@ def _iter_news_business_research_output_phases(
     progress = _make_stdout_zopedia_progress_callback(scope="ticker_business_model_stack")
     def company_progress(event):
         progress(event)
-        if event.get("stage") == "business_research_deferred":
+        if event.get("stage") == "business_research_incomplete":
             deferred.append(str(event.get("symbol") or ""))
         elif event.get("stage") == "business_research_failed":
             deferred.append(str(event.get("symbol") or ""))
@@ -2407,7 +2430,7 @@ def _iter_news_business_research_output_phases(
         research_deadline_monotonic=research_deadline,
     )
     if deferred:
-        ctx.continuations["company_research"] = f"{len(deferred)} investigations retained for the next execution."
+        ctx.degraded_components["company_research"] = f"{len(deferred)} current investigations did not finish."
     stack_frame = business_stack_frames.get("zopedia_ticker_business_model_stacks", pd.DataFrame())
     yield {
         "zopedia_business_model_research_plans": business_stack_frames.get("zopedia_business_model_research_plans", pd.DataFrame()),
@@ -2435,18 +2458,11 @@ def _iter_news_business_research_output_phases(
         progress_callback=lambda event: deferred_interpretations.append(str(event.get("symbol") or "")),
     )
     if deferred_interpretations:
-        ctx.continuations["news_interpretation"] = f"{len(deferred_interpretations)} interpretations retained for the next execution."
-    # A bounded batch must retain dated interpretations outside this batch and
-    # any earlier useful result whose refresh did not finish.
-    previous_resolutions = _load_latest_materialized_frame("zopedia_news_business_resolutions")
+        ctx.degraded_components["news_interpretation"] = f"{len(deferred_interpretations)} current interpretations did not finish."
     current_resolutions = resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame())
-    if not previous_resolutions.empty:
-        completed = current_resolutions[
-            current_resolutions["coherent_story_markdown"].fillna("").astype(str).str.strip().ne("")
-        ] if not current_resolutions.empty else current_resolutions
-        retained = pd.concat([completed, previous_resolutions], ignore_index=True)
-        resolution_frames["zopedia_news_business_resolutions"] = retained.drop_duplicates(
-            subset=["source_event_id", "symbol"], keep="first").reset_index(drop=True)
+    # This dataset represents this run's news. Historical snapshots and dated
+    # company memory retain useful background; never merge yesterday's failed
+    # refresh into the current news collection.
     memory_parts = [
         business_stack_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
         resolution_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
@@ -3283,7 +3299,10 @@ def run_zopedia_learning_job(ctx: JobContext, conn: Any | None = None) -> dict[s
     if conn is None:
         raise RuntimeError("Zopedia learning requires a database connection.")
     limit = _parse_int_env("ZOPEDIA_LEARNING_THREAD_LIMIT", 25, minimum=1)
-    result = run_zopedia_learning_service(limit=limit, conn=conn)
+    duration = _parse_int_env("PIPELINE_JOB_MAX_DURATION_SECONDS",
+        _parse_int_env("ZOPEDIA_LEARNING_JOB_TIMEOUT_SECONDS", 3300, minimum=60), minimum=1)
+    result = run_zopedia_learning_service(limit=limit, conn=conn,
+        deadline_monotonic=ctx.started_at_monotonic + duration)
     _job_progress(
         ctx,
         conn,
@@ -3323,7 +3342,8 @@ def run_system_health(ctx: JobContext, conn: Any | None = None) -> None:
 def run_system_recovery(ctx: JobContext, conn: Any | None = None) -> dict[str, Any]:
     """Drain bounded durable maintenance independently of health observation."""
     from services.pipeline_store import (dataset_namespace, read_execution_state, write_execution_state,
-                                         reconcile_dataset_manifests, reconcile_provider_attempt_receipts)
+                                         reconcile_dataset_manifests, reconcile_provider_attempt_receipts,
+                                         reconcile_provider_budget_reservations)
     from services.work_scope import WorkCancelled
     if conn is None:
         raise RuntimeError("Recovery requires a database connection")
@@ -3331,7 +3351,7 @@ def run_system_recovery(ctx: JobContext, conn: Any | None = None) -> dict[str, A
     started = time.monotonic()
     deadline = started + budget
     namespace = "system_recovery:" + dataset_namespace()
-    manifests = receipts = None
+    manifests = receipts = reservations = None
     try:
         with WorkScope(deadline).activate():
             state = read_execution_state(namespace, "manifest_cursor", strict=True) or {}
@@ -3339,11 +3359,12 @@ def run_system_recovery(ctx: JobContext, conn: Any | None = None) -> dict[str, A
             if manifests is not None:
                 write_execution_state(namespace, "manifest_cursor", {"offset": manifests["next_offset"]})
             receipts = reconcile_provider_attempt_receipts(days=7, limit=25)
+            reservations = reconcile_provider_budget_reservations(limit=25)
     except WorkCancelled:
         conn.rollback()
-    complete = bool(manifests and manifests["scan_complete"] and receipts and receipts["scan_complete"])
-    healthy_batch = bool(manifests and not manifests["failed"] and receipts and receipts["scan_complete"])
-    details = {"manifests": manifests, "receipts": receipts, "scan_complete": complete,
+    complete = bool(manifests and manifests["scan_complete"] and receipts and receipts["scan_complete"] and reservations and reservations["scan_complete"])
+    healthy_batch = bool(manifests and not manifests["failed"] and receipts and reservations)
+    details = {"manifests": manifests, "receipts": receipts, "reservations": reservations, "scan_complete": complete,
                "budget_seconds": budget, "elapsed_seconds": round(time.monotonic() - started, 3)}
     print("[info] recovery=" + json.dumps(details, sort_keys=True), flush=True)
     return {**details, "job_status": "Succeeded" if healthy_batch else "Warning",
@@ -3481,7 +3502,7 @@ def main() -> None:
             # service's result transactions and remote research.
             db_conn.autocommit = True
             ctx = replace(ctx, tracking_connection=db_conn)
-            work_conn = _db_connection(workload="interactive" if ctx.name in {"system-health", "research-run-execute"} else "background")
+            work_conn = _db_connection(workload="interactive" if ctx.name in {"system-health", "research-run-execute", "zopedia-learning"} else "background")
             if work_conn is None:
                 raise RuntimeError("Pipeline work database connection is unavailable.")
         ownership = (execution_ownership("pipeline_job:" + dataset_namespace(), ctx.name,
@@ -3492,8 +3513,9 @@ def main() -> None:
                 # The execution clock belongs to the producer, independently
                 # of model routing. Replica retries inherit the original start
                 # above and never change the selected inference configuration.
-                bounded = ctx.name == "news-ingest-and-features" or bool(os.getenv("PIPELINE_JOB_MAX_DURATION_SECONDS"))
-                duration = _parse_int_env("PIPELINE_JOB_MAX_DURATION_SECONDS", 7200, minimum=1)
+                bounded = ctx.name in {"news-ingest-and-features", "zopedia-learning"} or bool(os.getenv("PIPELINE_JOB_MAX_DURATION_SECONDS"))
+                default_duration = _parse_int_env("ZOPEDIA_LEARNING_JOB_TIMEOUT_SECONDS", 3300, minimum=60) if ctx.name == "zopedia-learning" else 7200
+                duration = _parse_int_env("PIPELINE_JOB_MAX_DURATION_SECONDS", default_duration, minimum=1)
                 run_scope = WorkScope(ctx.started_at_monotonic + duration).activate() if bounded else nullcontext()
                 with run_scope:
                     result = handler(ctx, work_conn)

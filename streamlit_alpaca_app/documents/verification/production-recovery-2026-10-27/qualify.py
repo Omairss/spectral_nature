@@ -1,8 +1,8 @@
 """Replay captured production inputs for personal review; no product publication.
 
-This qualifies an authorized production change, not a research study. All
-provider output stays in the private operation directory. Model prose is read
-by the operator; this script does not grade it with phrase assertions.
+This offline comparison uses Lambda on-demand GPUs under the owner's shared
+Pacific-day research allowance. Production deployment approval does not waive
+that policy. Outputs stay private and are personally reviewed in full.
 """
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -10,6 +10,18 @@ import json
 import os
 import sys
 import time
+from urllib.parse import urlparse
+
+# Explicit, already-budgeted Lambda endpoints are required. Never inherit a
+# paid production inference endpoint for an offline comparison.
+lambda_endpoints = {}
+for role in ("FULL", "ECONOMY"):
+    endpoint = os.getenv(f"QUALIFICATION_LAMBDA_{role}_BASE_URL", "").strip()
+    model = os.getenv(f"QUALIFICATION_LAMBDA_{role}_MODEL", "").strip()
+    host = urlparse(endpoint).hostname or ""
+    if not endpoint or not model or host in {"api.deepseek.com", "api.openai.com"}:
+        raise SystemExit(f"Declare the budgeted Lambda {role.lower()} endpoint/model before qualification; see AGENTS.md.")
+    lambda_endpoints[role] = (endpoint, model)
 
 APP = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(APP))
@@ -22,7 +34,9 @@ for item in job["properties"]["template"]["containers"][0]["env"]:
 os.environ.update(
     DEPLOYMENT_ENV_FILE=str(Path.home() / "Documents/code/spectral_nature/streamlit_alpaca_app/infra/.generated/deployment.local.env"),
     APP_TRACK="production-recovery-qualification-20261027", PIPELINE_JOB_NAME="production-recovery-qualification",
-    LLM_MODEL="deepseek-v4-pro", LLM_TIMEOUT_SECONDS="480",
+    LLM_PROVIDER="deepseek", LLM_BASE_URL=lambda_endpoints["FULL"][0],
+    LLM_MODEL=lambda_endpoints["FULL"][1], LLM_API_KEY="lambda-research-endpoint", LLM_TIMEOUT_SECONDS="480",
+    LLM_CONTEXT_WINDOW_TOKENS="1048576",
     AQL_ZOPEDIA_AGENT_RUN_TIMEOUT_SECONDS="900", AQL_ZOPEDIA_AGENT_LLM_STEP_TIMEOUT_SECONDS="480",
     ATTENTION_HOME_ZOPEDIA_AGENT_LLM_TIMEOUT_SECONDS="480",
     ATTENTION_ZOPEDIA_WRITE_POLICY="none",
@@ -30,6 +44,18 @@ os.environ.update(
     LLM_POLICY_JSON=(APP / "config/inference_policy.json").read_text(),
     LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE="",
 )
+for production_identity in ("PIPELINE_RUN_ID", "RESEARCH_RUN_BUDGET_USD", "CONTAINER_APP_JOB_EXECUTION_NAME"):
+    os.environ.pop(production_identity, None)
+document = json.loads(os.environ["LLM_POLICY_JSON"])
+for profile in document["profiles"].values():
+    if "economy" in profile.get("models", {}):
+        profile["models"]["economy"] = {"env_prefix": "QUALIFICATION_ECONOMY_"}
+document["best_effort_model"] = {"env_prefix": "QUALIFICATION_ECONOMY_"}
+os.environ.update(QUALIFICATION_ECONOMY_LLM_PROVIDER="deepseek",
+    QUALIFICATION_ECONOMY_LLM_BASE_URL=lambda_endpoints["ECONOMY"][0],
+    QUALIFICATION_ECONOMY_LLM_MODEL=lambda_endpoints["ECONOMY"][1],
+    QUALIFICATION_ECONOMY_LLM_API_KEY="lambda-research-endpoint",
+    LLM_POLICY_JSON=json.dumps(document))
 
 from pipeline.jobs import attention_home_build as home
 from services import llm

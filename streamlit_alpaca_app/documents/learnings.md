@@ -1345,3 +1345,15 @@ A shared spending cap still permits first-arriving investigations to starve late
 ### Execution recovery preserves model policy — October 27 removal
 
 Keep producer deadlines and retained run identity independent of inference routing. Removing automatic configuration fallback must also remove the durable state that can trigger it, while retaining the original clock across process retries. A partial completed result remains Warning; it need not become a whole-run failure just to select another model profile. Preserve operator-selected profiles and accepted deployment rollback separately. The source removal passes63 control-flow/accounting boundary checks; production remains on the earlier image pending complete release acceptance.
+
+
+### Current reporting, soft targets and protected core work — October 27
+
+The owner's latest instructions make the production allowance a soft target. Fund the configured full model for core interpretation, synthesis and review before optional acquisition. Keep future completion obligations separate from in-flight reservations; transfer funds once, return unused headroom on settlement and release the remainder only when the owning result exists. A missing/zero producer allowance selects economical current reporting. Optional-budget exhaustion does not downgrade funded core work. Record small completion overruns and keep actual provider credit and the producer clock independent.
+
+Each scheduled briefing must reflect its own observations. Completed company research remains dated background; an unfinished prior investigation must not carry its identity/as-of into a new run. Replica recovery of the same logical run preserves both. Do not merge older news interpretations into the current dataset or describe unfinished current news as queued for tomorrow. Learning's durable correction queue is separate from a current news report. The protected-core and economical-completion operational checks pass on isolated PostgreSQL; complete-output and release qualification remain pending.
+
+
+### Late receipts keep their original financial owner — October 27
+
+Store the run and shared-account reservation identities in each transport receipt. Reconciliation must use those identities rather than the recovery process’s run environment. Scan outstanding obligations for known final receipts, including old ones; do not free unknown usage through age or lease expiry. A bounded metering-retention scope can settle and persist received usage after child cancellation, while rejecting new inference, acquisition and application publication. Protect the bank’s completion funds separately from pending charges. The expanded operational checks pass114 cases; complete paid answer-content recovery and whole-run publication still need their own acceptance.

@@ -801,10 +801,11 @@ class ImmutableBlobArchive:
                 payload, overwrite=False, validate_content=True,
                 content_settings=self._settings(content_type=content_type, content_md5=md5),
                 metadata={"sha256": digest}, max_concurrency=2,
+                **_blob_io_options(),
             )
         except ResourceExistsError:
             pass
-        props = blob.get_blob_properties()
+        props = blob.get_blob_properties(**_blob_io_options())
         if props.size != len(payload) or props.metadata.get("sha256") != digest:
             raise RuntimeError("Immutable archive object verification failed")
         if props.content_settings.content_md5 != md5:
@@ -828,8 +829,8 @@ class ImmutableBlobArchive:
         path = f"{self.root}/{name}"
         blob = self.container.get_blob_client(path)
         blob.upload_blob(payload, overwrite=True, validate_content=True,
-            content_settings=self._settings(content_type="application/json", content_md5=md5))
-        props = blob.get_blob_properties()
+            content_settings=self._settings(content_type="application/json", content_md5=md5), **_blob_io_options())
+        props = blob.get_blob_properties(**_blob_io_options())
         if props.size != len(payload) or props.content_settings.content_md5 != md5:
             raise RuntimeError("Archive pointer verification failed")
         return path
@@ -1108,6 +1109,10 @@ def _publication_generation(value: dict[str, Any]) -> tuple:
 
 def publish_dataset_manifest(manifest: dict[str, Any]) -> None:
     """Publish a version receipt and conditionally advance its latest pointer."""
+    from .llm_execution import check_execution_ownership
+    from .work_scope import check_work
+    check_work()
+    check_execution_ownership()
     from azure.core import MatchConditions
     from azure.core.exceptions import ResourceNotFoundError, ResourceExistsError, ResourceModifiedError
     from azure.storage.blob import ContentSettings
@@ -2670,6 +2675,9 @@ def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool =
                          json.dumps(event.get("usage"), default=str),
                          json.dumps(event.get("metadata") or {}, default=str)))
         conn.commit()
+        from .llm_execution import reconcile_provider_reservation
+        if not (event.get("metadata") or {}).get("reservation_settled"):
+            reconcile_provider_reservation(event)
         return True
     except Exception:
         pass
@@ -2690,6 +2698,48 @@ def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool =
     path = archive.point(event["attempt_id"] + suffix, receipt)
     print(f"[warn] Provider attempt retained for database reconciliation: {path}", flush=True)
     return True
+
+
+def reconcile_provider_budget_reservations(*, limit: int = 25) -> dict[str, Any]:
+    """Settle known late receipts against their original run/account identity.
+
+    Scan outstanding obligations, including older ones, rather than hoping a
+    final receipt appears in a recent-date window. Unknown usage stays held.
+    """
+    from .llm import llm_settings_scope
+    from .llm_execution import reconcile_provider_reservation
+    from .database import database_workload
+    from .work_scope import work_expired
+    with database_workload("interactive"):
+        conn = open_database_connection()
+        if conn is None:
+            raise RuntimeError("Provider accounting recovery requires its database")
+        with closing(conn):
+            _ensure_execution_store(conn)
+            with conn.cursor() as cur:
+                cur.execute("""WITH outstanding AS (
+                    SELECT DISTINCT attempt.key AS attempt_id
+                    FROM aql_zopedia_execution_state s
+                    CROSS JOIN LATERAL jsonb_each(CASE WHEN s.namespace='research_run_budget'
+                        THEN s.payload->'attempts' ELSE s.payload->'reservations' END) attempt
+                    WHERE s.namespace IN ('research_run_budget','provider_budget')
+                      AND attempt.value->>'status' IN ('pending','unknown')
+                ) SELECT row_to_json(a) FROM outstanding o
+                    JOIN aql_zopedia_provider_attempts a ON a.attempt_id=o.attempt_id
+                    WHERE a.settings_scope=%s AND a.status <> 'started'
+                      AND a.metadata_json->'budget_reservation' IS NOT NULL
+                      AND (a.metadata_json->'estimated_charge'->>'status'='estimated'
+                           OR a.status='not_sent' OR a.http_status=402)
+                    ORDER BY a.started_at_utc LIMIT %s""", (llm_settings_scope(), max(1, limit)))
+                events = [dict(row[0]) for row in cur.fetchall()]
+            conn.commit()
+    settled = 0
+    for event in events:
+        if work_expired():
+            return {"settled": settled, "scan_complete": False}
+        reconcile_provider_reservation({**event, "metadata": event.get("metadata_json") or {}})
+        settled += 1
+    return {"settled": settled, "scan_complete": len(events) < max(1, limit)}
 
 
 def reconcile_provider_attempt_receipts(*, days: int = 7, limit: int = 1000) -> dict[str, Any]:

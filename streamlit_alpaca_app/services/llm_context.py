@@ -16,6 +16,9 @@ RESEARCH_TIMELINE_GUIDANCE = (
     "was repeated today unless a source supports a new statement. Attribute a speaker's assessment to the "
     "speaker rather than presenting it as an independently established market fact. An article's publication "
     "or capture date alone does not establish an event date. Preserve explicit historical as-of constraints."
+    " For a current scheduled briefing, assess the observations supplied for this run first. Previous investigations "
+    "are dated background, not evidence that a development happened again. Produce the best useful current answer "
+    "within the available resources; do not carry an unfinished news story into a future run as a new event."
 )
 
 

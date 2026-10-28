@@ -33,6 +33,8 @@ _OWNERSHIP: ContextVar[tuple] = ContextVar("execution_ownership", default=())
 
 
 def check_execution_ownership() -> None:
+    if _CALL.get().get("retaining_paid_receipt"):
+        raise RuntimeError("Paid-result retention cannot start inference, acquisition or application publication.")
     for check in _OWNERSHIP.get():
         check()
 
@@ -151,11 +153,11 @@ class LLMContextWindowExceeded(RuntimeError):
 
 
 class ResearchWorkDeferred(RuntimeError):
-    """The producer retains this investigation for a later execution window."""
+    """This optional action cannot run under the remaining resources."""
 
 
 class ResearchBudgetExceeded(ResearchWorkDeferred):
-    """The logical run cannot afford this request's maximum possible charge."""
+    """Stop optional spending and finish this run using its economy model."""
 
 
 def _microusd(value: Any, *, maximum: bool = True) -> int:
@@ -175,8 +177,6 @@ def _run_budget_key() -> tuple[str, str] | None:
 
 def _run_budget_state(state: dict[str, Any]) -> dict[str, Any]:
     cap = _microusd(os.environ["RESEARCH_RUN_BUDGET_USD"], maximum=False)
-    if cap <= 0:
-        raise ValueError("RESEARCH_RUN_BUDGET_USD must be positive.")
     # Configuration selects the initial allowance for a new run. Existing
     # spending and explicit audited amendments outlive configuration changes.
     if state:
@@ -187,7 +187,112 @@ def _run_budget_state(state: dict[str, Any]) -> dict[str, Any]:
 def _run_remaining(state: dict[str, Any]) -> int:
     return state["cap_microusd"] - sum(
         value["charged_microusd"] if value["status"] == "settled" else value["maximum_microusd"]
-        for value in state["attempts"].values())
+        for value in state["attempts"].values()) - sum(
+            value["remaining_microusd"] for value in state.get("core_obligations", {}).values())
+
+
+def protect_core_research(*, config: Any, work: dict[str, Any], stages: int = 2) -> None:
+    """Fund declared writing/review work before discretionary acquisition.
+
+    Producers declare their full batch together. The shared agent also calls
+    this boundary for standalone work before planning. Quotes cover the actual
+    supplied context and configured output allowance; later context growth is
+    accounted at admission. This is a soft target, not permission to downgrade
+    protected core work after optional spending.
+    """
+    key = _run_budget_key()
+    if key is None:
+        return
+    from . import pipeline_store
+    from .database import database_workload
+    quoted = {identity: _microusd(_request_maximum_charge(config, {
+        "model": config.model, "messages": [{"role": "user", "content": json.dumps(evidence, default=str)}],
+    }) * stages) for identity, evidence in work.items()}
+    def protect(state):
+        state = _run_budget_state(state)
+        if state["cap_microusd"] == 0:
+            return state
+        obligations = state.setdefault("core_obligations", {})
+        for identity, quote in quoted.items():
+            obligations.setdefault(identity, {"remaining_microusd": quote, "quoted_microusd": quote,
+                "provider": config.provider, "model": config.model, "status": "protected"})
+        return state
+    with database_workload("interactive"):
+        pipeline_store.mutate_execution_state(*key, protect)
+
+
+def complete_core_research(work_id: str) -> None:
+    """Return unused completion funds only after the owning result exists."""
+    key = _run_budget_key()
+    if key is None:
+        return
+    from . import pipeline_store
+    from .database import database_workload
+    def complete(state):
+        obligation = state.get("core_obligations", {}).get(work_id)
+        if obligation:
+            obligation.update(remaining_microusd=0, status="completed")
+        return state
+    with database_workload("interactive"):
+        pipeline_store.mutate_execution_state(*key, complete)
+
+
+def funded_core_research() -> bool:
+    key = _run_budget_key()
+    if key is None:
+        return False
+    from . import pipeline_store
+    from .database import database_workload
+    with database_workload("interactive"):
+        state = _run_budget_state(pipeline_store.read_execution_state(*key, strict=True) or {})
+    return state["cap_microusd"] > 0
+
+
+def best_effort_required() -> bool:
+    """A missing/exhausted allowance narrows current work, never queues it.
+
+    Ordinary transport calls without a research owner keep their configured
+    routing. The provider's actual credit remains a separate hard constraint.
+    """
+    if _CALL.get().get("completion_only"):
+        return True
+    root = _CALL.get().get("root_run_id") or os.getenv("PIPELINE_RUN_ID")
+    if not root:
+        return False
+    key = _run_budget_key()
+    if key is None:
+        # A producer with no selected allowance owes a current economical
+        # report. Unbudgeted interactive/offline research retains its explicit
+        # model configuration and separate owner spending policy.
+        return bool(os.getenv("PIPELINE_RUN_ID"))
+    from . import pipeline_store
+    from .database import database_workload
+    with database_workload("interactive"):
+        state = _run_budget_state(pipeline_store.read_execution_state(*key, strict=True) or {})
+    remaining = _run_remaining(state)
+    return (bool(state.get("invalid_quote")) or remaining <= 0 or
+            remaining < state.get("best_effort", {}).get("resume_headroom_microusd", 0))
+
+
+def finish_research_economically(reason: str, *, required_microusd: int = 0) -> None:
+    """Stop optional work until returned completion funds can afford it.
+
+    Recovery shares this decision. Releasing unused core funds can reopen
+    useful exploration in later tasks without resetting spending or clocks.
+    """
+    key = _run_budget_key()
+    if key is None:
+        return
+    from . import pipeline_store
+    from .database import database_workload
+    def finish(state):
+        state = _run_budget_state(state)
+        state.setdefault("best_effort", {"reason": reason, "started_at": time.time()})
+        state["best_effort"]["resume_headroom_microusd"] = max(
+            required_microusd, state["best_effort"].get("resume_headroom_microusd", 0))
+        return state
+    with database_workload("interactive"):
+        pipeline_store.mutate_execution_state(*key, finish)
 
 
 def amend_research_budget(*, root_run_id: str, cap_usd: Any, approved_by: str,
@@ -227,7 +332,10 @@ def research_spending_context() -> dict[str, Any]:
     """Live shared financial state for the agent, independent of its time budget."""
     key = _run_budget_key()
     if key is None:
-        return {"cap_usd": None, "constraint": "No per-run dollar cap configured; time and provider credit still apply."}
+        economical = best_effort_required()
+        return {"cap_usd": None, "best_effort": economical,
+                "constraint": ("Without an allowance, produce a current best-effort answer using the configured cheapest suitable model. Skip optional paid exploration; do not defer the report."
+                               if economical else "No production run target applies; preserve the explicit model, time, provider-credit and separate research-spending policies.")}
     from . import pipeline_store
     from .database import database_workload
     with database_workload("interactive"):
@@ -237,10 +345,14 @@ def research_spending_context() -> dict[str, Any]:
             "available_usd": max(0, _run_remaining(state)) / 1e6,
             "settled_usd": sum(v["charged_microusd"] for v in attempts if v["status"] == "settled") / 1e6,
             "reserved_usd": sum(v["maximum_microusd"] for v in attempts if v["status"] != "settled") / 1e6,
+            "protected_core_usd": sum(v["remaining_microusd"] for v in state.get("core_obligations", {}).values()) / 1e6,
+            "best_effort": bool(state.get("invalid_quote")) or _run_remaining(state) <= 0 or _run_remaining(state) < state.get("best_effort", {}).get("resume_headroom_microusd", 0),
+            "overrun_usd": max(0, sum(v["charged_microusd"] for v in attempts if v["status"] == "settled") - state["cap_microusd"]) / 1e6,
+            "committed_above_target_usd": max(0, -_run_remaining(state)) / 1e6,
             "cost_measurement": "Inference uses metered token-price estimates; acquisition uses configured charge bounds. Unknown attempts remain fully reserved.",
             "prices": _price_snapshot(),
             "tool_maximum_usd_per_request": json.loads(os.getenv("RESEARCH_TOOL_MAX_COST_USD_JSON") or "{}"),
-            "allocation": "Shared with all workers and retries. Spend only for useful incremental work; preserve enough for synthesis and review. More dollars allow greater breadth or depth, never require spending or extend the deadline."}
+            "allocation": "Core interpretation, synthesis and review retain the configured full model and protected funds. Only available_usd can fund optional exploration. Stop optional work when that headroom is exhausted; release unused core funds after completion and reassess useful work. A small core-completion overrun is allowed and recorded. With no funded allowance, use the configured cheapest suitable model for a current report. Never defer current news to another run. More dollars permit depth, not compulsory spending or a longer deadline."}
 
 
 def reserve_research_cost(*, attempt_id: str, maximum_usd: Any, category: str,
@@ -254,61 +366,76 @@ def reserve_research_cost(*, attempt_id: str, maximum_usd: Any, category: str,
     if not keys:
         return False
     amount = _microusd(maximum_usd)
+    economy_completion = category == "inference" and (_CALL.get().get("routing") or {}).get("role") == "best_effort"
+    core_work_id = _CALL.get().get("core_work_id")
+    core_completion = category == "inference" and (_CALL.get().get("routing") or {}).get("role") == "core"
     def reserve(states):
         if run_key is not None:
             state = _run_budget_state(states[run_key])
             if attempt_id in state["attempts"]:
                 raise ValueError("An execution attempt cannot reserve twice.")
-            if state.get("invalid_quote"):
+            obligation = state.get("core_obligations", {}).get(core_work_id) if core_completion else None
+            if core_completion and not obligation:
+                raise ValueError("Core inference requires its declared completion funding.")
+            if state.get("invalid_quote") and not (economy_completion or core_completion):
                 raise ResearchBudgetExceeded("Run admission is paused because a request exceeded its quoted maximum.")
-            if amount > _run_remaining(state):
-                error = ResearchBudgetExceeded("The remaining shared run budget cannot cover this request. Completed research is retained.")
-                refundable = sum(v["maximum_microusd"] for v in state["attempts"].values() if v["status"] == "pending")
-                error.can_wait = amount <= _run_remaining(state) + refundable
+            if not (economy_completion or core_completion) and (
+                    amount > _run_remaining(state) or
+                    _run_remaining(state) < state.get("best_effort", {}).get("resume_headroom_microusd", 0)):
+                error = ResearchBudgetExceeded("Stop optional spending and complete this run with the cheapest suitable model.")
+                error.required_microusd = amount
                 raise error
+            funded = min(amount, obligation["remaining_microusd"]) if obligation else 0
+            if obligation:
+                obligation["remaining_microusd"] -= funded
             state["attempts"][attempt_id] = {"status": "pending", "maximum_microusd": amount,
-                                             "category": category, "started_at": time.time()}
+                                             "category": category, "started_at": time.time(),
+                                             "best_effort": economy_completion,
+                                             "core_work_id": core_work_id if core_completion else None,
+                                             "completion_funding_microusd": funded}
             states[run_key] = state
         if account_key is not None:
             states[account_key] = account_transform(states[account_key])
         return states
-    deadline = time.monotonic() + wait_seconds
-    while True:
-        try:
-            with database_workload("interactive"):
-                if run_key is None:
-                    # Preserve the established account-only contract for uncapped jobs.
-                    pipeline_store.mutate_execution_state(*account_key, account_transform)
-                else:
-                    pipeline_store.mutate_execution_states(keys, reserve)
-            return True
-        except ResearchBudgetExceeded as exc:
-            from .work_scope import remaining_work_seconds
-            remaining = min(deadline - time.monotonic(), remaining_work_seconds(max(wait_seconds, 0.001)))
-            if not getattr(exc, "can_wait", False) or remaining <= 0:
-                raise
-            check_execution_ownership()
-            time.sleep(min(0.25, remaining))
+    with database_workload("interactive"):
+        if run_key is None:
+            pipeline_store.mutate_execution_state(*account_key, account_transform)
+        else:
+            pipeline_store.mutate_execution_states(keys, reserve)
+    return True
 
 
 def settle_research_cost(*, attempt_id: str, actual_usd: Any | None,
-                         account_key: tuple[str, str] | None = None, account_transform=None) -> None:
+                         account_key: tuple[str, str] | None = None, account_transform=None,
+                         reservation: dict[str, Any] | None = None) -> None:
     from . import pipeline_store
     from .database import database_workload
-    run_key = _run_budget_key()
+    # A recovery worker owns a different run. Receipts retain the original
+    # reservation identity instead of deriving it from the recovering process.
+    run_key = (tuple(reservation["run"]) if reservation.get("run") else None) if reservation is not None else _run_budget_key()
     keys = [key for key in (run_key, account_key) if key is not None]
     if not keys:
         return
     def settle(states):
         if run_key is not None:
             state = states[run_key]
-            attempt = state["attempts"][attempt_id]
+            attempt = state.get("attempts", {}).get(attempt_id)
+            if attempt is None:
+                # Admission may have failed before creating either obligation.
+                if account_key is not None:
+                    states[account_key] = account_transform(states[account_key])
+                return states
             if actual_usd is None:
                 if attempt["status"] != "settled":
                     attempt["status"] = "unknown"
             else:
                 charged = max(_microusd(actual_usd), attempt.get("charged_microusd", 0))
                 attempt.update(status="settled", charged_microusd=charged)
+                obligation = state.get("core_obligations", {}).get(attempt.get("core_work_id"))
+                if obligation and obligation["status"] == "protected":
+                    refund = max(0, attempt.get("completion_funding_microusd", 0) - charged)
+                    obligation["remaining_microusd"] += refund - attempt.get("completion_refund_microusd", 0)
+                    attempt["completion_refund_microusd"] = refund
                 if charged > attempt["maximum_microusd"]:
                     # Keep the actual cost, stop further admission, and expose
                     # an invalid quote rather than hiding a billing overrun.
@@ -334,6 +461,8 @@ def metered_tool_request(request, *args, cost_key: str, **kwargs):
     from .work_scope import check_work
     check_work()
     check_execution_ownership()
+    if best_effort_required():
+        raise ResearchBudgetExceeded("Optional paid acquisition stopped; finish the current report from this run's available evidence.")
     if _run_budget_key() is None:
         return request(*args, **kwargs)
     prices = json.loads(os.getenv("RESEARCH_TOOL_MAX_COST_USD_JSON") or "{}")
@@ -589,10 +718,6 @@ def _request_maximum_charge(config: Any, payload: dict[str, Any]) -> Decimal:
     context = request_context_budget(config, payload)
     if context:
         input_tokens, output_tokens = context["estimated_input_tokens"], context["reserved_output_tokens"]
-        if _run_budget_key() is not None:
-            # A dollar ceiling needs an upper bound, not an approximate
-            # tokenizer count. Refund unused headroom after real usage.
-            input_tokens = context["window_tokens"]
     else:
         import tiktoken
         # Price all input, including schemas; leave tokenizer headroom. Models
@@ -603,13 +728,6 @@ def _request_maximum_charge(config: Any, payload: dict[str, Any]) -> Decimal:
         if output_tokens is None and Decimal(str(price["offpeak"]["output"])) != 0:
             raise LLMProviderUnavailable("A capped run requires an explicit maximum output for this model.")
         output_tokens = int(output_tokens or 0)
-        if _run_budget_key() is not None:
-            window = int(os.getenv("LLM_CONTEXT_WINDOW_TOKENS") or price.get("context_window_tokens") or 0)
-            if window <= 0:
-                raise LLMProviderUnavailable("A capped run requires the model's maximum input context for a bounded quote.")
-            inputs = payload.get("input")
-            batch_size = len(inputs) if isinstance(inputs, list) and inputs and not isinstance(inputs[0], int) else 1
-            input_tokens = window * batch_size
     if output_tokens < 0:
         raise ValueError("Maximum output must be nonnegative.")
     return (Decimal(input_tokens) * Decimal(str(price["offpeak"]["input"]))
@@ -617,7 +735,7 @@ def _request_maximum_charge(config: Any, payload: dict[str, Any]) -> Decimal:
 
 
 def settle_provider_budget(config: Any, *, attempt_id: str, charge: dict[str, Any],
-                           definitely_unbilled: bool) -> None:
+                           definitely_unbilled: bool, reservation: dict[str, Any] | None = None) -> None:
     def settle(state):
         value = state.get("reservations", {}).get(attempt_id)
         if value is None:
@@ -633,10 +751,30 @@ def settle_provider_budget(config: Any, *, attempt_id: str, charge: dict[str, An
             value["status"] = "unknown"
         return state
     actual = 0 if definitely_unbilled else charge.get("usd_max") if charge.get("status") == "estimated" else None
-    official_balance = config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com"
+    if reservation is None:
+        official_balance = config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com"
+        account_key = ("provider_budget", _account_key(config)) if official_balance else None
+    else:
+        account_key = tuple(reservation["account"]) if reservation.get("account") else None
     settle_research_cost(attempt_id=attempt_id, actual_usd=actual,
-        account_key=("provider_budget", _account_key(config)) if official_balance else None,
-        account_transform=settle if official_balance else None)
+        account_key=account_key, account_transform=settle if account_key else None,
+        reservation=reservation)
+
+
+def reconcile_provider_reservation(event: dict[str, Any]) -> None:
+    """Apply a retained final receipt to its original run and shared account."""
+    reservation = (event.get("metadata") or {}).get("budget_reservation")
+    if event.get("status") == "started" or not reservation:
+        return
+    run, account = reservation.get("run"), reservation.get("account")
+    if run is not None and (len(run) != 2 or run[0] != "research_run_budget" or run[1] != event.get("root_run_id")):
+        raise ValueError("Receipt run reservation does not match its execution.")
+    if account is not None and (len(account) != 2 or account[0] != "provider_budget" or not re.fullmatch(r"[a-f0-9]{64}", account[1])):
+        raise ValueError("Invalid provider account reservation identity.")
+    settle_provider_budget(None, attempt_id=event["attempt_id"],
+        charge=event["metadata"].get("estimated_charge") or {},
+        definitely_unbilled=event.get("status") == "not_sent" or event.get("http_status") == 402,
+        reservation=reservation)
 
 
 def request_composition(payload: dict[str, Any]) -> dict[str, Any]:
@@ -682,6 +820,9 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     started = datetime.now(timezone.utc)
     t0 = time.monotonic()
     attempt_id = "llmhttp_" + uuid.uuid4().hex
+    reservation_identity = {"run": _run_budget_key(), "account":
+        ("provider_budget", _account_key(config)) if config.provider == "deepseek" and
+        urlparse(config.base_url).hostname == "api.deepseek.com" else None}
     initial_event = {
         "attempt_id": attempt_id, "model_call_id": context.get("model_call_id"),
         "root_run_id": context.get("root_run_id") or os.getenv("PIPELINE_RUN_ID") or context.get("run_id"),
@@ -692,6 +833,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         "provider": config.provider, "requested_model": payload.get("model") or config.model,
         "operation": operation, "status": "started", "started_at_utc": started, "duration_ms": 0,
         "metadata": {"request_composition": composition, "job_name": os.getenv("PIPELINE_JOB_NAME"),
+                     "budget_reservation": reservation_identity,
                      "routing": context.get("routing")},
     }
     try:
@@ -751,6 +893,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
             "usage": data.get("usage"),
             "metadata": {
                 "transport_attempted": transport_attempted,
+                "budget_reservation": reservation_identity,
                 "request_composition": composition,
                 "error_type": error_type, "provider_request_id": data.get("id"),
                 "inference_effort": payload.get("reasoning_effort"), "thinking": payload.get("thinking"),
@@ -767,20 +910,23 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                     usage=data.get("usage"), started_at=started),
             },
         }
-        if budget_reserved:
-            try:
-                settle_provider_budget(config, attempt_id=attempt_id,
-                    charge=event["metadata"]["estimated_charge"],
-                    definitely_unbilled=not transport_attempted or (response is not None and response.status_code == 402))
-            except Exception:
-                log.warning("Provider budget settlement unavailable; reservation retained: %s", attempt_id)
+        from .work_scope import paid_receipt_retention
         try:
-            if not record_provider_attempt(event):
-                log.warning("Provider attempt usage was not persisted: %s", event["attempt_id"])
+            with model_call_context(retaining_paid_receipt=True), paid_receipt_retention():
+                if budget_reserved:
+                    try:
+                        settle_provider_budget(config, attempt_id=attempt_id,
+                            charge=event["metadata"]["estimated_charge"],
+                            definitely_unbilled=not transport_attempted or (response is not None and response.status_code == 402),
+                            reservation=reservation_identity)
+                        event["metadata"]["reservation_settled"] = True
+                    except Exception:
+                        log.warning("Provider budget settlement unavailable; reservation retained: %s", attempt_id)
+                if not record_provider_attempt(event):
+                    raise RuntimeError("The provider receipt could not be retained")
         except Exception:
-            # Central execution logs retain a recoverable metering receipt even
-            # if both independent stores are unavailable. No request text or
-            # credentials are included in this event.
+            # No request text or credentials are included. A bounded receipt
+            # write may outlive child cancellation; paid work cannot restart.
             log.warning("Provider attempt accounting unavailable; receipt=%s",
                         json.dumps(event, sort_keys=True, default=str), exc_info=False)
 
@@ -793,6 +939,7 @@ def research_artifact_key(*, access_scope: str, subject: str, query: str,
     from .inference_policy import policy_identity
     contract = {"engine_revision": research_engine_revision(), "query": query, "schema": schema, "provider": config.provider,
                 "inference_policy": policy_identity(),
+                "economical_completion": best_effort_required() and not funded_core_research(),
                 "endpoint": config.base_url, "model": config.model,
                 "thinking": config.thinking_mode, "effort": execution_effort(config.reasoning_effort),
                 "temperature": config.temperature, "style": get_active_narrative_style_rule(),

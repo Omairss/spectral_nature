@@ -1782,6 +1782,11 @@ def _zopedia_research_dossier(
     combined_research_rows: list[dict[str, Any]],
     progress_callback: ProgressCallback | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
+    from ..llm_execution import best_effort_required
+    if best_effort_required():
+        # The final writer receives all raw inputs directly. An optional
+        # intermediate organization call must not displace current synthesis.
+        return {}, []
     runner = _agent_runner_or_none(zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client)
     if runner is None:
         return {}, []
@@ -1838,6 +1843,9 @@ def _zopedia_dossier_followup(
     symbol: str, company_name: str, research_dossier: dict[str, Any],
     progress_callback: ProgressCallback | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
+    from ..llm_execution import best_effort_required
+    if best_effort_required():
+        return research_dossier, []
     questions = list(research_dossier.get("follow_up_questions") or [])
     if not questions or (research_dossier.get("artifact_reference") or {}).get("continuation_completed"):
         return research_dossier, []
@@ -2152,6 +2160,7 @@ def _checkpoint_company_research(function):
         from ..inference_policy import policy
         from .. import zopedia_agent, zopedia_research  # register the complete prompt contract
         from ..json_utils import to_jsonable
+        from ..llm_execution import model_call_context
         access = current_research_access_scope()
         client = kwargs.get("llm_client")
         refresh_policy = policy()
@@ -2159,15 +2168,16 @@ def _checkpoint_company_research(function):
                               refresh_policy["company_refresh_seconds"])
         if not access or client is None or refresh_seconds <= 0:
             deadline = kwargs.get("research_deadline_monotonic")
-            if deadline is None:
-                return function(**kwargs)
-            # Baseline/model rollback changes inference, not the producer's
-            # execution budget. It must stop admitting work at the same bound.
-            if deadline - time.monotonic() < _business_research_budget_seconds():
-                raise ResearchWorkDeferred("The remaining producer window cannot cover a company investigation.")
+            # A short window buys a current economical synthesis, rather than
+            # postponing this company to a different day's news.
+            short = deadline is not None and deadline - time.monotonic() < _business_research_budget_seconds()
             from ..work_scope import WorkScope
-            with WorkScope(deadline).activate():
-                return function(**kwargs)
+            with WorkScope(deadline or float("inf")).activate(), model_call_context(completion_only=short, core_work_id="company:" + kwargs["symbol"]):
+                result = function(**kwargs)
+            if result.business_story_markdown:
+                from ..llm_execution import complete_core_research
+                complete_core_research("company:" + kwargs["symbol"])
+            return result
         symbol = _normalize_symbol(kwargs["symbol"])
         baseline = _company_baseline_row(kwargs.get("company_baselines_frame"), symbol)
         name = _company_name(symbol, baseline, pd.Series(dtype=object))
@@ -2212,6 +2222,11 @@ def _checkpoint_company_research(function):
                 and set(state.get("memory_input_ids", [])) <= memory.keys()
                 and all(version in state.get("memory_versions", {}).get(identity, [])
                         for identity, version in memory.items()))
+            # An unfinished investigation belongs to its original logical
+            # run. A later briefing starts from current inputs and may use
+            # dated prior findings, but never inherits its old as-of or clock.
+            if not state.get("result") and state.get("run_id") != kwargs.get("run_id", ""):
+                compatible = False
             if (not compatible and refresh_policy.get("semantic_reuse") and state.get("result")
                     and state.get("policy_contract") == policy_contract and state.get("evidence")
                     and 0 <= now - state.get("started_at", 0) < refresh_seconds):
@@ -2228,13 +2243,14 @@ def _checkpoint_company_research(function):
                         raise RuntimeError("Company reuse assessment could not be retained.")
                     compatible = True
             if compatible and state.get("result"):
+                from ..llm_execution import complete_core_research
+                complete_core_research("company:" + symbol)
                 _emit_business_progress(kwargs.get("progress_callback"), stage="company_research_reused",
                     symbol=symbol, progress=1.0, message="Reusing the completed company investigation for unchanged evidence.",
                     original_asof_time_utc=state["result"]["asof_time_utc"], work_id=state["work_id"])
                 return replace(TickerBusinessModelStackResult(**state["result"]), proposed_pages=[], proposal_rows=[])
             deadline = kwargs.get("research_deadline_monotonic")
-            if deadline is not None and deadline-time.monotonic() < _business_research_budget_seconds():
-                raise ResearchWorkDeferred("The remaining producer window cannot cover a company investigation.")
+            short = deadline is not None and deadline-time.monotonic() < _business_research_budget_seconds()
             if not compatible:
                 if state:
                     retained_key = hashlib.sha256(serialize_llm_context(state).encode()).hexdigest()
@@ -2254,7 +2270,8 @@ def _checkpoint_company_research(function):
             work_deadline = min(time.monotonic() + _business_research_budget_seconds(),
                                 deadline if deadline is not None else float("inf"))
             with research_work_context(state["work_id"], prior=state["prior"]) as status, \
-                    WorkScope(work_deadline).activate(), llm.llm_request_deadline(work_deadline):
+                    WorkScope(work_deadline).activate(), llm.llm_request_deadline(work_deadline), \
+                    model_call_context(completion_only=short, core_work_id="company:" + symbol):
                 result = function(**{**kwargs, "run_id": state["run_id"], "asof_time_utc": state["asof"]})
             check_execution_ownership()
             if result.business_story_markdown and result.status in {"ready", "partial"} and not status["failed"]:
@@ -2263,6 +2280,8 @@ def _checkpoint_company_research(function):
                     state["memory_versions"].setdefault(str(page["page_id"]), []).append(page_version(page))
                 if not pipeline_store.write_execution_state(namespace, symbol, state):
                     raise RuntimeError("Completed company investigation could not be retained.")
+                from ..llm_execution import complete_core_research
+                complete_core_research("company:" + symbol)
             return result
     return run
 
@@ -2327,7 +2346,8 @@ def build_ticker_business_model_stack(
     gaps = _slot_gaps(initial_slot_facts)
     synthesis_warnings: list[str] = []
     runner_configured = _agent_runner_or_none(zopedia_agent_runner=zopedia_agent_runner, llm_client=llm_client) is not None
-    if runner_configured:
+    from ..llm_execution import best_effort_required
+    if runner_configured and not best_effort_required():
         query_plan, plan_warnings = _zopedia_research_query_plan(
             zopedia_agent_runner=zopedia_agent_runner,
             llm_client=llm_client,
@@ -2343,9 +2363,11 @@ def build_ticker_business_model_stack(
             progress_callback=progress_callback,
         )
         synthesis_warnings.extend(plan_warnings)
-    else:
+    elif not runner_configured:
         query_plan = []
         synthesis_warnings.append("aql_zopedia_research_plan_unavailable::agent_not_configured")
+    else:
+        query_plan = []
     _emit_business_progress(
         progress_callback,
         stage="business_research_plan_ready",
@@ -2404,7 +2426,7 @@ def build_ticker_business_model_stack(
     }
     search_request_rows: list[dict[str, Any]] = []
     search_result_rows: list[dict[str, Any]] = []
-    if execute_research and query_plan:
+    if execute_research and query_plan and not best_effort_required():
         _emit_business_progress(
             progress_callback,
             stage="business_research_search_start",
@@ -2848,8 +2870,8 @@ def build_ticker_business_model_stack_results(
         try:
             return build_ticker_business_model_stack(symbol=symbol, **kwargs)
         except (ResearchWorkDeferred, WorkCancelled, LLMDeadlineExceeded):
-            _emit_business_progress(progress_callback, stage="business_research_deferred", symbol=symbol,
-                message="Company research is retained for the next producer window.", progress=1.0)
+            _emit_business_progress(progress_callback, stage="business_research_incomplete", symbol=symbol,
+                message="The current company investigation did not finish within this run.", progress=1.0)
             return None
         except Exception as exc:
             # A failed company remains pending; the independent completed

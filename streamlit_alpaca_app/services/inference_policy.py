@@ -22,6 +22,11 @@ def policy() -> dict:
     if not_before and datetime.now(ZoneInfo("America/Los_Angeles")).date() < date.fromisoformat(not_before):
         name = "baseline"
     value = deepcopy(document["profiles"][name])
+    # Budget exhaustion is a completion mode, independent of task routing or
+    # a whole-run configuration rollback. Deployment overrides may predate it.
+    defaults = json.loads((Path(__file__).parents[1] / "config/inference_policy.json").read_text())
+    value["best_effort_model"] = deepcopy(document.get("best_effort_model", defaults["best_effort_model"]))
+    value["core_tasks"] = deepcopy(document.get("core_tasks", defaults["core_tasks"]))
     value["profile"] = name
     value["version"] = document["version"]
     value["not_before_pacific"] = not_before
@@ -32,7 +37,12 @@ def policy_identity() -> str:
     return hashlib.sha256(json.dumps(policy(), sort_keys=True).encode()).hexdigest()
 
 
-def client_for_task(client, *, surface: str, purpose: str):
+def is_core_task(*, surface: str, purpose: str) -> bool:
+    return any(fnmatchcase(surface, rule["surface"]) and fnmatchcase(purpose, rule["purpose"])
+               for rule in policy()["core_tasks"])
+
+
+def client_for_task(client, *, surface: str, purpose: str, best_effort: bool = False):
     """Route declared tasks; preserve the full configured model by default.
 
     Alternate providers must supply their own prefixed configuration and key.
@@ -42,10 +52,10 @@ def client_for_task(client, *, surface: str, purpose: str):
     selected = policy()
     route = next((r for r in selected.get("routes", [])
                   if fnmatchcase(surface, r["surface"]) and fnmatchcase(purpose, r["purpose"])), None)
-    if route is None:
+    if route is None and not best_effort:
         return client, {"profile": selected["profile"], "role": "full"}
-    role = route["role"]
-    definition = selected["models"][role]
+    role = "best_effort" if best_effort else route["role"]
+    definition = selected["best_effort_model"] if best_effort else selected["models"][role]
     original = getattr(client, "config", None)
     if original is None:
         return client, {"profile": selected["profile"], "role": "full"}

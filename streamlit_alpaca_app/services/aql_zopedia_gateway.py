@@ -11,7 +11,9 @@ from . import pipeline_store
 from .json_utils import to_jsonable
 from .llm import apply_narrative_style, get_active_narrative_style_rule, llm_request_deadline, llm_settings_scope
 from .zopedia_runtime import zopedia_surface_from_client
-from .llm_execution import model_call_context
+from .llm_execution import (model_call_context, best_effort_required,
+                            finish_research_economically, ResearchBudgetExceeded,
+                            protect_core_research, funded_core_research, complete_core_research, _CALL)
 from .llm_context import RESEARCH_TIMELINE_GUIDANCE
 
 
@@ -185,12 +187,22 @@ def generate_json_via_aql_zopedia_gateway(
     if llm_client is None or not hasattr(llm_client, "generate_json"):
         raise ValueError("AQL/Zopedia model call requires an LLM client with generate_json")
 
-    from .inference_policy import client_for_task
+    from .inference_policy import client_for_task, is_core_task
     full_client = llm_client
-    llm_client, routing = ((full_client, {"role": "full", "reason": "economy_attempt_failed"})
-                          if force_full_model else client_for_task(llm_client, surface=clean_surface, purpose=clean_purpose))
+    core_completion = is_core_task(surface=clean_surface, purpose=clean_purpose) and funded_core_research()
+    economical_completion = best_effort_required() and not core_completion
+    llm_client, routing = ((full_client, {"role": "core", "reason": "protected_completion"}) if core_completion else
+                          (full_client, {"role": "full", "reason": "economy_attempt_failed"})
+                          if force_full_model and not economical_completion else client_for_task(
+                              llm_client, surface=clean_surface, purpose=clean_purpose,
+                              best_effort=economical_completion))
 
     model_call_id = f"aqlzmc_{uuid.uuid4().hex}"
+    inherited_core_id = _CALL.get().get("core_work_id")
+    core_work_id = inherited_core_id or model_call_id
+    if core_completion:
+        protect_core_research(config=full_client.config, work={core_work_id: {
+            "system": system_prompt, "request": user_prompt, "schema": schema}}, stages=1)
     started_at = datetime.now(timezone.utc)
     t0 = time.perf_counter()
     request_system = system_prompt
@@ -215,6 +227,7 @@ def generate_json_via_aql_zopedia_gateway(
     try:
         with llm_request_deadline(deadline_monotonic), model_call_context(**{
             **safe_metadata, "surface": clean_surface, "purpose": clean_purpose,
+            "core_work_id": core_work_id if core_completion else inherited_core_id,
             "literal_output": literal_output,
             **({"inference_effort": inference_effort} if inference_effort else {}),
         }):
@@ -242,7 +255,18 @@ def generate_json_via_aql_zopedia_gateway(
         )
         from .llm import LLMAPIError
         import requests
-        if llm_client is not full_client and isinstance(exc, (LLMAPIError, requests.RequestException)):
+        if isinstance(exc, ResearchBudgetExceeded) and not economical_completion:
+            finish_research_economically("The next research request exceeded the remaining allowance.",
+                                        required_microusd=getattr(exc, "required_microusd", 0))
+            return generate_json_via_aql_zopedia_gateway(
+                llm_client=full_client, surface=surface, purpose=purpose, call_type=call_type,
+                system_prompt=system_prompt, user_prompt=user_prompt,
+                schema_name=schema_name, schema=schema,
+                metadata={**(metadata or {}), "budget_transition_call_id": model_call_id},
+                deadline_monotonic=deadline_monotonic, inference_effort=inference_effort,
+                literal_output=literal_output)
+        if (not economical_completion and llm_client is not full_client
+                and isinstance(exc, (LLMAPIError, requests.RequestException))):
             return generate_json_via_aql_zopedia_gateway(
                 llm_client=full_client, surface=surface, purpose=purpose, call_type=call_type,
                 system_prompt=system_prompt, user_prompt=user_prompt,
@@ -275,6 +299,8 @@ def generate_json_via_aql_zopedia_gateway(
         metadata=result_metadata,
         provider_reported_model=_clean(response_metadata.get("provider_reported_model")),
     )
+    if core_completion and not inherited_core_id:
+        complete_core_research(core_work_id)
     return payload
 
 

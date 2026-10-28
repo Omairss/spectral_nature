@@ -13,6 +13,11 @@ from services import llm, llm_execution as execution, pipeline_store
 
 @pytest.fixture
 def store(monkeypatch):
+    from services import inference_policy
+    # These cases own a supplied fake transport. Integrated task/model routing
+    # is exercised separately at the real gateway boundary.
+    monkeypatch.setattr(inference_policy, "client_for_task", lambda client, **kwargs:
+        (client, {"role": "best_effort" if kwargs.get("best_effort") else "full"}))
     values = {}
     events = []
     monkeypatch.setenv("APP_TRACK", "development")

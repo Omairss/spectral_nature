@@ -101,6 +101,9 @@ class ResearchBudget:
         review_required: bool = True,
     ) -> "ResearchBudget":
         started = time.monotonic()
+        from services.work_scope import remaining_work_seconds
+        if timeout_seconds is not None:
+            timeout_seconds = remaining_work_seconds(max(float(timeout_seconds), 0.001))
         if timeout_seconds is None:
             return cls(started, None, None, None)
         total = max(float(timeout_seconds), 0.0)

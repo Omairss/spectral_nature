@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import re
+import time
 from typing import Any
 
 from data_access.query_service import QueryService
@@ -296,6 +297,7 @@ def critique_learning_event(
     llm_client: Any | None = None,
     previous: dict[str, Any] | None = None,
     on_pending: Any | None = None,
+    run_timeout_seconds: float | None = None,
 ) -> dict[str, Any]:
     from .aql_zopedia_engine import research_engine_revision, run_aql_zopedia_structured_agent
 
@@ -350,6 +352,7 @@ def critique_learning_event(
                   + "Evidence manifest: " + _json_dumps(service.supplied_evidence_manifest),
             instructions=instructions, schema_name="zopedia_learning_critic", schema=_CRITIC_SCHEMA,
             task="zopedia_learning_critic", surface="services.zopedia_learning", llm_client=llm_client,
+            run_timeout_seconds=run_timeout_seconds,
             service=service, initial_evidence=[{"title": "Evidence navigation", **service.supplied_evidence_manifest}],
             request_context={"allow_web": False, "allowed_source_access": ["supplied"]}, persist_findings=False, write_policy="none",
         )
@@ -641,7 +644,8 @@ def _recent_threads(conn: Any, *, limit: int) -> list[dict[str, Any]]:
              "episode": _json_dict(row[2])} for row in rows]
 
 
-def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[str, Any]:
+def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None, *,
+                             deadline_monotonic: float | None = None) -> dict[str, Any]:
     own_conn = conn is None
     db_conn = conn or _db_connection()
     if db_conn is None:
@@ -672,6 +676,13 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
         "regressed": 0,
     }
     generated_eval_events: dict[str, str] = {}
+    from services.work_scope import WorkScope, WorkCancelled
+    from services.llm_execution import ResearchWorkDeferred
+    from services.aql_zopedia_engine import resolve_research_budget
+    case_seconds = _env_int("ZOPEDIA_LEARNING_CASE_TIMEOUT_SECONDS",
+                            int(resolve_research_budget()["run_timeout_seconds"]), minimum=1)
+    reserve_seconds = _env_int("ZOPEDIA_LEARNING_FINALIZATION_RESERVE_SECONDS", 60, minimum=1)
+    work_deadline = deadline_monotonic - reserve_seconds if deadline_monotonic is not None else float("inf")
     try:
         if db_conn.info.transaction_status != 0:
             raise ValueError("Zopedia learning requires a connection outside a transaction.")
@@ -682,6 +693,7 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
             llm_client = None
         threads = _recent_threads(db_conn, limit=limit)
         db_conn.commit()
+        pending_cases = []
         for row in threads:
             summary["threads_scanned"] += 1
             thread, run_payloads = None, []
@@ -702,91 +714,118 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                 prior = dict(prior_row[0]) if prior_row else {}
                 prior_metadata = _json_dict(prior.get("metadata_json"))
                 db_conn.commit()
-                # Save pending state before inference, so process death cannot masquerade as success.
-                event["status"] = "critique_pending"
-                event["metadata"] = {**dict(event.get("metadata") or {}), **prior_metadata}
-                critique = critique_learning_event(event, thread, run_payloads, llm_client,
-                    previous=prior_metadata.get("critic"), on_pending=lambda: _persist_learning_event(db_conn, event))
-                if critique.get("_reused"):
-                    summary["critiques_reused"] += 1
-                if (critique.get("_execution") or {}).get("status") != "completed":
-                    _merge_learning_event_metadata(db_conn, event["event_id"], {"critic": critique})
-                    db_conn.commit()
-                    summary["critiques_pending"] += 1
-                    continue
-                # A previously committed update/evaluation must not be applied or bought twice.
-                if critique.get("_reused"):
-                    if prior.get("eval_case_path") and prior.get("eval_status") not in {"reviewed", "verified", "not_required"}:
-                        # Older replicas retained only a local path. Reconstruct
-                        # once from the saved event/critic, never from a new chat
-                        # interpretation, then persist before starting a replay.
-                        saved_case = prior_metadata.get("eval_case")
-                        if not isinstance(saved_case, dict):
-                            saved_case = build_regression_eval_case(
-                                {**prior, "metadata": prior_metadata,
-                                 "successful_path": _json_list(prior.get("successful_path_json"))}, critique)
-                        reference = persist_regression_eval_case(saved_case, conn=db_conn)
-                        _update_learning_event_fields(db_conn, event["event_id"], eval_case_path=reference)
-                        db_conn.commit()
-                        generated_eval_events[event["event_id"]] = reference
-                    continue
-                event["status"] = "triaged"
-                event["root_cause"] = _clean(critique.get("root_cause")) or event.get("root_cause")
-                event["failed_claim"] = _clean(critique.get("failed_claim"))
-                event["successful_path"] = list(critique.get("successful_path") or [])
-                event["correction_summary"] = _clean(critique.get("root_cause"))
-                event["proposed_change_type"] = _clean(critique.get("proposed_change_type")) or event.get("proposed_change_type")
-                event["confidence"] = float(critique.get("confidence") or 0.0)
-                event["metadata"] = {**dict(event.get("metadata") or {}), "critic": critique}
-                saved = _persist_learning_event(db_conn, event, commit=False)
-                summary["events_triaged"] += 1
-                if event["proposed_change_type"] == "no_change":
-                    _update_learning_event_fields(db_conn, saved["event_id"], status="reviewed_no_change", eval_status="not_required")
-                    db_conn.commit()
-                    continue
-
-                eval_case = build_regression_eval_case(saved, critique)
-                eval_path = persist_regression_eval_case(eval_case, conn=db_conn)
-                _update_learning_event_fields(
-                    db_conn,
-                    saved["event_id"],
-                    status="eval_generated",
-                    eval_case_path=eval_path,
-                    eval_status="generated",
-                )
-                summary["evals_generated"] += 1
-                generated_eval_events[saved["event_id"]] = eval_path
-
-                if event["proposed_change_type"] == "tool_affordance_memory" and event["confidence"] >= 0.7:
-                    update = build_tool_affordance_update(saved, critique)
-                    mutation_result = apply_safe_learning_update(saved, update, conn=db_conn)
-                    mutation_id = _clean((mutation_result.get("mutation_audit") or {}).get("mutation_id"))
-                    if mutation_result.get("status") == "committed":
-                        _update_learning_event_fields(
-                            db_conn,
-                            saved["event_id"],
-                            status="safe_update_applied",
-                            mutation_id=mutation_id,
-                            eval_status="generated",
-                        )
-                        summary["safe_updates_applied"] += 1
-                    else:
-                        proposal_id = _clean(mutation_result.get("proposal_id"))
-                        _update_learning_event_fields(
-                            db_conn,
-                            saved["event_id"],
-                            status="proposal_created" if proposal_id else "eval_generated",
-                            proposal_id=proposal_id,
-                        )
-                # Each event is durable before another critic/model call starts.
+                if not prior:
+                    event["status"] = "critique_pending"
+                    _persist_learning_event(db_conn, event)
+                pending_cases.append((event, thread, run_payloads, prior, prior_metadata))
+        # Discover and journal the batch before any model work can consume the
+        # window. Every deferred case is visible to the next scheduled run.
+        for index, (event, thread, run_payloads, prior, prior_metadata) in enumerate(pending_cases):
+            if time.monotonic() >= work_deadline:
+                summary["cases_deferred"] = len(pending_cases) - index
+                summary["status"] = "partial"
+                break
+            # Save pending state before inference, so process death cannot masquerade as success.
+            event["status"] = "critique_pending"
+            event["metadata"] = {**dict(event.get("metadata") or {}), **prior_metadata}
+            def retain_pending():
+                _persist_learning_event(db_conn, event)
+                if work_deadline - time.monotonic() < case_seconds:
+                    raise ResearchWorkDeferred("The remaining learning window cannot fund another complete case.")
+            critique = {}
+            try:
+                # Reusing a completed critic is allowed without buying a
+                # new case. Only its on_pending boundary admits inference.
+                with WorkScope(min(deadline_monotonic if deadline_monotonic is not None else float("inf"), time.monotonic() + case_seconds)).activate():
+                    critique = critique_learning_event(event, thread, run_payloads, llm_client,
+                        previous=prior_metadata.get("critic"), on_pending=retain_pending, run_timeout_seconds=case_seconds)
+            except (ResearchWorkDeferred, WorkCancelled) as exc:
+                if not critique:
+                    critique = {"_execution": {"status": "pending", "deferred": True, "error": str(exc)}}
+            if critique.get("_reused"):
+                summary["critiques_reused"] += 1
+            if (critique.get("_execution") or {}).get("status") != "completed":
+                _merge_learning_event_metadata(db_conn, event["event_id"], {"critic": critique})
                 db_conn.commit()
+                summary["critiques_pending"] += 1
+                continue
+            # A previously committed update/evaluation must not be applied or bought twice.
+            if critique.get("_reused"):
+                if prior.get("eval_case_path") and prior.get("eval_status") not in {"reviewed", "verified", "not_required"}:
+                    # Older replicas retained only a local path. Reconstruct
+                    # once from the saved event/critic, never from a new chat
+                    # interpretation, then persist before starting a replay.
+                    saved_case = prior_metadata.get("eval_case")
+                    if not isinstance(saved_case, dict):
+                        saved_case = build_regression_eval_case(
+                            {**prior, "metadata": prior_metadata,
+                             "successful_path": _json_list(prior.get("successful_path_json"))}, critique)
+                    reference = persist_regression_eval_case(saved_case, conn=db_conn)
+                    _update_learning_event_fields(db_conn, event["event_id"], eval_case_path=reference)
+                    db_conn.commit()
+                    generated_eval_events[event["event_id"]] = reference
+                continue
+            event["status"] = "triaged"
+            event["root_cause"] = _clean(critique.get("root_cause")) or event.get("root_cause")
+            event["failed_claim"] = _clean(critique.get("failed_claim"))
+            event["successful_path"] = list(critique.get("successful_path") or [])
+            event["correction_summary"] = _clean(critique.get("root_cause"))
+            event["proposed_change_type"] = _clean(critique.get("proposed_change_type")) or event.get("proposed_change_type")
+            event["confidence"] = float(critique.get("confidence") or 0.0)
+            event["metadata"] = {**dict(event.get("metadata") or {}), "critic": critique}
+            saved = _persist_learning_event(db_conn, event, commit=False)
+            summary["events_triaged"] += 1
+            if event["proposed_change_type"] == "no_change":
+                _update_learning_event_fields(db_conn, saved["event_id"], status="reviewed_no_change", eval_status="not_required")
+                db_conn.commit()
+                continue
+
+            eval_case = build_regression_eval_case(saved, critique)
+            eval_path = persist_regression_eval_case(eval_case, conn=db_conn)
+            _update_learning_event_fields(
+                db_conn,
+                saved["event_id"],
+                status="eval_generated",
+                eval_case_path=eval_path,
+                eval_status="generated",
+            )
+            summary["evals_generated"] += 1
+            generated_eval_events[saved["event_id"]] = eval_path
+
+            if event["proposed_change_type"] == "tool_affordance_memory" and event["confidence"] >= 0.7:
+                update = build_tool_affordance_update(saved, critique)
+                mutation_result = apply_safe_learning_update(saved, update, conn=db_conn)
+                mutation_id = _clean((mutation_result.get("mutation_audit") or {}).get("mutation_id"))
+                if mutation_result.get("status") == "committed":
+                    _update_learning_event_fields(
+                        db_conn,
+                        saved["event_id"],
+                        status="safe_update_applied",
+                        mutation_id=mutation_id,
+                        eval_status="generated",
+                    )
+                    summary["safe_updates_applied"] += 1
+                else:
+                    proposal_id = _clean(mutation_result.get("proposal_id"))
+                    _update_learning_event_fields(
+                        db_conn,
+                        saved["event_id"],
+                        status="proposal_created" if proposal_id else "eval_generated",
+                        proposal_id=proposal_id,
+                    )
+            # Each event is durable before another critic/model call starts.
+            db_conn.commit()
         db_conn.commit()
 
         if _env_bool("ZOPEDIA_LEARNING_VERIFY_EVALS", True):
             verify_limit = _env_int("ZOPEDIA_LEARNING_VERIFY_LIMIT", 3, minimum=0)
             for event_id, eval_path in list(generated_eval_events.items())[:verify_limit]:
+                if work_deadline - time.monotonic() < case_seconds:
+                    summary["status"] = "partial"
+                    break
                 try:
-                    replay = replay_learning_eval(eval_path, run_agent=True, conn=db_conn)
+                    with WorkScope(min(work_deadline, time.monotonic() + case_seconds)).activate():
+                        replay = replay_learning_eval(eval_path, run_agent=True, conn=db_conn, run_timeout_seconds=case_seconds)
                 except Exception as exc:
                     _merge_learning_event_metadata(
                         db_conn,
@@ -815,10 +854,13 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
                 db_conn.commit()
             db_conn.commit()
         summary["reviews_pending"] = len(generated_eval_events)
+        for event_id in generated_eval_events:
+            _update_learning_event_fields(db_conn, event_id, status="review_pending")
+        db_conn.commit()
         if summary["critiques_pending"] or summary["reviews_pending"] or summary["status"] == "partial":
             summary.update(status="partial", job_status="Warning", job_message=(
                 f"{summary['critiques_pending']} learning critiques and {summary['reviews_pending']} reviews remain pending; "
-                "completed work is retained."))
+                f"{summary.get('cases_deferred', 0)} cases deferred; completed work is retained."))
         return summary
     except Exception:
         try:
@@ -831,7 +873,8 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None) -> dict[s
             db_conn.close()
 
 
-def replay_learning_eval(eval_case_path: str, *, run_agent: bool = False, conn: Any | None = None) -> dict[str, Any]:
+def replay_learning_eval(eval_case_path: str, *, run_agent: bool = False, conn: Any | None = None,
+                         run_timeout_seconds: float | None = None) -> dict[str, Any]:
     if eval_case_path.startswith("zopedia_learning_event:"):
         if conn is None:
             raise ValueError("A database connection is required to read a durable learning review.")
@@ -863,6 +906,7 @@ def replay_learning_eval(eval_case_path: str, *, run_agent: bool = False, conn: 
         service=QueryService.from_environment().with_supplied_evidence(records) if records else None,
         initial_evidence=[{"title": "Evidence navigation", "records": list(records)}] if records else None,
         task="learning_eval_replay",
+        run_timeout_seconds=run_timeout_seconds,
         surface="zopedia.learning",
         max_tool_calls=8,
         persist_findings=False,

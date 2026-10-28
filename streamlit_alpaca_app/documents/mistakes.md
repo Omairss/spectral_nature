@@ -1273,3 +1273,15 @@ Task-based model routing was already delivered and verified. Describing it again
 ### Whole-run baseline fallback removed at the owner's instruction — October 27
 
 The earlier automatic fallback treated persistence and ownership errors as reasons to change the whole research configuration. Its first implementation also persisted rollback across future scheduled runs, disabling cheaper routes and reuse. The owner requested removal. Deleted the mechanism and its configuration rather than adding another exception filter. Moved its news deadline into the producer controller so deletion does not remove the original execution limit. Updated retry checks to use current retained execution times; a historical test date had depended on baseline bypassing the deadline. All63 selected checks pass without paid inference or production changes.
+
+
+### Deferral and cap semantics were too rigid for current briefings — October 27
+
+The first dollar-ledger implementation treated a lack of headroom as deferred work, and company checkpoints could resume an unfinished investigation under its previous as-of date on a later scheduled run. The current-news materializer also merged older interpretation rows. These behaviors conflict with the owner's requirement for a current best-effort report on every run. Separate dated reusable background from a new current briefing, and distinguish same-run replica recovery from next-run news rollover. Protect full-model core completion before optional research; use the cheapest suitable model when no funded allowance exists, permit small recorded completion overruns and stop optional exploration first.
+
+A broader check caught a removed local variable still referenced by the current-output health report; restored the reference to the current frame before verification. A controller fixture also leaked its directly assigned run identity into later cases; made its environment ownership explicit. The wider prose/legacy-suite failure-name set matches the prior release (32); do not tune the implementation to obsolete phrase assertions or report them as passing. Lambda's required B200 type currently has no available regions, so no exact-model qualification allocation was launched or billed.
+
+
+### Recovery contracts needed explicit receipt ownership — October 27
+
+Late settlement originally inferred the run from the active process, which could charge or fail against the recovery worker instead of the original run. Receipts now retain the original reservation identities, and recovery scans known final receipts against outstanding obligations. The first recovery probe had telemetry disabled in its isolated fixture, so no SQL receipt existed; enabled that explicitly. Updated execution-only fixtures to represent current best-effort admission and fresh-only news datasets, and kept their supplied fake transports isolated from task-routing tests. Metering receipts survive child cancellation within a bounded scope; this does not yet establish recovery of complete model answers.

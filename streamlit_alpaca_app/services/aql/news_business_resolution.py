@@ -1316,19 +1316,20 @@ def build_news_business_resolution_results(
     def resolve(index: int, row: pd.Series, symbol: str) -> NewsBusinessResolutionResult | None:
         from ..work_scope import WorkScope, WorkCancelled
         from ..llm import LLMDeadlineExceeded
+        from ..llm_execution import model_call_context, complete_core_research
+        core_id = "news:" + _source_event_id(row, symbol) + ":" + symbol
         budget = max(int(os.getenv("ZOPEDIA_NEWS_BUSINESS_TIMEOUT_SECONDS", "900")), 60)
-        if research_deadline_monotonic is not None and research_deadline_monotonic - time.monotonic() < budget:
-            if progress_callback:
-                progress_callback({"stage": "news_interpretation_deferred", "symbol": symbol})
-            return None
+        short = research_deadline_monotonic is not None and research_deadline_monotonic - time.monotonic() < budget
         print(f"[info] news business resolution started index={index} symbol={symbol}", flush=True)
         work = WorkScope(min(time.monotonic() + budget, research_deadline_monotonic or float("inf")))
         try:
-            with work.activate():
+            with work.activate(), model_call_context(completion_only=short, core_work_id=core_id):
                 result = resolve_news_business_event(row, symbol=symbol, **kwargs)
+                if result.coherent_story_markdown:
+                    complete_core_research(core_id)
         except (WorkCancelled, LLMDeadlineExceeded):
             if progress_callback:
-                progress_callback({"stage": "news_interpretation_deferred", "symbol": symbol})
+                progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol})
             return None
         finally:
             work.cancel()  # Inherited contexts cannot keep buying work after return.
