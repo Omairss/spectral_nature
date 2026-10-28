@@ -1,5 +1,5 @@
 {
-  "status": "reviewed_not_applied",
+  "status": "applied_and_read_back",
   "changes": {
     "news-ingest-and-features": {
       "RESEARCH_RUN_BUDGET_USD": "10",
@@ -48,5 +48,95 @@
     "https://serpapi.com/pricing",
     "https://docs.tavily.com/documentation/api-credits"
   ],
-  "editor_allocation": "One full-context final writing/review step gets15minutes within the6900-second Home producer clock. Primary candidates and composition retain600 seconds. No additional model stage is introduced."
+  "editor_allocation": "One full-context final writing/review step gets15minutes within the6900-second Home producer clock. Primary candidates and composition retain600 seconds. No additional model stage is introduced.",
+  "receipts": [
+    {
+      "name": "news-ingest-and-features",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_before_sha256": "4b2b09a796fd648d3c7e053bcf0ecc3b01ba92be8fe2112ecce7c2106b3eaf12",
+      "configuration_after_sha256": "6fae0bea21fe3952d91164646cde40c115e6ed304314aaebd9cc847dcaae4372",
+      "old_values": {
+        "RESEARCH_RUN_BUDGET_USD": null,
+        "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": null,
+        "RESEARCH_TOOL_MAX_COST_USD_JSON": null,
+        "PIPELINE_JOB_MAX_DURATION_SECONDS": null,
+        "PIPELINE_JOB_WORK_TIMEOUT_SECONDS": "6900",
+        "PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS": "180",
+        "LLM_POLICY_PROFILE": "balanced",
+        "LLM_POLICY_NOT_BEFORE": "2026-10-27"
+      },
+      "values": {
+        "RESEARCH_RUN_BUDGET_USD": "10",
+        "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": "0.1",
+        "RESEARCH_TOOL_MAX_COST_USD_JSON": "{\"serper.search\":0.001,\"serper.search_news\":0.001,\"serpapi.search\":0.025,\"serpapi.search_news\":0.025,\"serpapi.ai_overview\":0.025,\"tavily.search.basic\":0.008,\"tavily.search.advanced\":0.016}",
+        "PIPELINE_JOB_MAX_DURATION_SECONDS": "6900",
+        "PIPELINE_JOB_WORK_TIMEOUT_SECONDS": "6600",
+        "PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS": "180",
+        "LLM_POLICY_PROFILE": "balanced",
+        "LLM_POLICY_NOT_BEFORE": "2026-10-27"
+      },
+      "policy_version": "2026-10-28.1",
+      "all_other_configuration_preserved": true
+    },
+    {
+      "name": "attention-home-build",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_before_sha256": "965ba45294d34c7511ca1a7036383d6273c3a63bb415c29979337ea5ebd5a342",
+      "configuration_after_sha256": "b585ac573f93aaf4ae211fdce648ced3b895ebe27656993a14a23f1c9357be4c",
+      "old_values": {
+        "RESEARCH_RUN_BUDGET_USD": null,
+        "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": null,
+        "RESEARCH_TOOL_MAX_COST_USD_JSON": null,
+        "PIPELINE_JOB_MAX_DURATION_SECONDS": null,
+        "AQL_CANDIDATE_RESEARCH_TIMEOUT_SECONDS": "240",
+        "ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS": "600",
+        "ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS": "600",
+        "LLM_POLICY_PROFILE": null,
+        "LLM_POLICY_NOT_BEFORE": null
+      },
+      "values": {
+        "RESEARCH_RUN_BUDGET_USD": "10",
+        "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": "0.1",
+        "RESEARCH_TOOL_MAX_COST_USD_JSON": "{\"serper.search\":0.001,\"serper.search_news\":0.001,\"serpapi.search\":0.025,\"serpapi.search_news\":0.025,\"serpapi.ai_overview\":0.025,\"tavily.search.basic\":0.008,\"tavily.search.advanced\":0.016}",
+        "PIPELINE_JOB_MAX_DURATION_SECONDS": "6900",
+        "AQL_CANDIDATE_RESEARCH_TIMEOUT_SECONDS": "600",
+        "ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS": "600",
+        "ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS": "900",
+        "LLM_POLICY_PROFILE": "balanced",
+        "LLM_POLICY_NOT_BEFORE": "2026-10-27"
+      },
+      "policy_version": "2026-10-28.1",
+      "all_other_configuration_preserved": true
+    },
+    {
+      "name": "zopedia-learning",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_before_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
+      "configuration_after_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
+      "old_values": {
+        "RESEARCH_RUN_BUDGET_USD": null,
+        "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": null,
+        "RESEARCH_TOOL_MAX_COST_USD_JSON": null,
+        "PIPELINE_JOB_MAX_DURATION_SECONDS": null,
+        "ZOPEDIA_LEARNING_JOB_TIMEOUT_SECONDS": null,
+        "ZOPEDIA_LEARNING_CASE_TIMEOUT_SECONDS": null,
+        "ZOPEDIA_LEARNING_FINALIZATION_RESERVE_SECONDS": null,
+        "LLM_POLICY_PROFILE": null,
+        "LLM_POLICY_NOT_BEFORE": null
+      },
+      "values": {
+        "RESEARCH_RUN_BUDGET_USD": "10",
+        "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": "0.1",
+        "RESEARCH_TOOL_MAX_COST_USD_JSON": "{\"serper.search\":0.001,\"serper.search_news\":0.001,\"serpapi.search\":0.025,\"serpapi.search_news\":0.025,\"serpapi.ai_overview\":0.025,\"tavily.search.basic\":0.008,\"tavily.search.advanced\":0.016}",
+        "PIPELINE_JOB_MAX_DURATION_SECONDS": "3300",
+        "ZOPEDIA_LEARNING_JOB_TIMEOUT_SECONDS": "3300",
+        "ZOPEDIA_LEARNING_CASE_TIMEOUT_SECONDS": "900",
+        "ZOPEDIA_LEARNING_FINALIZATION_RESERVE_SECONDS": "60",
+        "LLM_POLICY_PROFILE": "balanced",
+        "LLM_POLICY_NOT_BEFORE": "2026-10-27"
+      },
+      "policy_version": "2026-10-28.1",
+      "all_other_configuration_preserved": true
+    }
+  ]
 }

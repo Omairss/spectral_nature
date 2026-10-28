@@ -1,5 +1,5 @@
 {
-  "status": "accepted_locally_and_exact_image_dev",
+  "status": "deployed_verified",
   "owner_instruction": "Push to prod once everything is fixed. If it's not fixed, fucking fix it and push",
   "branch": "fix/production-acceptance-followup-20261027",
   "prior_live_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
@@ -7,77 +7,92 @@
     {
       "id": "checkpoint_json",
       "change": "Shared durable-state writer normalizes nullable/nonfinite tabular values before strict JSONB serialization.",
-      "status": "verified_local_postgres"
+      "status": "verified_local_postgres",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "ownership_cancellation",
       "change": "Bounded renewal uses reserved interactive SQL capacity and retries transient errors only while its confirmed lease remains valid. Actual lease loss cancels work.",
-      "status": "verified_local_and_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "learning_deadline",
       "change": "Azure DeadlineExceeded at20:20:33Z confirmed. Per-case admission and3300-second producer bound leave finalization before3600-second platform termination.",
-      "status": "verified_local_and_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "learning_storage",
       "change": "Frozen eval inputs persist in the learning event and are readable through fresh database connections.",
-      "status": "previously_deployed_preserved"
+      "status": "previously_deployed_preserved",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "credit_refresh",
       "change": "Wait/re-read fresh authoritative balance under contention inside original request deadline; account and logical-run reservations are atomic.",
-      "status": "verified_local_and_offline_concurrent_requests"
+      "status": "verified_local_and_offline_concurrent_requests",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "fallback_removal",
       "change": "Whole-run baseline switching and sticky rollout state are removed. Native retries preserve chosen policy, original run identity, budget, clock and paid work.",
-      "status": "verified_local_and_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "completed_publication",
       "change": "Current interpretations publish before optional company refresh. Bounded batch collection returns completed independent results; immutable versions and monotonic ownership fences protect latest pointers.",
-      "status": "verified_local_and_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "worker_isolation",
       "change": "A failed company/news investigation cannot discard successful sibling work. In-flight unknown charges remain reserved.",
-      "status": "verified_local"
+      "status": "verified_local",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "budget_allocation",
       "change": "Current core work receives full-model funding first. Optional deep profiles must fund dossier/writing/review within original target plus10% admission margin; declined profiles use cheap current work. Targets support10 through1000+ dollars.",
-      "status": "verified_local_postgres"
+      "status": "verified_local_postgres",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "current_best_effort",
       "change": "Missing/zero producer allowance stops optional acquisition and uses cheapest suitable model for this run. No next-run unfinished-news carryover; reusable company background remains dated.",
-      "status": "verified_local_and_complete_outputs"
+      "status": "verified_local_and_complete_outputs",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "late_paid_outputs",
       "change": "Received model output and original reservation identity survive child cancellation; exact late request can be adopted within same logical run without repurchase. Normal schema repair does not repeatedly replay invalid output.",
-      "status": "verified_local_and_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "plain_text_final_review",
       "change": "Review must return complete final prose, with paragraph breaks preserved. Supporting outlines/editing instructions stay private. Composition declares no memory writes.",
-      "status": "complete_outputs_personally_reviewed"
+      "status": "complete_outputs_personally_reviewed",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "event_chronology",
       "change": "Common event/report/observation timing guidance includes titles, attribution and market-session finality. PNR latest full-model replay correctly labels13:35UTC as snapshot rather than session close.",
-      "status": "complete_outputs_personally_accepted"
+      "status": "complete_outputs_personally_accepted",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "instrument_identity",
       "change": "Home hands off listing identity beyond liquidity-selected universe; shared investigator resolves asset before using ambiguous ticker matches. Actual primary NIB replay identifies cocoa ETN and separates Australian insurer.",
-      "status": "complete_primary_outputs_personally_reviewed"
+      "status": "complete_primary_outputs_personally_reviewed",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "recurring_costs",
       "change": "Two news slots, eight company workers, cheap task routes and dated company reuse already live. Additional evidence-first prefix layout, acquisition/result cache separation and removal of sticky baseline improve recurring work.",
-      "status": "preserved_and_source_verified"
+      "status": "preserved_and_source_verified",
+      "deployment": "active_in_production_worker_release"
     },
     {
       "id": "cost_target",
@@ -107,10 +122,12 @@
       "2026-10-28": 11.257873
     },
     "gpu_allocations": 0,
-    "all_local_databases_stopped": true
+    "all_local_databases_stopped": true,
+    "status": "completed_closed",
+    "retention_minimum_until": "2026-11-27"
   },
   "consumer_review": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json",
-  "deployment_status": "ready_for_owner_authorized_promotion",
+  "deployment_status": "production_promoted_and_all_consumers_verified",
   "complete_output_reviews": {
     "method": "Personal reading of complete returned public prose, claims, dates and review output; no phrase grader or model score substitutes for acceptance.",
     "source_access": "Retained production inputs and acquired captures only. Isolated PostgreSQL; no production publication, memory writes or fresh paid acquisition.",
@@ -176,5 +193,6 @@
     }
   },
   "source_review": "documents/verification/production-recovery-2026-10-27/follow-up-source-review.json",
-  "development_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-development.json"
+  "development_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-development.json",
+  "production_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-production.json"
 }

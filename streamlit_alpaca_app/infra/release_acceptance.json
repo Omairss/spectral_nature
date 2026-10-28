@@ -1,6 +1,6 @@
 {
   "status": "accepted_locally",
-  "scope": "Accepted current-report recovery, adaptive soft-budget allocation, protected full-model core completion, economy reporting without rollover, same-policy retry, immutable fenced publication, complete late-answer recovery and source-grounded chronology. Exact-image DEV acceptance precedes owner-authorized production promotion.",
+  "scope": "Production follow-up deployed and all36 resources read back:29 workers use exact DEV-qualified0e3ab767 image;7 other images preserved. Adaptive soft budgets, full core funding, current best effort, dated reuse, same-policy retry and bounded current publication are active. Actual recurring savings remain scheduled-run measurement.",
   "source_revision": "db302f4ce58541419af79e55769286c5b5a5b9d0",
   "review_base_revision": "ca0d2e3fc021ef79bed26f5e54d7c174dcc54d65",
   "files": {
@@ -1043,7 +1043,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "965ba45294d34c7511ca1a7036383d6273c3a63bb415c29979337ea5ebd5a342",
+          "configuration_sha256": "b585ac573f93aaf4ae211fdce648ced3b895ebe27656993a14a23f1c9357be4c",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
           "preservation_review": {
             "status": "accepted",
@@ -1187,7 +1187,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "4b2b09a796fd648d3c7e053bcf0ecc3b01ba92be8fe2112ecce7c2106b3eaf12",
+          "configuration_sha256": "6fae0bea21fe3952d91164646cde40c115e6ed304314aaebd9cc847dcaae4372",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
           "preservation_review": {
             "status": "accepted",
@@ -1317,7 +1317,7 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
+          "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
           "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
           "preservation_review": {
             "status": "accepted",
