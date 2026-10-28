@@ -159,7 +159,8 @@
         "services/inference_policy.py:118",
         "services/json_utils.py:11"
       ],
-      "new_trace_status": "diagnosed_and_locally_reproduced_serialization_boundary_no_runtime_fix_yet"
+      "new_trace_status": "diagnosed_and_locally_reproduced_serialization_boundary_no_runtime_fix_yet",
+      "cancellation_diagnosis": "Job-wide ownership cancellation, distinct from the7200-second policy clock; see cancellation-diagnosis.json for production timing and an actual PostgreSQL reproduction of renewal starvation."
     },
     "home": {
       "execution": "attention-home-build-29885570",
@@ -212,8 +213,12 @@
     {
       "id": "early_cancellation_and_retry",
       "issue": "News baseline retry and the first afternoon Home replica encountered early cancellation. News retry failed; Home retry published degraded research.",
-      "status": "observed_failures_root_cause_unresolved",
-      "relationship": "Do not count these observations as additional proven independent root causes."
+      "status": "job_ownership_cancellation_confirmed_renewal_starvation_reproduced",
+      "relationship": "Do not count these observations as additional proven independent root causes.",
+      "diagnosis": "cancellation-diagnosis.json",
+      "source_cause": "Heartbeat treats a renewal exception as immediate ownership loss; it shares the single background SQL slot with ordinary work. Real PostgreSQL reproduction cancelled at130seconds with170seconds of valid ownership remaining.",
+      "historical_limit": "The historical renewal exception itself was swallowed. Exact competing SQL transaction is not established.",
+      "fix_deployed": false
     },
     {
       "id": "primary_candidate_synthesis",
@@ -263,5 +268,6 @@
       "id": "usage_accounting",
       "issue": "Interrupted qualification calls retain explicitly unknown usage. Scheduled logs also show deferred provider-attempt recording and reservation settlement; current reconciliation completeness has not been established."
     }
-  ]
+  ],
+  "cancellation_diagnosis": "documents/verification/production-recovery-2026-10-27/cancellation-diagnosis.json"
 }

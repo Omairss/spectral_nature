@@ -1,0 +1,123 @@
+{
+  "status": "ownership_cancellation_mechanism_confirmed_with_real_postgres_reproduction",
+  "scope": [
+    "news-ingest-and-features-29885525 original failure recording and baseline retry",
+    "attention-home-build-29885570 first replica"
+  ],
+  "source_finding": "The job-wide OwnershipWork has an infinite operation deadline. Its heartbeat renews every100seconds under a30-second WorkScope. That renewal uses the background database admission queue. Default background capacity is one slot. Any renewal exception sets lost and cancels job-wide work immediately, even if the database ownership lease is still valid.",
+  "production_trace": {
+    "news_retry_rollout_state_updated_utc": "2026-10-27T20:45:49.495857Z",
+    "news_retry_first_deferred_attempt_log_utc": "2026-10-27T20:48:00.2149933Z",
+    "elapsed_seconds_from_rollout_record": 130.719136,
+    "news_last_provider_attempt": {
+      "id": "llmhttp_448431de48a84f10842b93855d65333a",
+      "status": "success",
+      "started_utc": "2026-10-27T20:47:25.422438Z",
+      "duration_ms": 12295.207204000008
+    },
+    "home_provider_attempt": {
+      "id": "llmhttp_f30a36f7f90341daa33f4c2bbdb25add",
+      "status": "success",
+      "surface": "aql.source_event_nomination",
+      "started_utc": "2026-10-27T20:51:32.467420Z",
+      "duration_ms": 98765.36723799995
+    },
+    "home_first_deferred_attempt_log_utc": "2026-10-27T20:53:12.0101964Z",
+    "home_following_behavior": "All following candidates, source-event research and publication encountered cancellation in the same replica. The next replica completed with degraded research.",
+    "original_news_chained_trace": "While recording the originating invalid-JSON exception, the main job thread raised WorkCancelled from OwnershipWork.check via its super().check. The active policy clock was7200seconds, well beyond the elapsed43minutes. This identifies cancelled job ownership rather than an elapsed producer clock.",
+    "historical_evidence_limit": "The heartbeat catches Exception without logging its type, message or traceback. Exact historical renewal exception and blocking SQL transaction were not retained. The reproduced background-admission starvation mechanism matches the production configuration and retry timing; do not claim a particular competing transaction was proven."
+  },
+  "reproduction": {
+    "database": "Isolated local PostgreSQL17 with actual shared database admission and execution ownership functions.",
+    "deployed_ownership_function_ast_matches": true,
+    "lease_seconds": 300,
+    "heartbeat_interval_seconds": 100,
+    "renewal_allowance_seconds": 30,
+    "events": [
+      {
+        "seconds": 1.454,
+        "kind": "owner_acquired",
+        "owned": true
+      },
+      {
+        "seconds": 96.478,
+        "kind": "competing_background_transaction_holds_admission"
+      },
+      {
+        "seconds": 101.464,
+        "kind": "renewal_started"
+      },
+      {
+        "seconds": 131.47,
+        "kind": "scope_cancelled",
+        "scope_type": "WorkScope",
+        "deadline_remaining_seconds": -0.004,
+        "thread": "execution-ownership",
+        "caller": "check"
+      },
+      {
+        "seconds": 131.473,
+        "kind": "renewal_raised",
+        "error_type": "WorkCancelled",
+        "message": "Research work has expired."
+      },
+      {
+        "seconds": 131.476,
+        "kind": "scope_cancelled",
+        "scope_type": "OwnershipWork",
+        "deadline_remaining_seconds": "infinite",
+        "thread": "execution-ownership",
+        "caller": "heartbeat"
+      },
+      {
+        "seconds": 131.537,
+        "kind": "owner_cancelled_before_lease_expiry",
+        "error_type": "WorkCancelled",
+        "database_lease_seconds_remaining": 169.917191
+      },
+      {
+        "seconds": 131.541,
+        "kind": "competing_background_transaction_released"
+      }
+    ],
+    "renewal_error": "WorkCancelled",
+    "renewal_trace_path": [
+      "renew_execution_state",
+      "open_database_connection",
+      "open_database_session",
+      "DatabaseSession._acquire",
+      "check_work",
+      "WorkScope.check"
+    ],
+    "database_lease_seconds_remaining_at_cancellation": 169.917191,
+    "postgres_stopped_verified": true
+  },
+  "reserved_capacity_control": {
+    "production_mutations": 0,
+    "inference_calls": 0,
+    "control": "Ownership metadata uses reserved interactive capacity while normal work remains background.",
+    "renewals": [
+      {
+        "ok": true,
+        "seconds": 0.015110749984160066
+      },
+      {
+        "ok": true,
+        "seconds": 0.013115125009790063
+      }
+    ],
+    "background_slot_holders": 1,
+    "completed": true,
+    "seconds": 5.0013482920476235,
+    "postgres_stopped_verified": true
+  },
+  "source_references": [
+    "services/llm_execution.py:70",
+    "services/llm_execution.py:83",
+    "services/database.py:54",
+    "services/database.py:134",
+    "services/database.py:191"
+  ],
+  "required_source_repair": "Use bounded reserved capacity for ownership metadata, separate renewal failure from actual lease loss, retry transient renewal failure only while the existing lease remains valid, fence writes on real ownership loss, and retain the original cancellation cause. Keep ordinary research in background admission.",
+  "release_status": "Diagnostic confirmation only. No runtime source changed, no new application image, no deployment, no model inference. Temporary local PostgreSQL instances stopped and verified; evidence archived through2026-11-26."
+}
