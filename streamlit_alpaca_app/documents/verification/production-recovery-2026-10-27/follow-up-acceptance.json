@@ -269,5 +269,72 @@
       "issue": "Interrupted qualification calls retain explicitly unknown usage. Scheduled logs also show deferred provider-attempt recording and reservation settlement; current reconciliation completeness has not been established."
     }
   ],
-  "cancellation_diagnosis": "documents/verification/production-recovery-2026-10-27/cancellation-diagnosis.json"
+  "cancellation_diagnosis": "documents/verification/production-recovery-2026-10-27/cancellation-diagnosis.json",
+  "system_consequence_review": {
+    "status": "design_constraints_reviewed_not_implemented_or_qualified",
+    "scope": "Interaction of the nine proposed reliability repairs with cost routing, caching, concurrency, publication and recovery.",
+    "findings": [
+      {
+        "area": "Ownership metadata capacity",
+        "downstream_effect": "Moving ownership operations into generic interactive capacity can starve authentication, user requests and health checks. Nested company leases can create synchronized renewal bursts.",
+        "required_constraint": "Reserve bounded metadata capacity within the existing database ceiling and preserve interactive headroom. Apply the metadata class only around short claim/renew/release operations; never let the yielded research body inherit elevated admission.",
+        "evidence_limit": "The successful one-holder control is a mechanism check, not a mixed-workload capacity qualification."
+      },
+      {
+        "area": "Lease renewal retries",
+        "downstream_effect": "Continuing after a transient renewal error can let a suspended old worker run past actual lease expiry and race its replacement. A pre-write owner check has a race with takeover.",
+        "required_constraint": "Use the last confirmed valid lease deadline conservatively; stop on confirmed loss or expiry. Guard checkpoint mutations and the authoritative publication commit with current ownership. Retain existing Blob generation ordering and ETag conditions; SQL ownership checks alone do not fence Blob writes."
+      },
+      {
+        "area": "Incremental checkpoints and partial publication",
+        "downstream_effect": "Per-company writes increase SQL load; independent latest pointers can expose mixed component versions. Faster companies can dominate visible coverage while difficult investigations remain pending.",
+        "required_constraint": "Persist completed work durably with stable task identity and controlled write concurrency. Publish a coherent artifact referencing its exact component versions and original observation dates. Preserve earlier useful results when refresh fails and give deferred work fair continuation."
+      },
+      {
+        "area": "JSON normalization",
+        "downstream_effect": "Replacing NaN/Infinity with null can hide analytical data errors. Different normalization in identity hashing and storage can cause needless cache misses or inconsistent reuse.",
+        "required_constraint": "Use one canonical representation for persistence and relevant cache identity, retain raw inputs/provenance and distinguish data-quality errors from ordinary missing values. Never turn missing values into numeric zero."
+      },
+      {
+        "area": "Finalization and error recording",
+        "downstream_effect": "An independent cleanup allowance can accidentally restart the job clock or permit an expired owner to publish. Secondary logging failures can still replace the originating exception.",
+        "required_constraint": "Keep finalization inside the original total deadline; separate audit recording from permission to mutate research or publish. Preserve original failure and attach secondary recording outcomes separately."
+      },
+      {
+        "area": "Writing and review reserves",
+        "downstream_effect": "Reserving more completion time reduces acquisition time. Restoring Pro reviews increases cost and can activate inherited memory writing; repeated review may spend money without useful changes.",
+        "required_constraint": "Keep full evidence and analytical capability. Use one explicit review owner per artifact, checkpoint completed stages and reuse compatible accepted review results. Judge complete output quality, acquisition coverage, latency and cost together."
+      },
+      {
+        "area": "Shared balance and ambiguous provider attempts",
+        "downstream_effect": "Reusing shared balance state without atomic reservations can overspend available credit. Long waits can consume the writing budget. Blind retries after an ambiguous provider response can pay twice.",
+        "required_constraint": "Retain atomic reservations and explicit pending/unknown usage. Bound refresh waits within the same request/run clock; do not blindly replay ambiguous paid calls or erase unknown reservations. Exactly-once paid inference is not established."
+      },
+      {
+        "area": "Read-only composition and learning continuation",
+        "downstream_effect": "Disabling writes everywhere would stop useful knowledge growth. Deferring learning work can create an indefinitely growing backlog or repeated partial stages.",
+        "required_constraint": "Composition stays read-only while the owning research/learning stage retains explicit write authority. Learning resumes durable per-stage state with fair admission and visible backlog age; review and knowledge mutation retain independent idempotent identities."
+      },
+      {
+        "area": "Persistent baseline fallback",
+        "downstream_effect": "execute_with_fallback retains rollback for the entire policy identity. One infrastructure failure can disable cheaper routing and company reuse on later executions until policy changes or is deliberately rearmed. The captured production state already has rollback=true for the October27.3 policy.",
+        "required_constraint": "Distinguish infrastructure deferral/recovery from evidence that model/policy quality needs rollback. Preserve safe baseline selection after failure, make active mode inspectable and require deliberate rearming after recovery qualification. Resume failed stages from retained sources; do not restart completed acquisition."
+      },
+      {
+        "area": "Net recurring cost and coverage",
+        "downstream_effect": "Fewer failed requests and restored reviews can increase actual spending compared with a failing pipeline. More workers can amplify provider, browser and database pressure. Two scheduled runs can accumulate more work per run.",
+        "required_constraint": "Retain explicit aggregate concurrency bounds and the original execution clock. Compare complete-workload costs, useful completed coverage and output quality; include failed, retried and unknown usage. Do not claim90percent savings from cadence or per-call arithmetic."
+      }
+    ],
+    "required_failure_scenarios": [
+      "Background work saturates admission while heartbeat and interactive requests continue.",
+      "Renewal raises transiently, ownership actually expires, another worker takes over, and the old worker attempts to save/publish.",
+      "A company save fails or a process dies between data upload and publication, then a retry resumes.",
+      "A run publishes a completed subset while the unfinished companies receive subsequent admission.",
+      "Provider response is ambiguous or balance refresh is busy without losing reservations or resetting deadlines.",
+      "Writing/review fails after acquisition, then resumes without reacquiring sources or repeating knowledge writes.",
+      "Learning repeatedly approaches its execution bound without starving old pending cases."
+    ],
+    "release_decision": "The immediate repair checklist alone is insufficient acceptance. Qualify the combined ownership, publication, continuation and accounting behavior before promoting."
+  }
 }
