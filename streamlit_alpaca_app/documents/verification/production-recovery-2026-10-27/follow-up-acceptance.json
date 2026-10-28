@@ -194,5 +194,10 @@
   },
   "source_review": "documents/verification/production-recovery-2026-10-27/follow-up-source-review.json",
   "development_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-development.json",
-  "production_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-production.json"
+  "production_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-production.json",
+  "scheduled_production_observation": {
+    "record": "documents/verification/production-recovery-2026-10-27/scheduled-observation-2026-10-28.json",
+    "status": "production_degraded_followup_required",
+    "observed_at_utc": "2026-10-28T16:52:31.581029+00:00"
+  }
 }

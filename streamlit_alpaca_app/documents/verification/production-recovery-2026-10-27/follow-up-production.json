@@ -447,5 +447,10 @@
     "expires_at": "2026-11-27T10:12:25.294038+00:00",
     "automatic_cleanup": "Existing installed cleanup_retired_releases LaunchAgent",
     "compressed_bytes": 184415814
+  },
+  "scheduled_production_observation": {
+    "record": "documents/verification/production-recovery-2026-10-27/scheduled-observation-2026-10-28.json",
+    "status": "production_degraded_followup_required",
+    "observed_at_utc": "2026-10-28T16:52:31.581029+00:00"
   }
 }

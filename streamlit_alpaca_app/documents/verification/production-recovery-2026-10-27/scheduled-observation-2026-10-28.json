@@ -1,0 +1,81 @@
+{
+  "observed_at_utc": "2026-10-28T16:52:31.581029+00:00",
+  "status": "production_degraded_followup_required",
+  "scope": "First scheduled production producer executions after the October 28 worker release. Application completion and native Blob receipts checked separately from Azure process status.",
+  "release_image": "0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+  "application_results": {
+    "system-recovery": {
+      "run_id": "081862bb-b713-4bfd-a794-6bbfc782bbe0",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-28 16:37:39.819607+00:00",
+      "end_time_utc": "2026-10-28 16:37:40.958816+00:00",
+      "error_summary": null,
+      "platform_execution_name": "system-recovery-29886757",
+      "published_dataset_count": 0
+    },
+    "zopedia-learning": {
+      "run_id": "27803279-fcc6-4550-b500-4cf5a91fc5dc",
+      "status": "Warning",
+      "start_time_utc": "2026-10-28 15:20:39.684031+00:00",
+      "end_time_utc": "2026-10-28 16:05:10.380692+00:00",
+      "error_summary": "16 learning critiques and 4 reviews remain pending; 0 cases deferred; completed work is retained.",
+      "platform_execution_name": "zopedia-learning-29886680",
+      "published_dataset_count": 0
+    },
+    "attention-home-build": {
+      "run_id": "88327dc1-234e-45f8-8d6e-e1ebbec34fef",
+      "status": "Succeeded",
+      "start_time_utc": "2026-10-28 14:51:38.893376+00:00",
+      "end_time_utc": "2026-10-28 16:07:42.801093+00:00",
+      "error_summary": null,
+      "platform_execution_name": "attention-home-build-29886650",
+      "published_dataset_count": 30
+    },
+    "news-ingest-and-features": {
+      "run_id": "fbaa6ca0-7bb1-48f6-9334-56ea49b4d725",
+      "status": "Warning",
+      "start_time_utc": "2026-10-28 14:05:37.989448+00:00",
+      "end_time_utc": "2026-10-28 15:28:01.528923+00:00",
+      "error_summary": "{\"company_research\": \"4 current investigations did not finish.\", \"company_research:BSX\": \"UntranslatableCharacter\", \"company_research:LITE\": \"UntranslatableCharacter\", \"company_research:MXL\": \"UntranslatableCharacter\", \"company_research:VRT\": \"UntranslatableCharacter\", \"publication_checkpoint:edgar_filings\": \"RuntimeError\"}",
+      "platform_execution_name": "news-ingest-and-features-29886605",
+      "published_dataset_count": 13
+    }
+  },
+  "open_findings": [
+    {
+      "id": "binary_document_checkpoint",
+      "status": "confirmed_unfixed",
+      "impact": "Four company investigations (BSX, LITE, MXL, VRT) failed at the shared durable checkpoint after completed business-profile output.",
+      "evidence": "PostgreSQL UntranslatableCharacter: \\u0000 cannot be converted to text. Context contains PDF binary bytes. HTTP browsing currently decodes every successful non-HTML response using response.text.",
+      "required_followup": "Correct binary document extraction and preserve raw bytes separately; verify shared durable checkpoints accept supported text without discarding evidence."
+    },
+    {
+      "id": "embedding_budget_price",
+      "status": "confirmed_unfixed",
+      "impact": "148 embedding requests rejected by budget admission; semantic candidate search degraded to its keyword path.",
+      "evidence": "services.llm.LLMProviderUnavailable: Budget admission requires a published price for the configured model. Trace runs from semantic_candidates through generate_embeddings to _request_maximum_charge.",
+      "required_followup": "Reconcile the actual Azure embedding deployment with its price and input-only request contract in the shared budget gateway; verify semantic retrieval with the production configuration."
+    },
+    {
+      "id": "edgar_publication_checkpoint",
+      "status": "observed_cause_unconfirmed",
+      "impact": "EDGAR filings Blob dataset published, but the durable logical-run publication checkpoint reported RuntimeError. Other subsequent datasets and final job receipt persisted.",
+      "evidence": "Native completion receipt includes both the published edgar_filings immutable version and publication_checkpoint:edgar_filings=RuntimeError. This catch records only the exception class.",
+      "required_followup": "Establish the cause of the state-store failure and verify retry restoration; retain actionable error diagnostics without exposing secrets."
+    },
+    {
+      "id": "learning_backlog",
+      "status": "bounded_retained_backlog",
+      "impact": "Nine of 25 critiques completed; 16 critiques and four generated reviews remained pending. No platform deadline termination.",
+      "evidence": "Persisted critic execution metadata for all 16 pending cases says the remaining learning window cannot fund another complete case. Current job summary says zero deferred because the per-case admission path does not increment cases_deferred. Old FileNotFoundError metadata also remains on some prior events; it is not proof that the new durable replay failed.",
+      "required_followup": "Correct the deferred-work summary and verify subsequent durable backlog progress before claiming the entire learning workload complete."
+    }
+  ],
+  "cost_target": {
+    "reduction_goal": 0.9,
+    "status": "not_yet_measured"
+  },
+  "source_changes_this_check": false,
+  "production_inference_manually_started": false,
+  "historical_acceptance": "The existing local/DEV acceptance and deployment receipts remain valid evidence of those checks, not proof of complete scheduled production success."
+}
