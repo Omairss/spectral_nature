@@ -1,0 +1,10 @@
+[
+  {
+    "role": "web",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+    "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "full_proof": "documents/verification/home-freshness-2026-10-26/production-packaged-image.json"
+  }
+]

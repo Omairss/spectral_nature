@@ -1,8 +1,8 @@
 {
   "status": "accepted_locally",
-  "scope": "Home gateway fetch-cache repair only; preserve the complete current DEV frontend and all 35 other consumer images/configurations.",
-  "source_revision": "0e773a13f9ae3caeff04aee3cab93115d08566c8",
-  "review_base_revision": "030331d04aa42df79af2528b3f425d1d78801f5c",
+  "scope": "Retained Broad Economy summary presentation in modern web/native; deploy only current DEV web. No Python runtime or production change.",
+  "source_revision": "b5b772177243ba556d5b3de94e6339e8ef2eae94",
+  "review_base_revision": "6eeec5037acb78348dfb22c8fdee5c1d7909ace3",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "411839b19dc8a7f9a5e4586766d414d9856e698b28a4d274a96363fc2dea9d1e",
@@ -239,7 +239,7 @@
     "web/app/api/auth/login/route.ts": "a32bf070bec3624831855d4b6b3f94d397b27f5716c7c33e6d10320bc9465767",
     "web/app/api/auth/logout/route.ts": "dc45e493af97de27351e6b298b2f710ceb00b4c504cf0b86ab22f301ee2e30f3",
     "web/app/api/auth/session/route.ts": "fb71a4d428eee038074f5d9c410c66640862c262abc94c02a77e54fca6755d03",
-    "web/app/api/datasets/[name]/route.ts": "b9e5fac9fd83f5f001dbb31ec5dd9770b7c64b8b79719340f55f3cb67748e275",
+    "web/app/api/datasets/[name]/route.ts": "642443000ae1e0c0ebd5e352b432a325eb2b68cfbd03957fa25b88db9c868944",
     "web/app/api/feature-requests/[requestId]/messages/route.ts": "ed02708909f19608194e46b47202dc8677906774ffd236f965543ead8ab0b14b",
     "web/app/api/feature-requests/[requestId]/route.ts": "1e6edf23d96b865aeb4aebf8d70c65191e6822dd1cc3fae3945c894394ce2f9d",
     "web/app/api/feature-requests/route.ts": "e747c747689517fec456733a4af0fc62a4a99b8f899e20711b8138284d8b9d63",
@@ -263,8 +263,8 @@
     "web/app/api/zopedia/pages/route.ts": "ba6f1a86204a5d49a1b14b0b8b6a5e89b370eeef41d90601747afa5be48ae42f",
     "web/app/api/zopedia/sources/upload/route.ts": "8fd6cea3bcd5b27b5a1396b05f08eda573941ca5e1f623a457071b43997a0edd",
     "web/app/api/zopedia/workspace/route.ts": "1e989f335796ac073ee0613fe2ed08cf2f2fca1c2aa69dd556313938f91d58db",
-    "web/app/broad-economy/page.tsx": "21619a2722d30578852df528f46cf0e768f28620338bb47a68c60cbf61cdaf45",
-    "web/app/globals.css": "dbf16c0c7adc7b922dd9e1d3a15e6f21254c6fab13b95017d5fbaf57d604d867",
+    "web/app/broad-economy/page.tsx": "9d9d8990e2100eb24d461285d656118c788945b489ae3116fe2d5945769d219b",
+    "web/app/globals.css": "7251152edf5524847cd823e7962d8279629d13d25d18900b9881b289c11f0d46",
     "web/app/health/route.ts": "fbd86280d0a005e41947c611db300c2859bec610cf383e779cc01c06322c61a3",
     "web/app/layout.tsx": "85fe444f2059a58d0c89962c7a13032c829a316c69844708f9353dd902a80254",
     "web/app/login/login-form.tsx": "ed85bc9477761542aa2f79892332205a92f1b93d610f90a3d47906d9c7d617ff",
@@ -289,6 +289,7 @@
     "web/components/home-workspace.tsx": "709b08db27af5197412c9a1954582f7012141dfb7bdcec3d89c4de5d8c23a667",
     "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
     "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
+    "web/components/page-research-summary.tsx": "1e4b7002d0783c3afa99e8603a36bab1fcc2300f573ebf7ee8d14472ebe253fa",
     "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
     "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
     "web/components/trading-paper-portfolio.module.css": "1261dd737b888d92a34437f8515257793c731492aaeec2ea7d92bde1449f7dfb",
@@ -512,7 +513,10 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "web/lib/server/home.ts": true
+    "web/app/api/datasets/[name]/route.ts": "Accepted current DEV behavior retained; read-only economic outlook panel, independent refresh and failure retention; gateway allowlist retains auth/CSRF.",
+    "web/app/broad-economy/page.tsx": "Accepted current DEV behavior retained; read-only economic outlook panel, independent refresh and failure retention; gateway allowlist retains auth/CSRF.",
+    "web/app/globals.css": "Accepted current DEV behavior retained; read-only economic outlook panel, independent refresh and failure retention; gateway allowlist retains auth/CSRF.",
+    "web/components/page-research-summary.tsx": "Accepted current DEV behavior retained; read-only economic outlook panel, independent refresh and failure retention; gateway allowlist retains auth/CSRF."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -531,226 +535,14 @@
   ],
   "components": [
     {
-      "name": "Research and retained output",
       "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
       "files": [
-        "compute/anomalies.py",
-        "pipeline/jobs/attention_home_build.py",
-        "services/aql/__init__.py",
-        "services/aql/_agentic.py",
-        "services/aql/_shared.py",
-        "services/aql/assembler.py",
-        "services/aql/business_model_stack.py",
-        "services/aql/chat_log.py",
-        "services/aql/clusterer.py",
-        "services/aql/collector.py",
-        "services/aql/config.py",
-        "services/aql/constants.py",
-        "services/aql/critique.py",
-        "services/aql/entities.py",
-        "services/aql/events.py",
-        "services/aql/evidence_index.py",
-        "services/aql/extractor.py",
-        "services/aql/macro.py",
-        "services/aql/news_business_resolution.py",
-        "services/aql/pipeline.py",
-        "services/aql/scratchpad.py",
-        "services/aql/summarizer.py",
-        "services/aql/writer.py",
-        "services/aql_zopedia_engine.py",
-        "services/attention/__init__.py",
-        "services/attention_agentic.py",
-        "services/attention_home_1d.py",
-        "services/attention_home_summary.py",
-        "services/attention_ticker_snapshots.py",
-        "services/common/market_activity.py",
-        "services/company.py",
-        "services/market.py",
-        "services/market_activity_shared.py",
-        "services/zopedia_agent.py",
-        "services/zopedia_analysis.py",
-        "services/zopedia_learning.py",
-        "services/zopedia_research.py"
-      ]
-    },
-    {
-      "name": "Database and storage lifecycle",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "config/release_contracts.json",
-        "pipeline/jobs/main.py",
-        "services/agents/chat_log.py",
-        "services/auth_store.py",
-        "services/brokerage_mcp_store.py",
-        "services/database.py",
-        "services/entity_taxonomy.py",
-        "services/knowledge_graph.py",
-        "services/llm.py",
-        "services/pipeline_store.py",
-        "services/robinhood_main_store.py",
-        "services/saa/storage.py",
-        "services/saa/zopedia.py",
-        "services/secrets.py"
-      ]
-    },
-    {
-      "name": "Web transport and credentials",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "web/app/api/admin/health/route.ts",
-        "web/app/api/admin/invites/route.ts",
-        "web/app/api/admin/llm/route.ts",
-        "web/app/api/admin/password-resets/route.ts",
-        "web/app/api/admin/route.ts",
-        "web/app/api/auth/account/[action]/route.ts",
-        "web/app/api/auth/login/route.ts",
         "web/app/api/datasets/[name]/route.ts",
-        "web/app/api/feature-requests/[requestId]/messages/route.ts",
-        "web/app/api/feature-requests/[requestId]/route.ts",
-        "web/app/api/feature-requests/route.ts",
-        "web/app/api/investigator/[ticker]/route.ts",
-        "web/app/api/market-lenses/route.ts",
-        "web/app/api/portfolio/opportunities/route.ts",
-        "web/app/api/portfolio/route.ts",
-        "web/app/api/research-conversations/[conversationId]/route.ts",
-        "web/app/api/research-conversations/route.ts",
-        "web/app/api/research-runs/[runId]/cancel/route.ts",
-        "web/app/api/research-runs/[runId]/events/route.ts",
-        "web/app/api/research-runs/[runId]/route.ts",
-        "web/app/api/research-runs/route.ts",
-        "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts",
-        "web/app/api/trading-agent/decisions/route.ts",
-        "web/app/api/trading-agent/route.ts",
-        "web/app/api/visualizations/[name]/route.ts",
-        "web/app/api/zopedia/pages/route.ts",
-        "web/app/api/zopedia/workspace/route.ts",
-        "web/lib/server/auth.ts",
-        "web/lib/server/backend.ts",
-        "web/lib/server/http.ts",
-        "web/tests/auth-boundary.test.mjs"
-      ]
-    },
-    {
-      "name": "Shared data and presentation",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "data_access/contracts.py",
-        "data_access/layer.py",
-        "data_access/query_registry.py",
-        "data_access/query_service.py",
-        "presentation/visualization_artifacts.py",
-        "services/admin_view.py",
-        "services/portfolio_view.py",
-        "services/stock_view.py",
-        "services/trading_agent_view.py"
-      ]
-    },
-    {
-      "name": "Retired tools and direct service ownership",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "scripts/eval_critique_harness.py",
-        "scripts/run_query.py",
-        "services/analytics.py",
-        "services/json_utils.py",
-        "services/operational_health.py",
-        "services/pipeline_slices.py",
-        "services/research_export.py",
-        "services/technicals.py",
-        "services/trading_agent.py"
-      ]
-    },
-    {
-      "name": "Shared stock explanation and retained coverage",
-      "status": "accepted",
-      "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json",
-      "files": [
-        "services/stock_view.py",
-        "services/aql/business_model_stack.py",
-        "pipeline/jobs/main.py",
-        "web/app/stock-investigator/page.tsx",
-        "web/app/globals.css"
-      ]
-    },
-    {
-      "name": "Conditional Home refresh",
-      "status": "accepted",
-      "evidence": "documents/verification/client-refresh-2026-10-22/LOCAL.md",
-      "files": [
-        "web/app/page.tsx",
-        "web/app/api/home/route.ts",
-        "web/components/home-workspace.tsx",
-        "web/lib/server/home.ts",
-        "web/tests/home-refresh.test.mjs"
-      ]
-    },
-    {
-      "name": "Consistent shared currency rendering",
-      "status": "accepted",
-      "evidence": "documents/verification/client-refresh-2026-10-22/LOCAL.md",
-      "files": [
-        "web/components/attention-ticker-card.tsx",
-        "web/components/visualizations/trend-chart.tsx"
-      ]
-    },
-    {
-      "name": "Alpaca paper portfolio and reviewed risk sizing",
-      "status": "accepted",
-      "evidence": "documents/verification/trading-portfolio-2026-10-22/ALPACA.md",
-      "files": [
-        "api/main.py",
-        "api/paper_trading.py",
-        "compute/paper_sizing.py",
-        "services/alpaca_api.py",
-        "services/alpaca_paper.py",
-        "services/auth_store.py",
-        "services/brokerage_mcp_store.py",
-        "services/trading_agent_view.py",
-        "services/trading_call_tracking.py",
-        "scripts/evaluate_paper_sizing.py",
-        "web/app/trading-agent/page.tsx",
-        "web/app/api/trading-agent/paper/[action]/route.ts",
-        "web/components/admin/operational-health.tsx",
-        "web/components/trading-paper-portfolio.tsx",
-        "web/components/trading-paper-portfolio.module.css"
-      ]
-    },
-    {
-      "name": "Preserved development maintenance runtime",
-      "status": "accepted",
-      "evidence": "documents/verification/trading-portfolio-2026-10-22/dev-source-integration.json",
-      "files": [
-        "pipeline/jobs/main.py",
-        "services/agent_tools.py",
-        "services/aql/business_model_stack.py",
-        "services/aql/evidence_pack.py",
-        "services/aql/news_business_resolution.py",
-        "services/aql_zopedia_engine.py",
-        "services/llm.py",
-        "services/llm_execution.py",
-        "services/operational_health.py",
-        "services/page_browsing.py",
-        "services/saa/storage.py",
-        "services/saa/zopedia.py",
-        "services/zopedia_agent.py",
-        "services/zopedia_analysis.py",
-        "services/zopedia_learning.py",
-        "services/zopedia_maintenance.py",
-        "services/zopedia_research.py"
-      ]
-    },
-    {
-      "name": "Home publication cache transport",
-      "status": "accepted",
-      "evidence": "documents/verification/home-freshness-2026-10-26/LOCAL.md",
-      "files": [
-        "web/lib/server/home.ts"
-      ]
+        "web/app/broad-economy/page.tsx",
+        "web/app/globals.css",
+        "web/components/page-research-summary.tsx"
+      ],
+      "evidence": "documents/verification/broad-economy-summary-2026-10-27/LOCAL.md"
     }
   ],
   "roles": {
@@ -759,11 +551,39 @@
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc"
       ],
       "development_targets": [],
       "production_targets": [],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc": {
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0abeb59b8685d218a26f506cd5f74718fc0038d3eb6e44409c8d8adcbe9b03dc",
+          "source_revision": "ce616ace888afb6e2f0eba19d1f25d8a2c87e65b",
+          "source_inventory_sha256": "b88f78fcc3388454660a1bdbabc5857bbccd4b9be1c0cc6c4583913c93147c9a",
+          "runtime_inventory_sha256": "d550f3f8fa2f1f8be6af783a5eba75bbabc4e930d0bc18a576d458ac57496af2",
+          "all_packaged_files_checked": true,
+          "complete_git_inventory_matches": true,
+          "packaged_files": 189,
+          "build_run": "cj1c3",
+          "development_execution": "macro-fred-daily-dev-kl0whlm",
+          "evidence": "documents/verification/inference-cost-rollout-2026-10-27/development.json"
+        },
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1": {
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+          "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+          "source_inventory_sha256": "9d02453088c9e47fd9e707d2bd061eb6bfa364884bc14aa389fa3ca44365452e",
+          "runtime_inventory_sha256": "edbad6f626b58ad4c76b2f25591876523735ae8d5571e1b8a29c903aac4cbe0c",
+          "all_packaged_files_checked": true,
+          "complete_git_inventory_matches": true,
+          "packaged_files": 189,
+          "build_run": "cj1c4",
+          "development_execution": "macro-fred-daily-dev-8nqzhio",
+          "evidence": "documents/verification/production-recovery-2026-10-27/development.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -778,37 +598,37 @@
     "web": {
       "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05"
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c"
       ],
       "development_targets": [
         {
           "name": "sn-next-ui-dev",
           "kind": "containerApps",
+          "role": "web",
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
-            "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-            "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/research-charts-2026-10-23/revision-consumer-review.json"
-          }
+            "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c",
+            "source_revision": "4a945281a4c9232b7d1cb098ecc20a0d42c55150",
+            "package_evidence": "documents/verification/home-freshness-2026-10-26/packaged-image.json",
+            "evidence": "documents/verification/home-freshness-2026-10-26/DEV.json"
+          },
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c"
         }
       ],
       "production_targets": [],
       "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd": {
           "role": "web",
-          "source_revision": "4a945281a4c9232b7d1cb098ecc20a0d42c55150",
-          "source_inventory_sha256": "9c4e3625fdf269f86c7d99c63602af82f22911307004da52eed2eb2ce7d52220",
-          "runtime_inventory_sha256": "ddf09d5ae5f830d1d034e1952d5f48f287201a552554f197f55992abce6b79d6",
+          "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+          "source_inventory_sha256": "9b3c016be8dae716ed253191c03936a03de53062e9545753fd20d00f6722fd39",
+          "runtime_inventory_sha256": "a60a792f11f12520f71c809870f46946033db77747d2b374ff52e591d3eedcd4",
           "complete_git_inventory_matches": true,
           "all_packaged_files_checked": true,
-          "input_files": 92,
-          "compiled_files": 1713,
+          "input_files": 89,
+          "compiled_files": 1703,
           "symlinks": 0,
           "node": "v22.23.3",
           "next": "16.3.8",
@@ -825,10 +645,10 @@
           "large_body_bytes": 3146181,
           "backend_reads": 8,
           "external_inference_calls": 0,
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c",
-          "verification_run": "cj1bx",
-          "build_run": "cj1bw",
-          "evidence": "documents/verification/home-freshness-2026-10-26/packaged-image.json"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+          "verification_run": "cj1c0",
+          "build_run": "cj1by",
+          "evidence": "documents/verification/home-freshness-2026-10-26/production-packaged-image.json"
         }
       },
       "runtime_files": {
@@ -846,7 +666,7 @@
         "web/app/api/auth/login/route.ts": "a32bf070bec3624831855d4b6b3f94d397b27f5716c7c33e6d10320bc9465767",
         "web/app/api/auth/logout/route.ts": "dc45e493af97de27351e6b298b2f710ceb00b4c504cf0b86ab22f301ee2e30f3",
         "web/app/api/auth/session/route.ts": "fb71a4d428eee038074f5d9c410c66640862c262abc94c02a77e54fca6755d03",
-        "web/app/api/datasets/[name]/route.ts": "b9e5fac9fd83f5f001dbb31ec5dd9770b7c64b8b79719340f55f3cb67748e275",
+        "web/app/api/datasets/[name]/route.ts": "642443000ae1e0c0ebd5e352b432a325eb2b68cfbd03957fa25b88db9c868944",
         "web/app/api/feature-requests/[requestId]/messages/route.ts": "ed02708909f19608194e46b47202dc8677906774ffd236f965543ead8ab0b14b",
         "web/app/api/feature-requests/[requestId]/route.ts": "1e6edf23d96b865aeb4aebf8d70c65191e6822dd1cc3fae3945c894394ce2f9d",
         "web/app/api/feature-requests/route.ts": "e747c747689517fec456733a4af0fc62a4a99b8f899e20711b8138284d8b9d63",
@@ -870,8 +690,8 @@
         "web/app/api/zopedia/pages/route.ts": "ba6f1a86204a5d49a1b14b0b8b6a5e89b370eeef41d90601747afa5be48ae42f",
         "web/app/api/zopedia/sources/upload/route.ts": "8fd6cea3bcd5b27b5a1396b05f08eda573941ca5e1f623a457071b43997a0edd",
         "web/app/api/zopedia/workspace/route.ts": "1e989f335796ac073ee0613fe2ed08cf2f2fca1c2aa69dd556313938f91d58db",
-        "web/app/broad-economy/page.tsx": "21619a2722d30578852df528f46cf0e768f28620338bb47a68c60cbf61cdaf45",
-        "web/app/globals.css": "dbf16c0c7adc7b922dd9e1d3a15e6f21254c6fab13b95017d5fbaf57d604d867",
+        "web/app/broad-economy/page.tsx": "9d9d8990e2100eb24d461285d656118c788945b489ae3116fe2d5945769d219b",
+        "web/app/globals.css": "7251152edf5524847cd823e7962d8279629d13d25d18900b9881b289c11f0d46",
         "web/app/health/route.ts": "fbd86280d0a005e41947c611db300c2859bec610cf383e779cc01c06322c61a3",
         "web/app/layout.tsx": "85fe444f2059a58d0c89962c7a13032c829a316c69844708f9353dd902a80254",
         "web/app/login/login-form.tsx": "ed85bc9477761542aa2f79892332205a92f1b93d610f90a3d47906d9c7d617ff",
@@ -896,6 +716,7 @@
         "web/components/home-workspace.tsx": "709b08db27af5197412c9a1954582f7012141dfb7bdcec3d89c4de5d8c23a667",
         "web/components/icons.tsx": "b9decc77ad08d556bfe3bdee1a879303a034026ec7a608fd799b23c40203470d",
         "web/components/markdown.tsx": "743d7e7b2a85cead42cd851c5e4b1a75682bf5213cee422c127de8b6f09cfe8a",
+        "web/components/page-research-summary.tsx": "1e4b7002d0783c3afa99e8603a36bab1fcc2300f573ebf7ee8d14472ebe253fa",
         "web/components/portfolio-lists.tsx": "f610e4c6174b2dda16ca57ab9ac0c1ea906fb4d25e7fcaa561c8d1490b008cd9",
         "web/components/shell-nav.tsx": "ca92bd44749334791eb8059d86852730400606b2e6a4ceb232811ba79a7d7491",
         "web/components/trading-paper-portfolio.module.css": "1261dd737b888d92a34437f8515257793c731492aaeec2ea7d92bde1449f7dfb",
@@ -939,21 +760,79 @@
   },
   "untouched_consumers": [
     {
-      "name": "sn-streamlit-ui",
-      "kind": "containerApps",
-      "role": "web",
+      "name": "news-ingest-and-features",
+      "kind": "jobs",
+      "role": "worker",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
+      "configuration_sha256": "4b2b09a796fd648d3c7e053bcf0ecc3b01ba92be8fe2112ecce7c2106b3eaf12",
       "preservation_review": {
         "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
-        "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/revision-consumer-review.json"
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+        "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+        "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
+        "evidence": "documents/verification/production-recovery-2026-10-27/production.json"
       },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05"
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+    },
+    {
+      "name": "attention-home-build",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "965ba45294d34c7511ca1a7036383d6273c3a63bb415c29979337ea5ebd5a342",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+        "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+        "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
+        "evidence": "documents/verification/production-recovery-2026-10-27/production.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+    },
+    {
+      "name": "zopedia-learning",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+        "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+        "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
+        "evidence": "documents/verification/production-recovery-2026-10-27/production.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+    },
+    {
+      "name": "system-recovery",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+        "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+        "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
+        "evidence": "documents/verification/production-recovery-2026-10-27/production.json"
+      },
+      "execution_binding": {
+        "name": "system-recovery",
+        "role": "worker",
+        "pipeline_job": "system-recovery",
+        "dataset_namespace": "",
+        "trigger": "Schedule",
+        "cron": "7,22,37,52 * * * *",
+        "environment": {
+          "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
+        }
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
     },
     {
       "name": "sn-api-next-dev",
@@ -962,7 +841,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
@@ -973,30 +851,12 @@
       "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558"
     },
     {
-      "name": "sn-next-ui",
-      "kind": "containerApps",
-      "role": "web",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
-        "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-        "evidence": "documents/verification/research-charts-2026-10-23/revision-consumer-review.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05"
-    },
-    {
       "name": "sn-api-next",
       "kind": "containerApps",
       "role": "api-next",
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
@@ -1013,7 +873,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1030,7 +889,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1047,7 +905,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1064,7 +921,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1081,24 +937,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-        "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-        "evidence": "documents/verification/evidence-index-2026-10-25/consumer-preservation-review.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
-    },
-    {
-      "name": "news-ingest-and-features",
-      "kind": "jobs",
-      "role": "worker",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "bac26afce386dfe20cbfa56574a85c89ff426a7f5d0c98681d42f71619d26869",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1115,24 +953,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-        "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-        "evidence": "documents/verification/evidence-index-2026-10-25/consumer-preservation-review.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
-    },
-    {
-      "name": "attention-home-build",
-      "kind": "jobs",
-      "role": "worker",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "3ae7f941b1c1b2faf696d094657adf6b886bd6a2d322bd0ce74772c5ba688fb1",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1149,7 +969,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1166,7 +985,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1183,7 +1001,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1200,24 +1017,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-        "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-        "evidence": "documents/verification/evidence-index-2026-10-25/consumer-preservation-review.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
-    },
-    {
-      "name": "zopedia-learning",
-      "kind": "jobs",
-      "role": "worker",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1234,7 +1033,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1251,7 +1049,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1268,7 +1065,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1285,7 +1081,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1302,7 +1097,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
@@ -1319,7 +1113,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e",
@@ -1336,7 +1129,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1353,7 +1145,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1370,7 +1161,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1387,7 +1177,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1404,7 +1193,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1421,7 +1209,6 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1438,7 +1225,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1453,7 +1239,6 @@
       "kind": "jobs",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
@@ -1480,7 +1265,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1491,41 +1275,12 @@
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
     },
     {
-      "name": "system-recovery",
-      "kind": "jobs",
-      "role": "worker",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-        "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-        "evidence": "documents/verification/evidence-index-2026-10-25/consumer-preservation-review.json"
-      },
-      "execution_binding": {
-        "name": "system-recovery",
-        "role": "worker",
-        "pipeline_job": "system-recovery",
-        "dataset_namespace": "",
-        "trigger": "Schedule",
-        "cron": "7,22,37,52 * * * *",
-        "environment": {
-          "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
-        }
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
-    },
-    {
       "name": "cleanup-trial-observer-dev",
       "kind": "jobs",
       "role": "worker",
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "53bb353f0f3d61d4267ce77f049c5f505e867485eecddc0b198cac048dceb2c8",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
@@ -1542,7 +1297,6 @@
       "environment": "development",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
@@ -1551,6 +1305,38 @@
         "evidence": "documents/verification/research-charts-2026-10-23/revision-consumer-review.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+        "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+        "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
+        "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "role": "web"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+        "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+        "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
+        "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION.json"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "role": "web"
     }
   ],
   "retired_consumers": [
@@ -1572,14 +1358,6 @@
   ],
   "production_authorized": false,
   "production_authorization": {},
-  "development_acceptance": {
-    "status": "accepted",
-    "images": {
-      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c"
-    },
-    "source_inventory_sha256": "9c4e3625fdf269f86c7d99c63602af82f22911307004da52eed2eb2ce7d52220",
-    "evidence": "documents/verification/home-freshness-2026-10-26/DEV.json"
-  },
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",
@@ -1595,8 +1373,31 @@
     }
   },
   "preceding_release": {
-    "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
-    "evidence": "documents/verification/trading-portfolio-2026-10-22/DEV.json"
+    "development_source": "6eeec5037acb78348dfb22c8fdee5c1d7909ace3",
+    "native_source": "bfa9e0337e331aa04297aaf7c6166e70f2136cc7",
+    "production_unchanged": true
+  },
+  "development_acceptance": {
+    "status": "pending"
+  },
+  "production_embedding_activation": {
+    "owner_instruction": "Enable the existing Azure semantic search",
+    "profile": "infra/production_embeddings.json",
+    "evidence": "documents/verification/evidence-index-2026-10-25/reader-deployment-verification.json",
+    "runtime_source_and_images_preserved": true
+  },
+  "container_resource_optimization": {
+    "owner_instruction": "Do 3-5",
+    "profile": "infra/container_resources.json",
+    "evidence": "documents/verification/azure-cost-retirement-2026-10-25/sizing-verification.json",
+    "images_preserved": true
+  },
+  "production_inference_policy": {
+    "owner_instruction": "Activate today; cheaper models by task, cache reuse, two runs, baseline retry, adaptable configuration. More workers; two-hour completed output.",
+    "policy_file": "config/inference_policy.json",
+    "profile": "balanced",
+    "not_before_pacific": "2026-10-27",
+    "configuration_evidence": "documents/verification/production-recovery-2026-10-27/configuration.json",
+    "development_evidence": "documents/verification/production-recovery-2026-10-27/development.json"
   }
 }

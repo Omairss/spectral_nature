@@ -1,0 +1,125 @@
+{
+  "status": "accepted",
+  "execution": "macro-fred-daily-dev-8nqzhio",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+  "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+  "source_inventory_sha256": "9d02453088c9e47fd9e707d2bd061eb6bfa364884bc14aa389fa3ca44365452e",
+  "runtime_inventory_sha256": "edbad6f626b58ad4c76b2f25591876523735ae8d5571e1b8a29c903aac4cbe0c",
+  "resources": {
+    "cpu": 4,
+    "memory": "8Gi"
+  },
+  "probes": [
+    {
+      "probe": "package",
+      "files": 189,
+      "runtime_inventory_sha256": "edbad6f626b58ad4c76b2f25591876523735ae8d5571e1b8a29c903aac4cbe0c",
+      "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d"
+    },
+    {
+      "probe": "activation",
+      "effective_profile": "balanced",
+      "not_before": "2026-10-27"
+    },
+    {
+      "probe": "learning_durability",
+      "fresh_connection": true,
+      "local_file_required": false,
+      "status": "passed"
+    },
+    {
+      "probe": "company_workers",
+      "workers": 8,
+      "parent_deadline_inherited": true
+    },
+    {
+      "probe": "source_contexts",
+      "subjects": 8,
+      "context_bytes": 2098146
+    },
+    {
+      "probe": "provider_concurrency",
+      "profile": "balanced",
+      "workers": 8,
+      "results": [
+        {
+          "worker": 0,
+          "model": null,
+          "completed": true
+        },
+        {
+          "worker": 1,
+          "model": null,
+          "completed": true
+        },
+        {
+          "worker": 2,
+          "model": null,
+          "completed": true
+        },
+        {
+          "worker": 3,
+          "model": null,
+          "completed": true
+        },
+        {
+          "worker": 4,
+          "model": null,
+          "completed": true
+        },
+        {
+          "worker": 5,
+          "model": null,
+          "completed": true
+        },
+        {
+          "worker": 6,
+          "model": null,
+          "completed": true
+        },
+        {
+          "worker": 7,
+          "model": null,
+          "completed": true
+        }
+      ],
+      "seconds": 14.51383395399995,
+      "memory_peak_bytes": null
+    },
+    {
+      "probe": "intentional_candidate_failure"
+    }
+  ],
+  "provider_usage": [
+    {
+      "requested_model": "deepseek-flash",
+      "reported_model": "deepseek-flash",
+      "status": "success",
+      "attempts": 8,
+      "input_tokens": "603801",
+      "output_tokens": "2904"
+    },
+    {
+      "requested_model": "deepseek-v4-pro",
+      "reported_model": "deepseek-v4-pro",
+      "status": "success",
+      "attempts": 1,
+      "input_tokens": "58371",
+      "output_tokens": "617"
+    }
+  ],
+  "native_retry": {
+    "candidate_exit_code": 1,
+    "baseline_exit_code": 0,
+    "replicas": 2,
+    "automatic_azure_retry": true,
+    "full_baseline_model_proven_by_provider_telemetry": true
+  },
+  "stored_dev_job_definition_changed": false,
+  "qualification_namespace": "production-recovery-dev-b83d2bb2",
+  "limitations": [
+    "This is an8-request/source-context capacity probe, not a whole two-hour production run.",
+    "Cgroup memory.peak was unavailable on this environment; no peak-memory value is claimed.",
+    "Baseline replica logs were unavailable after pod cleanup; provider telemetry, replica exit0 and execution Succeeded establish baseline completion."
+  ]
+}
