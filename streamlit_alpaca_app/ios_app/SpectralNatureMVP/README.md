@@ -2,6 +2,8 @@
 
 Native SwiftUI client for the modern Spectral Nature workbench. Requires iOS 17 or later and Xcode 16 or later. The historical `SpectralNatureMVP` directory is retained; the application and shared scheme are named `SpectralNature`.
 
+Build **14** was installed in place and launched on all three requested iPhones on October 23. It includes retained Brief display, the Trading redesign and the accepted research charts. [Installation receipt](../../documents/verification/iphone-install-2026-10-23/installation.json).
+
 ## Run
 
 Open `SpectralNature.xcodeproj`, select the `SpectralNature` scheme and an iPhone simulator, and press Run. The project is included; XcodeGen is only needed when changing `project.yml`.

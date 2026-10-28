@@ -4,7 +4,7 @@ import SwiftUI
 struct HomeView: View {
   @EnvironmentObject private var session: AppSession
   @Environment(\.scenePhase) private var scenePhase
-  @StateObject private var resource = Resource<HomeSnapshot>()
+  @ObservedObject var publications: HomePublicationStore
   @StateObject private var player = BriefPlayer()
   let isSelected: Bool
   @State private var date = Date()
@@ -12,11 +12,8 @@ struct HomeView: View {
   @State private var showingDate = false
   @State private var section = "Brief"
   @State private var visible = false
-  @State private var currentKey: String?
-  @State private var requestID: UUID?
-  @State private var etag = ""
-  @State private var pending: HomeSnapshot?
   private var targetDate: String { replay ? Format.day(date) : "" }
+  private var home: HomeSnapshot? { publications.snapshot(for: targetDate) }
   private var active: Bool { isSelected && visible && scenePhase == .active }
   var body: some View {
     ScrollView {
@@ -36,8 +33,11 @@ struct HomeView: View {
           Text("Brief").tag("Brief")
           Text("Attention").tag("Attention")
         }.pickerStyle(.segmented)
-        ResourceStatus(resource: resource) { Task { await load() } }
-        if let home = resource.value {
+        if publications.loading && home == nil {
+          ProgressView().frame(maxWidth: .infinity).padding(16).accessibilityLabel("Loading Daily Brief")
+        }
+        if !publications.error.isEmpty { Failure(message: publications.error, retry: { Task { await load() } }) }
+        if let home {
           if home.status != "available" {
             Text("Daily Brief unavailable").foregroundStyle(.secondary)
           } else {
@@ -129,14 +129,14 @@ struct HomeView: View {
     }
     .workbench()
     .researchContext(
-      "Daily Brief; date=\(replay ? Format.day(date) : "latest"); as_of=\(resource.value?.asOf ?? "")"
+      "Daily Brief; date=\(replay ? Format.day(date) : "latest"); as_of=\(home?.asOf ?? "")"
     )
     .onAppear { visible = true }
     .onDisappear { visible = false }
     .task(id: "\(active)|\(targetDate)") {
       guard active else { return }
       repeat {
-        await load(quiet: resource.value != nil)
+        await load(quiet: true)
         guard !replay else { return }
         do { try await Task.sleep(for: .seconds(30)) } catch { return }
       } while !Task.isCancelled
@@ -163,44 +163,11 @@ struct HomeView: View {
   }
   private func load(quiet: Bool = false) async {
     let target = targetDate
-    if currentKey == target && requestID != nil { return }
-    if currentKey != target {
-      player.stop()
-      resource.value = nil
-      etag = ""
-      pending = nil
-      currentKey = target
-    }
-    let identity = UUID()
-    requestID = identity
-    if !quiet { resource.loading = true; resource.error = "" }
-    defer {
-      if requestID == identity { requestID = nil; resource.loading = false }
-    }
-    do {
-      let result: (value: HomeSnapshot?, etag: String) = try await session.api.getIfChanged(
-        "/api/home", query: target.isEmpty ? [:] : ["date": target], etag: etag)
-      guard !Task.isCancelled, requestID == identity, target == targetDate else { return }
-      resource.error = ""
-      if let home = result.value, home.status == "available" {
-        if etag.isEmpty || etag != result.etag {
-          pending = home
-          applyPending()
-        }
-        etag = result.etag
-        resource.error = ""
-      } else if result.value != nil && resource.value == nil {
-        resource.error = "Daily Brief unavailable"
-      }
-    } catch {
-      guard !Task.isCancelled, requestID == identity else { return }
-      if !quiet || resource.value == nil { resource.error = error.localizedDescription }
-    }
+    if publications.snapshot(for: target)?.isReplay != replay { player.stop() }
+    await publications.refresh(date: target, quiet: quiet) { !player.playing && !player.loading }
   }
   private func applyPending() {
-    guard !player.playing, !player.loading, let home = pending else { return }
-    resource.value = home
-    pending = nil
+    publications.applyPending(when: !player.playing && !player.loading)
   }
 }
 

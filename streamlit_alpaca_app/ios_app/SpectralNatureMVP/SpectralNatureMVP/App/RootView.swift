@@ -6,7 +6,7 @@ struct RootView: View {
   @State private var selectedTab = "brief"
   var body: some View {
     TabView(selection: $selectedTab) {
-      NavigationStack { HomeView(isSelected: selectedTab == "brief") }
+      NavigationStack { HomeView(publications: session.home, isSelected: selectedTab == "brief") }
         .tag("brief")
         .tabItem { Label("Brief", systemImage: "waveform.path") }
       NavigationStack { AccessGate { MarketsView() } }

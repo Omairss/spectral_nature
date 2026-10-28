@@ -11,10 +11,12 @@ final class AppSession: ObservableObject {
   @Published var accountLink: AccountLink?
   @Published var accountLinkError = ""
   let api: APIClient
+  let home: HomePublicationStore
   let research: ResearchActivityStore
   init() {
     let client = APIClient()
     api = client
+    home = HomePublicationStore(api: client)
     research = ResearchActivityStore(api: client)
   }
   private var generation = 0
