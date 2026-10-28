@@ -336,5 +336,52 @@
       "Learning repeatedly approaches its execution bound without starving old pending cases."
     ],
     "release_decision": "The immediate repair checklist alone is insufficient acceptance. Qualify the combined ownership, publication, continuation and accounting behavior before promoting."
+  },
+  "adaptive_budget_requirement": {
+    "owner_instruction": "The budget should be able to scale from $10 per run all the way to $1000+ per run. So the research quality/depth all should be variable.",
+    "status": "owner_requirement_recorded_design_revised_runtime_not_implemented",
+    "scope": "Shared production research engine. Configuration range does not itself start a run, approve spending, change production schedules or supersede the separate offline-study provider/daily approval policy.",
+    "budget_meaning": "Maximum incremental research spend for one logical objective, including child tasks, retries and fallback. A larger ceiling permits deeper work; it is not a requirement to consume the allowance.",
+    "controls": {
+      "max_cost_usd": "Any supported positive finite USD ceiling, including10,1000 and above; no hardcoded quality tiers.",
+      "max_duration_seconds": "Independent run limit; preserve the existing two-hour production setting unless explicitly configured otherwise.",
+      "concurrency": "Independent capacity limits for model calls, acquisition, browsers and database work; money alone does not increase them.",
+      "research_objective": "The requested question and scope, carried to the shared LLM planner."
+    },
+    "adaptive_behavior": [
+      "The LLM planner allocates remaining money and time among breadth, depth, source acquisition, counterevidence, numerical work, eligible task models, synthesis and review. It can conclude early when further work has little expected value.",
+      "Use declared supported model/tool capabilities, versioned price bounds and observed latency. Reserve the cost of each paid action before admission; completion and publication need funded time/effort rather than a fixed percentage imposed on every task.",
+      "Each child sees an allocation from the parent allowance. Concurrent workers cannot each treat the full run ceiling as their own budget.",
+      "Budget and depth can change the research performed and model choice; provenance, truthful dates, execution outcome, permissions and accounting remain required at every budget."
+    ],
+    "accounting": {
+      "available": "approved ceiling minus settled spending minus outstanding maximum reservations, including ambiguous attempts",
+      "atomicity": "Coordinate account affordability and run allowance reservations so failure in one cannot leak the other reservation.",
+      "retry": "A retry or model fallback keeps the original logical run identity, spending, reservations and deadline.",
+      "paid_tools": "Include incremental paid inference and acquisition; rented compute requires allocation-wide reservation. Fixed shared hosting is reported separately rather than silently represented as per-request spend. Unpriced paid actions need a bounded quote before admission.",
+      "changes": "Freeze the approved profile for a run; an explicit owner budget amendment can increase its ceiling while retaining all earlier spending and work."
+    },
+    "reuse_and_depth": [
+      "Preserve complete captured inputs and completed research stages independently of the allowance used to obtain them. Increasing the requested budget/depth should extend useful work rather than discard it.",
+      "A cheaper completed answer is retained input for a deeper investigation, not automatic proof that the deeper objective is complete. The shared LLM assesses achieved scope and worthwhile remaining questions.",
+      "Cache compatibility follows evidence, requested analytical scope, effective model/prompt/schema and permissions. A worker-count or dollar-ceiling change alone must not invalidate unchanged completed input artifacts."
+    ],
+    "fallback": "Keep infrastructure continuation, per-run model fallback and deliberate release rollback separate. A transient database error must not silently impose permanent baseline economics. Fallback cannot reset or exceed the approved run ceiling.",
+    "source_changes_required": [
+      "The current ResearchBudget expresses time phases, not a dollar allowance.",
+      "Current provider reservations protect account credit, not a logical run spending cap.",
+      "The current planner sees tool/time counts but has no shared run-dollar ledger.",
+      "Current cache identity includes the complete inference policy and several execution-budget parameters; budget changes can invalidate otherwise useful work.",
+      "Current fixed per-company admission and phase allocations cannot express continuous budget-dependent research depth."
+    ],
+    "account_wide_target": {
+      "meaning": "90percent reduction is a measured economical operating profile, while higher explicitly selected budgets buy additional research depth.",
+      "captured_baseline_day": "2026-10-26",
+      "captured_total_usd": 45.21534226,
+      "captured_other_than_news_usd": 7.397986024,
+      "ninety_percent_target_usd": 4.521534226,
+      "implication": "News-only optimization cannot meet the account-wide target while other producers remain unchanged."
+    },
+    "acceptance": "Compare the same objectives and retained inputs across materially different budgets, personally evaluate complete outputs and attained depth, verify hard concurrent spend bounds and resume behavior, and qualify production recovery/publication. No new model calls were started to write this design."
   }
 }
