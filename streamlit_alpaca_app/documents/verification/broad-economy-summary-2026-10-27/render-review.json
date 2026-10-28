@@ -23,7 +23,9 @@
     "linked_narrative": true,
     "watch_items": true,
     "foreground_refresh": "implemented",
-    "failure_recovery": "pending"
+    "failure_recovery": "retained prior summary through failed five-minute refresh; normal Retry recovered",
+    "final_compilation": "passed",
+    "final_source_inspection": "complete headline, all narrative paragraphs and watch items verified"
   },
   "refresh": {
     "interval_seconds": 300,
@@ -31,5 +33,11 @@
     "retains_existing_summary_on_failure": true
   },
   "external_inference_calls": 0,
-  "cloud_changes": false
+  "cloud_changes": false,
+  "web_failure_recovery": "foreground refresh503 retains full existing narrative; Retry recovers",
+  "screenshots": [
+    "web-desktop.png",
+    "web-mobile.png",
+    "native.png"
+  ]
 }
