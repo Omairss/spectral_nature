@@ -1,0 +1,45 @@
+{
+  "status": "reviewed_not_applied",
+  "changes": {
+    "news-ingest-and-features": {
+      "RESEARCH_RUN_BUDGET_USD": "10",
+      "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": "0.1",
+      "RESEARCH_TOOL_MAX_COST_USD_JSON": "{\"serper.search\":0.001,\"serper.search_news\":0.001,\"serpapi.search\":0.025,\"serpapi.search_news\":0.025,\"serpapi.ai_overview\":0.025,\"tavily.search.basic\":0.008,\"tavily.search.advanced\":0.016}",
+      "PIPELINE_JOB_MAX_DURATION_SECONDS": "6900",
+      "PIPELINE_JOB_WORK_TIMEOUT_SECONDS": "6600",
+      "PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS": "180"
+    },
+    "attention-home-build": {
+      "RESEARCH_RUN_BUDGET_USD": "10",
+      "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": "0.1",
+      "RESEARCH_TOOL_MAX_COST_USD_JSON": "{\"serper.search\":0.001,\"serper.search_news\":0.001,\"serpapi.search\":0.025,\"serpapi.search_news\":0.025,\"serpapi.ai_overview\":0.025,\"tavily.search.basic\":0.008,\"tavily.search.advanced\":0.016}",
+      "PIPELINE_JOB_MAX_DURATION_SECONDS": "6900",
+      "AQL_CANDIDATE_RESEARCH_TIMEOUT_SECONDS": "600",
+      "ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS": "600",
+      "ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS": "600"
+    },
+    "zopedia-learning": {
+      "RESEARCH_RUN_BUDGET_USD": "10",
+      "RESEARCH_RUN_SOFT_OVERRUN_FRACTION": "0.1",
+      "RESEARCH_TOOL_MAX_COST_USD_JSON": "{\"serper.search\":0.001,\"serper.search_news\":0.001,\"serpapi.search\":0.025,\"serpapi.search_news\":0.025,\"serpapi.ai_overview\":0.025,\"tavily.search.basic\":0.008,\"tavily.search.advanced\":0.016}",
+      "PIPELINE_JOB_MAX_DURATION_SECONDS": "3300",
+      "ZOPEDIA_LEARNING_JOB_TIMEOUT_SECONDS": "3300",
+      "ZOPEDIA_LEARNING_CASE_TIMEOUT_SECONDS": "900",
+      "ZOPEDIA_LEARNING_FINALIZATION_RESERVE_SECONDS": "60"
+    }
+  },
+  "policy_file": "config/inference_policy.json",
+  "policy_version": "2026-10-28.1",
+  "policy_jobs": [
+    "news-ingest-and-features",
+    "attention-home-build",
+    "zopedia-learning"
+  ],
+  "preserve": "All other env values, secrets, identities, resources, triggers and retry settings. News cron remains5 14,20 * * 1-5 with8company workers. Learning keeps its full900-second per-case allowance and admits complete cases before finalization.",
+  "tool_quotes": "Conservative list-plan bounds; not invoice reconciliation.",
+  "evidence_sources": [
+    "https://serper.dev/",
+    "https://serpapi.com/pricing",
+    "https://docs.tavily.com/documentation/api-credits"
+  ]
+}

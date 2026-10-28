@@ -26,6 +26,12 @@ RESEARCH_TIMELINE_GUIDANCE = (
     "session close. Read the actual observation time, as-of constraint and any session-finality information together. "
     "Describe an intraday or unfinalized value as the observed/traded price at that time, and reserve closing-price "
     "claims for evidence of a completed session."
+    " Keep company-specific factual background distinct from economic reasoning. Product ownership, licensing, "
+    "commercial counterparties, regulatory status and reported financial figures require a supplied or acquired "
+    "source that identifies the same entity and relationship. Do not fill a missing named relationship from memory "
+    "or transfer it from a similar company or product. Previously generated analysis is a research lead, not independent "
+    "source confirmation. You can explain economic mechanisms and infer connections from established observations; "
+    "do not invent a contract, product history or financial fact to complete that explanation."
 )
 
 
