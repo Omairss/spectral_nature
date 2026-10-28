@@ -1,0 +1,16 @@
+{
+  "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
+  "accepted_source_revision": "db302f4ce58541419af79e55769286c5b5a5b9d0",
+  "role": "worker",
+  "source_inventory_sha256": "a93858f27ab5800231550f3bc10bbf57907137c0bd67b03337b5a10a22850a82",
+  "files": 307,
+  "runtime_inventory_sha256": "f13fc76a967eea64ab175e4ccf6bb49815b37a9a31000910090448ae9ee02962",
+  "runtime_files": 189,
+  "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+  "tag": "accepted-worker:a105f517f667",
+  "run_id": "cj1c9",
+  "build_status": "Succeeded",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+  "source_gate": "passed_against_committed_acceptance_record",
+  "package_verification": "pending_native_exact_image_probe"
+}
