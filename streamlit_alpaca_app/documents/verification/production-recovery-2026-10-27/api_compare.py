@@ -185,7 +185,7 @@ def compare(symbol):
         if symbol == "HOME":
             bundles = json.loads((ROOT / "frozen-home-bundles.json").read_text())
             payload, bundles, review = home._review_home_public_surface(frozen_payload, bundles,
-                enrichment_rows=[], asof_time_utc=frozen_payload["generated_at_utc"], timeout_seconds=600,
+                enrichment_rows=[], asof_time_utc=frozen_payload["generated_at_utc"], timeout_seconds=900,
                 source_documents=source_documents)
             result = {"status": review.get("status"), "payload": payload, "bundles": bundles, "review": review}
         elif mode in {"primary", "final"}:

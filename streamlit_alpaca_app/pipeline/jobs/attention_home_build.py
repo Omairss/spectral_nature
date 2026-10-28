@@ -502,6 +502,23 @@ def _home_surface_quality_timeout_seconds() -> int:
     return _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS", 600)
 
 
+_STORY_TIME_BASIS_SCHEMA: dict[str, Any] = {
+    "type": "object", "additionalProperties": False,
+    "properties": {
+        "current_observation": {"type": "string", "description": "The development observed in this briefing and its observation time."},
+        "background_events": {"type": "array", "items": {
+            "type": "object", "additionalProperties": False,
+            "properties": {
+                "event": {"type": "string"},
+                "event_date": {"type": "string", "description": "Original event date from evidence; say unknown when not established."},
+                "source_ids": {"type": "array", "items": {"type": "string"}},
+            }, "required": ["event", "event_date", "source_ids"],
+        }},
+        "report_dates": {"type": "string", "description": "Relevant publication/capture dates, distinct from original event dates."},
+    }, "required": ["current_observation", "background_events", "report_dates"],
+}
+
+
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "properties": {
@@ -517,6 +534,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
         "new_events": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
+                "time_basis": _STORY_TIME_BASIS_SCHEMA,
                 "source_ids": {"type": "array", "items": {"type": "string"}},
                 "supporting_symbols": {"type": "array", "items": {"type": "string"}},
                 "priority": {"type": "number", "minimum": 0, "maximum": 100},
@@ -527,7 +545,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                 "cause_status": {"type": "string", "enum": ["supported", "partial", "unresolved"]},
             },
             "required": [
-                "source_ids", "supporting_symbols", "priority", "event_title", "surface_summary_text",
+                "time_basis", "source_ids", "supporting_symbols", "priority", "event_title", "surface_summary_text",
                 "what_happened_text", "why_happened_text", "affected_assets_summary_text",
                 "business_context_text", "watch_next_text", "cause_status",
             ],
@@ -535,6 +553,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
         "items": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
+                "time_basis": _STORY_TIME_BASIS_SCHEMA,
                 "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"]},
                 "index": {"type": "integer", "minimum": 0}, "bundle_id": {"type": "string"},
                 "symbol": {"type": "string"}, "publish": {"type": "boolean"},
@@ -549,7 +568,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
             "anyOf": [
                 {"properties": {"publish": {"const": False}}},
                 {"properties": {"publish": {"const": True}}, "required": [
-                    "priority", "event_title", "surface_summary_text", "what_happened_text", "why_happened_text",
+                    "time_basis", "priority", "event_title", "surface_summary_text", "what_happened_text", "why_happened_text",
                     "affected_assets_summary_text", "business_context_text", "watch_next_text", "cause_status",
                 ]},
             ],
@@ -2123,6 +2142,7 @@ def _apply_home_surface_quality_items(
             publish = bool(revision["publish"])
             metadata = {
                 "publish": publish, "public_surface_reviewed": True, "public_surface_review_note": "",
+                "public_surface_time_basis": revision.get("time_basis") or {},
                 "cause_status": revision.get("cause_status", "unresolved"), "surface_cause_status": revision.get("cause_status", "unresolved"),
             }
             if not publish:
@@ -2182,7 +2202,12 @@ def _review_home_public_surface(
         "from the supplied company research, full source intake and market coverage. "
         "Select and rank developments and connections by expected relevance and usefulness, "
         "including worthwhile uncertain leads. Explain what changed, why it matters economically "
-        "and what would change the interpretation. Use the artifact's public fields for the "
+        "and what would change the interpretation. For each published item, establish time_basis before writing: "
+        "separate this run's observation, the original dates of background events, and the sources' report dates. "
+        "Build the title and opening around the current development. If a title leads with an older statement or "
+        "event, include its original date in that title; a dated sentence later in the body does not repair a "
+        "headline that presents it as new. Earlier draft titles are candidates to rewrite, not accepted headlines. "
+        "Use the artifact's public fields for the "
         "briefing and its review fields for your assessment. Public text explains the business connection, "
         "competing interpretations and the useful next observation. Acquisition coverage, missing documents "
         "and editorial instructions belong in issues, review_note or limitations. Give each public title the "

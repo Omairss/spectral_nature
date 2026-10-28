@@ -87,17 +87,59 @@
   ],
   "operational_checks": {
     "passed": 156,
-    "seconds": 10.05,
+    "seconds": 10.12,
     "real_isolated_postgres": true,
     "quality_scoring": false,
-    "private_log": "contracts-20261028T082728Z.log"
+    "private_log": "contracts-20261028T090924Z.log"
   },
   "offline_comparison": {
     "authorization": "Approve this API comparison up to $15",
     "cumulative_cap_usd": 15,
     "ledger": "private api-qualification-20261028/strict-study-ledger.json",
-    "provider_exception": "This one retained-input offline batch only; no production run or new paid acquisition."
+    "provider_exception": "This one retained-input offline batch only; no production run or new paid acquisition.",
+    "committed_estimate_usd": 9.352716
   },
   "consumer_review": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json",
-  "deployment_status": "not_started"
+  "deployment_status": "not_started",
+  "complete_output_reviews": {
+    "method": "Personal reading of complete returned public prose, claims, dates and review output; no phrase grader or model score substitutes for acceptance.",
+    "source_access": "Retained production inputs and acquired captures only. Isolated PostgreSQL; no production publication, memory writes or fresh paid acquisition.",
+    "home": {
+      "engine_revision": "f1832277eca8654ea442",
+      "budget_0_seconds": 211.02,
+      "budget_10_seconds": 496.2,
+      "timeout_seconds": 600,
+      "findings": "Complete public stories reviewed. Older October25 Musk statement is dated and attributed; new briefing describes subsequent financing and rebound. The full-model reviewer also corrected an October22 Gentherm release being treated as same-day. Narrative, economic context, alternatives and next observations remain substantive.",
+      "status": "accepted_for_then_current_representation"
+    },
+    "primary_candidates": {
+      "NIB": {
+        "budget_0_seconds": 70.1,
+        "budget_10_seconds": 294.5,
+        "finding": "Correct cocoa ETN identity; separate Australian insurer story is not transplanted."
+      },
+      "PNR": {
+        "budget_0_seconds": 106.6,
+        "budget_10_seconds": 413.5,
+        "finding": "Full model distinguishes13:35UTC observed price from final session close; maintained guidance is not described as raised."
+      },
+      "KNSA": {
+        "budget_0_seconds": 181.6,
+        "budget_10_seconds": 482.3,
+        "finding": "Full-model result correctly anchors report and intraday observation; zero-budget result invented a drug-licensing relationship unsupported by supplied sources. Shared company-fact guidance updated; final replay pending."
+      },
+      "CLS": {
+        "budget_0_seconds": 122.9,
+        "budget_10_seconds": 491.5,
+        "finding": "Report datedOctober26, investor eventOctober27, intraday observation retained. Source-specific guidance and business connections preserved."
+      }
+    },
+    "latest_guardrail": "Final HOME chronology replay at both budgets,900-second full-context editor allowance. Unfunded replay completed199.17seconds; headline leadsOctober27 reaction and explicitly datesOctober25 statement. Funded replay pending.",
+    "rejected_headline_replay": {
+      "engine_revision": "b0d4f89d10b9e67b8b5e",
+      "budget_10_home_seconds": 558.7,
+      "finding": "Body dated the October25 warning correctly, but the public title still led with present-tense Musk says. Rejected for the owner-requested headline freshness fix. Accounting, primary completion and unrelated accepted source work are not reopened.",
+      "source_repair": "A factual time_basis record precedes each public story. Shared final review independently checks titles and openings. A date in the body does not excuse a misleading headline. No ticker-specific branch, regex or new model stage."
+    }
+  }
 }

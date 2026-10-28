@@ -164,7 +164,7 @@
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
       "delivery": "retain",
       "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
-      "behavior_review": "Retain current image and complete configuration, including concurrent accepted client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
+      "behavior_review": "Retain current image and complete configuration, including concurrent client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
     },
     {
       "name": "robinhood-main-sync-prod",
@@ -173,7 +173,7 @@
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e",
       "delivery": "retain",
       "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
-      "behavior_review": "Retain current image and complete configuration, including concurrent accepted client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
+      "behavior_review": "Retain current image and complete configuration, including concurrent client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
     },
     {
       "name": "sn-api-next",
@@ -182,7 +182,7 @@
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
       "delivery": "retain",
       "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
-      "behavior_review": "Retain current image and complete configuration, including concurrent accepted client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
+      "behavior_review": "Retain current image and complete configuration, including concurrent client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
     },
     {
       "name": "sn-api-next-dev",
@@ -191,7 +191,7 @@
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
       "delivery": "retain",
       "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
-      "behavior_review": "Retain current image and complete configuration, including concurrent accepted client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
+      "behavior_review": "Retain current image and complete configuration, including concurrent client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
     },
     {
       "name": "sn-next-ui",
@@ -200,7 +200,7 @@
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
       "delivery": "retain",
       "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
-      "behavior_review": "Retain current image and complete configuration, including concurrent accepted client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
+      "behavior_review": "Retain current image and complete configuration, including concurrent client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
     },
     {
       "name": "sn-next-ui-dev",
@@ -209,7 +209,7 @@
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:abf387e66cf99526a31b865fd8f2afc6c3554a81ccd550ce82602c13c97af391",
       "delivery": "retain",
       "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
-      "behavior_review": "Retain current image and complete configuration, including concurrent accepted client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
+      "behavior_review": "Retain current image and complete configuration, including concurrent client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
     },
     {
       "name": "sn-research-run",
@@ -236,7 +236,7 @@
       "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
       "delivery": "retain",
       "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
-      "behavior_review": "Retain current image and complete configuration, including concurrent accepted client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
+      "behavior_review": "Retain current image and complete configuration, including concurrent client work. API/broker database lifecycle contracts are AST-equivalent to their verified packaged Git source; web has no changed shared Python contract."
     },
     {
       "name": "system-health",

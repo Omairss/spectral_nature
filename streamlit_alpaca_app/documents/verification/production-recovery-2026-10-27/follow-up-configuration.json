@@ -7,7 +7,9 @@
       "RESEARCH_TOOL_MAX_COST_USD_JSON": "{\"serper.search\":0.001,\"serper.search_news\":0.001,\"serpapi.search\":0.025,\"serpapi.search_news\":0.025,\"serpapi.ai_overview\":0.025,\"tavily.search.basic\":0.008,\"tavily.search.advanced\":0.016}",
       "PIPELINE_JOB_MAX_DURATION_SECONDS": "6900",
       "PIPELINE_JOB_WORK_TIMEOUT_SECONDS": "6600",
-      "PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS": "180"
+      "PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS": "180",
+      "LLM_POLICY_PROFILE": "balanced",
+      "LLM_POLICY_NOT_BEFORE": "2026-10-27"
     },
     "attention-home-build": {
       "RESEARCH_RUN_BUDGET_USD": "10",
@@ -16,7 +18,9 @@
       "PIPELINE_JOB_MAX_DURATION_SECONDS": "6900",
       "AQL_CANDIDATE_RESEARCH_TIMEOUT_SECONDS": "600",
       "ATTENTION_HOME_ZOPEDIA_ENRICHMENT_TIMEOUT_SECONDS": "600",
-      "ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS": "600"
+      "ATTENTION_HOME_SURFACE_QUALITY_TIMEOUT_SECONDS": "900",
+      "LLM_POLICY_PROFILE": "balanced",
+      "LLM_POLICY_NOT_BEFORE": "2026-10-27"
     },
     "zopedia-learning": {
       "RESEARCH_RUN_BUDGET_USD": "10",
@@ -25,7 +29,9 @@
       "PIPELINE_JOB_MAX_DURATION_SECONDS": "3300",
       "ZOPEDIA_LEARNING_JOB_TIMEOUT_SECONDS": "3300",
       "ZOPEDIA_LEARNING_CASE_TIMEOUT_SECONDS": "900",
-      "ZOPEDIA_LEARNING_FINALIZATION_RESERVE_SECONDS": "60"
+      "ZOPEDIA_LEARNING_FINALIZATION_RESERVE_SECONDS": "60",
+      "LLM_POLICY_PROFILE": "balanced",
+      "LLM_POLICY_NOT_BEFORE": "2026-10-27"
     }
   },
   "policy_file": "config/inference_policy.json",
@@ -41,5 +47,6 @@
     "https://serper.dev/",
     "https://serpapi.com/pricing",
     "https://docs.tavily.com/documentation/api-credits"
-  ]
+  ],
+  "editor_allocation": "One full-context final writing/review step gets15minutes within the6900-second Home producer clock. Primary candidates and composition retain600 seconds. No additional model stage is introduced."
 }

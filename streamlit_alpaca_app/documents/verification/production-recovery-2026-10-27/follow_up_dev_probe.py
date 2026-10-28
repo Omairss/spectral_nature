@@ -48,6 +48,10 @@ assert namespace.startswith('production-followup-dev-'), 'Isolated DEV namespace
 platform_execution = os.environ['CONTAINER_APP_JOB_EXECUTION_NAME']
 retry_state_key = 'native_retry:' + platform_execution
 prior = store.read_execution_state('release_qualification', retry_state_key, strict=True)
+assert store.write_execution_state('release_qualification', 'nullable:' + platform_execution,
+    {'business_lens': float('nan'), 'nested': [float('inf'), None]})
+assert store.read_execution_state('release_qualification', 'nullable:' + platform_execution, strict=True) == {
+    'business_lens': None, 'nested': [None, None]}
 
 if not prior:
     root = 'financial-integration-' + uuid.uuid4().hex
@@ -200,3 +204,31 @@ def handler(ctx, conn):
         'elapsed_seconds':round(time.monotonic()-ctx.started_at_monotonic,2), 'status':'passed'}), flush=True)
 jobs.run_news = handler
 jobs.main()
+
+# Exercise the producer's actual deadline exit after native publication. This
+# uses the same controller with a thirty-second qualification clock, not a
+# three-hour production execution or a fabricated successful model result.
+assert prior
+os.environ.update(CONTAINER_APP_JOB_EXECUTION_NAME=platform_execution + '-deadline-contract',
+                  PIPELINE_JOB_MAX_DURATION_SECONDS='30', RESEARCH_RUN_BUDGET_USD='10')
+def deadline_handler(ctx, conn):
+    jobs._persist_dataset('qualification_deadline_report', pd.DataFrame([{'value': 2}]), ctx, conn)
+    assert ctx.published_datasets['qualification_deadline_report']
+    time.sleep(remaining_work_seconds(30) + .05)
+    check_work()
+jobs.run_news = deadline_handler
+jobs.main()
+receipt = store.read_execution_state('pipeline_execution:' + namespace,
+    'news-ingest-and-features:' + platform_execution + '-deadline-contract', strict=True)
+assert receipt['published_datasets']['qualification_deadline_report']
+with database_workload('interactive'):
+    conn = store.open_database_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute('SELECT status FROM job_runs WHERE run_id=%s', (receipt['run_id'],))
+            assert cur.fetchone()[0] == 'Warning'
+    finally:
+        conn.close()
+print(json.dumps({'probe':'deadline_completed_subset', 'clock_seconds':30,
+    'published_versions':receipt['published_datasets'], 'application_status':'Warning',
+    'controller_returned':True}), flush=True)

@@ -2080,6 +2080,10 @@ def _judge_user_prompt(
         "Correct false descriptions of tool activity without discarding the investigation. "
         "Use established business context and reasonable inference to explain indirect relationships. Missing exact source "
         "matches or price data do not exclude useful leads. Keep observations dated and do not invent current facts. "
+        "Review temporal framing in titles and opening summaries independently of dates in the body. A correctly "
+        "dated body does not make a headline that presents an old statement as new acceptable. Lead with the actual "
+        "current observation or continuation; if a title leads with an older event or statement, include its original "
+        "date there. Reconcile any time_basis fields with the sources and apply the correction to the public prose. "
         + (
             "Return the corrected artifact in answer_payload. Keep its field schema and use plain public prose."
             if structured_response
