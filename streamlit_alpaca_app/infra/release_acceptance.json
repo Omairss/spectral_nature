@@ -1290,12 +1290,12 @@
       "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
       "preservation_review": {
         "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
-        "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
-        "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
-        "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION.json"
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+        "source_revision": "b58c76568874fcddc84ea4b764ebcaf3ba4a5c1b",
+        "package_evidence": "documents/verification/broad-economy-summary-2026-10-27/production-packaged-images.json",
+        "evidence": "documents/verification/broad-economy-summary-2026-10-27/PRODUCTION.json"
       },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
       "role": "web"
     },
     {
@@ -1306,12 +1306,12 @@
       "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
       "preservation_review": {
         "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
-        "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
-        "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
-        "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION.json"
+        "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+        "source_revision": "b58c76568874fcddc84ea4b764ebcaf3ba4a5c1b",
+        "package_evidence": "documents/verification/broad-economy-summary-2026-10-27/production-packaged-images.json",
+        "evidence": "documents/verification/broad-economy-summary-2026-10-27/PRODUCTION.json"
       },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
       "role": "web"
     }
   ],

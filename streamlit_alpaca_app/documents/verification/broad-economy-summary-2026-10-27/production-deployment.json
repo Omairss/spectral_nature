@@ -1,0 +1,29 @@
+{
+  "environment": "production",
+  "source_inventory_sha256": "f29b8d5a12752a21235df0a4f163521db1bedeba484556c93cee653a9f313496",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229"
+  },
+  "targets": [
+    {
+      "name": "sn-streamlit-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-next-ui",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-10-28T06:11:13.513100+00:00",
+  "job_executions_started": 0
+}

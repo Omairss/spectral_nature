@@ -1,0 +1,24 @@
+{
+  "status": "accepted",
+  "production_baseline": "85a6caae3924778419efa9c87fee9db84a45ea4b",
+  "development_repair": "5d4872283cb9526faa88e5f59dd21f3d5a7d1bb3",
+  "changed_files": [
+    "streamlit_alpaca_app/web/app/api/datasets/[name]/route.ts",
+    "streamlit_alpaca_app/web/app/broad-economy/page.tsx",
+    "streamlit_alpaca_app/web/app/globals.css",
+    "streamlit_alpaca_app/web/components/page-research-summary.tsx"
+  ],
+  "python_runtime_changes": [],
+  "preserved_production_inputs": {
+    "web/lib/server/home.ts": "b01f860b48081fededeb54a227c07a31716b05ebf3070be78f1c2ac97751cf63",
+    "web/app/trading-agent/page.tsx": "77ddb8ecc96fc044f42c61540e7dff9eb4ca13ee6be44051f3c31349286d1b5a",
+    "web/app/zopedia/runs/[runId]/research-run-view.tsx": "a192dfa54d0ff726db3b2a2355d5f445e0f3ff627195676e42d72422050c5827",
+    "web/components/visualizations/plotly-renderer.tsx": "844a2794fe32107a0fd71d4a687de4362d9d8fbd58027cb25d3413cde467278b",
+    "web/components/visualizations/visualization.tsx": "8e1b1fdab2e6cb33fb6a91647ecc599132a6ed037bf79918490338e32116f916",
+    "web/components/admin/operational-health.tsx": "5aac991f4bc273cbeb8144718f197e85cad887b93ba5c4add46053b1ca57de25",
+    "web/lib/server/auth.ts": "7a87f662a5d51f146327a055478aa98e3f1b6d35e2ca49051d8c3b8cd1ea5066",
+    "web/lib/server/backend.ts": "b97c9d02b433e2cf59b33e97f60f2b8d596536fad7f1c9c796c7511498f56f69"
+  },
+  "summary_page_component_gateway_match_accepted_dev": true,
+  "scope": "Four repair files only; stylesheet insertion scoped to summary classes."
+}
