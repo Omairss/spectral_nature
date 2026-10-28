@@ -119,6 +119,7 @@ class JobContext:
     degraded_components: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
     continuations: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
     published_datasets: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
+    publication_ids: dict[str, str] = field(default_factory=dict, repr=False, compare=False)
     started_at_monotonic: float = field(default_factory=time.monotonic, repr=False, compare=False)
 
 
@@ -135,7 +136,8 @@ def _to_json(payload: dict) -> str:
 
 
 def _dataset_version_id(dataset_name: str, ctx: JobContext) -> str:
-    base_id = f"{dataset_name}__{ctx.asof.strftime('%Y%m%dT%H%M%SZ')}__{ctx.run_id[:8]}"
+    publication = ctx.publication_ids.setdefault(dataset_name, uuid.uuid4().hex)
+    base_id = f"{dataset_name}__{ctx.asof.strftime('%Y%m%dT%H%M%SZ')}__{ctx.run_id[:8]}__{publication}"
     return dataset_version_id_for_namespace(base_id)
 
 
@@ -626,7 +628,7 @@ def _upload_frame(dataset_name: str, frame: pd.DataFrame, ctx: JobContext) -> st
     dt_slug = ctx.asof.strftime("%Y-%m-%d")
     path = dataset_blob_path(
         f"datasets/{dataset_name}/dt={dt_slug}/asof={asof_slug}/"
-        f"universe={ctx.universe_version}/part-{ctx.run_id[:8]}.parquet"
+        f"universe={ctx.universe_version}/part-{_dataset_version_id(dataset_name, ctx)}.parquet"
     )
     buffer = BytesIO()
     parquet_frame = _prepare_frame_for_parquet(frame)
@@ -659,7 +661,7 @@ def _upload_symbol_partitions(dataset_name: str, frame: pd.DataFrame, ctx: JobCo
         path = dataset_blob_path(
             f"datasets/{dataset_name}/dt={dt_slug}/asof={asof_slug}/"
             f"universe={ctx.universe_version}/partition={SYMBOL_HASH_PARTITION_STRATEGY}/"
-            f"bucket={bucket}/part-{ctx.run_id[:8]}.parquet"
+            f"bucket={bucket}/part-{_dataset_version_id(dataset_name, ctx)}.parquet"
         )
         buffer = BytesIO()
         _prepare_frame_for_parquet(clean_frame).to_parquet(buffer, index=False)
@@ -704,11 +706,15 @@ def _upload_manifest(
     if partitioning:
         manifest["partitioning"] = partitioning
     from services.pipeline_store import publish_dataset_manifest
-    publish_dataset_manifest(manifest)
-    return manifest
+    from services.llm_execution import execution_publication_fence
+    manifest["execution_fence"] = execution_publication_fence()
+    return manifest if publish_dataset_manifest(manifest) else None
 
 
 def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, conn: Any | None) -> None:
+    # Every publication owns immutable data and a version receipt, including
+    # repeated incremental writes and replica retries of the same logical run.
+    ctx.publication_ids[dataset_name] = uuid.uuid4().hex
     prepared_frame = frame.copy(deep=False) if isinstance(frame, pd.DataFrame) else pd.DataFrame()
     if dataset_name == "attention_source_documents" and not prepared_frame.empty:
         try:
@@ -755,6 +761,18 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
     )
     if manifest:
         ctx.published_datasets[dataset_name] = manifest["dataset_version_id"]
+        execution = os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME")
+        if execution and os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE"):
+            from services.pipeline_store import mutate_execution_state
+            def retain_publication(state):
+                if state.get("run_id") != ctx.run_id:
+                    raise ValueError("Publication belongs to a different logical execution")
+                state.setdefault("published_datasets", {})[dataset_name] = manifest["dataset_version_id"]
+                return state
+            try:
+                mutate_execution_state("pipeline_execution:" + dataset_namespace(), ctx.name + ":" + execution, retain_publication)
+            except Exception as exc:
+                ctx.degraded_components["publication_checkpoint:" + dataset_name] = type(exc).__name__
     if dataset_name == "news_articles" and not prepared_frame.empty and conn is not None:
         from services.saa.semantic_index import retain_news_evidence
         try:
@@ -2358,9 +2376,8 @@ def _iter_news_business_research_output_phases(
     except Exception:
         fundamentals = pd.DataFrame()
     zopedia_pages = _zopedia_pages_for_news_resolution(conn)
-    # Declare the complete current batch before any worker can buy optional
-    # research. Core writing/review uses the configured full model; discovery
-    # receives only the money left after these obligations.
+    # Fund current interpretations before optional company refreshes. Each
+    # refresh separately reserves full-model completion at its own admission.
     from services.llm_execution import protect_core_research
     from services.aql import business_model_stack as company_research
     from services.aql import news_business_resolution as news_research
@@ -2380,7 +2397,8 @@ def _iter_news_business_research_output_phases(
             "company": core_work.get("company:" + symbol),
         }
     if llm_client is not None:
-        protect_core_research(config=llm_client.config, work=core_work)
+        protect_core_research(config=llm_client.config,
+            work={identity: evidence for identity, evidence in core_work.items() if identity.startswith("news:")})
     write_policy = _normalize_zopedia_write_policy(os.getenv("ZOPEDIA_NEWS_BUSINESS_WRITE_POLICY", "safe_auto"))
     execute_business_research = _parse_bool_env("ZOPEDIA_TICKER_BUSINESS_RESEARCH_ENABLED", True)
     _configure_news_business_research_budget_env()
@@ -2392,21 +2410,50 @@ def _iter_news_business_research_output_phases(
         except Exception as exc:
             print(f"[warn] ticker business research clients unavailable: {type(exc).__name__}: {exc}")
             execute_business_research = False
-    deferred: list[str] = []
+    deferred: set[str] = set()
     progress = _make_stdout_zopedia_progress_callback(scope="ticker_business_model_stack")
     def company_progress(event):
         progress(event)
         if event.get("stage") == "business_research_incomplete":
-            deferred.append(str(event.get("symbol") or ""))
+            deferred.add(str(event.get("symbol") or ""))
         elif event.get("stage") == "business_research_failed":
-            deferred.append(str(event.get("symbol") or ""))
+            deferred.add(str(event.get("symbol") or ""))
             ctx.degraded_components["company_research:" + str(event.get("symbol") or "unknown")] = str(event.get("error_type") or "Failed")
     # One producer clock, including interpretation and publication. Admission
     # stops early enough to finish useful work before the two-hour bound.
     work_deadline = ctx.started_at_monotonic + _parse_int_env("PIPELINE_JOB_WORK_TIMEOUT_SECONDS", 7200, minimum=60)
+    stack_frame = _load_latest_materialized_frame("zopedia_ticker_business_model_stacks")
+    _job_progress(ctx, conn, stage="news_story_resolution",
+                  message="Interpreting current news using fresh observations and dated company background.", progress_pct=80.0)
+    deferred_interpretations: set[str] = set()
+    resolution_frames = build_news_business_resolution_frames(
+        news_frame=news,
+        company_baselines_frame=company_baselines,
+        fundamentals_frame=fundamentals,
+        zopedia_pages_frame=zopedia_pages,
+        business_model_stack_frame=stack_frame,
+        edgar_evidence_frame=edgar_evidence,
+        symbols=symbols,
+        llm_client=llm_client,
+        run_id=ctx.run_id,
+        asof_time_utc=ctx.asof,
+        write_policy=write_policy,
+        limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_LIMIT", 12, minimum=1),
+        research_deadline_monotonic=work_deadline - _parse_int_env("PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS", 180, minimum=60),
+        progress_callback=lambda event: deferred_interpretations.add(str(event.get("symbol") or "")),
+    )
+    if deferred_interpretations:
+        ctx.degraded_components["news_interpretation"] = f"{len(deferred_interpretations)} current interpretations did not finish."
+    current_resolutions = resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame())
+    # This dataset represents this run's news. Historical snapshots and dated
+    # company memory retain useful background; never merge yesterday's failed
+    # refresh into the current news collection.
+    yield {"zopedia_news_business_resolutions": current_resolutions}
+    _job_progress(ctx, conn, stage="company_research",
+                  message="Current news persisted; refreshing company research.", progress_pct=88.0)
     research_deadline = min(
         time.monotonic() + _parse_int_env("ZOPEDIA_TICKER_BUSINESS_BATCH_BUDGET_SECONDS", 5400, minimum=60),
-        work_deadline - _parse_int_env("PIPELINE_JOB_FINALIZATION_RESERVE_SECONDS", 2700, minimum=60),
+        work_deadline - _parse_int_env("PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS", 180, minimum=60),
     )
     business_stack_frames = build_ticker_business_model_stack_frames(
         symbols=symbols,
@@ -2415,7 +2462,7 @@ def _iter_news_business_research_output_phases(
         zopedia_pages_frame=zopedia_pages,
         edgar_evidence_frame=edgar_evidence,
         news_frame=news,
-        existing_stacks_frame=_load_latest_materialized_frame("zopedia_ticker_business_model_stacks"),
+        existing_stacks_frame=stack_frame,
         serp_client=serp_client,
         tavily_client=tavily_client,
         execute_research=execute_business_research,
@@ -2438,31 +2485,6 @@ def _iter_news_business_research_output_phases(
         "zopedia_business_model_search_results": business_stack_frames.get("zopedia_business_model_search_results", pd.DataFrame()),
         "zopedia_ticker_business_model_stacks": stack_frame,
     }
-    _job_progress(ctx, conn, stage="news_story_resolution",
-                  message="Company research persisted; resolving news against company memory.", progress_pct=88.0)
-    deferred_interpretations: list[str] = []
-    resolution_frames = build_news_business_resolution_frames(
-        news_frame=news,
-        company_baselines_frame=company_baselines,
-        fundamentals_frame=fundamentals,
-        zopedia_pages_frame=zopedia_pages,
-        business_model_stack_frame=stack_frame,
-        edgar_evidence_frame=edgar_evidence,
-        symbols=symbols,
-        llm_client=llm_client,
-        run_id=ctx.run_id,
-        asof_time_utc=ctx.asof,
-        write_policy=write_policy,
-        limit=_parse_int_env("ZOPEDIA_NEWS_BUSINESS_LIMIT", 12, minimum=1),
-        research_deadline_monotonic=work_deadline - _parse_int_env("PIPELINE_JOB_PUBLICATION_RESERVE_SECONDS", 180, minimum=60),
-        progress_callback=lambda event: deferred_interpretations.append(str(event.get("symbol") or "")),
-    )
-    if deferred_interpretations:
-        ctx.degraded_components["news_interpretation"] = f"{len(deferred_interpretations)} current interpretations did not finish."
-    current_resolutions = resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame())
-    # This dataset represents this run's news. Historical snapshots and dated
-    # company memory retain useful background; never merge yesterday's failed
-    # refresh into the current news collection.
     memory_parts = [
         business_stack_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
         resolution_frames.get("zopedia_company_business_memory_pages", pd.DataFrame()),
@@ -2504,7 +2526,6 @@ def _iter_news_business_research_output_phases(
         rejected_pages=rejected_pages,
     )
     yield {
-        "zopedia_news_business_resolutions": resolution_frames.get("zopedia_news_business_resolutions", pd.DataFrame()),
         "zopedia_company_business_memory_pages": memory_pages,
         "zopedia_memory_commit_report": commit_report,
     }
@@ -3423,20 +3444,27 @@ def main() -> None:
         namespace = "pipeline_execution:" + dataset_namespace()
         state_key = ctx.name + ":" + execution
         proposed = {"run_id": ctx.run_id, "asof": ctx.asof.isoformat(), "universe_version": ctx.universe_version,
-                    "budget_usd": os.getenv("RESEARCH_RUN_BUDGET_USD", "")}
+                    "budget_usd": os.getenv("RESEARCH_RUN_BUDGET_USD", ""),
+                    "maximum_duration_seconds": os.getenv("PIPELINE_JOB_MAX_DURATION_SECONDS") or
+                        ("7200" if ctx.name == "news-ingest-and-features" else "3300" if ctx.name == "zopedia-learning" else ""),
+                    "work_timeout_seconds": os.getenv("PIPELINE_JOB_WORK_TIMEOUT_SECONDS", "6900")}
         if not write_execution_state(namespace, state_key, proposed, immutable=True):
             raise RuntimeError("Pipeline execution identity could not be retained.")
         retained = read_execution_state(namespace, state_key, strict=True)
         if retained is None:
             raise RuntimeError("Pipeline execution identity could not be read back.")
         resumed_execution = retained["run_id"] != ctx.run_id
-        # Inference-profile fallback may change model choices, never the
-        # execution's approved money allowance. Configuration applies to the
-        # next logical run, not a fresh allowance for this replica.
+        # Configuration changes apply to a new logical run. Replica recovery
+        # retains the allowance, deadlines and already published current data.
         if "budget_usd" in retained:
             os.environ["RESEARCH_RUN_BUDGET_USD"] = retained["budget_usd"]
+        for field, env_key in (("maximum_duration_seconds", "PIPELINE_JOB_MAX_DURATION_SECONDS"),
+                               ("work_timeout_seconds", "PIPELINE_JOB_WORK_TIMEOUT_SECONDS")):
+            if field in retained:
+                os.environ[env_key] = retained[field]
         ctx = replace(ctx, run_id=retained["run_id"], asof=datetime.fromisoformat(retained["asof"]),
                       universe_version=retained["universe_version"],
+                      published_datasets=dict(retained.get("published_datasets") or {}),
                       # Replica recovery shares the original producer clock;
                       # retrying must not create another full work allowance.
                       started_at_monotonic=time.monotonic() - max(
@@ -3494,6 +3522,7 @@ def main() -> None:
     status = "Succeeded"
     error_summary: str | None = None
     work_conn = None
+    producer_deadline = None
     if db_conn is None:
         ctx.degraded_components["database_tracking"] = "Database unavailable"
     try:
@@ -3516,7 +3545,8 @@ def main() -> None:
                 bounded = ctx.name in {"news-ingest-and-features", "zopedia-learning"} or bool(os.getenv("PIPELINE_JOB_MAX_DURATION_SECONDS"))
                 default_duration = _parse_int_env("ZOPEDIA_LEARNING_JOB_TIMEOUT_SECONDS", 3300, minimum=60) if ctx.name == "zopedia-learning" else 7200
                 duration = _parse_int_env("PIPELINE_JOB_MAX_DURATION_SECONDS", default_duration, minimum=1)
-                run_scope = WorkScope(ctx.started_at_monotonic + duration).activate() if bounded else nullcontext()
+                producer_deadline = ctx.started_at_monotonic + duration if bounded else None
+                run_scope = WorkScope(producer_deadline).activate() if bounded else nullcontext()
                 with run_scope:
                     result = handler(ctx, work_conn)
             else:
@@ -3531,9 +3561,15 @@ def main() -> None:
             status = "Warning"
             error_summary = json.dumps(ctx.degraded_components, sort_keys=True)[:4000]
     except Exception as exc:
-        status = "Failed"
-        error_summary = f"{type(exc).__name__}: {exc}"[:4000]
-        raise
+        from services.work_scope import WorkCancelled
+        if isinstance(exc, WorkCancelled) and producer_deadline is not None and time.monotonic() >= producer_deadline and ctx.published_datasets:
+            status = "Warning"
+            error_summary = "Producer deadline reached; current completed datasets remain published."
+            ctx.degraded_components["deadline"] = error_summary
+        else:
+            status = "Failed"
+            error_summary = f"{type(exc).__name__}: {exc}"[:4000]
+            raise
     finally:
         if work_conn is not None:
             work_conn.close()

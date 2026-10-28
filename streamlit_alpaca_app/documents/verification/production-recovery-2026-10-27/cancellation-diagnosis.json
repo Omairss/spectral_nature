@@ -119,5 +119,16 @@
     "services/database.py:191"
   ],
   "required_source_repair": "Use bounded reserved capacity for ownership metadata, separate renewal failure from actual lease loss, retry transient renewal failure only while the existing lease remains valid, fence writes on real ownership loss, and retain the original cancellation cause. Keep ordinary research in background admission.",
-  "release_status": "Diagnostic confirmation only. No runtime source changed, no new application image, no deployment, no model inference. Temporary local PostgreSQL instances stopped and verified; evidence archived through2026-11-26."
+  "release_status": "Diagnostic confirmation only. No runtime source changed, no new application image, no deployment, no model inference. Temporary local PostgreSQL instances stopped and verified; evidence archived through2026-11-26.",
+  "follow_up_source_repair": {
+    "status": "implemented_local_verified",
+    "ownership": "Reserved interactive renewal; bounded retries inside last confirmed validity; explicit failure cause; SQL monotonic publication fence.",
+    "learning_platform_confirmation": {
+      "execution": "zopedia-learning-29885480",
+      "time_utc": "2026-10-27T20:20:33.1574414Z",
+      "reason": "DeadlineExceeded",
+      "message": "Job 'zopedia-learning' was active longer than specified deadline"
+    },
+    "acceptance_record": "documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json"
+  }
 }

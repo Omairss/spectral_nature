@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 from contextvars import copy_context
 import hashlib
 import json
+import logging
 import math
 import os
 import re
@@ -1331,18 +1332,42 @@ def build_news_business_resolution_results(
             if progress_callback:
                 progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol})
             return None
+        except Exception as exc:
+            logging.getLogger(__name__).exception("Current news interpretation failed: %s", symbol)
+            if progress_callback:
+                progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol,
+                                   "error_type": type(exc).__name__})
+            return None
         finally:
             work.cancel()  # Inherited contexts cannot keep buying work after return.
         print(f"[info] news business resolution completed index={index} symbol={symbol} status={result.status}", flush=True)
         return result
 
-    if workers == 1:
-        return [result for index, (row, symbol) in enumerate(selected)
-                if (result := resolve(index, row, symbol)) is not None]
-    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="news-resolution") as pool:
-        futures = [pool.submit(copy_context().run, resolve, index, row, symbol)
-                   for index, (row, symbol) in enumerate(selected)]
-        return [result for future in futures if (result := future.result()) is not None]
+    from ..work_scope import WorkScope
+    batch = WorkScope(research_deadline_monotonic if research_deadline_monotonic is not None else float("inf"))
+    pool = ThreadPoolExecutor(max_workers=workers, thread_name_prefix="news-resolution")
+    futures = []
+    try:
+        if time.monotonic() >= batch.deadline:
+            if progress_callback:
+                for _, symbol in selected:
+                    progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol})
+            return []
+        with batch.activate():
+            futures = [pool.submit(copy_context().run, resolve, index, row, symbol)
+                       for index, (row, symbol) in enumerate(selected)]
+        timeout = max(0, batch.deadline - time.monotonic()) if research_deadline_monotonic is not None else None
+        done, pending = wait(futures, timeout=timeout)
+        for future, (_, symbol) in zip(futures, selected):
+            if future in pending and progress_callback:
+                progress_callback({"stage": "news_interpretation_incomplete", "symbol": symbol})
+        return [result for future in futures if future in done and not future.cancelled()
+                and (result := future.result()) is not None]
+    finally:
+        batch.cancel()
+        for future in futures:
+            future.cancel()
+        pool.shutdown(wait=False, cancel_futures=True)
 
 
 def serialize_news_business_resolution_results(results: list[NewsBusinessResolutionResult]) -> pd.DataFrame:

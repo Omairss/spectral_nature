@@ -3,7 +3,7 @@
     "Activate the cost policy today, October 27, rather than October 28.",
     "Identify today's failed/degraded jobs and include the fixes in this release.",
     "Trace quality regressions, including the Musk/neocloud warning presented without its original event date.",
-    "Return completed work within a two-hour news-job budget; unfinished work continues later.",
+    "Return completed current work within two hours; unfinished news never rolls into the next run as current.",
     "Keep the related issues together and prefer a simple common execution/data contract.",
     "Increase company worker concurrency; qualify eight company workers instead of four."
   ],
@@ -106,5 +106,6 @@
     "Observe the next complete scheduled news/Home/learning executions, their completed/deferred coverage and actual provider cost.",
     "Measure progress toward90% account-wide reduction; the release does not establish that target.",
     "The learning input is durable; assess a separate whole-job admission clock if cold critique volume approaches its one-hour cap."
-  ]
+  ],
+  "current_follow_up": "documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json"
 }

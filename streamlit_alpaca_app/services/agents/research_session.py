@@ -102,7 +102,7 @@ class ResearchBudget:
     ) -> "ResearchBudget":
         started = time.monotonic()
         from services.work_scope import remaining_work_seconds
-        if timeout_seconds is not None:
+        if timeout_seconds is not None and float(timeout_seconds) > 0:
             timeout_seconds = remaining_work_seconds(max(float(timeout_seconds), 0.001))
         if timeout_seconds is None:
             return cls(started, None, None, None)

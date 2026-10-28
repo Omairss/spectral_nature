@@ -6,7 +6,7 @@ preserves causal ownership, and stops rejected requests against an empty account
 from __future__ import annotations
 
 from contextlib import contextmanager
-from contextvars import ContextVar
+from contextvars import Context, ContextVar
 from datetime import datetime, timezone
 from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR
 import hashlib
@@ -30,6 +30,11 @@ _CALL: ContextVar[dict[str, Any]] = ContextVar("llm_execution_call", default={})
 _ACCOUNTS: dict[str, tuple[float, bool]] = {}
 _ACCOUNT_LOCK = threading.RLock()
 _OWNERSHIP: ContextVar[tuple] = ContextVar("execution_ownership", default=())
+_PUBLICATION_FENCE: ContextVar[int] = ContextVar("execution_publication_fence", default=0)
+
+
+def execution_publication_fence() -> int:
+    return _PUBLICATION_FENCE.get()
 
 
 def check_execution_ownership() -> None:
@@ -37,6 +42,22 @@ def check_execution_ownership() -> None:
         raise RuntimeError("Paid-result retention cannot start inference, acquisition or application publication.")
     for check in _OWNERSHIP.get():
         check()
+
+
+def retain_paid_result(function):
+    """Complete only paid-result retention in its own bounded execution context.
+
+    Financial finalization outlives a cancelled child. It retains the explicit
+    original identity, cannot acquire inference or publish product artifacts,
+    and uses reserved database capacity for at most fifteen seconds.
+    """
+    from .database import database_workload
+    from .work_scope import WorkScope
+    context = {**_CALL.get(), "retaining_paid_receipt": True}
+    def retain():
+        with model_call_context(**context), database_workload("interactive"), WorkScope(time.monotonic() + 15).activate():
+            return function()
+    return Context().run(retain)
 
 
 @contextmanager
@@ -116,6 +137,7 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
     thread = threading.Thread(target=copy_context().run, args=(heartbeat,), daemon=True,
                               name="execution-ownership")
     token = _OWNERSHIP.set((*_OWNERSHIP.get(), check_owner))
+    fence_token = _PUBLICATION_FENCE.set(int(claimed) if namespace.startswith("pipeline_job:") else _PUBLICATION_FENCE.get())
     thread.start()
     try:
         with work.activate():
@@ -123,6 +145,7 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
             check_owner()
     finally:
         _OWNERSHIP.reset(token)
+        _PUBLICATION_FENCE.reset(fence_token)
         lost.set()
         work.cancel()
         stop.set()
@@ -176,12 +199,16 @@ def _run_budget_key() -> tuple[str, str] | None:
 
 
 def _run_budget_state(state: dict[str, Any]) -> dict[str, Any]:
-    cap = _microusd(os.environ["RESEARCH_RUN_BUDGET_USD"], maximum=False)
     # Configuration selects the initial allowance for a new run. Existing
     # spending and explicit audited amendments outlive configuration changes.
     if state:
         return state
-    return state or {"cap_microusd": cap, "attempts": {}, "currency": "USD"}
+    cap = _microusd(os.environ["RESEARCH_RUN_BUDGET_USD"], maximum=False)
+    fraction = Decimal(os.getenv("RESEARCH_RUN_SOFT_OVERRUN_FRACTION", "0.1"))
+    if not fraction.is_finite() or fraction < 0:
+        raise ValueError("Completion overrun fraction must be finite and nonnegative")
+    return {"cap_microusd": cap, "attempts": {}, "currency": "USD",
+            "soft_overrun_fraction": str(fraction)}
 
 
 def _run_remaining(state: dict[str, Any]) -> int:
@@ -191,7 +218,8 @@ def _run_remaining(state: dict[str, Any]) -> int:
             value["remaining_microusd"] for value in state.get("core_obligations", {}).values())
 
 
-def protect_core_research(*, config: Any, work: dict[str, Any], stages: int = 2) -> None:
+def protect_core_research(*, config: Any, work: dict[str, Any], stages: int | dict[str, int] = 2,
+                          required: bool = True) -> bool:
     """Fund declared writing/review work before discretionary acquisition.
 
     Producers declare their full batch together. The shared agent also calls
@@ -200,25 +228,40 @@ def protect_core_research(*, config: Any, work: dict[str, Any], stages: int = 2)
     accounted at admission. This is a soft target, not permission to downgrade
     protected core work after optional spending.
     """
+    if _CALL.get().get("optional_core_unfunded"):
+        return False
     key = _run_budget_key()
     if key is None:
-        return
+        return True
     from . import pipeline_store
     from .database import database_workload
     quoted = {identity: _microusd(_request_maximum_charge(config, {
         "model": config.model, "messages": [{"role": "user", "content": json.dumps(evidence, default=str)}],
-    }) * stages) for identity, evidence in work.items()}
+    }) * (stages[identity] if isinstance(stages, dict) else stages)) for identity, evidence in work.items()}
+    admitted = True
     def protect(state):
+        nonlocal admitted
         state = _run_budget_state(state)
         if state["cap_microusd"] == 0:
+            admitted = False
             return state
         obligations = state.setdefault("core_obligations", {})
-        for identity, quote in quoted.items():
-            obligations.setdefault(identity, {"remaining_microusd": quote, "quoted_microusd": quote,
-                "provider": config.provider, "model": config.model, "status": "protected"})
+        new_work = {identity: quote for identity, quote in quoted.items()
+                    if identity not in obligations or obligations[identity]["status"] == "completed"}
+        new_quote = sum(new_work.values())
+        fraction = Decimal(state.get("soft_overrun_fraction", "0.1"))
+        if not fraction.is_finite() or fraction < 0:
+            raise ValueError("Completion overrun fraction must be finite and nonnegative")
+        if not required and new_quote > _run_remaining(state) + int(state["cap_microusd"] * fraction):
+            admitted = False
+            return state
+        for identity, quote in new_work.items():
+            obligations[identity] = {"remaining_microusd": quote, "quoted_microusd": quote,
+                "provider": config.provider, "model": config.model, "status": "protected"}
         return state
     with database_workload("interactive"):
         pipeline_store.mutate_execution_state(*key, protect)
+    return admitted
 
 
 def complete_core_research(work_id: str) -> None:
@@ -238,6 +281,8 @@ def complete_core_research(work_id: str) -> None:
 
 
 def funded_core_research() -> bool:
+    if _CALL.get().get("optional_core_unfunded"):
+        return False
     key = _run_budget_key()
     if key is None:
         return False
@@ -254,7 +299,7 @@ def best_effort_required() -> bool:
     Ordinary transport calls without a research owner keep their configured
     routing. The provider's actual credit remains a separate hard constraint.
     """
-    if _CALL.get().get("completion_only"):
+    if _CALL.get().get("completion_only") or _CALL.get().get("optional_core_unfunded"):
         return True
     root = _CALL.get().get("root_run_id") or os.getenv("PIPELINE_RUN_ID")
     if not root:
@@ -264,7 +309,7 @@ def best_effort_required() -> bool:
         # A producer with no selected allowance owes a current economical
         # report. Unbudgeted interactive/offline research retains its explicit
         # model configuration and separate owner spending policy.
-        return bool(os.getenv("PIPELINE_RUN_ID"))
+        return os.getenv("PIPELINE_JOB_NAME") in {"news-ingest-and-features", "attention-home-build", "zopedia-learning"}
     from . import pipeline_store
     from .database import database_workload
     with database_workload("interactive"):
@@ -491,7 +536,7 @@ def metered_tool_request(request, *args, cost_key: str, **kwargs):
         # response may still consume provider units and remains reserved.
         actual = 0 if not sent else maximum if response is not None and 200 <= response.status_code < 300 else None
         try:
-            settle_research_cost(attempt_id=attempt_id, actual_usd=actual)
+            retain_paid_result(lambda: settle_research_cost(attempt_id=attempt_id, actual_usd=actual))
         except Exception:
             log.warning("Acquisition settlement unavailable; maximum remains reserved: %s", attempt_id)
 
@@ -804,8 +849,6 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     check_execution_ownership()
     timeout = float(kwargs.get("timeout") or config.timeout_seconds)
     deadline = time.monotonic() + timeout
-    ensure_provider_available(config, timeout=timeout)
-    kwargs["timeout"] = _remaining_request_timeout(deadline)
     context = dict(_CALL.get())
     payload = dict(kwargs.get("json") or {})
     if config.provider == "deepseek" and (operation == "json_repair" or context.get("literal_output")):
@@ -813,6 +856,29 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         # mechanical conversion must not silently shorten an existing artifact.
         payload.setdefault("max_tokens", int(os.getenv("DEEPSEEK_LITERAL_MAX_OUTPUT_TOKENS") or "65536"))
         kwargs["json"] = payload
+    root = context.get("root_run_id") or os.getenv("PIPELINE_RUN_ID")
+    response_identity = None
+    if root and operation in {"chat", "json_repair"}:
+        from .pipeline_store import read_execution_state
+        digest = hashlib.sha256(json.dumps({"root": root, "account": _account_key(config),
+            "operation": operation, "payload": payload}, sort_keys=True, default=str).encode()).hexdigest()
+        response_identity = ("provider_response:" + llm_settings_scope(), digest)
+        try:
+            pointer = read_execution_state(response_identity[0] + ":inputs", response_identity[1])
+            retained = read_execution_state(response_identity[0], pointer["artifact_id"]) if pointer else None
+        except Exception:
+            retained = None
+            log.warning("Paid response checkpoint read unavailable")
+        if retained and retained.get("replayable_after_cancellation"):
+            # Exact request, model, account and original logical run only.
+            # Adoption does not buy inference or record a second billed attempt.
+            adopted = requests.Response()
+            adopted.status_code = 200
+            adopted._content = json.dumps(retained["data"], ensure_ascii=False).encode()
+            adopted.headers["x-spectral-retained-attempt"] = retained["attempt_id"]
+            return adopted
+    ensure_provider_available(config, timeout=timeout)
+    kwargs["timeout"] = _remaining_request_timeout(deadline)
     composition = request_composition(payload)
     context_budget = request_context_budget(config, payload)
     if context_budget:
@@ -910,20 +976,31 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                     usage=data.get("usage"), started_at=started),
             },
         }
-        from .work_scope import paid_receipt_retention
+        from .work_scope import work_expired
+        late_response = work_expired() or time.monotonic() >= deadline
+        def retain():
+            if response_identity and response is not None and response.status_code == 200 and data.get("choices"):
+                from .pipeline_store import retain_provider_response
+                try:
+                    event["metadata"]["retained_response"] = retain_provider_response(
+                        *response_identity, value={"attempt_id": attempt_id, "data": data,
+                            "root_run_id": root, "replayable_after_cancellation": late_response,
+                            "created_at_utc": datetime.now(timezone.utc).isoformat()})
+                except Exception:
+                    log.warning("Complete provider response retention unavailable: %s", attempt_id)
+            if budget_reserved:
+                try:
+                    settle_provider_budget(config, attempt_id=attempt_id,
+                        charge=event["metadata"]["estimated_charge"],
+                        definitely_unbilled=not transport_attempted or (response is not None and response.status_code == 402),
+                        reservation=reservation_identity)
+                    event["metadata"]["reservation_settled"] = True
+                except Exception:
+                    log.warning("Provider budget settlement unavailable; reservation retained: %s", attempt_id)
+            if not record_provider_attempt(event):
+                raise RuntimeError("The provider receipt could not be retained")
         try:
-            with model_call_context(retaining_paid_receipt=True), paid_receipt_retention():
-                if budget_reserved:
-                    try:
-                        settle_provider_budget(config, attempt_id=attempt_id,
-                            charge=event["metadata"]["estimated_charge"],
-                            definitely_unbilled=not transport_attempted or (response is not None and response.status_code == 402),
-                            reservation=reservation_identity)
-                        event["metadata"]["reservation_settled"] = True
-                    except Exception:
-                        log.warning("Provider budget settlement unavailable; reservation retained: %s", attempt_id)
-                if not record_provider_attempt(event):
-                    raise RuntimeError("The provider receipt could not be retained")
+            retain_paid_result(retain)
         except Exception:
             # No request text or credentials are included. A bounded receipt
             # write may outlive child cancellation; paid work cannot restart.
@@ -936,9 +1013,13 @@ def research_artifact_key(*, access_scope: str, subject: str, query: str,
     from .llm import get_active_narrative_style_rule, llm_settings_scope
     namespace = f"research_artifact:{llm_settings_scope()}:{access_scope}"
     from .aql_zopedia_engine import research_engine_revision
-    from .inference_policy import policy_identity
+    from .inference_policy import policy
+    routing = policy()
+    budget_key = _run_budget_key()
+    state = _read_state(*budget_key) if budget_key else None
     contract = {"engine_revision": research_engine_revision(), "query": query, "schema": schema, "provider": config.provider,
-                "inference_policy": policy_identity(),
+                "inference_policy": {key: routing.get(key) for key in ("models", "routes", "best_effort_model", "core_tasks")},
+                "research_target_microusd": (state or {}).get("cap_microusd", _microusd(os.getenv("RESEARCH_RUN_BUDGET_USD") or "0")) if budget_key else None,
                 "economical_completion": best_effort_required() and not funded_core_research(),
                 "endpoint": config.base_url, "model": config.model,
                 "thinking": config.thinking_mode, "effort": execution_effort(config.reasoning_effort),
@@ -1131,6 +1212,13 @@ def checkpoint_agent_research(function):
             query=json.dumps(contract, sort_keys=True, ensure_ascii=False, default=str),
             schema={}, config=client.config,
         )
+        # Source capture survives changes to model, dollar allowance, worker
+        # count and phase capacity. Completed answers retain their stricter
+        # objective/model/prompt identity and must not become deeper by reuse.
+        capture_key = hashlib.sha256(json.dumps({"execution": _CALL.get().get("root_run_id") or os.getenv("PIPELINE_RUN_ID") or execution,
+            "request": {field: kwargs.get(field) for field in (
+                "query", "task", "surface", "initial_evidence", "request_context", "write_policy")}},
+            sort_keys=True, ensure_ascii=False, default=str).encode()).hexdigest()
         # A replica retry retains the research identity as well as its evidence.
         kwargs.setdefault("run_id", "agrun_" + key[:40])
         if kwargs["run_id"] is None:
@@ -1160,9 +1248,16 @@ def checkpoint_agent_research(function):
             artifact = read_research_artifact(namespace, key, strict=True)
             if artifact:
                 return {**artifact["result"], "artifact_reuse": {"artifact_id": artifact["artifact_id"], "input_id": key}}
-            incomplete = pipeline_store.read_execution_state(namespace + ":incomplete", key, strict=True) or {}
+            incomplete = pipeline_store.read_execution_state(namespace + ":captures", capture_key, strict=True) or {}
+            if not incomplete:
+                incomplete = pipeline_store.read_execution_state(namespace + ":incomplete", key, strict=True) or {}
             if incomplete.get("checkpoint") and not kwargs.get("resume_state"):
                 state = incomplete["checkpoint"]
+                if incomplete.get("engine") not in {None, research_engine_revision()}:
+                    # Read complete source captures under today's semantics;
+                    # an old plan, draft or working-context selection does not
+                    # acquire acceptance under a changed engine.
+                    state = {field: state.get(field) for field in ("tool_calls", "request_context", "write_policy")}
                 kwargs["resume_state"] = state
                 if not state.get("continued_request"):
                     # Restore defaults resolved on the first attempt, including
@@ -1178,8 +1273,8 @@ def checkpoint_agent_research(function):
                 nonlocal checkpoint_saved
                 if original_checkpoint:
                     original_checkpoint(state)
-                checkpoint_saved = pipeline_store.write_execution_state(namespace + ":incomplete", key, {
-                    "checkpoint": state, "execution": execution, "input_id": key,
+                checkpoint_saved = pipeline_store.write_execution_state(namespace + ":captures", capture_key, {
+                    "checkpoint": state, "execution": execution, "input_id": key, "engine": research_engine_revision(),
                 })
                 if not checkpoint_saved:
                     log.warning("Research acquisition checkpoint unavailable: %s", key)

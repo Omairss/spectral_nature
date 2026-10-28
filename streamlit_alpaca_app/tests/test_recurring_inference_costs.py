@@ -12,6 +12,19 @@ from services import llm, llm_execution as execution, pipeline_store
 from services.aql import business_model_stack as company
 
 
+def test_reusable_source_prefix_precedes_volatile_run_metadata():
+    from services.zopedia_agent import _judge_user_prompt
+    source = "Complete supplied document. " * 200
+    def prompt(identity):
+        return _judge_user_prompt(query="Current question " + identity, draft_answer="Draft " + identity,
+            draft_confidence="medium", limitations=[], tool_calls=[{
+                "tool_call_id": identity, "origin_run_id": identity, "tool_name": "research.supplied_context",
+                "status": "completed", "result_summary": {"evidence_context_text": source}}])
+    left, right = prompt("first-owner"), prompt("second-owner")
+    assert left[:left.index("Evidence record metadata")] == right[:right.index("Evidence record metadata")]
+    assert source in left and "first-owner" in left and "Current question first-owner" in left
+
+
 @pytest.fixture
 def durable_store(monkeypatch):
     values = {}
@@ -162,7 +175,8 @@ def news_execution(durable_store, monkeypatch):
     monkeypatch.setenv("PIPELINE_RUN_ID", "controller-contract")
     monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "scheduled-execution")
     monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "10")
-    monkeypatch.delenv("PIPELINE_JOB_MAX_DURATION_SECONDS", raising=False)
+    monkeypatch.setenv("PIPELINE_JOB_MAX_DURATION_SECONDS", "")
+    monkeypatch.setenv("PIPELINE_JOB_WORK_TIMEOUT_SECONDS", "6900")
     monkeypatch.setattr(jobs, "_utc_now", lambda: clock[0])
     monkeypatch.setattr(jobs, "_db_connection", lambda **kwargs: None)
     monkeypatch.setattr(jobs, "read_execution_state", pipeline_store.read_execution_state)
@@ -239,6 +253,21 @@ def test_expired_retry_cannot_start_more_work(news_execution, monkeypatch):
     with pytest.raises(WorkCancelled):
         run.jobs.main()
     assert calls == [True] and run.receipts[-1]["status"] == "Failed"
+
+
+def test_producer_deadline_returns_already_published_current_subset(news_execution, monkeypatch):
+    from services.work_scope import check_work
+    import time
+    run = news_execution
+    monkeypatch.setenv("PIPELINE_JOB_MAX_DURATION_SECONDS", "1")
+    def handler(ctx, conn):
+        ctx.published_datasets["zopedia_news_business_resolutions"] = "current-publication"
+        time.sleep(1.02)
+        check_work()
+    monkeypatch.setattr(run.jobs, "run_news", handler)
+    run.jobs.main()
+    assert run.receipts[-1]["status"] == "Warning"
+    assert run.receipts[-1]["datasets"] == {"zopedia_news_business_resolutions": "current-publication"}
 
 
 def test_explicit_job_deadline_also_applies_to_baseline(news_execution, monkeypatch):

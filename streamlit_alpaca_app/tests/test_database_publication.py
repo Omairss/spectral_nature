@@ -91,6 +91,22 @@ def test_cross_environment_publication_is_rejected(blobs):
     assert not blobs.objects
 
 
+def test_same_run_late_old_replica_cannot_replace_new_owner_publication(blobs):
+    current = {**manifest(4), "execution_fence": 12}
+    assert store.publish_dataset_manifest(current)
+    old = {**manifest(4), "dataset_version_id": "old-replica-late-output", "execution_fence": 11,
+           "ingested_at_utc": "2026-10-28T23:00:00Z"}
+    assert not store.publish_dataset_manifest(old)
+    latest = store.dataset_blob_path("manifests/qa_publication/latest.json")
+    assert json.loads(blobs.objects[latest][0])["dataset_version_id"] == "version_4"
+
+
+def test_existing_version_receipts_cannot_be_mutated(blobs):
+    store.publish_dataset_manifest(manifest(4))
+    with pytest.raises(ValueError, match="immutable"):
+        store.publish_dataset_manifest({**manifest(4), "blob_path": "different-data.parquet"})
+
+
 def test_usage_read_does_not_start_backlog_recovery(monkeypatch):
     monkeypatch.setattr(store, "reconcile_provider_attempt_receipts", lambda **_: pytest.fail("Read started recovery"))
     monkeypatch.setattr(store, 'open_database_connection', lambda: None)

@@ -1106,7 +1106,15 @@ def _tool_history_prompt(
                 "error": call.get("error"),
             }
         )
-    return serialize_llm_context(records, append_only=True)
+    # Random call/turn identities and capture bookkeeping must not precede the
+    # large, reusable source bodies. Preserve their exact association by index.
+    evidence = [record.pop("evidence") for record in records]
+    return ("Collected evidence, in record order:\n"
+            + serialize_llm_context(evidence, append_only=True)
+            + "\n\nEvidence record metadata (evidence_index is zero based):\n"
+            + serialize_llm_context([
+                {"evidence_index": index, **record} for index, record in enumerate(records)
+            ]))
 
 
 def _run_evidence_model_step(
@@ -1906,13 +1914,13 @@ def _planner_user_prompt(
     return (
         "Available tools:\n"
         f"{_tool_catalog_prompt(tool_catalog)}\n\n"
+        f"{evidence_block}"
+        "Tool call history:\n"
+        f"{_tool_history_prompt(tool_calls)}\n\n"
         f"{history_block}"
         f"Task: {_clean(task) or 'agent_answer'}\n"
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
-        f"{evidence_block}"
-        "Tool call history:\n"
-        f"{_tool_history_prompt(tool_calls)}\n\n"
         f"Tool budget: {max_tool_calls - _budgeted_tool_count(tool_calls)} remaining out of {max_tool_calls}.\n\n"
         "Return exactly one next action. "
         "If you still need data, set action='tool_call' and choose one tool. "
@@ -1942,8 +1950,9 @@ def _final_user_prompt(
     if not response_schema_name:
         if not answer_points:
             return (
-                f"User request:\n{query}\n\n{history_block}{evidence_block}"
+                f"{evidence_block}"
                 f"Collected sources:\n{_tool_history_prompt(tool_calls, full_evidence=True)}\n\n"
+                f"User request:\n{query}\n\n{history_block}"
                 f"Available draft:\n{draft_answer}\n\n"
                 "No research outline is available. Give the best useful answer from this context. "
                 "Follow the user's requested source scope, length and format."
@@ -1996,21 +2005,22 @@ def _final_user_prompt(
                     if link.get("url"):
                         sources[link["url"]] = {"title": link.get("label"), "url": link["url"]}
         return (
-            f"User request:\n{query}\n\n{history_block}{evidence_block}"
-            "Research outline:\n" + json.dumps(answer_points, ensure_ascii=False) + "\n\n"
+            f"{evidence_block}"
             "Source index for citations (the answer points contain the selected analysis):\n"
             + json.dumps(list(sources.values()), ensure_ascii=False, default=str)
+            + f"\n\nUser request:\n{query}\n\n{history_block}"
+            "Research outline:\n" + json.dumps(answer_points, ensure_ascii=False) + "\n\n"
             + "\n\nWrite the finished explanation. Select the main ideas needed by this reader. "
             "Use ordinary words and useful source-title links. Follow the requested length and format."
         )
     return (
-        f"{history_block}"
         f"{evidence_block}"
+        "Tool evidence:\n"
+        f"{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids)}\n\n"
+        f"{history_block}"
         f"Task: {_clean(task) or 'agent_answer'}\n"
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
-        "Tool evidence:\n"
-        f"{_tool_history_prompt(tool_calls, full_evidence=True, selected_source_ids=selected_source_ids)}\n\n"
         + "Research outline:\n" + json.dumps(answer_points or [], ensure_ascii=False)
         + "\n\nAvailable draft:\n" + draft_answer + "\n\n"
         + (
@@ -2053,13 +2063,13 @@ def _judge_user_prompt(
     if prefetched_context:
         evidence_block = f"{prefetched_context}\n\n"
     return (
-        f"{history_block}"
         f"{evidence_block}"
+        "Tool evidence:\n"
+        f"{_tool_history_prompt(tool_calls, full_evidence=True)}\n\n"
+        f"{history_block}"
         f"Task: {_clean(task) or 'agent_answer'}\n"
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
-        "Tool evidence:\n"
-        f"{_tool_history_prompt(tool_calls, full_evidence=True)}\n\n"
         "Draft answer:\n"
         f"{draft_answer}\n\n"
         "Review the draft for useful discovery, relevance and explanatory depth. "
@@ -2073,7 +2083,8 @@ def _judge_user_prompt(
         + (
             "Return the corrected artifact in answer_payload. Keep its field schema and use plain public prose."
             if structured_response
-            else "Return corrected answer_points for the final writer. These points own the substantive analysis; keep review commentary separate."
+            else "Return the complete reader-facing answer in answer_markdown, ready to publish in the requested length and format. "
+                 "Apply your corrections directly to that prose. Keep editing instructions, critique and the supporting answer_points outline in their own fields."
         )
     )
 
@@ -2135,6 +2146,12 @@ def _run_answer_judge(
             "answer_payload": response_schema,
         }
         review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_payload"]
+    else:
+        review_schema["properties"] = {
+            **_JUDGE_SCHEMA["properties"],
+            "answer_markdown": {"type": "string", "description": "Complete final answer for the reader; no editorial instructions."},
+        }
+        review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_markdown"]
 
     def _runner() -> None:
         try:
@@ -2226,9 +2243,7 @@ def _run_answer_judge(
     if response_schema and isinstance(payload.get("answer_payload"), dict):
         answer = json.dumps(payload["answer_payload"], ensure_ascii=False, default=str)
     else:
-        answer = (
-            "\n\n".join(str(point).strip() for point in payload.get("answer_points") or []) or draft_answer
-        )
+        answer = _clean_model_output(payload.get("answer_markdown"))
     errors = list(
         Draft202012Validator(review_schema).iter_errors(
             {key: value for key, value in payload.items() if not key.startswith("__")}

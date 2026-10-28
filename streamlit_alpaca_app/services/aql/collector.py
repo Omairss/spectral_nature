@@ -727,7 +727,11 @@ def research_attention_candidate(
         task="ticker_business_model_research_dossier",
     )
     task_query = (
-        "Investigate this company and its observed market development. Explain what changed and the "
+        "Investigate this asset and its observed market development. Establish the issuer, instrument type and market "
+        "from the supplied identity and observations before connecting outside reports. A bare ticker or an ambiguous name "
+        "does not establish that a similarly named company is the subject; resolve the identity through research. "
+        "If the identity remains unclear, preserve the actual supplied observation and distinguish the possible interpretations. "
+        "Explain what changed and the "
         "useful business, customer, supplier, financing, sector or macro connections. Compare alternatives "
         "and pursue original reporting when it improves the explanation. Existing investigations are dated "
         "context that can be extended or corrected. Return the narrative and useful claims for the feed. "

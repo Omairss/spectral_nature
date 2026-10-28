@@ -1,607 +1,103 @@
 {
-  "status": "held_not_qualified",
-  "owner_authorization": "You have approval to promote to prod once you have verified the new release fixes everything I've asked for.",
-  "current_live_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
-  "current_live_release_commit": "67d56e8581ef400f43ce8cc594f56d82edf8fbca",
-  "additional_promotion_started": false,
-  "findings": [
+  "status": "local_verification_in_progress",
+  "owner_instruction": "Push to prod once everything is fixed. If it's not fixed, fucking fix it and push",
+  "branch": "fix/production-acceptance-followup-20261027",
+  "prior_live_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+  "issues": [
     {
-      "issue": "Plain-text final review",
-      "evidence": "Actual enrichment adapter replay completed12/12 in166.67seconds, but all12 were answer_status=draft and quality_review=not_run. Earlier enrichment acceptance used broader supplied inputs and incorrectly described individual review as retained.",
-      "source_cause": "The shared final review condition required response_schema. No-tool plain-text synthesis skipped both the planner review and final review.",
-      "source_fix": "Apply the existing agent-owned final review regardless of output schema. Keep downstream-owned review and completed review exemptions.",
-      "status": "source_fixed_review_executed_but_follow_up_held"
+      "id": "checkpoint_json",
+      "change": "Shared durable-state writer normalizes nullable/nonfinite tabular values before strict JSONB serialization.",
+      "status": "verified_local_postgres"
     },
     {
-      "issue": "Recovery warnings",
-      "evidence": "The first new-image scheduled execution system-recovery-29885422 completed18:22UTC. Its application run75ae0d67-f88a-4adb-b161-1b367c9e4183 is Succeeded; the three preceding inspected application runs were Warning.",
-      "status": "verified_scheduled_production"
+      "id": "ownership_cancellation",
+      "change": "Bounded renewal uses reserved interactive SQL capacity and retries transient errors only while its confirmed lease remains valid. Actual lease loss cancels work.",
+      "status": "verified_local_postgres_pending_exact_image_dev"
     },
     {
-      "issue": "Whole execution boundaries",
-      "evidence": "103 selected operational checks passed, including actual deployed budget admission, retained original-date output across deferred phases and original clock restoration on replica retry.",
-      "status": "verified_operational_contracts"
+      "id": "learning_deadline",
+      "change": "Azure DeadlineExceeded at20:20:33Z confirmed. Per-case admission and3300-second producer bound leave finalization before3600-second platform termination.",
+      "status": "verified_local_pending_exact_image_dev"
     },
     {
-      "issue": "Earlier primary candidate synthesis failures",
-      "evidence": "Actual collector and acquisition qualification with600-second budgets failed KNSA,CLS andNIB at final synthesis; PNR completed. Earlier supplied-only captures contained no documents and are not valid acquisition acceptance.",
-      "status": "failed_acceptance_three_of_four"
+      "id": "learning_storage",
+      "change": "Frozen eval inputs persist in the learning event and are readable through fresh database connections.",
+      "status": "previously_deployed_preserved"
     },
     {
-      "issue": "Shared provider balance refresh contention",
-      "evidence": "Three candidate qualification attempts and two enrichment writers reported balance-refresh-in-progress; another enrichment review failed for the same reason. Authoritative credit remained available.",
-      "source_fix": "Wait for fresh shared balance state within the original request deadline, reuse the competing refresher result and use a shorter renewable refresh lease. Retain atomic reservations and authoritative credit checks.",
-      "status": "source_fixed_operational_checks_passed_not_qualified_for_promotion"
+      "id": "credit_refresh",
+      "change": "Wait/re-read fresh authoritative balance under contention inside original request deadline; account and logical-run reservations are atomic.",
+      "status": "verified_local_and_offline_concurrent_requests"
     },
     {
-      "issue": "Composition inherited automatic memory writing",
-      "evidence": "After restoring final review, the inherited safe_auto policy activated memory reflection. The replay created7 new pages and1 proposal; source-version and timestamp checks confirmed no newer edits before rollback.",
-      "source_fix": "Composition explicitly uses write_policy=none; qualification configuration also declares none. Full Pro answer review consumes the retained source input.",
-      "cleanup": "All7 pages were archived using native audited rollback; the1 proposal was rejected. Full pre-rollback records retained through at least2026-11-26. No pre-existing page was overwritten.",
-      "status": "source_corrected_cleanup_verified_follow_up_held"
+      "id": "fallback_removal",
+      "change": "Whole-run baseline switching and sticky rollout state are removed. Native retries preserve chosen policy, original run identity, budget, clock and paid work.",
+      "status": "verified_local_pending_exact_image_dev"
     },
     {
-      "issue": "Candidate replay capture limitation",
-      "evidence": "The four originally failed candidates have no retained acquisition documents in the morning source-document snapshot. The initial supplied-only replays with0 documents cannot qualify their research path and are not accepted as evidence.",
-      "follow_up": "Four actual collector/acquisition qualifications completed: three failed and one succeeded. Complete acquired outputs and continuations are retained for final-writing diagnosis without reacquiring the same sources.",
-      "status": "initial_fixture_inconclusive_live_replacement_failed_acceptance"
-    }
-  ],
-  "request_checks": [
-    {
-      "request": "Today activation and two weekday news runs",
-      "status": "verified_live_configuration"
+      "id": "completed_publication",
+      "change": "Current interpretations publish before optional company refresh. Bounded batch collection returns completed independent results; immutable versions and monotonic ownership fences protect latest pointers.",
+      "status": "verified_local_pending_real_blob_dev"
     },
     {
-      "request": "Cheaper task models and same-configuration replica recovery",
-      "status": "routing_previously_deployed_and_verified_automatic_baseline_switch_removed_locally"
+      "id": "worker_isolation",
+      "change": "A failed company/news investigation cannot discard successful sibling work. In-flight unknown charges remain reserved.",
+      "status": "verified_local"
     },
     {
-      "request": "Original-date cache reuse, material changes and model/prompt invalidation",
-      "status": "prior_operational_and_personal_refresh_review_accepted"
+      "id": "budget_allocation",
+      "change": "Current core work receives full-model funding first. Optional deep profiles must fund dossier/writing/review within original target plus10% admission margin; declined profiles use cheap current work. Targets support10 through1000+ dollars.",
+      "status": "verified_local_postgres"
     },
     {
-      "request": "Eight workers on existing compute",
-      "status": "verified_native_controller_and_eight_real_concurrent_requests"
+      "id": "current_best_effort",
+      "change": "Missing/zero producer allowance stops optional acquisition and uses cheapest suitable model for this run. No next-run unfinished-news carryover; reusable company background remains dated.",
+      "status": "verified_local_and_complete_outputs"
     },
     {
-      "request": "Two-hour completed subset and continuation",
-      "status": "scheduled_run_failed_early_cancellation_not_accepted"
+      "id": "late_paid_outputs",
+      "change": "Received model output and original reservation identity survive child cancellation; exact late request can be adopted within same logical run without repurchase. Normal schema repair does not repeatedly replay invalid output.",
+      "status": "verified_local_pending_exact_image_dev"
     },
     {
-      "request": "Home failures and date quality",
-      "status": "scheduled_home_published_degraded_follow_up_held"
+      "id": "plain_text_final_review",
+      "change": "Review must return complete final prose, with paragraph breaks preserved. Supporting outlines/editing instructions stay private. Composition declares no memory writes.",
+      "status": "complete_outputs_personally_reviewed"
     },
     {
-      "request": "Learning missing local files",
-      "status": "durable_input_verified_but_next_whole_learning_run_failed_platform_termination"
+      "id": "event_chronology",
+      "change": "Common event/report/observation timing guidance includes titles, attribution and market-session finality. PNR latest full-model replay correctly labels13:35UTC as snapshot rather than session close.",
+      "status": "complete_outputs_personally_reviewed_final_home_check_running"
     },
     {
-      "request": "Actual recurring cost improvement and90% target",
+      "id": "instrument_identity",
+      "change": "Home hands off listing identity beyond liquidity-selected universe; shared investigator resolves asset before using ambiguous ticker matches. Actual primary NIB replay identifies cocoa ETN and separates Australian insurer.",
+      "status": "complete_primary_outputs_personally_reviewed"
+    },
+    {
+      "id": "recurring_costs",
+      "change": "Two news slots, eight company workers, cheap task routes and dated company reuse already live. Additional evidence-first prefix layout, acquisition/result cache separation and removal of sticky baseline improve recurring work.",
+      "status": "preserved_and_source_verified"
+    },
+    {
+      "id": "cost_target",
+      "change": "90% recurring account reduction is the goal. Compare scheduled billable usage after rollout against complete baseline; no measured90% claim.",
       "status": "measurement_pending"
     }
   ],
-  "promotion_rule": "Do not promote the follow-up until complete model outputs are personally accepted, appropriate operational checks pass, the exact image passes DEV and all consumer configurations are reviewed. Do not describe pending whole-run/cost measurement as verified.",
   "operational_checks": {
-    "selected_passed": 106,
-    "seconds": 1.74,
-    "quality_scoring": false
+    "passed": 156,
+    "seconds": 10.05,
+    "real_isolated_postgres": true,
+    "quality_scoring": false,
+    "private_log": "contracts-20261028T082728Z.log"
   },
-  "new_image_built": false,
-  "primary_candidate_live_results": [
-    {
-      "symbol": "KNSA",
-      "seconds": 419.24,
-      "status": "failed",
-      "error": "TimeoutError: Final synthesis exceeded its remaining phase budget.",
-      "captured_tool_calls": 2,
-      "continuation_retained": true
-    },
-    {
-      "symbol": "PNR",
-      "seconds": 575.9,
-      "status": "completed",
-      "error": null,
-      "captured_tool_calls": 2,
-      "continuation_retained": true
-    },
-    {
-      "symbol": "CLS",
-      "seconds": 397.78,
-      "status": "failed",
-      "error": "WorkCancelled: Research work has expired.",
-      "captured_tool_calls": 2,
-      "continuation_retained": true
-    },
-    {
-      "symbol": "NIB",
-      "seconds": 420.2,
-      "status": "failed",
-      "error": "TimeoutError: Final synthesis exceeded its remaining phase budget.",
-      "captured_tool_calls": 4,
-      "continuation_retained": true
-    }
-  ],
-  "decision": "Hold release. First reliability repairs and spending ledger pass local operational contracts; complete adaptive depth, retained-work recovery, publication and qualitative acceptance remain required.",
-  "next_diagnosis": "Replay the retained complete acquisition and continuation records for KNSA,CLS andNIB at final writing/review, without buying acquisition again. Separate provider/SQL wait from model time before changing the phase allocation. Use DEV integration to assess near-Azure latency. Do not raise production timeouts or claim90% savings from this failed qualification.",
-  "remaining_replay": "Stopped the subsequent local12-item replay after primary acceptance failed. No owned browser workers remain; in-flight usage from process termination remains explicitly unknown in existing provider accounting.",
-  "qualification_write_cleanup": {
-    "native_mutations_rolled_back": 7,
-    "new_pages_archived": 7,
-    "proposal_statuses": [
-      [
-        "zopedia_proposal::create_page::1d1426a89fac3a7b",
-        "rejected"
-      ]
-    ],
-    "archive_sha256": "98b85236662899a935d0b4b60a69d969a92d44a4f6282a6070a6255ccb4e888f",
-    "retention_minimum_until": "2026-11-26",
-    "no_preexisting_page_changed": true
+  "offline_comparison": {
+    "authorization": "Approve this API comparison up to $15",
+    "cumulative_cap_usd": 15,
+    "ledger": "private api-qualification-20261028/strict-study-ledger.json",
+    "provider_exception": "This one retained-input offline batch only; no production run or new paid acquisition."
   },
-  "scheduled_production_observation": {
-    "checked_at_utc": "2026-10-28T03:54:13.661701+00:00",
-    "checked_date_pacific": "2026-10-27",
-    "source": "Azure execution definitions, application job_runs and retained Log Analytics console logs; no jobs or inference started.",
-    "news": {
-      "execution": "news-ingest-and-features-29885525",
-      "started_utc": "2026-10-27T20:05:00Z",
-      "status": "Failed",
-      "application_duration_minutes": 42.53,
-      "candidate_replica_failed": "2026-10-27T20:45:01Z",
-      "baseline_retry_failed": "2026-10-27T20:48:13Z",
-      "error": "WorkCancelled: Research work has expired.",
-      "observed_boundary_failure": "Cancellation escaped the company-profile path; baseline retry then failed in build_edgar_evidence. Raw news articles and symbol map were persisted, but successful aggregate research completion was not established. This is not acceptance of completed-subset publication.",
-      "root_cause": "Company checkpoint state includes a missing tabular value. services/pipeline_store.py write_execution_state serializes it with permissive json.dumps rather than existing shared to_jsonable normalization. PostgreSQL rejects the payload. The chained traceback then shows WorkCancelled during inference_policy failure-state recording, masking the originating exception. Cause of ownership cancellation and baseline engine cancellation still require separate diagnosis.",
-      "original_error": "psycopg.errors.InvalidTextRepresentation: invalid input syntax for type json; Token NaN is invalid; business_lens was NaN.",
-      "source_references": [
-        "services/aql/business_model_stack.py:2249",
-        "services/pipeline_store.py:2561",
-        "services/inference_policy.py:118",
-        "services/json_utils.py:11"
-      ],
-      "new_trace_status": "diagnosed_and_locally_reproduced_serialization_boundary_no_runtime_fix_yet",
-      "cancellation_diagnosis": "Job-wide ownership cancellation, distinct from the7200-second policy clock; see cancellation-diagnosis.json for production timing and an actual PostgreSQL reproduction of renewal starvation."
-    },
-    "home": {
-      "execution": "attention-home-build-29885570",
-      "started_utc": "2026-10-27T20:50:00Z",
-      "azure_status": "Succeeded",
-      "application_status": "Warning",
-      "ended_utc": "2026-10-27T21:36:37Z",
-      "duration_minutes": 46.0,
-      "application_message": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
-      "candidate_replica": "Failed after early WorkCancelled errors, including Home publication; baseline retry completed with degraded research.",
-      "quality_acceptance": "Completion counts do not establish final research quality or repair of plain-text review."
-    },
-    "learning": {
-      "execution": "zopedia-learning-29885480",
-      "started_utc": "2026-10-27T19:20:00Z",
-      "azure_status": "Failed",
-      "application_status": "Failed",
-      "progress_stage": "platform_terminated",
-      "last_console_utc": "2026-10-27T20:20:27Z",
-      "observation": "Process did not finalize its database run; no successful whole-job acceptance. Console activity ends around the one-hour platform allowance. Exact platform termination cause not yet established."
-    },
-    "recovery": {
-      "execution": "system-recovery-29885977",
-      "azure_status": "Succeeded",
-      "application_status": "Succeeded",
-      "application_start_utc": "2026-10-28T03:37:40Z",
-      "application_end_utc": "2026-10-28T03:37:41Z"
-    },
-    "release_decision": "Follow-up remains held; scheduled production evidence also leaves news, Home and learning acceptance open. No new image built or promoted."
-  },
-  "open_issue_inventory": [
-    {
-      "id": "checkpoint_json",
-      "issue": "Company checkpoint JSON can contain NaN; PostgreSQL rejects the save.",
-      "status": "source_fixed_local_operational_contracts_verified_release_held",
-      "fix_deployed": false
-    },
-    {
-      "id": "batch_failure_isolation",
-      "issue": "An unexpected company-worker exception aborts aggregate research publication instead of publishing completed company results.",
-      "status": "source_fixed_local_operational_contracts_verified_release_held",
-      "fix_deployed": false
-    },
-    {
-      "id": "failure_recording",
-      "issue": "Recording the original news failure raised WorkCancelled, obscuring the originating PostgreSQL exception.",
-      "status": "source_fixed_local_operational_contracts_verified_release_held",
-      "fix_deployed": false
-    },
-    {
-      "id": "early_cancellation_and_retry",
-      "issue": "News baseline retry and the first afternoon Home replica encountered early cancellation. News retry failed; Home retry published degraded research.",
-      "status": "source_fixed_local_operational_contracts_verified_release_held",
-      "relationship": "Do not count these observations as additional proven independent root causes.",
-      "diagnosis": "cancellation-diagnosis.json",
-      "source_cause": "Heartbeat treats a renewal exception as immediate ownership loss; it shares the single background SQL slot with ordinary work. Real PostgreSQL reproduction cancelled at130seconds with170seconds of valid ownership remaining.",
-      "historical_limit": "The historical renewal exception itself was swallowed. Exact competing SQL transaction is not established.",
-      "fix_deployed": false
-    },
-    {
-      "id": "primary_candidate_synthesis",
-      "issue": "KNSA, CLS and NIB failed final synthesis in real-acquisition qualification with a600-second budget; PNR completed. Production primary-candidate budget remains240seconds.",
-      "status": "failed_qualification_open"
-    },
-    {
-      "id": "plain_text_review",
-      "issue": "No-tool plain-text answers skip agent-owned final review because the shared condition requires a response schema. Exact adapter replay completed12 drafts with review not_run.",
-      "status": "source_fixed_follow_up_held",
-      "fix_deployed": false
-    },
-    {
-      "id": "balance_refresh_contention",
-      "issue": "Calls can fail because another caller holds the balance-refresh lease despite available credit.",
-      "status": "source_fixed_follow_up_held",
-      "fix_deployed": false
-    },
-    {
-      "id": "composition_memory_writes",
-      "issue": "Home composition inherits safe_auto memory writing; restoring review activated unnecessary memory passes during qualification.",
-      "status": "source_fixed_follow_up_held",
-      "fix_deployed": false,
-      "cleanup": "Seven newly created pages archived through audited rollback and one proposal rejected; records retained."
-    },
-    {
-      "id": "learning_execution",
-      "issue": "Afternoon learning execution ended Failed without finalizing its database run. Console activity ends around its one-hour platform allowance.",
-      "status": "observed_failure_termination_cause_unresolved",
-      "previous_defect": "Missing container-local input replaced with durable event data; this does not establish complete job success."
-    }
-  ],
-  "remaining_verification_inventory": [
-    {
-      "id": "whole_run_acceptance",
-      "issue": "No successful complete scheduled news flow establishes persistence, unexpected failure handling, baseline recovery and completed-subset publication together."
-    },
-    {
-      "id": "latest_published_quality",
-      "issue": "Timing/context fix was deployed and full-source replays personally reviewed. The latest degraded production Home has not established complete output quality; do not claim the freshness regression recurred or is fully closed without reading that artifact."
-    },
-    {
-      "id": "account_savings",
-      "issue": "Whole-workload recurring savings and the90percent target remain unmeasured. Fewer executions, cheaper task routing and reuse do not establish achieved savings."
-    },
-    {
-      "id": "usage_accounting",
-      "issue": "Interrupted qualification calls retain explicitly unknown usage. Scheduled logs also show deferred provider-attempt recording and reservation settlement; current reconciliation completeness has not been established."
-    }
-  ],
-  "cancellation_diagnosis": "documents/verification/production-recovery-2026-10-27/cancellation-diagnosis.json",
-  "system_consequence_review": {
-    "status": "design_constraints_reviewed_not_implemented_or_qualified",
-    "scope": "Interaction of the nine proposed reliability repairs with cost routing, caching, concurrency, publication and recovery.",
-    "findings": [
-      {
-        "area": "Ownership metadata capacity",
-        "downstream_effect": "Moving ownership operations into generic interactive capacity can starve authentication, user requests and health checks. Nested company leases can create synchronized renewal bursts.",
-        "required_constraint": "Reserve bounded metadata capacity within the existing database ceiling and preserve interactive headroom. Apply the metadata class only around short claim/renew/release operations; never let the yielded research body inherit elevated admission.",
-        "evidence_limit": "The successful one-holder control is a mechanism check, not a mixed-workload capacity qualification."
-      },
-      {
-        "area": "Lease renewal retries",
-        "downstream_effect": "Continuing after a transient renewal error can let a suspended old worker run past actual lease expiry and race its replacement. A pre-write owner check has a race with takeover.",
-        "required_constraint": "Use the last confirmed valid lease deadline conservatively; stop on confirmed loss or expiry. Guard checkpoint mutations and the authoritative publication commit with current ownership. Retain existing Blob generation ordering and ETag conditions; SQL ownership checks alone do not fence Blob writes."
-      },
-      {
-        "area": "Incremental checkpoints and partial publication",
-        "downstream_effect": "Per-company writes increase SQL load; independent latest pointers can expose mixed component versions. Faster companies can dominate visible coverage while difficult investigations remain pending.",
-        "required_constraint": "Persist completed work durably with stable task identity and controlled write concurrency. Publish a coherent artifact referencing its exact component versions and original observation dates. Preserve earlier useful results when refresh fails and give deferred work fair continuation."
-      },
-      {
-        "area": "JSON normalization",
-        "downstream_effect": "Replacing NaN/Infinity with null can hide analytical data errors. Different normalization in identity hashing and storage can cause needless cache misses or inconsistent reuse.",
-        "required_constraint": "Use one canonical representation for persistence and relevant cache identity, retain raw inputs/provenance and distinguish data-quality errors from ordinary missing values. Never turn missing values into numeric zero."
-      },
-      {
-        "area": "Finalization and error recording",
-        "downstream_effect": "An independent cleanup allowance can accidentally restart the job clock or permit an expired owner to publish. Secondary logging failures can still replace the originating exception.",
-        "required_constraint": "Keep finalization inside the original total deadline; separate audit recording from permission to mutate research or publish. Preserve original failure and attach secondary recording outcomes separately."
-      },
-      {
-        "area": "Writing and review reserves",
-        "downstream_effect": "Reserving more completion time reduces acquisition time. Restoring Pro reviews increases cost and can activate inherited memory writing; repeated review may spend money without useful changes.",
-        "required_constraint": "Keep full evidence and analytical capability. Use one explicit review owner per artifact, checkpoint completed stages and reuse compatible accepted review results. Judge complete output quality, acquisition coverage, latency and cost together."
-      },
-      {
-        "area": "Shared balance and ambiguous provider attempts",
-        "downstream_effect": "Reusing shared balance state without atomic reservations can overspend available credit. Long waits can consume the writing budget. Blind retries after an ambiguous provider response can pay twice.",
-        "required_constraint": "Retain atomic reservations and explicit pending/unknown usage. Bound refresh waits within the same request/run clock; do not blindly replay ambiguous paid calls or erase unknown reservations. Exactly-once paid inference is not established."
-      },
-      {
-        "area": "Read-only composition and learning continuation",
-        "downstream_effect": "Disabling writes everywhere would stop useful knowledge growth. Deferring learning work can create an indefinitely growing backlog or repeated partial stages.",
-        "required_constraint": "Composition stays read-only while the owning research/learning stage retains explicit write authority. Learning resumes durable per-stage state with fair admission and visible backlog age; review and knowledge mutation retain independent idempotent identities."
-      },
-      {
-        "area": "Persistent baseline fallback",
-        "downstream_effect": "execute_with_fallback retains rollback for the entire policy identity. One infrastructure failure can disable cheaper routing and company reuse on later executions until policy changes or is deliberately rearmed. The captured production state already has rollback=true for the October27.3 policy.",
-        "required_constraint": "Distinguish infrastructure deferral/recovery from evidence that model/policy quality needs rollback. Preserve safe baseline selection after failure, make active mode inspectable and require deliberate rearming after recovery qualification. Resume failed stages from retained sources; do not restart completed acquisition."
-      },
-      {
-        "area": "Net recurring cost and coverage",
-        "downstream_effect": "Fewer failed requests and restored reviews can increase actual spending compared with a failing pipeline. More workers can amplify provider, browser and database pressure. Two scheduled runs can accumulate more work per run.",
-        "required_constraint": "Retain explicit aggregate concurrency bounds and the original execution clock. Compare complete-workload costs, useful completed coverage and output quality; include failed, retried and unknown usage. Do not claim90percent savings from cadence or per-call arithmetic."
-      }
-    ],
-    "required_failure_scenarios": [
-      "Background work saturates admission while heartbeat and interactive requests continue.",
-      "Renewal raises transiently, ownership actually expires, another worker takes over, and the old worker attempts to save/publish.",
-      "A company save fails or a process dies between data upload and publication, then a retry resumes.",
-      "A run publishes a completed subset while the unfinished companies receive subsequent admission.",
-      "Provider response is ambiguous or balance refresh is busy without losing reservations or resetting deadlines.",
-      "Writing/review fails after acquisition, then resumes without reacquiring sources or repeating knowledge writes.",
-      "Learning repeatedly approaches its execution bound without starving old pending cases."
-    ],
-    "release_decision": "The immediate repair checklist alone is insufficient acceptance. Qualify the combined ownership, publication, continuation and accounting behavior before promoting."
-  },
-  "adaptive_budget_requirement": {
-    "owner_instruction": "The budget should be able to scale from $10 per run all the way to $1000+ per run. So the research quality/depth all should be variable.",
-    "status": "protected_completion_and_economical_current_reporting_implemented_locally_qualitative_and_release_acceptance_pending",
-    "scope": "Shared production research engine. Configuration range does not itself start a run, approve spending, change production schedules or supersede the separate offline-study provider/daily approval policy.",
-    "budget_meaning": "Soft incremental spending target for one current logical run. Protect the configured full model for core interpretation, final synthesis and review before optional research. Allow and record small completion overruns. A new scheduled briefing starts from current observations; unfinished news is not deferred to the next run.",
-    "controls": {
-      "max_cost_usd": "Nonnegative finite USD target; 10 to 1000+ supported continuously. Blank or zero on a scheduled producer selects the configured best-effort model. A positive funded target protects full-model core work even when optional headroom is exhausted.",
-      "max_duration_seconds": "Independent run limit; preserve the existing two-hour production setting unless explicitly configured otherwise.",
-      "concurrency": "Independent capacity limits for model calls, acquisition, browsers and database work; money alone does not increase them.",
-      "research_objective": "The requested question and scope, carried to the shared LLM planner."
-    },
-    "adaptive_behavior": [
-      "The shared LLM planner sees optional headroom, protected core funds, actual/reserved spending, model/tool prices and remaining time. Greater targets permit more useful exploration, not compulsory spending.",
-      "The news producer declares all selected company writing and current-event interpretation obligations before optional research starts. The shared agent protects writing/review before its own planning, and core gateway calls preserve the configured full model.",
-      "Optional acquisition cannot consume completion funds. Core requests move protected money into in-flight reservations atomically with applicable provider credit. Settling returns unused funds to the obligation; completing its owning result releases the remainder.",
-      "If no funded target exists, use the configured cheapest suitable model to synthesize this run\u2019s current inputs. A short window stops optional deep research; it does not downgrade funded core calls or queue a news story for another day.",
-      "Use actual source/event/observation dates throughout. Completed company background can be reused with its original date. A new run cannot inherit an unfinished investigation\u2019s old as-of date, and current news is not merged with older interpretation rows."
-    ],
-    "accounting": {
-      "available": "Target minus settled charges, in-flight/unknown reservations and unspent protected core obligations. Moving protected funds into an actual request does not count them twice. Provider-account credit remains separately enforced.",
-      "atomicity": "Coordinate account affordability and run allowance reservations so failure in one cannot leak the other reservation.",
-      "retry": "A replica retry retains the original logical run identity, spending, reservations and deadline without changing model policy.",
-      "paid_tools": "Include incremental paid inference and acquisition; rented compute requires allocation-wide reservation. Fixed shared hosting is reported separately rather than silently represented as per-request spend. Unpriced paid actions need a bounded quote before admission.",
-      "changes": "Initial target is retained across replica recovery. Audited owner amendments retain all incurred/reserved obligations. Changing the configured target does not reset spending."
-    },
-    "reuse_and_depth": [
-      "Preserve complete captured inputs and completed research stages independently of the allowance used to obtain them. Increasing the requested budget/depth should extend useful work rather than discard it.",
-      "A cheaper completed answer is retained input for a deeper investigation, not automatic proof that the deeper objective is complete. The shared LLM assesses achieved scope and worthwhile remaining questions.",
-      "Cache compatibility follows evidence, requested analytical scope, effective model/prompt/schema and permissions. A worker-count or dollar-ceiling change alone must not invalidate unchanged completed input artifacts."
-    ],
-    "source_changes_required": [
-      "The current ResearchBudget expresses time phases, not a dollar allowance.",
-      "Current provider reservations protect account credit, not a logical run spending cap.",
-      "The current planner sees tool/time counts but has no shared run-dollar ledger.",
-      "Current cache identity includes the complete inference policy and several execution-budget parameters; budget changes can invalidate otherwise useful work.",
-      "Current fixed per-company admission and phase allocations cannot express continuous budget-dependent research depth."
-    ],
-    "account_wide_target": {
-      "meaning": "90percent reduction is a measured economical operating profile, while higher explicitly selected budgets buy additional research depth.",
-      "captured_baseline_day": "2026-10-26",
-      "captured_total_usd": 45.21534226,
-      "captured_other_than_news_usd": 7.397986024,
-      "ninety_percent_target_usd": 4.521534226,
-      "implication": "News-only optimization cannot meet the account-wide target while other producers remain unchanged."
-    },
-    "acceptance": "Personally compare complete current outputs and attained depth, verify protected funding and unknown-charge accounting with concurrent workers/retries, and qualify actual producer publication/recovery. Software checks do not establish model quality.",
-    "allocation_design": {
-      "status": "core_funding_runtime_implemented_advanced_priority_grants_and_qualitative_depth_not_yet_accepted",
-      "recorded_at_utc": "2026-10-28T06:30:19.578875+00:00",
-      "current_runtime_gap": "Protected core obligations now exist and optional acquisition cannot debit them. Fine-grained LLM-prioritized child investigation grants and complete-output depth/quality comparison remain separate work.",
-      "objective": "Maximize useful research within the approved objective, dollars and deadline. Greater allowance permits deeper or broader work; it neither requires expenditure nor silently expands the requested scope.",
-      "funding_order": [
-        {
-          "stage": "Inspect retained work and current changes",
-          "behavior": "Build one shared inventory of retained findings, full sources, dates, material changes and unresolved questions. Charge planning and materiality assessment to the run. Use this to avoid purchasing the same company/event/source investigation independently for several consumers."
-        },
-        {
-          "stage": "Protect completion of admitted work",
-          "behavior": "Fund the writing and required review of every admitted investigation, plus required aggregate composition/finalization. Quote against actual model, bounded context/output and declared completion stages. Enlarge this obligation before admitting a scope/context increase. Reserve dollars and time independently; no fixed percentage guarantees completion."
-        },
-        {
-          "stage": "Propose research allocations",
-          "behavior": "The shared LLM planner ranks worthwhile questions using task importance, material changes, uncertain claims, counterevidence, existing coverage, shared dependencies and expected incremental usefulness. It proposes bounded work and the completion obligations it creates. Budget amounts are constrained by ledger arithmetic; research priorities are not hardcoded."
-        },
-        {
-          "stage": "Admit small funded stages",
-          "behavior": "Grant each investigation enough for a useful next stage and its finish obligation. All grants share the parent allowance and usable provider credit. Available worker count is a capacity ceiling; unfunded investigations wait. A grant expiring or needing more funds triggers checkpoint/reallocation, never permission to consume the remaining parent pool."
-        },
-        {
-          "stage": "Reassess and extend",
-          "behavior": "At material findings, contradictions, completed stages or an exhausted grant, reassess which next work most improves the objective. Return unused grant funds and expand promising investigations. Preserve room for important uncertain questions rather than selecting only cheap easy requests. Reuse the existing planner and reallocate at useful milestones; coordination costs are included."
-        },
-        {
-          "stage": "Complete within the original limits",
-          "behavior": "Finish funded core work on the configured full model, allowing a small recorded completion overrun; publish current completed results. Replica recovery retains this run\u2019s original identity, clock and spending. A later scheduled run starts current research, not an unfinished prior news investigation."
-        }
-      ],
-      "ledger_contract": {
-        "invariant": "target + recorded commitment excess = settled charges + in-flight/unknown reservations + unspent protected core obligations + nonnegative free headroom. A protected amount moves into its request reservation once, then unused request headroom returns to its obligation until completion.",
-        "no_double_counting": "Starting a funded request atomically moves funds from its grant/completion hold into an in-flight reservation; it does not reserve those dollars a second time. Settlement debits actual/bounded cost and returns unused headroom.",
-        "admission": "Commit run allowance, allocation authority and applicable provider-account affordability together. Remote planning/price queries occur outside the SQL transaction.",
-        "completion_growth": "Core completion retains the configured full model under a positive target. Quote/context growth and small completion overruns are recorded; optional research cannot borrow these funds. Blank/zero targets use economical current reporting.",
-        "handoff": "Reclaim unspent grants only with fenced allocation authority. In-flight and unknown paid attempts remain obligations after worker loss; reconciliation, not lease expiry alone, releases them.",
-        "amendments": "An explicit owner amendment retains spending, outstanding requests and all protected/granted funds. An ordinary retry or configuration change cannot increase the retained allowance."
-      },
-      "model_use": {
-        "economy": "Eligible bounded extraction, evidence organization, duplicate/materiality assessment and intermediate summaries; originals and dates remain available.",
-        "full": "Material interpretation, competing explanations, numerical assumptions requiring substantive reasoning, consequential synthesis and required review. Escalate economy work when substantive ambiguity warrants the cost.",
-        "measurement": "Route suitability and completion quotes must be calibrated on complete retained-source outputs and actual attempt costs; no claim that cheap routing or more spending guarantees quality."
-      },
-      "scaling_examples": {
-        "ten_dollars": "Protect current core interpretation/writing/review first. Use economical planning/organization and reusable dated context; reduce optional exploration to the remaining allowance. Do not carry old stories into the next briefing.",
-        "one_thousand_plus": "Permit more eligible investigations, fuller primary-source acquisition, alternative explanations, numerical scenarios and additional useful checking, within the same configured time and physical capacity.",
-        "not_tiers": "These illustrate expected behavior, not coded dollar thresholds, source counts or compulsory spending."
-      },
-      "qualification": [
-        "A high-cost early subject cannot exhaust other funded work or completion.",
-        "Concurrent children, retries and fallback never duplicate money or paid acquisition.",
-        "A larger allowance/depth request preserves captured evidence and reassesses whether prior analysis is sufficient.",
-        "Quotes, partial failures and ownership handoffs retain consistent obligations and truthful completion states.",
-        "Personally compare complete outputs and achieved breadth/depth for the same retained objectives under materially different allowances, respecting the separate offline-study provider/spending rules."
-      ]
-    },
-    "recovery": "Resume retained work and retry eligible operations under the original logical run identity, selected inference configuration, allowance and deadline. Whole-run automatic baseline fallback is removed at the owner's instruction; deliberate deployment rollback remains separate.",
-    "owner_clarifications_2026_10_27": [
-      "With no budget, produce a best-effort current report using the cheapest suitable model rather than deferring to the next run.",
-      "The budget need not be exactly strict; a little overrun is tolerated.",
-      "Core parts run on the best configured model, with budget reserved for them before optional research."
-    ]
-  },
-  "implementation_progress": {
-    "status": "partial_implementation_locally_verified_release_held",
-    "recorded_at_utc": "2026-10-28T06:54:28.229044+00:00",
-    "implementation": [
-      "All execution-state persistence paths normalize nested pandas/NumPy missing and nonfinite values through shared to_jsonable; JSON encoding rejects remaining nonfinite numbers. Artifact result hashes use the normalized representation.",
-      "Company worker failures emit a recorded failure and allow independent completed companies to reach aggregate materialization; the producer records degraded current research.",
-      "Automatic whole-run model fallback and its rollout audit/state are removed. Unexpected producer exceptions propagate unchanged; partial results retain the existing Warning status.",
-      "Short ownership claim/renew/release operations use existing reserved interactive database capacity. Transient renewal errors retry within confirmed lease validity; confirmed lease loss still cancels work. Renewal errors retain their type and validity remaining.",
-      "The logical run ledger supports continuous nonnegative USD targets, integer microdollar accounting, atomic account/run reservation, idempotent settlement and retained unknown charges.",
-      "Replica identity retains its original configured allowance. Later configuration does not reset a retained ledger. Explicit audited amendments change the cap while retaining spending and reservations.",
-      "Shared planning receives live remaining dollars, reserved/settled spending and model/tool prices alongside its existing clock and research state.",
-      "Paid Serper, SerpApi and Tavily transport requests share the ledger. Capped runs require configured maximum search charges. Disconnected or ambiguous requests keep their reservation.",
-      "Zero/missing producer allowances select the configured best-effort model. Optional paid acquisition stops, current supplied observations still reach synthesis, and a shared budget transition is retained across retries.",
-      "Protected core obligations are quoted before the news batch starts. The shared agent funds its completion before planning. Core routing keeps the configured full model for interpretation, synthesis and review under positive funded targets, independently of optional-budget exhaustion.",
-      "Core request admission atomically moves funds from its protected obligation to its in-flight reservation; settlement is idempotent and returns unused protected funds. Completing the owning result releases the balance. Actual overruns and protected funds are exposed separately.",
-      "Incomplete company investigations reset their identity/as-of on a later logical run. Replica retries of the same run preserve identity. Current news datasets no longer merge old interpretations; completed company memory retains original dates.",
-      "Learning journals discovered cases before model work, bounds each critic/replay inside the producer clock, prioritizes pending reviews durably, and leaves finalization time before Azure termination. The historical Azure termination cause remains unconfirmed.",
-      "Final provider receipts carry explicit original run/account reservation identities. The bounded recovery worker reconciles known retained receipts against outstanding obligations, including older runs, independently of its own run configuration. Unknown usage remains reserved.",
-      "A bounded metering-retention scope persists usage and settlements after child cancellation. It rejects new inference, acquisition and application publication. Immutable receipt archive I/O now inherits explicit remaining-time bounds."
-    ],
-    "configuration": {
-      "RESEARCH_RUN_BUDGET_USD": "Nonnegative finite USD target; 10 to 1000+ supported continuously. Blank or zero on a scheduled producer selects the configured best-effort model. A positive funded target protects full-model core work even when optional headroom is exhausted.",
-      "RESEARCH_TOOL_MAX_COST_USD_JSON": "Deployment-owned maximum prices per paid search request; missing quotes block that paid acquisition in capped runs. Explicit zero requires an actually covered/free plan.",
-      "LLM_PRICE_SNAPSHOT_PATH": "Versioned prices and actual supplied-context estimates with tokenizer headroom, plus configured output allowance. Actual usage settles reservations; this is a soft target, not an exact input-token hard ceiling.",
-      "amend_research_budget": "Administrative service function, not an agent tool; requires an authorization reference, approving identity and idempotent amendment identity.",
-      "independence": "Dollar changes do not change worker count, producer deadline or production schedules.",
-      "core_tasks": "Editable surface/purpose rules in config/inference_policy.json identify core interpretation/writing/review. They preserve the configured full model when a positive target funds the run.",
-      "best_effort_model": "Explicit editable model/credential definition in config/inference_policy.json, independent of whole-run rollback. Currently DeepSeek Flash; it does not replace funded core Pro work."
-    },
-    "verification": {
-      "result": "114 passed in 4.40 seconds",
-      "files": [
-        "tests/test_adaptive_run_budget.py",
-        "tests/test_aql_zopedia_gateway.py",
-        "tests/test_recurring_inference_costs.py",
-        "tests/test_zopedia_learning.py",
-        "tests/test_zopedia_learning_evals.py",
-        "tests/test_news_business_resolution.py",
-        "tests/test_llm_execution.py",
-        "tests/test_production_job_boundaries.py",
-        "tests/test_database_publication.py",
-        "tests/test_web_research.py"
-      ],
-      "scope": "Actual isolated PostgreSQL and shared gateway/client/financial code with simulated HTTP responses. Covers zero/missing allowance, economical completion, full-model protected writing/review, overrun accounting, discovery exclusion, same-run retry/new-run freshness, ownership and learning contracts. No NLP-quality acceptance claimed. The expanded set also verifies late usage reconciliation from a different recovery process, idempotency, metering retention after child cancellation, publication/read separation and paid search transport contracts.",
-      "actual_spend_usd": 0,
-      "database_cleanup": "Every diagnostic cluster stopped; postmaster.pid absence verified before private archival.",
-      "broader_checks": "32 existing failures in tests/test_zopedia_agent.py and tests/test_pipeline_jobs.py reproduced as the identical failure-name set on the prior accepted release worktree. Do not count them as passes or rewrite semantic phrase expectations to claim acceptance.",
-      "source_hashes": {
-        "pipeline/jobs/main.py": "144a2bfb58b65c2ab944c6b9dea5fefdfe5098f948e47e9da002be12c7ecca5a",
-        "services/aql_zopedia_gateway.py": "4be18bcd47a124593acc25cb6123c79ca34a30dc3aeb36f9a9853e7508b7622a",
-        "services/llm_execution.py": "4f1818b76fadb3c569594a256a42e1497165d03461418087d227450c1d518984",
-        "services/inference_policy.py": "0971f0b573c90eee5e9f12b650018e5c027e44e7ec8f54de968034bfad8c0114",
-        "services/zopedia_agent.py": "c56f6bbe3885b282a3338371a3ac0ab12b759dee204edeef32e3fe1ee4f458b8",
-        "services/zopedia_learning.py": "d97997c8eb52c2bc47d8f048fdae796827c974f4a624752ce7e48c90c6106c87",
-        "services/pipeline_store.py": "4c2bd35037e19c201050759ccd83b54eec4032bfda4873bab5b4d65418eb4d60",
-        "services/work_scope.py": "479a7abf581333e4a6f6804d68483bc58fbdee21aff93c26eeb4a9d2de3777ee",
-        "config/inference_policy.json": "043455c47d5883a75e2b2174b742972b5104c4ebf7cc1c38e492f2f4b71de001"
-      }
-    },
-    "remaining_implementation_and_acceptance": [
-      "Qualify the implemented protected completion bank and optional-depth behavior on complete outputs; implement finer LLM-prioritized child grants only where useful.",
-      "Decouple completed evidence identity from execution capacity/budget parameters; assess adequacy of retained shallow answers for deeper objectives and reuse captured work across replica recovery.",
-      "Complete deadline-driven publication of the completed subset, durable incremental current aggregate recovery and storage-native publication fencing. Per-company isolation alone does not establish whole-run publication.",
-      "Known late metering receipts now reconcile to original run/account reservations, including after child cancellation; qualify this integration in DEV. Retention and adoption of complete paid answer content after cancellation remains unfinished. Unknown usage stays reserved.",
-      "Include bounded incremental rented-compute/tool categories beyond the integrated inference/search transports before claiming complete research-spend coverage; fixed shared hosting remains separately reported.",
-      "Qualify ownership renewal with mixed interactive/background production-shaped load and actual producer persistence/retry; short-TTL local checks are not complete scheduled-run acceptance.",
-      "Resolve primary-candidate synthesis failures using retained complete evidence and personally evaluate full outputs, including dated event wording.",
-      "Verify the bounded learning/journal change in the production-shaped runner and establish the historical afternoon platform termination cause.",
-      "Review all affected consumers, accept complete local behavior, build only accepted Git source, qualify the exact image in DEV, then use the existing conditional production authorization.",
-      "Measure whole-account recurring cost and useful research coverage against the original baseline. No90percent reduction claim is supported yet."
-    ],
-    "production_changed": false,
-    "image_built": false,
-    "private_evidence_root": "~/Library/Application Support/SpectralNature/operations/production-recovery-2026-10-27/adaptive-budget-contracts"
-  },
-  "routing_and_recovery_status": {
-    "recorded_at_utc": "2026-10-28T05:39:55.692100+00:00",
-    "task_model_routing": "Already implemented, deployed and verified. Balanced policy routes company-refresh assessment, company research planning, follow-up planning and retrieval planning to DeepSeek Flash. Dossier synthesis, final company narratives and required review preserve the full configured model.",
-    "live_observation": "Production news rollout state still has rollback=true from news-ingest-and-features-29885525, updated2026-10-27T20:45:49.495857Z. Existing code keys this by job/policy, so later scheduled executions bypass balanced routing and reuse.",
-    "local_repair": "Fallback state is now scoped to the platform execution; replica retry keeps baseline and the original clock, while a later scheduled execution uses its selected profile. Deliberate release-wide baseline remains an explicit configuration choice.",
-    "checks": "62 passed in1.55seconds: recurring inference contracts, provider execution contracts and production job boundaries.",
-    "design_recommendation": "Automatic whole-run configuration fallback is unnecessary for the observed persistence, ownership and deadline failures. Prefer retained-work continuation, safe bounded stage retries and model escalation only for a model-specific failure. Keep deployment rollback separate. Removing the automatic baseline mechanism is a proposed simplification; the local repair currently preserves the earlier explicit baseline-retry instruction.",
-    "production_changed": false,
-    "source_sha256": "a89fd0f978beb3d489671c25c59ce41889ab070afebb0bb5f180abd2591afd1d",
-    "status": "superseded_by_owner_requested_fallback_removal"
-  },
-  "automatic_configuration_fallback": {
-    "owner_instruction": "Then remove it",
-    "status": "removed_from_source_operational_checks_passed_not_deployed",
-    "recorded_at_utc": "2026-10-28T05:46:20.042032+00:00",
-    "removed": [
-      "execute_with_fallback and its caller",
-      "Automatic LLM_POLICY_PROFILE mutation",
-      "Runtime reads and writes of inference_rollout state",
-      "Failure-triggered whole-run baseline execution",
-      "rollout/fallback_profile/attempt_seconds from the repository inference policy"
-    ],
-    "retained": [
-      "Existing task-specific economy/full-model routing and reuse",
-      "Platform process retry and retained execution identity/checkpoints",
-      "Original logical-run dollar allowance across replicas",
-      "Producer-owned news deadline, default7200seconds from the original execution start",
-      "Explicit operator-selected baseline profile and accepted deployment rollback records"
-    ],
-    "deadline_configuration": "PIPELINE_JOB_MAX_DURATION_SECONDS defaults to7200 for news; explicitly setting it enables the same producer guard for other jobs. It is independent of model policy.",
-    "failure_behavior": "Unexpected exceptions retain their original type and cause. Partial/degraded results are recorded as Warning by the existing job controller and do not trigger a whole-run model switch.",
-    "verification": {
-      "result": "63 passed in1.54seconds",
-      "files": [
-        "tests/test_recurring_inference_costs.py",
-        "tests/test_llm_execution.py",
-        "tests/test_production_job_boundaries.py"
-      ],
-      "regressions": [
-        "Two replicas keep balanced routing and the same original run identity, dates and$10 allowance even if the later environment requests$1000.",
-        "The second replica sees the remaining6600seconds after600seconds have elapsed, not a new7200seconds.",
-        "An expired execution cannot invoke the producer again.",
-        "Historical rollback state cannot select a different profile.",
-        "A partial run returns Warning without a model-policy restart.",
-        "The producer deadline also applies to explicitly selected baseline."
-      ],
-      "scope": "Operational control flow only; no narrative/model quality change, paid inference, research GPU, application build or production job start."
-    },
-    "production_changed": false,
-    "source_sha256": {
-      "services/inference_policy.py": "e700590cb08fe3aa351b11f9b8d5151e7aff8a055b89ed940d04229475c20eda",
-      "pipeline/jobs/main.py": "27cbb04f210d1702f2fda12c0756e167fea612fd6123e73b56950392cd568c4b",
-      "config/inference_policy.json": "e2cc12735d5170daba4b7c2a3cd1d7a743125408f8cc36eb3f21b1a0d58e1887",
-      ".env.example": "157ce4d937aa2c6de487d701e843efbb06c12533de313e6ec9c34d2f3504e898"
-    },
-    "live_state_note": "The old production image still contains the removed mechanism. Historical rollout records are preserved as evidence; this source change takes effect when the accepted follow-up release is deployed. Existing live configuration was not changed."
-  },
-  "qualification_capacity": {
-    "checked_at_utc": "2026-10-28T06:13:26.955732+00:00",
-    "pacific_day": "2026-10-27",
-    "provider": "Lambda",
-    "active_instances": 0,
-    "gpu_8x_b200_sxm6_usd_per_hour": 53.52,
-    "available_regions": [],
-    "launches": 0,
-    "spend_usd": 0,
-    "constraint": "The exact-model complete-output comparison is not started. Required B200 allocation currently has no capacity. The separate $25 Pacific-day offline research allowance still applies and must be explicitly increased before any allocation estimate exceeds it.",
-    "owner_exception_requested": "One offline DeepSeek API comparison, at most $15, explicitly waiving the Lambda-only rule for that comparison; awaiting owner reply. No comparison has started."
-  },
-  "planned_follow_up_environment": {
-    "status": "proposal_for_accepted_release_not_applied",
-    "news-ingest-and-features": {
-      "RESEARCH_RUN_BUDGET_USD": "10"
-    },
-    "attention-home-build": {
-      "RESEARCH_RUN_BUDGET_USD": "10"
-    },
-    "zopedia-learning": {
-      "RESEARCH_RUN_BUDGET_USD": "10"
-    },
-    "note": "A positive target preserves full-model core work. Missing/zero budgets intentionally use the best-effort model; do not deploy into unset producer allowances accidentally. These targets do not require spending or change schedules. Final values remain reviewable before exact-image DEV qualification."
-  }
+  "consumer_review": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json",
+  "deployment_status": "not_started"
 }

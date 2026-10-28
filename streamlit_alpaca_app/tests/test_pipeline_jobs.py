@@ -91,7 +91,7 @@ def test_upload_frame_persists_empty_frames(monkeypatch):
 
 def test_upload_manifest_delegates_complete_receipt_to_publication_owner(monkeypatch):
     published = []
-    monkeypatch.setattr("services.pipeline_store.publish_dataset_manifest", published.append)
+    monkeypatch.setattr("services.pipeline_store.publish_dataset_manifest", lambda manifest: published.append(manifest) or True)
     ctx = JobContext(name="attention-home-build", run_id="abcdef12-test-run",
         asof=datetime(2026, 5, 27, 19, 55, tzinfo=timezone.utc), universe_version="20260527")
     manifest = _upload_manifest("attention_home_snapshots_1d", "datasets/home.parquet", pd.DataFrame([{"x": 1}]), ctx)
@@ -165,7 +165,7 @@ def test_uploads_are_isolated_in_configured_dataset_namespace(monkeypatch):
         }
 
     published = []
-    monkeypatch.setattr("services.pipeline_store.publish_dataset_manifest", published.append)
+    monkeypatch.setattr("services.pipeline_store.publish_dataset_manifest", lambda manifest: published.append(manifest) or True)
     monkeypatch.setenv("PIPELINE_DATASET_NAMESPACE", "development")
     monkeypatch.setattr("pipeline.jobs.main._upload_bytes", _capture)
     ctx = JobContext(

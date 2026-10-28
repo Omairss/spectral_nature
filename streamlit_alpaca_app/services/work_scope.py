@@ -81,21 +81,6 @@ def work_expired() -> bool:
     return any(scope._cancelled.is_set() or time.monotonic() >= scope.deadline for scope in _SCOPES.get())
 
 
-@contextmanager
-def paid_receipt_retention(seconds: float = 15):
-    """Retain metering receipts after their child execution is cancelled.
-
-    Only the provider's finalization boundary uses this scope. It does not
-    authorize new inference, acquisition or application publication.
-    """
-    token = _SCOPES.set(())
-    try:
-        with WorkScope(time.monotonic() + seconds).activate():
-            yield
-    finally:
-        _SCOPES.reset(token)
-
-
 def register_cancellation(callback: Callable[[], None]) -> Callable[[], None]:
     scopes = _SCOPES.get()
     registered = []

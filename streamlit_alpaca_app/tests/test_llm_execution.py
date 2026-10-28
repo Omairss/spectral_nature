@@ -355,6 +355,26 @@ def test_metering_receipt_survives_both_store_failures_in_execution_log(store, m
     assert receipt["root_run_id"] == "root-job" and 'fake' not in json.dumps(receipt)
 
 
+def test_complete_paid_response_survives_child_cancellation_and_is_adopted_without_repurchase(store):
+    from services.work_scope import WorkScope, WorkCancelled
+    import time
+    work = WorkScope(time.monotonic() + 5)
+    model, calls = client([response(usage={"prompt_tokens": 101, "completion_tokens": 17})])
+    post = model.session.post
+    def complete_then_cancel(**kwargs):
+        result = post(**kwargs)
+        work.cancel()
+        return result
+    model.session.post = complete_then_cancel
+    with pytest.raises(WorkCancelled):
+        with work.activate():
+            generate(model)
+    model.session.post = lambda **kwargs: pytest.fail("Retained complete output was repurchased")
+    assert generate(model)["value"] == 1
+    assert len(calls) == 1
+    assert len([event for event in store[1] if event["status"] == "success"]) == 1
+
+
 def test_tool_research_repairs_retained_draft_without_repeating_acquisition(store, monkeypatch):
     from services import aql_zopedia_engine as engine
     monkeypatch.setattr(pipeline_store, "record_model_call", lambda **kwargs: True)

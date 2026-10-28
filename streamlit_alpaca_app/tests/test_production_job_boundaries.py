@@ -90,6 +90,33 @@ def test_eight_company_workers_carry_the_parent_execution_scope(monkeypatch):
     assert all(0 < remaining <= 5 for remaining in inherited)
 
 
+def test_company_batch_returns_completed_results_at_deadline_and_cancels_straggler(monkeypatch):
+    from services.work_scope import check_work
+    release = threading.Event()
+    stopped = threading.Event()
+    def investigate(*, symbol, **kwargs):
+        if symbol == "FAST":
+            return symbol
+        try:
+            release.wait(timeout=1)
+            check_work()
+            pytest.fail("Cancelled company continued work")
+        except WorkCancelled:
+            stopped.set()
+            raise
+    monkeypatch.setattr(company, "build_ticker_business_model_stack", investigate)
+    events = []
+    started = time.monotonic()
+    try:
+        results = company.build_ticker_business_model_stack_results(symbols=["FAST", "SLOW"],
+            research_deadline_monotonic=started + .05, progress_callback=events.append)
+        assert results == ["FAST"] and time.monotonic() - started < .5
+    finally:
+        release.set()
+    assert stopped.wait(timeout=1)
+    assert any(event.get("symbol") == "SLOW" for event in events)
+
+
 def test_recovery_distinguishes_scan_progress_from_actual_failed_repairs(monkeypatch):
     from pipeline.jobs import main
     from services import pipeline_store
@@ -141,7 +168,9 @@ def test_news_phases_publish_current_outputs_without_merging_old_interpretations
     monkeypatch.setattr(main, "_zopedia_pages_for_news_resolution", lambda conn: pd.DataFrame())
     monkeypatch.setattr(main, "_job_progress", lambda *args, **kwargs: None)
     monkeypatch.setattr(main, "_make_stdout_zopedia_progress_callback", lambda **kwargs: lambda event: None)
+    calls = []
     def company_phase(**kwargs):
+        calls.append("company")
         kwargs["progress_callback"]({"stage": "business_research_incomplete", "symbol": "LATER"})
         return {"zopedia_ticker_business_model_stacks": pd.DataFrame([dict(
             symbol="COMPLETED", run_id="current", business_story_markdown="Completed output.")])}
@@ -156,10 +185,14 @@ def test_news_phases_publish_current_outputs_without_merging_old_interpretations
     monkeypatch.setattr(main, "_zopedia_memory_commit_report_frame", lambda **kwargs: pd.DataFrame())
     phases = main._iter_news_business_research_output_phases(news=pd.DataFrame(),
         edgar_evidence=pd.DataFrame(), symbols=["COMPLETED", "LATER"], llm_client=None, ctx=ctx, conn=None)
-    assert next(phases)["zopedia_ticker_business_model_stacks"].iloc[0]["symbol"] == "COMPLETED"
     published = next(phases)["zopedia_news_business_resolutions"].set_index("symbol")
     assert set(published.index) == {"COMPLETED"}
-    assert list(phases) == []
+    assert not calls
+    assert next(phases)["zopedia_ticker_business_model_stacks"].iloc[0]["symbol"] == "COMPLETED"
+    assert calls == ["company"]
+    remaining = list(phases)
+    assert len(remaining) == 1
+    assert set(remaining[0]) == {"zopedia_company_business_memory_pages", "zopedia_memory_commit_report"}
     assert not ctx.continuations
     assert set(ctx.degraded_components) == {"company_research", "news_interpretation"}
 

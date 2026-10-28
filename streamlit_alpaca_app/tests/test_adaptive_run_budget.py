@@ -25,6 +25,7 @@ def store(monkeypatch):
         pytest.skip("Set SN_DB_TEST_DSN to an isolated PostgreSQL database")
     monkeypatch.setattr(pipeline_store, "_postgres_connection_string", lambda: dsn)
     monkeypatch.setenv("PIPELINE_RUN_ID", "budget-contract-" + uuid.uuid4().hex)
+    monkeypatch.setenv("PIPELINE_JOB_NAME", "news-ingest-and-features")
     monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "10")
     monkeypatch.setenv("AQL_ZOPEDIA_MODEL_TELEMETRY_ENABLED", "1")
     monkeypatch.setenv("POSTGRES_GLOBAL_ACTIVE_LIMIT", "3")
@@ -323,6 +324,12 @@ def test_completion_funds_are_protected_before_concurrent_optional_work(store):
     assert released["reserved_usd"] == before["available_usd"]
 
 
+def test_unbudgeted_queued_user_research_preserves_its_explicit_model(store, monkeypatch):
+    monkeypatch.delenv("RESEARCH_RUN_BUDGET_USD", raising=False)
+    monkeypatch.setenv("PIPELINE_JOB_NAME", "research-run-execute")
+    assert not execution.best_effort_required()
+
+
 def test_exhausted_optional_budget_keeps_core_writing_and_review_on_full_model(store, monkeypatch):
     from services import llm, aql_zopedia_gateway as gateway
     monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "0.01")
@@ -412,7 +419,36 @@ def test_received_usage_survives_child_cancellation_without_authorizing_new_work
                 "model": config.model, "messages": [{"role": "user", "content": "Current input"}]}, timeout=30)
     state = pipeline_store.read_execution_state(*root, strict=True)
     assert all(value["status"] == "settled" for value in state["attempts"].values())
-    from services.work_scope import paid_receipt_retention
-    with execution.model_call_context(retaining_paid_receipt=True), paid_receipt_retention():
-        with pytest.raises(RuntimeError, match="retention cannot start"):
-            execution.check_execution_ownership()
+    with pytest.raises(RuntimeError, match="retention cannot start"):
+        execution.retain_paid_result(execution.check_execution_ownership)
+
+
+def test_optional_full_research_must_fit_original_soft_target(store, monkeypatch):
+    from services.llm import LLMConfig
+    config = LLMConfig(provider="deepseek", api_key="test", model="deepseek-v4-pro", base_url="https://api.deepseek.com")
+    monkeypatch.setenv("RESEARCH_RUN_SOFT_OVERRUN_FRACTION", "0.1")
+    monkeypatch.setattr(execution, "_request_maximum_charge", lambda *a: 3)
+    assert execution.protect_core_research(config=config, work={"current-news": "Current sources"}, stages=1)
+    monkeypatch.setattr(execution, "_request_maximum_charge", lambda *a: 8)
+    assert execution.protect_core_research(config=config, work={"company:A": "Fresh sources"}, stages=1, required=False)
+    # A replica's changed environment must not turn 10% into a new allowance.
+    monkeypatch.setenv("RESEARCH_RUN_SOFT_OVERRUN_FRACTION", "10")
+    assert not execution.protect_core_research(config=config, work={"company:B": "Fresh sources"}, stages=1, required=False)
+    execution.complete_core_research("company:A")
+    assert execution.protect_core_research(config=config, work={"company:B": "Fresh sources"}, stages=1, required=False)
+    # A released subject cannot restart full research without funding it again.
+    assert not execution.protect_core_research(config=config, work={"company:A": "Fresh sources"}, stages=1, required=False)
+    with execution.model_call_context(optional_core_unfunded=True):
+        assert execution.best_effort_required() and not execution.funded_core_research()
+        assert not execution.protect_core_research(config=config, work={"nested": "Fresh sources"})
+
+
+def test_larger_target_can_fund_more_complete_investigations(store, monkeypatch):
+    from services.llm import LLMConfig
+    config = LLMConfig(provider="deepseek", api_key="test", model="deepseek-v4-pro", base_url="https://api.deepseek.com")
+    monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "1000")
+    monkeypatch.setattr(execution, "_request_maximum_charge", lambda *a: 10)
+    for index in range(30):
+        assert execution.protect_core_research(config=config, work={str(index): "Full supplied context"}, stages=3, required=False)
+    state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
+    assert sum(value["remaining_microusd"] for value in state["core_obligations"].values()) == 900_000_000

@@ -1312,8 +1312,8 @@ def _company_name_map(frame: pd.DataFrame) -> dict[str, str]:
     if not name_column:
         return {}
     rows = frame[["symbol", name_column]].copy()
-    rows["symbol"] = rows["symbol"].astype(str).str.upper().str.strip()
-    rows[name_column] = rows[name_column].astype(str).str.strip()
+    rows["symbol"] = rows["symbol"].fillna("").astype(str).str.upper().str.strip()
+    rows[name_column] = rows[name_column].fillna("").astype(str).str.strip()
     rows = rows[rows["symbol"].ne("") & rows[name_column].ne("")]
     return dict(rows.drop_duplicates(subset=["symbol"], keep="first").itertuples(index=False, name=None))
 
@@ -2183,7 +2183,10 @@ def _review_home_public_surface(
         "Select and rank developments and connections by expected relevance and usefulness, "
         "including worthwhile uncertain leads. Explain what changed, why it matters economically "
         "and what would change the interpretation. Use the artifact's public fields for the "
-        "briefing and its review fields for your assessment. Return a decision for every supplied "
+        "briefing and its review fields for your assessment. Public text explains the business connection, "
+        "competing interpretations and the useful next observation. Acquisition coverage, missing documents "
+        "and editorial instructions belong in issues, review_note or limitations. Give each public title the "
+        "development and its economic meaning. Return a decision for every supplied "
         "candidate using its unchanged section, index, bundle_id and symbol, and discover "
         "additional events from the source intake where useful."
     )
@@ -2331,16 +2334,27 @@ def build_attention_home_output_frames(
     )
     print("[info] attention-home-build loading universe/taxonomy snapshots")
     universe_snapshot_frame = load_materialized_frame_fn("universe_snapshot")
+    listing_identity_frame = load_materialized_frame_fn("us_equity_listings")
+    # Liquidity selection is not the identity catalog. Attention may nominate
+    # an asset outside today's selected universe; retain its known listing
+    # identity before the shared investigator resolves its business meaning.
+    identity_frame = universe_snapshot_frame
+    if isinstance(listing_identity_frame, pd.DataFrame) and "symbol" in listing_identity_frame:
+        if "symbol" in universe_snapshot_frame:
+            identity_frame = universe_snapshot_frame.drop_duplicates("symbol").set_index("symbol").replace(r"^\s*$", None, regex=True).combine_first(
+                listing_identity_frame.drop_duplicates("symbol").set_index("symbol")).reset_index()
+        else:
+            identity_frame = listing_identity_frame
     taxonomy_labels_frame = load_materialized_frame_fn("entity_taxonomy_labels")
-    company_name_by_symbol = _company_name_map(universe_snapshot_frame)
+    company_name_by_symbol = _company_name_map(identity_frame)
     asset_metadata = {
         str(row["symbol"]): {**row, "name": row.get("security_name") or row.get("name")}
-        for row in universe_snapshot_frame.to_dict("records") if row.get("symbol")
+        for row in to_jsonable(identity_frame.to_dict("records")) if row.get("symbol")
     }
     entity_master = build_attention_entity_master(
         shortlist, taxonomy_frame=taxonomy_labels_frame, asset_metadata_by_symbol=asset_metadata,
     )
-    research_universe = universe_snapshot_frame.copy()
+    research_universe = identity_frame.copy()
     if "symbol" in taxonomy_labels_frame:
         research_universe = (
             research_universe.merge(taxonomy_labels_frame, on="symbol", how="outer", suffixes=("", "_taxonomy"))

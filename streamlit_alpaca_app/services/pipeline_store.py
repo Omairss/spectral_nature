@@ -1104,10 +1104,11 @@ def _stable_latest_manifest_metadata(dataset_name: str) -> PipelineDataset | Non
 
 def _publication_generation(value: dict[str, Any]) -> tuple:
     return (_dataset_time_epoch(value.get("asof_time_utc")),
+            int(value.get("execution_fence") or 0),
             _dataset_time_epoch(value.get("ingested_at_utc")), str(value.get("dataset_version_id") or ""))
 
 
-def publish_dataset_manifest(manifest: dict[str, Any]) -> None:
+def publish_dataset_manifest(manifest: dict[str, Any]) -> bool:
     """Publish a version receipt and conditionally advance its latest pointer."""
     from .llm_execution import check_execution_ownership
     from .work_scope import check_work
@@ -1128,27 +1129,33 @@ def publish_dataset_manifest(manifest: dict[str, Any]) -> None:
     settings = ContentSettings(content_type="application/json")
     version = client.get_blob_client(container=_storage_container(), blob=dataset_blob_path(
         f"manifests/{dataset.dataset_name}/{dataset.dataset_version_id}.json"))
-    version.upload_blob(payload, overwrite=True, content_settings=settings)
+    try:
+        version.upload_blob(payload, overwrite=False, content_settings=settings, **_blob_io_options())
+    except ResourceExistsError:
+        if version.download_blob(**_blob_io_options()).readall() != payload:
+            raise ValueError("A dataset version is immutable; publish changed data under a new version")
     latest = client.get_blob_client(container=_storage_container(), blob=dataset_blob_path(
         f"manifests/{dataset.dataset_name}/latest.json"))
 
     for _ in range(8):
+        check_work()
+        check_execution_ownership()
         try:
-            download = latest.download_blob()
+            download = latest.download_blob(**_blob_io_options())
             current = json.loads(download.readall())
             etag = download.properties.etag
         except ResourceNotFoundError:
             current, etag = None, None
         if current is not None and _publication_generation(current) >= _publication_generation(manifest):
-            return
+            return current.get("dataset_version_id") == manifest["dataset_version_id"]
         try:
             if etag is None:
-                latest.upload_blob(payload, overwrite=False, content_settings=settings)
+                latest.upload_blob(payload, overwrite=False, content_settings=settings, **_blob_io_options())
             else:
                 latest.upload_blob(payload, overwrite=True, content_settings=settings,
-                                   etag=etag, match_condition=MatchConditions.IfNotModified)
+                                   etag=etag, match_condition=MatchConditions.IfNotModified, **_blob_io_options())
             _write_cached_metadata(dataset.dataset_name, dataset)
-            return
+            return True
         except (ResourceExistsError, ResourceModifiedError):
             continue
     raise RuntimeError("Concurrent publication did not settle within its retry allowance")
@@ -2460,6 +2467,7 @@ def _ensure_execution_store(conn: Any) -> None:
         if identity in _EXECUTION_SCHEMA_READY:
             return
         with conn.cursor() as cur:
+            cur.execute("CREATE SEQUENCE IF NOT EXISTS aql_zopedia_execution_fence")
             cur.execute("""CREATE TABLE IF NOT EXISTS aql_zopedia_execution_state (
                 namespace TEXT NOT NULL, state_key TEXT NOT NULL, payload JSONB NOT NULL,
                 updated_at_utc TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -2494,7 +2502,7 @@ def read_execution_state(namespace: str, state_key: str, *, strict: bool = False
         return dict(row[0]) if row else None
 
 
-def claim_execution_state(namespace: str, state_key: str, *, owner: str, seconds: float) -> bool:
+def claim_execution_state(namespace: str, state_key: str, *, owner: str, seconds: float) -> int:
     """Short SQL transaction; a lease never holds a connection during inference."""
     conn = open_database_connection()
     if conn is None:
@@ -2503,13 +2511,14 @@ def claim_execution_state(namespace: str, state_key: str, *, owner: str, seconds
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
             cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
-                VALUES (%s,%s,jsonb_build_object('owner',%s::text,'expires_at',
+                VALUES (%s,%s,jsonb_build_object('owner',%s::text,'fence',nextval('aql_zopedia_execution_fence'),'expires_at',
                     clock_timestamp()+%s*interval '1 second'))
                 ON CONFLICT(namespace,state_key) DO UPDATE
                 SET payload=excluded.payload,updated_at_utc=now()
                 WHERE (aql_zopedia_execution_state.payload->>'expires_at')::timestamptz < clock_timestamp()
-                RETURNING state_key""", (namespace, state_key, owner, max(float(seconds), 1)))
-            claimed = cur.fetchone() is not None
+                RETURNING (payload->>'fence')::bigint""", (namespace, state_key, owner, max(float(seconds), 1)))
+            row = cur.fetchone()
+            claimed = int(row[0]) if row else 0
         conn.commit()
         return claimed
 
@@ -2651,6 +2660,28 @@ def write_execution_states(namespace: str, values: dict[str, dict[str, Any]]) ->
         return True
 
 
+def retain_provider_response(namespace: str, key: str, *, value: dict[str, Any]) -> dict[str, Any]:
+    """Retain complete paid output privately, independently of child adoption.
+
+    Exact-request replay belongs to its original logical run. It grants no
+    research acceptance, publication permission or knowledge-write authority.
+    """
+    artifact_id = hashlib.sha256((key + value["attempt_id"]).encode()).hexdigest()
+    reference = {"namespace": namespace, "key": artifact_id, "input_key": key}
+    try:
+        if write_execution_state(namespace, artifact_id, value, immutable=True):
+            if value.get("replayable_after_cancellation") and not write_execution_state(
+                    namespace + ":inputs", key, {"artifact_id": artifact_id}):
+                raise RuntimeError("Late response pointer awaits recovery")
+            return {**reference, "stored": "database"}
+    except Exception:
+        pass
+    archive = ImmutableBlobArchive(namespace=namespace.split(":", 1)[1], root="provider-responses")
+    receipt = archive.put(json.dumps(to_jsonable(value), sort_keys=True, allow_nan=False).encode(),
+                          suffix="json", content_type="application/json")
+    return {**reference, "stored": "archive", "receipt": receipt}
+
+
 def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool = True) -> bool:
     """One actual HTTP attempt. Logical gateway events never enter this ledger."""
     if not _model_call_telemetry_enabled():
@@ -2678,6 +2709,15 @@ def record_provider_attempt(event: dict[str, Any], *, archive_on_failure: bool =
         from .llm_execution import reconcile_provider_reservation
         if not (event.get("metadata") or {}).get("reservation_settled"):
             reconcile_provider_reservation(event)
+        retained = (event.get("metadata") or {}).get("retained_response") or {}
+        if retained.get("stored") == "archive" and retained.get("receipt"):
+            archive = ImmutableBlobArchive(namespace=retained["namespace"].split(":", 1)[1], root="provider-responses")
+            value = json.loads(archive.get(retained["receipt"]))
+            if not write_execution_state(retained["namespace"], retained["key"], value, immutable=True):
+                raise RuntimeError("Complete paid response awaits database recovery")
+            if value.get("replayable_after_cancellation") and not write_execution_state(
+                    retained["namespace"] + ":inputs", retained["input_key"], {"artifact_id": retained["key"]}):
+                raise RuntimeError("Late response pointer awaits database recovery")
         return True
     except Exception:
         pass

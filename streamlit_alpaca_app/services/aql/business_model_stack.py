@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed, wait
 from contextlib import contextmanager
 from contextvars import copy_context
 from dataclasses import dataclass, asdict, replace
@@ -2201,7 +2201,8 @@ def _checkpoint_company_research(function):
                 ("execute_research", False), ("max_research_queries", 24),
                 ("max_search_results_per_query", 4), ("write_policy", "propose"))},
             "prompts": llm.list_narrative_prompts(), "parameters": llm.list_config_params(),
-            "environment": {key: value for key, value in os.environ.items() if key.startswith("ZOPEDIA_TICKER_BUSINESS_")},
+            "environment": {key: value for key, value in os.environ.items() if key.startswith("ZOPEDIA_TICKER_BUSINESS_")
+                            and key not in {"ZOPEDIA_TICKER_BUSINESS_MAX_WORKERS", "ZOPEDIA_TICKER_BUSINESS_BATCH_BUDGET_SECONDS"}},
         }
         namespace, contract = research_artifact_key(access_scope=access, subject="company:" + symbol,
             query=serialize_llm_context(inputs), schema={}, config=client.config)
@@ -2867,8 +2868,22 @@ def build_ticker_business_model_stack_results(
     def research(symbol):
         from ..work_scope import WorkCancelled
         from ..llm import LLMDeadlineExceeded
+        from ..llm_execution import protect_core_research, model_call_context, complete_core_research, retain_paid_result
+        core_id = "company:" + symbol
+        funded = True
+        config = None
         try:
-            return build_ticker_business_model_stack(symbol=symbol, **kwargs)
+            config = getattr(llm_client, "config", None)
+            if config is not None:
+                funded = protect_core_research(config=config, stages=3, required=False, work={core_id: {
+                    "baseline": _company_baseline_row(company_baselines_frame, symbol),
+                    "fundamentals": _fundamental_rows(fundamentals_frame, symbol, limit=10),
+                    "filings": _edgar_rows(edgar_evidence_frame, symbol, limit=4),
+                    "news": _news_rows_for_symbol(news_frame, symbol, limit=4),
+                }})
+            with model_call_context(core_work_id=core_id, optional_core_unfunded=not funded,
+                                    **({"completion_only": True} if not funded else {})):
+                return build_ticker_business_model_stack(symbol=symbol, **kwargs)
         except (ResearchWorkDeferred, WorkCancelled, LLMDeadlineExceeded):
             _emit_business_progress(progress_callback, stage="business_research_incomplete", symbol=symbol,
                 message="The current company investigation did not finish within this run.", progress=1.0)
@@ -2882,13 +2897,41 @@ def build_ticker_business_model_stack_results(
                 error_type=type(exc).__name__, message="Company investigation failed; completed research is retained.",
                 progress=1.0)
             return None
-    if max_workers == 1:
-        return [result for symbol in selected if (result := research(symbol)) is not None]
-    with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="company-research") as pool:
-        futures = [pool.submit(copy_context().run, research, symbol) for symbol in selected]
-        # Preserve caller order while every submitted company finishes. Browser
-        # and provider capacity are controlled independently at their shared owners.
-        return [result for future in futures if (result := future.result()) is not None]
+        finally:
+            # Returned, failed and cached work all release unused completion
+            # funds. In-flight/unknown transport reservations remain held.
+            if config is not None:
+                try:
+                    retain_paid_result(lambda: complete_core_research(core_id))
+                except Exception:
+                    log.warning("Company completion funding awaits reconciliation: %s", symbol)
+    from ..work_scope import WorkScope
+    batch = WorkScope(research_deadline_monotonic if research_deadline_monotonic is not None else float("inf"))
+    pool = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="company-research")
+    futures = []
+    try:
+        if time.monotonic() >= batch.deadline:
+            for symbol in selected:
+                _emit_business_progress(progress_callback, stage="business_research_incomplete", symbol=symbol,
+                    message="This run reached its company research deadline.", progress=1.0)
+            return []
+        with batch.activate():
+            futures = [pool.submit(copy_context().run, research, symbol) for symbol in selected]
+        timeout = max(0, batch.deadline - time.monotonic()) if research_deadline_monotonic is not None else None
+        done, pending = wait(futures, timeout=timeout)
+        for future, symbol in zip(futures, selected):
+            if future in pending:
+                _emit_business_progress(progress_callback, stage="business_research_incomplete", symbol=symbol,
+                    message="This run reached its company research deadline.", progress=1.0)
+        # Caller ordering remains stable; a straggler cannot delay publishing
+        # independently completed results beyond the producer's work window.
+        return [result for future in futures if future in done and not future.cancelled()
+                and (result := future.result()) is not None]
+    finally:
+        batch.cancel()
+        for future in futures:
+            future.cancel()
+        pool.shutdown(wait=False, cancel_futures=True)
 
 
 def _result_row(result: TickerBusinessModelStackResult) -> dict[str, Any]:
