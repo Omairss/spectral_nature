@@ -1,5 +1,5 @@
 {
-  "status": "local_verification_in_progress",
+  "status": "accepted_locally_pending_exact_image_dev",
   "owner_instruction": "Push to prod once everything is fixed. If it's not fixed, fucking fix it and push",
   "branch": "fix/production-acceptance-followup-20261027",
   "prior_live_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
@@ -67,7 +67,7 @@
     {
       "id": "event_chronology",
       "change": "Common event/report/observation timing guidance includes titles, attribution and market-session finality. PNR latest full-model replay correctly labels13:35UTC as snapshot rather than session close.",
-      "status": "complete_outputs_personally_reviewed_final_home_check_running"
+      "status": "complete_outputs_personally_accepted"
     },
     {
       "id": "instrument_identity",
@@ -97,7 +97,17 @@
     "cumulative_cap_usd": 15,
     "ledger": "private api-qualification-20261028/strict-study-ledger.json",
     "provider_exception": "This one retained-input offline batch only; no production run or new paid acquisition.",
-    "committed_estimate_usd": 9.352716
+    "known_metered_estimate_usd": 10.471441,
+    "unknown_reserved_usd": 0.786432,
+    "committed_upper_bound_usd": 11.257873,
+    "attempts": 88,
+    "unknown_attempts": 1,
+    "unknown_outcome": "One Flash ChunkedEncodingError retains its full legal786432-microdollar maximum; it is not treated as free or settled. Completed retries produced the accepted outputs.",
+    "by_pacific_day_committed_bound_usd": {
+      "2026-10-28": 11.257873
+    },
+    "gpu_allocations": 0,
+    "all_local_databases_stopped": true
   },
   "consumer_review": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json",
   "deployment_status": "not_started",
@@ -134,12 +144,36 @@
         "finding": "Report datedOctober26, investor eventOctober27, intraday observation retained. Source-specific guidance and business connections preserved."
       }
     },
-    "latest_guardrail": "Final HOME chronology replay at both budgets,900-second full-context editor allowance. Unfunded replay completed199.17seconds; headline leadsOctober27 reaction and explicitly datesOctober25 statement. Funded replay pending.",
+    "latest_guardrail": "Accepted complete HOME outputs at both budgets after factual chronology was carried through writing and independent headline review.",
     "rejected_headline_replay": {
       "engine_revision": "b0d4f89d10b9e67b8b5e",
       "budget_10_home_seconds": 558.7,
       "finding": "Body dated the October25 warning correctly, but the public title still led with present-tense Musk says. Rejected for the owner-requested headline freshness fix. Accounting, primary completion and unrelated accepted source work are not reopened.",
       "source_repair": "A factual time_basis record precedes each public story. Shared final review independently checks titles and openings. A date in the body does not excuse a misleading headline. No ticker-specific branch, regex or new model stage."
+    },
+    "final_home": {
+      "engine_revision": "bedf6aaeb94c0c15f271",
+      "budget_0_seconds": 199.168538,
+      "budget_10_seconds": 481.20107,
+      "configured_editor_seconds": 900,
+      "status": "personally_accepted_complete_public_outputs",
+      "findings": [
+        "Both headlines distinguish current October27 observations from the October25 warning. Full-model final review independently detected the undated older-statement lead and corrected the title.",
+        "All published public story fields and factual time_basis records inspected. Market snapshots remain intraday; older reports, generated company background and original events remain distinguished.",
+        "No ticker-specific branch, date regex, age cutoff or phrase grader. Full-model writing/review remains funded; missing allowance uses current cheap completion.",
+        "Primary KNSA/CLS completion failures are resolved in retained-acquisition replays; final KNSA cheap/full replays contain no invented licensing history. NIB identity and PNR session-finality replays are accepted."
+      ],
+      "artifacts": [
+        {
+          "file": "final-budget-0-HOME-bedf6aaeb94c0c15f271.json",
+          "sha256": "e952017acd2166fc1bb8260db8ccaf538db11d9f8888c40a9402358593d8b97d"
+        },
+        {
+          "file": "final-budget-10-HOME-bedf6aaeb94c0c15f271.json",
+          "sha256": "298062cd799453a15f164750025426b548bd5df3568a9aace545213f8f0cfa60"
+        }
+      ]
     }
-  }
+  },
+  "source_review": "documents/verification/production-recovery-2026-10-27/follow-up-source-review.json"
 }
