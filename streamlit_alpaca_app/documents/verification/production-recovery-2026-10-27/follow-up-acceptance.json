@@ -382,7 +382,64 @@
       "ninety_percent_target_usd": 4.521534226,
       "implication": "News-only optimization cannot meet the account-wide target while other producers remain unchanged."
     },
-    "acceptance": "Compare the same objectives and retained inputs across materially different budgets, personally evaluate complete outputs and attained depth, verify hard concurrent spend bounds and resume behavior, and qualify production recovery/publication. No new model calls were started to write this design."
+    "acceptance": "Compare the same objectives and retained inputs across materially different budgets, personally evaluate complete outputs and attained depth, verify hard concurrent spend bounds and resume behavior, and qualify production recovery/publication. No new model calls were started to write this design.",
+    "allocation_design": {
+      "status": "allocation_controller_design_runtime_not_implemented",
+      "recorded_at_utc": "2026-10-28T05:30:58.024977+00:00",
+      "current_runtime_gap": "The shared ledger enforces a ceiling but admits requests in arrival order. Planner context is advisory; no funded completion escrow, parent-assigned investigation grants or coordinated allocation among subjects exists yet.",
+      "objective": "Maximize useful research within the approved objective, dollars and deadline. Greater allowance permits deeper or broader work; it neither requires expenditure nor silently expands the requested scope.",
+      "funding_order": [
+        {
+          "stage": "Inspect retained work and current changes",
+          "behavior": "Build one shared inventory of retained findings, full sources, dates, material changes and unresolved questions. Charge planning and materiality assessment to the run. Use this to avoid purchasing the same company/event/source investigation independently for several consumers."
+        },
+        {
+          "stage": "Protect completion of admitted work",
+          "behavior": "Fund the writing and required review of every admitted investigation, plus required aggregate composition/finalization. Quote against actual model, bounded context/output and declared completion stages. Enlarge this obligation before admitting a scope/context increase. Reserve dollars and time independently; no fixed percentage guarantees completion."
+        },
+        {
+          "stage": "Propose research allocations",
+          "behavior": "The shared LLM planner ranks worthwhile questions using task importance, material changes, uncertain claims, counterevidence, existing coverage, shared dependencies and expected incremental usefulness. It proposes bounded work and the completion obligations it creates. Budget amounts are constrained by ledger arithmetic; research priorities are not hardcoded."
+        },
+        {
+          "stage": "Admit small funded stages",
+          "behavior": "Grant each investigation enough for a useful next stage and its finish obligation. All grants share the parent allowance and usable provider credit. Available worker count is a capacity ceiling; unfunded investigations wait. A grant expiring or needing more funds triggers checkpoint/reallocation, never permission to consume the remaining parent pool."
+        },
+        {
+          "stage": "Reassess and extend",
+          "behavior": "At material findings, contradictions, completed stages or an exhausted grant, reassess which next work most improves the objective. Return unused grant funds and expand promising investigations. Preserve room for important uncertain questions rather than selecting only cheap easy requests. Reuse the existing planner and reallocate at useful milestones; coordination costs are included."
+        },
+        {
+          "stage": "Complete within the original limits",
+          "behavior": "Finish funded work using its protected allowance, publish completed results and retain unfinished investigations. Retry or baseline fallback retains the original clock, spending and evidence. A failed cheap stage can escalate within remaining funds; it does not obtain a second budget."
+        }
+      ],
+      "ledger_contract": {
+        "invariant": "cap = settled charges + in-flight/unknown maximum reservations + protected future completion + unspent investigation grants + unallocated funds",
+        "no_double_counting": "Starting a funded request atomically moves funds from its grant/completion hold into an in-flight reservation; it does not reserve those dollars a second time. Settlement debits actual/bounded cost and returns unused headroom.",
+        "admission": "Commit run allowance, allocation authority and applicable provider-account affordability together. Remote planning/price queries occur outside the SQL transaction.",
+        "completion_growth": "No new investigation, source-context expansion or more expensive model may create an unfunded finish obligation. If the requested scope cannot fit, retain honest partial completion rather than silently declaring the objective satisfied.",
+        "handoff": "Reclaim unspent grants only with fenced allocation authority. In-flight and unknown paid attempts remain obligations after worker loss; reconciliation, not lease expiry alone, releases them.",
+        "amendments": "An explicit owner amendment retains spending, outstanding requests and all protected/granted funds. An ordinary retry or configuration change cannot increase the retained allowance."
+      },
+      "model_use": {
+        "economy": "Eligible bounded extraction, evidence organization, duplicate/materiality assessment and intermediate summaries; originals and dates remain available.",
+        "full": "Material interpretation, competing explanations, numerical assumptions requiring substantive reasoning, consequential synthesis and required review. Escalate economy work when substantive ambiguity warrants the cost.",
+        "measurement": "Route suitability and completion quotes must be calibrated on complete retained-source outputs and actual attempt costs; no claim that cheap routing or more spending guarantees quality."
+      },
+      "scaling_examples": {
+        "ten_dollars": "Favor retained knowledge and focused research on the most consequential unresolved changes. Protect full-model interpretation/review for admitted work; broader subjects can retain dated prior findings or honest pending status.",
+        "one_thousand_plus": "Permit more eligible investigations, fuller primary-source acquisition, alternative explanations, numerical scenarios and additional useful checking, within the same configured time and physical capacity.",
+        "not_tiers": "These illustrate expected behavior, not coded dollar thresholds, source counts or compulsory spending."
+      },
+      "qualification": [
+        "A high-cost early subject cannot exhaust other funded work or completion.",
+        "Concurrent children, retries and fallback never duplicate money or paid acquisition.",
+        "A larger allowance/depth request preserves captured evidence and reassesses whether prior analysis is sufficient.",
+        "Quotes, partial failures and ownership handoffs retain consistent obligations and truthful completion states.",
+        "Personally compare complete outputs and achieved breadth/depth for the same retained objectives under materially different allowances, respecting the separate offline-study provider/spending rules."
+      ]
+    }
   },
   "implementation_progress": {
     "status": "partial_implementation_locally_verified_release_held",
