@@ -151,7 +151,15 @@
       "baseline_retry_failed": "2026-10-27T20:48:13Z",
       "error": "WorkCancelled: Research work has expired.",
       "observed_boundary_failure": "Cancellation escaped the company-profile path; baseline retry then failed in build_edgar_evidence. Raw news articles and symbol map were persisted, but successful aggregate research completion was not established. This is not acceptance of completed-subset publication.",
-      "root_cause": "Not yet established; do not infer the overall two-hour budget elapsed from this error."
+      "root_cause": "Company checkpoint state includes a missing tabular value. services/pipeline_store.py write_execution_state serializes it with permissive json.dumps rather than existing shared to_jsonable normalization. PostgreSQL rejects the payload. The chained traceback then shows WorkCancelled during inference_policy failure-state recording, masking the originating exception. Cause of ownership cancellation and baseline engine cancellation still require separate diagnosis.",
+      "original_error": "psycopg.errors.InvalidTextRepresentation: invalid input syntax for type json; Token NaN is invalid; business_lens was NaN.",
+      "source_references": [
+        "services/aql/business_model_stack.py:2249",
+        "services/pipeline_store.py:2561",
+        "services/inference_policy.py:118",
+        "services/json_utils.py:11"
+      ],
+      "new_trace_status": "diagnosed_and_locally_reproduced_serialization_boundary_no_runtime_fix_yet"
     },
     "home": {
       "execution": "attention-home-build-29885570",
