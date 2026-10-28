@@ -66,15 +66,15 @@
     },
     {
       "request": "Two-hour completed subset and continuation",
-      "status": "verified_local_boundaries_pending_full_scheduled_run"
+      "status": "scheduled_run_failed_early_cancellation_not_accepted"
     },
     {
       "request": "Home failures and date quality",
-      "status": "qualifying_exact_adapter_follow_up"
+      "status": "scheduled_home_published_degraded_follow_up_held"
     },
     {
       "request": "Learning missing local files",
-      "status": "verified_native_fresh_connection_durability_pending_next_learning_run"
+      "status": "durable_input_verified_but_next_whole_learning_run_failed_platform_termination"
     },
     {
       "request": "Actual recurring cost improvement and90% target",
@@ -137,5 +137,49 @@
     "archive_sha256": "98b85236662899a935d0b4b60a69d969a92d44a4f6282a6070a6255ccb4e888f",
     "retention_minimum_until": "2026-11-26",
     "no_preexisting_page_changed": true
+  },
+  "scheduled_production_observation": {
+    "checked_at_utc": "2026-10-28T03:54:13.661701+00:00",
+    "checked_date_pacific": "2026-10-27",
+    "source": "Azure execution definitions, application job_runs and retained Log Analytics console logs; no jobs or inference started.",
+    "news": {
+      "execution": "news-ingest-and-features-29885525",
+      "started_utc": "2026-10-27T20:05:00Z",
+      "status": "Failed",
+      "application_duration_minutes": 42.53,
+      "candidate_replica_failed": "2026-10-27T20:45:01Z",
+      "baseline_retry_failed": "2026-10-27T20:48:13Z",
+      "error": "WorkCancelled: Research work has expired.",
+      "observed_boundary_failure": "Cancellation escaped the company-profile path; baseline retry then failed in build_edgar_evidence. Raw news articles and symbol map were persisted, but successful aggregate research completion was not established. This is not acceptance of completed-subset publication.",
+      "root_cause": "Not yet established; do not infer the overall two-hour budget elapsed from this error."
+    },
+    "home": {
+      "execution": "attention-home-build-29885570",
+      "started_utc": "2026-10-27T20:50:00Z",
+      "azure_status": "Succeeded",
+      "application_status": "Warning",
+      "ended_utc": "2026-10-27T21:36:37Z",
+      "duration_minutes": 46.0,
+      "application_message": "Research degraded; ticker enrichments 12/12 completed; source events 4/4 completed; market summary completed.",
+      "candidate_replica": "Failed after early WorkCancelled errors, including Home publication; baseline retry completed with degraded research.",
+      "quality_acceptance": "Completion counts do not establish final research quality or repair of plain-text review."
+    },
+    "learning": {
+      "execution": "zopedia-learning-29885480",
+      "started_utc": "2026-10-27T19:20:00Z",
+      "azure_status": "Failed",
+      "application_status": "Failed",
+      "progress_stage": "platform_terminated",
+      "last_console_utc": "2026-10-27T20:20:27Z",
+      "observation": "Process did not finalize its database run; no successful whole-job acceptance. Console activity ends around the one-hour platform allowance. Exact platform termination cause not yet established."
+    },
+    "recovery": {
+      "execution": "system-recovery-29885977",
+      "azure_status": "Succeeded",
+      "application_status": "Succeeded",
+      "application_start_utc": "2026-10-28T03:37:40Z",
+      "application_end_utc": "2026-10-28T03:37:41Z"
+    },
+    "release_decision": "Follow-up remains held; scheduled production evidence also leaves news, Home and learning acceptance open. No new image built or promoted."
   }
 }
