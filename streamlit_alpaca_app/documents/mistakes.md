@@ -1296,3 +1296,8 @@ The first paid-response recovery draft replayed every exact response, including 
 ### Unfunded prose can invent a plausible company relationship — October 28
 
 The cheapest complete KNSA replay added a drug-royalty history that appears in neither the captured acquisition nor the retained company background. The full-model replay stayed with the sourced product outlook. Tightened the common evidence contract for named product ownership, commercial counterparties, licensing, regulatory status and financial figures: use same-entity sources, keep generated prior analysis as a lead, and distinguish economic inference from factual relationships. This changes every research caller; no ticker-specific exclusion or phrase test was added. Final retained-input comparison remains within the single cumulative15-dollar owner exception.
+
+
+### Compare settled usage with the committed study bound — October 28
+
+One Flash request lost its connection with ChunkedEncodingError. The strict study guard retained its full legal maximum, and a later attempt completed the output. The first acceptance-record writer incorrectly required every attempt to have known usage and stopped. The source gate then refused the build; no image was built from an unaccepted record. Recorded the known token-price estimate and unknown maximum separately instead of treating the commitment as settled billing. The cumulative bound remains below the owner15-dollar cap, and the unknown obligation stays reserved.

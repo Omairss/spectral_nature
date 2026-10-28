@@ -1580,9 +1580,8 @@
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
-        "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
-        "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
-        "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+        "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json",
+        "review_scope": "Preserve the current client image and complete configuration. Feature/source acceptance remains with its separate frontend release."
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
       "role": "web"
@@ -1598,9 +1597,8 @@
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:abf387e66cf99526a31b865fd8f2afc6c3554a81ccd550ce82602c13c97af391",
-        "source_revision": "4a945281a4c9232b7d1cb098ecc20a0d42c55150",
-        "package_evidence": "documents/verification/home-freshness-2026-10-26/packaged-image.json",
-        "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+        "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json",
+        "review_scope": "Preserve the current client image and complete configuration. Feature/source acceptance remains with its separate frontend release."
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:abf387e66cf99526a31b865fd8f2afc6c3554a81ccd550ce82602c13c97af391"
     },
@@ -1614,9 +1612,8 @@
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
-        "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
-        "package_evidence": "documents/verification/inference-cost-rollout-2026-10-27/retained-web-packages.json",
-        "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+        "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json",
+        "review_scope": "Preserve the current client image and complete configuration. Feature/source acceptance remains with its separate frontend release."
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
       "role": "web"
