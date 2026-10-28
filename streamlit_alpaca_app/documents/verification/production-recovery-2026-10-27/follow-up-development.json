@@ -1,0 +1,95 @@
+{
+  "status": "accepted",
+  "execution": "macro-fred-daily-dev-u7q5bgy",
+  "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
+  "source_inventory_sha256": "a93858f27ab5800231550f3bc10bbf57907137c0bd67b03337b5a10a22850a82",
+  "runtime_inventory_sha256": "f13fc76a967eea64ab175e4ccf6bb49815b37a9a31000910090448ae9ee02962",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
+  },
+  "resources": {
+    "cpu": 4,
+    "memory": "8Gi"
+  },
+  "probes": [
+    {
+      "probe": "package",
+      "files": 189,
+      "runtime_inventory_sha256": "f13fc76a967eea64ab175e4ccf6bb49815b37a9a31000910090448ae9ee02962",
+      "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630"
+    },
+    {
+      "probe": "protected_core",
+      "concurrent_workers": 8,
+      "full_model_calls": 16,
+      "paid_transport": "simulated",
+      "real_sql_accounting": true
+    },
+    {
+      "probe": "late_paid_response",
+      "adopted_without_repurchase": true
+    },
+    {
+      "probe": "zero_budget_current_report",
+      "model": "deepseek-flash"
+    },
+    {
+      "probe": "learning_input",
+      "fresh_connection_exact_read": true
+    },
+    {
+      "probe": "ownership_under_background_load",
+      "held_seconds": 15,
+      "lease_seconds": 12,
+      "renewal_survived": true
+    },
+    {
+      "probe": "intentional_replica_failure",
+      "run_id": "fbc032db-9eac-4e86-9c42-3fe7a2e6b829"
+    },
+    {
+      "probe": "package",
+      "files": 189,
+      "runtime_inventory_sha256": "f13fc76a967eea64ab175e4ccf6bb49815b37a9a31000910090448ae9ee02962",
+      "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630"
+    },
+    {
+      "probe": "native_retry",
+      "original_run_id": "fbc032db-9eac-4e86-9c42-3fe7a2e6b829",
+      "same_profile": "balanced",
+      "budget_usd": "10",
+      "published_versions": {
+        "qualification_current_report": "production-followup-dev-a105f517__qualification_current_report__20261028T094301Z__fbc032db__ebe8e15606b2429ab9bb437e47f3ccd0"
+      },
+      "elapsed_seconds": 43.05,
+      "status": "passed"
+    },
+    {
+      "probe": "deadline_completed_subset",
+      "clock_seconds": 30,
+      "published_versions": {
+        "qualification_deadline_report": "production-followup-dev-a105f517__qualification_deadline_report__20261028T094344Z__22c99aac__32ec1877edb849e398df36839c1d190e"
+      },
+      "application_status": "Warning",
+      "controller_returned": true
+    }
+  ],
+  "native_retry": {
+    "automatic_azure_retry": true,
+    "same_logical_run": true,
+    "same_profile": "balanced",
+    "original_budget_usd": "10",
+    "requested_retry_budget_usd": "1000",
+    "completed_publication_restored": true,
+    "baseline_configuration_switch": false
+  },
+  "paid_inference_calls": 0,
+  "paid_transport": "simulated; real model output comparisons are separately recorded in local acceptance",
+  "real_services": [
+    "Managed PostgreSQL",
+    "Azure Blob immutable versions and conditional latest pointer",
+    "Azure native job retry"
+  ],
+  "qualitative_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
+  "package_files": 189
+}

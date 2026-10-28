@@ -12,5 +12,5 @@
   "build_status": "Succeeded",
   "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
   "source_gate": "passed_against_committed_acceptance_record",
-  "package_verification": "pending_native_exact_image_probe"
+  "package_verification": "documents/verification/production-recovery-2026-10-27/follow-up-packaged-images.json"
 }

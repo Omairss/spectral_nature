@@ -1,5 +1,5 @@
 {
-  "status": "accepted_locally_pending_exact_image_dev",
+  "status": "accepted_locally_and_exact_image_dev",
   "owner_instruction": "Push to prod once everything is fixed. If it's not fixed, fucking fix it and push",
   "branch": "fix/production-acceptance-followup-20261027",
   "prior_live_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
@@ -12,12 +12,12 @@
     {
       "id": "ownership_cancellation",
       "change": "Bounded renewal uses reserved interactive SQL capacity and retries transient errors only while its confirmed lease remains valid. Actual lease loss cancels work.",
-      "status": "verified_local_postgres_pending_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev"
     },
     {
       "id": "learning_deadline",
       "change": "Azure DeadlineExceeded at20:20:33Z confirmed. Per-case admission and3300-second producer bound leave finalization before3600-second platform termination.",
-      "status": "verified_local_pending_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev"
     },
     {
       "id": "learning_storage",
@@ -32,12 +32,12 @@
     {
       "id": "fallback_removal",
       "change": "Whole-run baseline switching and sticky rollout state are removed. Native retries preserve chosen policy, original run identity, budget, clock and paid work.",
-      "status": "verified_local_pending_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev"
     },
     {
       "id": "completed_publication",
       "change": "Current interpretations publish before optional company refresh. Bounded batch collection returns completed independent results; immutable versions and monotonic ownership fences protect latest pointers.",
-      "status": "verified_local_pending_real_blob_dev"
+      "status": "verified_local_and_exact_image_dev"
     },
     {
       "id": "worker_isolation",
@@ -57,7 +57,7 @@
     {
       "id": "late_paid_outputs",
       "change": "Received model output and original reservation identity survive child cancellation; exact late request can be adopted within same logical run without repurchase. Normal schema repair does not repeatedly replay invalid output.",
-      "status": "verified_local_pending_exact_image_dev"
+      "status": "verified_local_and_exact_image_dev"
     },
     {
       "id": "plain_text_final_review",
@@ -110,7 +110,7 @@
     "all_local_databases_stopped": true
   },
   "consumer_review": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json",
-  "deployment_status": "not_started",
+  "deployment_status": "ready_for_owner_authorized_promotion",
   "complete_output_reviews": {
     "method": "Personal reading of complete returned public prose, claims, dates and review output; no phrase grader or model score substitutes for acceptance.",
     "source_access": "Retained production inputs and acquired captures only. Isolated PostgreSQL; no production publication, memory writes or fresh paid acquisition.",
@@ -175,5 +175,6 @@
       ]
     }
   },
-  "source_review": "documents/verification/production-recovery-2026-10-27/follow-up-source-review.json"
+  "source_review": "documents/verification/production-recovery-2026-10-27/follow-up-source-review.json",
+  "development_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-development.json"
 }
