@@ -27,6 +27,7 @@ from psycopg import OperationalError
 from azure.storage.blob import BlobServiceClient
 
 from .secrets import build_azure_credential, resolve_secret_value
+from .json_utils import to_jsonable
 
 
 APP_ROOT = Path(__file__).resolve().parents[1]
@@ -2538,21 +2539,40 @@ def renew_execution_state(namespace: str, state_key: str, *, owner: str, seconds
 
 def mutate_execution_state(namespace: str, state_key: str, transform) -> dict[str, Any]:
     """Serialize an arithmetic state update; never perform remote work in transform."""
+    key = (namespace, state_key)
+    return mutate_execution_states([key], lambda values: {key: transform(values[key])})[key]
+
+
+def mutate_execution_states(keys: list[tuple[str, str]], transform) -> dict[tuple[str, str], dict[str, Any]]:
+    """Lock related accounting rows in a stable order and commit them together.
+
+    Account credit and a logical run's allowance must either both admit a
+    request or neither do so. The transform is local arithmetic only.
+    """
+    keys = sorted(set(keys))
     conn = open_database_connection()
     if conn is None:
         raise RuntimeError("Execution accounting store is unavailable.")
     with closing(conn):
         _ensure_execution_store(conn)
         with conn.cursor() as cur:
-            cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
-                VALUES (%s,%s,'{}'::jsonb) ON CONFLICT DO NOTHING""", (namespace, state_key))
-            cur.execute("""SELECT payload FROM aql_zopedia_execution_state
-                WHERE namespace=%s AND state_key=%s FOR UPDATE""", (namespace, state_key))
-            value = transform(dict(cur.fetchone()[0]))
-            cur.execute("""UPDATE aql_zopedia_execution_state SET payload=%s::jsonb,updated_at_utc=now()
-                WHERE namespace=%s AND state_key=%s""", (json.dumps(value, default=str), namespace, state_key))
+            values = {}
+            for namespace, state_key in keys:
+                cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
+                    VALUES (%s,%s,'{}'::jsonb) ON CONFLICT DO NOTHING""", (namespace, state_key))
+                cur.execute("""SELECT payload FROM aql_zopedia_execution_state
+                    WHERE namespace=%s AND state_key=%s FOR UPDATE""", (namespace, state_key))
+                values[(namespace, state_key)] = dict(cur.fetchone()[0])
+            updated = transform(values)
+            if set(updated) != set(keys):
+                raise ValueError("An accounting mutation must return all locked rows.")
+            updated = {key: to_jsonable(value) for key, value in updated.items()}
+            for (namespace, state_key), value in updated.items():
+                cur.execute("""UPDATE aql_zopedia_execution_state SET payload=%s::jsonb,updated_at_utc=now()
+                    WHERE namespace=%s AND state_key=%s""",
+                    (json.dumps(value, allow_nan=False, ensure_ascii=False, default=str), namespace, state_key))
         conn.commit()
-        return value
+        return updated
 
 
 def write_execution_state(namespace: str, state_key: str, payload: dict[str, Any], *, immutable: bool = False) -> bool:
@@ -2565,7 +2585,7 @@ def write_execution_state(namespace: str, state_key: str, payload: dict[str, Any
         with conn.cursor() as cur:
             cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
                 VALUES (%s,%s,%s::jsonb) ON CONFLICT(namespace,state_key) """ + conflict,
-                        (namespace, state_key, json.dumps(payload, ensure_ascii=False, default=str)))
+                        (namespace, state_key, json.dumps(to_jsonable(payload), ensure_ascii=False, allow_nan=False, default=str)))
         conn.commit()
         return True
 
@@ -2595,7 +2615,7 @@ def retain_research_checkpoint(*, namespace: str, input_key: str, artifact: dict
         with conn.cursor() as cur:
             cur.execute("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
                 VALUES (%s,%s,%s::jsonb) ON CONFLICT(namespace,state_key) DO NOTHING""",
-                (namespace, artifact["artifact_id"], json.dumps(artifact, ensure_ascii=False, default=str)))
+                (namespace, artifact["artifact_id"], json.dumps(to_jsonable(artifact), ensure_ascii=False, allow_nan=False, default=str)))
             cur.execute("SELECT payload FROM aql_zopedia_execution_state WHERE namespace=%s AND state_key=%s",
                         (namespace, artifact["artifact_id"]))
             stored = dict(cur.fetchone()[0])
@@ -2621,7 +2641,7 @@ def write_execution_states(namespace: str, values: dict[str, dict[str, Any]]) ->
         with conn.cursor() as cur:
             cur.executemany("""INSERT INTO aql_zopedia_execution_state(namespace,state_key,payload)
                 VALUES (%s,%s,%s::jsonb) ON CONFLICT(namespace,state_key) DO NOTHING""",
-                [(namespace, key, json.dumps(value, ensure_ascii=False, default=str)) for key, value in values.items()])
+                [(namespace, key, json.dumps(to_jsonable(value), ensure_ascii=False, allow_nan=False, default=str)) for key, value in values.items()])
         conn.commit()
         return True
 

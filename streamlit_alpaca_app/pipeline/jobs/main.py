@@ -2375,6 +2375,9 @@ def _iter_news_business_research_output_phases(
         progress(event)
         if event.get("stage") == "business_research_deferred":
             deferred.append(str(event.get("symbol") or ""))
+        elif event.get("stage") == "business_research_failed":
+            deferred.append(str(event.get("symbol") or ""))
+            ctx.degraded_components["company_research:" + str(event.get("symbol") or "unknown")] = str(event.get("error_type") or "Failed")
     # One producer clock, including interpretation and publication. Admission
     # stops early enough to finish useful work before the two-hour bound.
     work_deadline = ctx.started_at_monotonic + _parse_int_env("PIPELINE_JOB_WORK_TIMEOUT_SECONDS", 7200, minimum=60)
@@ -3398,13 +3401,19 @@ def main() -> None:
     if execution and os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE"):
         namespace = "pipeline_execution:" + dataset_namespace()
         state_key = ctx.name + ":" + execution
-        proposed = {"run_id": ctx.run_id, "asof": ctx.asof.isoformat(), "universe_version": ctx.universe_version}
+        proposed = {"run_id": ctx.run_id, "asof": ctx.asof.isoformat(), "universe_version": ctx.universe_version,
+                    "budget_usd": os.getenv("RESEARCH_RUN_BUDGET_USD", "")}
         if not write_execution_state(namespace, state_key, proposed, immutable=True):
             raise RuntimeError("Pipeline execution identity could not be retained.")
         retained = read_execution_state(namespace, state_key, strict=True)
         if retained is None:
             raise RuntimeError("Pipeline execution identity could not be read back.")
         resumed_execution = retained["run_id"] != ctx.run_id
+        # Inference-profile fallback may change model choices, never the
+        # execution's approved money allowance. Configuration applies to the
+        # next logical run, not a fresh allowance for this replica.
+        if "budget_usd" in retained:
+            os.environ["RESEARCH_RUN_BUDGET_USD"] = retained["budget_usd"]
         ctx = replace(ctx, run_id=retained["run_id"], asof=datetime.fromisoformat(retained["asof"]),
                       universe_version=retained["universe_version"],
                       # Replica recovery shares the original producer clock;

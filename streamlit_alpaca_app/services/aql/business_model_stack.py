@@ -7,6 +7,7 @@ from dataclasses import dataclass, asdict, replace
 from functools import wraps
 from datetime import datetime, timezone
 import json
+import logging
 import hashlib
 import os
 import re
@@ -51,6 +52,7 @@ from .news_business_resolution import (
 
 
 ProgressCallback = Callable[[dict[str, Any]], None]
+log = logging.getLogger(__name__)
 TICKER_BUSINESS_MODEL_STACK_SOURCE_TYPE = "ticker_business_model_stack_business_memory"
 _BUSINESS_RESEARCH_REQUEST_LOCK = threading.Lock()
 _BUSINESS_RESEARCH_LAST_REQUEST_AT_BY_KEY: dict[str, float] = {}
@@ -2848,6 +2850,15 @@ def build_ticker_business_model_stack_results(
         except (ResearchWorkDeferred, WorkCancelled, LLMDeadlineExceeded):
             _emit_business_progress(progress_callback, stage="business_research_deferred", symbol=symbol,
                 message="Company research is retained for the next producer window.", progress=1.0)
+            return None
+        except Exception as exc:
+            # A failed company remains pending; the independent completed
+            # companies must still reach the aggregate publisher. The producer
+            # receives a failure event and cannot report a clean run.
+            log.exception("Company investigation failed: %s", symbol)
+            _emit_business_progress(progress_callback, stage="business_research_failed", symbol=symbol,
+                error_type=type(exc).__name__, message="Company investigation failed; completed research is retained.",
+                progress=1.0)
             return None
     if max_workers == 1:
         return [result for symbol in selected if (result := research(symbol)) is not None]

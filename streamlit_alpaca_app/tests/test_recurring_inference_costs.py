@@ -181,6 +181,38 @@ def test_interrupted_candidate_uses_baseline_on_next_replica(durable_store, monk
     assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], ctx, None) == "baseline"
 
 
+def test_failed_rollout_audit_preserves_the_original_error(durable_store, monkeypatch):
+    from services.inference_policy import execute_with_fallback
+    from services.work_scope import WorkCancelled
+    ctx = SimpleNamespace(name="news-ingest-and-features", run_id="attempt", started_at_monotonic=time.monotonic(), degraded_components={})
+    original = ValueError("original checkpoint failure")
+    write = pipeline_store.write_execution_state
+    def failed_audit(namespace, key, value, **kwargs):
+        if value.get("status") == "failed":
+            raise WorkCancelled("audit owner cancelled")
+        return write(namespace, key, value, **kwargs)
+    monkeypatch.setattr(pipeline_store, "write_execution_state", failed_audit)
+    def handler(*args):
+        raise original
+    with pytest.raises(ValueError) as caught:
+        execute_with_fallback(handler, ctx, None)
+    assert caught.value is original
+
+
+def test_independent_company_failure_does_not_discard_completed_companies(monkeypatch):
+    events = []
+    monkeypatch.setenv("ZOPEDIA_TICKER_BUSINESS_MAX_WORKERS", "3")
+    def build(**kwargs):
+        if kwargs["symbol"] == "FAILED":
+            raise ValueError("checkpoint rejected")
+        return result_for(kwargs)
+    monkeypatch.setattr(company, "build_ticker_business_model_stack", build)
+    results = company.build_ticker_business_model_stack_results(symbols=["FIRST", "FAILED", "LAST"],
+        run_id="batch", asof_time_utc="2026-10-27T00:00:00Z", progress_callback=events.append)
+    assert [result.symbol for result in results] == ["FIRST", "LAST"]
+    assert any(event.get("stage") == "business_research_failed" and event["symbol"] == "FAILED" for event in events)
+
+
 def test_platform_retry_waits_for_a_dead_replicas_producer_lease(durable_store, monkeypatch):
     from contextlib import contextmanager
     from datetime import datetime, timezone

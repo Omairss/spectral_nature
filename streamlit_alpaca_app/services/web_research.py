@@ -12,6 +12,7 @@ import requests
 
 from .secrets import resolve_secret_value
 from .llm import remaining_request_timeout, register_narrative_prompt, get_prompt
+from .llm_execution import metered_tool_request
 
 _SOURCE_CLEANING_PROMPT = register_narrative_prompt(
     "Source body cleaning", "services/web_research.py",
@@ -325,8 +326,7 @@ class SerpAPISearchClient:
         recorded = False
         engine = "google_news" if news else self.config.engine
         try:
-            response = self.session.get(
-                "https://serpapi.com/search.json",
+            response = metered_tool_request(self.session.get, "https://serpapi.com/search.json", cost_key="serpapi." + operation,
                 params={
                     "api_key": self.config.api_key,
                     "engine": engine,
@@ -408,8 +408,7 @@ class SerpAPISearchClient:
         }
         recorded = False
         try:
-            response = self.session.get(
-                "https://serpapi.com/search.json",
+            response = metered_tool_request(self.session.get, "https://serpapi.com/search.json", cost_key="serpapi.ai_overview",
                 params={
                     "api_key": self.config.api_key,
                     "engine": self.config.engine,
@@ -537,8 +536,7 @@ class SerperSearchClient:
         recorded = False
         endpoint = "news" if news else "search"
         try:
-            response = self.session.post(
-                f"https://google.serper.dev/{endpoint}",
+            response = metered_tool_request(self.session.post, f"https://google.serper.dev/{endpoint}", cost_key="serper." + operation,
                 headers={
                     "X-API-KEY": self.config.api_key,
                     "Content-Type": "application/json",
@@ -630,8 +628,7 @@ class TavilySearchClient:
         }
         recorded = False
         try:
-            response = self.session.post(
-                "https://api.tavily.com/search",
+            response = metered_tool_request(self.session.post, "https://api.tavily.com/search", cost_key="tavily.search." + self.config.search_depth,
                 json={
                     "api_key": self.config.api_key,
                     "query": query,

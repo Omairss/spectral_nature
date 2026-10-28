@@ -7,6 +7,7 @@ from datetime import date, datetime
 from fnmatch import fnmatchcase
 import hashlib
 import json
+import logging
 import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -115,7 +116,15 @@ def execute_with_fallback(handler, context, connection):
         if context.degraded_components.get("news_narratives"):
             raise RuntimeError("Candidate did not complete its required news/company narratives")
     except Exception as exc:
-        save({"execution": execution, "status": "failed", "rollback": True, "reason": type(exc).__name__})
+        try:
+            save({"execution": execution, "status": "failed", "rollback": True, "reason": type(exc).__name__})
+        except Exception as audit_error:
+            # The previously committed 'started' state already selects baseline
+            # after replica death. A cancelled audit write must not replace the
+            # original failure and erase the diagnostic evidence.
+            logging.getLogger(__name__).warning("Inference failure audit unavailable: %s; original=%s",
+                                               type(audit_error).__name__, type(exc).__name__)
+            exc.add_note("Rollout failure audit could not be written: " + type(audit_error).__name__)
         print(f"[warn] inference policy failed ({type(exc).__name__}); Azure replica retry will use {fallback}", flush=True)
         raise
     save({"execution": execution, "status": "completed", "profile": selected["profile"]})

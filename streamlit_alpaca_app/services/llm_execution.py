@@ -8,6 +8,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime, timezone
+from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR
 import hashlib
 from functools import wraps
 from functools import lru_cache
@@ -45,10 +46,19 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
     """
     from . import pipeline_store
     from .work_scope import WorkScope
+    from .database import database_workload
     from contextvars import copy_context
     owner = uuid.uuid4().hex
     deadline = time.monotonic() + wait_seconds
-    while not pipeline_store.claim_execution_state(namespace, key, owner=owner, seconds=lease_seconds):
+    while True:
+        # Use existing reserved database capacity for short ownership metadata,
+        # never for the research body. Start the validity clock before SQL so
+        # network latency cannot extend our local belief in the lease.
+        renewed_at = time.monotonic()
+        with database_workload("interactive"):
+            claimed = pipeline_store.claim_execution_state(namespace, key, owner=owner, seconds=lease_seconds)
+        if claimed:
+            break
         if time.monotonic() >= deadline:
             yield False
             return
@@ -56,33 +66,51 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
         time.sleep(min(1, max(deadline-time.monotonic(), 0)))
     stop = threading.Event()
     lost = threading.Event()
-    renewed_at = time.monotonic()
     def check_owner():
         if lost.is_set() or time.monotonic()-renewed_at >= lease_seconds:
             work.cancel()
             raise RuntimeError("Execution ownership was lost; completed work remains checkpointed.")
     class OwnershipWork(WorkScope):
         def check(self):
+            try:
+                check_owner()
+            except RuntimeError as exc:
+                from .work_scope import WorkCancelled
+                raise WorkCancelled(str(exc)) from exc
             super().check()
-            check_owner()
     # Renewal validity must not shorten a longer model/tool timeout. Every new
     # I/O still checks the owner, and failed renewal cancels active operations.
     work = OwnershipWork(float("inf"))
     def heartbeat():
         nonlocal renewed_at
-        while not stop.wait(lease_seconds / 3):
+        delay = lease_seconds / 3
+        while not stop.wait(delay):
+            remaining = renewed_at + lease_seconds - time.monotonic()
+            if remaining <= 0:
+                lost.set()
+                work.cancel()
+                return
             try:
-                with WorkScope(time.monotonic() + min(30, lease_seconds / 3)).activate():
+                started = time.monotonic()
+                with database_workload("interactive"), WorkScope(started + min(30, remaining)).activate():
                     renewed = pipeline_store.renew_execution_state(namespace, key, owner=owner, seconds=lease_seconds)
                 if not renewed:
                     lost.set()
                     work.cancel()
                     return
-                renewed_at = time.monotonic()
-            except Exception:
-                lost.set()
-                work.cancel()
-                return
+                renewed_at = started
+                delay = lease_seconds / 3
+            except Exception as exc:
+                # One delayed SQL operation is not proof that another worker
+                # owns the lease. Retry only within its last confirmed validity.
+                remaining = renewed_at + lease_seconds - time.monotonic()
+                log.warning("execution_lease_renewal_failed namespace=%s key=%s error=%s valid_seconds=%.3f",
+                            namespace, key, type(exc).__name__, max(remaining, 0))
+                if remaining <= 0:
+                    lost.set()
+                    work.cancel()
+                    return
+                delay = min(5, lease_seconds / 12, remaining)
     thread = threading.Thread(target=copy_context().run, args=(heartbeat,), daemon=True,
                               name="execution-ownership")
     token = _OWNERSHIP.set((*_OWNERSHIP.get(), check_owner))
@@ -98,7 +126,8 @@ def execution_ownership(namespace: str, key: str, *, wait_seconds: float = 0, le
         stop.set()
         thread.join(timeout=2)
         try:
-            pipeline_store.release_execution_state(namespace, key, owner=owner)
+            with database_workload("interactive"):
+                pipeline_store.release_execution_state(namespace, key, owner=owner)
         except Exception:
             log.warning("Execution ownership release unavailable; lease will expire")
 
@@ -123,6 +152,219 @@ class LLMContextWindowExceeded(RuntimeError):
 
 class ResearchWorkDeferred(RuntimeError):
     """The producer retains this investigation for a later execution window."""
+
+
+class ResearchBudgetExceeded(ResearchWorkDeferred):
+    """The logical run cannot afford this request's maximum possible charge."""
+
+
+def _microusd(value: Any, *, maximum: bool = True) -> int:
+    amount = Decimal(str(value))
+    if not amount.is_finite() or amount < 0:
+        raise ValueError("Research cost must be finite and nonnegative.")
+    return int((amount * 1_000_000).to_integral_value(rounding=ROUND_CEILING if maximum else ROUND_FLOOR))
+
+
+def _run_budget_key() -> tuple[str, str] | None:
+    root = _CALL.get().get("root_run_id") or os.getenv("PIPELINE_RUN_ID")
+    configured = os.getenv("RESEARCH_RUN_BUDGET_USD", "").strip()
+    if configured and not root:
+        raise ValueError("A research dollar budget requires a logical root run identity.")
+    return ("research_run_budget", str(root)) if root and configured else None
+
+
+def _run_budget_state(state: dict[str, Any]) -> dict[str, Any]:
+    cap = _microusd(os.environ["RESEARCH_RUN_BUDGET_USD"], maximum=False)
+    if cap <= 0:
+        raise ValueError("RESEARCH_RUN_BUDGET_USD must be positive.")
+    # Configuration selects the initial allowance for a new run. Existing
+    # spending and explicit audited amendments outlive configuration changes.
+    if state:
+        return state
+    return state or {"cap_microusd": cap, "attempts": {}, "currency": "USD"}
+
+
+def _run_remaining(state: dict[str, Any]) -> int:
+    return state["cap_microusd"] - sum(
+        value["charged_microusd"] if value["status"] == "settled" else value["maximum_microusd"]
+        for value in state["attempts"].values())
+
+
+def amend_research_budget(*, root_run_id: str, cap_usd: Any, approved_by: str,
+                          authorization: str, amendment_id: str) -> dict[str, Any]:
+    """Owner-authorized allowance amendment; never exposed as an agent tool.
+
+    The administrative caller owns authorization. Retain its audit reference
+    and all incurred obligations; retries of one amendment are idempotent.
+    """
+    if not all(str(value).strip() for value in (root_run_id, approved_by, authorization, amendment_id)):
+        raise ValueError("Budget amendments require owner authorization and an audit identity.")
+    cap = _microusd(cap_usd, maximum=False)
+    if cap <= 0:
+        raise ValueError("The amended allowance must be positive.")
+    from . import pipeline_store
+    from .database import database_workload
+    def amend(state):
+        if not state:
+            raise ValueError("The logical run has no retained budget to amend.")
+        amendments = state.setdefault("amendments", {})
+        previous = amendments.get(amendment_id)
+        record = {"cap_microusd": cap, "approved_by": approved_by, "authorization": authorization}
+        if previous:
+            if any(previous.get(key) != value for key, value in record.items()):
+                raise ValueError("An amendment identity cannot authorize different changes.")
+            return state
+        if cap < state["cap_microusd"] - _run_remaining(state):
+            raise ValueError("The amended allowance cannot discard incurred or reserved obligations.")
+        amendments[amendment_id] = {**record, "previous_cap_microusd": state["cap_microusd"], "approved_at": time.time()}
+        state["cap_microusd"] = cap
+        return state
+    with database_workload("interactive"):
+        return pipeline_store.mutate_execution_state("research_run_budget", root_run_id, amend)
+
+
+def research_spending_context() -> dict[str, Any]:
+    """Live shared financial state for the agent, independent of its time budget."""
+    key = _run_budget_key()
+    if key is None:
+        return {"cap_usd": None, "constraint": "No per-run dollar cap configured; time and provider credit still apply."}
+    from . import pipeline_store
+    from .database import database_workload
+    with database_workload("interactive"):
+        state = _run_budget_state(pipeline_store.read_execution_state(*key, strict=True) or {})
+    attempts = state["attempts"].values()
+    return {"root_run_id": key[1], "cap_usd": state["cap_microusd"] / 1e6,
+            "available_usd": max(0, _run_remaining(state)) / 1e6,
+            "settled_usd": sum(v["charged_microusd"] for v in attempts if v["status"] == "settled") / 1e6,
+            "reserved_usd": sum(v["maximum_microusd"] for v in attempts if v["status"] != "settled") / 1e6,
+            "cost_measurement": "Inference uses metered token-price estimates; acquisition uses configured charge bounds. Unknown attempts remain fully reserved.",
+            "prices": _price_snapshot(),
+            "tool_maximum_usd_per_request": json.loads(os.getenv("RESEARCH_TOOL_MAX_COST_USD_JSON") or "{}"),
+            "allocation": "Shared with all workers and retries. Spend only for useful incremental work; preserve enough for synthesis and review. More dollars allow greater breadth or depth, never require spending or extend the deadline."}
+
+
+def reserve_research_cost(*, attempt_id: str, maximum_usd: Any, category: str,
+                          account_key: tuple[str, str] | None = None, account_transform=None,
+                          wait_seconds: float = 0) -> bool:
+    """Atomically admit account credit and a run charge; no partial reservation."""
+    from . import pipeline_store
+    from .database import database_workload
+    run_key = _run_budget_key()
+    keys = [key for key in (run_key, account_key) if key is not None]
+    if not keys:
+        return False
+    amount = _microusd(maximum_usd)
+    def reserve(states):
+        if run_key is not None:
+            state = _run_budget_state(states[run_key])
+            if attempt_id in state["attempts"]:
+                raise ValueError("An execution attempt cannot reserve twice.")
+            if state.get("invalid_quote"):
+                raise ResearchBudgetExceeded("Run admission is paused because a request exceeded its quoted maximum.")
+            if amount > _run_remaining(state):
+                error = ResearchBudgetExceeded("The remaining shared run budget cannot cover this request. Completed research is retained.")
+                refundable = sum(v["maximum_microusd"] for v in state["attempts"].values() if v["status"] == "pending")
+                error.can_wait = amount <= _run_remaining(state) + refundable
+                raise error
+            state["attempts"][attempt_id] = {"status": "pending", "maximum_microusd": amount,
+                                             "category": category, "started_at": time.time()}
+            states[run_key] = state
+        if account_key is not None:
+            states[account_key] = account_transform(states[account_key])
+        return states
+    deadline = time.monotonic() + wait_seconds
+    while True:
+        try:
+            with database_workload("interactive"):
+                if run_key is None:
+                    # Preserve the established account-only contract for uncapped jobs.
+                    pipeline_store.mutate_execution_state(*account_key, account_transform)
+                else:
+                    pipeline_store.mutate_execution_states(keys, reserve)
+            return True
+        except ResearchBudgetExceeded as exc:
+            from .work_scope import remaining_work_seconds
+            remaining = min(deadline - time.monotonic(), remaining_work_seconds(max(wait_seconds, 0.001)))
+            if not getattr(exc, "can_wait", False) or remaining <= 0:
+                raise
+            check_execution_ownership()
+            time.sleep(min(0.25, remaining))
+
+
+def settle_research_cost(*, attempt_id: str, actual_usd: Any | None,
+                         account_key: tuple[str, str] | None = None, account_transform=None) -> None:
+    from . import pipeline_store
+    from .database import database_workload
+    run_key = _run_budget_key()
+    keys = [key for key in (run_key, account_key) if key is not None]
+    if not keys:
+        return
+    def settle(states):
+        if run_key is not None:
+            state = states[run_key]
+            attempt = state["attempts"][attempt_id]
+            if actual_usd is None:
+                if attempt["status"] != "settled":
+                    attempt["status"] = "unknown"
+            else:
+                charged = max(_microusd(actual_usd), attempt.get("charged_microusd", 0))
+                attempt.update(status="settled", charged_microusd=charged)
+                if charged > attempt["maximum_microusd"]:
+                    # Keep the actual cost, stop further admission, and expose
+                    # an invalid quote rather than hiding a billing overrun.
+                    log.error("Research request exceeded its reserved maximum: %s", attempt_id)
+                    state["invalid_quote"] = True
+            attempt["finished_at"] = time.time()
+        if account_key is not None:
+            states[account_key] = account_transform(states[account_key])
+        return states
+    with database_workload("interactive"):
+        if run_key is None:
+            pipeline_store.mutate_execution_state(*account_key, account_transform)
+        else:
+            pipeline_store.mutate_execution_states(keys, settle)
+
+
+def metered_tool_request(request, *args, cost_key: str, **kwargs):
+    """Apply the same run allowance at the paid acquisition transport boundary.
+
+    Tool quotes are deployment-owned upper bounds, including plan-specific
+    units. Missing pricing never silently counts paid acquisition as free.
+    """
+    from .work_scope import check_work
+    check_work()
+    check_execution_ownership()
+    if _run_budget_key() is None:
+        return request(*args, **kwargs)
+    prices = json.loads(os.getenv("RESEARCH_TOOL_MAX_COST_USD_JSON") or "{}")
+    if cost_key not in prices:
+        raise ResearchWorkDeferred("A capped run requires a maximum charge quote for " + cost_key)
+    maximum = prices[cost_key]
+    deadline = time.monotonic() + float(kwargs.get("timeout") or 0)
+    attempt_id = "toolhttp_" + uuid.uuid4().hex
+    reserve_research_cost(attempt_id=attempt_id, maximum_usd=maximum, category="acquisition:" + cost_key,
+                          wait_seconds=float(kwargs.get("timeout") or 0))
+    sent = False
+    response = None
+    try:
+        check_work()
+        check_execution_ownership()
+        from .llm import remaining_request_timeout, LLMDeadlineExceeded
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise LLMDeadlineExceeded("Acquisition admission exhausted its original request deadline.")
+        kwargs["timeout"] = remaining_request_timeout(remaining)
+        sent = True
+        response = request(*args, **kwargs)
+        return response
+    finally:
+        # Bill the full configured bound after success. A disconnect or rejected
+        # response may still consume provider units and remains reserved.
+        actual = 0 if not sent else maximum if response is not None and 200 <= response.status_code < 300 else None
+        try:
+            settle_research_cost(attempt_id=attempt_id, actual_usd=actual)
+        except Exception:
+            log.warning("Acquisition settlement unavailable; maximum remains reserved: %s", attempt_id)
 
 
 def request_context_budget(config: Any, payload: dict[str, Any]) -> dict[str, Any]:
@@ -281,8 +523,12 @@ def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id:
     The balance is authoritative; reservations protect concurrent in-flight
     work. No generated request or arbitrary daily production allowance is used.
     """
-    if config.provider != "deepseek" or urlparse(config.base_url).hostname != "api.deepseek.com":
-        return False
+    official_balance = config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com"
+    if not official_balance:
+        if _run_budget_key() is None:
+            return False
+        return reserve_research_cost(attempt_id=attempt_id,
+            maximum_usd=_request_maximum_charge(config, payload), category="inference", wait_seconds=timeout)
     from . import pipeline_store
     from .llm import LLMProviderUnavailable
     key = _account_key(config)
@@ -312,18 +558,12 @@ def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id:
                 balance = float(balances[0]["total_balance"])
                 def refresh(current):
                     reservations = {identity: value for identity, value in current.get("reservations", {}).items()
-                        if (value.get("status") in {"pending", "unknown"} and value["expires_at"] > time.time())
+                        if value.get("status") in {"pending", "unknown"}
                         or value.get("finished_at", 0) >= probe_started}
                     return {"observed_at": probe_started, "balance_usd": balance,
                             "available": data.get("is_available") is True, "reservations": reservations}
                 state = pipeline_store.mutate_execution_state(namespace, key, refresh)
-    price = _price_snapshot()["models"].get(config.provider + ":" + str(payload.get("model") or config.model))
-    if price is None:
-        raise LLMProviderUnavailable("Provider budget requires a published price for the configured model.")
-    context = request_context_budget(config, payload)
-    amount = (context["estimated_input_tokens"] * price["offpeak"]["input"]
-              + context["reserved_output_tokens"] * price["offpeak"]["output"]) / 1e6
-    amount *= price.get("peak_multiplier", 1)
+    amount = _request_maximum_charge(config, payload)
     free = 0.0
     def reserve(current):
         nonlocal free
@@ -331,28 +571,72 @@ def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id:
         if not current["available"] or free < amount:
             raise LLMProviderUnavailable(
                 f"Provider credit cannot cover the next request and active work (${free:.2f} unreserved). Progress is retained.")
-        current["reservations"][attempt_id] = {"amount_usd": amount, "status": "pending",
+        current["reservations"][attempt_id] = {"amount_usd": _microusd(amount) / 1e6, "status": "pending",
                                                "expires_at": time.time()+timeout+300}
         return current
-    pipeline_store.mutate_execution_state(namespace, key, reserve)
+    reserve_research_cost(attempt_id=attempt_id, maximum_usd=amount, category="inference",
+        account_key=(namespace, key), account_transform=reserve, wait_seconds=timeout)
     if free < float(os.getenv("LLM_PROVIDER_BALANCE_ALERT_USD", "10")):
         log.warning("provider_balance_low available_usd=%.2f reserved_request_usd=%.2f", free, amount)
     return True
 
 
+def _request_maximum_charge(config: Any, payload: dict[str, Any]) -> Decimal:
+    from .llm import LLMProviderUnavailable
+    price = _price_snapshot()["models"].get(config.provider + ":" + str(payload.get("model") or config.model))
+    if price is None:
+        raise LLMProviderUnavailable("Budget admission requires a published price for the configured model.")
+    context = request_context_budget(config, payload)
+    if context:
+        input_tokens, output_tokens = context["estimated_input_tokens"], context["reserved_output_tokens"]
+        if _run_budget_key() is not None:
+            # A dollar ceiling needs an upper bound, not an approximate
+            # tokenizer count. Refund unused headroom after real usage.
+            input_tokens = context["window_tokens"]
+    else:
+        import tiktoken
+        # Price all input, including schemas; leave tokenizer headroom. Models
+        # without a known default must declare their maximum output explicitly.
+        input_tokens = (len(tiktoken.get_encoding("cl100k_base").encode_ordinary(
+            json.dumps(payload, ensure_ascii=False, default=str))) * 5 + 3) // 4
+        output_tokens = payload.get("max_completion_tokens", payload.get("max_tokens"))
+        if output_tokens is None and Decimal(str(price["offpeak"]["output"])) != 0:
+            raise LLMProviderUnavailable("A capped run requires an explicit maximum output for this model.")
+        output_tokens = int(output_tokens or 0)
+        if _run_budget_key() is not None:
+            window = int(os.getenv("LLM_CONTEXT_WINDOW_TOKENS") or price.get("context_window_tokens") or 0)
+            if window <= 0:
+                raise LLMProviderUnavailable("A capped run requires the model's maximum input context for a bounded quote.")
+            inputs = payload.get("input")
+            batch_size = len(inputs) if isinstance(inputs, list) and inputs and not isinstance(inputs[0], int) else 1
+            input_tokens = window * batch_size
+    if output_tokens < 0:
+        raise ValueError("Maximum output must be nonnegative.")
+    return (Decimal(input_tokens) * Decimal(str(price["offpeak"]["input"]))
+            + Decimal(output_tokens) * Decimal(str(price["offpeak"]["output"]))) * Decimal(str(price.get("peak_multiplier", 1))) / 1_000_000
+
+
 def settle_provider_budget(config: Any, *, attempt_id: str, charge: dict[str, Any],
                            definitely_unbilled: bool) -> None:
-    from .pipeline_store import mutate_execution_state
     def settle(state):
-        value = state["reservations"][attempt_id]
+        value = state.get("reservations", {}).get(attempt_id)
+        if value is None:
+            # A fresh authoritative balance can already include this settled
+            # request. Replaying a receipt must not recreate its wallet debit.
+            return state
         value["finished_at"] = time.time()
         if charge.get("status") == "estimated" or definitely_unbilled:
-            value.update(status="settled", amount_usd=float(charge.get("usd_max") or 0))
-        else:
+            amount = 0 if definitely_unbilled else float(charge["usd_max"])
+            value.update(status="settled", amount_usd=max(amount, value["amount_usd"] if value["status"] == "settled" else 0))
+        elif value["status"] != "settled":
             # A disconnected response is unknown usage, never a free request.
             value["status"] = "unknown"
         return state
-    mutate_execution_state("provider_budget", _account_key(config), settle)
+    actual = 0 if definitely_unbilled else charge.get("usd_max") if charge.get("status") == "estimated" else None
+    official_balance = config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com"
+    settle_research_cost(attempt_id=attempt_id, actual_usd=actual,
+        account_key=("provider_budget", _account_key(config)) if official_balance else None,
+        account_transform=settle if official_balance else None)
 
 
 def request_composition(payload: dict[str, Any]) -> dict[str, Any]:
@@ -528,7 +812,9 @@ def read_research_artifact(namespace: str, key: str, *, strict: bool = False) ->
 def retain_research_artifact(namespace: str, key: str, *, subject: str, task: str,
                              result: dict[str, Any]) -> dict[str, Any] | None:
     from .pipeline_store import retain_research_checkpoint
-    artifact_id = hashlib.sha256((key + json.dumps(result, sort_keys=True, default=str)).encode()).hexdigest()
+    from .json_utils import to_jsonable
+    result = to_jsonable(result)
+    artifact_id = hashlib.sha256((key + json.dumps(result, sort_keys=True, allow_nan=False, default=str)).encode()).hexdigest()
     value = {"artifact_id": artifact_id, "input_id": key, "subject": subject, "task": task,
              "created_at_utc": datetime.now(timezone.utc).isoformat(),
              "root_run_id": os.getenv("PIPELINE_RUN_ID"), "result": result}

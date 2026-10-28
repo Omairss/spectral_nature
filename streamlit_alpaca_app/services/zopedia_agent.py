@@ -5,7 +5,7 @@ from presentation.visualization_artifacts import collect_research_visualizations
 from services.work_scope import WorkScope
 
 from contextvars import copy_context
-from .llm_execution import LLMContextWindowExceeded, research_run_context
+from .llm_execution import LLMContextWindowExceeded, research_run_context, research_spending_context
 
 from dataclasses import replace
 
@@ -1510,6 +1510,9 @@ def _looks_like_transient_transport_error(text: object) -> bool:
 
 
 def _looks_like_recoverable_model_step_error(error: BaseException) -> bool:
+    from .llm_execution import ResearchBudgetExceeded
+    if isinstance(error, ResearchBudgetExceeded):
+        return True
     if isinstance(error, TimeoutError) or _looks_like_transient_transport_error(error):
         return True
     if not isinstance(error, LLMAPIError):
@@ -1591,6 +1594,9 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "want suggestions only, and inherit otherwise. These choices can narrow permissions, never broaden them. "
         "Conversation and visible artifacts provide context but do not replace the latest request. "
         "When further research has low value, return final with the best useful answer, including your reasoned assessment. "
+        "Use the current shared spending allowance and remaining time to choose useful breadth and depth. "
+        "Keep enough money and time for writing and review; other workers and retries share this allowance. "
+        "A larger ceiling permits deeper investigation and alternative explanations without obliging you to spend it. "
         "Be clear about an inference without drowning it in caveats. Match the user's requested format and the active global "
         "writing style. Use short paragraphs and useful source links. Explain practical meaning and cause and effect in familiar "
         "words. Keep tool IDs, research bookkeeping, confidence labels and execution failures out of the answer. "
@@ -3381,6 +3387,7 @@ def _execute_zopedia_agent_loop(
                     "research_state": research_state,
                     "source_policy": source_policy,
                     "seconds_remaining": round(budget.remaining(), 1),
+                    "spending": research_spending_context(),
                     "pending_action": pending_action,
                 },
                 ensure_ascii=False,
