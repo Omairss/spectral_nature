@@ -54,12 +54,8 @@ struct MacroView: View {
             }
           }
           ResourceStatus(resource: outlook) { Task { await loadOutlook() } }
-          if !outlook.loading && outlook.error.isEmpty && outlook.value?.text("status") != "ok" {
-            HStack {
-              Text("Economic outlook unavailable.").font(.subheadline).foregroundStyle(.secondary)
-              Spacer()
-              Button("Retry") { Task { await loadOutlook() } }
-            }
+          if outlook.value == nil && !outlook.loading && outlook.error.isEmpty {
+            ProgressView().accessibilityLabel("Loading economic outlook")
           }
         }
         HStack {
@@ -233,7 +229,6 @@ struct MacroView: View {
     }
   }
   private func loadOutlook() async {
-    guard !outlook.loading else { return }
     await outlook.load {
       let payload: JSONValue = try await session.api.dataset(
         "page_agentic_summary", params: ["surface": .string("Broad Economy")])
