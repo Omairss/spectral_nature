@@ -24,7 +24,7 @@
     },
     {
       "issue": "Earlier primary candidate synthesis failures",
-      "evidence": "Four frozen captured acquisition replays use the real collector,240-second production budget and full model. Supplied-only acquisition preserves the captured evidence boundary.",
+      "evidence": "Actual collector and acquisition qualification with600-second budgets failed KNSA,CLS andNIB at final synthesis; PNR completed. Earlier supplied-only captures contained no documents and are not valid acquisition acceptance.",
       "status": "failed_acceptance_three_of_four"
     },
     {
@@ -43,7 +43,7 @@
     {
       "issue": "Candidate replay capture limitation",
       "evidence": "The four originally failed candidates have no retained acquisition documents in the morning source-document snapshot. The initial supplied-only replays with0 documents cannot qualify their research path and are not accepted as evidence.",
-      "follow_up": "Four real collector/acquisition calls are being qualified with600-second candidate budgets, original observed market inputs and current explicit as-of times. No product publication or knowledge mutations.",
+      "follow_up": "Four actual collector/acquisition qualifications completed: three failed and one succeeded. Complete acquired outputs and continuations are retained for final-writing diagnosis without reacquiring the same sources.",
       "status": "initial_fixture_inconclusive_live_replacement_failed_acceptance"
     }
   ],
@@ -189,5 +189,79 @@
       "application_end_utc": "2026-10-28T03:37:41Z"
     },
     "release_decision": "Follow-up remains held; scheduled production evidence also leaves news, Home and learning acceptance open. No new image built or promoted."
-  }
+  },
+  "open_issue_inventory": [
+    {
+      "id": "checkpoint_json",
+      "issue": "Company checkpoint JSON can contain NaN; PostgreSQL rejects the save.",
+      "status": "confirmed_source_defect_open",
+      "fix_deployed": false
+    },
+    {
+      "id": "batch_failure_isolation",
+      "issue": "An unexpected company-worker exception aborts aggregate research publication instead of publishing completed company results.",
+      "status": "confirmed_production_failure_open",
+      "fix_deployed": false
+    },
+    {
+      "id": "failure_recording",
+      "issue": "Recording the original news failure raised WorkCancelled, obscuring the originating PostgreSQL exception.",
+      "status": "confirmed_failure_handling_defect_open",
+      "fix_deployed": false
+    },
+    {
+      "id": "early_cancellation_and_retry",
+      "issue": "News baseline retry and the first afternoon Home replica encountered early cancellation. News retry failed; Home retry published degraded research.",
+      "status": "observed_failures_root_cause_unresolved",
+      "relationship": "Do not count these observations as additional proven independent root causes."
+    },
+    {
+      "id": "primary_candidate_synthesis",
+      "issue": "KNSA, CLS and NIB failed final synthesis in real-acquisition qualification with a600-second budget; PNR completed. Production primary-candidate budget remains240seconds.",
+      "status": "failed_qualification_open"
+    },
+    {
+      "id": "plain_text_review",
+      "issue": "No-tool plain-text answers skip agent-owned final review because the shared condition requires a response schema. Exact adapter replay completed12 drafts with review not_run.",
+      "status": "source_fixed_follow_up_held",
+      "fix_deployed": false
+    },
+    {
+      "id": "balance_refresh_contention",
+      "issue": "Calls can fail because another caller holds the balance-refresh lease despite available credit.",
+      "status": "source_fixed_follow_up_held",
+      "fix_deployed": false
+    },
+    {
+      "id": "composition_memory_writes",
+      "issue": "Home composition inherits safe_auto memory writing; restoring review activated unnecessary memory passes during qualification.",
+      "status": "source_fixed_follow_up_held",
+      "fix_deployed": false,
+      "cleanup": "Seven newly created pages archived through audited rollback and one proposal rejected; records retained."
+    },
+    {
+      "id": "learning_execution",
+      "issue": "Afternoon learning execution ended Failed without finalizing its database run. Console activity ends around its one-hour platform allowance.",
+      "status": "observed_failure_termination_cause_unresolved",
+      "previous_defect": "Missing container-local input replaced with durable event data; this does not establish complete job success."
+    }
+  ],
+  "remaining_verification_inventory": [
+    {
+      "id": "whole_run_acceptance",
+      "issue": "No successful complete scheduled news flow establishes persistence, unexpected failure handling, baseline recovery and completed-subset publication together."
+    },
+    {
+      "id": "latest_published_quality",
+      "issue": "Timing/context fix was deployed and full-source replays personally reviewed. The latest degraded production Home has not established complete output quality; do not claim the freshness regression recurred or is fully closed without reading that artifact."
+    },
+    {
+      "id": "account_savings",
+      "issue": "Whole-workload recurring savings and the90percent target remain unmeasured. Fewer executions, cheaper task routing and reuse do not establish achieved savings."
+    },
+    {
+      "id": "usage_accounting",
+      "issue": "Interrupted qualification calls retain explicitly unknown usage. Scheduled logs also show deferred provider-attempt recording and reservation settlement; current reconciliation completeness has not been established."
+    }
+  ]
 }
