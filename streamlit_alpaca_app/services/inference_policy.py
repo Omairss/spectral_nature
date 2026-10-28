@@ -82,7 +82,9 @@ def execute_with_fallback(handler, context, connection):
     """One candidate attempt; Azure's single replica retry uses baseline.
 
     Durable state also handles an Azure replica dying before Python can catch
-    its failure. A failed rollout stays on baseline until its policy changes.
+    its failure. Recovery belongs to this execution. A deliberate release-wide
+    rollback is selected through LLM_POLICY_PROFILE, not inferred indefinitely
+    from an earlier failed execution.
     """
     from . import pipeline_store
     from .work_scope import WorkScope
@@ -91,8 +93,8 @@ def execute_with_fallback(handler, context, connection):
     if context.name not in rollout.get("jobs", []):
         return handler(context, connection)
     namespace = "inference_rollout:" + pipeline_store.dataset_namespace()
-    key = context.name + ":" + policy_identity()
     execution = os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or context.run_id
+    key = context.name + ":" + execution + ":" + policy_identity()
     state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
     fallback = rollout["fallback_profile"]
 
@@ -107,7 +109,7 @@ def execute_with_fallback(handler, context, connection):
 
     if state.get("rollback") or state.get("status") == "started":
         save({**state, "rollback": True, "reason": state.get("reason") or "Previous replica did not complete"})
-        print(f"[info] inference policy={fallback} retained rollback", flush=True)
+        print(f"[info] inference policy={fallback} retry execution={execution}", flush=True)
         return run_baseline()
     save({"execution": execution, "status": "started", "profile": selected["profile"]})
     try:

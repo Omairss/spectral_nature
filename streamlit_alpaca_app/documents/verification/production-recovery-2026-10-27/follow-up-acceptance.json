@@ -54,7 +54,7 @@
     },
     {
       "request": "Cheaper task models and configurable baseline retry",
-      "status": "verified_routing_and_native_retry"
+      "status": "routing_deployed_verified_production_currently_bypassed_by_sticky_recovery_state"
     },
     {
       "request": "Original-date cache reuse, material changes and model/prompt invalidation",
@@ -480,7 +480,7 @@
       "source_hashes": {
         "pipeline/jobs/main.py": "ff4c9ead8e93943871430110e6389c3e824259b471a08075c0575fc9a303978b",
         "services/aql/business_model_stack.py": "8b6e7937e0a414c24c3276632a9157fa1d470e79443440afc8896edc4727e674",
-        "services/inference_policy.py": "db5c05f6ca993ae454984176ad7216e1bac876f344139338f9a36e1a7f19bdf5",
+        "services/inference_policy.py": "a89fd0f978beb3d489671c25c59ce41889ab070afebb0bb5f180abd2591afd1d",
         "services/llm_execution.py": "bfcd75e871a00251a1d3611a52c5df259dec9680d33bb2da7889986cf532483e",
         "services/llm_prices.json": "eeee5cdfd39271f38eab8492b5c6fefa95418ffac876b6a47b09eb9b2a88651f",
         "services/pipeline_store.py": "b01ac3a5174b0e3812eaae486bd48e07d556e495dce779fbf8fa31f9dc6fe762",
@@ -503,5 +503,15 @@
     "production_changed": false,
     "image_built": false,
     "private_evidence_root": "~/Library/Application Support/SpectralNature/operations/production-recovery-2026-10-27/adaptive-budget-contracts"
+  },
+  "routing_and_recovery_status": {
+    "recorded_at_utc": "2026-10-28T05:39:55.692100+00:00",
+    "task_model_routing": "Already implemented, deployed and verified. Balanced policy routes company-refresh assessment, company research planning, follow-up planning and retrieval planning to DeepSeek Flash. Dossier synthesis, final company narratives and required review preserve the full configured model.",
+    "live_observation": "Production news rollout state still has rollback=true from news-ingest-and-features-29885525, updated2026-10-27T20:45:49.495857Z. Existing code keys this by job/policy, so later scheduled executions bypass balanced routing and reuse.",
+    "local_repair": "Fallback state is now scoped to the platform execution; replica retry keeps baseline and the original clock, while a later scheduled execution uses its selected profile. Deliberate release-wide baseline remains an explicit configuration choice.",
+    "checks": "62 passed in1.55seconds: recurring inference contracts, provider execution contracts and production job boundaries.",
+    "design_recommendation": "Automatic whole-run configuration fallback is unnecessary for the observed persistence, ownership and deadline failures. Prefer retained-work continuation, safe bounded stage retries and model escalation only for a model-specific failure. Keep deployment rollback separate. Removing the automatic baseline mechanism is a proposed simplification; the local repair currently preserves the earlier explicit baseline-retry instruction.",
+    "production_changed": false,
+    "source_sha256": "a89fd0f978beb3d489671c25c59ce41889ab070afebb0bb5f180abd2591afd1d"
   }
 }

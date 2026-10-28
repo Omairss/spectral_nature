@@ -148,7 +148,7 @@ def test_policy_activation_uses_pacific_date(monkeypatch):
     assert policy()["profile"] == "balanced"
 
 
-def test_replica_retry_switches_to_baseline_and_retains_rollback(durable_store, monkeypatch):
+def test_replica_retry_uses_baseline_without_changing_the_next_execution(durable_store, monkeypatch):
     from services.inference_policy import execute_with_fallback
     import os
     ctx = SimpleNamespace(name="news-ingest-and-features", run_id="attempt", started_at_monotonic=time.monotonic(),
@@ -167,8 +167,8 @@ def test_replica_retry_switches_to_baseline_and_retains_rollback(durable_store, 
     assert calls == ["balanced", "baseline"]
     monkeypatch.setenv("LLM_POLICY_PROFILE", "balanced")
     monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "next-scheduled-execution")
-    execute_with_fallback(handler, ctx, None)
-    assert calls[-1] == "baseline"
+    next_run = SimpleNamespace(name=ctx.name, run_id="next-run", started_at_monotonic=time.monotonic(), degraded_components={})
+    assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], next_run, None) == "balanced"
 
 
 def test_interrupted_candidate_uses_baseline_on_next_replica(durable_store, monkeypatch):
@@ -176,8 +176,21 @@ def test_interrupted_candidate_uses_baseline_on_next_replica(durable_store, monk
     import os
     ctx = SimpleNamespace(name="news-ingest-and-features", run_id="attempt", started_at_monotonic=time.monotonic(),
                           degraded_components={})
+    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "same-execution")
     ns = "inference_rollout:" + pipeline_store.dataset_namespace()
-    durable_store[(ns, ctx.name + ":" + policy_identity())] = {"status": "started", "execution": "previous-replica"}
+    durable_store[(ns, ctx.name + ":same-execution:" + policy_identity())] = {"status": "started", "execution": "same-execution"}
+    assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], ctx, None) == "baseline"
+
+
+def test_old_release_rollback_does_not_override_a_new_executions_selected_profile(durable_store, monkeypatch):
+    from services.inference_policy import execute_with_fallback, policy_identity
+    import os
+    ctx = SimpleNamespace(name="news-ingest-and-features", run_id="new-run", started_at_monotonic=time.monotonic(), degraded_components={})
+    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "new-execution")
+    ns = "inference_rollout:" + pipeline_store.dataset_namespace()
+    durable_store[(ns, ctx.name + ":" + policy_identity())] = {"status": "failed", "rollback": True, "execution": "old-execution"}
+    assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], ctx, None) == "balanced"
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "baseline")
     assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], ctx, None) == "baseline"
 
 
