@@ -1354,12 +1354,12 @@
     "production_unchanged": true
   },
   "development_acceptance": {
-    "status": "pending_live_screen",
+    "status": "accepted",
     "images": {
       "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:abf387e66cf99526a31b865fd8f2afc6c3554a81ccd550ce82602c13c97af391"
     },
     "source_inventory_sha256": "3743e648be5f3179e824a212c64b64129de0962efb921ef2cbcc11a6419f084a",
-    "evidence": "documents/verification/broad-economy-summary-2026-10-27/packaged-images.json"
+    "evidence": "documents/verification/broad-economy-summary-2026-10-27/DEV.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",
