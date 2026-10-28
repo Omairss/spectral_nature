@@ -328,5 +328,17 @@
       "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
       "behavior_review": "Shared immutable publication/CAS and producer ownership apply to every worker. Job command, namespace, trigger, identity, resources and provider secrets remain the reviewed definition. Recurring-only default economy handling does not change explicitly configured queued research, Trading or maintenance models. Existing quantitative/chart adapters, Trading code, research queue and dataset schemas are preserved."
     }
+  ],
+  "api_normalizations": [
+    {
+      "name": "cleanup-trial-observer-dev",
+      "field": "template.containers[0].resources.ephemeralStorage",
+      "before": "",
+      "after": "absent",
+      "reason": "ARM removed an empty, unconfigured storage field during image-only patch. CPU0.25/memory0.5Gi and every effective job setting are unchanged. Preserve canonical readback; do not weaken the release checker.",
+      "configuration_before_sha256": "53bb353f0f3d61d4267ce77f049c5f505e867485eecddc0b198cac048dceb2c8",
+      "configuration_after_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
+      "effective_configuration_preserved": true
+    }
   ]
 }
