@@ -2,6 +2,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from contextvars import copy_context
 from datetime import datetime, timezone
+from decimal import Decimal
 import os
 import json
 import threading
@@ -452,3 +453,141 @@ def test_larger_target_can_fund_more_complete_investigations(store, monkeypatch)
         assert execution.protect_core_research(config=config, work={str(index): "Full supplied context"}, stages=3, required=False)
     state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
     assert sum(value["remaining_microusd"] for value in state["core_obligations"].values()) == 900_000_000
+
+
+def test_event_margin_is_atomic_bounded_and_frozen_across_replica_config_changes(store, monkeypatch):
+    monkeypatch.setenv('RESEARCH_BUDGET_MODE', 'event')
+    monkeypatch.setenv('RESEARCH_EVENT_MARGIN_FRACTION', '0.5')
+    execution.reserve_research_cost(attempt_id='base', maximum_usd=10, category='acquisition')
+    def admit(index):
+        with execution.event_research_context({'work_id':f'event-{index}', 'evidence_ids':[f'source-{index}'],
+                                               'reason':'Retained model nomination'}):
+            try:
+                execution.reserve_research_cost(attempt_id=f'event-{index}', maximum_usd=1, category='acquisition')
+                return True
+            except execution.ResearchBudgetExceeded:
+                return False
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        assert sum(pool.map(admit, range(16))) == 5
+    state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
+    assert state['base_microusd'] == 10_000_000
+    assert state['cap_microusd'] == state['event_ceiling_microusd'] == 15_000_000
+    assert sum(v['maximum_microusd'] for v in state['attempts'].values()) == 15_000_000
+    assert len(state['event_extensions']) == 5
+    monkeypatch.setenv('RESEARCH_EVENT_MARGIN_FRACTION', '500')
+    monkeypatch.setenv('RESEARCH_RUN_BUDGET_USD', '1000')
+    assert not admit('retry')
+    assert execution.research_spending_context()['event_ceiling_usd'] == 15
+    execution.settle_research_cost(attempt_id='base', actual_usd=4.5)
+    # Refunded marginal funds are not permission for unrelated ordinary work.
+    with pytest.raises(execution.ResearchBudgetExceeded):
+        execution.reserve_research_cost(attempt_id='unrelated', maximum_usd=1, category='acquisition')
+    assert admit('useful-current-work')
+
+
+def test_quiet_or_zero_budget_does_not_create_a_marginal_allowance(store, monkeypatch):
+    monkeypatch.setenv('RESEARCH_BUDGET_MODE', 'event')
+    monkeypatch.setenv('RESEARCH_EVENT_MARGIN_FRACTION', '0.5')
+    execution.reserve_research_cost(attempt_id='quiet-current-report', maximum_usd=.1, category='inference')
+    execution.settle_research_cost(attempt_id='quiet-current-report', actual_usd=.02)
+    state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
+    assert state['cap_microusd'] == 10_000_000 and state['event_extensions'] == []
+    monkeypatch.setenv('PIPELINE_RUN_ID', 'zero-event-budget-' + uuid.uuid4().hex)
+    monkeypatch.setenv('RESEARCH_RUN_BUDGET_USD', '0')
+    with execution.event_research_context({'work_id':'event', 'evidence_ids':['source'], 'reason':'Useful current question'}):
+        with pytest.raises(execution.ResearchBudgetExceeded):
+            execution.reserve_research_cost(attempt_id='not-free', maximum_usd=.01, category='acquisition')
+        assert execution.best_effort_required()
+
+
+def test_real_budget_admits_tokenized_azure_deployment_and_settles_the_underlying_model(store):
+    from services.llm import LLMConfig, AzureOpenAIEmbeddingClient
+    calls = []
+    def post(**kwargs):
+        calls.append(kwargs)
+        token_count = sum(map(len, kwargs['json']['input']))
+        response = requests.Response(); response.status_code = 200
+        response._content = json.dumps({'model':'text-embedding-3-small',
+            'data':[{'index':i,'embedding':[1.,0.,0.]} for i in range(len(kwargs['json']['input']))],
+            'usage':{'prompt_tokens':token_count,'total_tokens':token_count}}).encode()
+        return response
+    config = LLMConfig(provider='azure_openai', api_key='fake', model='arbitrary-deployment-alias',
+        base_url='https://example.invalid/openai/v1', embedding_deployment='arbitrary-deployment-alias',
+        embedding_model='text-embedding-3-small', embedding_dimensions=3)
+    model = AzureOpenAIEmbeddingClient(config, session=SimpleNamespace(post=post))
+    assert len(model.generate_embeddings(['Current evidence retained completely.', 'Another source.'])) == 2
+    assert calls[0]['json']['model'] == 'arbitrary-deployment-alias'
+    state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
+    assert len(state['attempts']) == 1
+    assert next(iter(state['attempts'].values()))['status'] == 'settled'
+    assert not state.get('invalid_quote')
+    payload = {'model':'arbitrary-deployment-alias', 'input':[[11,22,33],[44,55]]}
+    assert execution._request_maximum_charge(config,payload) == Decimal('0.00000011')
+
+
+def test_audio_uses_character_prices_and_a_complete_billing_receipt(store):
+    from services.elevenlabs_tts import ElevenLabsTTSConfig
+    config = ElevenLabsTTSConfig(api_key='fake',voice_id='voice',model_id='eleven_multilingual_v2',output_format='mp3')
+    response=requests.Response();response.status_code=200;response._content=b'complete-audio-bytes'
+    execution.provider_post(config=config,session=SimpleNamespace(post=lambda **kw:response),operation='audio',
+        json={'model_id':config.model_id,'text':'x'*1000},url='https://example.invalid/audio',timeout=5)
+    state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
+    attempt = next(iter(state['attempts'].values()))
+    assert attempt['status']=='settled' and attempt['charged_microusd']==80_000
+
+
+def test_publication_metadata_uses_reserved_capacity_while_background_sql_is_occupied(store, monkeypatch):
+    from datetime import datetime, timezone
+    from pipeline.jobs import main as jobs
+    monkeypatch.setenv('POSTGRES_BACKGROUND_ACQUIRE_TIMEOUT_SECONDS','1')
+    execution_name='publication-capacity-'+uuid.uuid4().hex
+    monkeypatch.setenv('CONTAINER_APP_JOB_EXECUTION_NAME',execution_name)
+    monkeypatch.setenv('LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE','public_company_research')
+    ctx=jobs.JobContext(name='news-ingest-and-features',run_id=os.environ['PIPELINE_RUN_ID'],
+        asof=datetime.now(timezone.utc),universe_version='qualification')
+    namespace='pipeline_execution:'+pipeline_store.dataset_namespace()
+    key=ctx.name+':'+execution_name
+    with database.database_workload('interactive'):
+        assert pipeline_store.write_execution_state(namespace,key,{'run_id':ctx.run_id})
+    occupied=database.open_database_session(store,workload='background')
+    try:
+        with occupied.cursor() as cursor:cursor.execute('SELECT 1')
+        with database.database_workload('background'):
+            with pytest.raises(RuntimeError,match='accounting store is unavailable'):
+                pipeline_store.mutate_execution_state(namespace,key,lambda state:state)
+            monkeypatch.setattr(jobs,'_upload_frame',lambda *args:'native.parquet')
+            monkeypatch.setattr(jobs,'_upload_manifest',lambda *args,**kwargs:{'dataset_version_id':'native-version'})
+            jobs._persist_dataset('edgar_filings',pd.DataFrame([{'form':'10-Q'}]),ctx,None)
+        assert ctx.degraded_components=={}
+        with database.database_workload('interactive'):
+            saved=pipeline_store.read_execution_state(namespace,key,strict=True)
+        assert saved['published_datasets']=={'edgar_filings':'native-version'}
+    finally:
+        occupied.close()
+
+
+def test_event_capacity_is_available_not_compulsory_and_survives_changed_retry_settings(store, monkeypatch):
+    monkeypatch.setenv('RESEARCH_BUDGET_MODE','event')
+    monkeypatch.setenv('RESEARCH_EVENT_MARGIN_FRACTION','0.5')
+    assert execution.event_investigation_capacity(4)==6
+    execution.reserve_research_cost(attempt_id='nomination',maximum_usd=.01,category='inference')
+    monkeypatch.setenv('RESEARCH_EVENT_MARGIN_FRACTION','100')
+    assert execution.event_investigation_capacity(4)==6
+    state=pipeline_store.read_execution_state(*execution._run_budget_key(),strict=True)
+    assert state['cap_microusd']==10_000_000 and state['event_extensions']==[]
+
+
+def test_completed_investigations_survive_a_later_empty_nomination_and_scope_isolation(store):
+    namespace = 'research-history-' + uuid.uuid4().hex
+    def retain(scope, identity, subject, task, payload):
+        return pipeline_store.retain_research_checkpoint(namespace=scope, input_key=identity,
+            subject=subject, task=task, artifact={'artifact_id': identity, 'subject': subject,
+                'task': task, 'created_at_utc': datetime.now(timezone.utc).isoformat(),
+                'result': {'payload': payload}})
+    retain(namespace, 'completed', 'event:one', 'source_event_research', {'analysis': 'Retained full research'})
+    retain(namespace, 'quiet', 'attention:source_event_nomination', 'source_event_nomination', {'events': []})
+    retain(namespace + ':private', 'other-owner', 'event:two', 'source_event_research', {'analysis': 'Private'})
+    rows = pipeline_store.list_research_artifacts(namespace=namespace, task='source_event_research', limit=1)
+    assert [r['artifact_id'] for r in rows] == ['completed']
+    assert rows[0]['result']['payload'] == {'analysis': 'Retained full research'}
+    assert len(pipeline_store.list_research_artifacts(namespace=namespace)) == 2

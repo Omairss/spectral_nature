@@ -1,0 +1,47 @@
+{
+  "status": "observed",
+  "news": {
+    "application_status": "Warning",
+    "published_datasets": 13,
+    "company_checkpoint_errors": {
+      "symbols": [
+        "BSX",
+        "LITE",
+        "MXL",
+        "VRT"
+      ],
+      "sqlstate": "22P05",
+      "cause": "Raw PDF body decoded as text; JSONB rejects U+0000"
+    },
+    "embedding_not_sent": 175
+  },
+  "home": {
+    "latest_run_id": "8c85a20f-3821-4486-86a1-5430f5f73be1",
+    "application_status": "Succeeded",
+    "embedding_not_sent": 402,
+    "successful_pro_requests": 147,
+    "successful_flash_requests": 9,
+    "main_writer_and_reviewer": "deepseek-v4-pro",
+    "observation": "Published success did not expose semantic retrieval degradation."
+  },
+  "news_models": {
+    "successful_pro_requests": 133,
+    "successful_flash_requests": 63,
+    "company_final_pro": 21,
+    "company_final_flash_best_effort": 4
+  },
+  "learning": {
+    "application_status": "Warning",
+    "completed_critiques": 9,
+    "pending_critiques": 16,
+    "pending_reviews": 4,
+    "misreported_deferred_count": 0
+  },
+  "quality": {
+    "personal_review": "Current/prior complete public fields and full retained company findings, without a user-selected example.",
+    "concrete_issue": "Overall market summary omits consequential business developments that its own research identified; several company explanations are generic.",
+    "causality": "Core Home model downgrade is excluded by provider records. Broken semantic retrieval and partial/cheaper optional company refresh are real input degradations; their exact share of the subjective quality decline is not isolated."
+  },
+  "cost_measurement": "Token-price estimates and unknown maximum reservations, not invoiced totals.",
+  "private_evidence": "production-baseline.json plus immutable dataset version captures in the private operation directory."
+}

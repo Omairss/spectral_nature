@@ -35,6 +35,20 @@ RESEARCH_TIMELINE_GUIDANCE = (
 )
 
 
+RESEARCH_ANALYSIS_GUIDANCE = (
+    "Preserve the useful depth of the research when writing or reviewing an answer. Select the specific observations, "
+    "business mechanisms, constraints and competing explanations that change the reader's understanding. "
+    "Concision removes repetition; it should not replace those findings with a generic industry description or an "
+    "assertion that demand is strong. Explain how a development reaches the affected business and what remains an "
+    "inference, using the actual observations and relationships available. Retain worthwhile indirect connections "
+    "without inventing counterparties or treating co-movement as proof. When summarizing multiple investigations, "
+    "explain the consequential developments and connections across them; a numerical market recap alone is not "
+    "a synthesis of that research. Different events can have different drivers; do not force a single theme. "
+    "Review for important information lost between the research, draft and final answer as well as for factual errors. "
+    "Match the requested format and length without imposing a fixed number of facts, sources or paragraphs."
+)
+
+
 def render_research_prompt(*, evidence: Any, request: Any, instructions: str) -> str:
     """Stable complete evidence precedes the changing task and question.
 

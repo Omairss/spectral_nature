@@ -3045,12 +3045,15 @@ def _run_zopedia_agent_loop(
             from .llm_execution import _CALL, model_call_context, protect_core_research, complete_core_research
             inherited_core = _CALL.get().get("core_work_id")
             core_id = inherited_core or resolved_run_id
+            funded = True
             if resolved_llm is not None:
-                protect_core_research(config=resolved_llm.config, work={core_id: {
+                funded = protect_core_research(config=resolved_llm.config, work={core_id: {
                     "query": query, "initial_evidence": initial_evidence,
                     "conversation": conversation_history, "schema": response_schema,
-                }}, stages=1 + int(answer_review_owner == "agent"))
-            with model_call_context(core_work_id=core_id):
+                }}, stages=1 + int(answer_review_owner == "agent"),
+                    required=not bool(_CALL.get().get("event_work") and not inherited_core))
+            with model_call_context(core_work_id=core_id,
+                    **({"optional_core_unfunded": True, "completion_only": True} if not funded else {})):
                 result = _execute_zopedia_agent_loop(
                     run_id=resolved_run_id,
                     query=query,

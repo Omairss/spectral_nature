@@ -624,6 +624,10 @@ def _recent_threads(conn: Any, *, limit: int) -> list[dict[str, Any]]:
                 WHERE e.thread_id=t.thread_id AND e.status IN ('critique_pending','review_pending')
               ) pending ON true
               WHERE t.status <> 'deleted'
+                AND (pending.retry_at IS NOT NULL OR NOT EXISTS (
+                  SELECT 1 FROM saa_zopedia_learning_events seen
+                  WHERE seen.thread_id=t.thread_id AND seen.created_at_utc >= t.updated_at
+                ))
               UNION ALL
               SELECT e.thread_id, e.user_key, jsonb_build_object(
                   'event_id', e.event_id, 'user_key', e.user_key, 'original_question', e.original_question,
@@ -668,6 +672,9 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None, *,
         "events_triaged": 0,
         "critiques_pending": 0,
         "critiques_reused": 0,
+        "events_already_reviewed": 0,
+        "cases_deferred": 0,
+        "reviews_deferred": 0,
         "reviews_pending": 0,
         "evals_generated": 0,
         "safe_updates_applied": 0,
@@ -683,6 +690,51 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None, *,
                             int(resolve_research_budget()["run_timeout_seconds"]), minimum=1)
     reserve_seconds = _env_int("ZOPEDIA_LEARNING_FINALIZATION_RESERVE_SECONDS", 60, minimum=1)
     work_deadline = deadline_monotonic - reserve_seconds if deadline_monotonic is not None else float("inf")
+    attempted_reviews: set[str] = set()
+    def verify_pending_reviews():
+        if not _env_bool("ZOPEDIA_LEARNING_VERIFY_EVALS", True):
+            return
+        verify_limit = _env_int("ZOPEDIA_LEARNING_VERIFY_LIMIT", 3, minimum=0)
+        for event_id, eval_path in list(generated_eval_events.items()):
+            if event_id in attempted_reviews:
+                continue
+            if len(attempted_reviews) >= verify_limit:
+                break
+            if work_deadline - time.monotonic() < case_seconds:
+                summary["status"] = "partial"
+                break
+            attempted_reviews.add(event_id)
+            try:
+                with WorkScope(min(work_deadline, time.monotonic() + case_seconds)).activate():
+                    replay = replay_learning_eval(eval_path, run_agent=True, conn=db_conn, run_timeout_seconds=case_seconds)
+            except Exception as exc:
+                _merge_learning_event_metadata(
+                    db_conn,
+                    event_id,
+                    {"verification_error": f"{type(exc).__name__}: {_clean(exc)[:500]}"},
+                )
+                _update_learning_event_fields(
+                    db_conn,
+                    event_id,
+                    status="review_pending",
+                    eval_status="replay_error",
+                )
+                summary["status"] = "partial"
+                db_conn.commit()
+                continue
+            replay_status = _clean(replay.get("status"))
+            if replay_status != "reviewed":
+                summary["status"] = "partial"
+            else:
+                generated_eval_events.pop(event_id)
+            _merge_learning_event_metadata(db_conn, event_id, {"verification": {
+                "status": replay_status, "quality_review": replay.get("quality_review") or {},
+                "tool_names": list(replay.get("tool_names") or []),
+            }, "verification_error": None})
+            _update_learning_event_fields(db_conn, event_id, status="reviewed" if replay_status == "reviewed" else "review_pending", eval_status=replay_status)
+            db_conn.commit()
+        db_conn.commit()
+
     try:
         if db_conn.info.transaction_status != 0:
             raise ValueError("Zopedia learning requires a connection outside a transaction.")
@@ -714,22 +766,46 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None, *,
                 prior = dict(prior_row[0]) if prior_row else {}
                 prior_metadata = _json_dict(prior.get("metadata_json"))
                 db_conn.commit()
+                if prior.get("status") in {"reviewed_no_change", "reviewed", "verified", "rejected", "regressed"}:
+                    summary["events_already_reviewed"] += 1
+                    continue
+                critic = prior_metadata.get("critic") or {}
+                if prior.get("eval_case_path") and (critic.get("_execution") or {}).get("status") == "completed":
+                    saved_case = prior_metadata.get("eval_case")
+                    if not isinstance(saved_case, dict):
+                        saved_case = build_regression_eval_case(
+                            {**prior, "metadata": prior_metadata,
+                             "successful_path": _json_list(prior.get("successful_path_json"))}, critic)
+                    reference = persist_regression_eval_case(saved_case, conn=db_conn)
+                    _update_learning_event_fields(db_conn, event["event_id"], eval_case_path=reference, status="review_pending")
+                    db_conn.commit()
+                    generated_eval_events[event["event_id"]] = reference
+                    summary["critiques_reused"] += 1
+                    continue
                 if not prior:
                     event["status"] = "critique_pending"
                     _persist_learning_event(db_conn, event)
                 pending_cases.append((event, thread, run_payloads, prior, prior_metadata))
+        # Finish already-paid critiques before buying more work. A model or
+        # engine revision does not invalidate a frozen pending review input.
+        verify_pending_reviews()
         # Discover and journal the batch before any model work can consume the
         # window. Every deferred case is visible to the next scheduled run.
         for index, (event, thread, run_payloads, prior, prior_metadata) in enumerate(pending_cases):
             if time.monotonic() >= work_deadline:
-                summary["cases_deferred"] = len(pending_cases) - index
+                summary["cases_deferred"] += len(pending_cases) - index
+                summary["critiques_pending"] += len(pending_cases) - index
                 summary["status"] = "partial"
                 break
             # Save pending state before inference, so process death cannot masquerade as success.
             event["status"] = "critique_pending"
             event["metadata"] = {**dict(event.get("metadata") or {}), **prior_metadata}
             def retain_pending():
-                _persist_learning_event(db_conn, event)
+                if prior:
+                    _update_learning_event_fields(db_conn, event["event_id"], status="critique_pending")
+                    db_conn.commit()
+                else:
+                    _persist_learning_event(db_conn, event)
                 if work_deadline - time.monotonic() < case_seconds:
                     raise ResearchWorkDeferred("The remaining learning window cannot fund another complete case.")
             critique = {}
@@ -748,6 +824,8 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None, *,
                 _merge_learning_event_metadata(db_conn, event["event_id"], {"critic": critique})
                 db_conn.commit()
                 summary["critiques_pending"] += 1
+                if (critique.get("_execution") or {}).get("deferred"):
+                    summary["cases_deferred"] += 1
                 continue
             # A previously committed update/evaluation must not be applied or bought twice.
             if critique.get("_reused"):
@@ -817,50 +895,16 @@ def run_zopedia_learning_job(limit: int = 25, conn: Any | None = None, *,
             db_conn.commit()
         db_conn.commit()
 
-        if _env_bool("ZOPEDIA_LEARNING_VERIFY_EVALS", True):
-            verify_limit = _env_int("ZOPEDIA_LEARNING_VERIFY_LIMIT", 3, minimum=0)
-            for event_id, eval_path in list(generated_eval_events.items())[:verify_limit]:
-                if work_deadline - time.monotonic() < case_seconds:
-                    summary["status"] = "partial"
-                    break
-                try:
-                    with WorkScope(min(work_deadline, time.monotonic() + case_seconds)).activate():
-                        replay = replay_learning_eval(eval_path, run_agent=True, conn=db_conn, run_timeout_seconds=case_seconds)
-                except Exception as exc:
-                    _merge_learning_event_metadata(
-                        db_conn,
-                        event_id,
-                        {"verification_error": f"{type(exc).__name__}: {_clean(exc)[:500]}"},
-                    )
-                    _update_learning_event_fields(
-                        db_conn,
-                        event_id,
-                        status="review_pending",
-                        eval_status="replay_error",
-                    )
-                    summary["status"] = "partial"
-                    db_conn.commit()
-                    continue
-                replay_status = _clean(replay.get("status"))
-                if replay_status != "reviewed":
-                    summary["status"] = "partial"
-                else:
-                    generated_eval_events.pop(event_id)
-                _merge_learning_event_metadata(db_conn, event_id, {"verification": {
-                    "status": replay_status, "quality_review": replay.get("quality_review") or {},
-                    "tool_names": list(replay.get("tool_names") or []),
-                }, "verification_error": None})
-                _update_learning_event_fields(db_conn, event_id, status="reviewed" if replay_status == "reviewed" else "review_pending", eval_status=replay_status)
-                db_conn.commit()
-            db_conn.commit()
+        verify_pending_reviews()
         summary["reviews_pending"] = len(generated_eval_events)
+        summary["reviews_deferred"] = sum(event_id not in attempted_reviews for event_id in generated_eval_events)
         for event_id in generated_eval_events:
             _update_learning_event_fields(db_conn, event_id, status="review_pending")
         db_conn.commit()
         if summary["critiques_pending"] or summary["reviews_pending"] or summary["status"] == "partial":
             summary.update(status="partial", job_status="Warning", job_message=(
                 f"{summary['critiques_pending']} learning critiques and {summary['reviews_pending']} reviews remain pending; "
-                f"{summary.get('cases_deferred', 0)} cases deferred; completed work is retained."))
+                f"{summary['cases_deferred']} critiques and {summary['reviews_deferred']} reviews deferred; completed work is retained."))
         return summary
     except Exception:
         try:

@@ -1305,3 +1305,10 @@ One Flash request lost its connection with ChunkedEncodingError. The strict stud
 ### Full scheduled workload exposed gaps beyond the DEV recovery probe — October 28
 
 The exact-image probe covered ownership, deadlines, publication and simulated DeepSeek transports, but did not cover the actual Azure embedding price contract or HTTP PDF extraction. The first scheduled news execution exposed148 rejected embedding requests and four completed company profiles whose checkpoint contained PDF binary text that PostgreSQL JSONB cannot represent. An EDGAR publication checkpoint separately reported RuntimeError without enough logged cause. These are still open findings; successful publication of sibling datasets does not mean the whole workload was repaired. The first learning run also retained16 critiques and4 reviews; its per-case admission path failed to increment the deferred counter. Preserve the earlier accepted evidence and record the scheduled outcome separately instead of declaring all requested work finished.
+
+
+### Automatic expiry can defeat event-adaptive costs — October 28
+
+The existing24-hour company-cache expiry bypassed semantic reuse and bought a full investigation even with unchanged useful evidence. Moving budget holds after cache lookup alone would not fix recurring quiet-day spending. The candidate now assesses current materiality and freshness after expiry, with original/current as-of dates separate; only a completed reuse decision advances the check time. Failed/uncertain assessment still refreshes. Complete-output qualification is pending; software checks cannot establish the decision quality.
+
+The feed-quality investigation also confirmed Pro remained the main Home writer/reviewer. Do not attribute an overall regression to Flash without reading provider routes and complete research-to-publication handoffs. Current evidence shows lost substantive findings during synthesis, rejected semantic retrieval and some cheaper optional profiles as separate issues.

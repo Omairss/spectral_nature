@@ -1,0 +1,83 @@
+{
+  "status": "awaiting_provider_authorization",
+  "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
+  "requirements": {
+    "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
+    "event_margin_fraction": 0.5,
+    "event_margin_configurable": true,
+    "quiet_runs": "Spend according to useful current research, without a minimum-spend requirement.",
+    "heavy_runs": "Permit justified additional research within the configured marginal allowance; preserve paid obligations and original deadline across retries.",
+    "transparency": "Failures and degraded sources remain visible in operational receipts; do not disguise incomplete work as success.",
+    "freshness": "Publish current completed work; do not present past events or unfinished prior investigations as new.",
+    "model_quality": "Determine actual model use and inspect complete feed output before attributing regression to cheaper models."
+  },
+  "items": [
+    {
+      "id": "production_baseline",
+      "task": "Capture current full application results, per-stage actual model routes/costs and complete published feed; identify failure and quality causes.",
+      "status": "complete",
+      "evidence_or_remaining": "Read complete current/prior public Home output and full company research; inspected scheduled SQL outcomes, provider models and budget ledgers. Core Home writer/review remained Pro; semantic retrieval was rejected before transport. See baseline.json."
+    },
+    {
+      "id": "document_and_checkpoint",
+      "task": "Fix binary document acquisition at source, preserve raw content and correct durable checkpoint behavior for valid supported inputs.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Shared PDF extraction detects magic/MIME before text decoding, retains original bytes and explicitly records failed/partial extraction. Actual generated PDF and corrupt-PDF contracts pass. DEV publication remains pending."
+    },
+    {
+      "id": "embedding_admission",
+      "task": "Fix Azure embedding price/input contract and make degraded semantic retrieval observable.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Canonical Azure model pricing verified against actual westus Standard deployment and Azure retail API. Token arrays count tokens; semantic degradation is visible. Added the separately observed ElevenLabs character-price contract."
+    },
+    {
+      "id": "publication_state",
+      "task": "Establish the EDGAR checkpoint cause, preserve native publication and make retry restoration reliable with actionable diagnostics.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Reproduced short publication-state mutation self-starving behind background SQL admission. Reserved metadata capacity and immutable execution publication restoration pass. Historical EDGAR warning lacked the stack/SQLSTATE, so its exact earlier blocking transaction cannot be asserted."
+    },
+    {
+      "id": "learning_progress",
+      "task": "Correct actual deferred counts and ensure retained critiques/reviews make fair progress within the existing whole-job boundary.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Saved frozen reviews run before new critiques and avoid re-purchasing completed critics across engine revisions. Actual deferrals and unchanged terminal episodes are tracked. Whole scheduled backlog progress remains observation."
+    },
+    {
+      "id": "event_allocation",
+      "task": "Implement evidence-led event-dependent allocation with configurable 50% marginal allowance, shared atomic reservations and no retry reset or runaway spending.",
+      "status": "implemented_qualification_pending",
+      "evidence_or_remaining": "Atomic shared current-event funding, frozen base/margin/deadline, cache reuse before expensive holds, independent completed-investigation context, configurable nomination capacity, audited event-specific attempts and final spending receipts. Financial contracts pass; complete-output allocation comparison pending fresh provider authorization."
+    },
+    {
+      "id": "feed_quality",
+      "task": "Personally compare complete current feed and retained paired model outputs, correct source or routing causes, and preserve substantive full-model core work.",
+      "status": "local_review_and_candidate_ready",
+      "evidence_or_remaining": "Main writer/reviewer are Pro. Observed lost substantive business developments in overall synthesis; broken retrieval and some optional Flash profiles are separate contributors. Common depth/synthesis instructions added. Retained identical-input full-model output comparison prepared with strict new $10 guard, not started."
+    },
+    {
+      "id": "verification_and_release",
+      "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
+      "status": "in_progress",
+      "evidence_or_remaining": "Fresh full inventory confirms36 consumers;29 worker images and7 separate client/API/broker images match preceding accepted release. Source review and DEV qualification prepared. No candidate build/deployment before local qualitative acceptance."
+    },
+    {
+      "id": "scheduled_observation",
+      "task": "Check application-level scheduled outcomes, not only process exit; report actual cost allocation, unfinished work and quality findings.",
+      "status": "pending_new_release",
+      "evidence_or_remaining": "Capture application receipt, actual margin decisions/cost obligations, recovered acquisition outcomes and learning progress after promotion; Azure exit status alone is insufficient."
+    }
+  ],
+  "spending_policy": "No new paid offline API study is authorized by this task. Earlier $15 comparison is closed. Production reads and personally reviewing retained output do not start inference. Any new qualification must obey current AGENTS.md or obtain a new explicit exception.",
+  "latest_local_contracts": {
+    "passed": 180,
+    "log": "private contracts-20261028T190640Z.log",
+    "scope": "Finance, ownership, persistence, cache state, document and release boundaries. No generated prose was graded."
+  },
+  "release_state": {
+    "candidate_build_started": false,
+    "development_deployed": false,
+    "production_deployed": false,
+    "production_remains_previous_accepted_image": true,
+    "required_next_step": "Fresh complete-output comparison; awaiting explicit provider exception for the prepared $10 batch or an approved adequate Lambda allocation."
+  }
+}

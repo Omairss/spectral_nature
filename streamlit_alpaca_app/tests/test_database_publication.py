@@ -140,3 +140,24 @@ def test_recovery_retains_pending_receipts_until_successful_sql_commit(monkeypat
     assert len(events) == 1
     assert store.reconcile_provider_attempt_receipts(days=1, limit=1) == {"reconciled": 1, "scan_complete": True}
     assert not events and len(removed) == 2
+
+
+def test_native_execution_receipts_restore_publication_after_a_pointer_or_sql_checkpoint_loss(blobs, monkeypatch):
+    def container(name):
+        return SimpleNamespace(list_blobs=lambda name_starts_with,**kwargs:
+            [SimpleNamespace(name=key) for key in list(blobs.objects) if key.startswith(name_starts_with)])
+    monkeypatch.setattr(blobs,'get_container_client',container,raising=False)
+    value={**manifest(4),'run_id':'original-run','platform_execution_name':'native-execution'}
+    assert store.publish_dataset_manifest(value)
+    latest=store.dataset_blob_path('manifests/qa_publication/latest.json')
+    del blobs.objects[latest]
+    monkeypatch.setattr(store,'open_database_connection',lambda:pytest.fail('Native recovery required SQL'))
+    restored=store.restore_execution_publications(execution='native-execution',run_id='original-run')
+    assert restored=={'qa_publication':'version_4'}
+    assert json.loads(blobs.objects[latest][0])['dataset_version_id']=='version_4'
+    newer={**manifest(7),'execution_fence':9}
+    store.publish_dataset_manifest(newer)
+    assert store.restore_execution_publications(execution='native-execution',run_id='original-run')==restored
+    assert json.loads(blobs.objects[latest][0])['dataset_version_id']=='version_7'
+    with pytest.raises(ValueError,match='different owner'):
+        store.restore_execution_publications(execution='native-execution',run_id='another-run')

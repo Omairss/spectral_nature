@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from io import BytesIO
 from datetime import datetime, timezone
 import html
 import json
@@ -536,28 +535,6 @@ def _decode_uploaded_text(content: bytes) -> str:
     return decoded if _looks_like_text(decoded) else ""
 
 
-def _extract_pdf_text(content: bytes) -> str:
-    if not content:
-        return ""
-    try:
-        from pypdf import PdfReader
-    except Exception:
-        return ""
-    try:
-        reader = PdfReader(BytesIO(content))
-    except Exception:
-        return ""
-    parts: list[str] = []
-    for page in list(reader.pages or []):
-        try:
-            page_text = _coerce_text(page.extract_text())
-        except Exception:
-            page_text = ""
-        if page_text:
-            parts.append(page_text)
-    return "\n\n".join(parts)
-
-
 def _title_from_filename(filename: object) -> str:
     text = _coerce_text(filename)
     if not text:
@@ -582,10 +559,11 @@ def prepare_zopedia_uploaded_source(
     byte_count = len(payload)
     lower_name = clean_filename.lower()
     lower_type = clean_content_type.lower()
-    is_pdf = lower_name.endswith(".pdf") or lower_type == "application/pdf"
+    is_pdf = lower_name.endswith(".pdf") or lower_type.split(";", 1)[0] == "application/pdf" or payload.lstrip().startswith(b"%PDF-")
 
     if is_pdf:
-        source_text = _extract_pdf_text(payload)
+        from ..web_research import extract_pdf_document
+        source_text = extract_pdf_document(payload)["body_text"]
         source_type = "uploaded_pdf"
         if not source_text:
             return {

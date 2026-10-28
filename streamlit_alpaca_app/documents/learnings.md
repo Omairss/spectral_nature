@@ -1332,7 +1332,7 @@ The deployed job owner renews every100seconds inside a30-second SQL allowance. R
 
 ### Research depth follows the approved run allowance — October 27
 
-The owner requires production research budgets that scale continuously from$10 to$1000+ per logical run, with variable quality/depth. Keep dollar allowance, deadline and physical concurrency independent. The shared LLM planner should choose worthwhile breadth, depth, models and verification within one parent allowance; workers, retries and fallback share its spending and reservations. Preserve completed evidence when raising depth, and reassess whether prior answers satisfy the deeper objective. A higher ceiling permits additional research without requiring expenditure. The90percent reduction is an economical operating-profile goal, not a permanent ceiling on research capability. This configuration requirement does not approve a high-cost run or change the separate offline research spending/provider policy.
+The owner requires production research budgets that scale continuously from$10 to$1000+ per logical run, with variable quality/depth. Keep dollar allowance, deadline and physical concurrency independent. The shared LLM planner should choose worthwhile breadth, depth, models and verification within one parent allowance; workers, retries and fallback share its spending and reservations. Preserve completed evidence when raising depth, and reassess whether prior answers satisfy the deeper objective. A higher ceiling permits additional research without requiring expenditure. The October28 owner update retires the90percent goal in favor of reliability and predictable event-adaptive costs. This configuration requirement does not approve a high-cost run or change the separate offline research spending/provider policy.
 
 ### Atomic run allowance and control metadata — October 27 implementation
 
@@ -1377,3 +1377,14 @@ The final worker image passed native Azure qualification: all189 packaged files 
 ### Check application completion after scheduled production execution — October 28
 
 Azure reported successful container executions for news, Home and learning, while the application receipts correctly distinguished partial news and learning completion. News published13 datasets but four company checkpoints rejected PDF binary text containing NUL, and one EDGAR publication-state checkpoint reported RuntimeError. Semantic retrieval also logged148 budget-admission rejections for an unpriced embedding model. Home completed without degraded components. Learning preserved16 pending critiques and4 reviews before another full case could fit. Qualify the complete provider mix and real document formats alongside simulated recovery contracts, and read application receipts as well as platform exit status. Pending learning admission must be counted in the summary rather than reported as zero deferred.
+
+
+### Event allocation and quiet-run research — October 28
+
+Treat the selected production budget as a base allowance, with configurable marginal capacity for useful current investigations. Freeze base, margin and deadline per logical run; atomically count settled work, unknown/in-flight maximums and future core obligations. Extend only by the shortfall for an existing model-selected event, retain its evidence/reason on both extension and attempt, and do not turn refunded marginal money into permission for unrelated work. Optional expansion cannot compound the existing completion buffer. A quiet run has no quota. Full-model core work and explicit small completion variance remain distinct from discretionary expansion.
+
+Read completed investigations independently of the last nomination: an empty quiet nomination must not erase prior work. Keep the original analysis date when reuse is appropriate. Expiry of the check interval triggers a current materiality/freshness assessment; it does not itself justify re-buying full research. Unclear current evidence requires refresh rather than indefinite reuse. These allocation semantics still require personal review of actual complete model decisions before release.
+
+### Acquisition formats and provider identity are accounting contracts — October 28
+
+Recognize PDF MIME/magic before text decoding. Share the uploaded/HTTP PDF extractor, retain original bytes, and expose partial extraction separately from valid narrative. Azure wire deployment names are not billing model IDs. Price actual embedding token arrays by their token count and use the verified regional SKU; character-priced speech is a separate unit. A recovered keyword path must remain visible as degraded semantic retrieval in application receipts/health.

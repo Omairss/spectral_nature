@@ -543,3 +543,51 @@ def test_scrapling_browse_fails_fast_when_redirected_to_blocked_login_page(monke
 
     assert calls == [article_url]
     assert login_calls == []
+
+
+def test_http_pdf_extracts_complete_text_and_preserves_the_original_response(monkeypatch):
+    from io import BytesIO
+    import hashlib
+    import json
+    import requests
+    from pypdf import PdfWriter
+    from pypdf.generic import DictionaryObject, NameObject, DecodedStreamObject
+    from services import pipeline_store
+    writer = PdfWriter();page=writer.add_blank_page(width=612,height=792)
+    font=DictionaryObject({NameObject('/Type'):NameObject('/Font'),NameObject('/Subtype'):NameObject('/Type1'),NameObject('/BaseFont'):NameObject('/Helvetica')})
+    page[NameObject('/Resources')]=DictionaryObject({NameObject('/Font'):DictionaryObject({NameObject('/F1'):writer._add_object(font)})})
+    stream=DecodedStreamObject();stream.set_data(b'BT /F1 12 Tf 72 720 Td (Full financial source document.) Tj 0 -24 Td (Second paragraph remains available.) Tj ET')
+    page[NameObject('/Contents')]=writer._add_object(stream)
+    buffer=BytesIO();writer.write(buffer);content=buffer.getvalue()
+    assert b'\x00' in content or content.startswith(b'%PDF-')
+    response=requests.Response();response.status_code=200;response._content=content
+    response.headers['Content-Type']='application/octet-stream';response.url='https://example.invalid/report'
+    monkeypatch.setattr(page_browsing.requests,'get',lambda *a,**k:response)
+    retained=[]
+    class Archive:
+        def __init__(self,**kwargs):pass
+        def put(self,payload,**kwargs):
+            retained.append(payload);return {'sha256':hashlib.sha256(payload).hexdigest(),'bytes':len(payload),'blob_path':'private/raw.pdf'}
+    monkeypatch.setattr(pipeline_store,'pipeline_store_configured',lambda:True)
+    monkeypatch.setattr(pipeline_store,'ImmutableBlobArchive',Archive)
+    result=page_browsing._browse_with_http(response.url,timeout_seconds=5,max_text_chars=500)
+    assert retained == [content]
+    assert result['source_metadata']['extraction_status']=='complete'
+    assert result['source_metadata']['page_count']==1
+    assert 'Full financial source document.' in result['source_text']
+    assert 'Second paragraph remains available.' in result['source_text']
+    assert '%PDF-' not in result['source_text'] and '\x00' not in json.dumps(result,ensure_ascii=False)
+
+
+def test_invalid_pdf_never_becomes_binary_evidence(monkeypatch):
+    import requests
+    from services import pipeline_store, llm_execution
+    response=requests.Response();response.status_code=200;response._content=b'%PDF-1.7\n\x00\xff\x00broken'
+    response.headers['Content-Type']='application/pdf';response.url='https://example.invalid/broken'
+    monkeypatch.setattr(page_browsing.requests,'get',lambda *a,**k:response)
+    monkeypatch.setattr(pipeline_store,'pipeline_store_configured',lambda:False)
+    with llm_execution.execution_issue_context():
+        result=page_browsing._browse_with_http(response.url,timeout_seconds=5,max_text_chars=500)
+        assert result['text']==result['source_text']==''
+        assert result['source_metadata']['extraction_status']=='failed'
+        assert llm_execution.execution_issues()[0]['component']=='pdf_extraction'

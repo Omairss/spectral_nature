@@ -2669,6 +2669,10 @@ def build_attention_home_output_frames(
         "public_answer_review": (public_surface_review.get("quality_review") or {}).get("status", "not_run"),
         "market_inputs": market_coverage.get("status", "unavailable"),
     }
+    from services.llm_execution import execution_issues
+    operational_issues = execution_issues()
+    if operational_issues:
+        stages["source_acquisition"] = "partial"
     degraded = bool(failed_tickers) or any(value in {"failed", "partial", "unavailable", "timeout", "not_run", "failed_contract", "rejected", "failed_quality_review", "failed_synthesis"} for value in stages.values())
     research_status = "degraded" if degraded else "completed"
     coverage["research_health_status"] = research_status
@@ -2680,7 +2684,7 @@ def build_attention_home_output_frames(
         "run_id": ctx.run_id, "asof_time_utc": ctx.asof, "status": research_status,
         "summary": f"Research {research_status}; ticker enrichments {len(ticker_rows)-len(failed_tickers)}/{len(ticker_rows)} completed; source events {coverage.get('source_event_completed_count', 0)}/{coverage.get('source_event_nominated_count', 0)} completed; market summary {stages['market_summary']}.",
         "stage_statuses_json": json.dumps(stages), "failed_tickers_json": json.dumps(failed_tickers),
-        "errors_json": json.dumps([{key: row.get(key) for key in ("symbol", "agent_run_id", "error_summary", "failure_categories_json", "limitations_json", "runtime_json")} for row in enrichment_rows if row.get("status") != "completed"], default=str),
+        "errors_json": json.dumps([*operational_issues, *[{key: row.get(key) for key in ("symbol", "agent_run_id", "error_summary", "failure_categories_json", "limitations_json", "runtime_json")} for row in enrichment_rows if row.get("status") != "completed"]], default=str),
     }])
     payload = _cap_home_public_sections(payload)
     print(

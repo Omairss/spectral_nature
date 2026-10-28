@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Production follow-up deployed and all36 resources read back:29 workers use exact DEV-qualified0e3ab767 image;7 other images preserved. Adaptive soft budgets, full core funding, current best effort, dated reuse, same-policy retry and bounded current publication are active. Actual recurring savings remain scheduled-run measurement.",
+  "status": "awaiting_local_qualitative_acceptance",
+  "scope": "October28 event-adaptive reliability candidate. Source changes and180 operational contracts reviewed locally; fresh complete-output model comparison, exact-image DEV and promotion are pending. Previous source/image proof remains retained below as baseline, not candidate acceptance.",
   "source_revision": "db302f4ce58541419af79e55769286c5b5a5b9d0",
   "review_base_revision": "ca0d2e3fc021ef79bed26f5e54d7c174dcc54d65",
   "files": {

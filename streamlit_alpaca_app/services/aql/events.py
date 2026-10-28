@@ -14,14 +14,18 @@ from jsonschema import Draft202012Validator
 
 from ..aql_zopedia_engine import run_aql_zopedia_structured_agent
 from ..llm_context import render_research_prompt
-from ..llm_execution import latest_research_artifact
+from ..llm_execution import (latest_research_artifact, event_research_context,
+                            event_investigation_capacity, record_execution_issue)
+from ..work_scope import WorkCancelled
 from ..common.news_freshness import coerce_article_published_at
 from ..json_utils import to_jsonable
+from .. import pipeline_store
 from ..llm import (
     get_config_param,
     register_config_param,
     register_narrative_prompt,
     get_prompt,
+    llm_settings_scope,
 )
 from services.common.market_activity import (
     _coerce_text,
@@ -55,6 +59,12 @@ _P_EVENT_TOOLS = register_config_param(
     default=6,
     description="Tool budget for investigating each nominated source event.",
 )
+_P_PRIOR_EVENT_LIMIT = register_config_param(
+    "Source event prior investigation context limit",
+    group="AQL / Zopedia Engine",
+    default=20,
+    description="Recent completed source investigations supplied to current allocation; retained originals remain available in shared research memory.",
+)
 
 _NOMINATION_PROMPT = register_narrative_prompt(
     "Source event research nomination",
@@ -74,7 +84,12 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "Each event needs a focused question and the exact source_ids that motivated it. Plan useful follow-up questions "
         "for the shared agent, prioritizing the decisive missing fact over broad checklists. "
         "Do not attribute price observations to news published after those observations; unknown observation times "
-        "also do not establish event chronology. Return events in order of research usefulness; select fewer if appropriate."
+        "also do not establish event chronology. Compare current reports and observations with the dated completed "
+        "investigations. Allocate fresh research to consequential new information, changed uncertainty or a still-useful "
+        "unresolved question. A repeated article or the passage of time alone does not justify repeating acquisition. "
+        "Explain the incremental question in each rationale. Return events in order of research usefulness; the limit "
+        "is available capacity, not a quota. Select fewer or no new investigations on a quiet run. A current briefing "
+        "will still be written from this run's observations and dated background."
     ),
 )
 
@@ -209,7 +224,7 @@ def research_source_events(
             **empty,
             "status": "unavailable" if llm_client is None else "no_sources",
         }
-    limit = max(int(get_config_param(_P_EVENT_LIMIT)), 0)
+    limit = event_investigation_capacity(max(int(get_config_param(_P_EVENT_LIMIT)), 0))
     if not limit:
         return {**empty, "status": "disabled"}
     market = market_frame.copy()
@@ -303,12 +318,38 @@ def research_source_events(
         | {"text_preview": doc["text"][:1200]}
         for doc in documents
     ]
+    access = os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "")
+    previous_nomination = None
+    prior_investigations = []
+    context_status = "available" if access else "unconfigured"
+    try:
+        previous_nomination = latest_research_artifact(access_scope=access,
+            subject="attention:source_event_nomination", task="source_event_nomination") if access else None
+        # Read completed work independently of the last nomination. A quiet
+        # nomination with zero new events must not erase the research context.
+        retained = pipeline_store.list_research_artifacts(
+            namespace=f"research_artifact:{llm_settings_scope()}:{access}", task="source_event_research",
+            limit=max(int(get_config_param(_P_PRIOR_EVENT_LIMIT)), 1)) if access else []
+        prior_investigations = [
+            {key: artifact.get(key) for key in ("artifact_id", "subject", "task", "created_at_utc")}
+            | {"payload": (artifact.get("result") or {}).get("payload") or {},
+               "artifact_context": (artifact.get("result") or {}).get("artifact_context") or {}}
+            for artifact in retained
+        ]
+    except WorkCancelled:
+        raise
+    except Exception as exc:
+        context_status = "unavailable"
+        record_execution_issue("event_allocation_history", exc)
     nomination = run_aql_zopedia_structured_agent(
         query=get_prompt(_NOMINATION_PROMPT)
         + "\nContext JSON:\n"
         + json.dumps(
             to_jsonable(
-                {"asof": asof, "sources": previews}
+                {"asof": asof, "sources": previews, "market_observations": observations,
+                 "previous_observations": ((previous_nomination or {}).get("artifact_context") or {}).get("market_observations"),
+                 "completed_research_context_status": context_status,
+                 "dated_completed_investigations": prior_investigations}
             ),
             ensure_ascii=False,
         ),
@@ -323,6 +364,8 @@ def research_source_events(
         persist_findings=False,
         write_policy="none",
         call_type="research_grade",
+        reuse_scope=access, research_subject="attention:source_event_nomination",
+        artifact_context={"asof_time_utc": asof.isoformat(), "market_observations": observations},
     )
     payload = nomination.get("payload")
     if not isinstance(payload, dict) or list(
@@ -369,12 +412,12 @@ def research_source_events(
         )
         prior_research = [
             artifact for symbol in sorted(set(plan["related_symbols"]))
-            if (artifact := latest_research_artifact(access_scope="public_company_research",
+            if access and (artifact := latest_research_artifact(access_scope=access,
                 subject="company:" + _normalize_symbol(symbol), task="ticker_business_model_research_dossier"))
         ]
         company_prior_research = list(prior_research)
-        prior_event = latest_research_artifact(access_scope="public_company_research",
-            subject="event:" + event_id, task="source_event_research")
+        prior_event = latest_research_artifact(access_scope=access,
+            subject="event:" + event_id, task="source_event_research") if access else None
         if prior_event:
             prior_research.insert(0, prior_event)
         research_request = to_jsonable({"asof": asof, "investigation": plan, "market_observations": observations})
@@ -393,25 +436,28 @@ def research_source_events(
                     "event_id": event_id,
                 }
             )
-        result = run_aql_zopedia_structured_agent(
-            query=query,
-            schema_name="source_event_research",
-            schema=_EVENT_SCHEMA,
-            task="source_event_research",
-            surface="aql.source_event_research",
-            reuse_scope=os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", ""),
-            research_subject="event:" + event_id,
-            reuse_identity=reuse_identity,
-            llm_client=llm_client,
-            max_tool_calls=max(int(get_config_param(_P_EVENT_TOOLS)), 0),
-            run_timeout_seconds=max(int(get_config_param(_P_EVENT_TIMEOUT)), 1),
-            llm_step_timeout_seconds=max(int(get_config_param(_P_EVENT_TIMEOUT)), 1),
-            tool_call_timeout_seconds=45,
-            persist_findings=False,
-            write_policy="none",
-            initial_evidence=selected,
-            progress_callback=progress_callback,
-        )
+        with event_research_context({"work_id": "event:" + event_id,
+                "evidence_ids": plan["source_ids"], "reason": plan["rationale"],
+                "asof_time_utc": asof.isoformat()}):
+            result = run_aql_zopedia_structured_agent(
+                query=query,
+                schema_name="source_event_research",
+                schema=_EVENT_SCHEMA,
+                task="source_event_research",
+                surface="aql.source_event_research",
+                reuse_scope=os.getenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", ""),
+                research_subject="event:" + event_id,
+                reuse_identity=reuse_identity,
+                llm_client=llm_client,
+                max_tool_calls=max(int(get_config_param(_P_EVENT_TOOLS)), 0),
+                run_timeout_seconds=max(int(get_config_param(_P_EVENT_TIMEOUT)), 1),
+                llm_step_timeout_seconds=max(int(get_config_param(_P_EVENT_TIMEOUT)), 1),
+                tool_call_timeout_seconds=45,
+                persist_findings=False,
+                write_policy="none",
+                initial_evidence=selected,
+                progress_callback=progress_callback,
+            )
         agent = dict(result.get("agent_result") or {})
         acquired = materialize_research_artifacts(
             agent, candidate_id=event_id, subject=event_id,

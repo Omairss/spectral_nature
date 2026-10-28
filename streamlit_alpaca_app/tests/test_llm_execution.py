@@ -443,6 +443,8 @@ def test_event_replay_identity_excludes_its_own_new_result(monkeypatch):
     import pandas as pd
     from services.aql import events
     from services.json_utils import to_jsonable
+    monkeypatch.setenv('LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE', 'public_company_research')
+    monkeypatch.setattr(events.pipeline_store, 'list_research_artifacts', lambda **kwargs: [])
     url='https://example.invalid/event'
     source='doc::event-news::'+hashlib.sha256(url.encode()).hexdigest()[:20]
     plan={'title':'Event','question':'Question','source_ids':[source], 'related_symbols':[], 'followup_questions':[], 'rationale':'Research'}

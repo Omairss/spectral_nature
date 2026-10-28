@@ -693,6 +693,8 @@ def _upload_manifest(
         "dataset_name": dataset_name,
         "dataset_namespace": dataset_namespace(),
         "run_id": ctx.run_id,
+        "platform_execution_name": os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME", ""),
+        "job_name": ctx.name,
         "asof_time_utc": ctx.asof.isoformat(),
         "ingested_at_utc": _utc_now().isoformat(),
         "universe_version": ctx.universe_version,
@@ -767,12 +769,17 @@ def _persist_dataset(dataset_name: str, frame: pd.DataFrame, ctx: JobContext, co
             def retain_publication(state):
                 if state.get("run_id") != ctx.run_id:
                     raise ValueError("Publication belongs to a different logical execution")
-                state.setdefault("published_datasets", {})[dataset_name] = manifest["dataset_version_id"]
+                state["published_datasets"] = {**state.get("published_datasets", {}), **ctx.published_datasets}
                 return state
             try:
-                mutate_execution_state("pipeline_execution:" + dataset_namespace(), ctx.name + ":" + execution, retain_publication)
+                with database_workload("interactive"):
+                    mutate_execution_state("pipeline_execution:" + dataset_namespace(), ctx.name + ":" + execution, retain_publication)
             except Exception as exc:
                 ctx.degraded_components["publication_checkpoint:" + dataset_name] = type(exc).__name__
+                import traceback
+                print(f"[warn] publication checkpoint unavailable dataset={dataset_name} run_id={ctx.run_id} "
+                      f"error_type={type(exc).__name__} sqlstate={getattr(exc, 'sqlstate', None)}", flush=True)
+                traceback.print_exc()
     if dataset_name == "news_articles" and not prepared_frame.empty and conn is not None:
         from services.saa.semantic_index import retain_news_evidence
         try:
@@ -2475,6 +2482,14 @@ def _iter_news_business_research_output_phases(
         limit=_parse_int_env("ZOPEDIA_TICKER_BUSINESS_STACK_LIMIT", 25, minimum=1),
         progress_callback=company_progress,
         research_deadline_monotonic=research_deadline,
+        event_work_by_symbol={str(row["symbol"]): {
+            "work_id": "news:" + str(row["source_event_id"]) + ":" + str(row["symbol"]),
+            "evidence_ids": [str(row["source_event_id"])],
+            "reason": row["resolved_changes_json"],
+            "asof_time_utc": ctx.asof.isoformat(),
+        } for row in current_resolutions.to_dict("records")
+          if str(row.get("status") or "") in {"ready", "resolved", "partial"}
+          and row.get("source_event_id") and news_research._json_list(row.get("resolved_changes_json"))},
     )
     if deferred:
         ctx.degraded_components["company_research"] = f"{len(deferred)} current investigations did not finish."
@@ -3445,6 +3460,8 @@ def main() -> None:
         state_key = ctx.name + ":" + execution
         proposed = {"run_id": ctx.run_id, "asof": ctx.asof.isoformat(), "universe_version": ctx.universe_version,
                     "budget_usd": os.getenv("RESEARCH_RUN_BUDGET_USD", ""),
+                    "budget_mode": os.getenv("RESEARCH_BUDGET_MODE", ""),
+                    "event_margin_fraction": os.getenv("RESEARCH_EVENT_MARGIN_FRACTION", "0.5"),
                     "maximum_duration_seconds": os.getenv("PIPELINE_JOB_MAX_DURATION_SECONDS") or
                         ("7200" if ctx.name == "news-ingest-and-features" else "3300" if ctx.name == "zopedia-learning" else ""),
                     "work_timeout_seconds": os.getenv("PIPELINE_JOB_WORK_TIMEOUT_SECONDS", "6900")}
@@ -3458,6 +3475,8 @@ def main() -> None:
         # retains the allowance, deadlines and already published current data.
         if "budget_usd" in retained:
             os.environ["RESEARCH_RUN_BUDGET_USD"] = retained["budget_usd"]
+        os.environ["RESEARCH_BUDGET_MODE"] = retained.get("budget_mode", "")
+        os.environ["RESEARCH_EVENT_MARGIN_FRACTION"] = retained.get("event_margin_fraction", "0")
         for field, env_key in (("maximum_duration_seconds", "PIPELINE_JOB_MAX_DURATION_SECONDS"),
                                ("work_timeout_seconds", "PIPELINE_JOB_WORK_TIMEOUT_SECONDS")):
             if field in retained:
@@ -3547,8 +3566,19 @@ def main() -> None:
                 duration = _parse_int_env("PIPELINE_JOB_MAX_DURATION_SECONDS", default_duration, minimum=1)
                 producer_deadline = ctx.started_at_monotonic + duration if bounded else None
                 run_scope = WorkScope(producer_deadline).activate() if bounded else nullcontext()
-                with run_scope:
-                    result = handler(ctx, work_conn)
+                from services.llm_execution import execution_issue_context, execution_issues
+                with run_scope, execution_issue_context():
+                    try:
+                        if resumed_execution and execution:
+                            from services.pipeline_store import restore_execution_publications
+                            restored = restore_execution_publications(execution=execution, run_id=ctx.run_id)
+                            ctx.published_datasets.update(restored)
+                        result = handler(ctx, work_conn)
+                    finally:
+                        for issue in execution_issues():
+                            ctx.degraded_components[issue["component"]] = (
+                                f"{issue['count']} degraded operations: {issue['error_type']}"
+                                + (f" (SQLSTATE {issue['sqlstate']})" if issue.get("sqlstate") else ""))
             else:
                 status = "Skipped"
                 result = None
@@ -3573,12 +3603,25 @@ def main() -> None:
     finally:
         if work_conn is not None:
             work_conn.close()
+        spending = None
+        if ctx.name in {"news-ingest-and-features", "attention-home-build", "zopedia-learning"}:
+            from services.llm_execution import research_spending_context
+            try:
+                with WorkScope(time.monotonic() + 10).activate():
+                    spending = {key: value for key, value in research_spending_context().items()
+                                if key not in {"prices", "tool_maximum_usd_per_request", "allocation"}}
+            except Exception as exc:
+                spending = {"status": "unavailable", "error_type": type(exc).__name__}
+                ctx.degraded_components["spending_receipt"] = type(exc).__name__
+                if status == "Succeeded":
+                    status = "Warning"
         from services.pipeline_store import retain_job_execution_receipt
         receipt = {"schema_version": 1, "job_name": ctx.name, "run_id": ctx.run_id,
                    "platform_execution_name": execution or None, "status": status,
                    "asof_time_utc": ctx.asof.isoformat(), "finished_at_utc": _utc_now().isoformat(),
                    "datasets": ctx.published_datasets, "components": ctx.degraded_components,
                    "continuations": ctx.continuations,
+                   "spending": spending,
                    "error": error_summary}
         try:
             retain_job_execution_receipt(receipt)

@@ -2121,19 +2121,25 @@ def _proposal_rows(
 
 
 def _assess_company_refresh(*, previous_inputs, current_inputs, retained_analysis, symbol, original_asof,
-                            client, runner=None, progress_callback=None):
+                            client, runner=None, progress_callback=None, current_asof=None,
+                            freshness_check_due=False):
     return _structured_agent_payload(
         zopedia_agent_runner=runner, llm_client=client,
         query=render_research_prompt(evidence={
             "previous_inputs": previous_inputs, "current_inputs": current_inputs,
             "retained_analysis": retained_analysis,
-        }, request={"company": symbol, "original_asof": original_asof},
+        }, request={"company": symbol, "original_asof": original_asof,
+                    "current_asof": current_asof, "freshness_check_due": freshness_check_due},
         instructions=("Decide whether the changes require refreshing this company investigation. "
             "The current news interpretation runs independently. Reuse the dated company analysis only "
             "when the new inputs add no consequential fact, contradiction, meaningful confirmation, "
             "changed financial observation, source correction or changed uncertainty relevant to its claims. "
             "Duplicate reports, storage timestamps and repetition alone do not require research. "
             "New earnings, filings, guidance, material developments and corrections must be incorporated. "
+            "An expired check interval calls for this assessment, not automatic repetition of the full investigation. "
+            "Assess whether time-sensitive claims remain usable at the current as-of, using the actual dates and "
+            "coverage in current inputs. Reuse does not re-date the original findings or assert that unseen sources "
+            "contain no changes. Require refresh when aging or incomplete current coverage makes reuse uncertain. "
             "If the evidence or effect is unclear, require refresh. Never treat absence of a retrieved "
             "source as proof that nothing changed. Explain the decision and identify changed claims.")),
         schema_name="company_refresh_assessment", schema={
@@ -2160,9 +2166,18 @@ def _checkpoint_company_research(function):
         from ..inference_policy import policy
         from .. import zopedia_agent, zopedia_research  # register the complete prompt contract
         from ..json_utils import to_jsonable
-        from ..llm_execution import model_call_context
+        from ..llm_execution import _CALL, model_call_context, protect_core_research
         access = current_research_access_scope()
         client = kwargs.get("llm_client")
+        config = getattr(client, "config", None)
+        funding_symbol = _normalize_symbol(kwargs["symbol"])
+        funding_evidence = {
+            "asof_time_utc": kwargs.get("asof_time_utc"), "symbol": funding_symbol,
+            "baseline": _company_baseline_row(kwargs.get("company_baselines_frame"), funding_symbol),
+            "fundamentals": _fundamental_rows(kwargs.get("fundamentals_frame"), funding_symbol, limit=10),
+            "filings": _edgar_rows(kwargs.get("edgar_evidence_frame"), funding_symbol, limit=4),
+            "news": _news_rows_for_symbol(kwargs.get("news_frame"), funding_symbol, limit=4),
+        }
         refresh_policy = policy()
         refresh_seconds = int(os.getenv("ZOPEDIA_TICKER_BUSINESS_REFRESH_SECONDS") or
                               refresh_policy["company_refresh_seconds"])
@@ -2172,7 +2187,11 @@ def _checkpoint_company_research(function):
             # postponing this company to a different day's news.
             short = deadline is not None and deadline - time.monotonic() < _business_research_budget_seconds()
             from ..work_scope import WorkScope
-            with WorkScope(deadline or float("inf")).activate(), model_call_context(completion_only=short, core_work_id="company:" + kwargs["symbol"]):
+            funded = config is None or protect_core_research(config=config,
+                work={"company:" + funding_symbol: funding_evidence},
+                stages=3, required=not _CALL.get().get("optional_company"))
+            with WorkScope(deadline or float("inf")).activate(), model_call_context(completion_only=short or not funded,
+                    optional_core_unfunded=not funded, core_work_id="company:" + kwargs["symbol"]):
                 result = function(**kwargs)
             if result.business_story_markdown:
                 from ..llm_execution import complete_core_research
@@ -2219,7 +2238,7 @@ def _checkpoint_company_research(function):
             state = pipeline_store.read_execution_state(namespace, symbol, strict=True) or {}
             now = time.time()
             compatible = (state.get("contract") == contract
-                and 0 <= now - state.get("started_at", 0) < refresh_seconds
+                and 0 <= now - state.get("checked_at", state.get("started_at", 0)) < refresh_seconds
                 and set(state.get("memory_input_ids", [])) <= memory.keys()
                 and all(version in state.get("memory_versions", {}).get(identity, [])
                         for identity, version in memory.items()))
@@ -2230,14 +2249,16 @@ def _checkpoint_company_research(function):
                 compatible = False
             if (not compatible and refresh_policy.get("semantic_reuse") and state.get("result")
                     and state.get("policy_contract") == policy_contract and state.get("evidence")
-                    and 0 <= now - state.get("started_at", 0) < refresh_seconds):
+                    and 0 <= now - state.get("started_at", 0)):
                 assessment = _assess_company_refresh(
                     previous_inputs=state["evidence"], current_inputs=evidence, retained_analysis=state["result"],
                     symbol=symbol, original_asof=state["asof"], client=client,
+                    current_asof=kwargs.get("asof_time_utc"),
+                    freshness_check_due=now - state.get("checked_at", state.get("started_at", 0)) >= refresh_seconds,
                     runner=kwargs.get("zopedia_agent_runner"), progress_callback=kwargs.get("progress_callback"))
                 verdict = assessment.get("payload") or {}
                 if assessment.get("status") == "completed" and verdict.get("refresh_required") is False:
-                    state.update(contract=contract, evidence=evidence, refresh_assessment=verdict)
+                    state.update(contract=contract, evidence=evidence, refresh_assessment=verdict, checked_at=now)
                     for identity, version in memory.items():
                         state["memory_versions"].setdefault(identity, []).append(version)
                     if not pipeline_store.write_execution_state(namespace, symbol, state):
@@ -2270,9 +2291,14 @@ def _checkpoint_company_research(function):
             from ..work_scope import WorkScope
             work_deadline = min(time.monotonic() + _business_research_budget_seconds(),
                                 deadline if deadline is not None else float("inf"))
+            # A reusable completed profile has already returned above. Reserve
+            # expensive completion only for a real current investigation.
+            funded = protect_core_research(config=client.config, work={"company:" + symbol: evidence},
+                stages=3, required=not _CALL.get().get("optional_company"))
             with research_work_context(state["work_id"], prior=state["prior"]) as status, \
                     WorkScope(work_deadline).activate(), llm.llm_request_deadline(work_deadline), \
-                    model_call_context(completion_only=short, core_work_id="company:" + symbol):
+                    model_call_context(completion_only=short or not funded, optional_core_unfunded=not funded,
+                                       core_work_id="company:" + symbol):
                 result = function(**{**kwargs, "run_id": state["run_id"], "asof_time_utc": state["asof"]})
             check_execution_ownership()
             if result.business_story_markdown and result.status in {"ready", "partial"} and not status["failed"]:
@@ -2839,6 +2865,7 @@ def build_ticker_business_model_stack_results(
     limit: int = 25,
     progress_callback: ProgressCallback | None = None,
     research_deadline_monotonic: float | None = None,
+    event_work_by_symbol: dict[str, dict[str, Any]] | None = None,
 ) -> list[TickerBusinessModelStackResult]:
     normalized_symbols = list(dict.fromkeys(_normalize_symbol(symbol) for symbol in list(symbols or []) if _normalize_symbol(symbol)))
     selected = normalized_symbols[: max(int(limit), 1)]
@@ -2868,21 +2895,13 @@ def build_ticker_business_model_stack_results(
     def research(symbol):
         from ..work_scope import WorkCancelled
         from ..llm import LLMDeadlineExceeded
-        from ..llm_execution import protect_core_research, model_call_context, complete_core_research, retain_paid_result
+        from ..llm_execution import model_call_context, complete_core_research, retain_paid_result, event_research_context
         core_id = "company:" + symbol
-        funded = True
         config = None
         try:
             config = getattr(llm_client, "config", None)
-            if config is not None:
-                funded = protect_core_research(config=config, stages=3, required=False, work={core_id: {
-                    "baseline": _company_baseline_row(company_baselines_frame, symbol),
-                    "fundamentals": _fundamental_rows(fundamentals_frame, symbol, limit=10),
-                    "filings": _edgar_rows(edgar_evidence_frame, symbol, limit=4),
-                    "news": _news_rows_for_symbol(news_frame, symbol, limit=4),
-                }})
-            with model_call_context(core_work_id=core_id, optional_core_unfunded=not funded,
-                                    **({"completion_only": True} if not funded else {})):
+            with event_research_context((event_work_by_symbol or {}).get(symbol)), \
+                    model_call_context(core_work_id=core_id, optional_company=True):
                 return build_ticker_business_model_stack(symbol=symbol, **kwargs)
         except (ResearchWorkDeferred, WorkCancelled, LLMDeadlineExceeded):
             _emit_business_progress(progress_callback, stage="business_research_incomplete", symbol=symbol,
@@ -3045,6 +3064,7 @@ def build_ticker_business_model_stack_frames(
     limit: int = 25,
     progress_callback: ProgressCallback | None = None,
     research_deadline_monotonic: float | None = None,
+    event_work_by_symbol: dict[str, dict[str, Any]] | None = None,
 ) -> dict[str, pd.DataFrame]:
     eligible = list(dict.fromkeys(_normalize_symbol(s) for s in symbols if _normalize_symbol(s)))[:max(int(limit), 1)]
     if isinstance(existing_stacks_frame, pd.DataFrame) and not existing_stacks_frame.empty:
@@ -3054,7 +3074,8 @@ def build_ticker_business_model_stack_frames(
         latest = previous.groupby("symbol")["_observed"].max().to_dict()
         # Preserve the caller's eligible universe; rotate its older/missing
         # investigations ahead of recently completed profiles across batches.
-        eligible.sort(key=lambda s: latest[s].value if s in latest and pd.notna(latest[s]) else float("-inf"))
+        eligible.sort(key=lambda s: (0 if s in (event_work_by_symbol or {}) else 1,
+            latest[s].value if s in latest and pd.notna(latest[s]) else float("-inf")))
     results = build_ticker_business_model_stack_results(
         symbols=eligible,
         company_baselines_frame=company_baselines_frame,
@@ -3076,6 +3097,7 @@ def build_ticker_business_model_stack_frames(
         limit=limit,
         progress_callback=progress_callback,
         research_deadline_monotonic=research_deadline_monotonic,
+        event_work_by_symbol=event_work_by_symbol,
     )
     stacks = serialize_ticker_business_model_stack_results(results)
     if isinstance(existing_stacks_frame, pd.DataFrame) and not existing_stacks_frame.empty:

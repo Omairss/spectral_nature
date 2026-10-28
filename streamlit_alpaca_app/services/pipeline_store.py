@@ -1134,6 +1134,19 @@ def publish_dataset_manifest(manifest: dict[str, Any]) -> bool:
     except ResourceExistsError:
         if version.download_blob(**_blob_io_options()).readall() != payload:
             raise ValueError("A dataset version is immutable; publish changed data under a new version")
+    execution = str(manifest.get("platform_execution_name") or "")
+    if execution:
+        # The native publication record is discoverable by logical execution,
+        # independently of the secondary SQL retry checkpoint. It is written
+        # before pointer advancement so a crash between the two can resume CAS.
+        execution_key = hashlib.sha256(execution.encode()).hexdigest()
+        receipt = client.get_blob_client(container=_storage_container(), blob=dataset_blob_path(
+            f"execution-publications/{execution_key}/{dataset.dataset_name}/{dataset.dataset_version_id}.json"))
+        try:
+            receipt.upload_blob(payload, overwrite=False, content_settings=settings, **_blob_io_options())
+        except ResourceExistsError:
+            if receipt.download_blob(**_blob_io_options()).readall() != payload:
+                raise ValueError("An execution publication receipt is immutable")
     latest = client.get_blob_client(container=_storage_container(), blob=dataset_blob_path(
         f"manifests/{dataset.dataset_name}/latest.json"))
 
@@ -1159,6 +1172,31 @@ def publish_dataset_manifest(manifest: dict[str, Any]) -> bool:
         except (ResourceExistsError, ResourceModifiedError):
             continue
     raise RuntimeError("Concurrent publication did not settle within its retry allowance")
+
+
+def restore_execution_publications(*, execution: str, run_id: str) -> dict[str, str]:
+    """Finish native publication and restore completed versions for this retry."""
+    from .llm_execution import check_execution_ownership
+    check_execution_ownership()
+    client = _blob_service_client()
+    if client is None:
+        raise RuntimeError("Publication recovery requires Blob storage")
+    prefix = dataset_blob_path("execution-publications/" + hashlib.sha256(execution.encode()).hexdigest() + "/")
+    versions = {}
+    for blob in client.get_container_client(_storage_container()).list_blobs(name_starts_with=prefix, **_blob_io_options()):
+        check_work()
+        manifest = _read_blob_json(blob.name)
+        if not manifest or manifest.get("run_id") != run_id or manifest.get("platform_execution_name") != execution:
+            raise ValueError("Execution publication receipt has a different owner")
+        name = manifest["dataset_name"]
+        previous = versions.get(name)
+        if previous is None or _publication_generation(manifest) > _publication_generation(previous):
+            versions[name] = manifest
+    for manifest in versions.values():
+        # A newer legitimate publication can supersede this dated version.
+        # Its existence does not require repurchasing already completed work.
+        publish_dataset_manifest(manifest)
+    return {name: value["dataset_version_id"] for name, value in versions.items()}
 
 
 def _latest_manifest_metadata(dataset_name: str) -> PipelineDataset | None:
@@ -2823,7 +2861,7 @@ def reconcile_provider_attempt_receipts(*, days: int = 7, limit: int = 1000) -> 
 
 
 def list_research_artifacts(*, namespace: str, subjects: list[str] | None = None,
-                            limit: int = 20) -> list[dict[str, Any]]:
+                            limit: int = 20, task: str | None = None) -> list[dict[str, Any]]:
     """List latest public research within the caller's declared environment."""
     conn = open_database_connection()
     if conn is None:
@@ -2835,8 +2873,10 @@ def list_research_artifacts(*, namespace: str, subjects: list[str] | None = None
                 JOIN aql_zopedia_execution_state a
                   ON a.namespace=%s AND a.state_key=p.payload->>'artifact_id'
                 WHERE p.namespace=%s AND (%s::text[] IS NULL OR a.payload->>'subject'=ANY(%s))
+                  AND (%s::text IS NULL OR a.payload->>'task'=%s)
                 ORDER BY p.updated_at_utc DESC LIMIT %s""",
-                        (namespace, namespace + ":latest", subjects or None, subjects or None, min(max(limit, 1), 100)))
+                        (namespace, namespace + ":latest", subjects or None, subjects or None,
+                         task, task, min(max(limit, 1), 100)))
             return [dict(row[0]) for row in cur.fetchall()]
 
 
