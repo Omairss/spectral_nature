@@ -1341,3 +1341,7 @@ Account credit and the logical run allowance must reserve in one SQL transaction
 ### Research allocation must fund completion — October 27
 
 A shared spending cap still permits first-arriving investigations to starve later work. The shared planner must assign bounded research stages and fund the writing/review obligations each admitted investigation creates. Keep settled costs, in-flight/unknown reservations, future completion holds, unused child grants and free funds distinct; moving money between these states must not double-count or release uncertain charges. Reallocate at useful milestones, preserve shared evidence across subjects and retries, and treat worker count as available capacity rather than independent spending authority. Actual allocation, model suitability and attained depth remain unqualified until complete-output comparison.
+
+### Execution recovery preserves model policy — October 27 removal
+
+Keep producer deadlines and retained run identity independent of inference routing. Removing automatic configuration fallback must also remove the durable state that can trigger it, while retaining the original clock across process retries. A partial completed result remains Warning; it need not become a whole-run failure just to select another model profile. Preserve operator-selected profiles and accepted deployment rollback separately. The source removal passes63 control-flow/accounting boundary checks; production remains on the earlier image pending complete release acceptance.

@@ -7,7 +7,6 @@ from datetime import date, datetime
 from fnmatch import fnmatchcase
 import hashlib
 import json
-import logging
 import os
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -76,58 +75,3 @@ def client_for_task(client, *, surface: str, purpose: str):
     routed._zopedia_surface = surface
     return routed, {"profile": selected["profile"], "role": role,
                     "policy_version": selected["version"], "policy_identity": policy_identity()}
-
-
-def execute_with_fallback(handler, context, connection):
-    """One candidate attempt; Azure's single replica retry uses baseline.
-
-    Durable state also handles an Azure replica dying before Python can catch
-    its failure. Recovery belongs to this execution. A deliberate release-wide
-    rollback is selected through LLM_POLICY_PROFILE, not inferred indefinitely
-    from an earlier failed execution.
-    """
-    from . import pipeline_store
-    from .work_scope import WorkScope
-    selected = policy()
-    rollout = selected.get("rollout", {})
-    if context.name not in rollout.get("jobs", []):
-        return handler(context, connection)
-    namespace = "inference_rollout:" + pipeline_store.dataset_namespace()
-    execution = os.getenv("CONTAINER_APP_JOB_EXECUTION_NAME") or context.run_id
-    key = context.name + ":" + execution + ":" + policy_identity()
-    state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
-    fallback = rollout["fallback_profile"]
-
-    def save(value):
-        if not pipeline_store.write_execution_state(namespace, key, value):
-            raise RuntimeError("Inference rollout state could not be retained")
-
-    def run_baseline():
-        os.environ["LLM_POLICY_PROFILE"] = fallback
-        with WorkScope(context.started_at_monotonic + rollout["attempt_seconds"]).activate():
-            return handler(context, connection)
-
-    if state.get("rollback") or state.get("status") == "started":
-        save({**state, "rollback": True, "reason": state.get("reason") or "Previous replica did not complete"})
-        print(f"[info] inference policy={fallback} retry execution={execution}", flush=True)
-        return run_baseline()
-    save({"execution": execution, "status": "started", "profile": selected["profile"]})
-    try:
-        with WorkScope(context.started_at_monotonic + rollout["attempt_seconds"]).activate():
-            result = handler(context, connection)
-        if context.degraded_components.get("news_narratives"):
-            raise RuntimeError("Candidate did not complete its required news/company narratives")
-    except Exception as exc:
-        try:
-            save({"execution": execution, "status": "failed", "rollback": True, "reason": type(exc).__name__})
-        except Exception as audit_error:
-            # The previously committed 'started' state already selects baseline
-            # after replica death. A cancelled audit write must not replace the
-            # original failure and erase the diagnostic evidence.
-            logging.getLogger(__name__).warning("Inference failure audit unavailable: %s; original=%s",
-                                               type(audit_error).__name__, type(exc).__name__)
-            exc.add_note("Rollout failure audit could not be written: " + type(audit_error).__name__)
-        print(f"[warn] inference policy failed ({type(exc).__name__}); Azure replica retry will use {fallback}", flush=True)
-        raise
-    save({"execution": execution, "status": "completed", "profile": selected["profile"]})
-    return result

@@ -1269,3 +1269,7 @@ The first budget contract pass exposed Decimal values being serialized as string
 ### Completed routing was folded into an unfinished allocation description — October 27
 
 Task-based model routing was already delivered and verified. Describing it again inside the proposed allocation work made completed functionality appear unimplemented. Preserve the exact completed routing contract and identify the actual new allocation requirements separately. A fresh production read also confirms the earlier rollout failure remains sticky across scheduled executions, bypassing cheaper routing and reuse. That is a recovery-scope defect, not missing task routing. The execution-scoped source repair passes62 operational checks; production is unchanged.
+
+### Whole-run baseline fallback removed at the owner's instruction — October 27
+
+The earlier automatic fallback treated persistence and ownership errors as reasons to change the whole research configuration. Its first implementation also persisted rollback across future scheduled runs, disabling cheaper routes and reuse. The owner requested removal. Deleted the mechanism and its configuration rather than adding another exception filter. Moved its news deadline into the producer controller so deletion does not remove the original execution limit. Updated retry checks to use current retained execution times; a historical test date had depended on baseline bypassing the deadline. All63 selected checks pass without paid inference or production changes.

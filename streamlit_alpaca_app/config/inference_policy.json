@@ -39,14 +39,7 @@
         }
       ],
       "company_refresh_seconds": 86400,
-      "semantic_reuse": true,
-      "rollout": {
-        "jobs": [
-          "news-ingest-and-features"
-        ],
-        "fallback_profile": "baseline",
-        "attempt_seconds": 7200
-      }
+      "semantic_reuse": true
     }
   }
 }

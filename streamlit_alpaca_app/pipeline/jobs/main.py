@@ -3489,8 +3489,14 @@ def main() -> None:
                      if execution and current_research_access_scope() else nullcontext(True))
         with ownership as owned, database_workload("interactive" if ctx.name in {"system-health", "research-run-execute"} else "background"):
             if owned:
-                from services.inference_policy import execute_with_fallback
-                result = execute_with_fallback(handler, ctx, work_conn)
+                # The execution clock belongs to the producer, independently
+                # of model routing. Replica retries inherit the original start
+                # above and never change the selected inference configuration.
+                bounded = ctx.name == "news-ingest-and-features" or bool(os.getenv("PIPELINE_JOB_MAX_DURATION_SECONDS"))
+                duration = _parse_int_env("PIPELINE_JOB_MAX_DURATION_SECONDS", 7200, minimum=1)
+                run_scope = WorkScope(ctx.started_at_monotonic + duration).activate() if bounded else nullcontext()
+                with run_scope:
+                    result = handler(ctx, work_conn)
             else:
                 status = "Skipped"
                 result = None

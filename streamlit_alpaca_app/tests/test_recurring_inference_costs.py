@@ -148,68 +148,112 @@ def test_policy_activation_uses_pacific_date(monkeypatch):
     assert policy()["profile"] == "balanced"
 
 
-def test_replica_retry_uses_baseline_without_changing_the_next_execution(durable_store, monkeypatch):
-    from services.inference_policy import execute_with_fallback
-    import os
-    ctx = SimpleNamespace(name="news-ingest-and-features", run_id="attempt", started_at_monotonic=time.monotonic(),
-                          degraded_components={})
+@pytest.fixture
+def news_execution(durable_store, monkeypatch):
+    from contextlib import contextmanager
+    from datetime import datetime, timezone
+    from pipeline.jobs import main as jobs
+    clock = [datetime.now(timezone.utc)]
+    receipts = []
+    @contextmanager
+    def ownership(*args, **kwargs):
+        yield True
+    monkeypatch.setenv("PIPELINE_JOB_NAME", "news-ingest-and-features")
     monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "scheduled-execution")
+    monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "10")
+    monkeypatch.delenv("PIPELINE_JOB_MAX_DURATION_SECONDS", raising=False)
+    monkeypatch.setattr(jobs, "_utc_now", lambda: clock[0])
+    monkeypatch.setattr(jobs, "_db_connection", lambda **kwargs: None)
+    monkeypatch.setattr(jobs, "read_execution_state", pipeline_store.read_execution_state)
+    monkeypatch.setattr(jobs, "write_execution_state", pipeline_store.write_execution_state)
+    monkeypatch.setattr(jobs, "execution_ownership", ownership)
+    monkeypatch.setattr(pipeline_store, "retain_job_execution_receipt", receipts.append)
+    return SimpleNamespace(jobs=jobs, clock=clock, receipts=receipts, state=durable_store)
+
+
+def test_failed_execution_retries_with_unchanged_routing_budget_and_clock(news_execution, monkeypatch):
+    from datetime import timedelta
+    import os
+    from services.work_scope import remaining_work_seconds
+    run = news_execution
     calls = []
-    def handler(context, connection):
-        calls.append(os.environ["LLM_POLICY_PROFILE"])
-        if calls[-1] == "balanced":
-            raise RuntimeError("candidate failed")
-        return "retained baseline result"
-    with pytest.raises(RuntimeError, match="candidate failed"):
-        execute_with_fallback(handler, ctx, None)
-    assert calls == ["balanced"]
-    assert execute_with_fallback(handler, ctx, None) == "retained baseline result"
-    assert calls == ["balanced", "baseline"]
-    monkeypatch.setenv("LLM_POLICY_PROFILE", "balanced")
-    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "next-scheduled-execution")
-    next_run = SimpleNamespace(name=ctx.name, run_id="next-run", started_at_monotonic=time.monotonic(), degraded_components={})
-    assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], next_run, None) == "balanced"
-
-
-def test_interrupted_candidate_uses_baseline_on_next_replica(durable_store, monkeypatch):
-    from services.inference_policy import execute_with_fallback, policy_identity
-    import os
-    ctx = SimpleNamespace(name="news-ingest-and-features", run_id="attempt", started_at_monotonic=time.monotonic(),
-                          degraded_components={})
-    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "same-execution")
-    ns = "inference_rollout:" + pipeline_store.dataset_namespace()
-    durable_store[(ns, ctx.name + ":same-execution:" + policy_identity())] = {"status": "started", "execution": "same-execution"}
-    assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], ctx, None) == "baseline"
-
-
-def test_old_release_rollback_does_not_override_a_new_executions_selected_profile(durable_store, monkeypatch):
-    from services.inference_policy import execute_with_fallback, policy_identity
-    import os
-    ctx = SimpleNamespace(name="news-ingest-and-features", run_id="new-run", started_at_monotonic=time.monotonic(), degraded_components={})
-    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "new-execution")
-    ns = "inference_rollout:" + pipeline_store.dataset_namespace()
-    durable_store[(ns, ctx.name + ":" + policy_identity())] = {"status": "failed", "rollback": True, "execution": "old-execution"}
-    assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], ctx, None) == "balanced"
-    monkeypatch.setenv("LLM_POLICY_PROFILE", "baseline")
-    assert execute_with_fallback(lambda *args: os.environ["LLM_POLICY_PROFILE"], ctx, None) == "baseline"
-
-
-def test_failed_rollout_audit_preserves_the_original_error(durable_store, monkeypatch):
-    from services.inference_policy import execute_with_fallback
-    from services.work_scope import WorkCancelled
-    ctx = SimpleNamespace(name="news-ingest-and-features", run_id="attempt", started_at_monotonic=time.monotonic(), degraded_components={})
     original = ValueError("original checkpoint failure")
-    write = pipeline_store.write_execution_state
-    def failed_audit(namespace, key, value, **kwargs):
-        if value.get("status") == "failed":
-            raise WorkCancelled("audit owner cancelled")
-        return write(namespace, key, value, **kwargs)
-    monkeypatch.setattr(pipeline_store, "write_execution_state", failed_audit)
-    def handler(*args):
-        raise original
+    def handler(ctx, conn):
+        calls.append((ctx, os.environ["LLM_POLICY_PROFILE"], os.environ["RESEARCH_RUN_BUDGET_USD"],
+                      remaining_work_seconds(10000)))
+        if len(calls) == 1:
+            raise original
+    monkeypatch.setattr(run.jobs, "run_news", handler)
     with pytest.raises(ValueError) as caught:
-        execute_with_fallback(handler, ctx, None)
+        run.jobs.main()
     assert caught.value is original
+    run.clock[0] += timedelta(seconds=600)
+    monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "1000")
+    run.jobs.main()
+    assert [value[1:3] for value in calls] == [("balanced", "10"), ("balanced", "10")]
+    assert calls[0][0].run_id == calls[1][0].run_id
+    assert calls[0][0].asof == calls[1][0].asof
+    assert 7199 < calls[0][3] <= 7200 and 6599 < calls[1][3] <= 6600
+    assert not any(ns.startswith("inference_rollout:") for ns, key in run.state)
+    assert run.receipts[0]["status"] == "Failed"
+
+
+def test_historical_rollback_state_cannot_change_selected_routing(news_execution, monkeypatch):
+    from services.inference_policy import policy, policy_identity
+    run = news_execution
+    identity = ("inference_rollout:" + pipeline_store.dataset_namespace(), "news-ingest-and-features:" + policy_identity())
+    historical = {"status": "failed", "rollback": True, "execution": "old-execution"}
+    run.state[identity] = historical.copy()
+    observed = []
+    monkeypatch.setattr(run.jobs, "run_news", lambda *args: observed.append(policy()["profile"]))
+    run.jobs.main()
+    assert observed == ["balanced"] and run.state[identity] == historical
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "baseline")
+    monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "explicit-baseline-execution")
+    run.jobs.main()
+    assert observed == ["balanced", "baseline"]
+
+
+def test_partial_results_are_recorded_without_a_whole_run_model_retry(news_execution, monkeypatch):
+    run = news_execution
+    calls = []
+    def handler(ctx, conn):
+        calls.append(ctx.run_id)
+        ctx.degraded_components["news_narratives"] = "One investigation remains pending."
+    monkeypatch.setattr(run.jobs, "run_news", handler)
+    run.jobs.main()
+    assert len(calls) == 1
+    assert run.receipts[-1]["status"] == "Warning"
+    assert "news_narratives" in run.receipts[-1]["components"]
+
+
+def test_expired_retry_cannot_start_more_work(news_execution, monkeypatch):
+    from datetime import timedelta
+    from services.work_scope import WorkCancelled
+    run = news_execution
+    calls = []
+    monkeypatch.setattr(run.jobs, "run_news", lambda *args: calls.append(True))
+    run.jobs.main()
+    run.clock[0] += timedelta(seconds=7201)
+    with pytest.raises(WorkCancelled):
+        run.jobs.main()
+    assert calls == [True] and run.receipts[-1]["status"] == "Failed"
+
+
+def test_explicit_job_deadline_also_applies_to_baseline(news_execution, monkeypatch):
+    from datetime import timedelta
+    from services.work_scope import WorkCancelled, remaining_work_seconds
+    run = news_execution
+    monkeypatch.setenv("LLM_POLICY_PROFILE", "baseline")
+    monkeypatch.setenv("PIPELINE_JOB_MAX_DURATION_SECONDS", "60")
+    calls = []
+    monkeypatch.setattr(run.jobs, "run_news", lambda *args: calls.append(remaining_work_seconds(10000)))
+    run.jobs.main()
+    assert 59 < calls[0] <= 60
+    run.clock[0] += timedelta(seconds=61)
+    with pytest.raises(WorkCancelled):
+        run.jobs.main()
+    assert len(calls) == 1
 
 
 def test_independent_company_failure_does_not_discard_completed_companies(monkeypatch):
@@ -228,7 +272,7 @@ def test_independent_company_failure_does_not_discard_completed_companies(monkey
 
 def test_platform_retry_waits_for_a_dead_replicas_producer_lease(durable_store, monkeypatch):
     from contextlib import contextmanager
-    from datetime import datetime, timezone
+    from datetime import datetime, timedelta, timezone
     from pipeline.jobs import main as jobs
     waited = []
     resumed = []
@@ -241,8 +285,9 @@ def test_platform_retry_waits_for_a_dead_replicas_producer_lease(durable_store, 
     monkeypatch.setenv("CONTAINER_APP_JOB_EXECUTION_NAME", "same-platform-execution")
     monkeypatch.setenv("LLM_POLICY_PROFILE", "baseline")
     monkeypatch.setattr(jobs, "_db_connection", lambda **kwargs: None)
+    original = datetime.now(timezone.utc) - timedelta(seconds=60)
     monkeypatch.setattr(jobs, "read_execution_state", lambda *args, **kwargs: {
-        "run_id": "original-replica", "asof": "2026-10-26T14:05:00+00:00", "universe_version": "original"})
+        "run_id": "original-replica", "asof": original.isoformat(), "universe_version": "original"})
     monkeypatch.setattr(jobs, "write_execution_state", lambda *args, **kwargs: True)
     monkeypatch.setattr(jobs, "execution_ownership", ownership)
     monkeypatch.setattr(jobs, "run_news", lambda ctx, conn: resumed.append(ctx))
@@ -250,7 +295,6 @@ def test_platform_retry_waits_for_a_dead_replicas_producer_lease(durable_store, 
     jobs.main()
     assert waited == [315]
     assert len(resumed) == 1 and resumed[0].run_id == "original-replica"
-    original = datetime.fromisoformat("2026-10-26T14:05:00+00:00")
     assert abs((time.monotonic() - resumed[0].started_at_monotonic)
                - (datetime.now(timezone.utc) - original).total_seconds()) < 1
 

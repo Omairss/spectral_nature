@@ -53,8 +53,8 @@
       "status": "verified_live_configuration"
     },
     {
-      "request": "Cheaper task models and configurable baseline retry",
-      "status": "routing_deployed_verified_production_currently_bypassed_by_sticky_recovery_state"
+      "request": "Cheaper task models and same-configuration replica recovery",
+      "status": "routing_previously_deployed_and_verified_automatic_baseline_switch_removed_locally"
     },
     {
       "request": "Original-date cache reuse, material changes and model/prompt invalidation",
@@ -357,7 +357,7 @@
     "accounting": {
       "available": "approved ceiling minus settled spending minus outstanding maximum reservations, including ambiguous attempts",
       "atomicity": "Coordinate account affordability and run allowance reservations so failure in one cannot leak the other reservation.",
-      "retry": "A retry or model fallback keeps the original logical run identity, spending, reservations and deadline.",
+      "retry": "A replica retry retains the original logical run identity, spending, reservations and deadline without changing model policy.",
       "paid_tools": "Include incremental paid inference and acquisition; rented compute requires allocation-wide reservation. Fixed shared hosting is reported separately rather than silently represented as per-request spend. Unpriced paid actions need a bounded quote before admission.",
       "changes": "Freeze the approved profile for a run; an explicit owner budget amendment can increase its ceiling while retaining all earlier spending and work."
     },
@@ -366,7 +366,6 @@
       "A cheaper completed answer is retained input for a deeper investigation, not automatic proof that the deeper objective is complete. The shared LLM assesses achieved scope and worthwhile remaining questions.",
       "Cache compatibility follows evidence, requested analytical scope, effective model/prompt/schema and permissions. A worker-count or dollar-ceiling change alone must not invalidate unchanged completed input artifacts."
     ],
-    "fallback": "Keep infrastructure continuation, per-run model fallback and deliberate release rollback separate. A transient database error must not silently impose permanent baseline economics. Fallback cannot reset or exceed the approved run ceiling.",
     "source_changes_required": [
       "The current ResearchBudget expresses time phases, not a dollar allowance.",
       "Current provider reservations protect account credit, not a logical run spending cap.",
@@ -411,7 +410,7 @@
         },
         {
           "stage": "Complete within the original limits",
-          "behavior": "Finish funded work using its protected allowance, publish completed results and retain unfinished investigations. Retry or baseline fallback retains the original clock, spending and evidence. A failed cheap stage can escalate within remaining funds; it does not obtain a second budget."
+          "behavior": "Finish funded work using its protected allowance, publish completed results and retain unfinished investigations. Replica recovery retains the original configuration, clock, spending and evidence. No automatic whole-run baseline switch."
         }
       ],
       "ledger_contract": {
@@ -439,7 +438,8 @@
         "Quotes, partial failures and ownership handoffs retain consistent obligations and truthful completion states.",
         "Personally compare complete outputs and achieved breadth/depth for the same retained objectives under materially different allowances, respecting the separate offline-study provider/spending rules."
       ]
-    }
+    },
+    "recovery": "Resume retained work and retry eligible operations under the original logical run identity, selected inference configuration, allowance and deadline. Whole-run automatic baseline fallback is removed at the owner's instruction; deliberate deployment rollback remains separate."
   },
   "implementation_progress": {
     "status": "partial_implementation_locally_verified_release_held",
@@ -447,7 +447,7 @@
     "implementation": [
       "All execution-state persistence paths normalize nested pandas/NumPy missing and nonfinite values through shared to_jsonable; JSON encoding rejects remaining nonfinite numbers. Artifact result hashes use the normalized representation.",
       "Company worker failures emit a recorded failure and allow independent completed companies to reach aggregate materialization; the producer records degraded research and continuation.",
-      "A cancelled rollout audit cannot replace the original exception. Previously retained started state still selects baseline after replica death.",
+      "Automatic whole-run model fallback and its rollout audit/state are removed. Unexpected producer exceptions propagate unchanged; partial results retain the existing Warning status.",
       "Short ownership claim/renew/release operations use existing reserved interactive database capacity. Transient renewal errors retry within confirmed lease validity; confirmed lease loss still cancels work. Renewal errors retain their type and validity remaining.",
       "The logical run ledger supports continuous positive USD caps, integer microdollar accounting, atomic account/run reservation, bounded waits for active requests to return headroom, idempotent settlement and retained unknown charges.",
       "Replica identity retains its original configured allowance. Later configuration does not reset a retained ledger. Explicit audited amendments change the cap while retaining spending and reservations.",
@@ -478,19 +478,21 @@
       "database_cleanup": "Every diagnostic cluster stopped and postmaster.pid absence checked before archiving.",
       "additional_baseline_failure": "A broader research-session test expects resumable=False although unchanged source returns durable=True. Reproduced the same failure on the prior release branch. Not changed or counted as passing.",
       "source_hashes": {
-        "pipeline/jobs/main.py": "ff4c9ead8e93943871430110e6389c3e824259b471a08075c0575fc9a303978b",
+        "pipeline/jobs/main.py": "27cbb04f210d1702f2fda12c0756e167fea612fd6123e73b56950392cd568c4b",
         "services/aql/business_model_stack.py": "8b6e7937e0a414c24c3276632a9157fa1d470e79443440afc8896edc4727e674",
-        "services/inference_policy.py": "a89fd0f978beb3d489671c25c59ce41889ab070afebb0bb5f180abd2591afd1d",
+        "services/inference_policy.py": "e700590cb08fe3aa351b11f9b8d5151e7aff8a055b89ed940d04229475c20eda",
         "services/llm_execution.py": "bfcd75e871a00251a1d3611a52c5df259dec9680d33bb2da7889986cf532483e",
         "services/llm_prices.json": "eeee5cdfd39271f38eab8492b5c6fefa95418ffac876b6a47b09eb9b2a88651f",
         "services/pipeline_store.py": "b01ac3a5174b0e3812eaae486bd48e07d556e495dce779fbf8fa31f9dc6fe762",
         "services/web_research.py": "5be2ba6bfd4c70530a106c70376dc52fadb0e3324f3e508b24d645898640f3e3",
-        "services/zopedia_agent.py": "0a3f28494e6f507c678eccc0a7176756d2be0597719d65d40c7d0fa8e4b774cf"
+        "services/zopedia_agent.py": "0a3f28494e6f507c678eccc0a7176756d2be0597719d65d40c7d0fa8e4b774cf",
+        "config/inference_policy.json": "e2cc12735d5170daba4b7c2a3cd1d7a743125408f8cc36eb3f21b1a0d58e1887",
+        ".env.example": "157ce4d937aa2c6de487d701e843efbb06c12533de313e6ec9c34d2f3504e898"
       }
     },
     "remaining_implementation_and_acceptance": [
       "Fund and qualify completion phases while varying breadth/depth and task-model choices; planner financial context alone does not establish adaptive research quality.",
-      "Decouple completed evidence identity from execution capacity/budget parameters; assess adequacy of retained shallow answers for deeper objectives and reuse captured work across baseline fallback.",
+      "Decouple completed evidence identity from execution capacity/budget parameters; assess adequacy of retained shallow answers for deeper objectives and reuse captured work across replica recovery.",
       "Complete deadline-driven publication of the completed subset, durable incremental aggregate recovery and storage-native publication fencing. Per-company isolation alone does not establish whole-run publication.",
       "Reconcile interrupted or late accounting receipts into run and account ledgers, and qualify bounded retention of received paid results after child cancellation. Unknown obligations currently remain conservatively reserved.",
       "Include bounded incremental rented-compute/tool categories beyond the integrated inference/search transports before claiming complete research-spend coverage; fixed shared hosting remains separately reported.",
@@ -512,6 +514,53 @@
     "checks": "62 passed in1.55seconds: recurring inference contracts, provider execution contracts and production job boundaries.",
     "design_recommendation": "Automatic whole-run configuration fallback is unnecessary for the observed persistence, ownership and deadline failures. Prefer retained-work continuation, safe bounded stage retries and model escalation only for a model-specific failure. Keep deployment rollback separate. Removing the automatic baseline mechanism is a proposed simplification; the local repair currently preserves the earlier explicit baseline-retry instruction.",
     "production_changed": false,
-    "source_sha256": "a89fd0f978beb3d489671c25c59ce41889ab070afebb0bb5f180abd2591afd1d"
+    "source_sha256": "a89fd0f978beb3d489671c25c59ce41889ab070afebb0bb5f180abd2591afd1d",
+    "status": "superseded_by_owner_requested_fallback_removal"
+  },
+  "automatic_configuration_fallback": {
+    "owner_instruction": "Then remove it",
+    "status": "removed_from_source_operational_checks_passed_not_deployed",
+    "recorded_at_utc": "2026-10-28T05:46:20.042032+00:00",
+    "removed": [
+      "execute_with_fallback and its caller",
+      "Automatic LLM_POLICY_PROFILE mutation",
+      "Runtime reads and writes of inference_rollout state",
+      "Failure-triggered whole-run baseline execution",
+      "rollout/fallback_profile/attempt_seconds from the repository inference policy"
+    ],
+    "retained": [
+      "Existing task-specific economy/full-model routing and reuse",
+      "Platform process retry and retained execution identity/checkpoints",
+      "Original logical-run dollar allowance across replicas",
+      "Producer-owned news deadline, default7200seconds from the original execution start",
+      "Explicit operator-selected baseline profile and accepted deployment rollback records"
+    ],
+    "deadline_configuration": "PIPELINE_JOB_MAX_DURATION_SECONDS defaults to7200 for news; explicitly setting it enables the same producer guard for other jobs. It is independent of model policy.",
+    "failure_behavior": "Unexpected exceptions retain their original type and cause. Partial/degraded results are recorded as Warning by the existing job controller and do not trigger a whole-run model switch.",
+    "verification": {
+      "result": "63 passed in1.54seconds",
+      "files": [
+        "tests/test_recurring_inference_costs.py",
+        "tests/test_llm_execution.py",
+        "tests/test_production_job_boundaries.py"
+      ],
+      "regressions": [
+        "Two replicas keep balanced routing and the same original run identity, dates and$10 allowance even if the later environment requests$1000.",
+        "The second replica sees the remaining6600seconds after600seconds have elapsed, not a new7200seconds.",
+        "An expired execution cannot invoke the producer again.",
+        "Historical rollback state cannot select a different profile.",
+        "A partial run returns Warning without a model-policy restart.",
+        "The producer deadline also applies to explicitly selected baseline."
+      ],
+      "scope": "Operational control flow only; no narrative/model quality change, paid inference, research GPU, application build or production job start."
+    },
+    "production_changed": false,
+    "source_sha256": {
+      "services/inference_policy.py": "e700590cb08fe3aa351b11f9b8d5151e7aff8a055b89ed940d04229475c20eda",
+      "pipeline/jobs/main.py": "27cbb04f210d1702f2fda12c0756e167fea612fd6123e73b56950392cd568c4b",
+      "config/inference_policy.json": "e2cc12735d5170daba4b7c2a3cd1d7a743125408f8cc36eb3f21b1a0d58e1887",
+      ".env.example": "157ce4d937aa2c6de487d701e843efbb06c12533de313e6ec9c34d2f3504e898"
+    },
+    "live_state_note": "The old production image still contains the removed mechanism. Historical rollout records are preserved as evidence; this source change takes effect when the accepted follow-up release is deployed. Existing live configuration was not changed."
   }
 }
