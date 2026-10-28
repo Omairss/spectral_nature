@@ -427,5 +427,25 @@
   },
   "source_worktree": "/Users/omairs/Documents/code/spectral_nature_production_acceptance_20261027/streamlit_alpaca_app",
   "source_branch": "fix/production-acceptance-followup-20261027",
-  "source_integration": "Accepted worker source is committed on this release branch. Concurrent unaccepted runtime work and separately accepted client releases in the original IDE checkout remain preserved."
+  "source_integration": "Accepted worker source is committed on this release branch. Concurrent unaccepted runtime work and separately accepted client releases in the original IDE checkout remain preserved.",
+  "first_scheduled_recovery": {
+    "execution": "system-recovery-29886367",
+    "azure_status": "Succeeded",
+    "application_status": "Succeeded",
+    "run_id": "49c6f5a5-5b9c-4048-81d3-23a97f1bdf4b",
+    "started_utc": "2026-10-28 10:07:37.973536+00:00",
+    "finished_utc": "2026-10-28 10:07:39.056542+00:00",
+    "image": [
+      "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
+    ]
+  },
+  "temporary_database_retirement": {
+    "batch": "/Users/omairs/Library/Application Support/SpectralNature/retired-release-sources/20261028T101213Z",
+    "databases_archived": 26,
+    "all_archive_files_verified": true,
+    "postgres_stopped_verified": true,
+    "expires_at": "2026-11-27T10:12:25.294038+00:00",
+    "automatic_cleanup": "Existing installed cleanup_retired_releases LaunchAgent",
+    "compressed_bytes": 184415814
+  }
 }
