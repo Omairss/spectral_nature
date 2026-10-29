@@ -95,5 +95,54 @@
     "production_deployed": false,
     "production_remains_previous_accepted_image": true,
     "required_next_step": "Complete shared-account future core-funding design and freshly approved complete-output qualitative verification, then exact-image DEV and owner-authorized production promotion. Cost reconciliation remains visible but no longer requires resolving every old request before a later briefing can run. The prepared study remains held; it must honor shared account admission. Reconcile API/broker source preservation and qualify all Python roles required by the new shared account contract."
+  },
+  "instruction_audit": {
+    "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",
+    "confirmed": [
+      {
+        "instruction": "Activate today after the owner explicitly corrected tomorrow.",
+        "failure": "The earlier rollout retained the October28 activation gate after the October27 request.",
+        "correction": "Activation corrected in the earlier deployed combined release.",
+        "evidence": "documents/mistakes.md: Production completion and timing corrections \u2014 October27"
+      },
+      {
+        "instruction": "Retry a failed attempt using the earlier configuration; later remove fallback.",
+        "failure": "Initial whole-run fallback persisted baseline settings into later scheduled runs, disabling cheaper routing and reuse.",
+        "correction": "Whole-run fallback and sticky state subsequently removed in the deployed follow-up.",
+        "evidence": "documents/mistakes.md: Whole-run baseline fallback removed at the owner instruction \u2014 October27"
+      },
+      {
+        "instruction": "Current best-effort reporting instead of next-run deferral.",
+        "failure": "Initial budget implementation deferred unfunded news and could resume it with the earlier as-of date; later unresolved account holds also prevented a fresh after-close briefing.",
+        "correction": "Current-output/economy completion is in the prior release. Permanent account-hold repair is local, not deployed; full shared-account future core funding remains unfinished.",
+        "evidence": "documents/mistakes.md: Deferral and cap semantics were too rigid; coverage-diagnosis.json:after_close_failure"
+      },
+      {
+        "instruction": "Qualify changes without unintended shared product writes.",
+        "failure": "A qualification replay inherited safe_auto memory writes and created7 shared knowledge pages plus1 proposal despite persist_findings=False.",
+        "correction": "All7 page writes were audited and rolled back; proposal rejected. Explicit write_policy=none applied. Private native rollback receipt checked in this audit.",
+        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes \u2014 October27"
+      },
+      {
+        "instruction": "Verify actual full-model writing and review before claiming preserved quality behavior.",
+        "failure": "An earlier acceptance said Home retained Pro writing/review, but actual12-item replay showed review not_run because plain-text composition lacked a response schema.",
+        "correction": "Shared review condition corrected; later complete-output acceptance is recorded separately. New coverage changes still need fresh output acceptance.",
+        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes \u2014 October27"
+      },
+      {
+        "instruction": "Keep completed and unfinished work accurately tracked.",
+        "failure": "Already-delivered task-based model routing was described again as unfinished allocation work.",
+        "correction": "Routing completion is preserved separately from genuinely unfinished allocation/qualification work.",
+        "evidence": "documents/mistakes.md: Completed routing was folded into an unfinished allocation description \u2014 October27"
+      },
+      {
+        "instruction": "Prioritize recurring monthly cost options, including schedule frequency and cheaper models.",
+        "failure": "Moved into a24-hour company reuse implementation before presenting the requested recurring-cost alternatives.",
+        "correction": "Scheduling/model options and implementation were addressed later; original priority was not followed.",
+        "evidence": "documents/mistakes.md: Cost optimization scope \u2014 October27"
+      }
+    ],
+    "additional_known_violation": "Rejected Home-local news acquisition, removed in e541ecc0; no candidate image built or deployed.",
+    "remaining_requirements": "See existing task items for shared-account future core funding, qualitative output acceptance, consumer integration and release verification. Operational tests are not NLP quality acceptance."
   }
 }

@@ -1405,3 +1405,8 @@ The owner rejected permanent account blocking after lost usage receipts. Keep th
 ### Correct coverage at its existing owner — October 28
 
 A missing topic in Home does not authorize another provider intake inside Home. The shared news producer owns market-wide feed acquisition and its existing datasets; preserve its original selected-company coverage in the same dataset, with company research selection separately bounded. A broad latest-news page can otherwise crowd out useful ticker reports. Retain successfully acquired scopes and record failed siblings in existing operational state; total acquisition failure must not publish fabricated success. Home reads that snapshot and uses the established shared research engine for follow-up. Keep the twice-daily producer and existing Home schedule explicit: independent cron times are not a completion dependency. A bounded latest-news page is not an exhaustive event archive. Qualify the actual shared source and complete outputs before release.
+
+
+### Audit instruction compliance against actual effects — October28
+
+Check instructions against persisted configuration, actual review metadata, product writes and completion statements. A replay namespace is not storage isolation; persist_findings=False does not override an inherited memory-write policy. A completed draft is not a completed review. A corrected component does not make already-delivered work unfinished, and an operational check does not establish feed quality. Preserve exact historical correction status instead of resetting the entire task to done or unmet. See the existing event-adaptive task plan instruction audit.
