@@ -1,10 +1,10 @@
 {
   "status": "source_preservation_reviewed_exact_candidate_images_pending",
-  "production_authorized": false,
+  "production_authorized": true,
   "consumer_count": 36,
   "development_python_targets": 14,
-  "retained_consumers": 22,
-  "scope": "All twelve DEV workers, DEV API and DEV broker receive one Git runtime. All production resources and three frontends retain their actual images/configurations.",
+  "retained_consumers": 3,
+  "scope": "Owner-authorized promotion of the accepted candidate to all33Python consumers after exact three-role DEV qualification;three actual frontend images retained.",
   "configuration_api_version": "2025-07-01",
   "source_preservation": {
     "worker": "Current approved worker c92245b6 plus new coherent shared research, original-clock completion and account future-core priority. Existing producers, archive/publication/cancellation and knowledge authority preserved.",
@@ -14,9 +14,9 @@
     "native": "Retain build13 and its accepted current server DTOs. No native build/deployment."
   },
   "compatibility_limits": [
-    "The retained production clients preserve paid request accounting and current-balance reconciliation. They do not implement the new future-completion priority book until separately owner-promoted; DEV-only deployment is not a claim of global production future-credit protection.",
-    "Configuration fingerprints and images must be rechecked across every consumer before the first deployment mutation.",
-    "Package provenance must be verified for every role, not inferred from an image label."
+    "During staged DEV qualification,retained production clients do not yet honor new account completion-priority semantics. Global protection is only claimed after all33Python clients are promoted.",
+    "All36consumer images and complete configuration fingerprints match the live baseline before packaging; recheck before any mutation.",
+    "Verify all193packaged runtime files independently for each role; no inherited application source."
   ],
   "shared_runtime_contracts": {
     "database_lifecycle": "Required source definitions/files preserved across retained Python roles; release_source enforces exact signatures.",
@@ -386,5 +386,6 @@
     }
   ],
   "source_review": "development-source-review.json",
-  "retained_package_proofs": "development-retained-package-proofs.json"
+  "retained_package_proofs": "development-retained-package-proofs.json",
+  "production_python_targets": 19
 }
