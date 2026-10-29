@@ -260,7 +260,7 @@
     }
   },
   "quality_fix_design": {
-    "status": "proposed_not_implemented_or_qualified",
+    "status": "implementation_in_progress_not_qualified",
     "recorded_at_utc": "2026-10-29T05:49:10.354169+00:00",
     "owner_request": "Come up with a 500 IQ fix",
     "central_change": "Carry one versioned, substantive shared research result into an explicitly selected publication. Make evidence addressable, let the model choose the exact visible feed, and review that same feed before materialization.",
@@ -367,33 +367,43 @@
       "cost": "Measure complete attempt-inclusive usage, cache behavior, latency, current credit and unknown bounds. No cost-reduction or quality guarantee before the full comparison."
     },
     "this_turn": {
-      "runtime_changes": false,
-      "paid_inference": false,
-      "deployment": false,
-      "purpose": "Source-grounded design only. Existing rejected-candidate status and unfinished operational/release work remain accurately tracked."
+      "runtime_changes": true,
+      "paid_inference": true,
+      "deployment": "Approved incremental feed promoted; separate coherent design not built or deployed.",
+      "purpose": "Implement and qualify coherent shared handoff and adaptive funding for owner DEV evaluation."
     }
   },
   "owner_acceptance": "owner-acceptance.json",
   "development_work_order": [
     {
       "id": "shared_research_publication",
-      "status": "next",
-      "work": "Question agenda and substantive shared findings; navigable retained originals; model selects exactly the visible feed before writing/review; preserve clients and current producer ownership."
+      "status": "implemented_pending_fresh_qualification",
+      "work": "Question agenda and substantive shared findings; navigable retained originals; model selects exactly the visible feed before writing/review; preserve clients and current producer ownership.",
+      "evidence": "Existing compositor comparison preserves exact selection but still loses important detail when reusing earlier research; do not accept that output. Original source text is now supplied once alongside findings, and nomination/focused research produce substantive findings and a question agenda."
     },
     {
       "id": "future_core_account_funding",
-      "status": "pending",
-      "work": "Protect future full-model completion at shared account level before optional concurrent work, with atomic transfer, expiry and actual-client source preservation."
+      "status": "implemented_in_separate_development_branch_pending_integration",
+      "work": "Protect future full-model completion at shared account level before optional concurrent work, with atomic transfer, expiry and actual-client source preservation.",
+      "branch": "fix/account-core-funding-dev-20261029",
+      "evidence": "Atomic future-core account projection, actual-request transfer, unknown-cost retention, original-clock expiry, terminal release/retry restoration, and bounded evidence-navigation-to-answer transition. Native Responses usage/pricing preserved. Mechanical checks do not establish narrative quality."
     },
     {
       "id": "variable_research_effort",
-      "status": "pending",
-      "work": "Use remaining usefulness and configured allowance for research depth; quiet days may stop early and justified heavy days may use the configurable50% margin."
+      "status": "implemented_pending_fresh_qualification",
+      "work": "Use remaining usefulness and configured allowance for research depth; quiet days may stop early and justified heavy days may use the configurable50% margin.",
+      "evidence": "Source-event breadth defaults to model selection against usefulness, remaining allowance and original clock; explicit zero disables and positive ceilings retain compatibility. Operational worker and request limits remain configurable. Event margin remains optional capacity, not a spending quota."
     },
     {
       "id": "complete_output_owner_evaluation",
-      "status": "pending",
-      "work": "Compare full final public outputs, keep study allowance/unknowns intact and let the owner evaluate the new DEV design before promotion."
+      "status": "pending_fresh_complete_path",
+      "work": "Compare full final public outputs, keep study allowance/unknowns intact and let the owner evaluate the new DEV design before promotion.",
+      "evidence": "Compositor-only check cost $0.276099, two full-capability calls, no new unknown charges; not accepted. Continuation bound $7.974219 of $10 includes original unknown maximum $1.643643; $2.025781 remains. Requested up to $5 additional authorization; no increase applied without reply."
     }
-  ]
+  ],
+  "development_source": {
+    "branch": "fix/shared-research-publication-dev-20261029",
+    "production_authorized": false,
+    "local_complete_output_review": "prior compositor case failed depth; fresh complete-path qualification pending"
+  }
 }

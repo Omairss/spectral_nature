@@ -1395,15 +1395,21 @@ def test_home_editor_receives_complete_discovery_and_its_protected_completion(mo
     def run(**kwargs):
         captured.append(kwargs)
         assert _CALL.get()["core_work_id"] == "home:public_surface"
-        return {"status": "completed", "payload": {"issues": [], "items": [], "new_events": [],
+        return {"status": "completed", "payload": {"issues": [], "stories": [],
+            "selection": {"top_events": [], "must_read_movers": [], "unresolved_large_moves": []},
             "market_summary": {"summary_text": "Supplied output", "confidence": "high", "limitations": []}}}
     monkeypatch.setattr(home, "run_aql_zopedia_structured_agent", run)
     monkeypatch.setattr(home, "complete_core_research", completed.append)
     home._review_home_public_surface({}, {}, enrichment_rows=[], asof_time_utc="2026-10-28T18:35:00Z",
                                      timeout_seconds=30, source_documents=[source], market_research=research)
     evidence = captured[0]["initial_evidence"][0]
-    assert evidence["full_source_intake"] == [source]
-    assert evidence["market_wide_research"] == research
+    service = captured[0]["service"]
+    source_record = next(item for item in evidence["source_index"] if item["metadata"]["kind"] == "source_document")
+    original = service.read_supplied_evidence(source_id=source_record["source_id"])
+    assert json.loads(original["text"]) == source
+    assert evidence["market_research_findings"] == research
+    assert evidence["evidence_manifest"] == service.supplied_evidence_manifest
+    assert captured[0]["schema"]["properties"]["selection"]["properties"]["top_events"]["maxItems"] == evidence["publication_capacity"]["top_events"]
     assert completed == ["home:public_surface"]
 
 

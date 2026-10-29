@@ -16,6 +16,7 @@ from typing import Any, Callable
 
 import pandas as pd
 
+from data_access.query_service import QueryService
 from services.json_utils import frame_to_records, to_jsonable, to_list
 from services.aql.pipeline import build_bottom_up_attention_artifacts
 from services.aql.collector import search_symbol_news_payload
@@ -520,10 +521,43 @@ _STORY_TIME_BASIS_SCHEMA: dict[str, Any] = {
 }
 
 
+_HOME_PUBLIC_TEXT_FIELDS = (
+    "event_title", "surface_summary_text", "what_happened_text", "why_happened_text",
+    "affected_assets_summary_text", "business_context_text", "watch_next_text",
+)
+
+_HOME_STORY_SELECTION_SCHEMA: dict[str, Any] = {
+    "type": "object", "additionalProperties": False,
+    "properties": {
+        "story_id": {"type": "string"},
+        "question": {"type": "string", "description": "The consequential question this selected story will answer."},
+        "source": {"anyOf": [
+            {"type": "object", "additionalProperties": False,
+             "properties": {
+                 "kind": {"type": "string", "enum": ["candidate"]},
+                 "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"]},
+                 "index": {"type": "integer", "minimum": 0},
+                 "bundle_id": {"type": "string"},
+             }, "required": ["kind", "section", "index", "bundle_id"]},
+            {"type": "object", "additionalProperties": False,
+             "properties": {
+                 "kind": {"type": "string", "enum": ["source_event"]},
+                 "source_ids": {"type": "array", "items": {"type": "string"}},
+                 "supporting_symbols": {"type": "array", "items": {"type": "string"}},
+             }, "required": ["kind", "source_ids", "supporting_symbols"]},
+        ]},
+    }, "required": ["story_id", "question", "source"],
+}
+
 _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
     "type": "object", "additionalProperties": False,
     "properties": {
-        "issues": {"type": "array", "items": {"type": "string"}},
+        "selection": {
+            "type": "object", "additionalProperties": False,
+            "properties": {section: {"type": "array", "items": _HOME_STORY_SELECTION_SCHEMA}
+                           for section in ("top_events", "must_read_movers", "unresolved_large_moves")},
+            "required": ["top_events", "must_read_movers", "unresolved_large_moves"],
+        },
         "market_summary": {
             "type": "object", "additionalProperties": False,
             "properties": {
@@ -532,49 +566,22 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
                 "limitations": {"type": "array", "items": {"type": "string"}},
             }, "required": ["summary_text", "confidence", "limitations"],
         },
-        "new_events": {"type": "array", "items": {
+        "stories": {"type": "array", "items": {
             "type": "object", "additionalProperties": False,
             "properties": {
+                "story_id": {"type": "string"},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
-                "source_ids": {"type": "array", "items": {"type": "string"}},
-                "supporting_symbols": {"type": "array", "items": {"type": "string"}},
-                "priority": {"type": "number", "minimum": 0, "maximum": 100},
-                **{key: {"type": "string"} for key in (
-                    "event_title", "surface_summary_text", "what_happened_text", "why_happened_text",
-                    "affected_assets_summary_text", "business_context_text", "watch_next_text",
-                )},
+                **{key: {"type": "string"} for key in _HOME_PUBLIC_TEXT_FIELDS},
                 "cause_status": {"type": "string", "enum": ["supported", "partial", "unresolved"]},
             },
             "required": [
-                "time_basis", "source_ids", "supporting_symbols", "priority", "event_title", "surface_summary_text",
+                "story_id", "time_basis", "event_title", "surface_summary_text",
                 "what_happened_text", "why_happened_text", "affected_assets_summary_text",
                 "business_context_text", "watch_next_text", "cause_status",
             ],
         }},
-        "items": {"type": "array", "items": {
-            "type": "object", "additionalProperties": False,
-            "properties": {
-                "time_basis": _STORY_TIME_BASIS_SCHEMA,
-                "section": {"type": "string", "enum": ["top_events", "must_read_movers", "unresolved_large_moves"]},
-                "index": {"type": "integer", "minimum": 0}, "bundle_id": {"type": "string"},
-                "symbol": {"type": "string"}, "publish": {"type": "boolean"},
-                "priority": {"type": "number", "minimum": 0, "maximum": 100},
-                **{key: {"type": "string"} for key in (
-                    "event_title", "surface_summary_text", "what_happened_text", "why_happened_text",
-                    "affected_assets_summary_text", "business_context_text", "watch_next_text", "review_note",
-                )},
-                "cause_status": {"type": "string", "enum": ["supported", "partial", "unresolved"]},
-            },
-            "required": ["section", "index", "bundle_id", "symbol", "publish"],
-            "anyOf": [
-                {"properties": {"publish": {"const": False}}},
-                {"properties": {"publish": {"const": True}}, "required": [
-                    "time_basis", "priority", "event_title", "surface_summary_text", "what_happened_text", "why_happened_text",
-                    "affected_assets_summary_text", "business_context_text", "watch_next_text", "cause_status",
-                ]},
-            ],
-        }},
-    }, "required": ["issues", "market_summary", "items", "new_events"],
+        "issues": {"type": "array", "items": {"type": "string"}},
+    }, "required": ["selection", "market_summary", "stories", "issues"],
 }
 
 
@@ -1856,14 +1863,8 @@ def _attach_business_context_to_payload(
 def _home_surface_quality_items(
     payload: dict[str, Any],
     bundle_map: dict[str, dict[str, Any]],
-    *,
-    enrichment_rows: list[dict[str, Any]] | None = None,
 ) -> list[dict[str, Any]]:
-    """Keep source evidence, observations and fallible draft analysis distinct."""
-    enrichment_by_symbol = {
-        str(row.get("symbol") or ""): row.get("answer_markdown", "")
-        for row in enrichment_rows or [] if row.get("status") == "completed"
-    }
+    """Identify candidates; their complete research stays in the shared reader."""
     rows = []
     for section in ("top_events", "must_read_movers", "unresolved_large_moves"):
         for index, item in enumerate(payload.get(section) or []):
@@ -1874,19 +1875,9 @@ def _home_surface_quality_items(
             rows.append({
                 "section": section, "index": index, "bundle_id": bundle_id,
                 "symbol": symbol, "symbols": symbols,
-                "source_event": bool(bundle.get("source_event")),
-                "instrument_context": list(bundle.get("instrument_context") or []),
-                "observed_members": list(bundle.get("observed_members") or []),
+                "candidate_title": item.get("event_title") or item.get("headline") or bundle.get("event_title", ""),
+                "research_source_id": "bundle:" + bundle_id,
                 "candidate_observation": {key: item.get(key) for key in ("change_pct", "direction", "asof_time_utc")},
-                "source_evidence": list(bundle.get("evidence") or []) + list(bundle.get("background_context") or []),
-                "collected_research_evidence": list(bundle.get("research_evidence") or []),
-                "unverified_claims": list(bundle.get("claims") or []),
-                "research_draft": {key: bundle.get(key) or item.get(key) for key in (
-                    "event_title", "headline", "what_happened_text", "what_changed_text",
-                    "why_happened_text", "why_now_text", "business_context_text", "watch_next_text",
-                    "cause_status", "cohort_label", "cohort_kind",
-                )},
-                "member_research_drafts": [{"symbol": sym, "text": enrichment_by_symbol[sym]} for sym in symbols if enrichment_by_symbol.get(sym)],
             })
     return rows
 
@@ -2105,80 +2096,96 @@ def _apply_group_synthesis_items(
 def _apply_home_surface_quality_items(
     payload: dict[str, Any],
     bundle_map: dict[str, dict[str, Any]],
-    quality_items: list[dict[str, Any]],
+    publication: dict[str, Any],
+    *,
+    source_documents: list[dict[str, Any]],
+    asof_time_utc: object,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, int]]:
-    """Materialize the semantic editor's decisions without rewriting its analysis."""
-    revisions = {(item["section"], int(item["index"]), item["bundle_id"]): item for item in quality_items}
-    expected = {(section, index, str(item.get("bundle_id") or ""))
-                for section in ("top_events", "must_read_movers", "unresolved_large_moves")
-                for index, item in enumerate(payload.get(section) or [])}
-    if set(revisions) != expected or len(revisions) != len(quality_items):
-        raise AttentionHomeBuildError("Public editor decisions do not match the supplied candidates.")
-    updated = dict(payload)
-    bundles = {key: dict(value) for key, value in bundle_map.items()}
-    changed = dropped = 0
-    for section in ["top_events", "must_read_movers", "unresolved_large_moves"]:
-        kept = []
-        for index, original in enumerate(payload.get(section) or []):
-            item = dict(original)
-            bundle_id = str(item.get("bundle_id") or "")
-            revision = revisions.get((section, index, bundle_id))
-            if revision is None:
-                raise AttentionHomeBuildError("Public editor omitted a supplied story decision.")
-            canonical = {key: str(revision.get(key) or "").strip() for key in (
-                "event_title", "surface_summary_text", "what_happened_text", "why_happened_text",
-                "affected_assets_summary_text", "business_context_text", "watch_next_text",
-            )}
-            text = {**canonical,
-                "headline": canonical["event_title"],
-                "what_changed_text": canonical["what_happened_text"],
-                "why_now_text": canonical["why_happened_text"],
-                "what_else_moved_text": canonical["affected_assets_summary_text"],
-                "surface_what_changed_text": canonical["what_happened_text"],
-                "surface_why_text": canonical["why_happened_text"],
-                "surface_what_else_moved_text": canonical["affected_assets_summary_text"],
-                "surface_business_context_text": canonical["business_context_text"],
-                "surface_source_summary": "",
-            }
-            publish = bool(revision["publish"])
-            metadata = {
-                "publish": publish, "public_surface_reviewed": True, "public_surface_review_note": "",
-                "public_surface_time_basis": revision.get("time_basis") or {},
-                "cause_status": revision.get("cause_status", "unresolved"), "surface_cause_status": revision.get("cause_status", "unresolved"),
-            }
-            if not publish:
-                text = {key: "" for key in text}
-            item.update(text); item.update(metadata)
-            if bundle_id in bundles:
-                bundles[bundle_id].update(text); bundles[bundle_id].update(metadata)
-            if publish:
-                kept.append((float(revision.get("priority") or 0), item))
-                changed += 1
-            else:
-                dropped += 1
-        updated[section] = [item for _, item in sorted(kept, key=lambda value: -value[0])]
-    coverage = dict(updated.get("coverage_summary") or {})
-    coverage.update(public_surface_quality_reviewed_count=changed+dropped, public_surface_quality_changed_count=changed, public_surface_quality_dropped_count=dropped)
-    updated["coverage_summary"] = coverage
-    return updated, bundles, {"changed": changed, "dropped": dropped, "reviewed": changed+dropped}
-
-
-def _cap_home_public_sections(payload: dict[str, Any]) -> dict[str, Any]:
-    out = dict(payload or {})
+    """Publish exactly the model's selected stories and order; retain all research."""
     limits = {
         "top_events": _attention_home_top_events_display_limit(),
         "must_read_movers": _attention_home_must_read_display_limit(),
         "unresolved_large_moves": _attention_home_unresolved_display_limit(),
     }
-    coverage = dict(out.get("coverage_summary") or {})
-    for section, limit in limits.items():
-        items = [item for item in list(out.get(section) or []) if isinstance(item, dict) and bool(item.get("publish", True))]
-        coverage[f"{section}_reviewed_count"] = int(len(items))
-        out[section] = items[: max(int(limit), 1)]
-        coverage[f"{section}_display_count"] = int(len(out[section]))
-    coverage["public_home_story_count"] = int(sum(len(out.get(section) or []) for section in limits))
-    out["coverage_summary"] = coverage
-    return out
+    selection = publication["selection"]
+    selected_ids = [item["story_id"] for section in limits for item in selection[section]]
+    stories = {item["story_id"]: item for item in publication["stories"]}
+    if (len(set(selected_ids)) != len(selected_ids) or len(stories) != len(publication["stories"])
+            or set(selected_ids) != set(stories)):
+        raise AttentionHomeBuildError("Selected stories and written stories must have the same unique identities.")
+    if any(len(selection[section]) > limit for section, limit in limits.items()):
+        raise AttentionHomeBuildError("The selected publication exceeds its declared display capacity.")
+    candidates = {(section, index, str(item.get("bundle_id") or "")): item
+                  for section in limits for index, item in enumerate(payload.get(section) or [])}
+    by_source = {str(doc.get("source_id") or doc.get("document_id") or ""): doc for doc in source_documents}
+    updated = {**payload, **{section: [] for section in limits}}
+    bundles = {key: {**value, "publish": False} for key, value in bundle_map.items()}
+    selected_bundles: set[str] = set()
+    selected_candidates: set[tuple] = set()
+    discovered = 0
+    for section in limits:
+        for selected in selection[section]:
+            source = selected["source"]
+            revision = stories[selected["story_id"]]
+            if source["kind"] == "candidate":
+                identity = (source["section"], source["index"], source["bundle_id"])
+                if identity not in candidates or identity in selected_candidates:
+                    raise AttentionHomeBuildError("Selected candidate identity is unknown or repeated.")
+                selected_candidates.add(identity)
+                item = dict(candidates[identity])
+                bundle_id = source["bundle_id"]
+                bundle = dict(bundle_map.get(bundle_id) or item)
+            else:
+                identity_text = json.dumps([revision["event_title"], sorted(source["source_ids"])], ensure_ascii=False)
+                event_id = "home-" + hashlib.sha256(identity_text.encode()).hexdigest()[:20]
+                bundle_id = "event::" + event_id
+                symbols = source["supporting_symbols"]
+                bundle = {
+                    "bundle_id": bundle_id, "event_id": event_id, "bundle_type": "event", "event_type": "source_event",
+                    "source_event": True, "asof_time_utc": asof_time_utc, "supporting_symbols": symbols,
+                    "anchor_symbol": symbols[0] if symbols else "", "symbol": symbols[0] if symbols else "",
+                    "run_id": payload.get("run_id") or (payload.get("coverage_summary") or {}).get("run_id", ""),
+                    "source_ids": source["source_ids"],
+                    "evidence": [{**by_source[sid], "headline": by_source[sid].get("title", ""),
+                                  "source": by_source[sid].get("source_provider", ""),
+                                  "source_text": by_source[sid].get("raw_text", "")}
+                                 for sid in source["source_ids"] if sid in by_source],
+                }
+                item = dict(bundle)
+                discovered += 1
+            if bundle_id in selected_bundles:
+                raise AttentionHomeBuildError("A research bundle cannot appear twice in the selected feed.")
+            selected_bundles.add(bundle_id)
+            canonical = {key: str(revision[key]).strip() for key in _HOME_PUBLIC_TEXT_FIELDS}
+            text = {**canonical,
+                "headline": canonical["event_title"], "what_changed_text": canonical["what_happened_text"],
+                "why_now_text": canonical["why_happened_text"], "what_else_moved_text": canonical["affected_assets_summary_text"],
+                "surface_what_changed_text": canonical["what_happened_text"], "surface_why_text": canonical["why_happened_text"],
+                "surface_what_else_moved_text": canonical["affected_assets_summary_text"],
+                "surface_business_context_text": canonical["business_context_text"], "surface_source_summary": "",
+            }
+            metadata = {"publish": True, "public_surface_reviewed": True, "public_surface_review_note": "",
+                "public_surface_time_basis": revision["time_basis"], "cause_status": revision["cause_status"],
+                "surface_cause_status": revision["cause_status"]}
+            # Existing ticker, graph, price and drilldown metadata survive selection.
+            item.update(text); item.update(metadata)
+            if not item.get("anchor_symbol"):
+                item["anchor_symbol"] = item.get("symbol") or bundle.get("anchor_symbol", "")
+            if not item.get("symbol"):
+                item["symbol"] = item.get("anchor_symbol") or bundle.get("symbol", "")
+            bundle.update(text); bundle.update(metadata)
+            bundles[bundle_id] = bundle
+            updated[section].append(item)
+    coverage = dict(updated.get("coverage_summary") or {})
+    for section in limits:
+        coverage[section + "_reviewed_count"] = len(updated[section])
+        coverage[section + "_display_count"] = len(updated[section])
+    count = len(selected_ids)
+    dropped = len(candidates) - len(selected_candidates)
+    coverage.update(public_home_story_count=count, public_surface_quality_reviewed_count=count,
+                    public_surface_quality_changed_count=count, public_surface_quality_dropped_count=dropped)
+    updated["coverage_summary"] = coverage
+    return updated, bundles, {"changed": count, "dropped": dropped, "reviewed": count, "discovered": discovered}
 
 
 def _review_home_public_surface(
@@ -2191,39 +2198,87 @@ def _review_home_public_surface(
     source_documents: list[dict[str, Any]] | None = None,
     market_research: list[dict[str, Any]] | None = None,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, Any]]:
-    review_items = _home_surface_quality_items(
-        payload,
-        bundle_map,
-        enrichment_rows=enrichment_rows,
-    )
+    review_items = _home_surface_quality_items(payload, bundle_map)
     intake = list(source_documents or [])
     if not review_items and not intake and not market_research:
         return payload, bundle_map, {"status": "skipped", "reason": "no public Home items"}
+    limits = {
+        "top_events": _attention_home_top_events_display_limit(),
+        "must_read_movers": _attention_home_must_read_display_limit(),
+        "unresolved_large_moves": _attention_home_unresolved_display_limit(),
+    }
+    records = {}
+    findings = []
+    for bundle_id, bundle in bundle_map.items():
+        source_id = "bundle:" + bundle_id
+        records[source_id] = {
+            "title": bundle.get("event_title") or bundle.get("headline") or bundle_id,
+            "metadata": {"kind": "shared_research", "bundle_id": bundle_id,
+                         "asof_time_utc": bundle.get("asof_time_utc"),
+                         "symbols": bundle.get("supporting_symbols") or [bundle.get("symbol")]},
+            "content": to_jsonable(bundle),
+        }
+        answer = bundle.get("findings_markdown") or bundle.get("research_result")
+        if answer:
+            findings.append({"source_id": source_id, "findings": answer})
+    for index, row in enumerate(enrichment_rows or []):
+        source_id = "company-research:" + str(index)
+        records[source_id] = {"title": str(row.get("symbol") or source_id),
+            "metadata": {"kind": "company_research", "symbol": row.get("symbol"), "status": row.get("status")},
+            "content": to_jsonable(row)}
+        if row.get("status") == "completed" and row.get("answer_markdown"):
+            findings.append({"source_id": source_id, "findings": row["answer_markdown"]})
+    for index, doc in enumerate(intake):
+        identity = str(doc.get("source_id") or doc.get("document_id") or index)
+        records["source:" + identity + ":" + str(index)] = {"title": doc.get("title") or identity,
+            "metadata": {"kind": "source_document", "source_id": identity, "url": doc.get("url"),
+                         "published_at": doc.get("published_at"), "provider_symbols": doc.get("provider_symbols")},
+            "content": to_jsonable(doc)}
+    records["market-observations"] = {"title": "Complete market observations",
+        "metadata": {"kind": "market_observations", "asof_time_utc": str(asof_time_utc)},
+        "content": to_jsonable(payload.get("market_coverage") or {})}
+    records["market-research"] = {"title": "Shared market research and question agenda",
+        "metadata": {"kind": "shared_research"}, "content": to_jsonable(market_research or [])}
+    service = QueryService.from_environment().with_supplied_evidence(records)
+    schema = {**_HOME_SURFACE_QUALITY_SCHEMA, "properties": {
+        **_HOME_SURFACE_QUALITY_SCHEMA["properties"],
+        "selection": {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["selection"], "properties": {
+            section: {**_HOME_SURFACE_QUALITY_SCHEMA["properties"]["selection"]["properties"][section], "maxItems": limit}
+            for section, limit in limits.items()}},
+    }}
     query = (
-        f"As of {_zopedia_asof_text(asof_time_utc)}, produce a compact investor briefing for Home "
-        "from the supplied company research, full source intake and market coverage. "
-        "Select and rank developments and connections by expected relevance and usefulness, "
-        "including worthwhile uncertain leads. Explain what changed, why it matters economically, "
-        "and what would change the interpretation before describing numerical price observations. "
-        "The market-wide research is part of the briefing, including consequential developments without a "
-        "large ticker move and relevant upcoming announcements. For each published item, establish time_basis before writing: "
-        "separate this run's observation, the original dates of background events, and the sources' report dates. "
-        "Build the title and opening around the current development. If a title leads with an older statement or "
-        "event, include its original date in that title; a dated sentence later in the body does not repair a "
-        "headline that presents it as new. Earlier draft titles are candidates to rewrite, not accepted headlines. "
-        "Use the artifact's public fields for the "
-        "briefing and its review fields for your assessment. Public text explains the business connection, "
-        "competing interpretations and the useful next observation. Acquisition coverage, missing documents "
-        "and editorial instructions belong in issues, review_note or limitations. Give each public title the "
-        "development and its economic meaning. Return a decision for every supplied "
-        "candidate using its unchanged section, index, bundle_id and symbol, and discover "
-        "additional events from the source intake where useful."
+        f"As of {_zopedia_asof_text(asof_time_utc)}, compose the current investor briefing from shared research. "
+        "First choose the complete visible feed in selection, in each section's exact display order. "
+        "The supplied section capacities are ceilings, not quotas. Choose the consequential questions and "
+        "independent developments before deciding whether they support a common interpretation. Then write "
+        "the overview and only those selected stories. Each story_id has one written story; unselected findings "
+        "remain available for research and must not be expanded into discarded public drafts. "
+        "The reviewer sees this selection and these exact bodies; publication preserves them without a later cutoff. "
+        "Judge the whole briefing: what matters now, what changes the interpretation, what consequential "
+        "operating or policy explanation is missing, and whether its conclusions follow from the sources. "
+        "Completed research is fallible analysis, not independent confirmation. Use the existing evidence reader "
+        "to inspect the named originals, complete observations, competing explanations and wider findings. "
+        "Read the decisive original when a draft's explanation or detail is insufficient. There is no need to "
+        "load the full numerical universe before deciding which observations help explain a development. "
+        "Source-event references use the original source_id in record metadata. Candidate references use the "
+        "catalog's unchanged section, index and bundle_id; they may be selected into the most useful display section. "
+        "Explain business mechanisms and useful connections, including uncertain leads, with numbers only when "
+        "their magnitude or comparison changes the meaning. Establish time_basis before each story's prose: "
+        "distinguish current observations, original event dates, source publication dates and upcoming information. "
+        "A background statement must not become a new announcement through its headline. "
+        "Public fields contain investor reporting; operational acquisition or review commentary belongs in issues "
+        "or limitations. Keep independent useful findings when one source or interpretation remains unresolved."
     )
     initial_evidence = [{
-        "home_surface_items": review_items,
-        "full_source_intake": intake,
-        "market_coverage": payload.get("market_coverage") or {},
-        "market_wide_research": market_research or [],
+        "source_documents": intake,
+        "completed_research_findings": findings,
+        "market_research_findings": market_research or [],
+        "source_index": [{"source_id": source_id, "title": record["title"], "metadata": record["metadata"],
+                          "fields": list(record["content"]) if isinstance(record["content"], dict) else []}
+                         for source_id, record in records.items()],
+        "publication_capacity": limits,
+        "candidates": review_items,
+        "evidence_manifest": service.supplied_evidence_manifest,
     }]
     attempts = _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_ATTEMPTS", 2)
     result: dict[str, Any] = {}
@@ -2234,7 +2289,7 @@ def _review_home_public_surface(
             break
         with model_call_context(core_work_id="home:public_surface"):
             result = run_aql_zopedia_structured_agent(
-                query=query, schema_name="attention_home_public_surface_quality", schema=_HOME_SURFACE_QUALITY_SCHEMA,
+                query=query, schema_name="attention_home_public_surface_quality", schema=schema, service=service,
                 task="attention_home_public_surface_quality", surface="attention_home.public_surface_quality",
                 max_tool_calls=0, run_timeout_seconds=remaining, llm_step_timeout_seconds=remaining,
                 persist_findings=False, call_type="research_grade", review_answer=True, write_policy="none",
@@ -2255,37 +2310,15 @@ def _review_home_public_surface(
             research_result=result,
         )
     quality_payload = result.get("payload") if isinstance(result.get("payload"), dict) else {}
-    errors = list(Draft202012Validator(_HOME_SURFACE_QUALITY_SCHEMA).iter_errors(quality_payload))
+    errors = list(Draft202012Validator(schema).iter_errors(quality_payload))
     if errors:
         raise AttentionHomeBuildError("Public Home editor returned an invalid response contract: " + errors[0].message, research_result=result)
-    # New stories and researched candidates share the same canonical materializer.
-    # The model owns discovery, grouping, explanation and ranking; code supplies IDs and source access.
-    candidate_payload = dict(payload)
-    candidate_payload["top_events"] = list(payload.get("top_events") or [])
-    candidate_bundles = dict(bundle_map)
-    decisions = list(quality_payload.get("items") or [])
-    by_source = {str(doc.get("source_id") or doc.get("document_id") or ""): doc for doc in intake}
-    for event in quality_payload.get("new_events") or []:
-        identity = json.dumps([event["event_title"], sorted(event["source_ids"])], ensure_ascii=False)
-        event_id = "home-" + hashlib.sha256(identity.encode()).hexdigest()[:20]
-        bundle_id = "event::" + event_id
-        bundle = {
-            "bundle_id": bundle_id, "event_id": event_id, "bundle_type": "event", "event_type": "source_event",
-            "source_event": True, "asof_time_utc": asof_time_utc, "supporting_symbols": event["supporting_symbols"],
-            "run_id": payload.get("run_id") or (payload.get("coverage_summary") or {}).get("run_id", ""),
-            "source_ids": event["source_ids"],
-            "evidence": [
-                {**by_source[sid], "headline": by_source[sid].get("title", ""),
-                 "source": by_source[sid].get("source_provider", ""), "source_text": by_source[sid].get("raw_text", "")}
-                for sid in event["source_ids"] if sid in by_source
-            ],
-        }
-        index = len(candidate_payload["top_events"])
-        candidate_payload["top_events"].append(dict(bundle))
-        candidate_bundles[bundle_id] = bundle
-        decisions.append({**event, "section": "top_events", "index": index, "bundle_id": bundle_id, "symbol": "", "publish": True})
-    updated_payload, updated_bundle_map, counts = _apply_home_surface_quality_items(candidate_payload, candidate_bundles, decisions)
-    counts["discovered"] = len(quality_payload.get("new_events") or [])
+    try:
+        updated_payload, updated_bundle_map, counts = _apply_home_surface_quality_items(
+            payload, bundle_map, quality_payload, source_documents=intake, asof_time_utc=asof_time_utc)
+    except AttentionHomeBuildError as exc:
+        exc.research_result = result
+        raise
     counts["source_input_count"] = len(intake)
     updated_payload["homepage_summary"] = {**quality_payload["market_summary"], "summary_status": "completed"}
     complete_core_research("home:public_surface")
@@ -2617,7 +2650,7 @@ def build_attention_home_output_frames(
                 for row in artifacts.frames.get("attention_source_documents", pd.DataFrame()).to_dict("records")
             ],
             market_research=[
-                {key: row.get(key) for key in ("run_id", "asof_time_utc", "status", "market_context_text", "error")}
+                {key: row.get(key) for key in ("run_id", "asof_time_utc", "status", "market_context_text", "research_agenda_json", "error")}
                 for row in artifacts.frames.get("attention_market_research", pd.DataFrame()).to_dict("records")
             ],
         )
@@ -2700,7 +2733,6 @@ def build_attention_home_output_frames(
         "stage_statuses_json": json.dumps(stages), "failed_tickers_json": json.dumps(failed_tickers),
         "errors_json": json.dumps([*operational_issues, *[{key: row.get(key) for key in ("symbol", "agent_run_id", "error_summary", "failure_categories_json", "limitations_json", "runtime_json")} for row in enrichment_rows if row.get("status") != "completed"]], default=str),
     }])
-    payload = _cap_home_public_sections(payload)
     print(
         "[info] attention-home-build public Home section counts: "
         f"top_events={len(payload.get('top_events') or [])} "
