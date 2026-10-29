@@ -473,6 +473,45 @@ def test_cancellation_request_is_not_reported_as_a_fill_or_repeated(
     assert store.paper_state(context, environment="qa")["orders"] == []
 
 
+def test_producer_retains_undecided_calls_when_the_next_report_replaces_them(
+    owned_db, monkeypatch
+):
+    context, link, schema, dsn, foreign = owned_db
+    from services import trading_agent_view
+
+    store.save_portfolio_snapshot(
+        portfolio_id=context.portfolio_id, connection_id=link["id"],
+        provider="alpaca_paper", environment="qa", account_summary={},
+        positions=[], timeseries=[], source_updated_at=datetime.now(timezone.utc),
+        details={"account_id": "account"},
+    )
+    report = {
+        "as_of": datetime.now(timezone.utc).isoformat(),
+        "horizons": [{"candidates": [{
+            "candidate_id": "producer-call", "ticker": "A", "stance": "long",
+            "hypothesis": "Original thesis", "forecast": {},
+        }]}],
+    }
+    monkeypatch.setattr(alpaca_paper, "refresh", lambda context: {})
+    monkeypatch.setattr(trading_agent_view, "build_trading_agent_view", lambda context: report)
+    trading_portfolio.run_portfolios(run_id="first", llm_client=None)
+    retained = store.paper_call(context, environment="qa", identity="producer-call")
+    assert retained["candidate"]["hypothesis"] == "Original thesis"
+    report["horizons"] = []
+    trading_portfolio.run_portfolios(run_id="next", llm_client=None)
+    workspace = trading_portfolio.build(context, report)
+    assert [c["candidate_id"] for c in workspace["proposals"]] == ["producer-call"]
+    assert workspace["policy"]["mode"] == "approval"
+    report["horizons"] = [{"candidates": [{
+        "candidate_id": "outage-call", "ticker": "B", "stance": "long", "forecast": {},
+    }]}]
+    def unavailable(context):
+        raise alpaca_paper.PaperAccountError("Broker unavailable")
+    monkeypatch.setattr(alpaca_paper, "refresh", unavailable)
+    trading_portfolio.run_portfolios(run_id="outage", llm_client=None)
+    assert store.paper_call(context, environment="qa", identity="outage-call") is not None
+
+
 def test_reduction_keeps_the_original_call_allocation_through_reconciliation(
     owned_db, monkeypatch
 ):

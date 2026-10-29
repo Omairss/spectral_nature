@@ -664,9 +664,19 @@ def run_portfolios(
         )
         try:
             retain(context, [])
-            alpaca_paper.refresh(context)
             view = build_trading_agent_view(context)
-            workspace = view["workspace"]
+            retain(
+                context,
+                [
+                    candidate
+                    for horizon in view.get("horizons", [])
+                    for candidate in horizon.get("candidates", [])
+                    if not candidate.get("decision")
+                ],
+                proposed_at=view.get("as_of"),
+            )
+            view["paper_portfolio"] = alpaca_paper.refresh(context)
+            workspace = build(context, view)
             saved = workspace["policy"]
             active = [c for c in workspace["calls"] if c.get("status") == "open"]
             if active and review_positions:
