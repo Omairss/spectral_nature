@@ -1,6 +1,6 @@
 {
-  "status": "owner_prefers_candidate_operational_development_qualification_pending",
-  "production_authorized": false,
+  "status": "owner_accepted_exact_images_deployed_development_and_production_verified",
+  "production_authorized": true,
   "comparisons": [
     {
       "name": "current-coherent-full",
@@ -92,17 +92,18 @@
     "invoice_reconciled": false,
     "new_inference_scheduled": false
   },
-  "local_release_hold": "Owner preference supersedes the prior personal prose-quality hold for this compared output. Exact-image DEV operational qualification and a full candidate run remain unverified; no coherent-design production authorization.",
+  "local_release_hold": "Closed by owner quality acceptance, successful exact-image qualification and explicit production authorization.",
   "preview": {
     "path": "output/visualizations/coherent-feed-review-20261029.html",
     "production_stories": 6,
     "candidate_stories": 11,
-    "content": "Actual complete output with no prose editing; detailed fields are expandable. Candidate is held.",
+    "content": "Actual complete dated before/after outputs with no prose editing; owner-accepted candidate source is promoted. This comparison is not the live feed.",
     "production_changed": false,
     "standalone": true,
     "view": "Matched side-by-side by default; working isolated version controls",
     "browser_verified": true,
-    "all_original_prose_unchanged": true
+    "all_original_prose_unchanged": true,
+    "candidate_source_deployed": true
   },
   "preview_repair": {
     "status": "standalone_comparison_fixed",
@@ -159,10 +160,13 @@
       "observed_source_identity_failure_corrected": true,
       "all11selected_stories_materialized": true,
       "metadata_and_paid_text_preserved_without_new_inference": true,
-      "exact_candidate_images_cloud_qualified": false,
+      "exact_candidate_images_cloud_qualified": true,
       "full_candidate_scheduled_run_observed": false,
       "owner_quality_assessment": "Candidate is much better.",
-      "owner_production_authorization_for_coherent_design": false
+      "owner_production_authorization_for_coherent_design": true,
+      "production_deployment_verified": true
     }
-  }
+  },
+  "production_deployed": true,
+  "production_evidence": "coherent-production.json"
 }

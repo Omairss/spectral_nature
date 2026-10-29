@@ -1,5 +1,5 @@
 {
-  "status": "source_preservation_reviewed_exact_candidate_images_pending",
+  "status": "owner_accepted_exact_images_deployed_development_and_production_verified",
   "production_authorized": true,
   "consumer_count": 36,
   "development_python_targets": 14,
@@ -387,5 +387,7 @@
   ],
   "source_review": "development-source-review.json",
   "retained_package_proofs": "development-retained-package-proofs.json",
-  "production_python_targets": 19
+  "production_python_targets": 19,
+  "production_deployed": true,
+  "production_evidence": "coherent-production.json"
 }
