@@ -874,7 +874,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "attention-ticker-next-dev",
@@ -890,7 +890,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "cleanup-trial-observer-dev",
@@ -906,7 +906,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "daily-datapoints-next-dev",
@@ -922,7 +922,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "dataset-refresh-dev",
@@ -938,7 +938,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "equities-next-dev",
@@ -954,7 +954,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "macro-fred-daily-dev",
@@ -970,7 +970,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "sn-research-run-dev",
@@ -986,7 +986,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "system-recovery-dev",
@@ -1002,7 +1002,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "technical-history-next-dev",
@@ -1018,7 +1018,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "trading-agent-build-dev",
@@ -1034,7 +1034,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "zopedia-maintenance-dev",
@@ -1050,7 +1050,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         }
       ],
       "production_targets": [
@@ -1068,7 +1068,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "commodities-regime",
@@ -1084,7 +1084,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "company-baseline-prefetch",
@@ -1100,7 +1100,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "entity-taxonomy-refresh",
@@ -1116,7 +1116,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "equities-intraday-preload",
@@ -1132,7 +1132,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "evidence-index-dev",
@@ -1156,7 +1156,7 @@
           },
           "role": "worker",
           "environment": "production",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "fundamentals-quarterly-refresh",
@@ -1172,7 +1172,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "macro-fred-daily",
@@ -1188,7 +1188,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "news-ingest-and-features",
@@ -1204,7 +1204,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "options-liquid-universe",
@@ -1220,7 +1220,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "sn-research-run",
@@ -1236,7 +1236,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "system-health",
@@ -1252,7 +1252,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "system-recovery",
@@ -1279,7 +1279,7 @@
               "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
             }
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "trading-agent-build",
@@ -1295,7 +1295,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "universe-builder",
@@ -1311,7 +1311,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "zopedia-learning",
@@ -1327,7 +1327,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         },
         {
           "name": "zopedia-maintenance",
@@ -1343,7 +1343,7 @@
             "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
             "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-consumers.json"
           },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
         }
       ],
       "accepted_images": {}
