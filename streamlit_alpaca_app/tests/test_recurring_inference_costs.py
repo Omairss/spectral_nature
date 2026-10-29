@@ -48,6 +48,13 @@ def durable_store(monkeypatch):
             value = transform(json.loads(json.dumps(values.get((ns, key), {}))))
             write(ns, key, value)
             return value
+    def mutate_many(keys, transform):
+        with lock:
+            states = {key: json.loads(json.dumps(values.get(key, {}))) for key in keys}
+            result = transform(states)
+            for key, value in result.items():
+                write(*key, value)
+            return result
     def claim(ns, key, *, owner, seconds):
         with lock:
             if values.get((ns, key), {}).get("expires_at", 0) > time.time():
@@ -67,6 +74,7 @@ def durable_store(monkeypatch):
                 values.pop((ns, key))
     monkeypatch.setattr(pipeline_store, "write_execution_state", write)
     monkeypatch.setattr(pipeline_store, "mutate_execution_state", mutate)
+    monkeypatch.setattr(pipeline_store, "mutate_execution_states", mutate_many)
     monkeypatch.setattr(pipeline_store, "claim_execution_state", claim)
     monkeypatch.setattr(pipeline_store, "renew_execution_state", renew)
     monkeypatch.setattr(pipeline_store, "release_execution_state", release)

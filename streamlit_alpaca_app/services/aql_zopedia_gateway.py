@@ -189,9 +189,11 @@ def generate_json_via_aql_zopedia_gateway(
 
     from .inference_policy import client_for_task, is_core_task
     full_client = llm_client
-    core_completion = is_core_task(surface=clean_surface, purpose=clean_purpose) and funded_core_research()
+    navigation = bool(_CALL.get().get("discretionary_core_step"))
+    core_completion = is_core_task(surface=clean_surface, purpose=clean_purpose) and funded_core_research() and not navigation
     economical_completion = best_effort_required() and not core_completion
-    llm_client, routing = ((full_client, {"role": "core", "reason": "protected_completion"}) if core_completion else
+    llm_client, routing = ((full_client, {"role": "research", "reason": "discretionary_evidence_navigation"}) if navigation else
+                          (full_client, {"role": "core", "reason": "protected_completion"}) if core_completion else
                           (full_client, {"role": "full", "reason": "economy_attempt_failed"})
                           if force_full_model and not economical_completion else client_for_task(
                               llm_client, surface=clean_surface, purpose=clean_purpose,
@@ -217,6 +219,9 @@ def generate_json_via_aql_zopedia_gateway(
         safe_metadata = {"metadata": safe_metadata}
     safe_metadata.update(
         {
+            "completion_priority": not navigation and is_core_task(surface=clean_surface, purpose=clean_purpose) and not (
+                _CALL.get().get("optional_core_unfunded") and
+                (_CALL.get().get("optional_company") or _CALL.get().get("event_work"))),
             "model_call_id": model_call_id,
             "schema_name": clean_schema_name,
             "language_policy_hash": _hash_text(get_active_narrative_style_rule()),
@@ -256,16 +261,17 @@ def generate_json_via_aql_zopedia_gateway(
         )
         from .llm import LLMAPIError
         import requests
-        if isinstance(exc, ResearchBudgetExceeded) and not economical_completion:
-            finish_research_economically("The next research request exceeded the remaining allowance.",
+        if isinstance(exc, ResearchBudgetExceeded) and not economical_completion and not navigation:
+            finish_research_economically(str(exc),
                                         required_microusd=getattr(exc, "required_microusd", 0))
-            return generate_json_via_aql_zopedia_gateway(
-                llm_client=full_client, surface=surface, purpose=purpose, call_type=call_type,
-                system_prompt=system_prompt, user_prompt=user_prompt,
-                schema_name=schema_name, schema=schema,
-                metadata={**(metadata or {}), "budget_transition_call_id": model_call_id},
-                deadline_monotonic=deadline_monotonic, inference_effort=inference_effort,
-                literal_output=literal_output)
+            with model_call_context(completion_only=True):
+                return generate_json_via_aql_zopedia_gateway(
+                    llm_client=full_client, surface=surface, purpose=purpose, call_type=call_type,
+                    system_prompt=system_prompt, user_prompt=user_prompt,
+                    schema_name=schema_name, schema=schema,
+                    metadata={**(metadata or {}), "budget_transition_call_id": model_call_id},
+                    deadline_monotonic=deadline_monotonic, inference_effort=inference_effort,
+                    literal_output=literal_output)
         if (not economical_completion and llm_client is not full_client
                 and isinstance(exc, (LLMAPIError, requests.RequestException))):
             return generate_json_via_aql_zopedia_gateway(

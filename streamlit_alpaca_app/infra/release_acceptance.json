@@ -1,6 +1,6 @@
 {
-  "status": "accepted_locally",
-  "scope": "Owner-accepted incremental feed/reliability promotion to29 workers. Existing production credit repair and API/iPhone metrics are preserved. Future coherent redesign/account-level core funding remains a separate DEV task.",
+  "status": "development_source_in_progress",
+  "scope": "Shared account-level future completion funding under implementation; production remains the owner-accepted feed release.",
   "source_revision": "251d037a6163d8d4da4f4897eaa6cee700d06aba",
   "review_base_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
   "files": {
@@ -1645,7 +1645,7 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": true,
+  "production_authorized": false,
   "production_authorization": {
     "owner_instruction": "After is MUCH better. Promote to prod. Then continue the rest of the work",
     "scope": "Promote this locally owner-accepted feed candidate after exact-image DEV operational verification, then continue unfinished redesign in DEV for owner evaluation.",

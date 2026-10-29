@@ -14,6 +14,7 @@ from functools import wraps
 from functools import lru_cache
 import json
 import logging
+import math
 import os
 import re
 import threading
@@ -300,6 +301,41 @@ def _run_remaining(state: dict[str, Any], *, for_admission: bool = False) -> int
             value["remaining_microusd"] for value in state.get("core_obligations", {}).values())
 
 
+def _provider_unreserved_microusd(state: dict[str, Any]) -> int:
+    balance = int((Decimal(str(state.get("balance_usd", 0))) * 1_000_000).to_integral_value(rounding=ROUND_FLOOR))
+    held = sum(_microusd(value["amount_usd"]) for value in state.get("reservations", {}).values()
+        if not (value.get("status") == "unknown" and value.get("finished_at") is not None
+                and value.get("liquidity_observed_at", 0) > value["finished_at"]))
+    return balance - held
+
+
+def _future_core_microusd(state: dict[str, Any]) -> int:
+    """Unspent future work expires without becoming an uncertain paid request."""
+    active = {key: value for key, value in state.get("future_core", {}).items()
+              if value["deadline_at"] > time.time() and value["remaining_microusd"] > 0}
+    state["future_core"] = active
+    return sum(value["remaining_microusd"] for value in active.values())
+
+
+def _sync_core_account(states, run_key, account_key, work_id) -> None:
+    """Project the original run's remaining obligation in the same transaction."""
+    obligation = states[run_key].get("core_obligations", {}).get(work_id)
+    if not obligation or tuple(obligation.get("provider_account") or ()) != account_key:
+        return
+    account = states[account_key]
+    book = account.setdefault("future_core", {})
+    identity = obligation["account_core_id"]
+    if obligation["status"] != "protected" or obligation["deadline_at"] <= time.time():
+        book.pop(identity, None)
+    else:
+        book[identity] = {"run": list(run_key), "work_id": work_id,
+            "remaining_microusd": obligation["remaining_microusd"],
+            "deadline_at": obligation["deadline_at"], "required": obligation["required"]}
+    account["future_core_shortfall_microusd"] = (
+        max(0, _future_core_microusd(account) - _provider_unreserved_microusd(account))
+        if account.get("observed_at") is not None else None)
+
+
 def protect_core_research(*, config: Any, work: dict[str, Any], stages: int | dict[str, int] = 2,
                           required: bool = True) -> bool:
     """Fund declared writing/review work before discretionary acquisition.
@@ -320,13 +356,25 @@ def protect_core_research(*, config: Any, work: dict[str, Any], stages: int | di
     quoted = {identity: _microusd(_request_maximum_charge(config, {
         "model": config.model, "messages": [{"role": "user", "content": json.dumps(evidence, default=str)}],
     }) * (stages[identity] if isinstance(stages, dict) else stages)) for identity, evidence in work.items()}
+    official = config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com"
+    account_key = ("provider_budget", _account_key(config)) if official else None
+    from .work_scope import remaining_work_seconds
+    remaining = remaining_work_seconds(float("inf"))
+    if not math.isfinite(remaining):
+        remaining = float(getattr(config, "timeout_seconds", 90)) * max(
+            stages.values() if isinstance(stages, dict) else [stages])
+    deadline_at = time.time() + remaining
+    if account_key and not required:
+        _provider_budget_state(config, sum(quoted.values()) / 1e6,
+                               time.monotonic() + min(remaining, 30))
     admitted = True
-    def protect(state):
+    def protect(states):
         nonlocal admitted
-        state = _run_budget_state(state)
+        state = _run_budget_state(states[key])
+        states[key] = state
         if state["cap_microusd"] == 0:
             admitted = False
-            return state
+            return states
         obligations = state.setdefault("core_obligations", {})
         new_work = {identity: quote for identity, quote in quoted.items()
                     if identity not in obligations or obligations[identity]["status"] == "completed"}
@@ -335,19 +383,37 @@ def protect_core_research(*, config: Any, work: dict[str, Any], stages: int | di
         if not fraction.is_finite() or fraction < 0:
             raise ValueError("Completion overrun fraction must be finite and nonnegative")
         if not required:
+            if account_key:
+                account = states[account_key]
+                available = (_provider_unreserved_microusd(account) - _future_core_microusd(account))
+                if not account.get("available") or new_quote > available:
+                    admitted = False
+                    return states
             # The completion buffer is not another discretionary expansion on
             # top of the event margin. Every marginal admission shares one cap.
             buffer = 0 if "event_ceiling_microusd" in state else int(state["cap_microusd"] * fraction)
             shortfall = new_quote - _run_remaining(state, for_admission=True) - buffer
             if shortfall > 0 and not _extend_event_allowance(state, shortfall):
                 admitted = False
-                return state
+                return states
         for identity, quote in new_work.items():
             obligations[identity] = {"remaining_microusd": quote, "quoted_microusd": quote,
-                "provider": config.provider, "model": config.model, "status": "protected"}
-        return state
+                "provider": config.provider, "model": config.model, "status": "protected",
+                "generation": uuid.uuid4().hex}
+            if account_key:
+                obligations[identity].update(provider_account=list(account_key), required=required,
+                    account_core_id=hashlib.sha256(json.dumps([*key, identity]).encode()).hexdigest(),
+                    deadline_at=deadline_at)
+                _sync_core_account(states, key, account_key, identity)
+        for identity in quoted.keys() - new_work.keys():
+            obligation = obligations[identity]
+            if obligation["status"] == "interrupted" and obligation.get("deadline_at", float("inf")) > time.time():
+                obligation["status"] = "protected"
+                if account_key:
+                    _sync_core_account(states, key, account_key, identity)
+        return states
     with database_workload("interactive"):
-        pipeline_store.mutate_execution_state(*key, protect)
+        pipeline_store.mutate_execution_states([key, *([account_key] if account_key else [])], protect)
     return admitted
 
 
@@ -358,13 +424,46 @@ def complete_core_research(work_id: str) -> None:
         return
     from . import pipeline_store
     from .database import database_workload
-    def complete(state):
+    with database_workload("interactive"):
+        state = pipeline_store.read_execution_state(*key, strict=True) or {}
+    account_key = tuple((state.get("core_obligations", {}).get(work_id) or {}).get("provider_account") or ())
+    def complete(states):
+        state = states[key]
         obligation = state.get("core_obligations", {}).get(work_id)
         if obligation:
             obligation.update(remaining_microusd=0, status="completed")
-        return state
+            if account_key:
+                _sync_core_account(states, key, account_key, work_id)
+        return states
     with database_workload("interactive"):
-        pipeline_store.mutate_execution_state(*key, complete)
+        pipeline_store.mutate_execution_states([key, *([account_key] if account_key else [])], complete)
+
+
+def interrupt_core_research(reason: str) -> None:
+    """Release unspent account priority when this execution ends.
+
+    Keep the original run funding and deadline for a native retry. Actual paid
+    requests and unknown charges remain owned and reserved independently.
+    """
+    key = _run_budget_key()
+    if key is None:
+        return
+    from . import pipeline_store
+    from .database import database_workload
+    with database_workload("interactive"):
+        state = pipeline_store.read_execution_state(*key, strict=True) or {}
+    accounts = {tuple(value["provider_account"]) for value in state.get("core_obligations", {}).values()
+                if value.get("provider_account")}
+    def interrupt(states):
+        for identity, obligation in states[key].get("core_obligations", {}).items():
+            if obligation["status"] == "protected":
+                obligation.update(status="interrupted", interrupted_at=time.time(), interruption_reason=reason)
+                account = tuple(obligation.get("provider_account") or ())
+                if account:
+                    _sync_core_account(states, key, account, identity)
+        return states
+    with database_workload("interactive"):
+        pipeline_store.mutate_execution_states([key, *accounts], interrupt)
 
 
 def funded_core_research() -> bool:
@@ -477,8 +576,22 @@ def research_spending_context() -> dict[str, Any]:
     from .database import database_workload
     with database_workload("interactive"):
         state = _run_budget_state(pipeline_store.read_execution_state(*key, strict=True) or {})
+        accounts = {}
+        for obligation in state.get("core_obligations", {}).values():
+            account_key = tuple(obligation.get("provider_account") or ())
+            if account_key and account_key not in accounts:
+                account = pipeline_store.read_execution_state(*account_key, strict=True) or {}
+                required = _future_core_microusd(account)
+                free = _provider_unreserved_microusd(account)
+                accounts[account_key] = {"provider": obligation["provider"],
+                    "observed_at": account.get("observed_at"), "balance_usd": account.get("balance_usd"),
+                    "credit_after_requests_usd": free / 1e6 if account.get("observed_at") is not None else None,
+                    "future_completion_required_usd": required / 1e6,
+                    "future_completion_shortfall_usd": max(0, required - free) / 1e6
+                        if account.get("observed_at") is not None else None}
     attempts = state["attempts"].values()
     return {"root_run_id": key[1], "cap_usd": state["cap_microusd"] / 1e6,
+            "provider_accounts": list(accounts.values()),
             "base_budget_usd": state.get("base_microusd", state["cap_microusd"]) / 1e6,
             "event_ceiling_usd": state.get("event_ceiling_microusd", state["cap_microusd"]) / 1e6,
             "event_margin_fraction": float(state.get("event_margin_fraction", 0)),
@@ -490,7 +603,10 @@ def research_spending_context() -> dict[str, Any]:
             "available_usd": max(0, _run_remaining(state, for_admission=True)) / 1e6,
             "settled_usd": sum(v["charged_microusd"] for v in attempts if v["status"] == "settled") / 1e6,
             "reserved_usd": sum(v["maximum_microusd"] for v in attempts if v["status"] != "settled") / 1e6,
-            "protected_core_usd": sum(v["remaining_microusd"] for v in state.get("core_obligations", {}).values()) / 1e6,
+            "protected_core_usd": sum(v["remaining_microusd"] for v in state.get("core_obligations", {}).values()
+                                      if v["status"] == "protected") / 1e6,
+            "interrupted_unspent_core_usd": sum(v["remaining_microusd"] for v in state.get("core_obligations", {}).values()
+                                                if v["status"] == "interrupted") / 1e6,
             "best_effort": bool(state.get("invalid_quote")) or _run_remaining(state) <= 0 or _run_remaining(state) < state.get("best_effort", {}).get("resume_headroom_microusd", 0),
             "overrun_usd": max(0, sum(v["charged_microusd"] for v in attempts if v["status"] == "settled") - state["cap_microusd"]) / 1e6,
             "committed_above_target_usd": max(0, -_run_remaining(state)) / 1e6,
@@ -522,6 +638,11 @@ def reserve_research_cost(*, attempt_id: str, maximum_usd: Any, category: str,
             obligation = state.get("core_obligations", {}).get(core_work_id) if core_completion else None
             if core_completion and not obligation:
                 raise ValueError("Core inference requires its declared completion funding.")
+            if obligation and obligation.get("deadline_at", float("inf")) <= time.time():
+                from .work_scope import WorkCancelled
+                raise WorkCancelled("The original core completion window has expired.")
+            if obligation and obligation["status"] != "protected":
+                raise ValueError("Interrupted completion must resume through its original funding boundary.")
             if state.get("invalid_quote") and not (economy_completion or core_completion):
                 raise ResearchBudgetExceeded("Run admission is paused because a request exceeded its quoted maximum.")
             if not (economy_completion or core_completion):
@@ -538,9 +659,12 @@ def reserve_research_cost(*, attempt_id: str, maximum_usd: Any, category: str,
                                              "best_effort": economy_completion,
                                              "event_work": _CALL.get().get("event_work"),
                                              "core_work_id": core_work_id if core_completion else None,
+                                             "core_generation": obligation.get("generation") if obligation else None,
                                              "completion_funding_microusd": funded}
             states[run_key] = state
         if account_key is not None:
+            if run_key is not None and core_completion:
+                _sync_core_account(states, run_key, account_key, core_work_id)
             states[account_key] = account_transform(states[account_key])
         return states
     with database_workload("interactive"):
@@ -578,7 +702,8 @@ def settle_research_cost(*, attempt_id: str, actual_usd: Any | None,
                 charged = max(_microusd(actual_usd), attempt.get("charged_microusd", 0))
                 attempt.update(status="settled", charged_microusd=charged)
                 obligation = state.get("core_obligations", {}).get(attempt.get("core_work_id"))
-                if obligation and obligation["status"] == "protected":
+                if (obligation and obligation["status"] in {"protected", "interrupted"}
+                        and obligation.get("generation") == attempt.get("core_generation")):
                     refund = max(0, attempt.get("completion_funding_microusd", 0) - charged)
                     obligation["remaining_microusd"] += refund - attempt.get("completion_refund_microusd", 0)
                     attempt["completion_refund_microusd"] = refund
@@ -589,6 +714,8 @@ def settle_research_cost(*, attempt_id: str, actual_usd: Any | None,
                     state["invalid_quote"] = True
             attempt["finished_at"] = time.time()
         if account_key is not None:
+            if run_key is not None and attempt.get("core_work_id"):
+                _sync_core_account(states, run_key, account_key, attempt["core_work_id"])
             states[account_key] = account_transform(states[account_key])
         return states
     with database_workload("interactive"):
@@ -642,6 +769,17 @@ def metered_tool_request(request, *args, cost_key: str, **kwargs):
             log.warning("Acquisition settlement unavailable; maximum remains reserved: %s", attempt_id)
 
 
+def normalize_provider_usage(usage: dict[str, Any] | None) -> dict[str, Any]:
+    """Preserve provider fields and expose the common chat/Responses units."""
+    result = dict(usage) if isinstance(usage, dict) else {}
+    for common, native in (("prompt_tokens", "input_tokens"), ("completion_tokens", "output_tokens"),
+                           ("prompt_tokens_details", "input_tokens_details"),
+                           ("completion_tokens_details", "output_tokens_details")):
+        if common not in result and native in result:
+            result[common] = result[native]
+    return result
+
+
 def request_context_budget(config: Any, payload: dict[str, Any]) -> dict[str, Any]:
     """Preflight the complete request, including schemas and output headroom.
 
@@ -653,7 +791,7 @@ def request_context_budget(config: Any, payload: dict[str, Any]) -> dict[str, An
         1048576 if config.provider == "deepseek" and
         urlparse(config.base_url).hostname == "api.deepseek.com" else 0
     ))
-    if not window or not payload.get("messages"):
+    if not window or not (payload.get("messages") or payload.get("input") or payload.get("instructions")):
         return {}
     import tiktoken
 
@@ -665,7 +803,8 @@ def request_context_budget(config: Any, payload: dict[str, Any]) -> dict[str, An
         effort = payload.get("reasoning_effort") or getattr(config, "reasoning_effort", "high")
         thinking = (payload.get("thinking") or {}).get("type") or getattr(config, "thinking_mode", "enabled")
         default_output = 131072 if effort == "max" else 8192 if effort == "none" or thinking == "disabled" else 65536
-    reserve = int(payload.get("max_tokens") or max(default_output, int(os.getenv("LLM_CONTEXT_OUTPUT_RESERVE_TOKENS") or 0)))
+    reserve = int(payload.get("max_tokens") or payload.get("max_output_tokens")
+                  or max(default_output, int(os.getenv("LLM_CONTEXT_OUTPUT_RESERVE_TOKENS") or 0)))
     estimate = (tokens * 5 + 3) // 4
     return {"window_tokens": window, "estimated_input_tokens": estimate,
             "reserved_output_tokens": reserve, "fits": estimate + reserve <= window,
@@ -708,10 +847,10 @@ def _price_snapshot() -> dict[str, Any]:
     return json.loads(path.read_text())
 
 
-def _pricing_model(config: Any, payload: dict[str, Any]) -> str:
+def _pricing_model(config: Any, payload: dict[str, Any], operation: str) -> str:
     # Azure's wire model can be an arbitrary deployment name. Billing follows
     # the configured underlying model, not that resource alias.
-    if "input" in payload and "messages" not in payload:
+    if operation == "embedding":
         return str(getattr(config, "embedding_model", "") or payload.get("model") or config.model)
     return str(payload.get("model") or payload.get("model_id") or config.model)
 
@@ -719,8 +858,9 @@ def _pricing_model(config: Any, payload: dict[str, Any]) -> str:
 def estimated_charge(*, provider: str, model: str, usage: dict[str, Any] | None,
                      started_at: datetime) -> dict[str, Any]:
     """Versioned estimate, not an invoice; unknown usage/model is never zero."""
-    if not usage:
+    if not isinstance(usage, dict) or not usage:
         return {"status": "usage_unavailable"}
+    usage = normalize_provider_usage(usage)
     try:
         snapshot = _price_snapshot()
         price = snapshot["models"].get(provider + ":" + model)
@@ -806,136 +946,144 @@ def ensure_provider_available(config: Any, *, timeout: float) -> None:
         raise LLMProviderUnavailable("DeepSeek account has insufficient funds; provider execution is paused until credit is restored.")
 
 
-def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id: str,
-                            timeout: float) -> bool:
-    """Reserve request headroom across workers sharing the official DeepSeek key.
-
-    Current provider balance controls liquidity; reservations protect concurrent
-    work not yet reflected in it. Lost usage stays uncertain in its original run
-    and account record, without becoming a permanent cross-run credit hold.
-    """
-    official_balance = config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com"
-    if not official_balance:
-        if _run_budget_key() is None:
-            return False
-        return reserve_research_cost(attempt_id=attempt_id,
-            maximum_usd=_request_maximum_charge(config, payload), category="inference", wait_seconds=timeout)
+def _provider_budget_state(config: Any, amount: Any, deadline: float) -> dict[str, Any]:
+    """Refresh authoritative credit without confusing future work with paid usage."""
     from . import pipeline_store
     from .llm import LLMProviderUnavailable
-    key = _account_key(config)
-    namespace = "provider_budget"
-    refresh_deadline = time.monotonic() + timeout
-    state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
-    amount = _request_maximum_charge(config, payload)
-
-    def held_credit(current):
-        return sum(value["amount_usd"] for value in current.get("reservations", {}).values()
-            if not (value.get("status") == "unknown" and value.get("finished_at") is not None
-                    and value.get("liquidity_observed_at", 0) > value["finished_at"]))
-
-    def needs_refresh(current):
-        if time.time() - float(current.get("observed_at", 0)) >= 30:
+    namespace, key = "provider_budget", _account_key(config)
+    amount = _microusd(amount)
+    def needs_refresh(state):
+        if time.time() - float(state.get("observed_at", 0)) >= 30:
             return True
-        if current.get("balance_usd", 0) - held_credit(current) >= amount:
+        free = _provider_unreserved_microusd(state)
+        if free >= amount:
             return False
-        # A newly ended/lost request may be the only reason local credit appears
-        # insufficient. Recheck the actual account before refusing current work.
         return any(
-            (value.get("status") == "unknown" and value.get("finished_at") is not None
-             and value.get("liquidity_observed_at", 0) <= value["finished_at"])
+            value.get("finished_at", 0) > state.get("observed_at", 0)
             or (value.get("status") == "pending"
                 and value.get("deadline_at", value.get("expires_at")) is not None
                 and value.get("deadline_at", value.get("expires_at")) < time.time())
-            for value in current.get("reservations", {}).values()
-        )
+            for value in state.get("reservations", {}).values())
+    state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
+    while needs_refresh(state):
+        check_execution_ownership()
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise LLMProviderUnavailable("Provider balance refresh exceeded the request deadline. Progress is retained.")
+        with execution_ownership(namespace + ":balance", key,
+                                 wait_seconds=min(remaining, 15), lease_seconds=60) as owned:
+            state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
+            if owned and needs_refresh(state):
+                probe_started = time.time()
+                response = requests.get(config.base_url.rstrip("/") + "/user/balance",
+                    headers={"Authorization": "Bearer " + config.api_key},
+                    timeout=min(max(deadline - time.monotonic(), 0.001), 15))
+                response.raise_for_status()
+                data = response.json()
+                balances = [value for value in data["balance_infos"] if value["currency"] == "USD"]
+                if len(balances) != 1:
+                    raise LLMProviderUnavailable("Provider USD balance could not be established.")
+                balance = float(balances[0]["total_balance"])
+                if not Decimal(str(balance)).is_finite():
+                    raise LLMProviderUnavailable("Provider USD balance is invalid.")
+                def refresh(current):
+                    reservations = {}
+                    for identity, original in current.get("reservations", {}).items():
+                        value = dict(original)
+                        if value.get("status") == "settled" and value.get("finished_at", 0) < probe_started:
+                            continue
+                        ended = value.get("deadline_at", value.get("expires_at"))
+                        if value.get("status") == "pending" and ended is not None and ended < probe_started:
+                            value.update(status="unknown", finished_at=ended,
+                                         uncertainty_reason="local_request_deadline_elapsed")
+                        if value.get("status") == "unknown" and value.get("finished_at") is not None and value["finished_at"] < probe_started:
+                            value["liquidity_observed_at"] = probe_started
+                        reservations[identity] = value
+                    current.update(observed_at=probe_started, balance_usd=balance,
+                        available=data.get("is_available") is True, reservations=reservations,
+                        liquidity_policy="current_provider_balance_and_active_requests",
+                        unreconciled_at_balance_check={
+                            "attempt_count": sum(v.get("status") == "unknown" for v in reservations.values()),
+                            "maximum_usd": sum(v["amount_usd"] for v in reservations.values() if v.get("status") == "unknown"),
+                            "cost_settlement": "Unknown usage is retained; this balance check does not establish individual charges."})
+                    future = _future_core_microusd(current)
+                    current["future_core_shortfall_microusd"] = max(0, future - _provider_unreserved_microusd(current))
+                    return current
+                state = pipeline_store.mutate_execution_state(namespace, key, refresh)
+    return state
 
-    free = 0.0
+
+def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id: str,
+                            timeout: float, operation: str = "chat") -> bool:
+    """Fund actual requests atomically, leaving future completion ahead of exploration.
+
+    Future completion is a priority floor, not a fictional paid request. If the
+    account cannot fund all declared future work, optional work stops; current
+    required completion may still use genuine credit for its actual request.
+    """
+    official = config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com"
+    if not official:
+        if _run_budget_key() is None:
+            return False
+        return reserve_research_cost(attempt_id=attempt_id,
+            maximum_usd=_request_maximum_charge(config, payload, operation), category="inference", wait_seconds=timeout)
+    from . import pipeline_store
+    from .llm import LLMProviderUnavailable
+    key = ("provider_budget", _account_key(config))
+    deadline = time.monotonic() + timeout
+    amount = _request_maximum_charge(config, payload, operation)
+    maximum = _microusd(amount)
+    completion = (_run_budget_key() is None or _CALL.get().get("completion_priority")
+                  or (_CALL.get().get("routing") or {}).get("role") == "core")
+    free = 0
     def reserve(current):
         nonlocal free
-        if time.monotonic() >= refresh_deadline:
+        if time.monotonic() >= deadline:
             raise LLMProviderUnavailable("Provider admission exceeded the request deadline. Progress is retained.")
-        free = current["balance_usd"] - held_credit(current)
-        if not current["available"] or free < amount:
+        free = _provider_unreserved_microusd(current)
+        future = _future_core_microusd(current)
+        current["future_core_shortfall_microusd"] = max(0, future - free)
+        if not current["available"] or free < maximum:
             raise LLMProviderUnavailable(
-                f"Provider credit cannot cover the next request and active work (${free:.2f} unreserved). Progress is retained.")
-        current["reservations"][attempt_id] = {"amount_usd": _microusd(amount) / 1e6, "status": "pending",
-                                               "deadline_at": time.time()+max(0, refresh_deadline-time.monotonic()),
-                                               "expires_at": time.time()+timeout+300}
+                f"Provider credit cannot cover the next request and active work (${free / 1e6:.2f} unreserved). Progress is retained.")
+        if not completion and free - future < maximum:
+            error = ResearchBudgetExceeded("Shared provider credit is protected for current core completion; stop optional spending.")
+            error.required_microusd = maximum
+            raise error
+        current["reservations"][attempt_id] = {"amount_usd": maximum / 1e6, "status": "pending",
+            "deadline_at": time.time() + max(0, deadline - time.monotonic()),
+            "expires_at": time.time() + timeout + 300}
+        current["future_core_shortfall_microusd"] = max(0, future - _provider_unreserved_microusd(current))
         return current
     while True:
         check_execution_ownership()
-        remaining = refresh_deadline - time.monotonic()
-        if remaining <= 0:
-            raise LLMProviderUnavailable("Provider balance refresh exceeded the request deadline. Progress is retained.")
-        if needs_refresh(state):
-            with execution_ownership(namespace + ":balance", key,
-                                     wait_seconds=min(remaining, 15), lease_seconds=60) as owned:
-                # A competing refresher may have published while this worker
-                # waited. Fresh shared state, not winning its lease, admits work.
-                state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
-                if owned and needs_refresh(state):
-                    probe_started = time.time()
-                    response = requests.get(config.base_url.rstrip("/") + "/user/balance",
-                        headers={"Authorization": "Bearer " + config.api_key},
-                        timeout=min(max(refresh_deadline-time.monotonic(), 0.001), 15))
-                    response.raise_for_status()
-                    data = response.json()
-                    balances = [value for value in data["balance_infos"] if value["currency"] == "USD"]
-                    if len(balances) != 1:
-                        raise LLMProviderUnavailable("Provider USD balance could not be established.")
-                    balance = float(balances[0]["total_balance"])
-                    if not Decimal(str(balance)).is_finite():
-                        raise LLMProviderUnavailable("Provider USD balance is invalid.")
-                    def refresh(current):
-                        reservations = {}
-                        for identity, original in current.get("reservations", {}).items():
-                            value = dict(original)
-                            if value.get("status") == "settled" and value.get("finished_at", 0) < probe_started:
-                                continue
-                            deadline_at = value.get("deadline_at", value.get("expires_at"))
-                            if value.get("status") == "pending" and deadline_at is not None and deadline_at < probe_started:
-                                # A crashed worker cannot leave an active hold forever.
-                                # Its unreceived usage remains unknown, never zero.
-                                value.update(status="unknown", finished_at=deadline_at,
-                                             uncertainty_reason="local_request_deadline_elapsed")
-                            if value.get("status") == "unknown" and value.get("finished_at") is not None and value["finished_at"] < probe_started:
-                                value["liquidity_observed_at"] = probe_started
-                            reservations[identity] = value
-                        return {**current, "observed_at": probe_started, "balance_usd": balance,
-                                "available": data.get("is_available") is True, "reservations": reservations,
-                                "liquidity_policy": "current_provider_balance_and_active_requests",
-                                "unreconciled_at_balance_check": {
-                                    "attempt_count": sum(v.get("status") == "unknown" for v in reservations.values()),
-                                    "maximum_usd": sum(v["amount_usd"] for v in reservations.values() if v.get("status") == "unknown"),
-                                    "cost_settlement": "Unknown usage is retained; this balance check does not establish individual charges.",
-                                }}
-                    state = pipeline_store.mutate_execution_state(namespace, key, refresh)
-            continue
+        if time.monotonic() >= deadline:
+            raise LLMProviderUnavailable("Provider admission exceeded the request deadline. Progress is retained.")
+        state = _provider_budget_state(config, amount, deadline)
         try:
             reserve_research_cost(attempt_id=attempt_id, maximum_usd=amount, category="inference",
-                account_key=(namespace, key), account_transform=reserve, wait_seconds=remaining)
+                account_key=key, account_transform=reserve, wait_seconds=max(0, deadline - time.monotonic()))
         except LLMProviderUnavailable:
-            # Another worker may have finished after the initial state read.
-            # Retry only when a new authoritative balance could resolve that
-            # race, and keep this request's original deadline.
-            state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
-            if not needs_refresh(state):
+            fresh = pipeline_store.read_execution_state(*key, strict=True) or {}
+            if fresh == state:
                 raise
             continue
         break
-    if free < float(os.getenv("LLM_PROVIDER_BALANCE_ALERT_USD", "10")):
-        log.warning("provider_balance_low available_usd=%.2f reserved_request_usd=%.2f", free, amount)
+    if free / 1e6 < float(os.getenv("LLM_PROVIDER_BALANCE_ALERT_USD", "10")):
+        log.warning("provider_balance_low available_usd=%.2f reserved_request_usd=%.2f", free / 1e6, amount)
     return True
 
 
-def _request_maximum_charge(config: Any, payload: dict[str, Any]) -> Decimal:
+def _request_maximum_charge(config: Any, payload: dict[str, Any], operation: str | None = None) -> Decimal:
     from .llm import LLMProviderUnavailable
-    price = _price_snapshot()["models"].get(config.provider + ":" + _pricing_model(config, payload))
+    if operation is None:
+        operation = "embedding" if config.provider == "azure_openai" and "input" in payload and "messages" not in payload else "chat"
+    price = _price_snapshot()["models"].get(config.provider + ":" + _pricing_model(config, payload, operation))
     if price is None:
         raise LLMProviderUnavailable("Budget admission requires a published price for the configured model.")
     if "usd_per_1000_characters" in price:
         return Decimal(len(str(payload.get("text") or ""))) * Decimal(str(price["usd_per_1000_characters"])) / 1000
-    if "input" in payload and "messages" not in payload:
+    if operation == "embedding":
         import tiktoken
         inputs = payload["input"]
         if isinstance(inputs, str):
@@ -1072,7 +1220,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
     ensure_provider_available(config, timeout=timeout)
     kwargs["timeout"] = _remaining_request_timeout(deadline)
     composition = request_composition(payload)
-    context_budget = request_context_budget(config, payload)
+    context_budget = request_context_budget(config, payload) if operation not in {"embedding", "audio"} else {}
     if context_budget:
         composition["context_budget"] = context_budget
     started = datetime.now(timezone.utc)
@@ -1107,7 +1255,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         if context_budget and not context_budget["fits"]:
             raise LLMContextWindowExceeded(json.dumps(context_budget))
         budget_reserved = reserve_provider_budget(config, payload, attempt_id=attempt_id,
-                                                  timeout=_remaining_request_timeout(deadline))
+                                                  timeout=_remaining_request_timeout(deadline), operation=operation)
         check_execution_ownership()
         kwargs["timeout"] = _remaining_request_timeout(deadline)
         transport_attempted = True
@@ -1169,9 +1317,9 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                 "literal_output": bool(context.get("literal_output")),
                 "max_output_tokens": payload.get("max_tokens"),
                 "input_characters": len(str(payload.get("text") or "")) if operation == "audio" else None,
-                "pricing_model": _pricing_model(config, payload),
+                "pricing_model": _pricing_model(config, payload, operation),
                 "estimated_charge": estimated_charge(provider=config.provider,
-                    model=_pricing_model(config, payload), usage=usage, started_at=started),
+                    model=_pricing_model(config, payload, operation), usage=usage, started_at=started),
             },
         }
         from .work_scope import work_expired

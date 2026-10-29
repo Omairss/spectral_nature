@@ -3620,9 +3620,10 @@ def main() -> None:
             work_conn.close()
         spending = None
         if ctx.name in {"news-ingest-and-features", "attention-home-build", "zopedia-learning"}:
-            from services.llm_execution import research_spending_context
+            from services.llm_execution import research_spending_context, interrupt_core_research
             try:
                 with WorkScope(time.monotonic() + 10).activate():
+                    interrupt_core_research("Execution ended: " + status)
                     spending = {key: value for key, value in research_spending_context().items()
                                 if key not in {"prices", "tool_maximum_usd_per_request", "allocation"}}
             except Exception as exc:

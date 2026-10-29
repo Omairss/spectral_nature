@@ -31,6 +31,8 @@ def store(monkeypatch):
     monkeypatch.setenv("AQL_ZOPEDIA_MODEL_TELEMETRY_ENABLED", "1")
     monkeypatch.setenv("POSTGRES_GLOBAL_ACTIVE_LIMIT", "3")
     monkeypatch.setenv("POSTGRES_GLOBAL_BACKGROUND_LIMIT", "1")
+    monkeypatch.setattr(requests.Session, "send", lambda *args, **kwargs:
+        pytest.fail("Financial contracts must not send external transport"))
     with database.database_workload("interactive"):
         conn = pipeline_store.open_database_connection()
         with conn:
@@ -577,7 +579,9 @@ def test_received_usage_survives_child_cancellation_without_authorizing_new_work
 
 def test_optional_full_research_must_fit_original_soft_target(store, monkeypatch):
     from services.llm import LLMConfig
-    config = LLMConfig(provider="deepseek", api_key="test", model="deepseek-v4-pro", base_url="https://api.deepseek.com")
+    config = LLMConfig(provider="deepseek", api_key="test-" + uuid.uuid4().hex, model="deepseek-v4-pro", base_url="https://api.deepseek.com")
+    pipeline_store.write_execution_state("provider_budget", execution._account_key(config), {
+        "available": True, "balance_usd": 1000, "observed_at": time.time(), "reservations": {}})
     monkeypatch.setenv("RESEARCH_RUN_SOFT_OVERRUN_FRACTION", "0.1")
     monkeypatch.setattr(execution, "_request_maximum_charge", lambda *a: 3)
     assert execution.protect_core_research(config=config, work={"current-news": "Current sources"}, stages=1)
@@ -597,7 +601,9 @@ def test_optional_full_research_must_fit_original_soft_target(store, monkeypatch
 
 def test_larger_target_can_fund_more_complete_investigations(store, monkeypatch):
     from services.llm import LLMConfig
-    config = LLMConfig(provider="deepseek", api_key="test", model="deepseek-v4-pro", base_url="https://api.deepseek.com")
+    config = LLMConfig(provider="deepseek", api_key="test-" + uuid.uuid4().hex, model="deepseek-v4-pro", base_url="https://api.deepseek.com")
+    pipeline_store.write_execution_state("provider_budget", execution._account_key(config), {
+        "available": True, "balance_usd": 1000, "observed_at": time.time(), "reservations": {}})
     monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "1000")
     monkeypatch.setattr(execution, "_request_maximum_charge", lambda *a: 10)
     for index in range(30):
@@ -742,3 +748,195 @@ def test_completed_investigations_survive_a_later_empty_nomination_and_scope_iso
     assert [r['artifact_id'] for r in rows] == ['completed']
     assert rows[0]['result']['payload'] == {'analysis': 'Retained full research'}
     assert len(pipeline_store.list_research_artifacts(namespace=namespace)) == 2
+
+
+@pytest.fixture
+def core_wallet(store, monkeypatch):
+    from services.llm import LLMConfig
+    config = LLMConfig(provider="deepseek", api_key="core-" + uuid.uuid4().hex,
+                      model="deepseek-v4-pro", base_url="https://api.deepseek.com")
+    account = ("provider_budget", execution._account_key(config))
+    quote = [Decimal(1)]
+    monkeypatch.setattr(execution, "_request_maximum_charge", lambda *args: quote[0])
+    pipeline_store.write_execution_state(*account, {
+        "available": True, "balance_usd": 10, "observed_at": time.time(), "reservations": {}})
+    return config, account, quote
+
+
+def test_future_core_is_shared_between_runs_and_transfers_without_double_holds(core_wallet, monkeypatch):
+    config, account, quote = core_wallet
+    first = execution._run_budget_key()
+    assert execution.protect_core_research(config=config, work={"first": "input"}, stages=2)
+    monkeypatch.setenv("PIPELINE_RUN_ID", first[1] + "-other")
+    assert execution.protect_core_research(config=config, work={"other": "input"}, stages=2)
+    monkeypatch.setenv("PIPELINE_RUN_ID", first[1] + "-optional")
+    quote[0] = Decimal(7)
+    with pytest.raises(execution.ResearchBudgetExceeded, match="protected for current core"):
+        execution.reserve_provider_budget(config, {}, attempt_id="rejected", timeout=10)
+    assert pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True) is None
+    wallet = pipeline_store.read_execution_state(*account, strict=True)
+    assert execution._future_core_microusd(wallet) == 4_000_000 and wallet["reservations"] == {}
+
+    monkeypatch.setenv("PIPELINE_RUN_ID", first[1])
+    quote[0] = Decimal(1)
+    with execution.model_call_context(core_work_id="first", routing={"role": "core"}):
+        execution.reserve_provider_budget(config, {}, attempt_id="core-call", timeout=10)
+    wallet = pipeline_store.read_execution_state(*account, strict=True)
+    assert execution._future_core_microusd(wallet) == 3_000_000
+    assert execution._provider_unreserved_microusd(wallet) == 9_000_000
+    receipt = {"run": first, "account": account}
+    for _ in range(2):
+        execution.settle_provider_budget(config, attempt_id="core-call", charge={"status": "estimated", "usd_max": .2},
+                                         definitely_unbilled=False, reservation=receipt)
+    wallet = pipeline_store.read_execution_state(*account, strict=True)
+    assert execution._future_core_microusd(wallet) == 3_800_000
+    assert execution._provider_unreserved_microusd(wallet) == 9_800_000
+    execution.complete_core_research("first")
+    assert execution._future_core_microusd(pipeline_store.read_execution_state(*account, strict=True)) == 2_000_000
+    monkeypatch.setenv("PIPELINE_RUN_ID", first[1] + "-optional")
+    quote[0] = Decimal(7)
+    execution.reserve_provider_budget(config, {}, attempt_id="now-affordable", timeout=10)
+
+
+def test_optional_completion_funding_is_atomic_across_concurrent_runs(core_wallet):
+    config, account, quote = core_wallet
+    pipeline_store.mutate_execution_state(*account, lambda state: {**state, "balance_usd": 6})
+    assert execution.protect_core_research(config=config, work={"primary": "input"}, stages=2)
+    root = execution._run_budget_key()[1]
+    def protect(index):
+        with execution.model_call_context(root_run_id=root + "-" + str(index)):
+            return execution.protect_core_research(config=config, work={"optional": "input"}, stages=1, required=False)
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        admitted = list(pool.map(protect, range(16)))
+    assert sum(admitted) == 4
+    wallet = pipeline_store.read_execution_state(*account, strict=True)
+    assert execution._future_core_microusd(wallet) == 6_000_000
+    assert wallet["reservations"] == {}
+
+
+def test_expired_future_work_releases_only_unspent_funding_and_late_usage_stays_owned(core_wallet, monkeypatch):
+    from services.work_scope import WorkCancelled
+    config, account, quote = core_wallet
+    root = execution._run_budget_key()
+    assert execution.protect_core_research(config=config, work={"primary": "input"}, stages=2)
+    with execution.model_call_context(core_work_id="primary", routing={"role": "core"}):
+        execution.reserve_provider_budget(config, {}, attempt_id="sent", timeout=30)
+    def expire(states):
+        obligation = states[root]["core_obligations"]["primary"]
+        obligation["deadline_at"] = time.time() - 1
+        execution._sync_core_account(states, root, account, "primary")
+        return states
+    pipeline_store.mutate_execution_states([root, account], expire)
+    wallet = pipeline_store.read_execution_state(*account, strict=True)
+    assert wallet["future_core"] == {} and wallet["reservations"]["sent"]["status"] == "pending"
+    with execution.model_call_context(core_work_id="primary", routing={"role": "core"}):
+        with pytest.raises(WorkCancelled):
+            execution.reserve_provider_budget(config, {}, attempt_id="expired-new-call", timeout=10)
+    monkeypatch.setenv("PIPELINE_RUN_ID", root[1] + "-recovery")
+    execution.settle_provider_budget(config, attempt_id="sent", charge={"status": "estimated", "usd_max": .2},
+        definitely_unbilled=False, reservation={"run": root, "account": account})
+    wallet = pipeline_store.read_execution_state(*account, strict=True)
+    assert wallet["future_core"] == {} and wallet["reservations"]["sent"]["status"] == "settled"
+    assert pipeline_store.read_execution_state(*root, strict=True)["attempts"]["sent"]["charged_microusd"] == 200_000
+
+
+def test_underfunded_future_quotes_stop_exploration_without_blocking_affordable_core(core_wallet, monkeypatch):
+    config, account, quote = core_wallet
+    pipeline_store.mutate_execution_state(*account, lambda state: {**state, "balance_usd": 1})
+    assert execution.protect_core_research(config=config, work={"primary": "input"}, stages=2)
+    assert pipeline_store.read_execution_state(*account, strict=True)["future_core_shortfall_microusd"] == 1_000_000
+    quote[0] = Decimal("0.5")
+    with pytest.raises(execution.ResearchBudgetExceeded):
+        execution.reserve_provider_budget(config, {}, attempt_id="optional", timeout=10)
+    with execution.model_call_context(core_work_id="primary", routing={"role": "core"}):
+        execution.reserve_provider_budget(config, {}, attempt_id="current-core", timeout=10)
+    wallet = pipeline_store.read_execution_state(*account, strict=True)
+    assert wallet["future_core_shortfall_microusd"] == 1_000_000
+    assert wallet["reservations"]["current-core"]["amount_usd"] == .5
+    monkeypatch.setenv("PIPELINE_RUN_ID", execution._run_budget_key()[1] + "-zero")
+    monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "0")
+    quote[0] = Decimal("0.1")
+    with execution.model_call_context(completion_priority=True, routing={"role": "best_effort"}):
+        execution.reserve_provider_budget(config, {}, attempt_id="current-economical", timeout=10)
+    assert pipeline_store.read_execution_state(*account, strict=True)["reservations"]["current-economical"]["amount_usd"] == .1
+
+
+def test_native_response_transport_keeps_its_generation_price_and_usage_units(store):
+    from services.llm import LLMConfig
+    config = LLMConfig(provider="deepseek", api_key="native-" + uuid.uuid4().hex,
+                      model="deepseek-v4-pro", base_url="https://api.deepseek.com")
+    payload = {"model": config.model, "instructions": "Serialize the retained result.",
+        "input": [{"role": "user", "content": [{"type": "input_text", "text": "Retained result " * 100}]}],
+        "max_output_tokens": 2000}
+    assert execution._pricing_model(config, payload, "responses") == config.model
+    assert execution.request_context_budget(config, payload)["reserved_output_tokens"] == 2000
+    assert execution._request_maximum_charge(config, payload, "responses") > 0
+    usage = {"input_tokens": 100, "output_tokens": 20, "input_tokens_details": {"cached_tokens": 50}}
+    normalized = execution.normalize_provider_usage(usage)
+    assert normalized["prompt_tokens"] == 100 and normalized["completion_tokens"] == 20
+    assert normalized["input_tokens_details"] == normalized["prompt_tokens_details"] == {"cached_tokens": 50}
+    started = datetime(2026, 10, 28, 12, tzinfo=timezone.utc)
+    assert execution.estimated_charge(provider=config.provider, model=config.model, usage=usage, started_at=started) == execution.estimated_charge(
+        provider=config.provider, model=config.model, usage={"prompt_tokens": 100, "completion_tokens": 20,
+            "prompt_cache_hit_tokens": 50}, started_at=started)
+
+
+def test_ended_execution_releases_only_future_priority_and_retry_keeps_original_funding(core_wallet):
+    config, account, quote = core_wallet
+    run = execution._run_budget_key()
+    execution.protect_core_research(config=config, work={"primary": "input"}, stages=2)
+    original = pipeline_store.read_execution_state(*run, strict=True)["core_obligations"]["primary"]
+    with execution.model_call_context(core_work_id="primary", routing={"role": "core"}):
+        execution.reserve_provider_budget(config, {}, attempt_id="sent", timeout=30)
+    execution.interrupt_core_research("Failed")
+    wallet = pipeline_store.read_execution_state(*account, strict=True)
+    assert wallet["future_core"] == {} and wallet["reservations"]["sent"]["status"] == "pending"
+    execution.settle_provider_budget(config, attempt_id="sent", charge={"status": "estimated", "usd_max": .2},
+        definitely_unbilled=False, reservation={"run": run, "account": account})
+    assert pipeline_store.read_execution_state(*account, strict=True)["future_core"] == {}
+    execution.protect_core_research(config=config, work={"primary": "input"}, stages=2)
+    resumed = pipeline_store.read_execution_state(*run, strict=True)["core_obligations"]["primary"]
+    assert resumed["remaining_microusd"] == 1_800_000
+    assert resumed["deadline_at"] == original["deadline_at"] and resumed["generation"] == original["generation"]
+    assert execution._future_core_microusd(pipeline_store.read_execution_state(*account, strict=True)) == 1_800_000
+    execution.complete_core_research("primary")
+    execution.protect_core_research(config=config, work={"primary": "new input"}, stages=2)
+    regenerated = pipeline_store.read_execution_state(*run, strict=True)["core_obligations"]["primary"]
+    assert regenerated["generation"] != original["generation"]
+    execution.settle_provider_budget(config, attempt_id="sent", charge={"status": "estimated", "usd_max": .5},
+        definitely_unbilled=False, reservation={"run": run, "account": account})
+    assert pipeline_store.read_execution_state(*run, strict=True)["core_obligations"]["primary"]["remaining_microusd"] == 2_000_000
+
+
+def test_evidence_navigation_cannot_consume_the_answer_reserve(core_wallet, monkeypatch):
+    from services import aql_zopedia_gateway as gateway
+    from services.zopedia_agent import _run_evidence_model_step
+    from data_access.query_service import QueryService
+    from data_access.layer import DataAccessLayer
+    config, account, quote = core_wallet
+    monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "2.1")
+    execution.protect_core_research(config=config, work={"primary": "input"}, stages=2)
+    quote[0] = Decimal(".2")
+    calls = []
+    class Client:
+        def generate_json(self, **kwargs):
+            calls.append((dict(execution._CALL.get()), kwargs["schema"]))
+            attempt = "protocol-" + str(len(calls))
+            execution.reserve_provider_budget(config, {}, attempt_id=attempt, timeout=10)
+            execution.settle_provider_budget(config, attempt_id=attempt, charge={"status":"estimated", "usd_max": .1},
+                definitely_unbilled=False)
+            return {"decision": {"action": "answer", "answer": {"value": "result"}}}
+    client = Client(); client.config = config
+    monkeypatch.setattr(gateway, "_record_gateway_call", lambda **kwargs: None)
+    with execution.model_call_context(core_work_id="primary"):
+        result = _run_evidence_model_step(llm_client=client, service=QueryService(DataAccessLayer(materialized_only=True)), tool_calls=[], context_state={},
+            prompt=lambda _: "Retained current input", system_prompt="Complete the result", schema_name="protocol",
+            schema={"type":"object", "properties":{"value":{"type":"string"}}, "required":["value"]},
+            surface="zopedia_agent", purpose="agent.final_synthesis", deadline_monotonic=time.monotonic()+10,
+            metadata={}, progress_callback=None)
+    assert result == {"value":"result"}
+    assert len(calls) == 2 and calls[0][0]["routing"]["role"] == "research"
+    assert calls[1][0]["routing"]["role"] == "core"
+    assert calls[1][1]["properties"]["decision"]["properties"]["action"]["enum"] == ["answer"]
+    state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
+    assert len(state["attempts"]) == 1 and state["core_obligations"]["primary"]["remaining_microusd"] == 1_900_000
