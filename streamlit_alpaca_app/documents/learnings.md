@@ -1467,3 +1467,7 @@ A research source should have the same identity when read, selected and publishe
 ### Verify comparisons in the owner’s actual viewing context — October29
 
 A chat fragment is not a standalone HTML document. If the owner opens the file from the IDE, include its styles and interaction handlers and inspect that exact document in a browser. Show matched before/after stories together; separate genuinely added or omitted coverage from rewritten wording. Preserve the generated prose verbatim rather than making the preview look better than its source.
+
+### Exact cloud qualification and promotion — October29
+
+Qualify each role on its exact immutable image, including API identity/secret dependencies and broker imports without executing trades. Keep the deliberately failed retry and its successful native recovery as evidence. Read back the whole consumer inventory and non-image configuration after promotion. A scheduled job already in flight retains its starting image; template promotion applies to subsequent executions, and a healthy API is distinct from a newly published feed.

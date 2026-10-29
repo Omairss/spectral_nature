@@ -1392,3 +1392,7 @@ A progress update inferred that zero acquisition-tool budget disables source rea
 ### Comparison controls must work in the delivered file — October29
 
 The feed comparison was delivered as a chat fragment but opened as a local HTML file. Its tabs depended on the chat host, leaving Production hidden and both buttons showing the candidate. Static parsing did not catch that interaction failure. Replaced the delivered file with a self-contained side-by-side comparison, matched stories by retained source identity, and verified actual Chrome clicks, full text preservation and mobile layout. Feed text and production were unchanged; no inference was used.
+
+### Qualification transport and ephemeral logs — October29
+
+The first isolated API probe blocked Azure identity/Key Vault traffic needed for normal auth setup. Corrected only the probe allowlist, kept paid and broker calls blocked, and qualified the same immutable image successfully. Azure job console output can wrap quoted JSON incorrectly and completed replicas may disappear; preserve logs promptly and use retained Log Analytics records, filtering by the parsed role rather than a shared word. No runtime changes or duplicate paid work were needed.

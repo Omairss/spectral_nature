@@ -1,5 +1,5 @@
 {
-  "status": "mechanical_contracts_passed_full_integration_pending",
+  "status": "deployed_verified_exact_image",
   "source_base": "7497df72",
   "observed_failure": {
     "case": "current-coherent-full-stage-4-output.json",
@@ -25,5 +25,7 @@
     "execution_contracts_passed": 45,
     "prose_grading": false
   },
-  "qualitative_evidence": "The running complete-output comparison uses the unchanged base revision7497df72. Timing/configuration changes are isolated in a separate worktree so one comparison cannot mix source revisions."
+  "qualitative_evidence": "The running complete-output comparison uses the unchanged base revision7497df72. Timing/configuration changes are isolated in a separate worktree so one comparison cannot mix source revisions.",
+  "release": "Owner-authorized coherent release deployed to all33 Python consumers;36-resource readback preserves all configuration.",
+  "release_evidence": "coherent-production.json"
 }

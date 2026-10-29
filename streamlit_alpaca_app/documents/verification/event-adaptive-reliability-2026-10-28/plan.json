@@ -1,5 +1,5 @@
 {
-  "status": "owner_authorized_coherent_production_release_in_qualification",
+  "status": "owner_accepted_coherent_release_deployed_verified",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -48,15 +48,15 @@
     {
       "id": "event_allocation",
       "task": "Implement evidence-led event-dependent allocation with configurable 50% marginal allowance, shared atomic reservations and no retry reset or runaway spending.",
-      "status": "deployed_incremental_new_account_priority_ready_for_dev_qualification",
-      "evidence_or_remaining": "Configurable event-mode50%capacity is live on approved news/Home jobs. Separate new shared-account future-core priority and observed-evidence funding adapter are implemented with208shared operational checks. DEV qualification remains.",
+      "status": "deployed_verified_exact_image",
+      "evidence_or_remaining": "Configurable event margin and observation-backed authorization are deployed; exact-image concurrent account/run admission, native retry and original ceilings passed. See coherent-role-proofs.json.",
       "proposed_design_reference": "quality_fix_design"
     },
     {
       "id": "feed_quality",
       "task": "Personally compare complete current feed and retained paired model outputs, correct source or routing causes, and preserve substantive full-model core work.",
-      "status": "owner_prefers_new_compared_output_release_qualification_remaining",
-      "evidence_or_remaining": "Owner assessed the complete candidate as much better. Writing/review observed0.220677USD versus production0.909828USD; full candidate upstream cost and scheduled reliability remain unmeasured. Existing approved production stays unchanged.",
+      "status": "owner_accepted_deployed_verified_exact_image",
+      "evidence_or_remaining": "Owner preferred the complete11-story candidate. Same full Pro writing/review source is deployed; observed publication-stage savings remain distinct from unmeasured whole-pipeline cost. See development-quality.json and coherent-production.json.",
       "proposed_design_reference": "quality_fix_design"
     },
     {
@@ -68,15 +68,15 @@
     {
       "id": "provider_credit_reconciliation",
       "task": "Resolve account-level admission starvation without erasing unknown costs, and protect future core completion at the shared account boundary.",
-      "status": "liquidity_repair_live_future_core_implemented_pending_dev_release",
-      "evidence_or_remaining": "Current balance versus historical uncertainty repair is live. Today stale feed was genuine credit depletion. Owner refilled; scheduled recovery completed in58m22s with current public Home and all5supplementary summaries verified. New future-core account priority is implemented and operationally verified; exact DEV qualification/release remains.",
+      "status": "deployed_verified_exact_image",
+      "evidence_or_remaining": "Authoritative current balance admission, retained unknown costs and atomic future-core account protection are deployed. Exact-image concurrent SQL accounting, late response adoption and original-clock restoration passed.",
       "proposed_design_reference": "quality_fix_design"
     },
     {
       "id": "verification_and_release",
       "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
-      "status": "incremental_release_complete_new_design_exact_image_qualification_remaining",
-      "evidence_or_remaining": "Local contracts and full compared output are available; owner prefers the candidate. Three exact DEV role builds, operational cloud qualification and DEV rollout remain. No new production authorization."
+      "status": "complete",
+      "evidence_or_remaining": "All three immutable roles qualified in Azure,14 DEV consumers verified and19 production consumers promoted. Final36-resource readback passed with all configurations and3frontend images preserved. See coherent-production.json."
     },
     {
       "id": "scheduled_observation",
@@ -103,14 +103,15 @@
     "development_deployed": true,
     "production_deployed": true,
     "production_remains_previous_accepted_image": false,
-    "required_next_step": "Implement coherent shared research/publication handoff in DEV, complete account-level future-core funding and cross-client preservation, then present complete outputs for owner evaluation.",
-    "build_run": "cj1cc",
-    "candidate_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
-    "development_probe_execution": "macro-fred-daily-dev-6rk3yu1",
     "development_accepted": true,
-    "production_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
-    "production_evidence": "promotion-production.json",
-    "applies_to": "Owner-accepted incremental worker release; the separate coherent design has no build or deployment."
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34"
+    },
+    "build_source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
+    "production_evidence": "coherent-production.json",
+    "required_next_step": "Observe the normal next scheduled execution; no duplicate paid run or further source work required for this promotion."
   },
   "instruction_audit": {
     "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",
@@ -119,13 +120,13 @@
         "instruction": "Activate today after the owner explicitly corrected tomorrow.",
         "failure": "The earlier rollout retained the October28 activation gate after the October27 request.",
         "correction": "Activation corrected in the earlier deployed combined release.",
-        "evidence": "documents/mistakes.md: Production completion and timing corrections \u2014 October27"
+        "evidence": "documents/mistakes.md: Production completion and timing corrections — October27"
       },
       {
         "instruction": "Retry a failed attempt using the earlier configuration; later remove fallback.",
         "failure": "Initial whole-run fallback persisted baseline settings into later scheduled runs, disabling cheaper routing and reuse.",
         "correction": "Whole-run fallback and sticky state subsequently removed in the deployed follow-up.",
-        "evidence": "documents/mistakes.md: Whole-run baseline fallback removed at the owner instruction \u2014 October27"
+        "evidence": "documents/mistakes.md: Whole-run baseline fallback removed at the owner instruction — October27"
       },
       {
         "instruction": "Current best-effort reporting instead of next-run deferral.",
@@ -137,25 +138,25 @@
         "instruction": "Qualify changes without unintended shared product writes.",
         "failure": "A qualification replay inherited safe_auto memory writes and created7 shared knowledge pages plus1 proposal despite persist_findings=False.",
         "correction": "All7 page writes were audited and rolled back; proposal rejected. Explicit write_policy=none applied. Private native rollback receipt checked in this audit.",
-        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes \u2014 October27"
+        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes — October27"
       },
       {
         "instruction": "Verify actual full-model writing and review before claiming preserved quality behavior.",
         "failure": "An earlier acceptance said Home retained Pro writing/review, but actual12-item replay showed review not_run because plain-text composition lacked a response schema.",
         "correction": "Shared review condition corrected; later complete-output acceptance is recorded separately. New coverage changes still need fresh output acceptance.",
-        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes \u2014 October27"
+        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes — October27"
       },
       {
         "instruction": "Keep completed and unfinished work accurately tracked.",
         "failure": "Already-delivered task-based model routing was described again as unfinished allocation work.",
         "correction": "Routing completion is preserved separately from genuinely unfinished allocation/qualification work.",
-        "evidence": "documents/mistakes.md: Completed routing was folded into an unfinished allocation description \u2014 October27"
+        "evidence": "documents/mistakes.md: Completed routing was folded into an unfinished allocation description — October27"
       },
       {
         "instruction": "Prioritize recurring monthly cost options, including schedule frequency and cheaper models.",
         "failure": "Moved into a24-hour company reuse implementation before presenting the requested recurring-cost alternatives.",
         "correction": "Scheduling/model options and implementation were addressed later; original priority was not followed.",
-        "evidence": "documents/mistakes.md: Cost optimization scope \u2014 October27"
+        "evidence": "documents/mistakes.md: Cost optimization scope — October27"
       }
     ],
     "additional_known_violation": "Rejected Home-local news acquisition, removed in e541ecc0; no candidate image built or deployed.",
@@ -385,40 +386,40 @@
   "development_work_order": [
     {
       "id": "shared_research_publication",
-      "status": "implemented_mechanically_verified_publication_quality_rejected",
+      "status": "owner_accepted_deployed_verified_exact_image",
       "work": "Question agenda and substantive shared findings; navigable retained originals; model selects exactly the visible feed before writing/review; preserve clients and current producer ownership.",
-      "evidence": "Exact existing reader source IDs drive selection,including research absent from the old feed. Original bodies remain available rather than automatically injected. All11stories materialize; underlying quality still fails personal review."
+      "evidence": "coherent-production.json; coherent-role-proofs.json; development-quality.json. Earlier rejected comparisons remain historical evidence. Scheduled whole-run cost and first new-image publication observation are separate from completed implementation."
     },
     {
       "id": "future_core_account_funding",
-      "status": "implemented_integrated_verified_operationally_qualitative_review_pending",
+      "status": "owner_accepted_deployed_verified_exact_image",
       "work": "Protect future full-model completion at shared account level before optional concurrent work, with atomic transfer, expiry and actual-client source preservation.",
       "branch": "fix/shared-research-publication-dev-20261029",
-      "evidence": "Atomic future-core account projection, actual-request transfer, unknown-cost retention, original-clock expiry, terminal release/retry restoration, and bounded evidence-navigation-to-answer transition. Native Responses usage/pricing preserved. Mechanical checks do not establish narrative quality."
+      "evidence": "coherent-production.json; coherent-role-proofs.json; development-quality.json. Earlier rejected comparisons remain historical evidence. Scheduled whole-run cost and first new-image publication observation are separate from completed implementation."
     },
     {
       "id": "variable_research_effort",
-      "status": "implemented_pending_fresh_qualification",
+      "status": "owner_accepted_deployed_verified_exact_image",
       "work": "Use remaining usefulness and configured allowance for research depth; quiet days may stop early and justified heavy days may use the configurable50% margin.",
-      "evidence": "Source-event breadth defaults to model selection against usefulness, remaining allowance and original clock; explicit zero disables and positive ceilings retain compatibility. Operational worker and request limits remain configurable. Event margin remains optional capacity, not a spending quota."
+      "evidence": "coherent-production.json; coherent-role-proofs.json; development-quality.json. Earlier rejected comparisons remain historical evidence. Scheduled whole-run cost and first new-image publication observation are separate from completed implementation."
     },
     {
       "id": "complete_output_owner_evaluation",
-      "status": "owner_prefers_compared_output",
+      "status": "owner_accepted_deployed_verified_exact_image",
       "work": "Compare full final public outputs, keep study allowance/unknowns intact and let the owner evaluate the new DEV design before promotion.",
-      "evidence": "development-quality.json:owner_assessment and cost_and_reliability_comparison. Earlier personal rejection is historical, not an outstanding owner-quality gate."
+      "evidence": "coherent-production.json; coherent-role-proofs.json; development-quality.json. Earlier rejected comparisons remain historical evidence. Scheduled whole-run cost and first new-image publication observation are separate from completed implementation."
     },
     {
       "id": "completion_clock",
-      "status": "implemented_merged_operationally_verified",
+      "status": "owner_accepted_deployed_verified_exact_image",
       "work": "Remove artificial synthesis cutoff while preserving original run deadline, parent cancellation and early completion reserve.",
-      "evidence": "completion-clock.json;45clock/job-boundary contracts and208shared operational checks."
+      "evidence": "coherent-production.json; coherent-role-proofs.json; development-quality.json. Earlier rejected comparisons remain historical evidence. Scheduled whole-run cost and first new-image publication observation are separate from completed implementation."
     },
     {
       "id": "observation_funding_evidence",
-      "status": "implemented_merged_financial_contract_verified",
+      "status": "owner_accepted_deployed_verified_exact_image",
       "work": "Preserve actual nominated market observations at the event funding boundary, even when no article explains the move.",
-      "evidence": "observation-funding.json;27operational contracts, with no paid inference or prose grading."
+      "evidence": "coherent-production.json; coherent-role-proofs.json; development-quality.json. Earlier rejected comparisons remain historical evidence. Scheduled whole-run cost and first new-image publication observation are separate from completed implementation."
     }
   ],
   "development_source": {
@@ -426,22 +427,35 @@
     "production_authorized": true,
     "local_complete_output_review": "Owner prefers candidate; previous personal quality rejection is retained as history.",
     "integrated_accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-    "source_acceptance": "in_progress_not_buildable",
-    "remaining": [
-      "Owner decision on3USD API verification extension for the prepared recovered-run comparison",
-      "Personally review the complete same-evidence comparison; no build while output quality remains unaccepted",
-      "Exact DEV role builds/qualification and DEV rollout after local acceptance",
-      "Owner evaluates the new DEV design before any new production promotion"
-    ],
+    "source_acceptance": "accepted_locally_and_exact_images_cloud_qualified",
+    "remaining": [],
     "quality_evidence": "development-quality.json",
     "source_review": "development-source-review.json",
-    "runtime_revision": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44",
-    "build_started": false,
-    "development_deployed": false
+    "runtime_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
+    "build_started": true,
+    "development_deployed": true,
+    "production_deployed": true,
+    "production_evidence": "coherent-production.json"
   },
   "production_freshness_incident": "production-home-failure-20261029.json",
   "latest_production_authorization": {
     "owner_instruction": "Good. Push to prod",
-    "scope": "Owner-preferred candidate after exact-image DEV verification"
+    "scope": "Owner-preferred candidate after exact-image DEV verification",
+    "fulfilled": true,
+    "evidence": "coherent-production.json"
+  },
+  "previous_incremental_release_state": {
+    "candidate_build_started": true,
+    "development_deployed": true,
+    "production_deployed": true,
+    "production_remains_previous_accepted_image": false,
+    "required_next_step": "Implement coherent shared research/publication handoff in DEV, complete account-level future-core funding and cross-client preservation, then present complete outputs for owner evaluation.",
+    "build_run": "cj1cc",
+    "candidate_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+    "development_probe_execution": "macro-fred-daily-dev-6rk3yu1",
+    "development_accepted": true,
+    "production_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+    "production_evidence": "promotion-production.json",
+    "applies_to": "Owner-accepted incremental worker release; the separate coherent design has no build or deployment."
   }
 }

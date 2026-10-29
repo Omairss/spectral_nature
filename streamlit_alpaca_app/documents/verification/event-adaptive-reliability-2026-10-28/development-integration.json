@@ -1,5 +1,5 @@
 {
-  "status": "exact_images_deployed_development_verified_accepted",
+  "status": "owner_accepted_exact_images_deployed_development_and_production_verified",
   "production_authorized": true,
   "accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
   "new_shared_source": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44",
@@ -17,7 +17,7 @@
     "services/aql/news_business_resolution.py": "Combine same-company draft sequencing with bounded independent company workers. Retain each completed article result before batch deadline, including completed work in an unfinished company batch.",
     "services/zopedia_analysis.py": "Keep complete typed DataFrames, explicit allocation rejection, 900-second configurable ceiling, accepted chart artifacts and full numerical outputs. Use accepted DEV pipe/cancellation mechanism with original deadline and synchronized process startup.",
     "services/page_browsing.py": "Retain newer accepted process-group cancellation and post-return cleanup; retain non-conflicting DEV changes.",
-    "infra/release_acceptance.json": "Retain in-progress status; prior acceptance hashes will be rebuilt only after local behavioral acceptance. Existing production contracts remain intact."
+    "infra/release_acceptance.json": "Committed accepted315-file application inventory,193-file packaged runtime, preserved consumer contracts and configurations, three exact cloud-qualified role images and owner production authorization."
   },
   "changed_paths": [
     "streamlit_alpaca_app/api/main.py",
@@ -70,7 +70,7 @@
     "streamlit_alpaca_app/web/components/trading-paper-portfolio.module.css",
     "streamlit_alpaca_app/web/components/trading-paper-portfolio.tsx"
   ],
-  "qualification": "208 shared operational contracts and68 harness/usage checks passed. Latest historical full-publication output remains personally rejected; current recovered-run inputs are frozen and an API extension decision is pending.",
+  "qualification": "Owner accepted the complete candidate.208 shared operational contracts,68 harness/usage checks,52 preserved-feature checks and2 publication checks passed. All193 runtime files and real Azure SQL/Blob, financial priority, retry, ownership and deadline behavior qualified on exact images; API and broker roles qualified separately. See coherent-role-proofs.json.",
   "checks": {
     "shared_operational": {
       "passed": 208,
@@ -80,7 +80,7 @@
       "passed": 52,
       "skipped": 1
     },
-    "prose_acceptance": false,
+    "prose_acceptance": true,
     "additional_harness_and_usage": {
       "passed": 68
     }
@@ -109,10 +109,11 @@
   "observation_funding": "observation-funding.json",
   "consumer_readback": {
     "all_36_definitions_unchanged": true,
-    "mutations": 0,
-    "new_production_authorization": false
+    "mutations": 33,
+    "new_production_authorization": true,
+    "evidence": "coherent-production.json"
   },
-  "remaining": "Fresh same-evidence quality review after scoped API approval; then exact DEV packaging/qualification and DEV release. No coherent-design build/deployment yet.",
+  "remaining": "No release implementation or promotion work remains. Observe the first normal new-image scheduled publication and its actual costs without duplicating paid production work.",
   "latest_publication_check": {
     "contract_checks_passed": 2,
     "paid_answer_reused_without_inference": true,
@@ -134,5 +135,7 @@
     "initial_execution": "macro-fred-daily-dev-z7ej35o",
     "application_source_changed": false
   },
-  "development_deployment_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-development.json"
+  "development_deployment_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-development.json",
+  "production_deployed": true,
+  "production_evidence": "coherent-production.json"
 }

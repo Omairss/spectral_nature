@@ -1837,5 +1837,19 @@
     },
     "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-configuration.json",
     "base_budgets_and_schedules_preserved": true
+  },
+  "production_acceptance": {
+    "status": "deployed_verified",
+    "owner_instruction": "Good. Push to prod",
+    "recorded_at_utc": "2026-10-29T19:40:32.858426+00:00",
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-production.json",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34"
+    },
+    "consumer_count": 36,
+    "production_targets": 19,
+    "all_configurations_preserved": true
   }
 }
