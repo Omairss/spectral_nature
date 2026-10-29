@@ -1421,3 +1421,11 @@ Read the actual final display projection as well as the editor pool. A model-pro
 ### Research ownership includes the acquisition arguments — October28
 
 The shared researcher should choose the questions, queries and date window; a search adapter executes them and returns broad, traceable evidence. Do not insert the entire original task as an omitted query or pay another model to reinterpret an already explicit plan. Preserve dated economic observations into focused work, not just nomination and final writing. Source sufficiency means the requested explanatory depth, including evidence that could change the prevailing interpretation. An action protocol should require its active fields and preserve useful partial drafts without dummy values. Check transport schema constraints before claiming provider portability.
+
+### A preview limit is not a research coverage decision — October 28
+
+Execute the shared researcher's bounded focus requests within the original acquisition deadline. Keep acquired sources behind the compact preview so synthesis can inspect them. Result counts do not establish that selected subjects were understood. Diagnose coverage, interpretation, allocation and public rendering separately; the same full model can lose useful information at any of these handoffs.
+
+### Separate acquired information, editorial preservation and displayed priority — October 28
+
+A source can be acquired yet lose its decisive explanation during synthesis, and a generated story can exist yet disappear below the public display limit. Inspect all three handoffs. Measure actual writing/review token composition before adding more instructions. Source-preservation checks and lossless-format checks establish their own contracts; personal review of the actual displayed feed establishes quality. Keep rejected or unqualified experiments out of selected release source.

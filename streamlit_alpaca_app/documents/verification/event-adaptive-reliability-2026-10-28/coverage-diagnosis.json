@@ -179,5 +179,10 @@
     "finding": "Actual producer-time queries retain the broad source response. The morning latest50 spans only minutes of a high-volume feed; the afternoon page contains Fed reporting and current Microsoft/Alphabet earnings headlines. A bounded broad page alone is not exhaustive and must not replace selected-company intake. The producer retains both scopes; current follow-up remains in the existing shared engine.",
     "quality_acceptance": "Source acquisition evidence only; no new generated output has been accepted."
   },
-  "quality_review": "quality-review.json"
+  "quality_review": "quality-review.json",
+  "continuation": {
+    "status": "source_execution_corrected_qualitative_rejected",
+    "evidence": "quality-review.json continuation",
+    "finding": "Broad result counts cancelled explicitly selected subject searches; preview truncation discarded later captures. Existing shared acquisition now executes bounded explicit focus and retains all captures. Live original-request replay retained17 sources including Microsoft. Allocation/ranking and final explanation still fail complete-output review."
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "status": "quality_correction_live_acquisition_verification",
+  "status": "quality_verification_completed_candidate_rejected",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -49,13 +49,13 @@
       "id": "event_allocation",
       "task": "Implement evidence-led event-dependent allocation with configurable 50% marginal allowance, shared atomic reservations and no retry reset or runaway spending.",
       "status": "implemented_qualification_pending",
-      "evidence_or_remaining": "Atomic shared event funding and original budget/deadline are implemented and mechanically verified. Corrected nomination and three focused investigations completed in an isolated retained-source replay. One investigation was refused by the cumulative study cap. This does not qualify production event selection, quiet/heavy-day allocation quality or full scheduled spending. These qualitative checks remain open; do not reopen completed task-based routing."
+      "evidence_or_remaining": "Atomic shared event funding and original budget/deadline are implemented and mechanically verified. Corrected nomination and three focused investigations completed in an isolated retained-source replay. One investigation was refused by the cumulative study cap. This does not qualify production event selection, quiet/heavy-day allocation quality or full scheduled spending. These qualitative checks remain open; do not reopen completed task-based routing. The fresh continuation nomination remains too concentrated on the prevailing theme; no qualitative allocation acceptance is claimed."
     },
     {
       "id": "feed_quality",
       "task": "Personally compare complete current feed and retained paired model outputs, correct source or routing causes, and preserve substantive full-model core work.",
       "status": "verification_completed_candidate_rejected",
-      "evidence_or_remaining": "Read the complete current production summary/cards and corrected after-close candidate through the real final display projection. Current production and the new candidate are rejected. Agenda and numerical selectivity improved, but earnings depth, inflation context, evidential framing and public acquisition commentary still fail the requested quality. Full Pro/high was used. The first nonrepresentative replay was withdrawn; no corrected fresh pre-close output or live acquisition was accepted. See quality-review.json. Shared producer ownership repairs remain implemented, not deployed."
+      "evidence_or_remaining": "Complete live-acquisition and independent-review continuation remains rejected after personal review of all displayed stories. Writer/reviewer are Pro/high. Acquired operating explanations are lost, Microsoft ranks outside the displayed feed, inflation remains thin and public process commentary survives. Source execution defects are corrected; broader allocation and synthesis quality remain open. See quality-review.json continuation."
     },
     {
       "id": "shared_news_ownership",
@@ -196,16 +196,21 @@
     ],
     "completed": [
       "Previous complete-output rejection and retained evidence.",
-      "Current production acquisition price limits confirmed present; no missing-price defect asserted."
+      "Current production acquisition price limits confirmed present; no missing-price defect asserted.",
+      "Fresh next/decision-tagged model transport completed. Final editor and reviewer used one paid call each without unused-field regeneration.",
+      "Original query/focus live acquisition preserved all17 captures including a Microsoft earnings-call source, with1000-row production universe fixture.",
+      "Three complete public outputs and independent nomination personally reviewed; quality still rejected.",
+      "Spending closed with no pending attempts and the unresolved charge retained in full."
     ],
-    "current": "Fresh live case is retaining acquired sources after partial investigations. Final tagged-action protocol has offline actual-response and official schema-compatibility review; fresh tagged execution and complete public-output review remain required.",
+    "current": "Complete final public output personally reviewed and rejected. Original-request acquisition contract verified. Shared table-format experiment is outside the selected source and remains unqualified after pre-inference account-headroom refusal. No build or deployment.",
     "source_design": {
       "ownership": "Existing shared researcher chooses queries, dates and follow-ups; existing retained/web readers execute them. Home consumes shared outputs. No new retrieval engine, dataset or schedule.",
       "changes": [
         "One tagged action payload per shared control step, with only the active fields. Useful partial drafts remain possible. Nested union schemas retain strict-provider compatibility; registry and argument permissions remain enforced.",
         "Remove redundant retained-search query planner and its model route; preserve broad dated reporting, unrestricted semantic/context recall and source reading.",
         "Do not substitute the full original research record as an omitted search query.",
-        "Use shared source-sufficiency and explanatory-depth guidance across planning, synthesis and review; no topic/ticker rules or prose rewriting code."
+        "Use shared source-sufficiency and explanatory-depth guidance across planning, synthesis and review; no topic/ticker rules or prose rewriting code.",
+        "Honor the shared researcher's explicit bounded company focus even when a broad search returns enough rows; retain all bounded acquired captures rather than discarding later focus sources behind the preview limit."
       ],
       "consequences": [
         "Do not require new acquisition when rich current evidence already answers the question. Quiet runs can still stop early.",
@@ -217,8 +222,32 @@
         "Real retained paid action replay confirms no regeneration for unused fields.",
         "Actual explicit queries pass unchanged without the entire research request or extra inference.",
         "Legacy agent/tool tests fail identically on the committed baseline and candidate; their obsolete prose/retired-helper expectations are not quality acceptance.",
-        "Fresh full public output must be personally read before acceptance."
+        "Fresh full public output must be personally read before acceptance.",
+        "Bounded acquisition contract: six broad rows no longer cancel two focus searches; all18 captures survive while preview remains6. This is not live semantic coverage acceptance.",
+        "Complete independent-review public output was read and rejected. Mechanical contract improvements are not quality acceptance."
       ]
+    },
+    "status": "closed_candidate_rejected",
+    "completed_at_utc": "2026-10-29T05:23:17.287764+00:00",
+    "spending": {
+      "authorization": "Authorized for another $10 if needed",
+      "cap_usd": 10,
+      "status": "closed",
+      "attempts": 79,
+      "known_receipts": 78,
+      "unknown_attempts": 1,
+      "pending_attempts": 0,
+      "known_conservative_estimate_usd": 6.054477,
+      "unknown_retained_maximum_usd": 1.643643,
+      "total_committed_bound_usd": 7.69812,
+      "cumulative_bound_for_prior_closed_comparisons_and_this_continuation_usd": 26.391384,
+      "invoice_reconciled": false,
+      "model_attempts": {
+        "deepseek-v4-pro": 53,
+        "acquisition": 25,
+        "deepseek-flash": 1
+      },
+      "explanation": "All attempts and acquisitions are included. One connection failure has no receipt and retains its full original maximum. Known amounts are published-rate conservative estimates, not invoice totals. The compact-format comparison and offline input capture sent no inference request. Current shared provider headroom, not the study cap, prevented the compact-format comparison."
     }
   }
 }

@@ -1964,11 +1964,10 @@ def _planner_user_prompt(
         f"Surface: {_clean(surface) or 'zopedia.chat'}\n\n"
         f"User question:\n{query}\n\n"
         f"Tool budget: {max_tool_calls - _budgeted_tool_count(tool_calls)} remaining out of {max_tool_calls}.\n\n"
-        "Return exactly one next action. "
-        "If you still need data, set action='tool_call' and choose one tool. "
-        "If you can answer now, set action='final'. "
-        "When action='tool_call', tool_arguments is a JSON-encoded object with the required fields and typed values "
-        "from that tool's input_schema. Use the string '{}' when the tool takes no arguments or action='final'."
+        "Put exactly one action inside next. "
+        "If you still need data, use action='tool_call' with tool_name and JSON-encoded tool_arguments "
+        "matching that tool's input_schema. Use '{}' when the tool takes no arguments. "
+        "If you can answer now, use action='final' with answer_markdown. Include only the fields for that action."
     )
 
 

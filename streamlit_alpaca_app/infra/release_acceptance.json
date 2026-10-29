@@ -1,6 +1,6 @@
 {
   "status": "awaiting_local_qualitative_acceptance",
-  "scope": "October28 event-adaptive reliability, shared news coverage and provider-liquidity candidate. Shared producer ownership is restored.198 operational contracts pass locally. Personal review rejects the current production feed and corrected after-close candidate; see documents/verification/event-adaptive-reliability-2026-10-28/quality-review.json. Source depth and editorial quality, shared-account future completion funding, consumer integration, exact-image DEV and promotion remain open. Previous source/image proof below is baseline, not candidate acceptance.",
+  "scope": "October28 event-adaptive reliability, shared news ownership, provider-liquidity and feed-quality candidate. Source execution and control-contract repairs are checkpointed. Complete live-acquisition and independent-review public outputs remain rejected; see documents/verification/event-adaptive-reliability-2026-10-28/quality-review.json continuation. The table-format experiment is reverted and excluded. Shared-account future completion funding, source integration, exact-image DEV and promotion remain open. Baseline source/image proof below is not candidate acceptance.",
   "source_revision": "db302f4ce58541419af79e55769286c5b5a5b9d0",
   "review_base_revision": "ca0d2e3fc021ef79bed26f5e54d7c174dcc54d65",
   "files": {
