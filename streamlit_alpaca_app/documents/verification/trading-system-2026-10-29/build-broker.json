@@ -1,14 +1,14 @@
 {
   "source": {
-    "source_revision": "6df6af3776883000260a29b4da0a32a9f326e095",
-    "accepted_source_revision": "c54febef0eabed43d29d29eaa939a31ea736bcd3",
+    "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
+    "accepted_source_revision": "7a2ce5b4b9c285c210bd482e2db161de348f4998",
     "role": "broker",
-    "source_inventory_sha256": "322e6503bba80a2e202baf35bacc739fd9745d2de346a371f8e63aa506d8c5aa",
+    "source_inventory_sha256": "a1bcc28c316859cfc23086fdbc6e5aa7cdbb30fc5884230ecec74fbc2c0fe13e",
     "files": 318,
-    "runtime_inventory_sha256": "002a83afec8ac7bd44134e1bb404fc1aef92fdedfc17ee898b67dd75d220f8ac",
+    "runtime_inventory_sha256": "daebfe2d3efaf8cfeff0d97711561ef551195a972387ff4681260591bed3e413",
     "runtime_files": 195,
-    "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34"
+    "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:7b0cbdc9f1030b87fa24b5df4cfd31a67a5f96d5c3fba089588e825236313109"
   },
-  "build_run": "cj1cs",
-  "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:7b0cbdc9f1030b87fa24b5df4cfd31a67a5f96d5c3fba089588e825236313109"
+  "build_run": "cj1d1",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78"
 }
