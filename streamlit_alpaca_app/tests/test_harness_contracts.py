@@ -13,10 +13,10 @@ from services.agents import research_runs
 
 def _review():
     return {"verdict": "accept", "critique_summary": "", "answer_markdown": "answer",
-            "confidence": "medium", "limitations": [], "unsupported_claims": [], "evidence_gaps": []}
+            "answer_points": [], "confidence": "medium", "research_requests": []}
 
 
-@pytest.mark.parametrize("patch", [{"verdict": None}, {"verdict": "unknown"}, {"confidence": "certain"}, {"limitations": "none"}, {"answer_markdown": ""}])
+@pytest.mark.parametrize("patch", [{"verdict": None}, {"verdict": "unknown"}, {"confidence": "certain"}, {"research_requests": "none"}, {"answer_markdown": ""}])
 def test_invalid_review_never_defaults_to_accept(monkeypatch, patch):
     payload = {**_review(), **patch}
     monkeypatch.setattr(zopedia_agent, "get_prompt", lambda key: "")
@@ -55,7 +55,7 @@ def test_full_passages_and_source_refs_reach_writer_and_judge():
     }})
     calls = [{"tool_call_id": "t1", "tool_name": "research.open_page", "status": "completed", "result_summary": summary}]
     assert summary["evidence_context_text"] == passage
-    assert "source tail" not in zopedia_agent._tool_history_prompt(calls)
+    assert passage in zopedia_agent._tool_history_prompt(calls)
     for prompt in [zopedia_agent._final_user_prompt(query="question", tool_calls=calls),
                    zopedia_agent._judge_user_prompt(query="question", tool_calls=calls, draft_answer="draft", draft_confidence="low", limitations=[])]:
         assert passage in prompt
@@ -193,6 +193,27 @@ def test_run_budget_reserves_completion_and_never_restarts(monkeypatch):
     clock[0] = 191.0
     for phase in ("research", "synthesis", "completion"):
         assert budget.remaining(phase) == 0
+
+
+def test_required_answer_can_use_unused_review_time_within_the_original_window(monkeypatch):
+    from services.agents import research_session
+    clock = [100.0]
+    monkeypatch.setattr(research_session.time, "monotonic", lambda: clock[0])
+    budget = research_session.ResearchBudget.start(600, 600)
+    clock[0] = 501.0
+    assert budget.remaining("research") == 0
+    assert budget.remaining("synthesis") == budget.remaining("completion") == 199
+    assert budget.step_deadline("synthesis", 600) == 700
+    clock[0] = 700.0
+    assert budget.remaining("synthesis") == budget.remaining("completion") == 0
+    from services.work_scope import WorkScope, WorkCancelled
+    clock[0] = 1000.0
+    with pytest.raises(WorkCancelled):
+        with WorkScope(1100).activate():
+            child = research_session.ResearchBudget.start(600, 600, research_required=False)
+            assert child.deadline == 1100
+            clock[0] = 1100.0
+            assert child.remaining("synthesis") == child.remaining("completion") == 0
 
 
 def test_expired_aql_and_home_steps_never_dispatch():

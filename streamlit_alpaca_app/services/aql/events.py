@@ -65,6 +65,12 @@ _P_EVENT_TOOLS = register_config_param(
     default=6,
     description="Tool budget for investigating each nominated source event.",
 )
+_P_EVENT_WORKERS = register_config_param(
+    "Source event maximum workers",
+    group="AQL / Zopedia Engine",
+    default=3,
+    description="Maximum concurrent focused investigations sharing the original run allowance and deadline.",
+)
 _P_PRIOR_EVENT_LIMIT = register_config_param(
     "Source event prior investigation context limit",
     group="AQL / Zopedia Engine",
@@ -645,7 +651,8 @@ def research_source_events(
     results: list[dict[str, Any]] = []
     bundles: list[dict[str, Any]] = []
     with ThreadPoolExecutor(
-        max_workers=min(len(plans), 3) or 1, thread_name_prefix="aql-source-events"
+        max_workers=min(len(plans), max(int(get_config_param(_P_EVENT_WORKERS)), 1)) or 1,
+        thread_name_prefix="aql-source-events"
     ) as pool:
         pending = {
             pool.submit(copy_context().run, investigate, plan, index): plan

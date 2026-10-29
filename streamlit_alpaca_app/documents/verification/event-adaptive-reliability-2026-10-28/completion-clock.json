@@ -1,0 +1,29 @@
+{
+  "status": "mechanical_contracts_passed_full_integration_pending",
+  "source_base": "7497df72",
+  "observed_failure": {
+    "case": "current-coherent-full-stage-4-output.json",
+    "error": "Final synthesis exceeded its remaining phase budget.",
+    "elapsed_seconds": 400.009,
+    "original_window_seconds": 600,
+    "run_budget_exhausted": false
+  },
+  "cause": "A separate synthesis deadline reserved review time even when no answer existed to review. This stopped required completion with time still available in the original run.",
+  "change": "Reserve completion time before more research, then let the existing writer and advisory reviewer share the original remaining deadline. No new retry, model change, research store or extended run clock. Valid completed answers retain the existing advisory-review policy.",
+  "consequences": {
+    "long_writing": "A slow writer may leave less time for advisory review; this keeps a useful current result instead of returning no result with unused time. Review still runs when time remains.",
+    "provider_requests": "Each request remains bounded by the configured model-step timeout and parent WorkScope. Paid receipts and unknown charges retain their original ownership.",
+    "overall_run": "The producer115-minute and platform120-minute clocks remain unchanged.",
+    "budget": "Existing protected core funds and shared account admission are unchanged."
+  },
+  "worker_configuration": {
+    "parameter": "Source event maximum workers",
+    "default": 3,
+    "change": "Replace the fixed three-worker ceiling with the existing scoped configuration system. All workers retain the same original root budget and deadline. Default execution is unchanged."
+  },
+  "local_checks": {
+    "execution_contracts_passed": 45,
+    "prose_grading": false
+  },
+  "qualitative_evidence": "The running complete-output comparison uses the unchanged base revision7497df72. Timing/configuration changes are isolated in a separate worktree so one comparison cannot mix source revisions."
+}
