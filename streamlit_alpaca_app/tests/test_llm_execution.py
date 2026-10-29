@@ -451,7 +451,7 @@ def test_event_replay_identity_excludes_its_own_new_result(monkeypatch):
     version=[1]; captured=[]
     monkeypatch.setattr(events, 'latest_research_artifact', lambda **kwargs: {'artifact_id':str(version[0]),'payload':{'observation':version[0]}})
     def run(**kwargs):
-        if kwargs['schema_name']=='source_event_nominations':return {'status':'completed','payload':{'market_context_text':'Retained market research','events':[plan]}}
+        if kwargs['schema_name']=='source_event_nominations':return {'status':'completed','payload':{'research_agenda':['Question'],'findings_markdown':'Retained market research','events':[plan]}}
         captured.append(kwargs)
         raise RuntimeError('Stop at model boundary')
     monkeypatch.setattr(events,'run_aql_zopedia_structured_agent',run)
@@ -473,7 +473,7 @@ def test_market_discovery_retains_acquisition_without_feed_or_focused_events(mon
     def run(**kwargs):
         calls.append(kwargs)
         return {"status": "completed" if valid_contract else "failed",
-                "payload": {"market_context_text": "Complete market research", "events": []} if valid_contract else None,
+                "payload": {"research_agenda": [], "findings_markdown": "Complete market research", "events": []} if valid_contract else None,
                 "agent_result": {"run_id": "discovery", "tool_calls": [{
                     "tool_call_id": "acquire", "tool_name": "source", "status": "completed",
                     "result_summary": {"source_documents": [source]}}]}}

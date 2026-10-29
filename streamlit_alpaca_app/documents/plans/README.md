@@ -1,5 +1,7 @@
 # Plans Index
 
+- [Alpaca paper portfolio and scientific sizing](TRADING_AGGREGATE_PORTFOLIO_2026-10-22.md) — active account integration; local verification and native/DEV acceptance.
+
 Current working plans live here. Completed Streamlit/Dash and first-migration plans are archived outside the checkout; see the [retirement inventory](../verification/legacy-retirement-2026-10-16/README.md). Dated release/research evidence does not authorize restoring its runtime.
 
 Active recovery: [accepted behavior](RELEASE_BEHAVIOR_RECOVERY_2026-10-16.md). Held reasoning/model-routing and Trading-call implementations remain in `held/pre-recovery-20261016`; they are not accepted release source.

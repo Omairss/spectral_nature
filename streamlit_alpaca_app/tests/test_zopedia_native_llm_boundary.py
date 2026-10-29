@@ -28,7 +28,9 @@ RUN_ZOPEDIA_AGENT_LOOP_ALLOWED = {
     "services/zopedia_agent.py",
 }
 
-GENERATE_JSON_ALLOWED_EXACT = {"services/aql_zopedia_gateway.py"}
+# The accepted transport's Native repair only serializes the already generated
+# artifact. Research generation remains owned by the shared gateway.
+GENERATE_JSON_ALLOWED_EXACT = {"services/aql_zopedia_gateway.py", "services/llm.py"}
 GENERATE_JSON_ALLOWED_PREFIXES: tuple[str, ...] = ()
 
 

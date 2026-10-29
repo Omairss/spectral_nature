@@ -369,6 +369,7 @@ def materialize_research_artifacts(
                 {
                     **doc,
                     "chunk_id": chunk_id,
+                    "chunk_record_id": source.get("chunk_record_id") or "",
                     "chunk_text": text,
                     "chunk_index": 1,
                     "document_chunk_count": 1,

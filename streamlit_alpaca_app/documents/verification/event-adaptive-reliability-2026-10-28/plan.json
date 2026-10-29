@@ -68,7 +68,7 @@
     {
       "id": "provider_credit_reconciliation",
       "task": "Resolve account-level admission starvation without erasing unknown costs, and protect future core completion at the shared account boundary.",
-      "status": "liquidity_repair_verified_locally_account_core_funding_pending",
+      "status": "liquidity_repair_in_production_future_core_funding_verified_locally_pending_development_release",
       "evidence_or_remaining": "Fresh authoritative provider balance now governs new account admission. Ended or expired local requests retain unknown costs in the original run and account records without permanent cross-run credit holds after a subsequent balance observation. Live requests, overlapping probe outcomes, failed probes, real empty credit, concurrent admissions and idempotent late receipts are covered on isolated PostgreSQL. Explicit future completion reservation in shared account credit across independent producers remains unfinished; existing run-level core protection is preserved.",
       "proposed_design_reference": "quality_fix_design"
     },
@@ -87,10 +87,15 @@
   ],
   "spending_policy": "Owner explicitly approved \u201cApprove DeepSeek verification up to $10\u201d for fresh feed verification on Pacific October28. This is a new scoped exception; the earlier $15 study remains closed at11.257873USD committed bound. One strict10USD cap covers both cases, retries and unknown outcomes. Full configured models are retained; storage is isolated and production is read-only.",
   "latest_local_contracts": {
-    "passed": 198,
-    "log": "private contracts-20261029T025246Z.log",
+    "passed": 205,
+    "log": "private contracts-20261029T093838Z.log",
     "scope": "Financial/ownership/publication/document/cache contracts plus current provider credit versus unresolved costs, crash deadlines, failed balance probes, actual zero credit, concurrent admission, overlapping balance observations and idempotent late settlement. No generated prose was graded. Shared news ownership, preserved selected-company coverage, canonical deduplication, separate research selection, provider pagination, partial acquisition degradation and total acquisition failure are covered.",
-    "live_source_check": "Read-only historical-asof queries at both actual news-producer slots returned shared broad snapshots; no inference or publication. Latest-page coverage is bounded, so selected-company intake remains alongside it and current follow-up stays in shared research."
+    "live_source_check": "Read-only historical-asof queries at both actual news-producer slots returned shared broad snapshots; no inference or publication. Latest-page coverage is bounded, so selected-company intake remains alongside it and current follow-up stays in shared research.",
+    "additional_preservation_checks": {
+      "passed": 52,
+      "skipped": 1,
+      "scope": "Typed numerical execution, paper portfolio, broker snapshots, operational health and native gateway boundary. No paid transport or prose grading."
+    }
   },
   "release_state": {
     "candidate_build_started": true,
@@ -383,9 +388,9 @@
     },
     {
       "id": "future_core_account_funding",
-      "status": "implemented_in_separate_development_branch_pending_integration",
+      "status": "implemented_integrated_verified_operationally_qualitative_review_pending",
       "work": "Protect future full-model completion at shared account level before optional concurrent work, with atomic transfer, expiry and actual-client source preservation.",
-      "branch": "fix/account-core-funding-dev-20261029",
+      "branch": "fix/shared-research-publication-dev-20261029",
       "evidence": "Atomic future-core account projection, actual-request transfer, unknown-cost retention, original-clock expiry, terminal release/retry restoration, and bounded evidence-navigation-to-answer transition. Native Responses usage/pricing preserved. Mechanical checks do not establish narrative quality."
     },
     {
@@ -404,6 +409,8 @@
   "development_source": {
     "branch": "fix/shared-research-publication-dev-20261029",
     "production_authorized": false,
-    "local_complete_output_review": "prior compositor case failed depth; fresh complete-path qualification pending"
+    "local_complete_output_review": "prior compositor case failed depth; fresh complete-path qualification pending",
+    "integrated_accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
+    "source_acceptance": "in_progress_not_buildable"
   }
 }

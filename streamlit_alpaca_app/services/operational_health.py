@@ -20,8 +20,8 @@ import requests
 from services.json_utils import to_jsonable
 from services.llm import llm_settings_scope
 from services.pipeline_store import dataset_namespace, open_database_connection
-from services.secrets import build_azure_credential
-from services.database import database_session_stats
+from services.secrets import build_azure_credential, resolve_secret_value
+from services.database import database_session_stats, open_database_session
 from services.work_scope import WorkScope
 from azure.identity import ManagedIdentityCredential
 
@@ -66,7 +66,7 @@ def _cached(key: tuple, seconds: int, read: Callable[[], Any]) -> Any:
         return value
 
 
-def _database(hours: int) -> dict:
+def _database(hours: int, *, maintenance: bool = False) -> dict:
     scope = llm_settings_scope()
     namespace = dataset_namespace()
     result: dict[str, Any] = {"scope": scope, "receipt_source": "database",
@@ -111,7 +111,23 @@ def _database(hours: int) -> dict:
                 ELSE starts_with(job_name,%s) END
             ORDER BY job_name,start_time_utc DESC""", (namespace, namespace + "::")),
     }
-    conn = open_database_connection()
+    if maintenance:
+        queries = {key: value for key, value in queries.items() if key in {"attempts", "components"}}
+        queries["reports"] = ("""SELECT run_id, created_at_utc, status,
+            summary_json->'semantic'->>'status' AS research_status,
+            jsonb_array_length(coalesce(summary_json->'semantic'->'articles','[]'::jsonb)) AS visited_articles,
+            jsonb_array_length(coalesce(summary_json->'semantic'->'mutation_ids','[]'::jsonb)) AS edits,
+            (SELECT coalesce(jsonb_agg(jsonb_build_object(
+                'page_id',article->'page_id','status',article->'status','error',article->'error')), '[]'::jsonb)
+             FROM jsonb_array_elements(coalesce(summary_json->'semantic'->'articles','[]'::jsonb)) article) AS articles
+            FROM saa_zopedia_maintenance_reports ORDER BY created_at_utc DESC LIMIT 20""", ())
+        dsn = resolve_secret_value(["ZOPEDIA_MAINTENANCE_POSTGRES_CONNECTION_STRING"],
+            secret_name_env="ZOPEDIA_MAINTENANCE_POSTGRES_CONNECTION_STRING_SECRET_NAME")
+        if not dsn:
+            raise ValueError("Maintenance telemetry database is not configured")
+        conn = open_database_session(dsn, application_name="spectral:maintenance-health", workload="interactive")
+    else:
+        conn = open_database_connection()
     if conn is None:
         return {**result, "unavailable": {"database": "Connection unavailable"}}
     result["server_name"] = str(conn.info.host).split(".", 1)[0]
@@ -248,6 +264,14 @@ def build_operational_health_view(*, hours: int = 24, resource_name: str = "") -
         "outputs": _start_collection(("outputs", dataset_namespace()), 60, _published_outputs),
         "resources": _start_collection(("resources", scope), 1800, _inventory),
     }
+    if (os.getenv("ZOPEDIA_MAINTENANCE_POSTGRES_CONNECTION_STRING") or
+            os.getenv("ZOPEDIA_MAINTENANCE_POSTGRES_CONNECTION_STRING_SECRET_NAME")):
+        def collect_maintenance():
+            try:
+                return _database(hours, maintenance=True)
+            except Exception as exc:
+                return {"unavailable": {"database": type(exc).__name__}}
+        pending["maintenance"] = _start_collection(("maintenance", scope, hours), 60, collect_maintenance)
     result: dict = {"hours": hours, "scope": scope}
     observed: set[str] = set()
     while True:
@@ -282,6 +306,8 @@ def build_operational_health_view(*, hours: int = 24, resource_name: str = "") -
         if not unfinished or remaining <= 0:
             break
         wait(unfinished, timeout=remaining, return_when=FIRST_COMPLETED)
+    if "maintenance" in pending and "maintenance" not in result:
+        result["maintenance"] = {"unavailable": {"database": "Collection still running"}}
     if "database" not in result:
         result["database"] = {"scope": scope, "observed_at": datetime.now(timezone.utc).isoformat(),
                               "unavailable": {"database": "Collection still running"}}

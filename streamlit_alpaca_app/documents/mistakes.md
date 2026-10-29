@@ -8,6 +8,14 @@ The repair changes only the shared Home loader. After the owner’s explicit “
 
 Operator probes also needed case-insensitive HTTP header handling and restoration of Next’s generated `next-env.d.ts` path rewrite before packaging. Neither required another application change.
 
+## Aggregate accounting assumption corrected — 2026-10-22
+
+A repeated SQL-pattern patch initially matched a sibling function. Immediate source inspection caught it before execution; the correction uses function-scoped edits. Repeated SQL and mock-class structures need exact function anchors, not broad text matches.
+
+I built an equal-capital aggregate after the owner confirmed which calls to include, without establishing the portfolio's accounting authority. Membership did not authorize invented capital or cash. The owner directed reuse of Alpaca paper trading. The prototype remained local and undeployed; its synthetic accounting is superseded and its evidence remains historical. Check existing broker capabilities before designing a new trade ledger.
+
+The previous web release also dropped the conditional dev-maintenance Health section. Its accepted source is restored in the current work; this restoration has not been deployed. A local lint check additionally finds a pre-existing synchronous effect-state update outside those restored lines; do not describe this as a clean whole-file lint result.
+
 ## Client refresh acceptance — 2026-10-22
 
 Moving Home across the server/client boundary exposed host-dependent timestamp and compact-currency formatting. The first DEV browser load reported React hydration error 418. Explicit UTC time and count locale did not finish the repair: a complete server/browser text comparison found 139 compact-currency precision differences, such as $3.0B versus $3B. Node 25 local rendering matched Chrome and hid the Node 22 server default. Set precision and locale in the shared chart/ticker formatters and compare the production Node version with the actual browser. No production promotion occurred during this repair.
@@ -1362,3 +1370,9 @@ Repeated prose guidance did not repair the complete feed. Measured final writing
 ### Reconcile every release image identity — October 29
 
 During the owner-approved feed release, the first refreshed manifest updated `previous_image` for released workers but left their parallel `image` fields stale; the retained API had the inverse mismatch. Source and live-consumer checks stopped preparation before any template mutation. Reconciled both fields to the captured live definition. A root-relative Git diff was also initially run from the application directory and returned no paths; the explicit nonempty review check caught it before acceptance. Use the repository root for review inventories and reconcile all recorded image identities together.
+
+Native paper review initially passed parsing but failed full compilation on optional JSON dictionaries and a shadowed error field. The fix validates response objects before replacing retained state and qualifies the view error field. Parsing is not type checking.
+
+## DEV integration must preserve each transport contract — 2026-10-29
+
+Combining accepted Native Responses telemetry with the newer financial module initially treated embedding input arrays as messages and audio text as a response-format object. Local contract checks caught both before any build or deployment. Measurement now receives the actual operation, normalizes genuine Native usage, retains missing usage as unknown, and keeps audio character accounting. Existing structural fixtures were updated for the new shared research schema and accepted transport repair boundary.

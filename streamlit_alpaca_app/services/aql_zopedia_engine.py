@@ -79,6 +79,7 @@ def research_engine_revision() -> str:
         "zopedia_runtime.py",
         "llm.py",
         "saa/storage.py",
+        "saa/zopedia.py",
         "saa/semantic_index.py",
         "pipeline_store.py",
         "database.py",
@@ -218,12 +219,13 @@ def run_aql_zopedia_agent(
     resume_state: dict[str, Any] | None = None,
     answer_review_owner: str = "agent",
     checkpoint_callback: ProgressCallback | None = None,
+    artifact_preview: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Shared AQL/Zopedia orchestration entrypoint for tool-using research.
 
     The Zopedia agent implementation owns the planner/tool loop behind this AQL/Zopedia engine boundary.
     """
-    from .zopedia_agent import _run_zopedia_agent_loop
+    from .zopedia_agent import _run_zopedia_agent_loop, _budgeted_tool_count
 
     settings = resolve_research_budget(
         max_tool_calls=max_tool_calls,
@@ -263,6 +265,7 @@ def run_aql_zopedia_agent(
         resume_state=resume_state,
         answer_review_owner=answer_review_owner,
         checkpoint_callback=checkpoint_callback,
+        artifact_preview=artifact_preview,
     )
     if not isinstance(result, dict):
         result = {
@@ -271,6 +274,7 @@ def run_aql_zopedia_agent(
             "error": "Agent returned a non-dict result.",
         }
     result.setdefault("engine", {})
+    result["engine"]["tool_calls_used"] = _budgeted_tool_count(result.get("tool_calls") or [])
     result["engine"].update(
         {
             "name": "aql_zopedia",
@@ -329,6 +333,14 @@ def parse_aql_zopedia_structured_answer(value: object) -> dict[str, Any] | None:
         except Exception:
             return None
     return data if isinstance(data, dict) else None
+
+
+def research_result_allows_knowledge_write(result: dict[str, Any]) -> bool:
+    """Share the engine's reviewed-memory policy with typed materializers."""
+    from .zopedia_agent import _review_allows_memory
+
+    agent = result.get("agent_result") or result
+    return _review_allows_memory(agent.get("quality_review") or {})
 
 
 def _repair_structured_payload_from_agent_answer(
@@ -433,6 +445,7 @@ def run_aql_zopedia_structured_agent(
     request_context: dict[str, Any] | None = None,
     resume_state: dict[str, Any] | None = None,
     result_callback: ProgressCallback | None = None,
+    artifact_preview: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Run the shared Zopedia tool agent and require a structured JSON answer.
 
@@ -712,6 +725,7 @@ def run_aql_zopedia_structured_agent(
         response_schema=schema,
         response_schema_name=schema_name,
         answer_review_owner=answer_review_owner,
+        artifact_preview=artifact_preview,
         checkpoint_callback=checkpoint if result_callback is not None else None,
         resume_state=(
             resume_state

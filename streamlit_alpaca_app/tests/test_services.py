@@ -613,7 +613,8 @@ def test_alpaca_request_retries_rate_limited_responses(monkeypatch):
     ]
     sleeps: list[float] = []
 
-    def fake_request(method, url, headers=None, params=None, timeout=25):
+    def fake_request(method, url, headers=None, params=None, timeout=25, allow_redirects=True):
+        assert allow_redirects is False
         return responses.pop(0)
 
     monkeypatch.setattr("services.alpaca_api.requests.request", fake_request)

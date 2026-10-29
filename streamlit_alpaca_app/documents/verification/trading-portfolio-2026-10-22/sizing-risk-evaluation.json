@@ -1,0 +1,322 @@
+{
+  "symbols": [
+    "AAPL",
+    "JPM",
+    "MARA",
+    "MSFT",
+    "NVDA",
+    "SPY",
+    "XOM"
+  ],
+  "start": "2018-11-01",
+  "end": "2026-10-16",
+  "training_sessions": 252,
+  "holdout_sessions": 21,
+  "stride": 21,
+  "holdout_start": "2024-01-01",
+  "summary": [
+    {
+      "split": "development",
+      "method": "diagonal",
+      "book": "equal_capital",
+      "periods": 30,
+      "mean_qlike": 0.717927419629458,
+      "median_realized_to_predicted_vol": 1.344365441283327,
+      "fraction_above_1_5x_forecast": 0.36666666666666664,
+      "worst_realized_to_predicted_vol": 2.9146770755140556
+    },
+    {
+      "split": "development",
+      "method": "diagonal",
+      "book": "inverse_volatility",
+      "periods": 30,
+      "mean_qlike": 1.7885773819536224,
+      "median_realized_to_predicted_vol": 1.6130302189770591,
+      "fraction_above_1_5x_forecast": 0.5666666666666667,
+      "worst_realized_to_predicted_vol": 4.022063916337554
+    },
+    {
+      "split": "development",
+      "method": "diagonal",
+      "book": "long_short",
+      "periods": 30,
+      "mean_qlike": 0.17109300868622138,
+      "median_realized_to_predicted_vol": 0.8626880304199064,
+      "fraction_above_1_5x_forecast": 0.06666666666666667,
+      "worst_realized_to_predicted_vol": 1.6928860366076435
+    },
+    {
+      "split": "development",
+      "method": "fast_slow_envelope",
+      "book": "equal_capital",
+      "periods": 30,
+      "mean_qlike": 0.1527662407902713,
+      "median_realized_to_predicted_vol": 0.8492070907446265,
+      "fraction_above_1_5x_forecast": 0.03333333333333333,
+      "worst_realized_to_predicted_vol": 1.5542056605330035
+    },
+    {
+      "split": "development",
+      "method": "fast_slow_envelope",
+      "book": "inverse_volatility",
+      "periods": 30,
+      "mean_qlike": 0.23865065579872594,
+      "median_realized_to_predicted_vol": 0.7809394700011147,
+      "fraction_above_1_5x_forecast": 0.06666666666666667,
+      "worst_realized_to_predicted_vol": 1.6836611796825414
+    },
+    {
+      "split": "development",
+      "method": "fast_slow_envelope",
+      "book": "long_short",
+      "periods": 30,
+      "mean_qlike": 0.17096557075154312,
+      "median_realized_to_predicted_vol": 0.8141446288382721,
+      "fraction_above_1_5x_forecast": 0.06666666666666667,
+      "worst_realized_to_predicted_vol": 1.5721076417792506
+    },
+    {
+      "split": "development",
+      "method": "sample",
+      "book": "equal_capital",
+      "periods": 30,
+      "mean_qlike": 0.19808810654007164,
+      "median_realized_to_predicted_vol": 0.8428935536110148,
+      "fraction_above_1_5x_forecast": 0.03333333333333333,
+      "worst_realized_to_predicted_vol": 1.880635136147627
+    },
+    {
+      "split": "development",
+      "method": "sample",
+      "book": "inverse_volatility",
+      "periods": 30,
+      "mean_qlike": 0.3164751654033649,
+      "median_realized_to_predicted_vol": 0.8102371436041902,
+      "fraction_above_1_5x_forecast": 0.13333333333333333,
+      "worst_realized_to_predicted_vol": 2.1712255748134806
+    },
+    {
+      "split": "development",
+      "method": "sample",
+      "book": "long_short",
+      "periods": 30,
+      "mean_qlike": 0.1663089056725509,
+      "median_realized_to_predicted_vol": 0.8717645102225317,
+      "fraction_above_1_5x_forecast": 0.06666666666666667,
+      "worst_realized_to_predicted_vol": 1.6713532092349945
+    },
+    {
+      "split": "development",
+      "method": "shrinkage_252",
+      "book": "equal_capital",
+      "periods": 30,
+      "mean_qlike": 0.19706829975762338,
+      "median_realized_to_predicted_vol": 0.8499392841081319,
+      "fraction_above_1_5x_forecast": 0.03333333333333333,
+      "worst_realized_to_predicted_vol": 1.8939363670912317
+    },
+    {
+      "split": "development",
+      "method": "shrinkage_252",
+      "book": "inverse_volatility",
+      "periods": 30,
+      "mean_qlike": 0.31684362902242846,
+      "median_realized_to_predicted_vol": 0.8145024780188059,
+      "fraction_above_1_5x_forecast": 0.1,
+      "worst_realized_to_predicted_vol": 2.1745653918755012
+    },
+    {
+      "split": "development",
+      "method": "shrinkage_252",
+      "book": "long_short",
+      "periods": 30,
+      "mean_qlike": 0.16589212586581334,
+      "median_realized_to_predicted_vol": 0.8734666502732473,
+      "fraction_above_1_5x_forecast": 0.06666666666666667,
+      "worst_realized_to_predicted_vol": 1.67508165109562
+    },
+    {
+      "split": "development",
+      "method": "shrinkage_63",
+      "book": "equal_capital",
+      "periods": 30,
+      "mean_qlike": 0.07483149986775733,
+      "median_realized_to_predicted_vol": 1.045482559183022,
+      "fraction_above_1_5x_forecast": 0.03333333333333333,
+      "worst_realized_to_predicted_vol": 1.5542056605330035
+    },
+    {
+      "split": "development",
+      "method": "shrinkage_63",
+      "book": "inverse_volatility",
+      "periods": 30,
+      "mean_qlike": 0.11671600268996978,
+      "median_realized_to_predicted_vol": 0.9437598505196736,
+      "fraction_above_1_5x_forecast": 0.06666666666666667,
+      "worst_realized_to_predicted_vol": 1.6836611796825414
+    },
+    {
+      "split": "development",
+      "method": "shrinkage_63",
+      "book": "long_short",
+      "periods": 30,
+      "mean_qlike": 0.14130214157828583,
+      "median_realized_to_predicted_vol": 0.9203870584081398,
+      "fraction_above_1_5x_forecast": 0.1,
+      "worst_realized_to_predicted_vol": 1.8229826808298097
+    },
+    {
+      "split": "holdout",
+      "method": "diagonal",
+      "book": "equal_capital",
+      "periods": 32,
+      "mean_qlike": 0.5498611421445043,
+      "median_realized_to_predicted_vol": 1.187169047598053,
+      "fraction_above_1_5x_forecast": 0.25,
+      "worst_realized_to_predicted_vol": 3.442484357430813
+    },
+    {
+      "split": "holdout",
+      "method": "diagonal",
+      "book": "inverse_volatility",
+      "periods": 32,
+      "mean_qlike": 1.5033478835815817,
+      "median_realized_to_predicted_vol": 1.4193507023630874,
+      "fraction_above_1_5x_forecast": 0.46875,
+      "worst_realized_to_predicted_vol": 5.55144103346133
+    },
+    {
+      "split": "holdout",
+      "method": "diagonal",
+      "book": "long_short",
+      "periods": 32,
+      "mean_qlike": 0.1481128750446661,
+      "median_realized_to_predicted_vol": 0.8368362911136278,
+      "fraction_above_1_5x_forecast": 0.0,
+      "worst_realized_to_predicted_vol": 1.2875828868751176
+    },
+    {
+      "split": "holdout",
+      "method": "fast_slow_envelope",
+      "book": "equal_capital",
+      "periods": 32,
+      "mean_qlike": 0.3287471501665429,
+      "median_realized_to_predicted_vol": 0.8318845747226635,
+      "fraction_above_1_5x_forecast": 0.0625,
+      "worst_realized_to_predicted_vol": 2.3160722106290645
+    },
+    {
+      "split": "holdout",
+      "method": "fast_slow_envelope",
+      "book": "inverse_volatility",
+      "periods": 32,
+      "mean_qlike": 0.5016436452335551,
+      "median_realized_to_predicted_vol": 0.7591925040396292,
+      "fraction_above_1_5x_forecast": 0.09375,
+      "worst_realized_to_predicted_vol": 2.926421291190941
+    },
+    {
+      "split": "holdout",
+      "method": "fast_slow_envelope",
+      "book": "long_short",
+      "periods": 32,
+      "mean_qlike": 0.14710306467753392,
+      "median_realized_to_predicted_vol": 0.8502220314139217,
+      "fraction_above_1_5x_forecast": 0.0,
+      "worst_realized_to_predicted_vol": 1.3862457348850763
+    },
+    {
+      "split": "holdout",
+      "method": "sample",
+      "book": "equal_capital",
+      "periods": 32,
+      "mean_qlike": 0.30920484170112006,
+      "median_realized_to_predicted_vol": 0.8400873168256966,
+      "fraction_above_1_5x_forecast": 0.0625,
+      "worst_realized_to_predicted_vol": 2.461424090028602
+    },
+    {
+      "split": "holdout",
+      "method": "sample",
+      "book": "inverse_volatility",
+      "periods": 32,
+      "mean_qlike": 0.5232413877399099,
+      "median_realized_to_predicted_vol": 0.8709096459803713,
+      "fraction_above_1_5x_forecast": 0.09375,
+      "worst_realized_to_predicted_vol": 3.351052358239685
+    },
+    {
+      "split": "holdout",
+      "method": "sample",
+      "book": "long_short",
+      "periods": 32,
+      "mean_qlike": 0.12918766692429795,
+      "median_realized_to_predicted_vol": 0.9344226202273971,
+      "fraction_above_1_5x_forecast": 0.0,
+      "worst_realized_to_predicted_vol": 1.3888498998898782
+    },
+    {
+      "split": "holdout",
+      "method": "shrinkage_252",
+      "book": "equal_capital",
+      "periods": 32,
+      "mean_qlike": 0.30695976393406244,
+      "median_realized_to_predicted_vol": 0.8450670144089106,
+      "fraction_above_1_5x_forecast": 0.0625,
+      "worst_realized_to_predicted_vol": 2.485390540611176
+    },
+    {
+      "split": "holdout",
+      "method": "shrinkage_252",
+      "book": "inverse_volatility",
+      "periods": 32,
+      "mean_qlike": 0.5130307420545559,
+      "median_realized_to_predicted_vol": 0.8621996951600552,
+      "fraction_above_1_5x_forecast": 0.09375,
+      "worst_realized_to_predicted_vol": 3.3329327733890097
+    },
+    {
+      "split": "holdout",
+      "method": "shrinkage_252",
+      "book": "long_short",
+      "periods": 32,
+      "mean_qlike": 0.129481558315365,
+      "median_realized_to_predicted_vol": 0.932384718896956,
+      "fraction_above_1_5x_forecast": 0.0,
+      "worst_realized_to_predicted_vol": 1.387443115900983
+    },
+    {
+      "split": "holdout",
+      "method": "shrinkage_63",
+      "book": "equal_capital",
+      "periods": 32,
+      "mean_qlike": 0.33790422273752185,
+      "median_realized_to_predicted_vol": 0.9952577399491629,
+      "fraction_above_1_5x_forecast": 0.125,
+      "worst_realized_to_predicted_vol": 2.3160722106290645
+    },
+    {
+      "split": "holdout",
+      "method": "shrinkage_63",
+      "book": "inverse_volatility",
+      "periods": 32,
+      "mean_qlike": 0.4492871058500028,
+      "median_realized_to_predicted_vol": 0.991719752606379,
+      "fraction_above_1_5x_forecast": 0.125,
+      "worst_realized_to_predicted_vol": 2.926421291190941
+    },
+    {
+      "split": "holdout",
+      "method": "shrinkage_63",
+      "book": "long_short",
+      "periods": 32,
+      "mean_qlike": 0.14701550187507026,
+      "median_realized_to_predicted_vol": 0.9230598593808335,
+      "fraction_above_1_5x_forecast": 0.0,
+      "worst_realized_to_predicted_vol": 1.4878685499134583
+    }
+  ],
+  "scope": "Risk forecast diagnostic; selected surviving assets; no costs or alpha evaluation.",
+  "input_sha256": "e9f60a4c5231f7fdd707fd378b123dbc901f9b1b5fb43cd997a548b72081449c",
+  "input_dataset_version": "development__price_history__20261017T065050Z__15a1e1be"
+}

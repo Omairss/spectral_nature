@@ -18,6 +18,8 @@ from .storage import (
     load_retained_document,
     load_retained_document_metadata,
     load_retained_evidence_chunk,
+    bootstrap_saa_storage,
+    persist_retained_evidence_chunks,
 )
 
 try:
@@ -150,7 +152,8 @@ _DEFAULT_MAINTENANCE_PAGE_LIMIT = 5000
 _DEFAULT_STALE_AFTER_DAYS = 120
 _DEFAULT_BLOAT_CHAR_LIMIT = 32_000
 _SAFE_MUTATION_TYPES = {"upsert_pages", "link_pages", "metadata_patch"}
-_RISKY_MUTATION_TYPES = {"archive_pages", "delete_pages", "merge_pages", "rewrite_pages", "remove_links", "unlink_pages"}
+_CONTENT_MUTATION_TYPES = {"merge_pages", "rewrite_pages", "edit_pages"}
+_RISKY_MUTATION_TYPES = {"archive_pages", "delete_pages", *_CONTENT_MUTATION_TYPES, "remove_links", "unlink_pages"}
 _ZOPEDIA_TREE_KEY = "zopedia"
 _ZOPEDIA_ROOT_FOLDER_PATH = "wiki"
 _ZOPEDIA_SECTION_DEFS: tuple[dict[str, str], ...] = (
@@ -683,7 +686,7 @@ def normalize_zopedia_page(
         "title": title,
     }
     metadata.setdefault("canonical_path", _canonical_path_for_page(canonical_stub))
-    if page_type != "source" and sections and not _has_structured_zopedia_sections(body):
+    if page_type != "source" and sections and not body:
         body = _render_zopedia_structured_body(
             title=title,
             summary=summary,
@@ -808,13 +811,20 @@ def _merge_zopedia_page_for_commit(
         out["source_document_ids"] = source_document_ids
         out["entity_refs"] = entity_refs
         out["outgoing_links"] = outgoing_links
-        sections = _structured_sections_from_page(out)
+        if _coerce_text(out.get("body_markdown")):
+            # A complete publication owns its section projection. Inherited
+            # metadata must not restore assertions removed from the article.
+            for field in ["zopedia_sections", *[section["key"] for section in _ZOPEDIA_SECTION_DEFS]]:
+                merged_metadata.pop(field, None)
+            sections = _structured_sections_from_page({"body_markdown": out["body_markdown"]})
+        else:
+            sections = _structured_sections_from_page(out)
         merged_metadata = _store_structured_sections(merged_metadata, sections)
         merged_metadata["last_replace_at_utc"] = timestamp.isoformat()
         merged_metadata.setdefault("canonical_path", _canonical_path_for_page(out))
         merged_metadata.pop("merge_mode", None)
         out["metadata"] = merged_metadata
-        if sections and not _has_structured_zopedia_sections(out.get("body_markdown")):
+        if sections and not _coerce_text(out.get("body_markdown")):
             out["body_markdown"] = _render_zopedia_structured_body(
                 title=out.get("title") or existing_page.get("title"),
                 summary=out.get("summary") or existing_page.get("summary"),
@@ -941,14 +951,20 @@ def _prepare_zopedia_pages_for_commit(
     ]
     if not page_ids:
         return frame, records
-    existing_rows = _load_zopedia_pages_by_ids(page_ids=page_ids, conn=conn)
+    existing_rows = _load_zopedia_pages_by_ids(page_ids=page_ids, conn=conn, lock=True)
+    if any(row.get("status") == "merged" for row in existing_rows):
+        raise ValueError("Reload the canonical page before updating a merged page.")
     existing_by_id = {_coerce_text(row.get("page_id")): dict(row) for row in existing_rows}
-    if not existing_by_id:
-        return frame, records
     merged_pages: list[dict[str, Any]] = []
     for _, row in frame.iterrows():
         incoming = dict(row.to_dict())
         existing = existing_by_id.get(_coerce_text(incoming.get("page_id")))
+        metadata = _json_dict(incoming.get("metadata") or incoming.get("metadata_json"))
+        expected_version = metadata.pop("expected_version", None)
+        if expected_version is not None and (not existing or int(expected_version) != existing["version"]):
+            raise ZopediaVersionConflict(f"Reload page {incoming['page_id']}; its publication context changed.")
+        incoming["metadata"] = metadata
+        incoming["metadata_json"] = json.dumps(metadata, ensure_ascii=False, default=str)
         merged_pages.append(
             _merge_zopedia_page_for_commit(existing, incoming, now=timestamp)
             if existing
@@ -1049,6 +1065,9 @@ def _sync_primary_folder_memberships(conn: Any, page_records: list[tuple[Any, ..
         slug = _coerce_text(record[3])
         status = _coerce_text(record[10]).lower()
         if not page_id:
+            continue
+        if status == "merged":
+            # Keep original memberships with the recoverable alias page.
             continue
         if status == "deleted":
             deleted_page_ids.append(page_id)
@@ -1153,6 +1172,10 @@ def _zopedia_storage_ready(conn: Any) -> bool:
 
 
 def bootstrap_zopedia_storage(conn: Any, *, commit: bool = True) -> None:
+    if _zopedia_storage_ready(conn):
+        return
+    with conn.cursor() as cur:
+        cur.execute("SELECT pg_advisory_xact_lock(hashtextextended('spectral_nature:saa_schema', 0))")
     if _zopedia_storage_ready(conn):
         return
     with conn.cursor() as cur:
@@ -1373,7 +1396,8 @@ def _refresh_search_vectors(conn: Any, page_ids: list[str]) -> None:
             """
             UPDATE saa_zopedia_pages
             SET search_tsvector =
-                setweight(to_tsvector('english', COALESCE(title, '')), 'A') ||
+                setweight(to_tsvector('english', COALESCE(title, '') || ' ' ||
+                    COALESCE((metadata_json->'aliases')::text, '')), 'A') ||
                 setweight(to_tsvector('english', COALESCE(summary, '')), 'B') ||
                 setweight(to_tsvector('english', COALESCE(body_markdown, '')), 'C')
             WHERE page_id = ANY(%s)
@@ -1454,6 +1478,10 @@ def persist_zopedia_pages(
             )
         if conn is not None and records:
             _upsert_zopedia_page_records(conn, records)
+    except BaseException:
+        if conn is not None:
+            conn.rollback()
+        raise
     finally:
         if own_conn:
             conn.close()
@@ -1513,7 +1541,7 @@ def search_prepared_zopedia_pages(
     out = _ensure_page_frame(frame)
     if out.empty:
         return out
-    out = out[out["status"].astype(str).str.lower().fillna("active") != "deleted"].copy()
+    out = out[~out["status"].astype(str).str.lower().isin({"deleted", "merged"})].copy()
     normalized_types = {_normalize_page_type(item) for item in list(page_types or []) if _coerce_text(item)}
     if normalized_types:
         out = out[out["page_type"].astype(str).str.lower().isin(normalized_types)].copy()
@@ -1527,7 +1555,8 @@ def search_prepared_zopedia_pages(
         title = _coerce_text(row.get("title")).lower()
         summary = _coerce_text(row.get("summary")).lower()
         body = _coerce_text(row.get("body_markdown")).lower()
-        linked = " ".join(list(row.get("entity_refs") or []) + list(row.get("outgoing_links") or [])).lower()
+        linked = " ".join(list(row.get("entity_refs") or []) + list(row.get("outgoing_links") or [])
+                          + _json_list(_json_dict(row.get("metadata_json")).get("aliases"))).lower()
         value = float(row.get("ts_rank_score") or 0.0) * 12.0
         if query_text:
             if query_text in title:
@@ -1623,7 +1652,7 @@ def search_zopedia_pages(
                         status, version, created_at_utc, updated_at_utc, metadata_json::text,
                         ts_rank_cd(search_tsvector, plainto_tsquery('english', %s)) AS ts_rank_score
                     FROM saa_zopedia_pages
-                    WHERE status != 'deleted'
+                    WHERE status NOT IN ('deleted', 'merged')
                       {visibility_clause}
                       AND (
                         search_tsvector @@ plainto_tsquery('english', %s)
@@ -1640,7 +1669,7 @@ def search_zopedia_pages(
                 rows = cur.fetchall()
                 if not rows:
                     params: list[Any] = []
-                    where = "status != 'deleted'"
+                    where = "status NOT IN ('deleted', 'merged')"
                     where += f" {visibility_clause}"
                     if normalized_types:
                         where += " AND page_type = ANY(%s)"
@@ -1657,7 +1686,7 @@ def search_zopedia_pages(
                     rows = cur.fetchall()
             else:
                 params = []
-                where = "status != 'deleted'"
+                where = "status NOT IN ('deleted', 'merged')"
                 where += f" {visibility_clause}"
                 if normalized_types:
                     where += " AND page_type = ANY(%s)"
@@ -1695,20 +1724,26 @@ def load_zopedia_page(*, page_id: str, conn: Any | None = None, include_debug_so
         raise RuntimeError("Zopedia storage is unavailable.")
     try:
         bootstrap_zopedia_storage(conn, commit=own_conn)
-        with conn.cursor() as cur:
-            cur.execute(
-                _select_page_rows_sql(
-                    where_sql=f"page_id = %s AND status != 'deleted' {_zopedia_public_visibility_sql(include_debug_sources=include_debug_sources)}",
-                    order_sql="updated_at_utc DESC",
-                    limit=None,
-                ),
-                (normalized_page_id,),
-            )
-            row = cur.fetchone()
-        if not row:
-            return {}
-        frame = _frame_from_zopedia_page_rows([row])
-        return dict(frame.iloc[0].to_dict()) if not frame.empty else {}
+        visited: set[str] = set()
+        while normalized_page_id not in visited:
+            visited.add(normalized_page_id)
+            with conn.cursor() as cur:
+                cur.execute(
+                    _select_page_rows_sql(
+                        where_sql=f"page_id = %s AND status != 'deleted' {_zopedia_public_visibility_sql(include_debug_sources=include_debug_sources)}",
+                        order_sql="updated_at_utc DESC", limit=None,
+                    ), (normalized_page_id,),
+                )
+                row = cur.fetchone()
+            if not row:
+                return {}
+            page = dict(_frame_from_zopedia_page_rows([row]).iloc[0].to_dict())
+            if page.get("status") != "merged":
+                return page
+            normalized_page_id = _coerce_text(page["metadata"].get("redirect_to_page_id"))
+            if not normalized_page_id:
+                raise ValueError("Merged Zopedia page has no canonical target.")
+        raise ValueError("Cyclic Zopedia page redirect.")
     finally:
         if own_conn:
             conn.close()
@@ -1726,7 +1761,7 @@ def browse_zopedia_pages(*, folder_path: str = "", query: str = "", page_types: 
         raise RuntimeError("Zopedia storage is unavailable.")
     try:
         bootstrap_zopedia_storage(conn, commit=own_conn)
-        clauses = ["status != 'deleted'", "1=1 " + _PUBLIC_PAGE_VISIBILITY_SQL]
+        clauses = ["status NOT IN ('deleted', 'merged')", "1=1 " + _PUBLIC_PAGE_VISIBILITY_SQL]
         params: list[Any] = []
         if page_types:
             clauses.append("page_type = ANY(%s)")
@@ -1768,19 +1803,22 @@ def list_zopedia_page_links(*, page_id: str, conn: Any | None = None) -> pd.Data
         seed = load_zopedia_page(page_id=page_id, conn=conn)
         if not seed:
             return pd.DataFrame()
+        page_id = seed["page_id"]
         targets = list(seed.get("outgoing_links") or [])
         with conn.cursor() as cur:
             cur.execute("SELECT target_page_id FROM saa_zopedia_backlinks WHERE source_page_id = %s", (page_id,))
             targets = list(set(targets) | {str(row[0]) for row in cur.fetchall()})
         identities = [str(seed.get(key) or "") for key in ("page_id", "slug", "title")]
-        where = f"""status != 'deleted' AND page_id <> %s {_PUBLIC_PAGE_VISIBILITY_SQL} AND (
+        identities.extend(seed["metadata"].get("aliases") or [])
+        where = f"""status NOT IN ('deleted', 'merged') AND page_id <> %s {_PUBLIC_PAGE_VISIBILITY_SQL} AND (
             page_id = ANY(%s) OR slug = ANY(%s) OR title = ANY(%s)
+            OR (metadata_json->'aliases') ?| %s
             OR outgoing_links_json ?| %s
             OR page_id IN (SELECT source_page_id FROM saa_zopedia_backlinks WHERE target_page_id = %s)
             OR page_id IN (SELECT target_page_id FROM saa_zopedia_backlinks WHERE source_page_id = %s)
         )"""
         with conn.cursor() as cur:
-            cur.execute(_select_page_rows_sql(where_sql=where, order_sql="title ASC", limit=100), (page_id, targets, targets, targets, identities, page_id, page_id, 100))
+            cur.execute(_select_page_rows_sql(where_sql=where, order_sql="title ASC", limit=100), (page_id, targets, targets, targets, targets, identities, page_id, page_id, 100))
             rows = cur.fetchall()
         frame = _frame_from_zopedia_page_rows(rows)
         if not frame.empty:
@@ -1869,7 +1907,7 @@ def list_zopedia_folder_pages(
                 FROM saa_zopedia_page_folder_memberships m
                 JOIN saa_zopedia_pages p ON p.page_id = m.page_id
                 WHERE m.folder_id = %s
-                  AND p.status != 'deleted'
+                  AND p.status NOT IN ('deleted', 'merged')
                   {membership_clause}
                 ORDER BY m.sort_order ASC, p.updated_at_utc DESC, p.title ASC
                 LIMIT %s
@@ -1897,9 +1935,7 @@ def zopedia_page_neighborhood(*, page_id: str, depth: int = 1, conn: Any | None 
     if pages.empty:
         return {"page_id": seed["page_id"], "nodes": [seed], "edges": []}
 
-    by_id = {str(row.get("page_id")): dict(row) for _, row in pages.iterrows()}
-    by_slug = {str(row.get("slug")): str(row.get("page_id")) for _, row in pages.iterrows()}
-    by_title = {str(row.get("title")).lower(): str(row.get("page_id")) for _, row in pages.iterrows()}
+    by_id, by_slug, by_title = _link_lookup_maps(pages)
     node_ids: set[str] = {str(seed["page_id"])}
     edges: list[dict[str, str]] = []
     frontier = {str(seed["page_id"])}
@@ -1909,9 +1945,7 @@ def zopedia_page_neighborhood(*, page_id: str, depth: int = 1, conn: Any | None 
         for current_id in list(frontier):
             current = by_id.get(current_id) or seed
             for raw_target in list(current.get("outgoing_links") or []):
-                target = by_id.get(raw_target) and raw_target
-                target = target or by_slug.get(raw_target)
-                target = target or by_title.get(str(raw_target).lower())
+                target = _resolve_zopedia_link_target(raw_target, by_id=by_id, by_slug=by_slug, by_title=by_title)
                 if not target:
                     continue
                 edges.append({"source": current_id, "target": target, "relation": "links_to"})
@@ -1921,8 +1955,9 @@ def zopedia_page_neighborhood(*, page_id: str, depth: int = 1, conn: Any | None 
             for candidate_id, candidate in by_id.items():
                 if candidate_id == current_id:
                     continue
-                outgoing = set(str(item) for item in list(candidate.get("outgoing_links") or []))
-                if current_id in outgoing or str(current.get("slug")) in outgoing or str(current.get("title")) in outgoing:
+                outgoing = {_resolve_zopedia_link_target(item, by_id=by_id, by_slug=by_slug, by_title=by_title)
+                            for item in list(candidate.get("outgoing_links") or [])}
+                if current_id in outgoing:
                     edges.append({"source": candidate_id, "target": current_id, "relation": "backlink"})
                     if candidate_id not in node_ids:
                         node_ids.add(candidate_id)
@@ -2240,6 +2275,11 @@ def _link_lookup_maps(pages: pd.DataFrame) -> tuple[dict[str, dict[str, Any]], d
             by_slug[slug] = page_id
         if title and title not in by_title:
             by_title[title] = page_id
+    for page_id, item in by_id.items():
+        metadata = _json_dict(item.get("metadata") or item.get("metadata_json"))
+        for alias in _json_list(metadata.get("aliases")):
+            by_slug.setdefault(_coerce_text(alias), page_id)
+            by_title.setdefault(_coerce_text(alias).lower(), page_id)
     return by_id, by_slug, by_title
 
 
@@ -2367,7 +2407,7 @@ def build_zopedia_maintenance_snapshot(
             "summary": {"status": "empty"},
         }
 
-    active = frame[frame["status"].astype(str).str.lower().fillna("active") != "deleted"].copy()
+    active = frame[~frame["status"].astype(str).str.lower().isin({"deleted", "merged"})].copy()
     by_id, by_slug, by_title = _link_lookup_maps(active)
     source_counts = _page_source_counts(active)
     page_ids = set(by_id.keys())
@@ -2904,7 +2944,24 @@ def run_zopedia_maintenance(
         if db_conn.info.transaction_status != 0:
             raise ValueError("Zopedia maintenance requires a connection outside a transaction.")
         bootstrap_zopedia_storage(db_conn)
-        pages = list_zopedia_pages(limit=max(int(page_limit or _DEFAULT_MAINTENANCE_PAGE_LIMIT), 1), conn=db_conn)
+        # This pass replaces global indexes. A fetch size may bound each read,
+        # but must never truncate the corpus being indexed.
+        frames = []
+        after_id = ""
+        fetch_size = max(int(page_limit or _DEFAULT_MAINTENANCE_PAGE_LIMIT), 1)
+        while True:
+            with db_conn.cursor() as cur:
+                cur.execute(_select_page_rows_sql(
+                    where_sql=f"status NOT IN ('deleted', 'merged') AND page_id > %s {_PUBLIC_PAGE_VISIBILITY_SQL}",
+                    order_sql="page_id ASC", limit=fetch_size,
+                ), (after_id, fetch_size))
+                rows = cur.fetchall()
+            if not rows:
+                break
+            frame = _frame_from_zopedia_page_rows(rows)
+            frames.append(frame)
+            after_id = str(frame.iloc[-1]["page_id"])
+        pages = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=ZOPEDIA_PAGE_COLUMNS)
         # The materialized page snapshot is independent of the write phase.
         # Do not retain database locks while constructing the graph.
         db_conn.commit()
@@ -2921,6 +2978,66 @@ def run_zopedia_maintenance(
     finally:
         if own_conn and db_conn is not None:
             db_conn.close()
+
+
+def load_zopedia_maintenance_batch(*, limit: int = 32, conn: Any) -> dict[str, Any]:
+    """Rotate public articles through semantic review using the report cursor."""
+    bootstrap_zopedia_storage(conn, commit=False)
+    with conn.cursor() as cur:
+        cur.execute("""SELECT summary_json->'semantic'->>'next_cursor'
+                       FROM saa_zopedia_maintenance_reports
+                       WHERE summary_json->'semantic' ? 'next_cursor'
+                       ORDER BY created_at_utc DESC LIMIT 1""")
+        row = cur.fetchone()
+    cursor = (row[0] if row else "") or ""
+    with conn.cursor() as cur:
+        cur.execute(_select_page_rows_sql(
+            where_sql=f"status NOT IN ('deleted', 'merged') AND page_type <> 'source' AND page_id > %s {_PUBLIC_PAGE_VISIBILITY_SQL}",
+            order_sql="page_id ASC", limit=max(1, int(limit)),
+        ), (cursor, max(1, int(limit))))
+        rows = cur.fetchall()
+    pages = _frame_from_zopedia_page_rows(rows).to_dict("records") if rows else []
+    if pages:
+        with conn.cursor() as cur:
+            cur.execute("""SELECT DISTINCT ON (assessment->>'page_id')
+                               assessment->>'page_id', assessment,
+                               COALESCE(assessment->>'reviewed_at_utc', summary_json->'semantic'->>'reviewed_at_utc'),
+                               summary_json->'semantic'->'observed_versions'->(assessment->>'page_id'),
+                               summary_json->'semantic'->'published_versions'->(assessment->>'page_id')
+                           FROM saa_zopedia_maintenance_reports
+                           CROSS JOIN LATERAL jsonb_array_elements(
+                               COALESCE(summary_json->'semantic'->'assessments', '[]'::jsonb)) assessment
+                           WHERE assessment->>'page_id'=ANY(%s)
+                             AND summary_json->'semantic'->>'reviewed_at_utc' IS NOT NULL
+                           ORDER BY assessment->>'page_id', created_at_utc DESC""",
+                        ([page["page_id"] for page in pages],))
+            previous = {row[0]: {"assessment": _json_dict(row[1]), "reviewed_at_utc": row[2],
+                                 "observed_version": row[3], "published_version": row[4]}
+                        for row in cur.fetchall()}
+        for page in pages:
+            page["previous_refresh"] = previous.get(page["page_id"], {})
+    conn.commit()
+    return {"pages": pages, "cursor": cursor,
+            "next_cursor": pages[-1]["page_id"] if len(pages) == max(1, int(limit)) else ""}
+
+
+def record_zopedia_semantic_maintenance(*, run_id: str, semantic: dict[str, Any], conn: Any) -> None:
+    """Attach real semantic outcomes to the existing administrative report."""
+    with conn.cursor() as cur:
+        cur.execute("""SELECT summary_json,mutation_ids_json FROM saa_zopedia_maintenance_reports
+                       WHERE run_id=%s FOR UPDATE""", (run_id,))
+        row = cur.fetchone()
+        if not row:
+            raise ValueError("The structural maintenance report must exist before recording semantic work.")
+        summary = _json_dict(row[0])
+        summary["semantic"] = semantic
+        mutation_ids = list(dict.fromkeys(_json_list(row[1]) + list(semantic.get("mutation_ids") or [])))
+        cur.execute("""UPDATE saa_zopedia_maintenance_reports
+                       SET summary_json=%s::jsonb, mutation_ids_json=%s::jsonb, mutation_count=%s,
+                           status=%s WHERE run_id=%s""",
+                    (json.dumps(summary, ensure_ascii=False, default=str), json.dumps(mutation_ids), len(mutation_ids),
+                     "ready" if semantic.get("status") in {"completed", "empty"} else "partial", run_id))
+    conn.commit()
 
 
 def list_zopedia_maintenance_reports(
@@ -3275,7 +3392,7 @@ def _snapshot_pages(rows: list[dict[str, Any]] | tuple[dict[str, Any], ...]) -> 
     return snapshots
 
 
-def _load_zopedia_pages_by_ids(*, page_ids: list[str], conn: Any) -> list[dict[str, Any]]:
+def _load_zopedia_pages_by_ids(*, page_ids: list[str], conn: Any, lock: bool = False) -> list[dict[str, Any]]:
     normalized_ids = [_coerce_text(item) for item in list(page_ids or []) if _coerce_text(item)]
     if not normalized_ids:
         return []
@@ -3283,9 +3400,9 @@ def _load_zopedia_pages_by_ids(*, page_ids: list[str], conn: Any) -> list[dict[s
         cur.execute(
             _select_page_rows_sql(
                 where_sql="page_id = ANY(%s)",
-                order_sql="updated_at_utc DESC, title ASC",
+                order_sql="page_id ASC" if lock else "updated_at_utc DESC, title ASC",
                 limit=None,
-            ),
+            ) + (" FOR UPDATE" if lock else ""),
             (normalized_ids,),
         )
         rows = cur.fetchall()
@@ -3608,11 +3725,37 @@ def rollback_zopedia_mutation(
             now=timestamp,
         )
         frame, records = prepare_zopedia_pages(rollback_pages, now=timestamp)
+        # Restoring an audited revision must not run its body through editorial
+        # normalization (including whitespace trimming or section rendering).
+        original_bodies = {row["page_id"]: row.get("body_markdown") for row in rollback_pages}
+        for index, page in frame.iterrows():
+            frame.at[index, "body_markdown"] = original_bodies[page["page_id"]]
+        records = [tuple(row[column] for column in ZOPEDIA_PAGE_COLUMNS[:-1]) for row in frame.to_dict("records")]
         rows = frame.to_dict("records") if not frame.empty else []
         if not records:
             return {"status": "no_changes", "mutation_id": normalized_id, "pages": [], "page_count": 0}
         page_ids = [_coerce_text(row.get("page_id")) for row in rows if _coerce_text(row.get("page_id"))]
-        current_rows = _load_zopedia_pages_by_ids(page_ids=page_ids, conn=db_conn)
+        current_rows = _load_zopedia_pages_by_ids(page_ids=page_ids, conn=db_conn, lock=True)
+        current_by_id = {row["page_id"]: row for row in current_rows}
+        hints = _json_dict(audit.get("rollback_hint_json"))
+        expected_versions = hints.get("expected_versions") or {}
+        conflicts = []
+        for expected in after_rows:
+            key = expected["page_id"]
+            current = current_by_id.get(key)
+            # Older audits were built before the database assigned the version.
+            # Compare their full content; new audits also bind exact versions.
+            if (not current or _zopedia_page_content(current) != _zopedia_page_content(expected)
+                    or (key in expected_versions and current["version"] != expected_versions[key])):
+                conflicts.append(key)
+        if conflicts:
+            return {"status": "conflict", "mutation_id": normalized_id, "page_ids": conflicts,
+                    "pages": [], "page_count": 0}
+        with db_conn.cursor() as cur:
+            cur.execute("""DELETE FROM saa_zopedia_page_folder_memberships
+                           WHERE metadata_json->>'merge_mutation_id' = %s""", (normalized_id,))
+        _upsert_zopedia_page_records(db_conn, records, commit=False)
+        rows = _load_zopedia_pages_by_ids(page_ids=page_ids, conn=db_conn)
         rollback_audit = build_zopedia_mutation_audit(
             mutation_type="rollback",
             risk_level="safe",
@@ -3626,7 +3769,6 @@ def rollback_zopedia_mutation(
             rollback_hint={"strategy": "rollback_of_rollback_requires_manual_review", "rolled_back_mutation_id": normalized_id},
             now=timestamp,
         )
-        _upsert_zopedia_page_records(db_conn, records, commit=False)
         _mark_zopedia_mutation_status(db_conn, mutation_id=normalized_id, status="rolled_back")
         _upsert_zopedia_mutation_audit_records(db_conn, _mutation_audit_records([rollback_audit]))
         db_conn.commit()
@@ -3639,6 +3781,7 @@ def rollback_zopedia_mutation(
             "rolled_back_mutation": audit,
         }
     finally:
+        db_conn.rollback()
         if own_conn and db_conn is not None:
             db_conn.close()
 
@@ -3673,6 +3816,208 @@ def _zopedia_mutation_review_proposal(
     }
 
 
+class ZopediaVersionConflict(ValueError):
+    """The knowledge read by an editor is no longer the current revision."""
+
+
+def render_zopedia_page_edit(original: dict[str, Any], replacement: dict[str, Any]) -> dict[str, Any]:
+    """Assemble model-chosen edits without regenerating untouched knowledge.
+
+    Matches refer to the same original revision, never to another edit's output.
+    Exact, unique, disjoint passages are an execution contract, not a judgment
+    about which claims or sections the editor should change.
+    """
+    updated = {**original, **replacement}
+    if "body_edits" not in replacement:
+        return updated
+    if "body_markdown" in replacement:
+        raise ValueError("Supply body_edits or a complete body_markdown, not both.")
+    body = str(original.get("body_markdown") or "")
+    spans = []
+    for edit in replacement["body_edits"]:
+        old, new = edit.get("old_text"), edit.get("new_text")
+        if not isinstance(old, str) or not old or not isinstance(new, str):
+            raise ValueError("Each body edit needs nonempty old_text and string new_text.")
+        start = body.find(old)
+        if start < 0 or body.find(old, start + 1) >= 0:
+            raise ValueError("Each old_text must match exactly one passage in the original article; include enough surrounding text.")
+        spans.append((start, start + len(old), new))
+    spans.sort()
+    if any(left[1] > right[0] for left, right in zip(spans, spans[1:])):
+        raise ValueError("Body edits overlap; combine them against the original article.")
+    for start, end, new in reversed(spans):
+        body = body[:start] + new + body[end:]
+    updated["body_markdown"] = body
+    return updated
+
+
+def _zopedia_page_content(page: dict[str, Any]) -> dict[str, Any]:
+    """Content identity for checking historical audits with pre-write versions."""
+    return {key: _json_dict(page.get(key)) if key == "metadata_json" else
+            _json_list(page.get(key)) if key.endswith("_json") else page.get(key)
+            for key in ZOPEDIA_PAGE_COLUMNS
+            if key not in {"version", "created_at_utc", "updated_at_utc", "ts_rank_score"}}
+
+
+def _apply_zopedia_content_mutation(
+    *, mutation_type: str, page_id: str, target_page_id: str,
+    pages: list[dict[str, Any]], expected_versions: dict[str, int],
+    evidence_refs: list[dict[str, Any]], rationale: str, actor: str, source: str,
+    payload: dict[str, Any], conn: Any,
+) -> dict[str, Any]:
+    """Atomic semantic edit; research and editorial review happen before this call."""
+    if not evidence_refs or not _coerce_text(rationale):
+        raise ValueError("Content mutations require evidence references and an editorial rationale.")
+    replacements = {_coerce_text(page.get("page_id")): page for page in pages}
+    if "" in replacements or len(replacements) != len(pages) or not pages:
+        raise ValueError("Supply one complete replacement per distinct page id.")
+    if mutation_type == "merge_pages":
+        if not page_id or not target_page_id or page_id == target_page_id or set(replacements) != {target_page_id}:
+            raise ValueError("A merge needs distinct source and canonical ids and one complete canonical page.")
+        page_ids = set(expected_versions)
+        if not {page_id, target_page_id} <= page_ids:
+            raise ValueError("A merge requires the versions of its source and canonical pages.")
+    else:
+        page_ids = set(replacements)
+    if set(expected_versions) != page_ids:
+        raise ValueError("Expected versions must cover exactly the edited and merged pages.")
+    before = _load_zopedia_pages_by_ids(page_ids=sorted(page_ids), conn=conn, lock=True)
+    by_id = {row["page_id"]: row for row in before}
+    for key in sorted(page_ids):
+        row = by_id.get(key)
+        if not row or row["version"] != expected_versions[key] or row["status"] in {"deleted", "merged"}:
+            raise ZopediaVersionConflict(f"Reload page {key}; it changed before this edit could commit.")
+        if row["page_type"] == "source":
+            raise ValueError("Original source pages cannot be rewritten or merged.")
+    timestamp = _utc_now()
+    after: list[dict[str, Any]] = []
+    for key, replacement in replacements.items():
+        if mutation_type == "edit_pages" and "body_edits" not in replacement:
+            raise ValueError("edit_pages requires body_edits, including an empty list for metadata-only changes.")
+        replacement = render_zopedia_page_edit(by_id[key], replacement)
+        if not _coerce_text(replacement.get("body_markdown")) or not _coerce_text(replacement.get("summary")):
+            raise ValueError("Content mutations require a complete body and summary.")
+        original = by_id[key]
+        contributors = [original] + ([by_id[source_id] for source_id in sorted(page_ids - {target_page_id})]
+                                     if mutation_type == "merge_pages" else [])
+        updated = dict(original)
+        updated["summary"] = replacement["summary"]
+        updated["body_markdown"] = replacement["body_markdown"]
+        updated["updated_at_utc"] = timestamp
+        metadata = dict(original["metadata"])
+        # Structured facts from the previous body must not regenerate removed
+        # assertions during normalization or a later ordinary page upsert.
+        for field in ["zopedia_sections", *[section["key"] for section in _ZOPEDIA_SECTION_DEFS]]:
+            metadata.pop(field, None)
+        patch = replacement.get("metadata_patch") or {}
+        protected = {"canonical_path", "aliases", "redirect_to_page_id", "source_type", "source_types", "source",
+                     "eval_tag", "learning_event_id", "owner_id", "user_id", "tenant_id", "workspace_id",
+                     "visibility", "access_scope", "environment"}
+        if protected.intersection(patch):
+            raise ValueError("A content edit cannot change page identity, visibility or ownership metadata.")
+        derived_sections = {"zopedia_sections", *[section["key"] for section in _ZOPEDIA_SECTION_DEFS]}
+        for field, value in patch.items():
+            if field in derived_sections:
+                # Section projections come from the complete edited body, not
+                # an incomplete parallel summary that can replace that body.
+                continue
+            if value is None:
+                metadata.pop(field, None)
+            else:
+                metadata[field] = value
+        metadata["last_content_edit"] = {"type": mutation_type, "rationale": rationale,
+                                         "at_utc": timestamp.isoformat()}
+        for singular, plural in (("source_page_id", "source_page_ids"), ("chunk_record_id", "chunk_record_ids"),
+                                 ("canonical_document_id", "canonical_document_ids")):
+            values = [value for row in contributors for value in _list_metadata_values(row["metadata"], singular, plural)]
+            if singular == "chunk_record_id":
+                values.extend(ref["ref"] for ref in evidence_refs if ref.get("kind") == "retained_evidence_chunk")
+            if values:
+                metadata[plural] = list(dict.fromkeys(values))
+        if mutation_type == "merge_pages":
+            source_types = [value for row in contributors
+                            for value in _list_metadata_values(row["metadata"], "source_type", "source_types")]
+            if source_types:
+                metadata["source_types"] = list(dict.fromkeys(source_types))
+            aliases = list(metadata.get("aliases") or [])
+            for merged in contributors[1:]:
+                aliases.extend([merged["page_id"], merged["slug"], merged["title"]])
+                aliases.extend(merged["metadata"].get("aliases") or [])
+            metadata["aliases"] = list(dict.fromkeys(aliases))
+        updated["metadata"] = metadata
+        updated["metadata_json"] = json.dumps(metadata, ensure_ascii=False, default=str)
+        for field in ("source_urls", "source_document_ids", "entity_refs", "outgoing_links"):
+            values = [value for row in contributors for value in _page_text_list(row, field, field + "_json")]
+            values.extend(_page_text_list(replacement, field, field + "_json"))
+            if field == "outgoing_links":
+                values = [value for value in values if value not in page_ids]
+            updated[field] = list(dict.fromkeys(values))
+            updated[field + "_json"] = json.dumps(updated[field], ensure_ascii=False)
+        metadata["source_count"] = len(updated["source_urls"]) + len(updated["source_document_ids"])
+        after.append(updated)
+    if mutation_type == "merge_pages":
+        for source_id in sorted(page_ids - {target_page_id}):
+            alias = dict(by_id[source_id])
+            alias["status"] = "merged"
+            alias["updated_at_utc"] = timestamp
+            alias["metadata"] = {**alias["metadata"], "redirect_to_page_id": target_page_id}
+            after.append(alias)
+    _, records = prepare_zopedia_pages(after, now=timestamp)
+    _upsert_zopedia_page_records(conn, records, commit=False)
+    stored = _load_zopedia_pages_by_ids(page_ids=sorted(page_ids), conn=conn)
+    audit = build_zopedia_mutation_audit(
+        mutation_type=mutation_type, risk_level="reviewed", actor=actor, source=source,
+        page_ids=sorted(page_ids), evidence_refs=evidence_refs, before_state=before, after_state=stored,
+        rollback_hint={"strategy": "restore_before_state_if_unchanged", "rationale": rationale,
+                       "content_accounting": payload.get("content_accounting") or [],
+                       "body_edits": {key: page["body_edits"] for key, page in replacements.items() if "body_edits" in page},
+                       "expected_versions": {row["page_id"]: int(row["version"]) for row in stored}},
+        now=timestamp,
+    )
+    # A readable article need not repeat every weak lead. Retain every original
+    # paragraph as searchable, explicitly dated derived knowledge, including
+    # text beyond the prefix of a long page. This is not a summary of originals.
+    revision_chunks = []
+    for original in before:
+        body = str(original.get("body_markdown") or "")
+        retained_text = body + "\n\nOriginal summary:\n" + str(original.get("summary") or "")
+        retained_text += "\n\nOriginal stored metadata JSON:\n" + json.dumps(original["metadata"], ensure_ascii=False, default=str)
+        revision = f"zopedia_revision::{original['page_id']}::{original['version']}"
+        for start in range(0, len(retained_text), 4000):
+            revision_chunks.append({
+                "chunk_id": f"{revision}:{start}", "canonical_document_id": revision,
+                "chunk_text": retained_text[start:start + 4500], "title": original["title"],
+                "chunk_index": start // 4000 + 1, "document_chunk_count": (len(retained_text) + 3999) // 4000,
+                "source_kind": "agent_research", "source_provider": "zopedia",
+                "evidence_type": "retained_knowledge", "research_scope": "zopedia_page_revision",
+                "raw_text_origin": "retained_page_revision", "page_id": original["page_id"],
+                "source_version": original["version"], "asof_time_utc": original["updated_at_utc"],
+                "retrieved_at": timestamp.isoformat(),
+                "source_refs": [{"kind": "zopedia_mutation", "ref": audit["mutation_id"],
+                                 "page_id": original["page_id"], "source_version": original["version"]}],
+            })
+    persist_retained_evidence_chunks(
+        "zopedia_page_revisions", pd.DataFrame(revision_chunks), dataset_version_id=audit["mutation_id"],
+        run_id=audit["mutation_id"], asof_time_utc=timestamp, conn=conn, commit=False,
+    )
+    if mutation_type == "merge_pages":
+        # Keep original folder membership rows for the alias. New canonical
+        # memberships carry the audit identity so rollback removes only ours.
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO saa_zopedia_page_folder_memberships
+                    (folder_id, page_id, membership_type, sort_order, metadata_json, created_at_utc, updated_at_utc)
+                SELECT folder_id, %s, CASE WHEN membership_type='primary' THEN 'merged' ELSE membership_type END, sort_order,
+                    COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('merge_mutation_id', %s::text), %s, %s
+                FROM saa_zopedia_page_folder_memberships WHERE page_id = ANY(%s)
+                ON CONFLICT (folder_id, page_id, membership_type) DO NOTHING
+            """, (target_page_id, audit["mutation_id"], timestamp, timestamp, sorted(page_ids - {target_page_id})))
+    _upsert_zopedia_mutation_audit_records(conn, _mutation_audit_records([audit]))
+    conn.commit()
+    return {"status": "committed", "mutation_type": mutation_type, "pages": stored,
+            "page_count": len(stored), "mutation_audit": audit}
+
+
 def apply_zopedia_typed_mutation(
     *,
     mutation_type: str,
@@ -3686,6 +4031,7 @@ def apply_zopedia_typed_mutation(
     actor: str = "zopedia",
     source: str = "zopedia.apply_mutation",
     allow_risky: bool = False,
+    expected_versions: dict[str, int] | None = None,
     conn: Any | None = None,
 ) -> dict[str, Any]:
     """Apply a typed, audited Zopedia mutation when it is safe to commit.
@@ -3713,12 +4059,13 @@ def apply_zopedia_typed_mutation(
                 "pages": list(pages or []),
                 "metadata_patch": dict(metadata_patch or {}),
                 "evidence_refs": normalized_evidence_refs,
+                "expected_versions": dict(expected_versions or {}),
                 "payload": normalized_payload,
             },
             conn=conn,
         )
 
-    if normalized_type not in _SAFE_MUTATION_TYPES:
+    if normalized_type not in _SAFE_MUTATION_TYPES | _CONTENT_MUTATION_TYPES:
         return _zopedia_mutation_review_proposal(
             mutation_type=normalized_type,
             page_id=normalized_page_id,
@@ -3731,6 +4078,7 @@ def apply_zopedia_typed_mutation(
                 "pages": list(pages or []),
                 "metadata_patch": dict(metadata_patch or {}),
                 "evidence_refs": normalized_evidence_refs,
+                "expected_versions": dict(expected_versions or {}),
                 "payload": normalized_payload,
             },
             conn=conn,
@@ -3753,6 +4101,15 @@ def apply_zopedia_typed_mutation(
     timestamp = _utc_now()
     try:
         bootstrap_zopedia_storage(db_conn, commit=False)
+        if normalized_type in _CONTENT_MUTATION_TYPES:
+            bootstrap_saa_storage(db_conn)
+            db_conn.commit()
+            return _apply_zopedia_content_mutation(
+                mutation_type=normalized_type, page_id=normalized_page_id, target_page_id=normalized_target_id,
+                pages=[dict(page) for page in list(pages or [])], expected_versions=dict(expected_versions or {}),
+                evidence_refs=normalized_evidence_refs, rationale=rationale, actor=actor, source=source,
+                payload=normalized_payload, conn=db_conn,
+            )
         after_pages: list[dict[str, Any]] = []
         before_page_ids: list[str] = []
 
@@ -3861,7 +4218,7 @@ def apply_zopedia_typed_mutation(
             after_pages = [updated_page]
             before_page_ids = [normalized_page_id]
 
-        before_rows = _load_zopedia_pages_by_ids(page_ids=before_page_ids, conn=db_conn)
+        before_rows = _load_zopedia_pages_by_ids(page_ids=before_page_ids, conn=db_conn, lock=True)
         if normalized_type == "upsert_pages":
             frame, records = _prepare_zopedia_pages_for_commit(
                 after_pages,
@@ -3880,6 +4237,8 @@ def apply_zopedia_typed_mutation(
                 "page_count": 0,
                 "mutation_audit": {},
             }
+        _upsert_zopedia_page_records(db_conn, records, commit=False)
+        rows = _load_zopedia_pages_by_ids(page_ids=[row["page_id"] for row in rows], conn=db_conn)
         audit = build_zopedia_mutation_audit(
             mutation_type=normalized_type,
             risk_level="safe",
@@ -3890,9 +4249,10 @@ def apply_zopedia_typed_mutation(
             evidence_refs=normalized_evidence_refs,
             before_state=before_rows,
             after_state=rows,
+            rollback_hint={"strategy": "restore_before_state_if_unchanged", "rationale": rationale,
+                           "expected_versions": {row["page_id"]: int(row["version"]) for row in rows}},
             now=timestamp,
         )
-        _upsert_zopedia_page_records(db_conn, records, commit=False)
         _upsert_zopedia_mutation_audit_records(db_conn, _mutation_audit_records([audit]))
         db_conn.commit()
         return {
@@ -3902,6 +4262,9 @@ def apply_zopedia_typed_mutation(
             "page_count": len(rows),
             "mutation_audit": audit,
         }
+    except BaseException:
+        db_conn.rollback()
+        raise
     finally:
         if own_conn and db_conn is not None:
             db_conn.close()
@@ -4318,6 +4681,8 @@ __all__ = [
     "list_zopedia_mutation_audits",
     "list_zopedia_pages",
     "load_zopedia_mutation_audit",
+    "load_zopedia_maintenance_batch",
+    "record_zopedia_semantic_maintenance",
     "load_zopedia_page",
     "normalize_zopedia_page",
     "persist_zopedia_maintenance_snapshot",

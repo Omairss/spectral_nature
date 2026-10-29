@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from services.database import open_database_session, database_workload
 from services.work_scope import WorkScope
+from services.zopedia_maintenance import run_zopedia_semantic_maintenance
+from services.saa.zopedia import record_zopedia_semantic_maintenance
+from services.saa.semantic_index import sync_zopedia_evidence
 from contextvars import copy_context
 from contextlib import nullcontext
 
@@ -3329,20 +3332,41 @@ def run_zopedia_maintenance_job(ctx: JobContext, conn: Any | None = None) -> Non
         bloat_char_limit=bloat_char_limit,
         conn=conn,
     )
+    _job_progress(ctx, conn, stage="semantic_research", message="Reviewing Zopedia articles and sources.", progress_pct=30.0)
+    semantic = run_zopedia_semantic_maintenance(
+        run_id=ctx.run_id, conn=conn,
+        batch_size=_parse_int_env("ZOPEDIA_MAINTENANCE_BATCH_SIZE", 32, minimum=1),
+        timeout_seconds=_parse_int_env("ZOPEDIA_MAINTENANCE_RESEARCH_SECONDS", 1200, minimum=30),
+        max_tool_calls=_parse_int_env("ZOPEDIA_MAINTENANCE_TOOL_CALLS", 24, minimum=1),
+        llm_step_timeout_seconds=_parse_int_env("ZOPEDIA_MAINTENANCE_LLM_STEP_SECONDS", 300, minimum=30),
+        article_timeout_seconds=_parse_int_env("ZOPEDIA_MAINTENANCE_ARTICLE_SECONDS", 300, minimum=30),
+        progress_callback=lambda event: print("[zopedia-maintenance] " + json.dumps(event, default=str)),
+    )
+    if semantic.get("mutation_ids"):
+        _job_progress(ctx, conn, stage="refresh_indexes", message="Updating Zopedia links and retained knowledge.", progress_pct=90.0)
+        sync_zopedia_evidence(conn)
+        result = run_zopedia_maintenance_service(
+            run_id=ctx.run_id, page_limit=page_limit, stale_after_days=stale_after_days,
+            bloat_char_limit=bloat_char_limit, conn=conn,
+        )
+        record_zopedia_semantic_maintenance(run_id=ctx.run_id, semantic=semantic, conn=conn)
     summary = dict(result.get("summary") or {}) if isinstance(result, dict) else {}
     _job_progress(
         ctx,
         conn,
         stage="done",
         message=(
-            "Zopedia maintenance complete: "
+            "Zopedia maintenance: "
             f"pages={summary.get('page_count', 0)}, "
             f"edges={summary.get('edge_count', 0)}, "
             f"communities={summary.get('community_count', 0)}, "
-            f"issues={summary.get('issue_count', 0)}."
+            f"issues={summary.get('issue_count', 0)}, "
+            f"semantic={semantic.get('status')}, edits={len(semantic.get('mutation_ids') or [])}."
         ),
         progress_pct=100.0,
     )
+    if semantic.get("status") == "failed":
+        raise RuntimeError("Zopedia structural indexing finished; semantic maintenance failed. See its maintenance report.")
 
 
 def run_zopedia_learning_job(ctx: JobContext, conn: Any | None = None) -> dict[str, Any]:

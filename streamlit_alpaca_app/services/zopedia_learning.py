@@ -335,7 +335,7 @@ def critique_learning_event(
     contract = {"evidence": service.supplied_evidence_manifest, "instructions": instructions,
                 "schema": _CRITIC_SCHEMA, "engine": research_engine_revision(),
                 "model_contract": {key: getattr(config, key, None) for key in (
-                    "provider", "base_url", "deployment", "api_version", "model", "thinking_mode", "reasoning_effort", "temperature")},
+                    "provider", "base_url", "deployment", "api_version", "model", "api_style", "thinking_mode", "reasoning_effort", "temperature")},
                 "style": get_active_narrative_style_rule(), "source_access": ["supplied"], "write_policy": "none"}
     fingerprint = hashlib.sha256(_json_dumps(contract).encode()).hexdigest()
     execution = {"input_fingerprint": fingerprint, "status": "pending", "attempted_at": _utc_now().isoformat()}

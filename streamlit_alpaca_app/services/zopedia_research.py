@@ -1181,6 +1181,8 @@ def zopedia_read_page(*, page_id: str, offset: int = 0, max_chars: int = 20000) 
         "status": "found",
         "summary": [row],
         "page": page,
+        "read_versions": {row["page_id"]: int(page["version"])}
+        if offset == 0 and row["next_offset"] is None else {},
         "llm_context_text": "\n\n".join(item for item in lines if item),
         "evidence_context_text": json.dumps({**row, "body_markdown": body}, ensure_ascii=False, default=str),
     }

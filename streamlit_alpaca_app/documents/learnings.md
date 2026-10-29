@@ -6,6 +6,12 @@ Trace freshness across the saved publication, direct backend and public gateway.
 
 The shared loader now reads the existing materialized publication directly. Local captured-data checks above 4 MB and exact-image Node 22 checks above 3 MB pass. Production and DEV have different accepted Trading frontends, so the same loader change was applied to each accepted Git source and the exact production image qualified independently. Both production gateways now serve October 26; all other 34 images and all 36 configurations were preserved. The separate Highlights synthesis timeout remains open. [Production verification](verification/home-freshness-2026-10-26/PRODUCTION.json).
 
+## Paper portfolio authority and sizing — 2026-10-22
+
+The owner selected Alpaca paper trading for cash, quantities, fills and account performance. Reuse the broker ledger rather than reconstructing an allocated portfolio from research approvals. Keep the broker account separate from historical call observations and from the main Portfolio provider. Bind Key Vault references to the account owner/environment; never distribute credentials to either client.
+
+A directional thesis or confidence label is not a calibrated return distribution. A volatility-budget baseline can use measured covariance and explicit risk preferences without inventing Kelly inputs. Retain estimation inputs, policy, review and actual broker identity for later evaluation. Numerical/authorization checks protect execution; historical held-out risk comparisons assess the estimator and must disclose shock misses and asset-selection limitations.
+
 ## Client refresh and gateway checks — 2026-10-22
 
 Conditional refresh must cover independent ticker and Highlight publications as well as the narrative run. Keep a mounted renderer, stable item identities, foreground-only requests, last-good state on failures and audio continuity. Check SSR/browser formatting across time zones. Compare the production Node/ICU version with Chrome too: compact currency defaults differed between Node 22 and Node 25/Chrome. Set both minimum and maximum precision in shared formatters. Native API paths must match the exposed Next.js gateway; populated authenticated detail checks caught the paper-performance route mismatch that compilation missed.
@@ -1434,3 +1440,11 @@ A source can be acquired yet lose its decisive explanation during synthesis, and
 ### Owner acceptance can scope an incremental feed release — October 29
 
 The owner personally judged the unedited candidate substantially better than the saved production output and explicitly authorized promotion. Record that acceptance without erasing earlier reviewer findings or claiming the unfinished redesign is complete. Capture the current live baseline again: another accepted release can already contain the same credit repair and independent API/native features. Retain those exact images and behavior, verify the candidate in DEV, and continue the remaining coherent research/publication change separately.
+
+Broker decimal strings must become finite numeric values in the shared public account projection, while exact order quantities stay strings. Native review exposed absent metrics that browser coercion had masked. Serialize snapshot timestamps as ISO8601 with time and offset.
+
+## Shared completion funding and accepted DEV integration — 2026-10-29
+
+Future writing/review funding is a priority obligation, not a paid provider request. Project it atomically from the original run into its account, transfer it into actual requests without double reservation, and keep unknown usage separate. A finished execution releases only unspent priority; a native retry restores original remaining funding and deadline. Evidence-navigation calls are discretionary, so exhaustion hands the current evidence to the protected full-model answer instead of funding endless reads as core work.
+
+Preserving a separately accepted DEV API includes its Native repair, maintenance, complete company drafts and numerical worker cancellation. Reconcile these in Git before building; a shared-module hash alone does not show that the actual transport, embeddings or audio remain valid.
