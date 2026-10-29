@@ -53,6 +53,12 @@ _P_NOMINATION_TIMEOUT = register_config_param(
     default=600,
     description="Budget for allocating focused research across source reports; all reports remain available to final synthesis.",
 )
+_P_DISCOVERY_TOOLS = register_config_param(
+    "Market-wide discovery tool budget",
+    group="AQL / Zopedia Engine",
+    default=6,
+    description="Shared research tools available while surveying the current market agenda, before choosing focused event investigations.",
+)
 _P_EVENT_TOOLS = register_config_param(
     "Source event tool budget",
     group="AQL / Zopedia Engine",
@@ -71,7 +77,16 @@ _NOMINATION_PROMPT = register_narrative_prompt(
     __file__,
     group="AQL / Zopedia Engine",
     prompt=(
-        "Find the most useful current investigations from these source reports and market observations. "
+        "Research the current market agenda and choose the most useful focused investigations. "
+        "Independently survey current reporting, primary disclosures and scheduled developments using the shared "
+        "research tools. Supplied reports and price movers are starting evidence, not the boundary of coverage. "
+        "Find consequential market-wide developments and business disclosures even when no shortlisted ticker "
+        "has moved much. Follow the actual information schedule: distinguish released information, an announcement "
+        "still in progress, and an upcoming release. Acquire the current source before treating an expected "
+        "announcement as completed. Older numerical observations cannot establish today's policy or news. "
+        "Write market_context_text as a substantive research synthesis of what matters now, why it matters and "
+        "the unresolved or upcoming developments that could change the interpretation. Preserve this research "
+        "even when no further focused investigation is needed. "
         "Group reports about the same underlying development. Do not merge separate developments just because they "
         "share a broad sector. Each investigation has one specific new disclosure or event as its center. "
         "Events may concern private companies, customers, "
@@ -81,7 +96,8 @@ _NOMINATION_PROMPT = register_narrative_prompt(
         "historical background or a hypothesis about the market reaction. "
         "Choose investigations that explain the shared changes or reveal a consequential business development. "
         "Avoid routine price recaps, duplicate stories and generic advice. Headlines alone are valid research leads. "
-        "Each event needs a focused question and the exact source_ids that motivated it. Plan useful follow-up questions "
+        "Each event needs a focused question and the source references that motivated it. In source_ids use a supplied "
+        "source_id or an exact source URL returned by the tools for a newly discovered report. Plan useful follow-up questions "
         "for the shared agent, prioritizing the decisive missing fact over broad checklists. "
         "Do not attribute price observations to news published after those observations; unknown observation times "
         "also do not establish event chronology. Compare current reports and observations with the dated completed "
@@ -155,6 +171,7 @@ def research_source_events(
     asof_time_utc: object,
     run_id: str,
     llm_client: Any,
+    macro_context: dict[str, Any] | None = None,
     progress_callback: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Nominate and investigate events independently of a mover shortlist.
@@ -217,9 +234,10 @@ def research_source_events(
         "results": [],
         "documents": documents,
         "input_count": len(documents),
+        "market_research": [],
         "status": "no_sources",
     }
-    if not documents or llm_client is None:
+    if llm_client is None:
         return {
             **empty,
             "status": "unavailable" if llm_client is None else "no_sources",
@@ -271,6 +289,7 @@ def research_source_events(
         "type": "object",
         "additionalProperties": False,
         "properties": {
+            "market_context_text": {"type": "string"},
             "events": {
                 "type": "array",
                 "maxItems": limit,
@@ -282,10 +301,7 @@ def research_source_events(
                         "question": {"type": "string"},
                         "source_ids": {
                             "type": "array",
-                            "items": {
-                                "type": "string",
-                                "enum": [doc["source_id"] for doc in documents],
-                            },
+                            "items": {"type": "string"},
                         },
                         "related_symbols": {
                             "type": "array",
@@ -308,7 +324,7 @@ def research_source_events(
                 },
             }
         },
-        "required": ["events"],
+        "required": ["market_context_text", "events"],
     }
     previews = [
         {
@@ -347,32 +363,55 @@ def research_source_events(
         + json.dumps(
             to_jsonable(
                 {"asof": asof, "sources": previews, "market_observations": observations,
+                 "economic_observations": macro_context or {},
                  "previous_observations": ((previous_nomination or {}).get("artifact_context") or {}).get("market_observations"),
                  "completed_research_context_status": context_status,
                  "dated_completed_investigations": prior_investigations}
             ),
             ensure_ascii=False,
         ),
-        initial_evidence=documents,
+        initial_evidence=list(documents),
         schema_name="source_event_nominations",
         schema=nomination_schema,
         task="source_event_nomination",
         surface="aql.source_event_nomination",
         llm_client=llm_client,
-        max_tool_calls=0,
+        max_tool_calls=max(int(get_config_param(_P_DISCOVERY_TOOLS)), 0),
         run_timeout_seconds=max(int(get_config_param(_P_NOMINATION_TIMEOUT)), 1),
         persist_findings=False,
         write_policy="none",
         call_type="research_grade",
+        # A same-execution retry reuses the paid discovery, rather than adding
+        # its own newly completed investigations to a different request identity.
+        reuse_identity=render_research_prompt(evidence={"sources": documents,
+            "market_observations": observations, "economic_observations": macro_context or {}},
+            request={"asof": asof}, instructions=get_prompt(_NOMINATION_PROMPT)),
         reuse_scope=access, research_subject="attention:source_event_nomination",
         artifact_context={"asof_time_utc": asof.isoformat(), "market_observations": observations},
     )
+    discovery_agent = nomination.get("agent_result") or {}
+    discovery = materialize_research_artifacts(discovery_agent, candidate_id="market-discovery",
+        subject="market", run_id=run_id, asof_time_utc=asof)
+    original_by_url = {doc["url"]: doc["source_id"] for doc in documents if doc.get("url")}
+    for captured in discovery["documents"]:
+        identity = captured.get("url") or captured.get("canonical_document_id") or captured["document_id"]
+        documents.append({**captured, "text": captured["raw_text"],
+            "source_id": original_by_url.get(captured.get("url"))
+                or "doc::market-discovery::" + hashlib.sha256(identity.encode()).hexdigest()[:20]})
     payload = nomination.get("payload")
+    market_research = [{"run_id": run_id, "asof_time_utc": asof,
+        "status": nomination.get("status"), "agent_run_id": discovery_agent.get("run_id", ""),
+        "market_context_text": payload.get("market_context_text", "") if isinstance(payload, dict) else "",
+        "error": nomination.get("error", ""),
+        "acquired_document_count": len(discovery["documents"]),
+        "result_json": json.dumps(to_jsonable(nomination), ensure_ascii=False)}]
     if not isinstance(payload, dict) or list(
         Draft202012Validator(nomination_schema).iter_errors(payload)
     ):
         return {
             **empty,
+            "documents": documents,
+            "market_research": market_research,
             "status": "failed",
             "results": [
                 {
@@ -382,8 +421,17 @@ def research_source_events(
                 }
             ],
         }
-    plans = payload["events"]
-    by_id = {doc["source_id"]: doc for doc in documents}
+    # Keep the retained model response immutable when adapting source references.
+    plans = [dict(plan) for plan in payload["events"]]
+    by_id = {reference: doc for doc in documents
+             for reference in (doc["source_id"], doc["document_id"], doc.get("url")) if reference}
+    for plan in plans:
+        plan["source_refs"] = list(plan["source_ids"])
+        resolved = [by_id[ref]["source_id"] for ref in plan["source_refs"] if ref in by_id]
+        plan["unresolved_source_refs"] = [ref for ref in plan["source_refs"] if ref not in by_id]
+        plan["source_ids"] = list(dict.fromkeys(resolved))
+        if plan["unresolved_source_refs"]:
+            record_execution_issue("market_discovery_source_reference", ValueError("A nominated source reference was not acquired"))
 
     def investigate(
         plan: dict[str, Any], index: int
@@ -394,12 +442,13 @@ def research_source_events(
         event_id = (
             "source-"
             + hashlib.sha256(
-                "|".join(sorted(doc["source_id"] for doc in selected)).encode()
+                "|".join(sorted(plan["source_ids"] or plan["source_refs"] or [plan["question"]])).encode()
             ).hexdigest()[:20]
         )
         instructions = (
             "Investigate this source event and explain what changed, the business transmission and the affected market. "
-            "The supplied source reports are already collected evidence. Read them first; retain their value if further "
+            "The supplied source captures are collected evidence. Nominated questions and unacquired source references "
+            "are research leads, not established facts. Read the captures first; retain their value if further "
             "acquisition is slow or unavailable. Use memory and current source tools for focused follow-ups chosen from "
             "the investigation plan. Provider symbol tags do not restrict the affected companies. Sources can concern "
             "private entities. Compare competing interpretations, and distinguish reported facts, established business "
@@ -621,9 +670,9 @@ def research_source_events(
                 bundles.append(bundle)
     return {
         "status": "completed"
-        if len(bundles) == len(plans)
+        if nomination.get("status") == "completed" and len(bundles) == len(plans)
         else "partial"
-        if bundles
+        if bundles or market_research[0]["market_context_text"]
         else "failed",
         "plans": [
             {
@@ -637,5 +686,6 @@ def research_source_events(
         "results": results,
         "bundles": sorted(bundles, key=lambda bundle: bundle["research_priority"]),
         "documents": documents,
+        "market_research": market_research,
         "input_count": empty["input_count"],
     }

@@ -198,6 +198,10 @@ def build_bottom_up_attention_artifacts(
     source_events = research_source_events(
         source_news, market_frame=daily_movers, universe_frame=topology_universe_frame,
         asof_time_utc=asof_time_utc, run_id=run_id, llm_client=llm_client,
+        macro_context={"fred_observations": to_jsonable(fred_summary_frame.to_dict("records"))
+                       if isinstance(fred_summary_frame, pd.DataFrame) else [],
+                       "yield_curve_observations": to_jsonable(yield_curve_facts_frame.to_dict("records"))
+                       if isinstance(yield_curve_facts_frame, pd.DataFrame) else []},
         progress_callback=(lambda event: progress_callback(0, 1, event)) if progress_callback else None,
     )
     base_candidates = build_attention_event_candidates_1d(
@@ -245,6 +249,7 @@ def build_bottom_up_attention_artifacts(
             "attention_search_requests": pd.DataFrame(),
             "attention_search_results": pd.DataFrame(),
             "attention_source_documents": pd.DataFrame(source_events["documents"]),
+            "attention_market_research": pd.DataFrame(source_events["market_research"]),
             "attention_source_event_plans": pd.DataFrame(source_events["plans"]),
             "attention_source_event_research": pd.DataFrame(source_events["results"]),
             "attention_evidence_chunks": pd.DataFrame(),
@@ -855,6 +860,7 @@ def build_bottom_up_attention_artifacts(
         "source_event_input_count": source_events.get("input_count", len(source_events["documents"])),
     })
     frames = {
+        "attention_market_research": pd.DataFrame(source_events["market_research"]),
         "attention_source_event_plans": pd.DataFrame(source_events["plans"]),
         "attention_source_event_research": pd.DataFrame(source_events["results"]),
         "attention_candidates_1d": candidates.reset_index(drop=True),

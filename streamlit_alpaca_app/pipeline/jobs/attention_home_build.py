@@ -56,6 +56,9 @@ from services.page_agentic_summary import (
 )
 from services.pipeline_store import load_latest_dataset_frame, load_recent_dataset_frames
 from services.daily_market_datapoints import build_daily_datapoint_catalog, select_daily_market_datapoints
+from services.alpaca_api import AlpacaAPI, AlpacaAPIError
+from services.config import load_config
+from services.llm_execution import complete_core_research, model_call_context, protect_core_research
 
 
 PersistDatasetFn = Callable[[str, pd.DataFrame, Any, Any | None], None]
@@ -2188,6 +2191,7 @@ def _review_home_public_surface(
     asof_time_utc: object,
     timeout_seconds: int,
     source_documents: list[dict[str, Any]] | None = None,
+    market_research: list[dict[str, Any]] | None = None,
 ) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, Any]]:
     review_items = _home_surface_quality_items(
         payload,
@@ -2195,14 +2199,16 @@ def _review_home_public_surface(
         enrichment_rows=enrichment_rows,
     )
     intake = list(source_documents or [])
-    if not review_items and not intake:
+    if not review_items and not intake and not market_research:
         return payload, bundle_map, {"status": "skipped", "reason": "no public Home items"}
     query = (
         f"As of {_zopedia_asof_text(asof_time_utc)}, produce a compact investor briefing for Home "
         "from the supplied company research, full source intake and market coverage. "
         "Select and rank developments and connections by expected relevance and usefulness, "
-        "including worthwhile uncertain leads. Explain what changed, why it matters economically "
-        "and what would change the interpretation. For each published item, establish time_basis before writing: "
+        "including worthwhile uncertain leads. Explain what changed, why it matters economically, "
+        "and what would change the interpretation before describing numerical price observations. "
+        "The market-wide research is part of the briefing, including consequential developments without a "
+        "large ticker move and relevant upcoming announcements. For each published item, establish time_basis before writing: "
         "separate this run's observation, the original dates of background events, and the sources' report dates. "
         "Build the title and opening around the current development. If a title leads with an older statement or "
         "event, include its original date in that title; a dated sentence later in the body does not repair a "
@@ -2219,6 +2225,7 @@ def _review_home_public_surface(
         "home_surface_items": review_items,
         "full_source_intake": intake,
         "market_coverage": payload.get("market_coverage") or {},
+        "market_wide_research": market_research or [],
     }]
     attempts = _env_positive_int("ATTENTION_HOME_SURFACE_QUALITY_ATTEMPTS", 2)
     result: dict[str, Any] = {}
@@ -2227,13 +2234,14 @@ def _review_home_public_surface(
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             break
-        result = run_aql_zopedia_structured_agent(
-            query=query, schema_name="attention_home_public_surface_quality", schema=_HOME_SURFACE_QUALITY_SCHEMA,
-            task="attention_home_public_surface_quality", surface="attention_home.public_surface_quality",
-            max_tool_calls=0, run_timeout_seconds=remaining, llm_step_timeout_seconds=remaining,
-            persist_findings=False, call_type="research_grade", review_answer=True, write_policy="none",
-            initial_evidence=initial_evidence,
-        )
+        with model_call_context(core_work_id="home:public_surface"):
+            result = run_aql_zopedia_structured_agent(
+                query=query, schema_name="attention_home_public_surface_quality", schema=_HOME_SURFACE_QUALITY_SCHEMA,
+                task="attention_home_public_surface_quality", surface="attention_home.public_surface_quality",
+                max_tool_calls=0, run_timeout_seconds=remaining, llm_step_timeout_seconds=remaining,
+                persist_findings=False, call_type="research_grade", review_answer=True, write_policy="none",
+                initial_evidence=initial_evidence,
+            )
         if isinstance(result, dict) and str(result.get("status") or "") == "completed":
             break
         if attempt >= attempts or not _is_retryable_zopedia_llm_failure(result):
@@ -2282,6 +2290,7 @@ def _review_home_public_surface(
     counts["discovered"] = len(quality_payload.get("new_events") or [])
     counts["source_input_count"] = len(intake)
     updated_payload["homepage_summary"] = {**quality_payload["market_summary"], "summary_status": "completed"}
+    complete_core_research("home:public_surface")
     return updated_payload, updated_bundle_map, {
         "status": "completed",
         "model": (result.get("agent_result") or {}).get("model", ""),
@@ -2602,9 +2611,16 @@ def build_attention_home_output_frames(
             asof_time_utc=ctx.asof,
             timeout_seconds=_home_surface_quality_timeout_seconds(),
             source_documents=[
-                {key: row.get(key) for key in ("source_id", "document_id", "title", "url", "published_at", "raw_text", "source_provider", "provider_symbols")}
+                {key: row.get(key) for key in (
+                    "source_id", "document_id", "canonical_document_id", "title", "url", "published_at",
+                    "raw_text", "raw_text_origin", "source_kind", "source_provider", "provider_symbols",
+                    "source_trace", "source_refs_json",
+                )}
                 for row in artifacts.frames.get("attention_source_documents", pd.DataFrame()).to_dict("records")
-                if str(row.get("document_id") or "").startswith("doc::event-news::")
+            ],
+            market_research=[
+                {key: row.get(key) for key in ("run_id", "asof_time_utc", "status", "market_context_text", "error")}
+                for row in artifacts.frames.get("attention_market_research", pd.DataFrame()).to_dict("records")
             ],
         )
     except Exception as exc:
@@ -2964,6 +2980,48 @@ def run_attention_home_build(
         )
         raise
 
+    news_frame = load_materialized_frame_fn("news_articles")
+    intake_status = {
+        "run_id": ctx.run_id, "asof_time_utc": ctx.asof,
+        "scope": "market_wide", "status": "completed", "error": "",
+    }
+    live_news = pd.DataFrame()
+    try:
+        config = load_config()
+        if config is None:
+            raise AlpacaAPIError("Market-wide news credentials are unavailable")
+        live_news = AlpacaAPI(config).get_news(
+            symbols=None, end=ctx.asof,
+            start=ctx.asof - pd.Timedelta(days=_env_positive_int("ATTENTION_HOME_NEWS_LOOKBACK_DAYS", 2)),
+            limit=_env_positive_int("ATTENTION_HOME_NEWS_LIMIT", 50),
+        )
+        intake_status["current_report_count"] = len(live_news)
+        news_frame = _merge_news_frames(live_news, news_frame)
+    except Exception as exc:
+        from services.work_scope import WorkCancelled
+        if isinstance(exc, WorkCancelled):
+            raise
+        from services.llm_execution import record_execution_issue
+        record_execution_issue("current_market_news", exc)
+        intake_status.update(status="unavailable", error=type(exc).__name__)
+        print(f"[warn] current market-wide news acquisition unavailable: {type(exc).__name__}", flush=True)
+    # Retain acquisition before expensive inference. Native publication owns its
+    # failure/retry semantics; a persistence failure is not a news-provider error.
+    if not live_news.empty:
+        persist_dataset_fn("attention_news_intake", live_news.assign(
+            acquired_at_utc=pd.Timestamp.now(tz="UTC"), briefing_asof_time_utc=ctx.asof), ctx, conn)
+    persist_dataset_fn("attention_news_intake_status", pd.DataFrame([intake_status]), ctx, conn)
+
+    if getattr(llm_client, "config", None) is not None:
+        # Declare the final briefing before optional discovery spends the run's
+        # allowance. The editor transfers this obligation into its actual calls.
+        protect_core_research(config=llm_client.config, work={"home:public_surface": {
+            "asof_time_utc": ctx.asof, "current_news": news_frame.to_dict("records"),
+            "market_observations": daily_movers.to_dict("records"),
+            "macro_observations": macro_movers.to_dict("records"),
+            "response_schema": _HOME_SURFACE_QUALITY_SCHEMA,
+        }}, stages=2)
+
     persist_frames = build_attention_home_output_frames(
         ctx=ctx,
         daily_movers=daily_movers,
@@ -2972,7 +3030,7 @@ def run_attention_home_build(
         price_history_frame=mandatory["price_history"],
         attention_feed_frame=load_materialized_frame_fn("attention_feed"),
         commodity_attention_feed_frame=load_materialized_frame_fn("commodity_attention_feed"),
-        news_frame=load_materialized_frame_fn("news_articles"),
+        news_frame=news_frame,
         attention_context_frame=load_materialized_frame_fn("attention_context_bundle"),
         edgar_filings_frame=load_materialized_frame_fn("edgar_filings"),
         llm_client=llm_client,

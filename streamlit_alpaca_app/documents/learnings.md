@@ -1388,3 +1388,10 @@ Read completed investigations independently of the last nomination: an empty qui
 ### Acquisition formats and provider identity are accounting contracts — October 28
 
 Recognize PDF MIME/magic before text decoding. Share the uploaded/HTTP PDF extractor, retain original bytes, and expose partial extraction separately from valid narrative. Azure wire deployment names are not billing model IDs. Price actual embedding token arrays by their token count and use the verified regional SKU; character-priced speech is a separate unit. A recovered keyword path must remain visible as degraded semantic retrieval in application receipts/health.
+
+
+### Market coverage must reach final synthesis — October 28
+
+A current price snapshot does not imply a current information agenda. Home inherited twice-daily ticker-filtered news, its source nominator had no independent discovery, and its final editor standalone intake excluded acquired sources through an event-news ID filter. Selected bundles could still carry some of those captures. The resulting summary recited the numeric market table while missing consequential policy and disclosure context. Refresh broad news at each existing briefing, use shared bounded discovery beyond movers, retain its substantive synthesis even with no focused nominations and pass complete captures through final editing. Keep released, in-progress and upcoming information distinct. Shared writing guidance should use quantities where they change understanding, without numeric quotas or example-specific rules.
+
+Declare final Home synthesis/review at the producer boundary before optional research, then transfer that obligation into actual full-model calls. Run funding and account liquidity are different contracts. A fresh provider balance plus aggregate billing does not establish the individual costs or terminal state of lost responses; keep unknown liabilities visible until authoritative reconciliation. See [the coverage diagnosis](verification/event-adaptive-reliability-2026-10-28/coverage-diagnosis.json).

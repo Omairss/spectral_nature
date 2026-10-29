@@ -1334,15 +1334,16 @@ def test_run_attention_home_persists_core_outputs_before_optional_page_summaries
         return pd.DataFrame()
 
     def _build_core(**kwargs):
+        assert protected == ["home:public_surface"]
         build_kwargs.update(kwargs)
         return {
-            "attention_home_1d": pd.DataFrame([{"top_events_json": "[]"}]),
+            "attention_home_snapshots_1d": pd.DataFrame([{"top_events_json": "[]"}]),
             "attention_ticker_background_snapshots": pd.DataFrame([{"symbol": "AAPL"}]),
         }
 
     def _build_page(**kwargs):
         del kwargs
-        assert "attention_home_1d" in persisted
+        assert "attention_home_snapshots_1d" in persisted
         assert "attention_ticker_background_snapshots" in persisted
         return pd.DataFrame([{"surface": "Market Explorer", "status": "ok"}])
 
@@ -1350,7 +1351,19 @@ def test_run_attention_home_persists_core_outputs_before_optional_page_summaries
         del frame, ctx, conn
         persisted.append(dataset_name)
 
-    monkeypatch.setattr(attention_home_build_module, "load_aql_zopedia_llm_client", lambda surface: object())
+    protected = []
+    monkeypatch.setattr(attention_home_build_module, "protect_core_research",
+                        lambda **kwargs: protected.extend(kwargs["work"]) or True)
+    monkeypatch.setattr(attention_home_build_module, "load_aql_zopedia_llm_client",
+                        lambda surface: SimpleNamespace(config=object()))
+    monkeypatch.setattr(attention_home_build_module, "load_config", lambda: object())
+    fresh_news = pd.DataFrame([{"headline": "Current market-wide report", "url": "https://example.invalid/current",
+                                "published_at": pd.Timestamp("2026-06-24T19:59:00Z")}])
+    def get_news(**kwargs):
+        assert kwargs["symbols"] is None
+        assert kwargs["end"] == pd.Timestamp("2026-06-24T20:00:00Z")
+        return fresh_news
+    monkeypatch.setattr(attention_home_build_module, "AlpacaAPI", lambda config: SimpleNamespace(get_news=get_news))
     monkeypatch.setattr(
         attention_home_build_module,
         "_validate_mandatory_datasets",
@@ -1368,9 +1381,34 @@ def test_run_attention_home_persists_core_outputs_before_optional_page_summaries
     )
 
     assert build_kwargs["include_page_agentic"] is False
-    assert persisted[:2] == ["attention_home_1d", "attention_ticker_background_snapshots"]
+    assert persisted[:2] == ["attention_news_intake", "attention_news_intake_status"]
+    assert persisted[2:4] == ["attention_home_snapshots_1d", "attention_ticker_background_snapshots"]
+    assert build_kwargs["news_frame"]["url"].tolist() == fresh_news["url"].tolist()
     assert persisted[-1] == "page_agentic_summaries"
     assert "page_agentic_summaries" in result
+
+
+def test_home_editor_receives_complete_discovery_and_its_protected_completion(monkeypatch):
+    from pipeline.jobs import attention_home_build as home
+    from services.llm_execution import _CALL
+    captured = []
+    completed = []
+    source = {"document_id": "agent_source::disclosure", "source_id": "current-disclosure",
+              "raw_text": "Complete acquired disclosure", "source_trace": "Primary capture"}
+    research = [{"status": "completed", "market_context_text": "Complete current research"}]
+    def run(**kwargs):
+        captured.append(kwargs)
+        assert _CALL.get()["core_work_id"] == "home:public_surface"
+        return {"status": "completed", "payload": {"issues": [], "items": [], "new_events": [],
+            "market_summary": {"summary_text": "Supplied output", "confidence": "high", "limitations": []}}}
+    monkeypatch.setattr(home, "run_aql_zopedia_structured_agent", run)
+    monkeypatch.setattr(home, "complete_core_research", completed.append)
+    home._review_home_public_surface({}, {}, enrichment_rows=[], asof_time_utc="2026-10-28T18:35:00Z",
+                                     timeout_seconds=30, source_documents=[source], market_research=research)
+    evidence = captured[0]["initial_evidence"][0]
+    assert evidence["full_source_intake"] == [source]
+    assert evidence["market_wide_research"] == research
+    assert completed == ["home:public_surface"]
 
 
 def test_db_mark_job_start_uses_matching_parameter_count():

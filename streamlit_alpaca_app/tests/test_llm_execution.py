@@ -451,7 +451,7 @@ def test_event_replay_identity_excludes_its_own_new_result(monkeypatch):
     version=[1]; captured=[]
     monkeypatch.setattr(events, 'latest_research_artifact', lambda **kwargs: {'artifact_id':str(version[0]),'payload':{'observation':version[0]}})
     def run(**kwargs):
-        if kwargs['schema_name']=='source_event_nominations':return {'status':'completed','payload':{'events':[plan]}}
+        if kwargs['schema_name']=='source_event_nominations':return {'status':'completed','payload':{'market_context_text':'Retained market research','events':[plan]}}
         captured.append(kwargs)
         raise RuntimeError('Stop at model boundary')
     monkeypatch.setattr(events,'run_aql_zopedia_structured_agent',run)
@@ -460,6 +460,33 @@ def test_event_replay_identity_excludes_its_own_new_result(monkeypatch):
     events.research_source_events(news,**kwargs);version[0]=2;events.research_source_events(news,**kwargs)
     assert len(captured)==2 and captured[0]['query']!=captured[1]['query']
     assert captured[0]['reuse_identity']==captured[1]['reuse_identity']
+
+
+@pytest.mark.parametrize("valid_contract", [True, False])
+def test_market_discovery_retains_acquisition_without_feed_or_focused_events(monkeypatch, valid_contract):
+    import pandas as pd
+    from services.aql import events
+    monkeypatch.delenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", raising=False)
+    calls = []
+    source = {"title": "Primary disclosure", "url": "https://example.invalid/disclosure",
+              "content": "Full current disclosure", "published_at": "2026-10-28T18:00:00Z"}
+    def run(**kwargs):
+        calls.append(kwargs)
+        return {"status": "completed" if valid_contract else "failed",
+                "payload": {"market_context_text": "Complete market research", "events": []} if valid_contract else None,
+                "agent_result": {"run_id": "discovery", "tool_calls": [{
+                    "tool_call_id": "acquire", "tool_name": "source", "status": "completed",
+                    "result_summary": {"source_documents": [source]}}]}}
+    monkeypatch.setattr(events, "run_aql_zopedia_structured_agent", run)
+    result = events.research_source_events(pd.DataFrame(), market_frame=pd.DataFrame(), universe_frame=None,
+        asof_time_utc="2026-10-28T18:35:00Z", run_id="current", llm_client=object(),
+        macro_context={"observations": [{"date": "2026-10-27", "value": 1}]})
+    assert len(calls) == 1 and calls[0]["max_tool_calls"] > 0
+    assert calls[0]["initial_evidence"] == []
+    assert result["documents"][0]["raw_text"] == source["content"]
+    assert result["documents"][0]["url"] == source["url"]
+    assert result["market_research"][0]["status"] == ("completed" if valid_contract else "failed")
+    assert result["status"] == ("completed" if valid_contract else "failed")
 
 
 def test_cost_estimate_counts_reasoning_inside_completion_once():

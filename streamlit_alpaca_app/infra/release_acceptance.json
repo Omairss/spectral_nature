@@ -1,6 +1,6 @@
 {
   "status": "awaiting_local_qualitative_acceptance",
-  "scope": "October28 event-adaptive reliability candidate. Source changes and180 operational contracts reviewed locally; fresh complete-output model comparison, exact-image DEV and promotion are pending. Previous source/image proof remains retained below as baseline, not candidate acceptance.",
+  "scope": "October28 event-adaptive reliability and broad market coverage candidate. Source changes and185 operational contracts reviewed locally. Shared provider-credit reconciliation, fresh complete-output model comparison, exact-image DEV and promotion remain pending. Previous source/image proof is retained below as baseline, not candidate acceptance.",
   "source_revision": "db302f4ce58541419af79e55769286c5b5a5b9d0",
   "review_base_revision": "ca0d2e3fc021ef79bed26f5e54d7c174dcc54d65",
   "files": {

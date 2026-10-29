@@ -45,6 +45,12 @@ RESEARCH_ANALYSIS_GUIDANCE = (
     "explain the consequential developments and connections across them; a numerical market recap alone is not "
     "a synthesis of that research. Different events can have different drivers; do not force a single theme. "
     "Review for important information lost between the research, draft and final answer as well as for factual errors. "
+    "Lead with the developments and their meaning in plain language. Include a number only when its magnitude, "
+    "comparison or threshold helps explain the conclusion; do not turn a market-data table into a paragraph of "
+    "sector returns, ticker moves and breadth counts. Qualitative direction is often sufficient. A market briefing "
+    "must assess the current information agenda as well as observed prices: important disclosures and scheduled "
+    "developments can matter before a large price move occurs. Explain the useful business or economic question "
+    "around an upcoming release without inventing its result. "
     "Match the requested format and length without imposing a fixed number of facts, sources or paragraphs."
 )
 

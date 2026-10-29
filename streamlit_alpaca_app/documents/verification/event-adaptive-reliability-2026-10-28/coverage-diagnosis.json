@@ -1,0 +1,118 @@
+{
+  "status": "source_repairs_verified_locally_not_qualitatively_accepted_or_deployed",
+  "owner_example": {
+    "market_observation_utc": "2026-10-28T18:35:00Z",
+    "publication_run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
+    "publication_asof_utc": "2026-10-28T18:50:37.585543Z",
+    "defect": "The overall summary recited sector averages, breadth counts and ticker percentages while omitting the substantive current agenda."
+  },
+  "confirmed_causes": [
+    {
+      "cause": "Coverage began with a ticker-filtered news snapshot from the twice-daily news producer.",
+      "effect": "Intervening Home builds did not independently refresh the broad news agenda."
+    },
+    {
+      "cause": "Source-event nomination had no research tools and returned immediately without feed documents.",
+      "effect": "The supplied ticker reports bounded discovery; consequential macro or upcoming developments could be absent despite current mover data."
+    },
+    {
+      "cause": "The final Home editor standalone source intake kept only the event-news prefix, and received no broad research synthesis.",
+      "effect": "Selected bundles could carry some acquired sources, but unselected and failed-investigation captures did not have a complete independent route to the editor. Numeric market coverage occupied the overall synthesis."
+    },
+    {
+      "cause": "Final Home completion was not declared at the producer boundary before optional research.",
+      "effect": "Its protected run funding began too late. The candidate now declares it before optional work, distinct from shared-provider liquidity."
+    },
+    {
+      "cause": "After-close research and final writing were refused by shared provider-credit admission.",
+      "effect": "Fresh Microsoft and Alphabet headlines were present, but no new public Home report was produced. The earlier report remained the latest publication."
+    }
+  ],
+  "timing_evidence": [
+    {
+      "subject": "Fed statement",
+      "publication_utc": "2026-10-28T18:00:00Z",
+      "relevance": "Available before the quoted market observation; old yield observations cannot substitute for current policy reporting.",
+      "source": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"
+    },
+    {
+      "subject": "Microsoft earnings",
+      "relevance": "Scheduled after the quoted pre-close snapshot. Its result headlines appear in the retained after-close intake. Earlier briefing should treat the release as upcoming.",
+      "source": "https://news.microsoft.com/source/2026/10/07/microsoft-announces-quarterly-earnings-release-date-69/"
+    },
+    {
+      "subject": "Inflation",
+      "relevance": "Preserve original observation/release dates; distinguish current inflation interpretation from the upcoming PCE release.",
+      "sources": [
+        "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "https://www.bea.gov/news/schedule"
+      ]
+    }
+  ],
+  "after_close_failure": {
+    "run_id": "624a2de2-83b6-4b72-a704-b6d19a7a2b26",
+    "started_utc": "2026-10-28T20:50:50Z",
+    "finished_utc": "2026-10-28T20:56:50Z",
+    "application_status": "Failed",
+    "source_event_attempts": 4,
+    "source_event_completed": 0,
+    "final_editor_attempts_not_sent": 2,
+    "error_type": "LLMProviderUnavailable",
+    "reason": "Shared provider credit held against unresolved transport liabilities; independent of event-margin allocation."
+  },
+  "credit_investigation": {
+    "unknown_transport_attempts": 30,
+    "failure_types": {
+      "ConnectionError": 29,
+      "ReadTimeout": 1
+    },
+    "known_usage_receipts": 0,
+    "billing_console": "Read-only console confirms aggregate usage and available balance; export action exposed no request-level settlement evidence.",
+    "unresolved": "The current provider balance cannot assign actual cost or prove the terminal state of each lost response. No unknown hold was cleared or marked zero. Future account-level core protection and authoritative reconciliation remain open."
+  },
+  "candidate_behavior": [
+    "Fetch market-wide full-content news at each existing Home schedule.",
+    "Use the existing shared nominator for bounded independent discovery, dated economic context and a retained substantive market synthesis.",
+    "Retain acquired tool captures even if nomination fails; preserve unresolved references as fallible leads.",
+    "Deliver all acquired captures and market research to the final full-model editor.",
+    "Reserve final Home synthesis/review in the run ledger before optional discovery.",
+    "Use shared plain-language guidance: numbers belong where magnitude, comparison or a threshold changes the explanation."
+  ],
+  "validation": {
+    "operational_contracts_passed": 185,
+    "complete_new_model_output_review": "pending",
+    "inference_started": false,
+    "candidate_image_built": false,
+    "development_deployed": false,
+    "production_deployed": false
+  },
+  "qualitative_cases_required": [
+    "Pre-close current agenda: distinguish released policy reporting and upcoming earnings/inflation releases.",
+    "After-close current disclosures: inspect the full earnings and market-wide source handoff, not only ticker mover statistics.",
+    "Quiet repeated inputs: preserve current meaning while avoiding duplicate deep investigations.",
+    "Complete full-model public output: assess usefulness, chronology, missing substantive developments and numerical selectivity personally."
+  ],
+  "private_evidence": "operations/event-adaptive-reliability-2026-10-28/feed-coverage-example; full records remain outside Git.",
+  "no_topic_specific_runtime_rules": true,
+  "live_news_contract_check": {
+    "inference_started": false,
+    "provider": "Existing Alpaca news API",
+    "cases": [
+      {
+        "case": "pre-close",
+        "asof_utc": "2026-10-28T18:35:00Z",
+        "rows": 50,
+        "full_content_present": 25,
+        "private_input_sha256": "c8cff77f70bfc5a259ee2b06580877da08dc0a248ba23c4d1abef4ceec466c23"
+      },
+      {
+        "case": "post-close",
+        "asof_utc": "2026-10-28T20:50:48Z",
+        "rows": 50,
+        "full_content_present": 6,
+        "private_input_sha256": "a3e33b9de962803a006173a1c68b8f966230c78806399efc7036d3b0060a3cc3"
+      }
+    ],
+    "finding": "Unfiltered pre-close acquisition includes current Fed press-conference reporting absent from the old filtered intake. The later broad page is dominated by newer reports and does not preserve the full earlier agenda on its own; dated retained intake and independent shared discovery are both needed."
+  }
+}

@@ -1312,3 +1312,10 @@ The exact-image probe covered ownership, deadlines, publication and simulated De
 The existing24-hour company-cache expiry bypassed semantic reuse and bought a full investigation even with unchanged useful evidence. Moving budget holds after cache lookup alone would not fix recurring quiet-day spending. The candidate now assesses current materiality and freshness after expiry, with original/current as-of dates separate; only a completed reuse decision advances the check time. Failed/uncertain assessment still refreshes. Complete-output qualification is pending; software checks cannot establish the decision quality.
 
 The feed-quality investigation also confirmed Pro remained the main Home writer/reviewer. Do not attribute an overall regression to Flash without reading provider routes and complete research-to-publication handoffs. Current evidence shows lost substantive findings during synthesis, rejected semantic retrieval and some cheaper optional profiles as separate issues.
+
+
+### Writing guidance alone did not fix broad coverage — October 28
+
+The owner's concrete summary exposed upstream intake and handoff failures beyond the earlier substantive-synthesis guidance. The main writer was already Pro. Its broad agenda was restricted to ticker-filtered reports, independent discovery was disabled and the standalone final intake excluded acquired sources that were not carried through selected bundles. Fixed those contracts locally and declared final Home completion before optional research. The later after-close execution had current earnings headlines, but both focused investigations and final writing were denied shared provider credit; do not describe that as only a final-editor failure or as successful publication. Complete new-model output acceptance and provider-liability reconciliation remain open.
+
+The new source-reference adapter initially mutated the retained model payload; same-run replay verification exposed the mutation. Adapt copied plan dictionaries and keep the discovery input list separate from subsequently acquired documents. Mechanical handoff checks now pass; they do not establish prose quality.

@@ -1,4 +1,4 @@
-"""Owner-approved retained-input comparison; strict study cap, no publication.
+"""Prepared retained-input comparison; requires fresh approval and qualification.
 
 This explicit exception does not change AGENTS.md's normal Lambda-only policy.
 Requires the private approval record and an isolated local PostgreSQL DSN.
@@ -29,6 +29,8 @@ if approval.get("status") not in {"approved", "running"}:
     raise SystemExit("This comparison is not authorized to start or continue; record a fresh explicit owner exception.")
 if approval.get("authorization") != "Approve this API comparison up to $10" or approval.get("maximum_total_usd") != 10:
     raise SystemExit("This comparison requires the owner's explicit $10 exception.")
+if approval.get("ready_for_execution") is not True:
+    raise SystemExit("Requalify current coverage inputs and shared production credit before starting this study.")
 study_lock = (OUT / "study.lock").open("a")
 fcntl.flock(study_lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
 dsn = os.environ.get("QUALIFICATION_LOCAL_DSN", "")

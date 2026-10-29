@@ -3,12 +3,12 @@
   "review_base_revision": "a1eefb18490e84b3c637b8e42a4f4954362fc3de",
   "files": {
     ".env.example": "Adds independent event-mode/margin controls. Blank mode preserves the fixed target. No credential or schedule changes.",
-    "pipeline/jobs/attention_home_build.py": "Preserves complete Home materialization and full-model public editor. Operational source/provider issues enter typed research health and errors; public prose receives no diagnostics filler.",
+    "pipeline/jobs/attention_home_build.py": "Fresh market-wide news is retained before expensive inference, with a separate acquisition status. The producer declares final full-model Home completion before optional research; the editor transfers and completes that obligation. All acquired document text, identity and provenance, plus substantive market-wide research, reach the editor without the old event-news prefix filter. Storage/provider JSON wrappers that duplicate the same text are omitted from this semantic handoff; full captures remain retained. A persistence failure is not mislabeled as a news-provider failure. No new schedule or model changes.",
     "pipeline/jobs/main.py": "Preserves original root/as-of/deadline/policy across retry. Adds frozen event controls, current interpreted change context, bounded reserved-capacity publication metadata, same-execution native restoration, issue propagation and final financial receipts. EDGAR historical transaction remains unidentifiable; reproduced source path is repaired.",
     "services/aql/business_model_stack.py": "Reuses completed company research before optional expensive funding. Expired freshness checks invoke existing semantic assessment using current/original dates; only completed negative-refresh assessment advances checked_at. Policy changes/uncertainty still refresh. Event-selected current subjects receive priority, each uncompleted news report remains current rather than rolled forward.",
-    "services/aql/events.py": "Nominator receives actual market observations, prior observations and independently listed dated completed investigations. Quiet zero nominations preserve history. Configurable event capacity can grow with the frozen margin. Only model-selected source IDs/reason bind marginal funding. Prior research honors declared access scope. Unavailable history is explicit degradation and current research still proceeds.",
+    "services/aql/events.py": "The existing source nominator can use bounded shared discovery independently of feed/mover availability. It receives dated economic context, retains broad research even with no focused nomination and materializes tool captures even when nomination fails. URL/source references are adapted without mutating the retained model payload; unresolved refs remain visible leads. Same-run retry identity excludes its own newly completed history. Focused research keeps existing shared source, model and budget contracts.",
     "services/aql_zopedia_gateway.py": "Applies common substantive-analysis/synthesis guidance to shared nonliteral research and formatting calls. Mechanical literal outputs and existing schema/transport/authorization remain intact. New narrative behavior requires complete-output personal acceptance.",
-    "services/llm_context.py": "Global guidance retains observations, mechanisms, alternatives and substantive cross-investigation findings through synthesis. No issuer rules, phrase grader, source quota or forced shared theme.",
+    "services/llm_context.py": "Shared narrative guidance preserves substantive mechanisms and current developments, using quantities only when they improve interpretation. Upcoming information is handled as upcoming rather than invented results. No fixed numeric quota, phrase grader or named-company exception.",
     "services/llm_execution.py": "One atomic run/wallet ledger admits audited event shortfalls within base*(1+margin); retries cannot reset it and refunded margin cannot fund unselected work. Required core remains protected with visible soft variance. Canonical billing model is distinct from wire alias; tokenized embeddings and character-priced audio use correct units. Recovered issues flow across copied worker contexts. Cache identity uses frozen base/ceiling rather than incremental working-cap changes.",
     "services/llm_prices.json": "Retains existing DeepSeek prices. Adds verified westus Standard Azure small-embedding and published ElevenLabs v2 character rates. Estimates remain distinct from invoices; unpriced requests do not become zero.",
     "services/page_browsing.py": "Recognizes PDF magic/MIME before decoding and unsupported binary is never narrative. Retains original response bytes, shared extraction provenance and explicit failed/partial acquisition. Text NUL normalization retains originals. HTML handling and complete source_text remain available.",
@@ -17,13 +17,15 @@
     "services/saa/zopedia.py": "Uploaded PDF calls the same extraction contract as HTTP; magic/MIME/extension detection retains prior supported behavior. Retained API images already parse PDF with pypdf; their earlier accepted UI, Trading and research behavior is preserved.",
     "services/web_research.py": "Shared pypdf extraction retains full extracted page text, explicit failed-page metadata and normalized text with original bytes retained by acquisition owner. Existing HTML trafilatura/LLM source extraction remains unchanged.",
     "services/zopedia_agent.py": "Independent selected event investigations must fund optional full-model completion before expansion. Unfunded work produces current economical completion. Inherited funded company/current core work retains existing full-model semantics.",
-    "services/zopedia_learning.py": "Saved frozen reviews run before new critiques and do not repurchase a completed critic after engine revision. Preserves original diagnosis/eval and permission policy. Excludes unchanged terminal episodes, retains pending fairness and reports actual critique/review deferrals within original case/job windows."
+    "services/zopedia_learning.py": "Saved frozen reviews run before new critiques and do not repurchase a completed critic after engine revision. Preserves original diagnosis/eval and permission policy. Excludes unchanged terminal episodes, retains pending fairness and reports actual critique/review deferrals within original case/job windows.",
+    "services/alpaca_api.py": "An omitted/None news symbol filter explicitly fetches market-wide news through existing paginated acquisition, including full content. Explicit empty selection preserves prior no-query behavior. Existing selected-symbol callers retain normalization, newest-first order and bounded result limits.",
+    "services/aql/pipeline.py": "Passes full dated FRED/yield observations into shared broad discovery and retains its typed market-research dataset in both empty-candidate and ordinary output paths. Acquired documents continue through existing annotation/chunking. Candidate research, source-event bundles and canonical final editor remain intact."
   },
   "mechanical_verification": {
-    "passed": 180,
+    "passed": 185,
     "isolated_postgresql": true,
     "inference_started": false,
-    "log": "private contracts-20261028T190640Z.log"
+    "log": "private contracts-20261029T004107Z.log"
   },
   "shared_consumer_definition_changes": [
     {
@@ -70,6 +72,7 @@
   "full_consumer_inventory": "consumers.before.json",
   "consumer_preservation": "All36 current images and effective configurations match the preceding accepted readback. All29 workers are required for the changed publication contract. Seven distinct API/broker/frontend images retain their packaged-source evidence and accepted behavior. New release will not replace those images.",
   "remaining_acceptance": [
+    "Authoritative provider-credit reconciliation; preserve unknown liabilities and protect shared-account core liquidity",
     "Fresh complete-output personal comparison under a newly authorized provider allocation",
     "Committed accepted source inventory",
     "Exact-image DEV operational qualification",

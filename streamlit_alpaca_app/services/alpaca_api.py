@@ -563,13 +563,15 @@ class AlpacaAPI:
 
     def get_news(
         self,
-        symbols: list[str],
+        symbols: list[str] | None = None,
         start: datetime | None = None,
         end: datetime | None = None,
         limit: int = 20,
     ) -> pd.DataFrame:
-        normalized_symbols = self._normalize_symbols(symbols)
-        if not normalized_symbols:
+        # None deliberately requests market-wide news. An explicitly empty
+        # selection preserves the existing no-query behavior for ticker callers.
+        normalized_symbols = self._normalize_symbols(symbols or [])
+        if symbols is not None and not normalized_symbols:
             return pd.DataFrame()
 
         result_limit = min(max(int(limit), 1), 50)

@@ -103,6 +103,19 @@ class RecordingAlpacaAPI(AlpacaAPI):
         return {"timestamp": [], "equity": [], "profit_loss": [], "profit_loss_pct": []}
 
 
+def test_alpaca_market_wide_news_omits_symbol_filter_and_keeps_empty_selection_no_query():
+    api = RecordingAlpacaAPI()
+    assert api.get_news([]).empty
+    assert api.last_request is None
+    assert api.get_news(None, end=datetime(2026, 10, 28, 18, 35, tzinfo=timezone.utc), limit=50).empty
+    request = api.last_request
+    assert request["path"] == "/v1beta1/news"
+    assert "symbols" not in request["params"]
+    assert request["params"]["include_content"] == "true"
+    assert request["params"]["sort"] == "desc"
+    assert request["params"]["end"] == "2026-10-28T18:35:00+00:00"
+
+
 class RecordingBarsAPI(AlpacaAPI):
     def __init__(self):
         super().__init__(
