@@ -1,5 +1,5 @@
 {
-  "status": "operational_source_verified_publication_quality_not_accepted",
+  "status": "operational_source_verified_owner_prefers_compared_output_dev_image_qualification_remaining",
   "production_authorized": false,
   "review_base_revision": "c92245b62852d0f6d38465a07dd6f254a670866e",
   "selected_runtime_revision": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44",
@@ -54,10 +54,10 @@
     "new_publication_contracts_passed": 2,
     "unchanged_paid_answer_reapplication": "11selected stories,all7public fields unchanged,9primary public/research metadata records preserved,no network or inference."
   },
-  "qualitative_state": "Recovered-run comparison finished; selection and materialization now share reader identities and preserve primary metadata. Full-model prose remains repetitive and numerically excessive, so no coherent-design build/deployment is accepted.",
+  "qualitative_state": "Owner assessed the complete candidate as much better. This supersedes the prior personal prose-quality release hold for the compared output. Broader scheduled reliability and complete upstream candidate costs remain unmeasured.",
   "remaining": [
-    "Improve public composition and personally accept complete outputs; current broader coverage is not sufficient.",
-    "Commit source acceptance only after local behavioral acceptance.",
-    "Exact three-role DEV packaging,cloud contracts and DEV rollout; new-design production permission remains with owner."
+    "Reconcile final source acceptance inventory and all current consumer configurations.",
+    "Build and qualify the exact three DEV role images against the retained operational failure checks.",
+    "Deploy the qualified DEV candidate and observe a complete run; coherent-design production requires owner permission."
   ]
 }

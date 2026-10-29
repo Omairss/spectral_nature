@@ -1,5 +1,5 @@
 {
-  "status": "incremental_production_current_new_design_implemented_quality_rejected",
+  "status": "owner_prefers_candidate_operational_development_qualification_remaining",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -55,8 +55,8 @@
     {
       "id": "feed_quality",
       "task": "Personally compare complete current feed and retained paired model outputs, correct source or routing causes, and preserve substantive full-model core work.",
-      "status": "owner_accepted_incremental_improvement_remaining_design_in_dev",
-      "evidence_or_remaining": "Recovered-run full Pro comparison now materializes all11selected stories and broadens coverage, but still repeats financial inventories, framing and process qualifications. Core writer/reviewer are full Pro; cheaper models do not explain this comparison failure. New DEV design remains unaccepted. Owner-approved incremental production stays live.",
+      "status": "owner_prefers_new_compared_output_release_qualification_remaining",
+      "evidence_or_remaining": "Owner assessed the complete candidate as much better. Writing/review observed0.220677USD versus production0.909828USD; full candidate upstream cost and scheduled reliability remain unmeasured. Existing approved production stays unchanged.",
       "proposed_design_reference": "quality_fix_design"
     },
     {
@@ -75,8 +75,8 @@
     {
       "id": "verification_and_release",
       "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
-      "status": "incremental_release_complete_new_design_quality_rejected",
-      "evidence_or_remaining": "208shared operational checks plus2new source-identity/metadata contracts pass. Current same-evidence full-model comparison is personally rejected. Exact DEV build/probes/rollout remain gated by local quality acceptance; no coherent image built or deployed."
+      "status": "incremental_release_complete_new_design_exact_image_qualification_remaining",
+      "evidence_or_remaining": "Local contracts and full compared output are available; owner prefers the candidate. Three exact DEV role builds, operational cloud qualification and DEV rollout remain. No new production authorization."
     },
     {
       "id": "scheduled_observation",
@@ -267,7 +267,7 @@
     }
   },
   "quality_fix_design": {
-    "status": "implemented_operationally_verified_complete_output_quality_rejected",
+    "status": "owner_prefers_compared_output_exact_image_dev_qualification_remaining",
     "recorded_at_utc": "2026-10-29T05:49:10.354169+00:00",
     "owner_request": "Come up with a 500 IQ fix",
     "central_change": "Carry one versioned, substantive shared research result into an explicitly selected publication. Make evidence addressable, let the model choose the exact visible feed, and review that same feed before materialization.",
@@ -404,9 +404,9 @@
     },
     {
       "id": "complete_output_owner_evaluation",
-      "status": "complete_comparison_personally_rejected_preview_available",
+      "status": "owner_prefers_compared_output",
       "work": "Compare full final public outputs, keep study allowance/unknowns intact and let the owner evaluate the new DEV design before promotion.",
-      "evidence": "development-quality.json; all6production and11candidate stories are available verbatim in the separate coherent-feed-review preview. New verification estimate0.800401USD; same18USDcap retains all old attempts and unknown maxima."
+      "evidence": "development-quality.json:owner_assessment and cost_and_reliability_comparison. Earlier personal rejection is historical, not an outstanding owner-quality gate."
     },
     {
       "id": "completion_clock",
@@ -424,7 +424,7 @@
   "development_source": {
     "branch": "fix/shared-research-publication-dev-20261029",
     "production_authorized": false,
-    "local_complete_output_review": "completed_personally_rejected",
+    "local_complete_output_review": "Owner prefers candidate; previous personal quality rejection is retained as history.",
     "integrated_accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
     "source_acceptance": "in_progress_not_buildable",
     "remaining": [

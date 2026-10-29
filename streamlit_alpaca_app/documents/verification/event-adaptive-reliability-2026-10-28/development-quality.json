@@ -1,5 +1,5 @@
 {
-  "status": "complete_comparison_personally_rejected_for_release",
+  "status": "owner_prefers_candidate_operational_development_qualification_pending",
   "production_authorized": false,
   "comparisons": [
     {
@@ -92,7 +92,7 @@
     "invoice_reconciled": false,
     "new_inference_scheduled": false
   },
-  "local_release_hold": "No coherent-design image build or deployment: complete-output quality still does not meet owner requirements. Operational source improvements are committed separately from qualitative acceptance.",
+  "local_release_hold": "Owner preference supersedes the prior personal prose-quality hold for this compared output. Exact-image DEV operational qualification and a full candidate run remain unverified; no coherent-design production authorization.",
   "preview": {
     "path": "output/visualizations/coherent-feed-review-20261029.html",
     "production_stories": 6,
@@ -124,5 +124,45 @@
     },
     "inference_calls": 0,
     "production_changed": false
+  },
+  "owner_assessment": {
+    "instruction": "Candidate is much better. How does ti compare in cost and reliability?",
+    "recorded_at_utc": "2026-10-29T18:58:25.885033+00:00",
+    "scope": "Owner preference accepts the compared output; it does not authorize coherent-design production deployment or establish scheduled-run reliability."
+  },
+  "cost_and_reliability_comparison": {
+    "recorded_at_utc": "2026-10-29T18:58:25.885033+00:00",
+    "basis": "Observed production publication and isolated candidate publication over the same recovered-run research corpus; one comparison, not a whole-pipeline candidate benchmark.",
+    "production": {
+      "writing_and_review_estimated_usd": 0.9098283920000001,
+      "publication_seconds": 367.408,
+      "input_tokens": 1287287,
+      "successful_deepseek_whole_home_estimated_usd": 6.049374988,
+      "stories": 6,
+      "model": "deepseek-v4-pro"
+    },
+    "candidate": {
+      "writing_and_review_estimated_usd": 0.22067720400000002,
+      "publication_seconds": 295.0541730830446,
+      "input_tokens": 224790,
+      "stories": 11,
+      "model": "deepseek-v4-pro"
+    },
+    "cost_reduction_fraction": 0.7574518382363253,
+    "input_token_reduction_fraction": 0.8253769361455526,
+    "publication_time_reduction_fraction": 0.19693046127725966,
+    "illustrative_same_upstream_home_estimate_usd": 5.360223800000001,
+    "illustrative_whole_home_reduction_fraction": 0.11392105620283959,
+    "not_a_measured_full_candidate_run": true,
+    "pricing": "Provider usage receipts valued at the recorded published offpeak rates; estimates, not reconciled invoices. Other failed/unpriced charges remain outside these known-success comparisons.",
+    "reliability": {
+      "observed_source_identity_failure_corrected": true,
+      "all11selected_stories_materialized": true,
+      "metadata_and_paid_text_preserved_without_new_inference": true,
+      "exact_candidate_images_cloud_qualified": false,
+      "full_candidate_scheduled_run_observed": false,
+      "owner_quality_assessment": "Candidate is much better.",
+      "owner_production_authorization_for_coherent_design": false
+    }
   }
 }
