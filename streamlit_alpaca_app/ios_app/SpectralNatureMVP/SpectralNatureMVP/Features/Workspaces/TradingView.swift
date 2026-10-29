@@ -66,7 +66,7 @@ struct TradingView: View {
         switch selection {
         case .order(let action):
           PaperOrderReviewView(candidate: action.record, initialPolicy: policy.object("risk_policy")) { receipt in
-            notice = action.record.text("intent") == "cancel" ? "Cancellation requested" : "Paper order submitted: \(receipt.text("side")) \(receipt.text("qty")) \(receipt.text("symbol"))"
+            notice = action.record.text("intent") == "cancel" ? (receipt.text("status") == "canceled" ? "Order canceled" : ["filled", "expired", "rejected", "replaced"].contains(receipt.text("status")) ? "Order already \(receipt.text("status"))" : "Cancellation requested") : "Paper order submitted: \(receipt.text("side")) \(receipt.text("qty")) \(receipt.text("symbol"))"
             presentation = nil
             await refresh()
           }

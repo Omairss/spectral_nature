@@ -518,7 +518,7 @@ export default function TradingAgentPage() {
             setReview(null);
             setNotice(
               review.intent === "cancel"
-                ? "Cancellation requested."
+                ? o.status === "canceled" ? "Order canceled." : ["filled", "expired", "rejected", "replaced"].includes(o.status) ? `Order already ${o.status}.` : "Cancellation requested."
                 : `Paper order submitted: ${o.side} ${o.qty} ${o.symbol}`,
             );
             await refresh();

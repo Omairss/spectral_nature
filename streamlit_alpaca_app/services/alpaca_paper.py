@@ -1226,13 +1226,13 @@ def confirm_order(
                     )
                     if (
                         intent == "cancel"
+                        and ticket["status"] != "executed"
                         and existing.get("status")
-                        not in trading_portfolio.TERMINAL_ORDERS
+                        not in trading_portfolio.TERMINAL_ORDERS | {"pending_cancel"}
                     ):
-                        return {
-                            "status": "cancel_requested",
-                            "order": _select(existing, ORDER_FIELDS),
-                        }
+                        raise PaperAccountError(
+                            "Cancellation status is still being reconciled. Refresh its status."
+                        )
                     if intent != "cancel":
                         api.validate_order_receipt(existing, order)
                     receipt = _select(existing, ORDER_FIELDS)
@@ -1425,12 +1425,17 @@ def confirm_order(
                 identity=action_id,
                 decision="submitted",
             )
-            status = (
-                "cancel_requested"
-                if intent == "cancel"
-                and receipt.get("status") not in trading_portfolio.TERMINAL_ORDERS
-                else "submitted"
-            )
+            status = "submitted"
+            if intent == "cancel":
+                status = (
+                    "canceled"
+                    if receipt.get("status") == "canceled"
+                    else (
+                        "cancel_unnecessary"
+                        if receipt.get("status") in trading_portfolio.TERMINAL_ORDERS
+                        else "cancel_requested"
+                    )
+                )
             store.paper_event(
                 context,
                 environment=environment_name(),

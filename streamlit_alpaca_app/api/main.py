@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, Response, UploadFile, status
+from fastapi import Depends, FastAPI, File, Header, HTTPException, Query, Request, Response, UploadFile, status
 from pydantic import BaseModel, Field
 
 
