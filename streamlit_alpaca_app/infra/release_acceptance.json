@@ -1023,7 +1023,16 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702": {
+          "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+          "source_inventory_sha256": "193158326a55e00605b6239ef3c35acf94413dc182b26c15b34b0df977731fac",
+          "runtime_inventory_sha256": "2ef97920a622eaa71873e909ca9c3693555f2427e9310b9ab70799b1114813f2",
+          "all_packaged_files_checked": true,
+          "packaged_files": 189,
+          "evidence": "documents/verification/iphone-feedback-2026-10-28/CREDIT_DEV.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
@@ -1324,5 +1333,13 @@
     "not_before_pacific": "2026-10-27",
     "configuration_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-configuration.json",
     "development_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json"
+  },
+  "development_acceptance": {
+    "status": "accepted",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    "source_inventory_sha256": "193158326a55e00605b6239ef3c35acf94413dc182b26c15b34b0df977731fac",
+    "evidence": "documents/verification/iphone-feedback-2026-10-28/CREDIT_DEV.json"
   }
 }
