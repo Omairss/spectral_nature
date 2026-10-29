@@ -1,5 +1,5 @@
 {
-  "status": "installed_launch_check_requires_unlock",
+  "status": "installed_launched_and_independently_verified",
   "recorded_at": "2026-10-29T06:37:24.060496+00:00",
   "owner_instruction": "Push to prod",
   "signing": {
@@ -26,9 +26,14 @@
       "installed_version": "1.0.0",
       "installed_build": "16",
       "independent_installed_version_readback": true,
-      "launch": "blocked_by_locked_device",
-      "process_readback": "not_available",
-      "lock_state": true
+      "launch": "succeeded_after_owner_unlock",
+      "process_readback": {
+        "status": "matched_independently",
+        "process_identifier": 28253,
+        "executable": "SpectralNature.app/SpectralNature",
+        "matches_installed_application": true
+      },
+      "previous_launch_blocker": "device_locked"
     },
     {
       "owner": "Zohair",
@@ -47,5 +52,6 @@
       "last_verified_build": "14"
     }
   ],
-  "notes": "Signed Release build from unchanged accepted native input inventory. Existing bundle/team preserve installation identity. Simulator visuals accepted in LOCAL.json. No claim of successful physical launch while iOS reports Locked."
+  "notes": "Signed Release build from unchanged accepted native input inventory. Existing bundle/team preserve installation identity. Simulator visuals accepted in LOCAL.json. After the owner confirmed unlock, launch succeeded; a subsequent independent device process readback matched the launched PID and installed app executable.",
+  "launch_verified_at": "2026-10-29T06:53:15.131555+00:00"
 }

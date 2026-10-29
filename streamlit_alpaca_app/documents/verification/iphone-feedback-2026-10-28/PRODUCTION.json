@@ -1,5 +1,5 @@
 {
-  "status": "production_deployed_phone_installed_launch_pending_unlock",
+  "status": "production_deployed_owner_phone_installed_and_launched",
   "recorded_at": "2026-10-29T06:37:24.060496+00:00",
   "owner_instruction": "Push to prod",
   "credit": "CREDIT_PRODUCTION.json",
@@ -131,5 +131,6 @@
   "inference_requests_for_verification": 0,
   "production_research_runs_manually_started": 0,
   "product_data_writes_for_verification": 0,
-  "remaining_delivery": "Omair phone installed build16; launch requires unlock. Other two phones directly queried and unavailable."
+  "remaining_delivery": "Zohair and Fay phones were unavailable at release; no update attempted there. Omair build16 installation, launch and independent running-process readback are verified.",
+  "native_launch_verified_at": "2026-10-29T06:53:15.131555+00:00"
 }
