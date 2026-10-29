@@ -1,8 +1,8 @@
 {
   "status": "accepted_locally",
-  "scope": "Isolated shared provider-liquidity repair for failed research chat. Development worker delivery only. Other application behavior preserved.",
-  "source_revision": "bdea33bbc3feb5c17ce251cc414668d2ff086594",
-  "review_base_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
+  "scope": "Add accepted retained paper-call metrics to production API with current shared credit/worker source. Preserve DEV-only API and all other images.",
+  "source_revision": "44b2be699fa6e4763e1815b5c3bbe94dc06579de",
+  "review_base_revision": "b900e5ca",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "3dfcb13e1cfe9f8a6dd64742ebb1b00a1c4bcd31928c867cbf8d6ba3f629b4e6",
@@ -34,7 +34,7 @@
     "cache/cache_policy.json": "3c9c10ab71cd70dbf6e552b7b9fdc79b37221487e86566170cc1fa5cffae13be",
     "cache/pipeline_store/.gitignore": "240a3e0d37d2e86b614063f5347eb02d4f99ca6c254de6b82871ff8d95532a7d",
     "compute/__init__.py": "3cc118a8673c61d81bc50b9f2de1c01f2588ce65c668fe9664849fe331393781",
-    "compute/analytics.py": "c6550f140c2a9ad94d026d09873ed36a8aeb17760cb7039ce086dbd0e073ca05",
+    "compute/analytics.py": "5ff2bf0b422a49e7502733a56409e2d9219bc1f960d6207285c5acad643ec604",
     "compute/anomalies.py": "387e2aa10eebc0bba2d37c100cbbb5cc84f44539941b4f739a2c4bbc3702a75d",
     "compute/event_study.py": "a0c136e22a49c36b28af9e300ed19497108c9829609040232839237ec56d894c",
     "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
@@ -209,7 +209,7 @@
     "services/system_health.py": "3075ac581364cb7007415bac1a5f921f5e5cdb2bd7ce1b1b2c24c6658ee1445b",
     "services/trading_agent.py": "b1c19df36fa21a92750f487e26885fc75aa8030a5f187cb24602fa49013441fb",
     "services/trading_agent_view.py": "103b0b1f356dd8fb5d5e58948b9ee9f067a20ccfb1be1a3afa11013adc512bb7",
-    "services/trading_call_tracking.py": "df5cfcdd7784781a0a91ac6ad7c3656ca319b4446564d7a873bdf178511edb5a",
+    "services/trading_call_tracking.py": "f321cf36bcbc7a0857021d2240ea18ce69fd12d64a6d0102e99c1567d9256c46",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "5be2ba6bfd4c70530a106c70376dc52fadb0e3324f3e508b24d645898640f3e3",
@@ -336,7 +336,7 @@
     "branding/substack/Substack.png": "7735904fedb7e86e7b67ca94fe8a2d4f3494a472016bc1f5b5e57bc8a234bd30",
     "cache/cache_policy.json": "3c9c10ab71cd70dbf6e552b7b9fdc79b37221487e86566170cc1fa5cffae13be",
     "compute/__init__.py": "3cc118a8673c61d81bc50b9f2de1c01f2588ce65c668fe9664849fe331393781",
-    "compute/analytics.py": "c6550f140c2a9ad94d026d09873ed36a8aeb17760cb7039ce086dbd0e073ca05",
+    "compute/analytics.py": "5ff2bf0b422a49e7502733a56409e2d9219bc1f960d6207285c5acad643ec604",
     "compute/anomalies.py": "387e2aa10eebc0bba2d37c100cbbb5cc84f44539941b4f739a2c4bbc3702a75d",
     "compute/event_study.py": "a0c136e22a49c36b28af9e300ed19497108c9829609040232839237ec56d894c",
     "compute/fred.py": "aab5cf82a6194cbc5f7616131aa99571c16da8392103bc1a8553e8274bf10f60",
@@ -489,7 +489,7 @@
     "services/system_health.py": "3075ac581364cb7007415bac1a5f921f5e5cdb2bd7ce1b1b2c24c6658ee1445b",
     "services/trading_agent.py": "b1c19df36fa21a92750f487e26885fc75aa8030a5f187cb24602fa49013441fb",
     "services/trading_agent_view.py": "103b0b1f356dd8fb5d5e58948b9ee9f067a20ccfb1be1a3afa11013adc512bb7",
-    "services/trading_call_tracking.py": "df5cfcdd7784781a0a91ac6ad7c3656ca319b4446564d7a873bdf178511edb5a",
+    "services/trading_call_tracking.py": "f321cf36bcbc7a0857021d2240ea18ce69fd12d64a6d0102e99c1567d9256c46",
     "services/treasury_yields.py": "4ca3daf57b5a50b5028d1d71378428d0e017288293b7cb1132c7a342bfc34e20",
     "services/universe.py": "140d2467df221b9eaf2cb97a652f5aa7e98b1de9276d1e2123908f08bfcc4b47",
     "services/web_research.py": "5be2ba6bfd4c70530a106c70376dc52fadb0e3324f3e508b24d645898640f3e3",
@@ -504,7 +504,8 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    "services/llm_execution.py": "Only shared account reservation and settlement functions reused from 4f78e927; real PostgreSQL liquidity/concurrency checks and whole current worker source preservation reviewed. No feed/model/prompt/schedule changes."
+    "compute/analytics.py": "Reviewed retained-data metrics projection and strict finite JSON; original calculations, ownership, dates, response and producer behavior preserved.",
+    "services/trading_call_tracking.py": "Reviewed retained-data metrics projection and strict finite JSON; original calculations, ownership, dates, response and producer behavior preserved."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -525,9 +526,10 @@
     {
       "status": "accepted",
       "files": [
-        "services/llm_execution.py"
+        "compute/analytics.py",
+        "services/trading_call_tracking.py"
       ],
-      "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
+      "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
     }
   ],
   "roles": {
@@ -536,512 +538,35 @@
       "baseline_images": [
         "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
       ],
-      "development_targets": [
-        {
-          "name": "attention-home-next-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "attention-ticker-next-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "cleanup-trial-observer-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "daily-datapoints-next-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "dataset-refresh-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "equities-next-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "macro-fred-daily-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "sn-research-run-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "system-recovery-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "technical-history-next-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "trading-agent-build-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "zopedia-maintenance-dev",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "development",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        }
-      ],
-      "production_targets": [
-        {
-          "name": "attention-home-build",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "b585ac573f93aaf4ae211fdce648ced3b895ebe27656993a14a23f1c9357be4c",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "commodities-regime",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "company-baseline-prefetch",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "entity-taxonomy-refresh",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "equities-intraday-preload",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "evidence-index-dev",
-          "kind": "jobs",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "execution_binding": {
-            "name": "evidence-index-dev",
-            "role": "worker",
-            "pipeline_job": "evidence-index",
-            "dataset_namespace": "development",
-            "trigger": "Schedule",
-            "cron": "*/5 * * * *"
-          },
-          "role": "worker",
-          "environment": "production",
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "fundamentals-quarterly-refresh",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "macro-fred-daily",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "news-ingest-and-features",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "6fae0bea21fe3952d91164646cde40c115e6ed304314aaebd9cc847dcaae4372",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "options-liquid-universe",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "sn-research-run",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "system-health",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "system-recovery",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "execution_binding": {
-            "name": "system-recovery",
-            "role": "worker",
-            "pipeline_job": "system-recovery",
-            "dataset_namespace": "",
-            "trigger": "Schedule",
-            "cron": "7,22,37,52 * * * *",
-            "environment": {
-              "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
-            }
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "trading-agent-build",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "universe-builder",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "zopedia-learning",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        },
-        {
-          "name": "zopedia-maintenance",
-          "kind": "jobs",
-          "role": "worker",
-          "environment": "production",
-          "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-          "preservation_review": {
-            "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
-            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
-            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
-          },
-          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
-        }
-      ],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702": {
-          "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
-          "source_inventory_sha256": "193158326a55e00605b6239ef3c35acf94413dc182b26c15b34b0df977731fac",
-          "runtime_inventory_sha256": "2ef97920a622eaa71873e909ca9c3693555f2427e9310b9ab70799b1114813f2",
-          "all_packaged_files_checked": true,
-          "packaged_files": 189,
-          "evidence": "documents/verification/iphone-feedback-2026-10-28/CREDIT_DEV.json"
-        }
-      }
-    },
-    "api-next": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-api-next@sha256:ebe45efccea4554e050e5f8bd713d5b578736c25a19b5375e76eccbd4d5276c4",
-      "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
-        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558"
-      ],
       "development_targets": [],
       "production_targets": [],
+      "accepted_images": {}
+    },
+    "api-next": {
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+      "baseline_images": [
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce"
+      ],
+      "development_targets": [],
+      "production_targets": [
+        {
+          "name": "sn-api-next",
+          "kind": "containerApps",
+          "role": "api-next",
+          "environment": "production",
+          "configuration_api_version": "2025-07-01",
+          "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+          "preservation_review": {
+            "status": "accepted",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+          },
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce"
+        }
+      ],
       "accepted_images": {}
     },
     "web": {
@@ -1158,6 +683,518 @@
   },
   "untouched_consumers": [
     {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "cleanup-trial-observer-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "equities-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "sn-research-run-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "system-recovery-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "technical-history-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "zopedia-maintenance-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "development",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "attention-home-build",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "b585ac573f93aaf4ae211fdce648ced3b895ebe27656993a14a23f1c9357be4c",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "commodities-regime",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "equities-intraday-preload",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "evidence-index-dev",
+      "kind": "jobs",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "execution_binding": {
+        "name": "evidence-index-dev",
+        "role": "worker",
+        "pipeline_job": "evidence-index",
+        "dataset_namespace": "development",
+        "trigger": "Schedule",
+        "cron": "*/5 * * * *"
+      },
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "macro-fred-daily",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "news-ingest-and-features",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "6fae0bea21fe3952d91164646cde40c115e6ed304314aaebd9cc847dcaae4372",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "options-liquid-universe",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "sn-research-run",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "system-health",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "system-recovery",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "execution_binding": {
+        "name": "system-recovery",
+        "role": "worker",
+        "pipeline_job": "system-recovery",
+        "dataset_namespace": "",
+        "trigger": "Schedule",
+        "cron": "7,22,37,52 * * * *",
+        "environment": {
+          "SYSTEM_RECOVERY_BUDGET_SECONDS": "60"
+        }
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "trading-agent-build",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "universe-builder",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "zopedia-learning",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
+      "name": "zopedia-maintenance",
+      "kind": "jobs",
+      "role": "worker",
+      "environment": "production",
+      "configuration_api_version": "2025-07-01",
+      "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "preservation_review": {
+        "status": "accepted",
+        "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+        "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+        "package_evidence": "documents/verification/iphone-feedback-2026-10-28/credit-package-proof.json",
+        "evidence": "documents/verification/iphone-feedback-2026-10-28/API_SOURCE_REVIEW.md"
+      },
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
+    },
+    {
       "name": "robinhood-main-sync-dev",
       "kind": "jobs",
       "role": "broker",
@@ -1190,23 +1227,6 @@
         "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
       },
       "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e"
-    },
-    {
-      "name": "sn-api-next",
-      "kind": "containerApps",
-      "role": "api-next",
-      "environment": "production",
-      "configuration_api_version": "2025-07-01",
-      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
-      "preservation_review": {
-        "status": "accepted",
-        "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
-        "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
-        "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-        "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
-      },
-      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce"
     },
     {
       "name": "sn-api-next-dev",
@@ -1294,7 +1314,7 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": false,
+  "production_authorized": true,
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",
@@ -1334,12 +1354,9 @@
     "configuration_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-configuration.json",
     "development_evidence": "documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json"
   },
-  "development_acceptance": {
-    "status": "accepted",
-    "images": {
-      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702"
-    },
-    "source_inventory_sha256": "193158326a55e00605b6239ef3c35acf94413dc182b26c15b34b0df977731fac",
-    "evidence": "documents/verification/iphone-feedback-2026-10-28/CREDIT_DEV.json"
+  "production_authorization": {
+    "owner_instruction": "Push to prod",
+    "scope": "Recent iPhone feedback; only the API metric image selected here. DEV Alpaca/maintenance are retained.",
+    "date_pacific": "2026-10-28"
   }
 }
