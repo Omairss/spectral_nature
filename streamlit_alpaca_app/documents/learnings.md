@@ -1476,3 +1476,8 @@ Qualify each role on its exact immutable image, including API identity/secret de
 ### Trading is an owned portfolio lifecycle — October29
 
 Trading requires a real account timeline, persistent approval decisions and exact broker-fill allocation across entry, reduction and exit. Research outcomes stay separate from invested results. Autopilot consent belongs to the connected account and saved risk-policy revision. Native Trading uses one sheet state for call, order and policy navigation; one-day performance starts at the preceding daily close.
+
+
+### Compare every consumer with its own accepted source — October29
+
+A coherent shared Python release can coexist with a newer production frontend. Review each live image against its own accepted Git inputs before promotion; preserve independent features such as the Broad Economy outlook. Exact-image DEV review, complete configuration fingerprints, installed-version readback and physical launch are separate evidence. An installed iPhone build is not launch-verified while iOS reports Locked.

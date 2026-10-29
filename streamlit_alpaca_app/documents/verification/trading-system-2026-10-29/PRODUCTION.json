@@ -1,0 +1,91 @@
+{
+  "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+  "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
+  },
+  "build_runs": {
+    "web": "cj1db",
+    "api-next": "cj1d8",
+    "worker": "cj1da",
+    "broker": "cj1d9"
+  },
+  "status": "deployed",
+  "recorded_at": "2026-10-29T21:14:10.656863+00:00",
+  "owner_instruction": "Promote and update iPhone",
+  "accepted_application_source": "ed5044be5eea4024a3a155ce214d04e33e682d11",
+  "authorization": "PRODUCTION_AUTHORIZATION.json",
+  "development_acceptance": "DEVELOPMENT_ACCEPTANCE.json",
+  "package_acceptance": "PACKAGE_ACCEPTANCE.json",
+  "consumer_readback": "FINAL_CONSUMERS.json",
+  "production_consumers_updated": 21,
+  "development_consumers_retained": 15,
+  "all_36_configurations_unchanged": true,
+  "application_revisions": {
+    "sn-next-ui-dev": {
+      "name": "sn-next-ui-dev--0000040",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+    },
+    "sn-api-next-dev": {
+      "name": "sn-api-next-dev--0000061",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
+    },
+    "sn-next-ui": {
+      "name": "sn-next-ui--0000020",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+    },
+    "sn-streamlit-ui": {
+      "name": "sn-streamlit-ui--0000104",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+    },
+    "sn-api-next": {
+      "name": "sn-api-next--0000026",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
+    }
+  },
+  "live_public_checks": [
+    "primary production login HTTP 200",
+    "session endpoint HTTP 200",
+    "private Trading endpoint HTTP 401 without credentials",
+    "actual backend Home publication available HTTP 200"
+  ],
+  "private_production_ui": {
+    "status": "verified",
+    "url": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io/trading-agent",
+    "evidence": "production-private-verification.json",
+    "account_link_evidence": "production-account-link.json",
+    "equity": 100000,
+    "cash": 100000,
+    "monthly_profit_loss": 0,
+    "monthly_return_pct": 0,
+    "monthly_sharpe": null,
+    "monthly_path_observations": 23,
+    "awaiting_approval": 39,
+    "filled_calls": 0,
+    "working_orders": 0,
+    "execution_mode": "approval",
+    "live_server_broker_refresh": "passed",
+    "account_components_unavailable": [],
+    "scheduled_report_replacement_preserves_all_prior_calls": true
+  },
+  "native_installation": "NATIVE_INSTALLATION.json",
+  "qualification_orders": 0,
+  "owner_autopilot_enabled": false,
+  "paid_qualification_inference": 0,
+  "job_executions_started": 0,
+  "preserved_features": "Source review compares each live consumer with its accepted Git. Existing Broad Economy outlook restored before production promotion and verified in final DEV image.",
+  "preserved_connections": "Existing DEV Alpaca link retained; same verified owner/account linked in production using existing server-side Key Vault references. Robinhood/main Portfolio untouched."
+}

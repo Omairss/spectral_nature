@@ -1411,3 +1411,8 @@ The first Trading DEV rollout exposed an enormous Sharpe for a flat paper book. 
 ### A shared Python release does not certify older frontend inputs — October29
 
 Before Trading production promotion, comparison against the actual live web image’s accepted Git found that copying non-feature inputs from the coherent Python branch removed the accepted Broad Economy outlook. Restored the original component, dataset permission, page placement and CSS from production Git before any production mutation. Review each consumer against its own live image/source proof, even when another release accepted the shared Python branch. The owner’s existing functionality must survive the release.
+
+
+### Production readiness includes the owned account link — October29
+
+Promoting the Trading images initially left production without the DEV-owned Alpaca connection, so the live screen had no account timeline. Verified the same signed-in owner/portfolio, active admin membership, actual control-store binding and broker account identity, then completed production setup through the existing account service using Key Vault references. Production now retains real balances/history and every live refresh component succeeds. Verify environment-specific account prerequisites before promotion, alongside image and configuration checks.

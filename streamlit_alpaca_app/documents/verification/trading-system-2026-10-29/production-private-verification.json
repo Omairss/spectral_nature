@@ -1,0 +1,76 @@
+{
+  "status": "verified",
+  "url": "https://sn-next-ui.bluefield-2d27dcf2.centralus.azurecontainerapps.io/trading-agent",
+  "account_status": "available",
+  "as_of": "2026-10-29T21:20:36.993047+00:00",
+  "summary": {
+    "status": "ACTIVE",
+    "currency": "USD",
+    "equity": 100000,
+    "cash": 100000,
+    "buying_power": 400000,
+    "last_equity": 100000,
+    "long_market_value": 0,
+    "short_market_value": 0,
+    "initial_margin": 0,
+    "maintenance_margin": 0,
+    "trading_blocked": false,
+    "account_blocked": false,
+    "shorting_enabled": true,
+    "day_pl": null,
+    "day_return_pct": null,
+    "unrealized_pl": 0
+  },
+  "period": "1M",
+  "path_observations": 23,
+  "return_pct": 0,
+  "profit_loss": 0,
+  "performance": {
+    "return_pct": 0,
+    "sharpe_ratio": null,
+    "volatility_pct": 0,
+    "max_drawdown_pct": 0,
+    "daily_observations": 22,
+    "risk_free_rate_pct": 2,
+    "start_date": "2026-09-29",
+    "end_date": "2026-10-29"
+  },
+  "cashflow_coverage": "reported",
+  "coverage": {
+    "orders": "2026-10-29T21:20:36.993047+00:00",
+    "account": "2026-10-29T21:20:36.993047+00:00",
+    "history": "2026-10-29T21:20:36.993047+00:00",
+    "intraday": "2026-10-29T21:20:36.993047+00:00",
+    "positions": "2026-10-29T21:20:36.993047+00:00",
+    "activities": "2026-10-29T21:20:36.993047+00:00"
+  },
+  "unavailable": [],
+  "proposals": 39,
+  "calls": 20,
+  "working_orders": 0,
+  "mode": "approval",
+  "checks": [
+    "actual dated portfolio timeline",
+    "visible Approve and Deny",
+    "lazy owned full original thesis",
+    "live server broker refresh",
+    "approval mode and risk controls viewed without saving",
+    "production Economic outlook retained",
+    "Performance shows zero filled calls and separate research observations",
+    "All 20 prior undecided calls survive a normal scheduled report replacement"
+  ],
+  "screenshots": [
+    "production-overview.jpg",
+    "production-activity.jpg",
+    "production-preserved-outlook.jpg"
+  ],
+  "report_update": {
+    "previous_run_id": "faad409b-45c2-4bed-a43a-181fdb6fa3dd",
+    "current_run_id": "c52ea4e2-0c1a-473a-a7da-d8319eefa202",
+    "current_report_as_of": "2026-10-29 20:35:37.386927+00:00",
+    "previous_pending": 20,
+    "current_pending": 39,
+    "all_previous_pending_retained": true
+  },
+  "recorded_at": "2026-10-29T21:23:41.402Z"
+}

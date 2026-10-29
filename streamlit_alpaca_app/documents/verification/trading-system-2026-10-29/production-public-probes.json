@@ -1,0 +1,19 @@
+[
+  {
+    "path": "/login",
+    "status": 200,
+    "content_type": "text/html; charset=utf-8",
+    "body": null
+  },
+  {
+    "path": "/api/auth/session",
+    "status": 200,
+    "content_type": "application/json",
+    "body": "{\"authenticated\":false}"
+  },
+  {
+    "path": "/api/trading-agent",
+    "status": 401,
+    "body": "{\"detail\":\"Authentication required.\"}"
+  }
+]

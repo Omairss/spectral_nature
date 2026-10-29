@@ -1,0 +1,16 @@
+{
+  "status": "connected",
+  "recorded_at": "2026-10-29T21:20:12.461409+00:00",
+  "owner_and_portfolio_match_across_environments": true,
+  "active_admin_membership_verified": true,
+  "same_auth_store_reference_verified": true,
+  "existing_development_account_identity_verified_with_broker": true,
+  "same_existing_paper_account_linked_in_production": true,
+  "credentials": "Existing server-side Key Vault references; no credentials returned to client or release evidence",
+  "operator_api": "services.alpaca_paper.connect",
+  "production_snapshot_retained": true,
+  "orders_submitted": 0,
+  "autopilot_enabled": false,
+  "policy_changed": false,
+  "broker_requests": "GET account and bounded read-only refresh only"
+}

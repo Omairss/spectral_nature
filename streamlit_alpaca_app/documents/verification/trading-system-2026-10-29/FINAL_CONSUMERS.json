@@ -5,7 +5,7 @@
       "name": "sn-streamlit-ui",
       "role": "web",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
       "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
       "configuration_unchanged": true
     },
@@ -29,7 +29,7 @@
       "name": "sn-next-ui",
       "role": "web",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
       "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
       "configuration_unchanged": true
     },
@@ -37,7 +37,7 @@
       "name": "sn-api-next",
       "role": "api-next",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
       "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
       "configuration_unchanged": true
     },
@@ -45,7 +45,7 @@
       "name": "universe-builder",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
       "configuration_unchanged": true
     },
@@ -53,7 +53,7 @@
       "name": "equities-intraday-preload",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
       "configuration_unchanged": true
     },
@@ -61,7 +61,7 @@
       "name": "macro-fred-daily",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
       "configuration_unchanged": true
     },
@@ -69,7 +69,7 @@
       "name": "commodities-regime",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
       "configuration_unchanged": true
     },
@@ -77,7 +77,7 @@
       "name": "options-liquid-universe",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
       "configuration_unchanged": true
     },
@@ -85,7 +85,7 @@
       "name": "news-ingest-and-features",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "08d16a9ed58ad153576b6278c68e4cdc5d3a228aa035c569c36beeb70d15ff74",
       "configuration_unchanged": true
     },
@@ -93,7 +93,7 @@
       "name": "entity-taxonomy-refresh",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
       "configuration_unchanged": true
     },
@@ -101,7 +101,7 @@
       "name": "attention-home-build",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "006190f074b4aa15d79421f21124812374cbb938194b54628eff41b675bbf513",
       "configuration_unchanged": true
     },
@@ -109,7 +109,7 @@
       "name": "fundamentals-quarterly-refresh",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
       "configuration_unchanged": true
     },
@@ -117,7 +117,7 @@
       "name": "company-baseline-prefetch",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
       "configuration_unchanged": true
     },
@@ -125,7 +125,7 @@
       "name": "trading-agent-build",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
       "configuration_unchanged": true
     },
@@ -133,7 +133,7 @@
       "name": "zopedia-maintenance",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
       "configuration_unchanged": true
     },
@@ -141,7 +141,7 @@
       "name": "zopedia-learning",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
       "configuration_unchanged": true
     },
@@ -149,7 +149,7 @@
       "name": "system-health",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
       "configuration_unchanged": true
     },
@@ -189,7 +189,7 @@
       "name": "robinhood-main-sync-prod",
       "role": "broker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
       "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
       "configuration_unchanged": true
     },
@@ -237,7 +237,7 @@
       "name": "sn-research-run",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
       "configuration_unchanged": true
     },
@@ -253,7 +253,7 @@
       "name": "evidence-index-dev",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
       "configuration_unchanged": true
     },
@@ -269,7 +269,7 @@
       "name": "system-recovery",
       "role": "worker",
       "environment": "production",
-      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
       "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
       "configuration_unchanged": true
     },
@@ -291,8 +291,8 @@
     }
   ],
   "consumer_count": 36,
-  "development_updated": 15,
-  "production_retained": 21,
+  "development_retained": 15,
+  "production_updated": 21,
   "all_configurations_unchanged": true,
   "application_revisions": {
     "sn-next-ui-dev": {
@@ -303,6 +303,24 @@
     },
     "sn-api-next-dev": {
       "name": "sn-api-next-dev--0000061",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
+    },
+    "sn-next-ui": {
+      "name": "sn-next-ui--0000020",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+    },
+    "sn-streamlit-ui": {
+      "name": "sn-streamlit-ui--0000104",
+      "health": "Healthy",
+      "traffic": 100,
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
+    },
+    "sn-api-next": {
+      "name": "sn-api-next--0000026",
       "health": "Healthy",
       "traffic": 100,
       "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"

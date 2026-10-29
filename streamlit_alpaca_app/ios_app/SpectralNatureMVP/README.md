@@ -2,7 +2,7 @@
 
 Native SwiftUI client for the modern Spectral Nature workbench. Requires iOS 17 or later and Xcode 16 or later. The historical `SpectralNatureMVP` directory is retained; the application and shared scheme are named `SpectralNature`.
 
-Candidate build **17** implements the portfolio-first Trading workspace, approval feed, fill-based call performance and position controls. Build 16’s Home, Markets, charts, feedback and session behavior are preserved. Trading verification and DEV delivery are recorded in [the October 29 source review](../../documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md).
+Installed build **17** implements the portfolio-first Trading workspace, approval feed, fill-based call performance and position controls. Build 16’s Home, Markets, charts, feedback and session behavior are preserved. Trading verification and production delivery are recorded in [the October 29 source review](../../documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md).
 
 ## Run
 
@@ -24,7 +24,7 @@ TestFlight distribution additionally needs your Apple Developer membership and A
 - Markets: business/broad/commodity modes, server lenses/horizons, full-universe return comparisons with percent axes and daily-change color legends, point identity/search/inspection, named return leaders/laggards, volume treemap with searchable inspection, optional 3D/heatmap comparisons, ranking, and company navigation.
 - Research: durable conversations, ordered progress journal, cancellation, follow-up, result metadata, citations, knowledge folders/search/connected pages, retained sources, source upload, and administrative maintenance inspection.
 - Portfolio: all holdings, asset exposure, position treemap and P/L contributions, value and indexed benchmarks, drawdown, monthly return matrix, risk/correlation/factors, performance statistics, indexed list comparisons, risk/return/breadth analysis, and return/risk/momentum contributor Sankeys.
-- Explore: macro overlays/readings/searchable series catalog, company financials/technicals, complete option chains/candidate scenarios and native IV/return surfaces, Trading Agent candidates/decisions, and role-gated admin workspaces.
+- Explore: macro overlays/readings/searchable series catalog, company financials/technicals, complete option chains/candidate scenarios and native IV/return surfaces, Trading paper portfolio, calls, approvals, fill performance and execution policy, and role-gated admin workspaces.
 - Account: sign-in, recovery requests, invitation acceptance and password reset through existing account links. Paste an environment-matching email link in the native account sheet. Universal email links require additional Apple/domain configuration.
 
 Research is accessible from the analytical navigation bar with the current entity, date, period, or artifact context. Model calls and financial rules remain in the existing backend. No web view, JavaScript renderer, or new inference provider is embedded in the app.
@@ -56,7 +56,7 @@ Keep normal simulator signing enabled: Keychain needs Xcode's simulated applicat
 
 ## Installation and validation
 
-Version 1.0.0 build 16 is installed in place on Omair’s iPhone, with an independent installed-version readback. It adds visible dated paper-call histories, ROI/Sharpe/drawdown and a single text-and-Send feedback composer. The shared metrics and chat-credit repair are live in production. After the owner unlocked the phone, launch succeeded and an independent running-process readback matched the installed app. Zohair’s and Fay’s paired phones were directly queried and are unavailable; their last verified build remains 14. See the [release and installation evidence](../../documents/verification/iphone-feedback-2026-10-28/PRODUCTION.json).
+Version 1.0.0 build17 is installed in place on Omair’s iPhone, with an independent installed-version readback. It adds the shared Trading paper portfolio timeline, persistent approval feed, fill-based call performance and position/policy controls. Build 17 is installed on the owner’s iPhone and independently read back. Launch verification is waiting for the owner to unlock the phone. See the [production and installation record](../../documents/verification/trading-system-2026-10-29/README.md). The preceding [build16 delivery](../../documents/verification/iphone-feedback-2026-10-28/PRODUCTION.json) retains its earlier feedback and metrics evidence. Other paired phones were not updated in this owner-authorized installation.
 
 The Personal Team profile includes all three paired phones and expires October 30, 2026 at 10:50 p.m. Pacific. The same bundle identifier and development team preserve application data and Keychain storage. The preceding [build15 acceptance and installation](../../documents/verification/iphone-markets-2026-10-28/LOCAL.md) remains recorded.
 

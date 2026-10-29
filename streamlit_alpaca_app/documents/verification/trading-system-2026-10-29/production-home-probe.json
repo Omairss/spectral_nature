@@ -1,0 +1,20 @@
+{
+  "path": "/api/home",
+  "status": 200,
+  "home_status": "available",
+  "top_level_keys": [
+    "status",
+    "view_date",
+    "is_replay",
+    "as_of",
+    "run_id",
+    "summary",
+    "graph",
+    "beats",
+    "daily_datapoints",
+    "daily_datapoints_as_of",
+    "coverage",
+    "provenance"
+  ],
+  "has_published_content": true
+}

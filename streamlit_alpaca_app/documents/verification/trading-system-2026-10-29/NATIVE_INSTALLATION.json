@@ -1,0 +1,32 @@
+{
+  "bundle_id": "com.torrescapital.spectralnature",
+  "version": "1.0.0",
+  "build": "17",
+  "signature_verified": true,
+  "architecture": "iphoneos",
+  "executable_sha256": "ea898f5a5a5c4f91f0d768ee4aa1d7f2862f02b4e232e5dad3d2f2901d545802",
+  "default_server_url": "https://spectral-nature.com",
+  "server_override_supplied": false,
+  "source_revision": "f4b038f2",
+  "native_source_preserved_in_release": true,
+  "profile_expiration_utc": "2026-10-31T05:50:23Z",
+  "owner_device_in_profile": true,
+  "previous_installed_build": "16",
+  "installed": true,
+  "launch_verified": false,
+  "status": "installed_launch_awaiting_unlock",
+  "installed_build": "17",
+  "installation_method": "devicectl install in place; existing bundle identifier and development team",
+  "installed_version_independently_read_back": true,
+  "recorded_at": "2026-10-29T21:14:10.657518+00:00",
+  "launch_attempts": [
+    {
+      "result": "device connection timeout"
+    },
+    {
+      "result": "iOS Locked: unable to launch until owner unlocks"
+    }
+  ],
+  "owner_unlock_requested": true,
+  "physical_trading_screen_inspected": false
+}

@@ -1,6 +1,6 @@
 # Trading as a managed paper portfolio — October 29, 2026
 
-Status: implemented in the shared backend, Next.js and SwiftUI on `fix/trading-system-20261029`. [DEV Trading](https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io/trading-agent) is deployed and personally verified.212 focused checks and16 web contracts pass. Signed native build17 is built and verified in Simulator. Production and physical-phone installation await owner authorization. See the [release record](../verification/trading-system-2026-10-29/README.md).
+Status: implemented in the shared backend, Next.js and SwiftUI on `fix/trading-system-20261029`, accepted on DEV and promoted to [production Trading](https://spectral-nature.com/trading-agent) under owner approval. All 36 definitions retain their configurations; all five API/web revisions are Healthy at full traffic.212 focused checks and16 web contracts pass. Build 17 is installed on the owner’s iPhone and independently read back. Launch verification is waiting for the owner to unlock the phone. Production portfolio, full original thesis, approval mode and live broker refresh are independently verified. See the [release record](../verification/trading-system-2026-10-29/README.md).
 
 ## Product decision
 

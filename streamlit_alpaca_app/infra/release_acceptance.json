@@ -1508,5 +1508,17 @@
     },
     "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
     "evidence": "documents/verification/trading-system-2026-10-29/DEVELOPMENT_ACCEPTANCE.json"
+  },
+  "production_acceptance": {
+    "status": "deployed",
+    "images": {
+      "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
+    },
+    "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+    "evidence": "documents/verification/trading-system-2026-10-29/PRODUCTION.json",
+    "complete_consumer_readback": "documents/verification/trading-system-2026-10-29/FINAL_CONSUMERS.json"
   }
 }
