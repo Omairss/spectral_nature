@@ -149,6 +149,67 @@ if not prior:
         if value is None:os.environ.pop(key,None)
         else:os.environ[key]=value
 
+    # Real cross-run Azure SQL transactions with an isolated, simulated wallet.
+    # The official endpoint identity exercises its actual admission contract;
+    # no HTTP request is sent and the credential is deliberately fictitious.
+    account_root = 'future-core-' + uuid.uuid4().hex
+    os.environ.update(PIPELINE_RUN_ID=account_root, RESEARCH_RUN_BUDGET_USD='10')
+    account_config = llm.LLMConfig(provider='deepseek', api_key=account_root,
+        model='deepseek-v4-pro', base_url='https://api.deepseek.com')
+    account_key = ('provider_budget', execution._account_key(account_config))
+    store.write_execution_state(*account_key, {'available':True, 'balance_usd':10,
+        'observed_at':time.time(), 'reservations':{}})
+    quote_function = execution._request_maximum_charge
+    quote = Decimal(1)
+    execution._request_maximum_charge = lambda *args, **kwargs: quote
+    try:
+        first_run = execution._run_budget_key()
+        execution.protect_core_research(config=account_config, work={'first':'current input'}, stages=2)
+        original = store.read_execution_state(*first_run, strict=True)['core_obligations']['first']
+        os.environ['PIPELINE_RUN_ID'] = account_root + '-other'
+        execution.protect_core_research(config=account_config, work={'other':'current input'}, stages=2)
+        os.environ['PIPELINE_RUN_ID'] = account_root + '-optional'
+        quote = Decimal(7)
+        try:
+            execution.reserve_provider_budget(account_config, {}, attempt_id='optional', timeout=20)
+            raise AssertionError('Optional work consumed protected completion credit')
+        except execution.ResearchBudgetExceeded:
+            pass
+        os.environ['PIPELINE_RUN_ID'] = account_root
+        quote = Decimal(1)
+        with execution.model_call_context(core_work_id='first', routing={'role':'core'}):
+            execution.reserve_provider_budget(account_config, {}, attempt_id='paid', timeout=20)
+        reservation = {'run':first_run, 'account':account_key}
+        for _ in range(2):
+            execution.settle_provider_budget(account_config, attempt_id='paid',
+                charge={'status':'estimated','usd_max':.2}, definitely_unbilled=False, reservation=reservation)
+        wallet = store.read_execution_state(*account_key, strict=True)
+        assert execution._future_core_microusd(wallet) == 3_800_000
+        assert execution._provider_unreserved_microusd(wallet) == 9_800_000
+        execution.interrupt_core_research('Development qualification interruption')
+        assert execution._future_core_microusd(store.read_execution_state(*account_key,strict=True)) == 2_000_000
+        execution.protect_core_research(config=account_config, work={'first':'current input'}, stages=2)
+        resumed = store.read_execution_state(*first_run, strict=True)['core_obligations']['first']
+        assert resumed['deadline_at'] == original['deadline_at']
+        assert resumed['generation'] == original['generation'] and resumed['remaining_microusd'] == 1_800_000
+        with execution.model_call_context(core_work_id='first', routing={'role':'core'}):
+            execution.reserve_provider_budget(account_config, {}, attempt_id='unknown', timeout=20)
+        execution.interrupt_core_research('Finished with an unknown paid outcome')
+        execution.settle_provider_budget(account_config, attempt_id='unknown',
+            charge={'status':'usage_unavailable'}, definitely_unbilled=False, reservation=reservation)
+        wallet = store.read_execution_state(*account_key, strict=True)
+        assert wallet['reservations']['unknown']['status'] == 'unknown'
+        assert execution._future_core_microusd(wallet) == 2_000_000
+        os.environ['PIPELINE_RUN_ID'] = account_root + '-other'
+        execution.complete_core_research('other')
+        assert not store.read_execution_state(*account_key, strict=True)['future_core']
+        print(json.dumps({'probe':'shared_account_future_core', 'independent_runs':2,
+            'optional_priority_enforced':True, 'atomic_transfer_and_idempotent_refund':True,
+            'retry_original_clock_and_funding':True, 'unknown_paid_outcome_retained':True,
+            'paid_transport':'none', 'accounting':'real isolated Azure SQL'}), flush=True)
+    finally:
+        execution._request_maximum_charge = quote_function
+
     root = 'financial-integration-' + uuid.uuid4().hex
     os.environ.update(PIPELINE_RUN_ID=root, RESEARCH_RUN_BUDGET_USD='10')
     calls = []

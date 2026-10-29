@@ -1,8 +1,8 @@
 {
-  "status": "integrated_operational_checks_passed_not_qualitatively_accepted",
+  "status": "source_integrated_operational_checks_passed_quality_not_accepted",
   "production_authorized": false,
   "accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-  "new_shared_source": "a2b090de",
+  "new_shared_source": "d03450ab",
   "preserved_features": [
     "Alpaca-authoritative paper account and typed broker projections",
     "Existing Native Responses JSON repair; normal generation stays chat",
@@ -70,17 +70,20 @@
     "streamlit_alpaca_app/web/components/trading-paper-portfolio.module.css",
     "streamlit_alpaca_app/web/components/trading-paper-portfolio.tsx"
   ],
-  "qualification": "Pending merged operational checks and fresh full research-to-feed qualitative review. Previous compositor-only output was not accepted.",
+  "qualification": "208 shared operational contracts and68 harness/usage checks passed. Latest historical full-publication output remains personally rejected; current recovered-run inputs are frozen and an API extension decision is pending.",
   "checks": {
     "shared_operational": {
-      "passed": 207,
-      "log": "private contracts-20261029T094554Z.log"
+      "passed": 208,
+      "log": "private contracts-20261029T180354Z.log"
     },
     "preserved_features": {
       "passed": 52,
       "skipped": 1
     },
-    "prose_acceptance": false
+    "prose_acceptance": false,
+    "additional_harness_and_usage": {
+      "passed": 68
+    }
   },
   "native_transport_contract": {
     "max_output_tokens": 65536,
@@ -91,12 +94,23 @@
   "archive": {
     "private_manifest": "retired-release-sources/20261029T094555Z/manifest.json",
     "retention_days": 30,
-    "purpose": "Stopped isolated qualification databases, content-verified evidence only."
+    "purpose": "Stopped isolated qualification databases, content-verified evidence only.",
+    "additional_completed_batches": [
+      "20261029T173841Z",
+      "20261029T180811Z"
+    ]
   },
   "production_recheck": {
     "at_utc": "2026-10-29T09:48:23.271678+00:00",
     "worker_jobs_on_owner_approved_digest": 29,
     "retained_broker_jobs": 2,
     "paid_inference": false
-  }
+  },
+  "observation_funding": "observation-funding.json",
+  "consumer_readback": {
+    "all_36_definitions_unchanged": true,
+    "mutations": 0,
+    "new_production_authorization": false
+  },
+  "remaining": "Fresh same-evidence quality review after scoped API approval; then exact DEV packaging/qualification and DEV release. No coherent-design build/deployment yet."
 }

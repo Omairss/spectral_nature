@@ -1376,3 +1376,8 @@ Native paper review initially passed parsing but failed full compilation on opti
 ## DEV integration must preserve each transport contract — 2026-10-29
 
 Combining accepted Native Responses telemetry with the newer financial module initially treated embedding input arrays as messages and audio text as a response-format object. Local contract checks caught both before any build or deployment. Measurement now receives the actual operation, normalizes genuine Native usage, retains missing usage as unknown, and keeps audio character accounting. Existing structural fixtures were updated for the new shared research schema and accepted transport repair boundary.
+
+
+### Retained completion qualification adapter — October29
+
+The isolated continuation assumed every structured agent result contains a run_id. The direct structured route returns a valid paid artifact without that field, so the local adapter stopped after saving the completed answer. Resume reused that exact saved answer, made run identity optional in the qualification record and kept all charges/unknowns in the same ledger; no answer was repurchased. The full agent route, writer/review and direct serializer need distinct evidence claims. Source merge review found two equivalent usage-normalizer definitions; the shadowed duplicate was removed in352e292e, preserving the active implementation.

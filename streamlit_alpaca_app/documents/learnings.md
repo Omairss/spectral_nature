@@ -1448,3 +1448,13 @@ Broker decimal strings must become finite numeric values in the shared public ac
 Future writing/review funding is a priority obligation, not a paid provider request. Project it atomically from the original run into its account, transfer it into actual requests without double reservation, and keep unknown usage separate. A finished execution releases only unspent priority; a native retry restores original remaining funding and deadline. Evidence-navigation calls are discretionary, so exhaustion hands the current evidence to the protected full-model answer instead of funding endless reads as core work.
 
 Preserving a separately accepted DEV API includes its Native repair, maintenance, complete company drafts and numerical worker cancellation. Reconcile these in Git before building; a shared-module hash alone does not show that the actual transport, embeddings or audio remain valid.
+
+
+### Completion timing and actual credit — October29
+
+An answer must exist before its advisory review can add value. Stop optional research early, then let writing and review use the original remaining run window; a separate writing cutoff can discard the first answer while reserved review time sits unused. The parent deadline still bounds every child. Current provider balance, active requests and unknown historical charges are different measurements: the October29 stale Home feed was real credit exhaustion ($0.26), with no old unknowns withholding current liquidity. A refill permits future inference but does not by itself publish a replacement feed; verify the public run identity advances.
+
+
+### Observation-backed event funding — October29
+
+A model may select an unexplained current market observation before an article exists. The financial adapter must carry that actual input, not require an article as its only evidence identity. Join only nominated subjects to supplied observations; retain the full original row and snapshot date in the marginal-funding audit. This authorizes investigation within the configured allowance; it does not establish a price cause.

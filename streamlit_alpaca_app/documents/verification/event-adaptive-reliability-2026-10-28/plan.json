@@ -24,32 +24,32 @@
     {
       "id": "document_and_checkpoint",
       "task": "Fix binary document acquisition at source, preserve raw content and correct durable checkpoint behavior for valid supported inputs.",
-      "status": "implemented_verified_locally",
-      "evidence_or_remaining": "Shared PDF extraction detects magic/MIME before text decoding, retains original bytes and explicitly records failed/partial extraction. Actual generated PDF and corrupt-PDF contracts pass. DEV publication remains pending."
+      "status": "deployed_incremental_verified_exact_image",
+      "evidence_or_remaining": "Shared extraction and native checkpoint corrections are in the owner-approved production worker. Local and exact-image Azure SQL/Blob contracts passed; scheduled application-level observation remains separate."
     },
     {
       "id": "embedding_admission",
       "task": "Fix Azure embedding price/input contract and make degraded semantic retrieval observable.",
-      "status": "implemented_verified_locally",
-      "evidence_or_remaining": "Canonical Azure model pricing verified against actual westus Standard deployment and Azure retail API. Token arrays count tokens; semantic degradation is visible. Added the separately observed ElevenLabs character-price contract."
+      "status": "deployed_incremental_verified_exact_image",
+      "evidence_or_remaining": "Verified Azure token/pricing admission is deployed in the approved worker; exact image exercised deployment alias/token arrays with actual SQL accounting."
     },
     {
       "id": "publication_state",
       "task": "Establish the EDGAR checkpoint cause, preserve native publication and make retry restoration reliable with actionable diagnostics.",
-      "status": "implemented_verified_locally",
-      "evidence_or_remaining": "Reproduced short publication-state mutation self-starving behind background SQL admission. Reserved metadata capacity and immutable execution publication restoration pass. Historical EDGAR warning lacked the stack/SQLSTATE, so its exact earlier blocking transaction cannot be asserted."
+      "status": "deployed_incremental_verified_exact_image",
+      "evidence_or_remaining": "Reserved metadata capacity and immutable same-execution restoration deployed and cloud-verified. Historical EDGAR transaction still cannot be named without its missing stack/SQLSTATE; reproduced source defect is fixed."
     },
     {
       "id": "learning_progress",
       "task": "Correct actual deferred counts and ensure retained critiques/reviews make fair progress within the existing whole-job boundary.",
-      "status": "implemented_verified_locally",
-      "evidence_or_remaining": "Saved frozen reviews run before new critiques and avoid re-purchasing completed critics across engine revisions. Actual deferrals and unchanged terminal episodes are tracked. Whole scheduled backlog progress remains observation."
+      "status": "deployed_incremental_pending_scheduled_backlog_observation",
+      "evidence_or_remaining": "Frozen reviews/critics and fair remaining counts are deployed. Do not label completed code unfinished; whole scheduled backlog progress still requires a receipt."
     },
     {
       "id": "event_allocation",
       "task": "Implement evidence-led event-dependent allocation with configurable 50% marginal allowance, shared atomic reservations and no retry reset or runaway spending.",
-      "status": "implemented_qualification_pending",
-      "evidence_or_remaining": "Atomic shared event funding and original budget/deadline are implemented and mechanically verified. Corrected nomination and three focused investigations completed in an isolated retained-source replay. One investigation was refused by the cumulative study cap. This does not qualify production event selection, quiet/heavy-day allocation quality or full scheduled spending. These qualitative checks remain open; do not reopen completed task-based routing. The fresh continuation nomination remains too concentrated on the prevailing theme; no qualitative allocation acceptance is claimed.",
+      "status": "deployed_incremental_new_account_priority_ready_for_dev_qualification",
+      "evidence_or_remaining": "Configurable event-mode50% capacity is live on approved news/Home jobs. Separate new shared-account future-core priority is implemented and has207 shared operational checks; DEV qualification remains.",
       "proposed_design_reference": "quality_fix_design"
     },
     {
@@ -62,30 +62,30 @@
     {
       "id": "shared_news_ownership",
       "task": "Remove Home-local provider acquisition and repair coverage in the existing shared producer without adding jobs or schedules.",
-      "status": "implemented_verified_locally",
-      "evidence_or_remaining": "Home now loads the exact shared news_articles frame. Only the existing news producer fetches the broad Alpaca snapshot and publishes the canonical shared datasets. Company research selection remains separately bounded. Missing credentials fail acquisition explicitly. No new retrieval service, orchestration or datasets. Retains selected-company acquisition as well as broad coverage; successful scopes publish with a visible degraded outcome, while total acquisition failure publishes nothing."
+      "status": "deployed_incremental_verified_exact_image",
+      "evidence_or_remaining": "Existing news producer owns broad and selected-company acquisition into canonical shared datasets. Home follows shared research; no new feed service/job/schedule."
     },
     {
       "id": "provider_credit_reconciliation",
       "task": "Resolve account-level admission starvation without erasing unknown costs, and protect future core completion at the shared account boundary.",
-      "status": "liquidity_repair_in_production_future_core_funding_verified_locally_pending_development_release",
-      "evidence_or_remaining": "Fresh authoritative provider balance now governs new account admission. Ended or expired local requests retain unknown costs in the original run and account records without permanent cross-run credit holds after a subsequent balance observation. Live requests, overlapping probe outcomes, failed probes, real empty credit, concurrent admissions and idempotent late receipts are covered on isolated PostgreSQL. Explicit future completion reservation in shared account credit across independent producers remains unfinished; existing run-level core protection is preserved.",
+      "status": "liquidity_repair_live_future_core_implemented_pending_dev_release",
+      "evidence_or_remaining": "Current balance versus historical uncertainty repair is live. Today stale feed was actual credit depletion, with no active unknown liquidity holds. Owner refilled and native scheduled recovery is composing its feed. New future-core account priority is implemented, integrated and mechanically verified; final DEV package qualification remains.",
       "proposed_design_reference": "quality_fix_design"
     },
     {
       "id": "verification_and_release",
       "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
-      "status": "owner_accepted_incremental_release_deployed_verified",
-      "evidence_or_remaining": "198 operational contracts pass locally; full output inspection rejects the current feed and candidate. Source correction is checkpointed for review, not acceptance. No image built or deployed. Source-depth and final-editor failures must be corrected and requalified; shared-account future completion funding and API/broker source reconciliation remain open."
+      "status": "incremental_release_complete_new_dev_release_in_qualification",
+      "evidence_or_remaining": "Owner-approved incremental worker is deployed/verified. New coherent design is source-integrated and under complete-output review; no new DEV images built yet. Latest new-design production permission remains withheld pending owner evaluation."
     },
     {
       "id": "scheduled_observation",
       "task": "Check application-level scheduled outcomes, not only process exit; report actual cost allocation, unfinished work and quality findings.",
-      "status": "pending_next_scheduled_run_on_promoted_image",
-      "evidence_or_remaining": "Capture application receipt, actual margin decisions/cost obligations, recovered acquisition outcomes and learning progress after promotion; Azure exit status alone is insufficient."
+      "status": "recovery_complete_current_publication_verified_application_warning_recorded",
+      "evidence_or_remaining": "Recovery ran58m22s. Current public feed and all5supplementary summaries are published. Application Warning records2semantic deadlines and a source-free nomination funding reference defect; the latter is implemented/verified in new DEV source. Actual known successful DeepSeek usage estimate6.0494USD; unknown/audio charges separately retained."
     }
   ],
-  "spending_policy": "Owner explicitly approved \u201cApprove DeepSeek verification up to $10\u201d for fresh feed verification on Pacific October28. This is a new scoped exception; the earlier $15 study remains closed at11.257873USD committed bound. One strict10USD cap covers both cases, retries and unknown outcomes. Full configured models are retained; storage is isolated and production is read-only.",
+  "spending_policy": "Owner-scoped DeepSeek continuation cap is15USD after explicit additional5USD approval. All earlier continuation attempts and unknown cost maxima remain inside that same cap; older closed studies are separate. Current isolated comparison has no production/memory writes. Research-provider rule otherwise remains Lambda only.",
   "latest_local_contracts": {
     "passed": 207,
     "log": "private contracts-20261029T094554Z.log",
@@ -364,7 +364,7 @@
       "Carry research meaning and source access into the existing reviewer; exercise actual visible selection, omissions and corrections.",
       "Finish the already tracked shared-account future-core obligation implementation and expose allowance/time/open questions to the existing adaptive loop.",
       "Personally compare complete paired outputs and actual displayed projections on heavy, quiet, noisy, conflicting-source, stale-background and partial-failure cases. Inspect source acquisition, research findings, final prose, coverage, actual cost and latency together.",
-      "Only after local qualitative acceptance: reconcile the complete consumer source inventory, qualify exact DEV images, then use the existing conditional production authorization."
+      "After local qualitative acceptance: qualify exact DEV role images and preserve all active consumers, then deploy DEV. The owner evaluates the new coherent design before separately authorizing any production promotion."
     ],
     "acceptance": {
       "quality": "Complete visible feed explains the consequential business and economic developments, retains important distinctions and useful indirect hypotheses, uses original event dates, selects quantities judiciously and keeps process commentary internal. No required wording or ticker list.",
@@ -402,22 +402,37 @@
     },
     {
       "id": "complete_output_owner_evaluation",
-      "status": "pending_fresh_complete_path",
+      "status": "fresh_recovered_run_fixture_ready_spending_authorization_pending",
       "work": "Compare full final public outputs, keep study allowance/unknowns intact and let the owner evaluate the new DEV design before promotion.",
-      "evidence": "Compositor-only check cost $0.276099, two full-capability calls, no new unknown charges; not accepted. Continuation bound $7.974219 of $10 includes original unknown maximum $1.643643; $2.025781 remains. Requested up to $5 additional authorization; no increase applied without reply."
+      "evidence": "Existing15USD cap retains11.205177USD known price estimates and3.287286USD unknown maxima. Prior public-output quality failures remain unaccepted; no duplicate production execution or historical preview publication."
+    },
+    {
+      "id": "completion_clock",
+      "status": "implemented_merged_operationally_verified",
+      "work": "Remove artificial synthesis cutoff while preserving original run deadline, parent cancellation and early completion reserve.",
+      "evidence": "completion-clock.json;45 clock/job-boundary contracts and207 shared operational checks."
+    },
+    {
+      "id": "observation_funding_evidence",
+      "status": "implemented_merged_financial_contract_verified",
+      "work": "Preserve actual nominated market observations at the event funding boundary, even when no article explains the move.",
+      "evidence": "observation-funding.json;27operational contracts, with no paid inference or prose grading."
     }
   ],
   "development_source": {
     "branch": "fix/shared-research-publication-dev-20261029",
     "production_authorized": false,
-    "local_complete_output_review": "prior compositor case failed depth; fresh complete-path qualification pending",
+    "local_complete_output_review": "Three historical publication comparisons have stronger research substance but still repeat financial line items. Latest is not accepted for release. Current recovered-run sources are frozen for one fresh same-evidence comparison; additional3USD authorization is pending because only0.507537USD of the strict15USD continuation remains.",
     "integrated_accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
     "source_acceptance": "in_progress_not_buildable",
     "remaining": [
-      "Fresh complete research-to-feed qualitative comparison after scoped research-spending authorization",
-      "Personally inspect complete outputs and actual displayed selections against the sources",
-      "Prepare committed source acceptance and exact DEV image proofs while preserving all active consumers",
-      "Deploy accepted changes to DEV and present the complete result for owner evaluation; no production promotion of this design yet"
-    ]
-  }
+      "Owner decision on3USD API verification extension for the prepared recovered-run comparison",
+      "Personally review the complete same-evidence comparison; no build while output quality remains unaccepted",
+      "Exact DEV role builds/qualification and DEV rollout after local acceptance",
+      "Owner evaluates the new DEV design before any new production promotion"
+    ],
+    "quality_evidence": "development-quality.json",
+    "source_review": "development-source-review.json"
+  },
+  "production_freshness_incident": "production-home-failure-20261029.json"
 }

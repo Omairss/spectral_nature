@@ -1,0 +1,55 @@
+{
+  "status": "not_accepted_for_release",
+  "production_authorized": false,
+  "comparisons": [
+    {
+      "name": "current-coherent-full",
+      "source": "7497df72",
+      "method": "Fresh shared source nomination, focused research and final publication over retained dated inputs.",
+      "elapsed_seconds": 2102.3676,
+      "outcome": "Substantive independent agenda/findings improved. Six focused investigations completed; two lost first synthesis at an internal phase cutoff with original time unused. Acquired sources survived. Public output still copied too many financial figures."
+    },
+    {
+      "name": "current-coherent-completion-retry",
+      "source": "c971c429",
+      "method": "Retained actual acquisitions, fresh completion of the two interrupted subjects, then composition/review on the shared remaining-clock design.",
+      "outcome": "Both subjects produced retained findings and final publication completed; overview improved but expanded stories still transcribed financial line items."
+    },
+    {
+      "name": "current-coherent-editor-contract",
+      "source": "352e292e",
+      "method": "Fresh writer/review with explicit public-field purposes and historical knowledge timing.",
+      "elapsed_seconds": 328.1189,
+      "outcome": "Microsoft and Vertiv details became more selective, but the overview was still a long inventory and other stories still repeated financial figures. Process/capture language persisted. Rejected personally despite model reviewer revision/acceptance."
+    }
+  ],
+  "important_limits": [
+    "Historical fixtures were dated04:06UTC, while shared acquisition read a subsequently populated current corpus. Timing/availability needs careful distinction; these are not clean historical backtests. No production feed was written from these outputs.",
+    "All compared core research/writing/review used the full Pro model. These failures do not establish that cheaper production models caused them.",
+    "Operational tests establish budget/clock/provenance behavior only."
+  ],
+  "prepared_fresh_comparison": {
+    "source_run_id": "f25b336b-0bbc-4cb4-b2a8-17a261bbf632",
+    "production_core_asof_utc": "2026-10-29T16:50:42.374634Z",
+    "information_cutoff_utc": "2026-10-29T17:49:05.971392Z",
+    "source_documents": 254,
+    "retained_research_bundles": 88,
+    "company_research_rows": 12,
+    "method": "Same completed-run source corpus and numerical observation dates. Fresh shared composition/review only, isolated local state, no production writes and no new acquisition. Compare all actual public fields; no curated excerpt or topic/number quota.",
+    "input_sha256": "fe71dabaa2ad95fe0193c7c155a3d0b564480157ec3abbbe91c8c138a4588322"
+  },
+  "continuation_spending": {
+    "current_cap_usd": 15,
+    "known_usage_price_estimate_usd": 11.205177,
+    "unknown_maxima_usd": 3.287286,
+    "committed_bound_usd": 14.492463,
+    "remaining_bound_usd": 0.507537,
+    "requested_additional_usd": 3,
+    "requested_total_cap_usd": 18,
+    "approval_status": "pending",
+    "old_attempts_or_unknowns_reset": false,
+    "full_model_or_context_reduced": false,
+    "quotation": "New future attempts quote the published maximum rate over their full bounded slot/request window; previous maxima remain untouched."
+  },
+  "local_release_hold": "No coherent-design image build or deployment before personally accepted complete output. Existing approved production recovery remains live."
+}
