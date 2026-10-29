@@ -675,7 +675,6 @@ def live_event_evidence(
     impact = direct_query_intent
     theme = ""
     direction = ""
-    explicitly_resolved = bool(selected_symbols)
     selected_symbols = selected_symbols[:max_sym]
 
     rows: list[dict[str, Any]] = []
@@ -712,16 +711,9 @@ def live_event_evidence(
             )
         rows.extend(_news_rows_from_payload(event_payload, scope="market_event"))
 
-    event_rows_are_sufficient = len(rows) >= min(max(safe_limit // 2, 3), safe_limit)
-    if len(rows) >= safe_limit or event_rows_are_sufficient:
-        symbol_search_limit = 0
-    else:
-        symbol_search_limit = 4 if explicitly_resolved else 2
-    # Only run per-symbol news search for symbols that came from the user or resolved
-    # Search per-symbol news for explicitly resolved symbols (up to 4) or
-    # intent-classified symbols (up to 2) since the classifier now returns
-    # actual affected tickers rather than generic proxies.
-    for symbol in selected_symbols[:symbol_search_limit]:
+    # Result count does not establish coverage of the agent's selected subjects.
+    # Execute its bounded focus searches within the same acquisition deadline.
+    for symbol in selected_symbols[:4]:
         remaining = _remaining_budget(deadline)
         if remaining <= max(provider_timeout_seconds, 3):
             messages.append(
@@ -826,7 +818,7 @@ def live_event_evidence(
                 ),
                 "source_kind": "provider_snippet",
             }
-            for row in ordered
+            for row in deduped
         ],
         "evidence_context_text": json.dumps(ordered, ensure_ascii=False, default=str),
         "llm_context_text": " ".join(item for item in llm_lines if item),

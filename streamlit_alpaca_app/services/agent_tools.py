@@ -343,6 +343,7 @@ def _research_tools() -> list[dict[str, Any]]:
             "name": "research.live_event_evidence",
             "description": (
                 "Fetch fresh web evidence for a current query, using event-level search and symbol-level search when relevant. "
+                "Pass focus_symbols for company searches alongside the query; the shared acquisition deadline bounds the work. "
                 "Returns recent search/article rows with headlines, snippets, sources, timestamps, and URLs. "
                 "Use research.open_page on the highest-value URL when article-body support is needed for a strong claim."
             ),
