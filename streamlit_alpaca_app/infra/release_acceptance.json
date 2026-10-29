@@ -1,8 +1,8 @@
 {
   "status": "accepted_locally",
-  "scope": "Accepted current-report recovery, adaptive soft-budget allocation, protected full-model core completion, economy reporting without rollover, same-policy retry, immutable fenced publication, complete late-answer recovery and source-grounded chronology. Exact-image DEV acceptance precedes owner-authorized production promotion.",
-  "source_revision": "db302f4ce58541419af79e55769286c5b5a5b9d0",
-  "review_base_revision": "ca0d2e3fc021ef79bed26f5e54d7c174dcc54d65",
+  "scope": "Isolated shared provider-liquidity repair for failed research chat. Development worker delivery only. Other application behavior preserved.",
+  "source_revision": "bdea33bbc3feb5c17ce251cc414668d2ff086594",
+  "review_base_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
   "files": {
     ".dockerignore": "bdf2340e44e26261601b34e222ebf0dc8ef0a8cb3a2b0df4c3b1e238d5c7c542",
     ".env.example": "3dfcb13e1cfe9f8a6dd64742ebb1b00a1c4bcd31928c867cbf8d6ba3f629b4e6",
@@ -177,7 +177,7 @@
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
     "services/llm.py": "67e5d4728fcc851e07c3d1673dec51e8684ded21203b6775ee043c458e1eeb49",
     "services/llm_context.py": "3c8925dd91441e516ffd9b0aad74d9968a40dc62d319a906eabc8ab667aacb73",
-    "services/llm_execution.py": "1e698b0c9b4dad276a798e7e2a1b13e952695831239df08e16d8b9e74c3ccd02",
+    "services/llm_execution.py": "26320317dcdb435ecb4c47cf994b51db7feeb77282de98068ae99ea827bf2f76",
     "services/llm_prices.json": "eeee5cdfd39271f38eab8492b5c6fefa95418ffac876b6a47b09eb9b2a88651f",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
@@ -457,7 +457,7 @@
     "services/knowledge_graph_proposals.py": "4ceaa4a481d6c418f3d2b7e1b393503fea9a4c3dd8b79cf3c27052fc549cd045",
     "services/llm.py": "67e5d4728fcc851e07c3d1673dec51e8684ded21203b6775ee043c458e1eeb49",
     "services/llm_context.py": "3c8925dd91441e516ffd9b0aad74d9968a40dc62d319a906eabc8ab667aacb73",
-    "services/llm_execution.py": "1e698b0c9b4dad276a798e7e2a1b13e952695831239df08e16d8b9e74c3ccd02",
+    "services/llm_execution.py": "26320317dcdb435ecb4c47cf994b51db7feeb77282de98068ae99ea827bf2f76",
     "services/llm_prices.json": "eeee5cdfd39271f38eab8492b5c6fefa95418ffac876b6a47b09eb9b2a88651f",
     "services/market.py": "682e2e9bcd074ff8d879cd2fe0b6363a820f4387a248d92fbe409561c27ed553",
     "services/market_data/__init__.py": "1cd9045454c9059ba48989fab44e19930b065076b8c9f7d2a287f3c4625d22d8",
@@ -504,23 +504,7 @@
     "services/zopedia_view.py": "9b2d52274f238917439bf82e09357018eb81b73c0451dafa678561652e4dc5a2"
   },
   "reviewed_changes": {
-    ".env.example": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "config/inference_policy.json": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "pipeline/jobs/attention_home_build.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "pipeline/jobs/main.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/agents/research_session.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/aql/business_model_stack.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/aql/collector.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/aql/news_business_resolution.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/aql_zopedia_gateway.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/inference_policy.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/llm_context.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/llm_execution.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/llm_prices.json": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/pipeline_store.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/web_research.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/zopedia_agent.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-    "services/zopedia_learning.py": "Complete source and prior-consumer review: documents/verification/production-recovery-2026-10-27/follow-up-source-review.json; complete-output/operational acceptance: documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json"
+    "services/llm_execution.py": "Only shared account reservation and settlement functions reused from 4f78e927; real PostgreSQL liquidity/concurrency checks and whole current worker source preservation reviewed. No feed/model/prompt/schedule changes."
   },
   "retired_files": [
     "scripts/eval_critique_harness.py",
@@ -539,296 +523,18 @@
   ],
   "components": [
     {
-      "name": "Research and retained output",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "compute/anomalies.py",
-        "pipeline/jobs/attention_home_build.py",
-        "services/aql/__init__.py",
-        "services/aql/_agentic.py",
-        "services/aql/_shared.py",
-        "services/aql/assembler.py",
-        "services/aql/business_model_stack.py",
-        "services/aql/chat_log.py",
-        "services/aql/clusterer.py",
-        "services/aql/collector.py",
-        "services/aql/config.py",
-        "services/aql/constants.py",
-        "services/aql/critique.py",
-        "services/aql/entities.py",
-        "services/aql/events.py",
-        "services/aql/evidence_index.py",
-        "services/aql/extractor.py",
-        "services/aql/macro.py",
-        "services/aql/news_business_resolution.py",
-        "services/aql/pipeline.py",
-        "services/aql/scratchpad.py",
-        "services/aql/summarizer.py",
-        "services/aql/writer.py",
-        "services/aql_zopedia_engine.py",
-        "services/attention/__init__.py",
-        "services/attention_agentic.py",
-        "services/attention_home_1d.py",
-        "services/attention_home_summary.py",
-        "services/attention_ticker_snapshots.py",
-        "services/common/market_activity.py",
-        "services/company.py",
-        "services/market.py",
-        "services/market_activity_shared.py",
-        "services/zopedia_agent.py",
-        "services/zopedia_analysis.py",
-        "services/zopedia_learning.py",
-        "services/zopedia_research.py"
-      ]
-    },
-    {
-      "name": "Database and storage lifecycle",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "config/release_contracts.json",
-        "pipeline/jobs/main.py",
-        "services/agents/chat_log.py",
-        "services/auth_store.py",
-        "services/brokerage_mcp_store.py",
-        "services/database.py",
-        "services/entity_taxonomy.py",
-        "services/knowledge_graph.py",
-        "services/llm.py",
-        "services/pipeline_store.py",
-        "services/robinhood_main_store.py",
-        "services/saa/storage.py",
-        "services/saa/zopedia.py",
-        "services/secrets.py"
-      ]
-    },
-    {
-      "name": "Web transport and credentials",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "web/app/api/admin/health/route.ts",
-        "web/app/api/admin/invites/route.ts",
-        "web/app/api/admin/llm/route.ts",
-        "web/app/api/admin/password-resets/route.ts",
-        "web/app/api/admin/route.ts",
-        "web/app/api/auth/account/[action]/route.ts",
-        "web/app/api/auth/login/route.ts",
-        "web/app/api/datasets/[name]/route.ts",
-        "web/app/api/feature-requests/[requestId]/messages/route.ts",
-        "web/app/api/feature-requests/[requestId]/route.ts",
-        "web/app/api/feature-requests/route.ts",
-        "web/app/api/investigator/[ticker]/route.ts",
-        "web/app/api/market-lenses/route.ts",
-        "web/app/api/portfolio/opportunities/route.ts",
-        "web/app/api/portfolio/route.ts",
-        "web/app/api/research-conversations/[conversationId]/route.ts",
-        "web/app/api/research-conversations/route.ts",
-        "web/app/api/research-runs/[runId]/cancel/route.ts",
-        "web/app/api/research-runs/[runId]/events/route.ts",
-        "web/app/api/research-runs/[runId]/route.ts",
-        "web/app/api/research-runs/route.ts",
-        "web/app/api/trading-agent/approved-calls/[trackingId]/route.ts",
-        "web/app/api/trading-agent/decisions/route.ts",
-        "web/app/api/trading-agent/route.ts",
-        "web/app/api/visualizations/[name]/route.ts",
-        "web/app/api/zopedia/pages/route.ts",
-        "web/app/api/zopedia/workspace/route.ts",
-        "web/lib/server/auth.ts",
-        "web/lib/server/backend.ts",
-        "web/lib/server/http.ts",
-        "web/tests/auth-boundary.test.mjs"
-      ]
-    },
-    {
-      "name": "Shared data and presentation",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "data_access/contracts.py",
-        "data_access/layer.py",
-        "data_access/query_registry.py",
-        "data_access/query_service.py",
-        "presentation/visualization_artifacts.py",
-        "services/admin_view.py",
-        "services/portfolio_view.py",
-        "services/stock_view.py",
-        "services/trading_agent_view.py"
-      ]
-    },
-    {
-      "name": "Retired tools and direct service ownership",
-      "status": "accepted",
-      "evidence": "documents/verification/deep-cleanup-dev-trial-2026-10-18/LOCAL.md",
-      "files": [
-        "scripts/eval_critique_harness.py",
-        "scripts/run_query.py",
-        "services/analytics.py",
-        "services/json_utils.py",
-        "services/operational_health.py",
-        "services/pipeline_slices.py",
-        "services/research_export.py",
-        "services/technicals.py",
-        "services/trading_agent.py"
-      ]
-    },
-    {
-      "name": "Shared stock explanation and retained coverage",
-      "status": "accepted",
-      "evidence": "documents/verification/stock-detail-shared-research-2026-10-20/review.json",
-      "files": [
-        "services/stock_view.py",
-        "services/aql/business_model_stack.py",
-        "pipeline/jobs/main.py",
-        "web/app/stock-investigator/page.tsx",
-        "web/app/globals.css"
-      ]
-    },
-    {
-      "name": "Conditional Home refresh",
-      "status": "accepted",
-      "evidence": "documents/verification/client-refresh-2026-10-22/LOCAL.md",
-      "files": [
-        "web/app/page.tsx",
-        "web/app/api/home/route.ts",
-        "web/components/home-workspace.tsx",
-        "web/lib/server/home.ts",
-        "web/tests/home-refresh.test.mjs"
-      ]
-    },
-    {
-      "name": "Consistent shared currency rendering",
-      "status": "accepted",
-      "evidence": "documents/verification/client-refresh-2026-10-22/LOCAL.md",
-      "files": [
-        "web/components/attention-ticker-card.tsx",
-        "web/components/visualizations/trend-chart.tsx"
-      ]
-    },
-    {
-      "name": "Shared quantitative execution and evidence",
       "status": "accepted",
       "files": [
-        "services/zopedia_analysis.py",
-        "services/agent_tools.py",
-        "services/zopedia_agent.py",
-        "services/aql_zopedia_engine.py"
+        "services/llm_execution.py"
       ],
-      "evidence": "documents/verification/quantitative-compute-2026-10-22/local-review.json"
-    },
-    {
-      "name": "Shared research chart source and numerical publication",
-      "status": "accepted",
-      "files": [
-        "api/main.py",
-        "data_access/contracts.py",
-        "presentation/plotly.py",
-        "presentation/visualization_artifacts.py",
-        "services/agent_tools.py",
-        "services/agents/research_runs.py",
-        "services/aql_zopedia_engine.py",
-        "services/llm.py",
-        "services/zopedia_agent.py",
-        "services/zopedia_analysis.py",
-        "web/app/globals.css",
-        "web/app/zopedia/runs/[runId]/research-run-view.tsx",
-        "web/components/visualizations/plotly-renderer.tsx",
-        "web/components/visualizations/visualization.tsx",
-        "web/lib/types.ts"
-      ],
-      "evidence": "documents/verification/research-charts-2026-10-23/source-review.json"
-    },
-    {
-      "name": "Shared evidence-index recovery",
-      "status": "accepted",
-      "files": [
-        "services/llm_execution.py",
-        "services/llm.py",
-        "services/saa/semantic_index.py",
-        "pipeline/jobs/main.py"
-      ],
-      "evidence": "documents/verification/evidence-index-2026-10-25/local-acceptance.json"
-    },
-    {
-      "name": "Home fetch-cache repair on production baseline",
-      "status": "accepted",
-      "evidence": "documents/verification/home-freshness-2026-10-26/PRODUCTION_REVIEW.md",
-      "files": [
-        "web/lib/server/home.ts"
-      ]
-    },
-    {
-      "name": "Incremental company research and configurable inference cost policy",
-      "status": "accepted",
-      "evidence": "documents/verification/inference-cost-rollout-2026-10-27/local-review.json",
-      "files": [
-        "config/inference_policy.json",
-        "pipeline/jobs/main.py",
-        "services/aql/business_model_stack.py",
-        "services/aql_zopedia_engine.py",
-        "services/aql_zopedia_gateway.py",
-        "services/inference_policy.py",
-        "services/llm.py",
-        "services/llm_context.py",
-        "services/llm_execution.py",
-        "services/llm_prices.json",
-        "services/pipeline_store.py",
-        "services/zopedia_agent.py"
-      ]
-    },
-    {
-      "name": "Bounded production research, durable learning and evidence chronology",
-      "status": "accepted",
-      "files": [
-        "config/inference_policy.json",
-        "pipeline/jobs/attention_home_build.py",
-        "pipeline/jobs/main.py",
-        "services/agents/research_session.py",
-        "services/aql/business_model_stack.py",
-        "services/aql/events.py",
-        "services/aql/news_business_resolution.py",
-        "services/aql_zopedia_gateway.py",
-        "services/llm_context.py",
-        "services/page_browsing.py",
-        "services/zopedia_agent.py",
-        "services/zopedia_learning.py"
-      ],
-      "evidence": "documents/verification/production-recovery-2026-10-27/local-review.json"
-    },
-    {
-      "name": "Adaptive current-report completion and recovery",
-      "status": "accepted",
-      "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-acceptance.json",
-      "files": [
-        ".env.example",
-        "config/inference_policy.json",
-        "pipeline/jobs/attention_home_build.py",
-        "pipeline/jobs/main.py",
-        "services/agents/research_session.py",
-        "services/aql/business_model_stack.py",
-        "services/aql/collector.py",
-        "services/aql/news_business_resolution.py",
-        "services/aql_zopedia_gateway.py",
-        "services/inference_policy.py",
-        "services/llm_context.py",
-        "services/llm_execution.py",
-        "services/llm_prices.json",
-        "services/pipeline_store.py",
-        "services/web_research.py",
-        "services/zopedia_agent.py",
-        "services/zopedia_learning.py"
-      ]
+      "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
     }
   ],
   "roles": {
     "worker": {
-      "dependency_image": "snpipelineacr03130136.azurecr.io/database-lifecycle-dev-worker@sha256:8de3113eebe33d603bbac5e5188ef26778c0e7c2db7db97396edbca15643261c",
+      "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
       "baseline_images": [
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
-        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037"
       ],
       "development_targets": [
         {
@@ -838,13 +544,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -855,13 +561,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -871,14 +577,14 @@
           "role": "worker",
           "environment": "development",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "53bb353f0f3d61d4267ce77f049c5f505e867485eecddc0b198cac048dceb2c8",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
+          "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012",
-            "source_revision": "47eff5e2539d2d8622022b639defe838c14e7610",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e4e5fc5320bb65e5a240e9f8e81a19748961991c74097183ba3074179a90d012"
         },
@@ -889,13 +595,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -906,13 +612,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -923,13 +629,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -940,13 +646,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -957,13 +663,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -974,13 +680,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -991,13 +697,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -1008,13 +714,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         },
@@ -1025,13 +731,13 @@
           "environment": "development",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b",
-            "source_revision": "200ded3e50dcd9717fbe6d569961cdb5e0339fa7",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/revision-preceding-packages.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:9a31be8e32b8a2dc15f8f58255093ec571ae6225c23cb4d3f69e3adde4e1cf5b"
         }
@@ -1043,14 +749,14 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "965ba45294d34c7511ca1a7036383d6273c3a63bb415c29979337ea5ebd5a342",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+          "configuration_sha256": "b585ac573f93aaf4ae211fdce648ced3b895ebe27656993a14a23f1c9357be4c",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
-            "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
         },
@@ -1061,13 +767,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1078,13 +784,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1095,13 +801,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1112,13 +818,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1127,13 +833,13 @@
           "kind": "jobs",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "execution_binding": {
             "name": "evidence-index-dev",
@@ -1154,13 +860,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1171,13 +877,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1187,14 +893,14 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "4b2b09a796fd648d3c7e053bcf0ecc3b01ba92be8fe2112ecce7c2106b3eaf12",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+          "configuration_sha256": "6fae0bea21fe3952d91164646cde40c115e6ed304314aaebd9cc847dcaae4372",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
-            "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
         },
@@ -1205,13 +911,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1222,13 +928,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1239,13 +945,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1256,13 +962,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
-            "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "execution_binding": {
             "name": "system-recovery",
@@ -1284,13 +990,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1301,13 +1007,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         },
@@ -1317,14 +1023,14 @@
           "role": "worker",
           "environment": "production",
           "configuration_api_version": "2025-07-01",
-          "configuration_sha256": "3bc07b69ebf303c45b0900c21dde3a69de84dd1b25e94942cfe3095265b6274b",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
+          "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1",
-            "source_revision": "b83d2bb296af9e0579f5cd876102d4362710e14d",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/production-recovery-2026-10-27/packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:e1f0629e4d8a51c5fe821e10776f472a518afd52c90a97e053371b350c7c2dd1"
         },
@@ -1335,13 +1041,13 @@
           "environment": "production",
           "configuration_api_version": "2025-07-01",
           "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
-          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
+          "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
           "preservation_review": {
             "status": "accepted",
-            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae",
-            "source_revision": "f3d3393d4dc8ff7ee2051f2fce6f189cda45641c",
+            "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+            "source_revision": "a105f517f667eed4ff2632d563a0171be09fb630",
             "package_evidence": "documents/verification/research-charts-2026-10-23/publication-packaged-images.json",
-            "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-consumers.json"
+            "evidence": "documents/verification/iphone-feedback-2026-10-28/CHAT_CREDIT.md"
           },
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:40cd5c6f0e6648b9cef3507aea676bbb5caf1781a65baa64c85dc59b19bb0aae"
         }
@@ -1366,38 +1072,7 @@
       ],
       "development_targets": [],
       "production_targets": [],
-      "accepted_images": {
-        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd": {
-          "role": "web",
-          "source_revision": "85a6caae3924778419efa9c87fee9db84a45ea4b",
-          "source_inventory_sha256": "9b3c016be8dae716ed253191c03936a03de53062e9545753fd20d00f6722fd39",
-          "runtime_inventory_sha256": "a60a792f11f12520f71c809870f46946033db77747d2b374ff52e591d3eedcd4",
-          "complete_git_inventory_matches": true,
-          "all_packaged_files_checked": true,
-          "input_files": 89,
-          "compiled_files": 1703,
-          "symlinks": 0,
-          "node": "v22.23.3",
-          "next": "16.3.8",
-          "http_checks": [
-            "initial publication",
-            "immediate complete replacement above 2 MiB",
-            "unchanged bodyless 304",
-            "current server-rendered Home",
-            "independent update invalidates ETag",
-            "complete replay",
-            "failure does not validate stale response",
-            "exact recovery"
-          ],
-          "large_body_bytes": 3146181,
-          "backend_reads": 8,
-          "external_inference_calls": 0,
-          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:3f1623a6e702b33368d6472c3696d4e415bc157fb8e1d8e50ab69329964d8fbd",
-          "verification_run": "cj1c0",
-          "build_run": "cj1by",
-          "evidence": "documents/verification/home-freshness-2026-10-26/production-packaged-image.json"
-        }
-      },
+      "accepted_images": {},
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -1639,12 +1314,7 @@
       "status": "production resource deleted after explicit owner approval; definition retained privately"
     }
   ],
-  "production_authorized": true,
-  "production_authorization": {
-    "owner_instruction": "Push to prod once everything is fixed. If it's not fixed, fucking fix it and push",
-    "scope": "Promote the locally accepted, exact DEV-qualified worker digest after the complete consumer review. Existing approval also explicitly authorizes promotion once verified.",
-    "date_pacific": "2026-10-28"
-  },
+  "production_authorized": false,
   "consumer_contract_reviews": {
     "database_lifecycle": {
       "status": "accepted",
@@ -1663,10 +1333,6 @@
     "source_revision": "90e514f9da58a36ab49aa991a52a95c0254418b8",
     "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:6f143ff4bcea1089031cd9a7f1a2576e9437bdafe2bcc8d501e44aff0ca45c05",
     "evidence": "documents/verification/research-charts-2026-10-23/development.json"
-  },
-  "development_acceptance": {
-    "status": "not_started",
-    "evidence": "documents/verification/production-recovery-2026-10-27/follow-up-development.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",
