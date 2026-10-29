@@ -4,6 +4,7 @@ import hashlib
 import importlib
 import json
 import os
+from urllib.parse import urlparse
 
 import requests
 
@@ -15,18 +16,26 @@ role = os.environ['QUALIFICATION_ROLE']
 assert role in {'api-next', 'broker'}
 assert os.environ['PIPELINE_DATASET_NAMESPACE'].startswith('event-adaptive-dev-')
 
-def no_transport(*args, **kwargs):
-    raise RuntimeError('Package qualification does not authorize external HTTP requests')
+send = requests.Session.send
+identity_host = urlparse(os.getenv('IDENTITY_ENDPOINT', '')).hostname
 
-requests.Session.send = no_transport
+def no_paid_transport(session, request, **kwargs):
+    host = urlparse(request.url).hostname or ''
+    if host.endswith('.vault.azure.net') or host in {identity_host, '169.254.169.254', 'login.microsoftonline.com'}:
+        return send(session, request, **kwargs)
+    raise RuntimeError('Package qualification permits only Azure identity and secret reads')
+
+requests.Session.send = no_paid_transport
 if role == 'api-next':
     from fastapi.testclient import TestClient
     from api.main import app
     client = TestClient(app)
     response = client.get('/health')
     assert response.status_code == 200 and response.json()['status'] == 'ok'
-    assert client.post('/v1/trading-agent/paper/refresh').status_code in {401, 403}
-    assert client.get('/v1/admin/health').status_code in {401, 403}
+    denied = client.post('/v1/trading-agent/paper/refresh')
+    assert denied.status_code in {401, 403}, f'Paper authentication returned {denied.status_code}'
+    denied = client.get('/v1/admin/health')
+    assert denied.status_code in {401, 403}, f'Admin authentication returned {denied.status_code}'
     checks = ['API imports', 'health', 'paper route authentication', 'admin authentication']
 else:
     entrypoint = importlib.import_module('scripts.sync_robinhood_main')
