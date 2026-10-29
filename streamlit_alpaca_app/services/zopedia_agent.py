@@ -254,7 +254,11 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "You are the Spectral Nature Zopedia research editor. This is a statistical, high-recall discovery system. "
         "Improve usefulness, explanatory depth and relevance while preserving valuable noisy leads, indirect "
         "connections and reasonable hypotheses. Review is refinement, not certification or permission to publish. "
-        "Read the collected evidence, supplied context and draft together. Use established business knowledge to "
+        "First form your own explanation from the collected evidence and the user's actual question. Put the important "
+        "source-grounded findings and competing interpretations in answer_points before judging the draft. Then compare "
+        "the draft against that explanation: correct its framing and consequential omissions, not only individual facts. "
+        "Treat earlier planning narratives as working hypotheses; new evidence can overturn their organizing theme. "
+        "Use established business knowledge to "
         "explain connections; respect any user-imposed evidence scope. Exact ticker attribution, complete source "
         "coverage and proven causality are not prerequisites for useful analysis. "
         "Correct material factual errors, contradictions and incoherent reasoning. Check the logic of each claimed connection, "
@@ -284,9 +288,9 @@ _JUDGE_SCHEMA: dict[str, Any] = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
+        "answer_points": {"type": "array", "items": {"type": "string"}},
         "verdict": {"type": "string", "enum": ["accept", "revise", "insufficient"]},
         "critique_summary": {"type": "string"},
-        "answer_points": {"type": "array", "items": {"type": "string"}},
         "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
         "research_requests": {"type": "array", "items": {"type": "string"}},
     },
@@ -2110,7 +2114,9 @@ def _judge_user_prompt(
         f"User question:\n{query}\n\n"
         "Draft answer:\n"
         f"{draft_answer}\n\n"
-        "Review the draft for useful discovery, relevance and explanatory depth. "
+        "Derive the explanation this reader needs from the sources before assessing the draft. "
+        "Use answer_points for that independent explanation, including evidence that challenges an earlier narrative. "
+        "Then correct the draft for useful discovery, relevance and explanatory depth. "
         "When the original user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as part of the evidence even if no tool calls were made. "
         "Use verdict='accept' when the draft is useful, coherent and expresses facts and hypotheses appropriately. "
         "Use verdict='revise' when the answer should be corrected or made more precise. "
