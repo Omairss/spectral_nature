@@ -117,7 +117,8 @@ def test_balance_contention_stays_inside_the_request_deadline(durable_store, mon
         yield False
     monkeypatch.setattr(execution, "execution_ownership", unavailable_refresh)
     with pytest.raises(llm.LLMProviderUnavailable, match="request deadline"):
-        execution.reserve_provider_budget(model().config, {}, attempt_id="expired", timeout=5)
+        execution.reserve_provider_budget(model().config, {"messages": [{"role": "user", "content": "Current input"}]},
+                                          attempt_id="expired", timeout=5)
 
 
 def test_bounded_batch_rotates_older_and_missing_profiles_before_fresh_ones(monkeypatch):

@@ -694,8 +694,9 @@ def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id:
                             timeout: float) -> bool:
     """Reserve request headroom across workers sharing the official DeepSeek key.
 
-    The balance is authoritative; reservations protect concurrent in-flight
-    work. No generated request or arbitrary daily production allowance is used.
+    Current provider balance controls liquidity; reservations protect concurrent
+    work not yet reflected in it. Lost usage stays uncertain in its original run
+    and account record, without becoming a permanent cross-run credit hold.
     """
     official_balance = config.provider == "deepseek" and urlparse(config.base_url).hostname == "api.deepseek.com"
     if not official_balance:
@@ -707,49 +708,105 @@ def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id:
     from .llm import LLMProviderUnavailable
     key = _account_key(config)
     namespace = "provider_budget"
-    state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
     refresh_deadline = time.monotonic() + timeout
-    while time.time()-float(state.get("observed_at", 0)) >= 30:
-        check_execution_ownership()
-        remaining = refresh_deadline - time.monotonic()
-        if remaining <= 0:
-            raise LLMProviderUnavailable("Provider balance refresh exceeded the request deadline. Progress is retained.")
-        with execution_ownership(namespace + ":balance", key,
-                                 wait_seconds=min(remaining, 15), lease_seconds=60) as owned:
-            # A competing refresher may have published while this worker
-            # waited. Fresh shared state, not winning its lease, admits work.
-            state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
-            if owned and time.time()-float(state.get("observed_at", 0)) >= 30:
-                probe_started = time.time()
-                response = requests.get(config.base_url.rstrip("/") + "/user/balance",
-                    headers={"Authorization": "Bearer " + config.api_key},
-                    timeout=min(max(refresh_deadline-time.monotonic(), 0.001), 15))
-                response.raise_for_status()
-                data = response.json()
-                balances = [value for value in data["balance_infos"] if value["currency"] == "USD"]
-                if len(balances) != 1:
-                    raise LLMProviderUnavailable("Provider USD balance could not be established.")
-                balance = float(balances[0]["total_balance"])
-                def refresh(current):
-                    reservations = {identity: value for identity, value in current.get("reservations", {}).items()
-                        if value.get("status") in {"pending", "unknown"}
-                        or value.get("finished_at", 0) >= probe_started}
-                    return {"observed_at": probe_started, "balance_usd": balance,
-                            "available": data.get("is_available") is True, "reservations": reservations}
-                state = pipeline_store.mutate_execution_state(namespace, key, refresh)
+    state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
     amount = _request_maximum_charge(config, payload)
+
+    def held_credit(current):
+        return sum(value["amount_usd"] for value in current.get("reservations", {}).values()
+            if not (value.get("status") == "unknown" and value.get("finished_at") is not None
+                    and value.get("liquidity_observed_at", 0) > value["finished_at"]))
+
+    def needs_refresh(current):
+        if time.time() - float(current.get("observed_at", 0)) >= 30:
+            return True
+        if current.get("balance_usd", 0) - held_credit(current) >= amount:
+            return False
+        # A newly ended/lost request may be the only reason local credit appears
+        # insufficient. Recheck the actual account before refusing current work.
+        return any(
+            (value.get("status") == "unknown" and value.get("finished_at") is not None
+             and value.get("liquidity_observed_at", 0) <= value["finished_at"])
+            or (value.get("status") == "pending"
+                and value.get("deadline_at", value.get("expires_at")) is not None
+                and value.get("deadline_at", value.get("expires_at")) < time.time())
+            for value in current.get("reservations", {}).values()
+        )
+
     free = 0.0
     def reserve(current):
         nonlocal free
-        free = current["balance_usd"] - sum(value["amount_usd"] for value in current["reservations"].values())
+        if time.monotonic() >= refresh_deadline:
+            raise LLMProviderUnavailable("Provider admission exceeded the request deadline. Progress is retained.")
+        free = current["balance_usd"] - held_credit(current)
         if not current["available"] or free < amount:
             raise LLMProviderUnavailable(
                 f"Provider credit cannot cover the next request and active work (${free:.2f} unreserved). Progress is retained.")
         current["reservations"][attempt_id] = {"amount_usd": _microusd(amount) / 1e6, "status": "pending",
+                                               "deadline_at": time.time()+max(0, refresh_deadline-time.monotonic()),
                                                "expires_at": time.time()+timeout+300}
         return current
-    reserve_research_cost(attempt_id=attempt_id, maximum_usd=amount, category="inference",
-        account_key=(namespace, key), account_transform=reserve, wait_seconds=timeout)
+    while True:
+        check_execution_ownership()
+        remaining = refresh_deadline - time.monotonic()
+        if remaining <= 0:
+            raise LLMProviderUnavailable("Provider balance refresh exceeded the request deadline. Progress is retained.")
+        if needs_refresh(state):
+            with execution_ownership(namespace + ":balance", key,
+                                     wait_seconds=min(remaining, 15), lease_seconds=60) as owned:
+                # A competing refresher may have published while this worker
+                # waited. Fresh shared state, not winning its lease, admits work.
+                state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
+                if owned and needs_refresh(state):
+                    probe_started = time.time()
+                    response = requests.get(config.base_url.rstrip("/") + "/user/balance",
+                        headers={"Authorization": "Bearer " + config.api_key},
+                        timeout=min(max(refresh_deadline-time.monotonic(), 0.001), 15))
+                    response.raise_for_status()
+                    data = response.json()
+                    balances = [value for value in data["balance_infos"] if value["currency"] == "USD"]
+                    if len(balances) != 1:
+                        raise LLMProviderUnavailable("Provider USD balance could not be established.")
+                    balance = float(balances[0]["total_balance"])
+                    if not Decimal(str(balance)).is_finite():
+                        raise LLMProviderUnavailable("Provider USD balance is invalid.")
+                    def refresh(current):
+                        reservations = {}
+                        for identity, original in current.get("reservations", {}).items():
+                            value = dict(original)
+                            if value.get("status") == "settled" and value.get("finished_at", 0) < probe_started:
+                                continue
+                            deadline_at = value.get("deadline_at", value.get("expires_at"))
+                            if value.get("status") == "pending" and deadline_at is not None and deadline_at < probe_started:
+                                # A crashed worker cannot leave an active hold forever.
+                                # Its unreceived usage remains unknown, never zero.
+                                value.update(status="unknown", finished_at=deadline_at,
+                                             uncertainty_reason="local_request_deadline_elapsed")
+                            if value.get("status") == "unknown" and value.get("finished_at") is not None and value["finished_at"] < probe_started:
+                                value["liquidity_observed_at"] = probe_started
+                            reservations[identity] = value
+                        return {**current, "observed_at": probe_started, "balance_usd": balance,
+                                "available": data.get("is_available") is True, "reservations": reservations,
+                                "liquidity_policy": "current_provider_balance_and_active_requests",
+                                "unreconciled_at_balance_check": {
+                                    "attempt_count": sum(v.get("status") == "unknown" for v in reservations.values()),
+                                    "maximum_usd": sum(v["amount_usd"] for v in reservations.values() if v.get("status") == "unknown"),
+                                    "cost_settlement": "Unknown usage is retained; this balance check does not establish individual charges.",
+                                }}
+                    state = pipeline_store.mutate_execution_state(namespace, key, refresh)
+            continue
+        try:
+            reserve_research_cost(attempt_id=attempt_id, maximum_usd=amount, category="inference",
+                account_key=(namespace, key), account_transform=reserve, wait_seconds=remaining)
+        except LLMProviderUnavailable:
+            # Another worker may have finished after the initial state read.
+            # Retry only when a new authoritative balance could resolve that
+            # race, and keep this request's original deadline.
+            state = pipeline_store.read_execution_state(namespace, key, strict=True) or {}
+            if not needs_refresh(state):
+                raise
+            continue
+        break
     if free < float(os.getenv("LLM_PROVIDER_BALANCE_ALERT_USD", "10")):
         log.warning("provider_balance_low available_usd=%.2f reserved_request_usd=%.2f", free, amount)
     return True
@@ -787,12 +844,18 @@ def settle_provider_budget(config: Any, *, attempt_id: str, charge: dict[str, An
             # A fresh authoritative balance can already include this settled
             # request. Replaying a receipt must not recreate its wallet debit.
             return state
-        value["finished_at"] = time.time()
         if charge.get("status") == "estimated" or definitely_unbilled:
             amount = 0 if definitely_unbilled else float(charge["usd_max"])
-            value.update(status="settled", amount_usd=max(amount, value["amount_usd"] if value["status"] == "settled" else 0))
+            amount = max(amount, value["amount_usd"] if value["status"] == "settled" else 0)
+            if value["status"] != "settled" or amount != value["amount_usd"]:
+                # A real late receipt replaces the unknown estimate and protects
+                # its debit until the next provider balance observation. Replay
+                # neither recreates a debit nor moves its original finish time.
+                value.update(status="settled", amount_usd=amount, finished_at=time.time())
+                value.pop("liquidity_observed_at", None)
         elif value["status"] != "settled":
             # A disconnected response is unknown usage, never a free request.
+            value.setdefault("finished_at", time.time())
             value["status"] = "unknown"
         return state
     actual = 0 if definitely_unbilled else charge.get("usd_max") if charge.get("status") == "estimated" else None
