@@ -1,8 +1,8 @@
 {
-  "status": "source_integrated_operational_checks_passed_quality_not_accepted",
+  "status": "source_integrated_operationally_verified_complete_output_quality_rejected",
   "production_authorized": false,
   "accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-  "new_shared_source": "d03450ab",
+  "new_shared_source": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44",
   "preserved_features": [
     "Alpaca-authoritative paper account and typed broker projections",
     "Existing Native Responses JSON repair; normal generation stays chat",
@@ -112,5 +112,13 @@
     "mutations": 0,
     "new_production_authorization": false
   },
-  "remaining": "Fresh same-evidence quality review after scoped API approval; then exact DEV packaging/qualification and DEV release. No coherent-design build/deployment yet."
+  "remaining": "Fresh same-evidence quality review after scoped API approval; then exact DEV packaging/qualification and DEV release. No coherent-design build/deployment yet.",
+  "latest_publication_check": {
+    "contract_checks_passed": 2,
+    "paid_answer_reused_without_inference": true,
+    "all11selected_stories_preserved": true,
+    "all_public_fields_preserved": true,
+    "primary_bundle_metadata_preserved": true,
+    "quality_evidence": "development-quality.json"
+  }
 }

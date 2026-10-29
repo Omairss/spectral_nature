@@ -1381,3 +1381,10 @@ Combining accepted Native Responses telemetry with the newer financial module in
 ### Retained completion qualification adapter — October29
 
 The isolated continuation assumed every structured agent result contains a run_id. The direct structured route returns a valid paid artifact without that field, so the local adapter stopped after saving the completed answer. Resume reused that exact saved answer, made run identity optional in the qualification record and kept all charges/unknowns in the same ledger; no answer was repurchased. The full agent route, writer/review and direct serializer need distinct evidence claims. Source merge review found two equivalent usage-normalizer definitions; the shadowed duplicate was removed in352e292e, preserving the active implementation.
+
+
+### One source identity through reading and publication — October29
+
+The recovered-run comparison completed paid writing/review but failed materialization: the model copied its reader identity into the separate candidate bundle/index contract. Removed the redundant candidate/source-event identity forms. Selection now uses the exact named reader sources, including retained bundles outside the previous public feed; unknown identities still fail visibly. Originals remain available through the existing reader rather than all being injected up front. No prefix repair, semantic fallback or prose filtering.
+
+A progress update inferred that zero acquisition-tool budget disables source reading. Inspection of the inner writer/reviewer loop showed it retains evidence navigation independently. Corrected the update immediately; check the complete call path before reporting a missing capability. A notes update again used application-relative paths from the repository root; corrected its paths and separated preparation from Git mutation so a failed write cannot be followed by a misleading commit.

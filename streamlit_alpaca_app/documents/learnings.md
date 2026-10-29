@@ -1458,3 +1458,8 @@ An answer must exist before its advisory review can add value. Stop optional res
 ### Observation-backed event funding — October29
 
 A model may select an unexplained current market observation before an article exists. The financial adapter must carry that actual input, not require an article as its only evidence identity. Join only nominated subjects to supplied observations; retain the full original row and snapshot date in the marginal-funding audit. This authorizes investigation within the configured allowance; it does not establish a price cause.
+
+
+### Selection shares the evidence reader identity — October29
+
+A research source should have the same identity when read, selected and published. Redundant section/index/bundle identifiers require the model to translate storage details and exclude useful research that was not already public. Resolve the exact named source on the application side; preserve original bundle metadata and all supporting originals. Let the existing shared reader load source bodies as needed while substantive findings remain in working context.

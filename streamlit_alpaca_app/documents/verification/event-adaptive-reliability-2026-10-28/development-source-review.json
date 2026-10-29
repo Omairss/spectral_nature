@@ -2,10 +2,10 @@
   "status": "operational_source_verified_publication_quality_not_accepted",
   "production_authorized": false,
   "review_base_revision": "c92245b62852d0f6d38465a07dd6f254a670866e",
-  "selected_runtime_revision": "d03450ab",
+  "selected_runtime_revision": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44",
   "preserved_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
   "files": {
-    "pipeline/jobs/attention_home_build.py": "Existing shared research feeds one capacity-aware selection, writing and review contract. Full original sources and substantive findings survive into composition. Materialize exact reviewed identities and order without semantic cropping. Overview and story fields explain significance rather than repeat exhaustive metrics. No Home-owned intake or schedule.",
+    "pipeline/jobs/attention_home_build.py": "One source identity across existing shared evidence reading and exact publication selection. No section/index/bundle translation; retained research outside the old public feed is selectable. Reuse original bundle price/graph/drilldown data, preserve all source records for combined stories, reject unknown or repeated IDs before publication. Substantive findings and the source catalog start composition; original bodies remain available through the existing reader without automatic full injection. Exact selected order and bodies are preserved. Fresh complete output remains required.",
     "pipeline/jobs/main.py": "Preserve accepted DEV semantic maintenance and current producer/publication boundaries. Final controller cleanup releases unspent account completion priority, retaining original run funding/deadline and all actual pending or unknown charges for native retry.",
     "services/agent_tools.py": "Preserve existing shared acquisition and argument validation; tagged actions retain typed JSON argument values.",
     "services/alpaca_api.py": "Preserve accepted DEV paper-only authority, bounded historical acquisition and repeated-page detection alongside accepted broad/selected news intake.",
@@ -50,12 +50,14 @@
     "preserved_consumer_checks_skipped": 1,
     "prose_quality_established_by_tests": false,
     "log": "private contracts-20261029T180354Z.log",
-    "additional_harness_and_usage_checks_passed": 68
+    "additional_harness_and_usage_checks_passed": 68,
+    "new_publication_contracts_passed": 2,
+    "unchanged_paid_answer_reapplication": "11selected stories,all7public fields unchanged,9primary public/research metadata records preserved,no network or inference."
   },
-  "qualitative_state": "Historical comparisons remain unaccepted. The owner approved the additional3USD, increasing the same continuation cap to18USD with all158previous attempts and both unknown maxima preserved. The recovered-run, same-evidence full Pro comparison is running in isolated storage; no coherent-design image build or deployment.",
+  "qualitative_state": "Recovered-run comparison finished; selection and materialization now share reader identities and preserve primary metadata. Full-model prose remains repetitive and numerically excessive, so no coherent-design build/deployment is accepted.",
   "remaining": [
-    "Personally inspect complete recovered-run comparison",
-    "Commit source acceptance only after local quality acceptance",
-    "Exact three-role DEV packaging, cloud contracts and DEV rollout; no production authorization"
+    "Improve public composition and personally accept complete outputs; current broader coverage is not sufficient.",
+    "Commit source acceptance only after local behavioral acceptance.",
+    "Exact three-role DEV packaging,cloud contracts and DEV rollout; new-design production permission remains with owner."
   ]
 }

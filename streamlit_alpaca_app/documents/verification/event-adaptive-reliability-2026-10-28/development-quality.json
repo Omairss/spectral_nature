@@ -1,5 +1,5 @@
 {
-  "status": "not_accepted_for_release",
+  "status": "complete_comparison_personally_rejected_for_release",
   "production_authorized": false,
   "comparisons": [
     {
@@ -21,6 +21,39 @@
       "method": "Fresh writer/review with explicit public-field purposes and historical knowledge timing.",
       "elapsed_seconds": 328.1189,
       "outcome": "Microsoft and Vertiv details became more selective, but the overview was still a long inventory and other stories still repeated financial figures. Process/capture language persisted. Rejected personally despite model reviewer revision/acceptance."
+    },
+    {
+      "name": "recovery-coherent-current",
+      "source": "d03450ab",
+      "method": "Recovered production evidence; fresh full Pro writing and review.",
+      "elapsed_seconds": 206.667581,
+      "outcome": "Paid writing/review completed, but publication rejected a reader-prefixed bundle identity in the separate candidate triple. No feed was written. Overview improved, but Caterpillar/macro/Microsoft details remain numerical inventories.",
+      "known_usage_price_estimate_usd": 0.579722
+    },
+    {
+      "name": "recovery-coherent-reader",
+      "generation_revision": "5f89fbc3",
+      "publication_revision": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44",
+      "elapsed_seconds": 295.0541730830446,
+      "method": "Same254original documents,88retained bundles and12company investigations. Fresh full Pro/high writing/review with originals available through the existing reader. Final metadata-only adapter reapplied the unchanged paid answer with all network prohibited.",
+      "published_to_isolated_storage_only": true,
+      "selected_and_materialized_stories": 11,
+      "qualitative_acceptance": false,
+      "improvements": [
+        "Broader selection includes Fortinet,ADT,Marvell/Lumentum,consumer results,Glaukos and unresolved Iovance alongside the main five events.",
+        "One source identity connects existing research reading and publication;9primary research bundles retain their original public and underlying metadata.",
+        "The writer/reviewer both complete and the entire selected feed materializes without cropping."
+      ],
+      "remaining_quality_failures": [
+        "Overview still reads as a long story inventory.",
+        "Expanded Caterpillar,Fortinet,Microsoft and macro fields still transcribe too many financial figures.",
+        "Repetitive framing and generic qualifications remain; Carvana/Chipotle are incorrectly called peers in a software story.",
+        "ServiceNow forward-expectations explanation remains stronger than the reconstructed missing guidance detail."
+      ],
+      "model_review": "Advisory revise corrected Microsoft report-date bookkeeping,Caterpillar conflicting consensus claims and Iovance source linkage. Personal review still rejects release.",
+      "reader_calls_taken": 0,
+      "reader_limit": "The reader was available; the model answered from retained findings without opening originals. This does not demonstrate useful navigation or prove context size caused the writing failure.",
+      "estimated_new_usage_usd": 0.220679
     }
   ],
   "important_limits": [
@@ -37,22 +70,34 @@
     "company_research_rows": 12,
     "method": "Same completed-run source corpus and numerical observation dates. Fresh shared composition/review only, isolated local state, no production writes and no new acquisition. Compare all actual public fields; no curated excerpt or topic/number quota.",
     "input_sha256": "fe71dabaa2ad95fe0193c7c155a3d0b564480157ec3abbbe91c8c138a4588322",
-    "status": "running",
-    "candidate_runtime_revision": "d03450ab",
-    "started_at_utc": "2026-10-29T18:23:22.214032+00:00"
+    "status": "completed_personally_rejected",
+    "candidate_runtime_revision": "5f89fbc3",
+    "started_at_utc": "2026-10-29T18:23:22.214032+00:00",
+    "publication_runtime_revision": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44"
   },
   "continuation_spending": {
     "current_cap_usd": 18,
-    "known_usage_price_estimate_usd": 11.205177,
-    "unknown_maxima_usd": 3.287286,
-    "committed_bound_usd": 14.492463,
-    "remaining_bound_usd": 3.507537,
     "approval_status": "approved",
+    "owner_instruction": "Approve up to $3 more",
+    "known_usage_price_estimate_usd": 12.005578,
+    "unknown_maxima_usd": 3.287286,
+    "committed_bound_usd": 15.292864,
+    "remaining_bound_usd": 2.707136,
+    "new_verification_usage_price_estimate_usd": 0.800401,
+    "attempts": 162,
+    "prior_attempts_exactly_preserved": true,
     "old_attempts_or_unknowns_reset": false,
     "full_model_or_context_reduced": false,
-    "quotation": "New future attempts quote the published maximum rate over their full bounded slot/request window; previous maxima remain untouched.",
-    "owner_instruction": "Approve up to $3 more",
-    "additional_authorized_usd": 3
+    "pending_attempts": 0,
+    "invoice_reconciled": false,
+    "new_inference_scheduled": false
   },
-  "local_release_hold": "No coherent-design image build or deployment before personally accepted complete output. Existing approved production recovery remains live."
+  "local_release_hold": "No coherent-design image build or deployment: complete-output quality still does not meet owner requirements. Operational source improvements are committed separately from qualitative acceptance.",
+  "preview": {
+    "path": "output/visualizations/coherent-feed-review-20261029.html",
+    "production_stories": 6,
+    "candidate_stories": 11,
+    "content": "Actual complete output with no prose editing; detailed fields are expandable. Candidate is held.",
+    "production_changed": false
+  }
 }
