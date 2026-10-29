@@ -1441,7 +1441,37 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5": {
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+          "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
+          "source_inventory_sha256": "0291034371ef7bb536b9b58cd17e0b1e3566a8ae3a03b5d68bcd624892358734",
+          "runtime_inventory_sha256": "42b8955321ff75cabaefce175da572278a63aa69ae7174b4aa67ac1166a3b6e9",
+          "all_packaged_files_checked": true,
+          "complete_git_inventory_matches": true,
+          "files": 193,
+          "development_execution": "macro-fred-daily-dev-98el4vt",
+          "probe_command_sha256": "3a72ab40a759ad70874b58e0690a833225f1ea39cdcfa194ce1969e1d847dd32",
+          "checks": [
+            "package",
+            "event_margin",
+            "azure_embedding_alias",
+            "pdf_and_publication",
+            "shared_account_future_core",
+            "protected_core",
+            "late_paid_response",
+            "zero_budget_current_report",
+            "ownership_under_background_load",
+            "learning_input",
+            "intentional_replica_failure",
+            "package",
+            "native_retry",
+            "deadline_completed_subset"
+          ],
+          "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
@@ -1487,7 +1517,27 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926": {
+          "role": "api-next",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
+          "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
+          "source_inventory_sha256": "0291034371ef7bb536b9b58cd17e0b1e3566a8ae3a03b5d68bcd624892358734",
+          "runtime_inventory_sha256": "42b8955321ff75cabaefce175da572278a63aa69ae7174b4aa67ac1166a3b6e9",
+          "all_packaged_files_checked": true,
+          "complete_git_inventory_matches": true,
+          "files": 193,
+          "development_execution": "macro-fred-daily-dev-ivj71mn",
+          "probe_command_sha256": "6e754a44400537b62d26a8904ac42222ebb4eba38d910f02a48cd84707e4150b",
+          "checks": [
+            "API imports",
+            "health",
+            "paper route authentication",
+            "admin authentication"
+          ],
+          "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json"
+        }
+      }
     },
     "web": {
       "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
@@ -1637,7 +1687,26 @@
           "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e"
         }
       ],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34": {
+          "role": "broker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34",
+          "source_revision": "8c11d522957c43e880bcacd20354015ca6c36c92",
+          "source_inventory_sha256": "0291034371ef7bb536b9b58cd17e0b1e3566a8ae3a03b5d68bcd624892358734",
+          "runtime_inventory_sha256": "42b8955321ff75cabaefce175da572278a63aa69ae7174b4aa67ac1166a3b6e9",
+          "all_packaged_files_checked": true,
+          "complete_git_inventory_matches": true,
+          "files": 193,
+          "development_execution": "macro-fred-daily-dev-h6jo6mn",
+          "probe_command_sha256": "ab5539fd27d3a3527ac2aecc03ce37a2afb3f55397c1a2a953439bf94dfd8097",
+          "checks": [
+            "broker entrypoint imports",
+            "background lifecycle imports",
+            "no broker execution"
+          ],
+          "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json"
+        }
+      }
     }
   },
   "untouched_consumers": [
@@ -1732,9 +1801,14 @@
     "evidence": "documents/verification/research-charts-2026-10-23/development.json"
   },
   "development_acceptance": {
-    "status": "pending_exact_image_qualification",
-    "images": {},
-    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/development-integration.json"
+    "status": "exact_images_qualified_pending_dev_template_rollout",
+    "images": {
+      "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+      "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
+      "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34"
+    },
+    "source_inventory_sha256": "0291034371ef7bb536b9b58cd17e0b1e3566a8ae3a03b5d68bcd624892358734",
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",

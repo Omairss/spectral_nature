@@ -1,5 +1,5 @@
 {
-  "status": "source_integrated_owner_prefers_compared_output_exact_dev_qualification_remaining",
+  "status": "all_three_exact_images_cloud_qualified_ready_for_dev_rollout",
   "production_authorized": false,
   "accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
   "new_shared_source": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44",
@@ -120,5 +120,18 @@
     "all_public_fields_preserved": true,
     "primary_bundle_metadata_preserved": true,
     "quality_evidence": "development-quality.json"
+  },
+  "exact_image_proof": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34"
+  },
+  "qualification_paid_inference": false,
+  "qualification_production_writes": false,
+  "api_initial_check": {
+    "outcome": "Qualification guard blocked required Azure secret reads;same immutable image passed after allowing only Azure identity and secret reads.",
+    "initial_execution": "macro-fred-daily-dev-z7ej35o",
+    "application_source_changed": false
   }
 }
