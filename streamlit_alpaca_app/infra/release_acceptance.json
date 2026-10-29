@@ -1543,7 +1543,7 @@
       "environment": "production",
       "configuration_api_version": "2025-07-01",
       "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
-      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78",
       "preservation_review": {
         "status": "accepted",
         "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78",
