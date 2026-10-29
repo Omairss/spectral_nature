@@ -68,7 +68,13 @@
     },
     "known_usage_receipts": 0,
     "billing_console": "Read-only console confirms aggregate usage and available balance; export action exposed no request-level settlement evidence.",
-    "unresolved": "The current provider balance cannot assign actual cost or prove the terminal state of each lost response. No unknown hold was cleared or marked zero. Future account-level core protection and authoritative reconciliation remain open."
+    "unresolved": "The current provider balance cannot assign actual cost or prove the terminal state of each lost response. No unknown hold was cleared or marked zero. Future account-level core protection and authoritative reconciliation remain open.",
+    "enclosing_model_outcomes": {
+      "matched_model_calls": 17,
+      "failed_with_expired_request_deadline": 15,
+      "eventually_succeeded_after_an_unknown_transport_attempt": 2,
+      "implication": "The enclosing failures confirm request deadlines; they do not establish zero billing for the lost transport attempts. Successful retries also cannot settle earlier attempts without their own usage."
+    }
   },
   "candidate_behavior": [
     "Fetch market-wide full-content news at each existing Home schedule.",

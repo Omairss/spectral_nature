@@ -60,7 +60,7 @@
       "id": "provider_credit_reconciliation",
       "task": "Resolve account-level admission starvation without erasing unknown costs, and protect future core completion at the shared account boundary.",
       "status": "unresolved",
-      "evidence_or_remaining": "The after-close Home execution acquired current earnings headlines, but all focused investigations and final publication were denied provider credit admission. The provider reports available credit while the shared ledger holds nearly all against transport attempts without usage receipts. Billing UI offers aggregate usage, not evidence that settles each lost response. Run-budget protection is distinct from account liquidity. Do not free unknown charges by age or fabricate zero usage."
+      "evidence_or_remaining": "The after-close Home execution acquired current earnings headlines, but all focused investigations and final publication were denied provider credit admission. The provider reports available credit while the shared ledger holds nearly all against transport attempts without usage receipts. Billing UI offers aggregate usage, not evidence that settles each lost response. Run-budget protection is distinct from account liquidity. Do not free unknown charges by age or fabricate zero usage. Enclosing model telemetry confirms fifteen request-deadline failures and two eventual successes across the matched calls; none settles the earlier lost attempt usage."
     },
     {
       "id": "verification_and_release",
