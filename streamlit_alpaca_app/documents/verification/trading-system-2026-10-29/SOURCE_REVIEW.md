@@ -2,7 +2,7 @@
 
 Development release of the actual shared backend, Next.js and SwiftUI clients. The source incorporates the current owner-accepted coherent research/account runtime, accepted application revision `a307fb77` and its production verification `705809cb`. Native non-Trading inputs preserve build 16 from `975b073c`. Earlier production permissions do not apply to this feature.
 
-The isolated `fix/trading-system-20261029` checkout preserves the owner's concurrent main checkout. Every non-feature shared input matches the accepted coherent source. The feature also retains the previously released historical-call `performance_summary` API and tracked-call metric enrichment, which the newer shared branch omitted. The unused earlier macro-summary component is removed; the current accepted Broad Economy implementation is retained.
+The isolated `fix/trading-system-20261029` checkout preserves the owner's concurrent main checkout. Every non-feature Python input matches the accepted coherent source. The feature also retains the previously released historical-call `performance_summary` API and tracked-call metric enrichment, which the newer shared branch omitted. Production promotion review additionally compares the actual live frontend against its accepted Git `b58c7656`. Its Broad Economy outlook component, dataset gateway permission, page placement and CSS are retained exactly. The coherent Python branch had older frontend inputs and could not establish frontend preservation.
 
 ## Behavior review
 
@@ -34,3 +34,8 @@ Live DEV inspection of the initial rollout found a spurious enormous Sharpe on t
 ## Verified DEV delivery
 
 All 15 DEV consumers run the corrected release from packaging revision `6f66339a`, with both API and web Healthy at100% traffic. All 36 consumers were independently read back: all 21 production images and all 36 complete non-image configurations remain unchanged. The signed-in real account shows its dated $100,000 equity path, zero monthly P/L and an undefined Sharpe, with 15 pending proposals and no filled calls. Activity, Positions, Performance, private full call detail and policy controls were personally inspected. No order, owner-autopilot enablement, paid inference or job execution was used for qualification. Native build 17 is signed, built and visually verified in Simulator; physical installation awaits the production rollout.
+
+
+## Owner-authorized production promotion
+
+The owner instructed “Promote and update iPhone”. Before promotion, comparison with the actual live production web source `b58c7656` caught removal of the previously accepted Broad Economy outlook. Restored its four original frontend inputs from accepted Git, preserving its backend producer and dataset contract already present in the coherent runtime. No Trading code or native inputs change. Web type checking, focused lint and16 web operational checks pass; both saved outlook and Trading receive a fresh DEV inspection before these final exact images are promoted. The optional Admin maintenance diagnostics from accepted DEV are additive; other production web inputs match the accepted image outside the Trading changes.

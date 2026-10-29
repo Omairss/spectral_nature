@@ -1406,3 +1406,8 @@ A design preview did not fulfill the owner’s request to implement Trading. Rep
 ### Evaluate statistics on the actual flat account — October29
 
 The first Trading DEV rollout exposed an enormous Sharpe for a flat paper book. Subtracting the constant daily risk-free rate before estimating variance introduced floating-point noise at some window lengths. The shared calculation now measures return variance directly and recognizes constant observations; expanded local coverage includes a full month and year of zero/constant returns. Live inspection caught this before any production promotion.
+
+
+### A shared Python release does not certify older frontend inputs — October29
+
+Before Trading production promotion, comparison against the actual live web image’s accepted Git found that copying non-feature inputs from the coherent Python branch removed the accepted Broad Economy outlook. Restored the original component, dataset permission, page placement and CSS from production Git before any production mutation. Review each consumer against its own live image/source proof, even when another release accepted the shared Python branch. The owner’s existing functionality must survive the release.

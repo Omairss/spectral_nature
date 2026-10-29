@@ -1,0 +1,16 @@
+{
+  "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
+  "source_inventory_sha256": "a1bcc28c316859cfc23086fdbc6e5aa7cdbb30fc5884230ecec74fbc2c0fe13e",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba",
+    "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:d70cf2aea5a9044593ab935fd95aff4b19090eb00b5e4f07cd60ca73409758c7",
+    "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78"
+  },
+  "build_runs": {
+    "web": "cj1d2",
+    "api-next": "cj1d3",
+    "worker": "cj1d0",
+    "broker": "cj1d1"
+  }
+}
