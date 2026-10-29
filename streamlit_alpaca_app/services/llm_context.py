@@ -94,10 +94,8 @@ def serialize_llm_context(value: Any, *, append_only: bool = False) -> str:
     transformation or a relevance filter. No records or source text are dropped.
     """
     counts: Counter[str] = Counter()
-    has_tables = False
 
-    def normalize(item: Any, *, ordered_records: bool = False) -> Any:
-        nonlocal has_tables
+    def normalize(item: Any) -> Any:
         if isinstance(item, str) and item.lstrip().startswith(("{", "[")):
             try:
                 decoded = json.loads(item)
@@ -109,18 +107,7 @@ def serialize_llm_context(value: Any, *, append_only: bool = False) -> str:
         if isinstance(item, dict):
             return {key: normalize(child) for key, child in item.items()}
         if isinstance(item, list):
-            rows = [normalize(child) for child in item]
-            if not ordered_records and len(rows) > 1 and isinstance(rows[0], dict):
-                columns = list(rows[0])
-                if all(isinstance(row, dict) and row.keys() == rows[0].keys() for row in rows):
-                    table = {"context_table": {
-                        "columns": columns,
-                        "rows": [[row[column] for column in columns] for row in rows],
-                    }}
-                    if len(encoded(table)) < len(encoded(rows)):
-                        has_tables = True
-                        return table
-            return rows
+            return [normalize(child) for child in item]
         return item
 
     def encoded(item: Any) -> str:
@@ -138,7 +125,7 @@ def serialize_llm_context(value: Any, *, append_only: bool = False) -> str:
             for child in item:
                 count(child)
 
-    context = normalize(to_jsonable(value), ordered_records=append_only)
+    context = normalize(to_jsonable(value))
     if append_only:
         if not isinstance(context, list):
             raise TypeError("Append-only research context requires ordered records")
@@ -160,8 +147,7 @@ def serialize_llm_context(value: Any, *, append_only: bool = False) -> str:
             return {"context_id": identity, "value": result} if identity else result
 
         return ("Ordered research evidence records. Each context_ref resolves to the complete value of an earlier "
-                "context_id. A context_table contains columns and aligned rows representing the original records. "
-                "All passages, dates and records are retained; repeated content is not corroboration.\n"
+                "context_id. All passages, dates and records are retained; repeated content is not corroboration.\n"
                 + "\n".join(encoded(append_value(record)) for record in context))
     count(context)
     shared: dict[str, Any] = {}
@@ -183,13 +169,12 @@ def serialize_llm_context(value: Any, *, append_only: bool = False) -> str:
         return item
 
     data = factor(context)
-    if not shared and not has_tables:
+    if not shared:
         return encoded(data)
     return encoded({
         "context_format": (
             "context_ref points to the complete value in shared_context. Resolve references when reading. "
             "json_text contains decoded JSON from an original text field. All records and text are retained; "
-            "context_table contains columns and aligned rows representing the original records. "
             "references express identical content, not independent corroboration."
         ),
         "data": data,
