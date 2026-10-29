@@ -95,6 +95,42 @@ def model():
         model="deepseek-v4-pro", base_url="https://api.deepseek.com", thinking_mode="enabled"))
 
 
+def test_model_selected_observation_reaches_marginal_funding_without_an_article(durable_store, monkeypatch):
+    """Evidence identity/accounting contract, without grading a model's prose."""
+    from services.aql import events
+    monkeypatch.setenv("LLM_RESEARCH_ARTIFACT_ACCESS_SCOPE", "")
+    monkeypatch.setenv("PIPELINE_RUN_ID", "observation-authorization")
+    monkeypatch.setenv("RESEARCH_RUN_BUDGET_USD", "1")
+    monkeypatch.setenv("RESEARCH_BUDGET_MODE", "event")
+    monkeypatch.setenv("RESEARCH_EVENT_MARGIN_FRACTION", "0.5")
+    execution.reserve_research_cost(attempt_id="base", maximum_usd=1, category="contract")
+    observation = {"symbol":"EXM", "change_pct":-37.0, "observed_at_utc":"2026-10-29T16:35:00Z"}
+    def run(**kwargs):
+        if kwargs["task"] == "source_event_nomination":
+            payload = {"research_agenda":[], "findings_markdown":"Current observation.", "events":[{
+                "title":"Unexplained current move", "question":"What explains this observation?",
+                "source_ids":[], "related_symbols":["EXM"], "followup_questions":[],
+                "rationale":"The current observation warrants investigation."}]}
+        else:
+            work = execution._CALL.get()["event_work"]
+            assert work["observations"][0]["observation"] == observation
+            assert work["evidence_ids"] == [work["observations"][0]["evidence_id"]]
+            execution.reserve_research_cost(attempt_id="selected", maximum_usd=.25, category="contract")
+            payload = {"event_title":"Investigation", "findings_markdown":"Unresolved.",
+                "cause_status":"unresolved", "supporting_symbols":["EXM"], "claims":[]}
+        return {"status":"completed", "payload":payload, "agent_result":{"tool_calls":[]}}
+    monkeypatch.setattr(events, "run_aql_zopedia_structured_agent", run)
+    with execution.execution_issue_context():
+        result = events.research_source_events(pd.DataFrame(), market_frame=pd.DataFrame([observation]),
+            universe_frame=None, asof_time_utc="2026-10-29T16:50:00Z", run_id="observation-authorization", llm_client=model())
+        assert not execution.execution_issues()
+    state = pipeline_store.read_execution_state(*execution._run_budget_key(), strict=True)
+    audit = state["event_extensions"][0]
+    assert audit["observations"][0]["observation"] == observation
+    assert audit["additional_microusd"] == 250_000 and state["cap_microusd"] == 1_250_000
+    assert json.loads(result["plans"][0]["plan_json"])["observation_refs"] == audit["observations"]
+
+
 def test_balance_waiter_uses_a_competing_workers_fresh_result(durable_store, monkeypatch):
     from contextlib import contextmanager
     config = model().config

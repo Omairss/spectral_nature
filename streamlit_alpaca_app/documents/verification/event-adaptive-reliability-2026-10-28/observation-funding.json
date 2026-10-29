@@ -1,0 +1,17 @@
+{
+  "status": "implemented_financial_contract_verified",
+  "incident": "production-home-failure-20261029.json",
+  "observed_failure": "Production nominated Iovance from an observed roughly37% current decline with no article. Its rationale identified the supplied market observation, but the funding adapter passed only source_ids=[], rejecting marginal authorization.",
+  "source_fix": "Bind nominated related_symbols to actual supplied market observations. Retain a content-derived evidence identity, original snapshot as-of and full original row in plan_json and the event allowance audit. Funding can reference acquired reports or actual observations. No fabricated article, inferred cause, automatic investigation of every mover, new retrieval path or allowance increase.",
+  "consequences": [
+    "A nominated observation establishes the trigger for research, not a causal explanation.",
+    "Unmatched subjects or genuinely missing evidence/reasons still fail financial authorization visibly.",
+    "Run/event ceilings, original clocks, optional core funding, retries and unknown costs are unchanged."
+  ],
+  "verification": {
+    "mechanical_contracts_passed": 27,
+    "includes": "A source-free nomination carries the exact input row into the marginal-allowance transaction and audit. No generated prose was graded.",
+    "paid_inference": false
+  },
+  "release": "New DEV source; not yet deployed or production-authorized."
+}
