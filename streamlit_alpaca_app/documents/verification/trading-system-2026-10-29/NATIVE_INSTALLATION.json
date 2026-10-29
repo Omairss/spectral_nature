@@ -13,20 +13,30 @@
   "owner_device_in_profile": true,
   "previous_installed_build": "16",
   "installed": true,
-  "launch_verified": false,
-  "status": "installed_launch_awaiting_unlock",
+  "launch_verified": true,
+  "status": "installed_launch_verified",
   "installed_build": "17",
   "installation_method": "devicectl install in place; existing bundle identifier and development team",
   "installed_version_independently_read_back": true,
-  "recorded_at": "2026-10-29T21:14:10.657518+00:00",
+  "recorded_at": "2026-10-29T22:19:20.976048+00:00",
   "launch_attempts": [
     {
       "result": "device connection timeout"
     },
     {
       "result": "iOS Locked: unable to launch until owner unlocks"
+    },
+    {
+      "result": "temporary connection reset after unlock; recovered by refreshing device connection"
+    },
+    {
+      "result": "launch succeeded; installed build17 independently read back; running executable and process matched"
     }
   ],
   "owner_unlock_requested": true,
-  "physical_trading_screen_inspected": false
+  "physical_trading_screen_inspected": false,
+  "owner_unlock_confirmed": true,
+  "running_process_independently_verified": true,
+  "running_process_identifier": 31629,
+  "running_executable_matches_installed_app": true
 }

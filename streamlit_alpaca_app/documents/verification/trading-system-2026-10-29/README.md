@@ -2,7 +2,7 @@
 
 [Trading](https://spectral-nature.com/trading-agent) is deployed to production under the owner’s instruction “Promote and update iPhone”. Accepted application source is `ed5044be`; packaging source is `7061e993`, on branch `fix/trading-system-20261029` in the isolated accepted checkout. Concurrent main-checkout runtime work is preserved.
 
-Build 17 is installed on the owner’s iPhone and independently read back. Launch verification is waiting for the owner to unlock the phone.
+Build 17 is installed on the owner’s iPhone, independently read back, and launch plus running process are verified.
 
 - [Production receipt](PRODUCTION.json) and [owner authorization](PRODUCTION_AUTHORIZATION.json).
 - [All 36 consumer definitions](FINAL_CONSUMERS.json):21 production updates,15 DEV definitions retained, every configuration unchanged. All five API/web revisions are Healthy at100% traffic.
