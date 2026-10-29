@@ -533,7 +533,7 @@ _HOME_STORY_SELECTION_SCHEMA: dict[str, Any] = {
         "question": {"type": "string", "description": "The consequential question this selected story will answer."},
         "source_ids": {"type": "array", "minItems": 1, "uniqueItems": True,
                        "items": {"type": "string"},
-                       "description": "Exact source_id values from the supplied source index, also used by the evidence reader. May reference research bundles, original documents, company research or market observations."},
+                       "description": "Exact source_id values from the supplied source index, also used by the evidence reader. Put the primary research first, followed by supporting context. May reference research bundles, original documents, company research or market observations."},
         "supporting_symbols": {"type": "array", "items": {"type": "string"}},
     }, "required": ["story_id", "question", "source_ids", "supporting_symbols"],
 }
@@ -2122,11 +2122,9 @@ def _apply_home_surface_quality_items(
             if not source_ids or len(set(source_ids)) != len(source_ids) or any(sid not in source_records for sid in source_ids):
                 raise AttentionHomeBuildError("Selected research source identity is unknown or repeated.")
             records = [source_records[sid] for sid in source_ids]
-            research_bundles = list(dict.fromkeys(record.get("metadata", {}).get("bundle_id")
-                                    for record in records if record.get("metadata", {}).get("bundle_id")))
+            bundle_id = records[0].get("metadata", {}).get("bundle_id")
             revision = stories[selected["story_id"]]
-            if len(research_bundles) == 1:
-                bundle_id = research_bundles[0]
+            if bundle_id:
                 if bundle_id not in bundle_map:
                     raise AttentionHomeBuildError("Selected research bundle is unavailable.")
                 bundle = dict(bundle_map[bundle_id])

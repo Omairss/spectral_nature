@@ -22,16 +22,19 @@ def test_reader_identity_selects_previously_unpublished_research_without_losing_
     bundles = {"retained": {"bundle_id": "retained", "symbol": "EXAMPLE", "change_pct": -9,
                             "price_history": [1, 2], "evidence": [{"raw_text": "original"}]}}
     records = {"bundle:retained": {"metadata": {"kind": "shared_research", "bundle_id": "retained"},
-                                  "content": bundles["retained"]}}
+                                  "content": bundles["retained"]},
+               "bundle:context": {"metadata": {"kind": "shared_research", "bundle_id": "context"},
+                                  "content": {"bundle_id": "context"}}}
+    bundles["context"] = {"bundle_id": "context"}
     original = deepcopy(bundles)
     updated, saved, counts = _apply_home_surface_quality_items(
         {"top_events": [], "must_read_movers": [], "unresolved_large_moves": []}, bundles,
-        publication(["bundle:retained"]), source_records=records, asof_time_utc="2026-10-29T17:49:00Z")
+        publication(["bundle:retained", "bundle:context"]), source_records=records, asof_time_utc="2026-10-29T17:49:00Z")
     row = updated["top_events"][0]
     assert row["bundle_id"] == "retained"
     assert row["change_pct"] == -9 and row["price_history"] == [1, 2]
     assert row["evidence"] == original["retained"]["evidence"]
-    assert row["research_source_ids"] == ["bundle:retained"]
+    assert row["research_source_ids"] == ["bundle:retained", "bundle:context"]
     assert all(row[field] == field for field in _HOME_PUBLIC_TEXT_FIELDS)
     assert saved["retained"]["publish"] and counts["reviewed"] == 1
     assert bundles == original
