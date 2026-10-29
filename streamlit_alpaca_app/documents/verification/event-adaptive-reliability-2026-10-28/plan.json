@@ -49,13 +49,15 @@
       "id": "event_allocation",
       "task": "Implement evidence-led event-dependent allocation with configurable 50% marginal allowance, shared atomic reservations and no retry reset or runaway spending.",
       "status": "implemented_qualification_pending",
-      "evidence_or_remaining": "Atomic shared event funding and original budget/deadline are implemented and mechanically verified. Corrected nomination and three focused investigations completed in an isolated retained-source replay. One investigation was refused by the cumulative study cap. This does not qualify production event selection, quiet/heavy-day allocation quality or full scheduled spending. These qualitative checks remain open; do not reopen completed task-based routing. The fresh continuation nomination remains too concentrated on the prevailing theme; no qualitative allocation acceptance is claimed."
+      "evidence_or_remaining": "Atomic shared event funding and original budget/deadline are implemented and mechanically verified. Corrected nomination and three focused investigations completed in an isolated retained-source replay. One investigation was refused by the cumulative study cap. This does not qualify production event selection, quiet/heavy-day allocation quality or full scheduled spending. These qualitative checks remain open; do not reopen completed task-based routing. The fresh continuation nomination remains too concentrated on the prevailing theme; no qualitative allocation acceptance is claimed.",
+      "proposed_design_reference": "quality_fix_design"
     },
     {
       "id": "feed_quality",
       "task": "Personally compare complete current feed and retained paired model outputs, correct source or routing causes, and preserve substantive full-model core work.",
       "status": "verification_completed_candidate_rejected",
-      "evidence_or_remaining": "Complete live-acquisition and independent-review continuation remains rejected after personal review of all displayed stories. Writer/reviewer are Pro/high. Acquired operating explanations are lost, Microsoft ranks outside the displayed feed, inflation remains thin and public process commentary survives. Source execution defects are corrected; broader allocation and synthesis quality remain open. See quality-review.json continuation."
+      "evidence_or_remaining": "Complete live-acquisition and independent-review continuation remains rejected after personal review of all displayed stories. Writer/reviewer are Pro/high. Acquired operating explanations are lost, Microsoft ranks outside the displayed feed, inflation remains thin and public process commentary survives. Source execution defects are corrected; broader allocation and synthesis quality remain open. See quality-review.json continuation.",
+      "proposed_design_reference": "quality_fix_design"
     },
     {
       "id": "shared_news_ownership",
@@ -67,7 +69,8 @@
       "id": "provider_credit_reconciliation",
       "task": "Resolve account-level admission starvation without erasing unknown costs, and protect future core completion at the shared account boundary.",
       "status": "liquidity_repair_verified_locally_account_core_funding_pending",
-      "evidence_or_remaining": "Fresh authoritative provider balance now governs new account admission. Ended or expired local requests retain unknown costs in the original run and account records without permanent cross-run credit holds after a subsequent balance observation. Live requests, overlapping probe outcomes, failed probes, real empty credit, concurrent admissions and idempotent late receipts are covered on isolated PostgreSQL. Explicit future completion reservation in shared account credit across independent producers remains unfinished; existing run-level core protection is preserved."
+      "evidence_or_remaining": "Fresh authoritative provider balance now governs new account admission. Ended or expired local requests retain unknown costs in the original run and account records without permanent cross-run credit holds after a subsequent balance observation. Live requests, overlapping probe outcomes, failed probes, real empty credit, concurrent admissions and idempotent late receipts are covered on isolated PostgreSQL. Explicit future completion reservation in shared account credit across independent producers remains unfinished; existing run-level core protection is preserved.",
+      "proposed_design_reference": "quality_fix_design"
     },
     {
       "id": "verification_and_release",
@@ -94,7 +97,7 @@
     "development_deployed": false,
     "production_deployed": false,
     "production_remains_previous_accepted_image": true,
-    "required_next_step": "Correct the remaining source-depth, current-agenda and editorial failures in the shared flow and requalify complete public output. Finish existing shared-account future core funding and API/broker source reconciliation before committed release acceptance, exact-image DEV and authorized promotion. The old prepared comparison plan is superseded; the fresh10USD verification is closed."
+    "required_next_step": "Implement the proposed quality_fix_design inside the existing shared flow, finish the separately tracked account-level core funding and consumer integration, and qualify complete outputs before exact-image DEV or production promotion."
   },
   "instruction_audit": {
     "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",
@@ -248,6 +251,120 @@
         "deepseek-flash": 1
       },
       "explanation": "All attempts and acquisitions are included. One connection failure has no receipt and retains its full original maximum. Known amounts are published-rate conservative estimates, not invoice totals. The compact-format comparison and offline input capture sent no inference request. Current shared provider headroom, not the study cap, prevented the compact-format comparison."
+    }
+  },
+  "quality_fix_design": {
+    "status": "proposed_not_implemented_or_qualified",
+    "recorded_at_utc": "2026-10-29T05:49:10.354169+00:00",
+    "owner_request": "Come up with a 500 IQ fix",
+    "central_change": "Carry one versioned, substantive shared research result into an explicitly selected publication. Make evidence addressable, let the model choose the exact visible feed, and review that same feed before materialization.",
+    "confirmed_mechanisms": [
+      {
+        "finding": "Final writing and review receive391449 and400742input tokens respectively in the retained complete comparison.",
+        "evidence": "quality-review.json:continuation.context_measurement",
+        "limit": "Large context is measured; its causal contribution to quality failure is not experimentally isolated."
+      },
+      {
+        "finding": "The public editor rewrites every candidate, including seven prose fields per published item, with full source intake and numerical market coverage.",
+        "source": "pipeline/jobs/attention_home_build.py:_HOME_SURFACE_QUALITY_SCHEMA,_home_surface_quality_items,_review_home_public_surface"
+      },
+      {
+        "finding": "Configured display limits are absent from that editor task. After semantic review and priority sorting, _cap_home_public_sections slices each section. Microsoft existed in the reviewed output but fell outside the displayed top events.",
+        "source": "pipeline/jobs/attention_home_build.py:_review_home_public_surface,_apply_home_surface_quality_items,_cap_home_public_sections,build_attention_home_output_frames"
+      },
+      {
+        "finding": "The shared engine already has named supplied-source readers, research findings/open questions, readable originals, semantic review and budget/deadline state.",
+        "source": "data_access/query_service.py:with_supplied_evidence,list_supplied_evidence,read_supplied_evidence;services/zopedia_agent.py:research_state,_run_evidence_model_step"
+      },
+      {
+        "finding": "Event investigation capacity currently grows a configured event count by the marginal fraction. This alone does not establish useful variable research depth across the owner's10-to1000-plus-dollar range.",
+        "source": "services/llm_execution.py:event_investigation_capacity;services/aql/events.py:research_source_events",
+        "limit": "Do not describe already delivered task-based model routing or atomic marginal funding as unfinished."
+      }
+    ],
+    "contract_changes": [
+      {
+        "order": 1,
+        "owner": "Existing shared AQL/Zopedia context and research artifacts",
+        "change": "Bind original documents, dated observations and completed investigations to existing named supplied-source records. Start from the current agenda and a navigable source/data index; carry the complete useful research findings. Load original passages and numerical data through existing readers when the model needs them. Stop automatically treating the entire numerical universe and every earlier draft as mandatory writing context.",
+        "preservation": "All originals, values, dates and indirect leads remain readable. No fixed context-size cutoff, relevance whitelist, compulsory hierarchy, added source summaries or source-count sufficiency rule. Declared findings are distinct from private model reasoning."
+      },
+      {
+        "order": 2,
+        "owner": "Existing source-event discovery and investigation",
+        "change": "Select consequential unresolved questions before committing to an overarching market narrative. Carry explanatory findings, competing interpretations, affected businesses and unresolved questions forward with their sources and original dates. Treat initial themes and prior analysis as revisable. Use the existing completed research artifact as the work product rather than requiring the research stage to write Home-shaped copy that later stages repeatedly replace.",
+        "preservation": "Private entities, uncertain relationships, quiet-day context, numerical signals and retained knowledge remain valid discovery inputs. No compulsory macro/company checklist, exact-issuer citation gate or fixed template for every investigation."
+      },
+      {
+        "order": 3,
+        "owner": "Existing shared public composition and review",
+        "change": "Supply actual configured section limits before composition. The model explicitly selects and orders the visible stories, their grouping and the market overview; write only that intended publication. Carry substantive findings into the public explanation, using quantities when they change meaning. Give the existing reviewer the exact intended visible publication, the wider agenda/findings and readable originals, so it can identify missing coverage and lost meaning as well as wrong facts.",
+        "materialization": "Materialize the selected identities and order unchanged. Replace post-review semantic cropping with structural identity/cardinality validation. Preserve existing client DTOs, charts, drilldowns and underlying research bundles. Validate selection before prose expansion so late excess-card errors cannot silently discard reviewed content.",
+        "review_repair": "Use the existing shared agent/read/research-request path for consequential missing information within the original allowance and clock. Keep completed current work if optional follow-up fails. Reviewer verdicts or incomplete provenance do not become new publication admission gates."
+      },
+      {
+        "order": 4,
+        "owner": "Existing run/account accounting and research loop",
+        "change": "Reserve full-model core interpretation/composition/review against both the logical-run allowance and shared provider credit before discretionary parallel work. Transfer a core obligation into its request reservation atomically, settle actual receipts and retain unresolved bounds without double reservation. Let the model spend remaining research capacity on questions that could materially change the assessment; quotes and deadlines govern admission.",
+        "adaptive_effort": "A quiet run may stop after current interpretation and reuse of dated completed work. A heavy run can justify additional investigations or depth within the configured marginal allowance, initially50%. Larger base budgets permit more useful investigation, not a spending quota. Remove the fixed event-count/depth assumptions as the definition of research effort; retain configurable operational concurrency and request ceilings.",
+        "preservation": "Keep completed task routing, economical current reporting for no configured budget, original run identity/clock, existing completion reserve, bounded retry and no whole-run baseline fallback. Old unknown costs remain recorded separately from authoritative current available credit and genuine active obligations. Actual provider unavailability remains an explicit operational failure."
+      }
+    ],
+    "complexity_constraints": [
+      "Use the current news producer, AQL/Zopedia engine, retained source store/readers and artifact/publication contracts. Keep news schedules and provider ownership unchanged.",
+      "Adapt existing research_state/finished artifacts and source readers; introduce no second research store, new retrieval system, side agent, shadow feed or additional mandatory critic layer.",
+      "Replace redundant draft reconstruction, all-candidate public rewrites and post-review cropping. Do not add phrase filters, ticker exceptions, numerical quotas or code-generated explanations.",
+      "Keep task-based model routing and the already delivered worker/schedule/fallback changes intact. Research findings remain fallible, source-linked analysis rather than certified truth."
+    ],
+    "failure_and_consequence_review": [
+      {
+        "risk": "A compact finding can itself omit the decisive source detail.",
+        "response": "Retain originals and source linkage, keep unfinished questions visible internally, and let analyst/reviewer reopen sources. No compulsory summary chain or assertion that a shorter input proves quality."
+      },
+      {
+        "risk": "A shared research error could spread across consumers or persist in cache.",
+        "response": "Version the existing research artifact and its inputs; preserve correction history and evidence dates. A substantive correction updates the shared result used by consumers. Run-artifact updates do not grant wiki or user-data write permission."
+      },
+      {
+        "risk": "A dominant early theme or a large already-paid investigation crowds out another important development.",
+        "response": "Question selection precedes the integrated narrative; publication assesses the whole current agenda independently of cost already spent. Explicit selection can cover a development in the overview or a grouped story without requiring one card for every source."
+      },
+      {
+        "risk": "Named-source navigation adds reads or the model chooses poor sources.",
+        "response": "Keep useful existing findings and full relevant passages in working context; readers provide access to additional originals. Model-call count and latency must be measured in the complete comparison. Reuse the existing loop instead of adding orchestration."
+      },
+      {
+        "risk": "More parallel research consumes closing funds or prevents timely publication.",
+        "response": "Protect core credit first, admit bounded concurrent work against one ledger, and stop discretionary admissions with enough time for the existing completion/persistence reserve. Retries retain the original clock. Preserve finished current results and operationally report failed work."
+      },
+      {
+        "risk": "Budget flexibility becomes hidden overspending or unnecessary work.",
+        "response": "Record why each extra question is useful, its admitted obligation, actual/unknown charge and remaining allowance. The50%margin is configurable capacity, not an automatic increase or minimum spend."
+      },
+      {
+        "risk": "A failed core model call is disguised as a fresh report.",
+        "response": "Never re-date an old narrative. Use existing bounded retry and current-run completed artifacts; keep a real inference/publication failure explicit if no valid current result exists."
+      }
+    ],
+    "implementation_order": [
+      "Change the shared supplied-context handoff so named originals and complete substantive findings survive into composition; review source/event/API consumers together.",
+      "Change the existing public composition contract to an explicit capacity-aware selection and exact visible artifact; remove all-candidate prose regeneration and later cropping from the new publication path.",
+      "Carry research meaning and source access into the existing reviewer; exercise actual visible selection, omissions and corrections.",
+      "Finish the already tracked shared-account future-core obligation implementation and expose allowance/time/open questions to the existing adaptive loop.",
+      "Personally compare complete paired outputs and actual displayed projections on heavy, quiet, noisy, conflicting-source, stale-background and partial-failure cases. Inspect source acquisition, research findings, final prose, coverage, actual cost and latency together.",
+      "Only after local qualitative acceptance: reconcile the complete consumer source inventory, qualify exact DEV images, then use the existing conditional production authorization."
+    ],
+    "acceptance": {
+      "quality": "Complete visible feed explains the consequential business and economic developments, retains important distinctions and useful indirect hypotheses, uses original event dates, selects quantities judiciously and keeps process commentary internal. No required wording or ticker list.",
+      "generalization": "Owner examples remain diagnostic cases; include different companies, event types and quiet/heavy conditions. Personally inspect source-to-finding-to-publication handoffs. Semantic review or passing software checks alone is not acceptance.",
+      "reliability": "Partial acquisition/review trouble preserves independent completed findings. Deadline/retry/settlement failures do not reset allowance, erase useful paid work, publish an old story as new or hide an actual provider outage.",
+      "cost": "Measure complete attempt-inclusive usage, cache behavior, latency, current credit and unknown bounds. No cost-reduction or quality guarantee before the full comparison."
+    },
+    "this_turn": {
+      "runtime_changes": false,
+      "paid_inference": false,
+      "deployment": false,
+      "purpose": "Source-grounded design only. Existing rejected-candidate status and unfinished operational/release work remain accurately tracked."
     }
   }
 }
