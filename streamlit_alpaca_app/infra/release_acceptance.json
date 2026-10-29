@@ -1801,14 +1801,14 @@
     "evidence": "documents/verification/research-charts-2026-10-23/development.json"
   },
   "development_acceptance": {
-    "status": "exact_images_qualified_pending_dev_template_rollout",
+    "status": "accepted",
     "images": {
       "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0eade3aecb0a4024447b46a1c9e4b11239374ebde00937a35b1659a3bccc97e5",
       "api-next": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926",
       "broker": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:4c9dbdeac8e65ecdd54b055fc6087e8cb8492c40eb0aafee6dc300f6ab5a0c34"
     },
     "source_inventory_sha256": "0291034371ef7bb536b9b58cd17e0b1e3566a8ae3a03b5d68bcd624892358734",
-    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-role-proofs.json"
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-development.json"
   },
   "production_embedding_activation": {
     "owner_instruction": "Enable the existing Azure semantic search",

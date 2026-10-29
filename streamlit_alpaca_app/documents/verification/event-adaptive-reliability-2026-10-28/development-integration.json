@@ -1,6 +1,6 @@
 {
-  "status": "all_three_exact_images_cloud_qualified_ready_for_dev_rollout",
-  "production_authorized": false,
+  "status": "exact_images_deployed_development_verified_accepted",
+  "production_authorized": true,
   "accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
   "new_shared_source": "402e6875a08bdc8b2ab82bdb3af582f9de24ad44",
   "preserved_features": [
@@ -133,5 +133,6 @@
     "outcome": "Qualification guard blocked required Azure secret reads;same immutable image passed after allowing only Azure identity and secret reads.",
     "initial_execution": "macro-fred-daily-dev-z7ej35o",
     "application_source_changed": false
-  }
+  },
+  "development_deployment_evidence": "documents/verification/event-adaptive-reliability-2026-10-28/coherent-development.json"
 }
