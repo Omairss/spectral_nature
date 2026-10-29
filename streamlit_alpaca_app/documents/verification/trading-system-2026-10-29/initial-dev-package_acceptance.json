@@ -18,7 +18,7 @@
     "complete_git_inventory_matches": true,
     "qualification_run": "cj1cy",
     "build_run": "cj1cu",
-    "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+    "evidence": "documents/verification/trading-system-2026-10-29/initial-dev-package_acceptance.json"
   },
   {
     "status": "passed",
@@ -40,7 +40,7 @@
     "complete_git_inventory_matches": true,
     "qualification_run": "cj1cx",
     "build_run": "cj1cr",
-    "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+    "evidence": "documents/verification/trading-system-2026-10-29/initial-dev-package_acceptance.json"
   },
   {
     "status": "passed",
@@ -61,7 +61,7 @@
     "complete_git_inventory_matches": true,
     "qualification_run": "cj1cv",
     "build_run": "cj1ct",
-    "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+    "evidence": "documents/verification/trading-system-2026-10-29/initial-dev-package_acceptance.json"
   },
   {
     "status": "passed",
@@ -82,6 +82,6 @@
     "complete_git_inventory_matches": true,
     "qualification_run": "cj1cw",
     "build_run": "cj1cs",
-    "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+    "evidence": "documents/verification/trading-system-2026-10-29/initial-dev-package_acceptance.json"
   }
 ]

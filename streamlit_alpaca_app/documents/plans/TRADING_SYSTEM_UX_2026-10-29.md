@@ -1,9 +1,6 @@
 # Trading as a managed paper portfolio — October 29, 2026
 
-Status: implemented in the shared backend, Next.js and SwiftUI on
-`fix/trading-system-20261029`. Local accounting, database and populated UI checks
-are complete. DEV packaging/delivery is in progress; production and phone
-installation remain unchanged. See the [implementation source review](../verification/trading-system-2026-10-29/SOURCE_REVIEW.md).
+Status: implemented in the shared backend, Next.js and SwiftUI on `fix/trading-system-20261029`. [DEV Trading](https://sn-next-ui-dev.bluefield-2d27dcf2.centralus.azurecontainerapps.io/trading-agent) is deployed and personally verified.212 focused checks and16 web contracts pass. Signed native build17 is built and verified in Simulator. Production and physical-phone installation await owner authorization. See the [release record](../verification/trading-system-2026-10-29/README.md).
 
 ## Product decision
 
@@ -24,10 +21,10 @@ All balances, fills, proposals and narratives in this preview are an illustrativ
 scenario. They are not current holdings, executable recommendations or new
 research. No network access or broker submission exists in the preview.
 
-## Why the portfolio timeline is missing
+## Gaps identified in the original experience
 
-The October 28 release adds performance to individual retained approvals. Its
-production API still lacks the separately DEV-accepted Alpaca paper-account
+The October 28 release adds performance to individual retained approvals. At the start of this request, its
+production API lacked the separately DEV-accepted Alpaca paper-account
 integration. Native Trading conditionally changes its meaning when the response
 contains no paper_portfolio: it labels the screen Paper performance and opens one
 research approval. There is no aggregate broker portfolio in that response.
