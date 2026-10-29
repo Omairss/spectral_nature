@@ -1,0 +1,14 @@
+{
+  "source": {
+    "source_revision": "6df6af3776883000260a29b4da0a32a9f326e095",
+    "accepted_source_revision": "c54febef0eabed43d29d29eaa939a31ea736bcd3",
+    "role": "api-next",
+    "source_inventory_sha256": "322e6503bba80a2e202baf35bacc739fd9745d2de346a371f8e63aa506d8c5aa",
+    "files": 318,
+    "runtime_inventory_sha256": "002a83afec8ac7bd44134e1bb404fc1aef92fdedfc17ee898b67dd75d220f8ac",
+    "runtime_files": 195,
+    "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:9e58df0fe8d6c3e0a61f7dad85e01b243198ee71d8c1773b34c2a7a8b581c926"
+  },
+  "build_run": "cj1cr",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:614a01dd440419d45fdeb62ca72ec8fa2830a57e65c4edb811c9d3720e05e6a1"
+}

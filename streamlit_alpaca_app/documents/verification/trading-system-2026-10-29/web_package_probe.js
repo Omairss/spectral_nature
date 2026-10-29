@@ -1,0 +1,9 @@
+const fs=require('fs'),crypto=require('crypto');
+const p=JSON.parse(fs.readFileSync('/app/web-release.json'));
+if(p.source.source_revision!=='6df6af3776883000260a29b4da0a32a9f326e095'||p.source.runtime_inventory_sha256!=='bb0212a786125b27720b71831ed38e9e716f0b6106f1a95fea4b0d0196d38351')throw Error('Wrong web source');
+for(const [path,hash] of Object.entries(p.files))if(crypto.createHash('sha256').update(fs.readFileSync('/app/'+path)).digest('hex')!==hash)throw Error('Compiled file differs: '+path);
+for(const [path,target] of Object.entries(p.symlinks))if(fs.readlinkSync('/app/'+path)!==target)throw Error('Compiled symlink differs');
+const actual=[];function walk(dir){for(const item of fs.readdirSync('/app/'+dir,{withFileTypes:true})){const path=dir?dir+'/'+item.name:item.name;if(item.isDirectory())walk(path);else actual.push(path);}}walk('');const expected=[...Object.keys(p.files),...Object.keys(p.symlinks),'web-release.json'].sort();if(JSON.stringify(actual.sort())!==JSON.stringify(expected))throw Error('Unexpected compiled package file');
+const manifest=JSON.parse(fs.readFileSync('/app/.next/server/app-paths-manifest.json'));
+for(const route of ['/trading-agent/page','/api/trading-agent/paper/[action]/route','/api/trading-agent/paper/calls/[callId]/route'])if(!manifest[route])throw Error('Missing route: '+route);
+console.log(JSON.stringify({status:'passed',source_revision:p.source.source_revision,source_inventory_sha256:p.source.source_inventory_sha256,runtime_inventory_sha256:p.source.runtime_inventory_sha256,input_files:Object.keys(p.source.files).length,compiled_files:Object.keys(p.files).length,symlinks:Object.keys(p.symlinks).length,all_packaged_files_checked:true,checks:['complete compiled files and symlinks','accepted Git web inputs','Trading page, order and call routes']}));

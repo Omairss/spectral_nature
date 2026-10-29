@@ -1,0 +1,14 @@
+{
+  "source": {
+    "source_revision": "6df6af3776883000260a29b4da0a32a9f326e095",
+    "accepted_source_revision": "c54febef0eabed43d29d29eaa939a31ea736bcd3",
+    "role": "web",
+    "source_inventory_sha256": "322e6503bba80a2e202baf35bacc739fd9745d2de346a371f8e63aa506d8c5aa",
+    "files": 318,
+    "runtime_inventory_sha256": "bb0212a786125b27720b71831ed38e9e716f0b6106f1a95fea4b0d0196d38351",
+    "runtime_files": 93,
+    "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402"
+  },
+  "build_run": "cj1cu",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:565e9de9e357df42170a413c184e2b8be8c5dc9e00a85cb9f93ecf07c0dddfb8"
+}
