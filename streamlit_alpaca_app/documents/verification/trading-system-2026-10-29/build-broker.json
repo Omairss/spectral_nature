@@ -1,14 +1,14 @@
 {
   "source": {
-    "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-    "accepted_source_revision": "7a2ce5b4b9c285c210bd482e2db161de348f4998",
+    "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+    "accepted_source_revision": "ed5044be5eea4024a3a155ce214d04e33e682d11",
     "role": "broker",
-    "source_inventory_sha256": "a1bcc28c316859cfc23086fdbc6e5aa7cdbb30fc5884230ecec74fbc2c0fe13e",
-    "files": 318,
+    "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+    "files": 319,
     "runtime_inventory_sha256": "daebfe2d3efaf8cfeff0d97711561ef551195a972387ff4681260591bed3e413",
     "runtime_files": 195,
-    "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:7b0cbdc9f1030b87fa24b5df4cfd31a67a5f96d5c3fba089588e825236313109"
+    "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78"
   },
-  "build_run": "cj1d1",
-  "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c0b9fba4f8bb4b4a7dcff3765f9432d333b3be2d7008f6f11eae9512ffc8ae78"
+  "build_run": "cj1d9",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577"
 }

@@ -1,14 +1,14 @@
 {
   "source": {
-    "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-    "accepted_source_revision": "7a2ce5b4b9c285c210bd482e2db161de348f4998",
+    "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+    "accepted_source_revision": "ed5044be5eea4024a3a155ce214d04e33e682d11",
     "role": "api-next",
-    "source_inventory_sha256": "a1bcc28c316859cfc23086fdbc6e5aa7cdbb30fc5884230ecec74fbc2c0fe13e",
-    "files": 318,
+    "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+    "files": 319,
     "runtime_inventory_sha256": "daebfe2d3efaf8cfeff0d97711561ef551195a972387ff4681260591bed3e413",
     "runtime_files": 195,
-    "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:614a01dd440419d45fdeb62ca72ec8fa2830a57e65c4edb811c9d3720e05e6a1"
+    "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636"
   },
-  "build_run": "cj1d3",
-  "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636"
+  "build_run": "cj1d8",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7"
 }

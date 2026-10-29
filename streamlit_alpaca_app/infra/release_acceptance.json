@@ -793,7 +793,30 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601": {
+          "status": "passed",
+          "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+          "runtime_files": 195,
+          "runtime_inventory_sha256": "daebfe2d3efaf8cfeff0d97711561ef551195a972387ff4681260591bed3e413",
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete Git package",
+            "API imports/OpenAPI",
+            "worker and broker imports",
+            "retained native performance API",
+            "flat account zero return and undefined Sharpe"
+          ],
+          "external_requests": 0,
+          "role": "worker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:26097ac83acc9d9067c8a2a3c5812c457e521a1e46ffa289df4a5dd2081c0601",
+          "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+          "complete_git_inventory_matches": true,
+          "qualification_run": "cj1dd",
+          "build_run": "cj1da",
+          "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+        }
+      }
     },
     "api-next": {
       "dependency_image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:98ef2544913b3a1660a2ee66ce12fdc4935b1302c64075a70a8764f3f87f8636",
@@ -820,7 +843,31 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7": {
+          "status": "passed",
+          "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+          "runtime_files": 195,
+          "runtime_inventory_sha256": "daebfe2d3efaf8cfeff0d97711561ef551195a972387ff4681260591bed3e413",
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete Git package",
+            "API imports/OpenAPI",
+            "worker and broker imports",
+            "retained native performance API",
+            "unauthenticated Trading read/write rejection",
+            "flat account zero return and undefined Sharpe"
+          ],
+          "external_requests": 0,
+          "role": "api-next",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:fcaad32c38a41ad0cb9a796589622519be26aa368fa03cbed130be61cfbf95a7",
+          "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+          "complete_git_inventory_matches": true,
+          "qualification_run": "cj1de",
+          "build_run": "cj1d8",
+          "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+        }
+      }
     },
     "web": {
       "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402",
@@ -847,7 +894,30 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {},
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a": {
+          "status": "passed",
+          "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+          "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+          "runtime_inventory_sha256": "4a23356f6f2d5172517e953a79f434503381679b40209e54ae9ea961386cee56",
+          "input_files": 94,
+          "compiled_files": 1724,
+          "symlinks": 0,
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete compiled files and symlinks",
+            "accepted Git web inputs",
+            "Trading page, order and call routes",
+            "preserved Broad Economy route and outlook component input"
+          ],
+          "role": "web",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a",
+          "complete_git_inventory_matches": true,
+          "qualification_run": "cj1dc",
+          "build_run": "cj1db",
+          "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+        }
+      },
       "runtime_files": {
         "web/.dockerignore": "b8786ab83e4290ab13a9ae9d588424ebf0195d7b8cff21fae28172f8ab704e0c",
         "web/AGENTS.md": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
@@ -970,7 +1040,30 @@
         }
       ],
       "production_targets": [],
-      "accepted_images": {}
+      "accepted_images": {
+        "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577": {
+          "status": "passed",
+          "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+          "runtime_files": 195,
+          "runtime_inventory_sha256": "daebfe2d3efaf8cfeff0d97711561ef551195a972387ff4681260591bed3e413",
+          "all_packaged_files_checked": true,
+          "checks": [
+            "complete Git package",
+            "API imports/OpenAPI",
+            "worker and broker imports",
+            "retained native performance API",
+            "flat account zero return and undefined Sharpe"
+          ],
+          "external_requests": 0,
+          "role": "broker",
+          "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:cabecf69d5a768cf5c9cb1dbbbbe451c448ac931da3c4de74d5012232a163577",
+          "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+          "complete_git_inventory_matches": true,
+          "qualification_run": "cj1df",
+          "build_run": "cj1d9",
+          "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+        }
+      }
     }
   },
   "untouched_consumers": [

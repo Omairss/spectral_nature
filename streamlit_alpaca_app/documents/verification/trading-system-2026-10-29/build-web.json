@@ -1,14 +1,14 @@
 {
   "source": {
-    "source_revision": "6f66339ab9d26f474ad9ecdbd3040fa550b576f7",
-    "accepted_source_revision": "7a2ce5b4b9c285c210bd482e2db161de348f4998",
+    "source_revision": "7061e9931e822f7dcb347f5bf75c3eb9e6db0407",
+    "accepted_source_revision": "ed5044be5eea4024a3a155ce214d04e33e682d11",
     "role": "web",
-    "source_inventory_sha256": "a1bcc28c316859cfc23086fdbc6e5aa7cdbb30fc5884230ecec74fbc2c0fe13e",
-    "files": 318,
-    "runtime_inventory_sha256": "bb0212a786125b27720b71831ed38e9e716f0b6106f1a95fea4b0d0196d38351",
-    "runtime_files": 93,
+    "source_inventory_sha256": "9cf4006e9fd222d62eb7b76fa4e163e26588feb5d0b226bd01523149ed2cce95",
+    "files": 319,
+    "runtime_inventory_sha256": "4a23356f6f2d5172517e953a79f434503381679b40209e54ae9ea961386cee56",
+    "runtime_files": 94,
     "dependency_image": "node:22-alpine@sha256:0a7108bf6c7bf5de370ffb1a3ed6be93d405b43ff159f681a8d18c0e2bc2e402"
   },
-  "build_run": "cj1d2",
-  "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5633697b3b6401a2264607398729c7f7469976aba094abf55810bcbbc983b4ba"
+  "build_run": "cj1db",
+  "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:5505f27fd5174c40893ac6a214c79dae7b2f2796fbeca4d1e32d13c83337c87a"
 }
