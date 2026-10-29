@@ -1357,3 +1357,8 @@ The shared live-evidence adapter treated three broad results as sufficient cover
 ### Measure the complete model input before further prompt revisions — October 28
 
 Repeated prose guidance did not repair the complete feed. Measured final writing/review inputs were391449/400742tokens, including large numerical records and repeated draft/source context. A lossless column-format experiment reduced serialized evidence by37%, but fresh provider admission refused its comparison before inference. It is retained separately and reverted from the selected source. Do not call input compression a quality fix without reading complete fresh output. The independent reviewer fixed a date while missing the larger operating omissions and excessive numbers; its verdict is not acceptance. Source inspection also confirms that public section limits were not part of the editor task and were applied after review; Microsoft existed in the reviewed candidate but fell outside the displayed feed. Correct the publication contract rather than raising a familiar ticker's priority or adding another prose instruction.
+
+
+### Reconcile every release image identity — October 29
+
+During the owner-approved feed release, the first refreshed manifest updated `previous_image` for released workers but left their parallel `image` fields stale; the retained API had the inverse mismatch. Source and live-consumer checks stopped preparation before any template mutation. Reconciled both fields to the captured live definition. A root-relative Git diff was also initially run from the application directory and returned no paths; the explicit nonempty review check caught it before acceptance. Use the repository root for review inventories and reconcile all recorded image identities together.

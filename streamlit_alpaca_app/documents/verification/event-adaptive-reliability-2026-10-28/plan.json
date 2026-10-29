@@ -93,11 +93,14 @@
     "live_source_check": "Read-only historical-asof queries at both actual news-producer slots returned shared broad snapshots; no inference or publication. Latest-page coverage is bounded, so selected-company intake remains alongside it and current follow-up stays in shared research."
   },
   "release_state": {
-    "candidate_build_started": false,
+    "candidate_build_started": true,
     "development_deployed": false,
     "production_deployed": false,
     "production_remains_previous_accepted_image": true,
-    "required_next_step": "Exact-image DEV qualification and owner-authorized scoped worker promotion; then continue proposed coherent change in DEV."
+    "required_next_step": "Exact-image DEV qualification and owner-authorized scoped worker promotion; then continue proposed coherent change in DEV.",
+    "build_run": "cj1cc",
+    "candidate_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+    "development_probe_execution": "macro-fred-daily-dev-6rk3yu1"
   },
   "instruction_audit": {
     "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",

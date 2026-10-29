@@ -1,0 +1,93 @@
+{
+  "status": "package_and_native_retry_verified_deadline_probe_running",
+  "source_revision": "c92245b62852d0f6d38465a07dd6f254a670866e",
+  "source_inventory_sha256": "131e728aa8b37ca29f9232f8aa48669dbc1d0fe39dfa4e6236b4bc8322652ae5",
+  "runtime_inventory_sha256": "53ad5b59102d039645d37923d3331b46bdc340f67ea8c169e25f074411ad7228",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95"
+  },
+  "execution": "macro-fred-daily-dev-6rk3yu1",
+  "probes": [
+    {
+      "probe": "package",
+      "files": 189,
+      "runtime_inventory_sha256": "53ad5b59102d039645d37923d3331b46bdc340f67ea8c169e25f074411ad7228",
+      "source_revision": "c92245b62852d0f6d38465a07dd6f254a670866e"
+    },
+    {
+      "probe": "event_margin",
+      "concurrent_workers": 16,
+      "extra_admitted": 5,
+      "base_usd": 10,
+      "ceiling_usd": 15,
+      "retry_cannot_reset": true,
+      "unselected_cannot_consume_margin": true
+    },
+    {
+      "probe": "azure_embedding_alias",
+      "input_tokens": 5,
+      "quoted_usd": 1.1e-07,
+      "wire_deployment": "zopedia-embedding",
+      "pricing_model": "text-embedding-3-small",
+      "transport": "simulated",
+      "accounting": "real Azure SQL"
+    },
+    {
+      "probe": "pdf_and_publication",
+      "original_bytes_retained": true,
+      "paragraphs_preserved": true,
+      "publication_under_background_load": true,
+      "restored_native_versions": {
+        "qualification_pdf_source": "event-adaptive-dev-c92245b6__qualification_pdf_source__20261029T072720Z__event-ma__68e0f4316a9b470a8fb361d4b3b341ee"
+      }
+    },
+    {
+      "probe": "protected_core",
+      "concurrent_workers": 8,
+      "full_model_calls": 16,
+      "paid_transport": "simulated",
+      "real_sql_accounting": true
+    },
+    {
+      "probe": "late_paid_response",
+      "adopted_without_repurchase": true
+    },
+    {
+      "probe": "zero_budget_current_report",
+      "model": "deepseek-flash"
+    },
+    {
+      "probe": "ownership_under_background_load",
+      "held_seconds": 15,
+      "lease_seconds": 12,
+      "renewal_survived": true
+    },
+    {
+      "probe": "learning_input",
+      "fresh_connection_exact_read": true
+    },
+    {
+      "probe": "intentional_replica_failure",
+      "run_id": "22972798-2f4c-465f-91b1-ef072023a582"
+    },
+    {
+      "probe": "package",
+      "files": 189,
+      "runtime_inventory_sha256": "53ad5b59102d039645d37923d3331b46bdc340f67ea8c169e25f074411ad7228",
+      "source_revision": "c92245b62852d0f6d38465a07dd6f254a670866e"
+    },
+    {
+      "probe": "native_retry",
+      "original_run_id": "22972798-2f4c-465f-91b1-ef072023a582",
+      "same_profile": "balanced",
+      "budget_usd": "10",
+      "published_versions": {
+        "qualification_current_report": "event-adaptive-dev-c92245b6__qualification_current_report__20261029T072746Z__22972798__52ab8288ff2d475997880ca77d7a011a"
+      },
+      "elapsed_seconds": 53.08,
+      "status": "passed"
+    }
+  ],
+  "paid_inference_calls": 0,
+  "qualitative_acceptance": "owner-acceptance.json"
+}

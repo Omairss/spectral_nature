@@ -1429,3 +1429,8 @@ Execute the shared researcher's bounded focus requests within the original acqui
 ### Separate acquired information, editorial preservation and displayed priority — October 28
 
 A source can be acquired yet lose its decisive explanation during synthesis, and a generated story can exist yet disappear below the public display limit. Inspect all three handoffs. Pass the actual display capacity into semantic composition and review: the current public editor receives no section limits, while a later materializer slices its ranked output. Review the same selection that will be rendered. Measure actual writing/review token composition before adding more instructions. Source-preservation checks and lossless-format checks establish their own contracts; personal review of the actual displayed feed establishes quality. Keep rejected or unqualified experiments out of selected release source.
+
+
+### Owner acceptance can scope an incremental feed release — October 29
+
+The owner personally judged the unedited candidate substantially better than the saved production output and explicitly authorized promotion. Record that acceptance without erasing earlier reviewer findings or claiming the unfinished redesign is complete. Capture the current live baseline again: another accepted release can already contain the same credit repair and independent API/native features. Retain those exact images and behavior, verify the candidate in DEV, and continue the remaining coherent research/publication change separately.
