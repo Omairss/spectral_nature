@@ -1,7 +1,8 @@
 """Objective daily performance arithmetic; no research prose grading."""
 import numpy as np
+import pandas as pd
 import pytest
-from compute.analytics import performance_summary
+from compute.analytics import performance_summary, sharpe_ratio
 
 
 def test_daily_performance_uses_changes_in_wealth_and_reports_its_convention():
@@ -50,3 +51,21 @@ def test_nonpositive_initial_wealth_has_no_fabricated_drawdown_or_daily_return()
     assert result["max_drawdown_pct"] is None and result["daily_observations"] == 0
     json.dumps(result, allow_nan=False)
 
+
+
+@pytest.mark.parametrize("count", [2, 3, 22, 252])
+@pytest.mark.parametrize("daily_return", [0.0, 0.001])
+def test_sharpe_is_undefined_for_constant_daily_returns(count, daily_return):
+    assert np.isnan(sharpe_ratio(pd.Series([daily_return] * count)))
+
+
+def test_flat_funded_account_has_zero_return_and_no_sharpe():
+    from compute.paper_portfolio import period_performance
+    points = [{"date": date.isoformat(), "equity": 100000.0,
+               "external_cashflow": 0, "cashflow_coverage": "reported"}
+              for date in pd.date_range("2026-09-29", periods=23, freq="B", tz="UTC")]
+    result = period_performance(points)
+    assert result["profit_loss"] == 0
+    assert result["return_pct"] == 0
+    assert result["performance"]["volatility_pct"] == 0
+    assert result["performance"]["sharpe_ratio"] is None

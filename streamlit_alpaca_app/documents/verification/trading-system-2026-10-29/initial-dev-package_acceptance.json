@@ -1,0 +1,87 @@
+[
+  {
+    "status": "passed",
+    "source_revision": "6df6af3776883000260a29b4da0a32a9f326e095",
+    "source_inventory_sha256": "322e6503bba80a2e202baf35bacc739fd9745d2de346a371f8e63aa506d8c5aa",
+    "runtime_inventory_sha256": "bb0212a786125b27720b71831ed38e9e716f0b6106f1a95fea4b0d0196d38351",
+    "input_files": 93,
+    "compiled_files": 1723,
+    "symlinks": 0,
+    "all_packaged_files_checked": true,
+    "checks": [
+      "complete compiled files and symlinks",
+      "accepted Git web inputs",
+      "Trading page, order and call routes"
+    ],
+    "role": "web",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:565e9de9e357df42170a413c184e2b8be8c5dc9e00a85cb9f93ecf07c0dddfb8",
+    "complete_git_inventory_matches": true,
+    "qualification_run": "cj1cy",
+    "build_run": "cj1cu",
+    "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+  },
+  {
+    "status": "passed",
+    "source_revision": "6df6af3776883000260a29b4da0a32a9f326e095",
+    "runtime_files": 195,
+    "runtime_inventory_sha256": "002a83afec8ac7bd44134e1bb404fc1aef92fdedfc17ee898b67dd75d220f8ac",
+    "all_packaged_files_checked": true,
+    "checks": [
+      "complete Git package",
+      "API imports/OpenAPI",
+      "worker and broker imports",
+      "retained native performance API",
+      "unauthenticated Trading read/write rejection"
+    ],
+    "external_requests": 0,
+    "role": "api-next",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:614a01dd440419d45fdeb62ca72ec8fa2830a57e65c4edb811c9d3720e05e6a1",
+    "source_inventory_sha256": "322e6503bba80a2e202baf35bacc739fd9745d2de346a371f8e63aa506d8c5aa",
+    "complete_git_inventory_matches": true,
+    "qualification_run": "cj1cx",
+    "build_run": "cj1cr",
+    "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+  },
+  {
+    "status": "passed",
+    "source_revision": "6df6af3776883000260a29b4da0a32a9f326e095",
+    "runtime_files": 195,
+    "runtime_inventory_sha256": "002a83afec8ac7bd44134e1bb404fc1aef92fdedfc17ee898b67dd75d220f8ac",
+    "all_packaged_files_checked": true,
+    "checks": [
+      "complete Git package",
+      "API imports/OpenAPI",
+      "worker and broker imports",
+      "retained native performance API"
+    ],
+    "external_requests": 0,
+    "role": "worker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:20124dbd9685e4adc4527f3015ab4f1f758b52ccac8e5ace39b38d2c6d8a05e2",
+    "source_inventory_sha256": "322e6503bba80a2e202baf35bacc739fd9745d2de346a371f8e63aa506d8c5aa",
+    "complete_git_inventory_matches": true,
+    "qualification_run": "cj1cv",
+    "build_run": "cj1ct",
+    "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+  },
+  {
+    "status": "passed",
+    "source_revision": "6df6af3776883000260a29b4da0a32a9f326e095",
+    "runtime_files": 195,
+    "runtime_inventory_sha256": "002a83afec8ac7bd44134e1bb404fc1aef92fdedfc17ee898b67dd75d220f8ac",
+    "all_packaged_files_checked": true,
+    "checks": [
+      "complete Git package",
+      "API imports/OpenAPI",
+      "worker and broker imports",
+      "retained native performance API"
+    ],
+    "external_requests": 0,
+    "role": "broker",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:7b0cbdc9f1030b87fa24b5df4cfd31a67a5f96d5c3fba089588e825236313109",
+    "source_inventory_sha256": "322e6503bba80a2e202baf35bacc739fd9745d2de346a371f8e63aa506d8c5aa",
+    "complete_git_inventory_matches": true,
+    "qualification_run": "cj1cw",
+    "build_run": "cj1cs",
+    "evidence": "documents/verification/trading-system-2026-10-29/PACKAGE_ACCEPTANCE.json"
+  }
+]

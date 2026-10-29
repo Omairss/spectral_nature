@@ -48,11 +48,12 @@ def sharpe_ratio(ret: pd.Series, risk_free_rate: float = 0.02) -> float:
     if ret.empty:
         return np.nan
     daily_rf = risk_free_rate / 252.0
-    excess = ret - daily_rf
-    std = excess.std(ddof=0)
-    if std == 0 or np.isnan(std):
+    # A constant risk-free shift does not change volatility. Taking the
+    # variance after that subtraction creates rounding noise for a flat book.
+    std = ret.std(ddof=0)
+    if ret.nunique() <= 1 or std == 0 or not np.isfinite(std):
         return np.nan
-    return float((excess.mean() / std) * np.sqrt(252.0))
+    return float(((ret.mean() - daily_rf) / std) * np.sqrt(252.0))
 
 
 def performance_summary(points: list[dict], risk_free_rate: float = 0.02) -> dict:

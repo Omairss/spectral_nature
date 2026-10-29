@@ -1,10 +1,11 @@
 {
   "status": "passed",
   "feature_checks": {
-    "passed": 197,
+    "passed": 212,
     "real_postgresql": true,
     "log": "/tmp/sn-trading-release-checks.log",
-    "producer_retention": "Undecided calls survive replacement reports and broker outages"
+    "producer_retention": "Undecided calls survive replacement reports and broker outages",
+    "flat_account": "Zero return and undefined Sharpe; constant returns across 2, 3, 22 and252 observations"
   },
   "web_contracts": {
     "passed": 16,

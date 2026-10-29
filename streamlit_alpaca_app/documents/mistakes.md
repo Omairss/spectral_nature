@@ -1401,3 +1401,8 @@ The first isolated API probe blocked Azure identity/Key Vault traffic needed for
 ### Implement the requested Trading experience — October29
 
 A design preview did not fulfill the owner’s request to implement Trading. Replaced the actual shared backend, web and native experience. Work in an isolated Git checkout to preserve concurrent changes, reconcile the current accepted shared runtime before packaging, and verify full consumer inventory. During local merge work an overbroad conflict-cleanup expression truncated files; restored complete accepted Git inputs and repeated validation before any build or deployment. Use absolute application paths for scripted worktree edits.
+
+
+### Evaluate statistics on the actual flat account — October29
+
+The first Trading DEV rollout exposed an enormous Sharpe for a flat paper book. Subtracting the constant daily risk-free rate before estimating variance introduced floating-point noise at some window lengths. The shared calculation now measures return variance directly and recognizes constant observations; expanded local coverage includes a full month and year of zero/constant returns. Live inspection caught this before any production promotion.
