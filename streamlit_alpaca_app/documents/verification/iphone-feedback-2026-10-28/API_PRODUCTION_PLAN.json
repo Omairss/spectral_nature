@@ -1,0 +1,18 @@
+{
+  "owner_instruction": "Push to prod",
+  "api_base": "b900e5ca",
+  "previous_api_source": "f3d3393d",
+  "native_source": "8fc44de9",
+  "scope": [
+    "Shared retained call metrics on production API",
+    "Exact DEV-accepted credit image to production workers",
+    "Signed accepted native build16 on reachable paired phones"
+  ],
+  "preserve": [
+    "Every schedule and consumer configuration",
+    "Existing DEV maintenance and Alpaca API/frontend",
+    "All production frontends and broker images",
+    "All accepted Home/Research/Trading native behavior"
+  ],
+  "status": "local_api_accepted_exact_image_verification_pending"
+}

@@ -13,6 +13,7 @@ from typing import Any
 import pandas as pd
 from psycopg.rows import dict_row
 
+from compute.analytics import performance_summary
 from .json_utils import to_jsonable
 from .trading_agent import _TRADING_AGENT_HORIZON_DAYS as HORIZON_DAYS
 
@@ -337,8 +338,16 @@ def tracking_view(*, owner_id: str, tracking_id: str | None = None) -> dict[str,
         row.update(performance)
         row.pop('owner_id',None)
         if tracking_id:
+            try:
+                row['path'] = json.loads(row.pop('path_json', '[]'))
+            except (TypeError, ValueError):
+                row['path'] = []
+                row['path_status'] = 'unavailable'
+            row['performance'] = performance_summary(row['path'])
             snapshot=call['candidate_payload'];snapshot=json.loads(snapshot) if isinstance(snapshot,str) else snapshot
             row['candidate']=snapshot
-            row['path']=json.loads(row.pop('path_json','[]'))
         results.append(to_jsonable(row))
+    if not tracking_id:
+        for row in results:
+            row.pop('path_json', None)
     return {'status':'available','as_of':getattr(metadata,'asof_time_utc',''),'calls':results}

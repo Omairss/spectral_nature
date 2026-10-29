@@ -55,6 +55,36 @@ def sharpe_ratio(ret: pd.Series, risk_free_rate: float = 0.02) -> float:
     return float((excess.mean() / std) * np.sqrt(252.0))
 
 
+def performance_summary(points: list[dict], risk_free_rate: float = 0.02) -> dict:
+    """Daily performance from a dated cumulative percentage-return series.
+
+    The caller owns the return convention (broker-reported or fixed-notional
+    call). Missing observations stay missing; never fill a missing mark or
+    calculate through a nonpositive wealth denominator.
+    """
+    frame = pd.DataFrame(points, columns=["date", "return_pct"])
+    frame["date"] = pd.to_datetime(frame["date"], utc=True, errors="coerce", format="ISO8601").dt.normalize()
+    frame["return_pct"] = pd.to_numeric(frame["return_pct"], errors="coerce").replace([np.inf, -np.inf], np.nan)
+    frame = frame.dropna(subset=["date"]).sort_values("date").drop_duplicates("date", keep="last")
+    wealth = 1 + frame.set_index("date")["return_pct"] / 100
+    previous = wealth.shift(1)
+    daily = (wealth / previous.where(previous > 0) - 1).replace([np.inf, -np.inf], np.nan).dropna()
+    observed = wealth.dropna()
+    ratio = sharpe_ratio(daily, risk_free_rate) if len(daily) >= 2 else np.nan
+    peak = wealth.cummax()
+    drawdown = (wealth / peak.where(peak > 0) - 1).min()
+    return {
+        "return_pct": float((observed.iloc[-1] - 1) * 100) if not observed.empty else None,
+        "sharpe_ratio": float(ratio) if np.isfinite(ratio) else None,
+        "volatility_pct": float(daily.std(ddof=0) * np.sqrt(252) * 100) if len(daily) >= 2 else None,
+        "max_drawdown_pct": float(drawdown * 100) if np.isfinite(drawdown) else None,
+        "daily_observations": len(daily),
+        "risk_free_rate_pct": risk_free_rate * 100,
+        "start_date": observed.index[0].date().isoformat() if not observed.empty else None,
+        "end_date": observed.index[-1].date().isoformat() if not observed.empty else None,
+    }
+
+
 def max_drawdown(series: pd.Series) -> float:
     values = pd.to_numeric(series, errors="coerce").dropna()
     if values.empty:
