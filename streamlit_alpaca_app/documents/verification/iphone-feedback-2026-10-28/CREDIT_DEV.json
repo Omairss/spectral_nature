@@ -1,5 +1,5 @@
 {
-  "status": "exact_image_accepted_in_development",
+  "status": "deployed_verified_in_development",
   "execution": "macro-fred-daily-dev-o028mex",
   "source_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
   "source_inventory_sha256": "193158326a55e00605b6239ef3c35acf94413dc182b26c15b34b0df977731fac",
@@ -38,5 +38,206 @@
   "paid_inference_requests": 0,
   "production_account_mutated": false,
   "production_templates_changed": false,
-  "source_scope": "Only reserve_provider_budget and settle_provider_budget differ from the current production worker runtime."
+  "source_scope": "Only reserve_provider_budget and settle_provider_budget differ from the current production worker runtime.",
+  "changed_development_workers": [
+    "trading-agent-build-dev",
+    "macro-fred-daily-dev",
+    "sn-research-run-dev",
+    "dataset-refresh-dev",
+    "attention-home-next-dev",
+    "attention-ticker-next-dev",
+    "daily-datapoints-next-dev",
+    "technical-history-next-dev",
+    "equities-next-dev",
+    "system-recovery-dev",
+    "cleanup-trial-observer-dev",
+    "zopedia-maintenance-dev"
+  ],
+  "consumer_count": 36,
+  "all_configurations_preserved": true,
+  "other_24_images_preserved": true,
+  "production_images_preserved": true,
+  "verification": "Exact image ran successfully in macro-fred-daily-dev-o028mex using isolated SQL accounting and simulated provider balance; no actual user query was rerun.",
+  "consumers": [
+    {
+      "name": "sn-streamlit-ui",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "sn-api-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:abf387e66cf99526a31b865fd8f2afc6c3554a81ccd550ce82602c13c97af391",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "sn-next-ui",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "sn-api-next",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:7697aadde0e64086c708f2e65bdb859e160fda314976111044126e39e2edddce",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "universe-builder",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "equities-intraday-preload",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "macro-fred-daily",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "commodities-regime",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "options-liquid-universe",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "news-ingest-and-features",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "attention-home-build",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "trading-agent-build",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "zopedia-maintenance",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "zopedia-learning",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "system-health",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "sn-research-run-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "attention-home-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "technical-history-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "sn-research-run",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "equities-next-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "evidence-index-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "system-recovery-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "system-recovery",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:0e3ab767a32ee414212e5cc83127f58f9b78ac613ef0321cf4103974edca4037",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "cleanup-trial-observer-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    },
+    {
+      "name": "zopedia-maintenance-dev",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "configuration_unchanged": true
+    }
+  ]
 }
