@@ -432,6 +432,16 @@ def research_source_events(
         resolved = [by_id[ref]["source_id"] for ref in plan["source_refs"] if ref in by_id]
         plan["unresolved_source_refs"] = [ref for ref in plan["source_refs"] if ref not in by_id]
         plan["source_ids"] = list(dict.fromkeys(resolved))
+        # A nominated market observation is evidence for investigating an
+        # unexplained move; it is not evidence of the move's eventual cause.
+        # Preserve that existing input at the financial authorization boundary.
+        related = {_normalize_symbol(symbol) for symbol in plan["related_symbols"]}
+        plan["observation_refs"] = [
+            {"evidence_id": "observation::" + hashlib.sha256(
+                json.dumps({"asof": asof.isoformat(), "observation": row}, sort_keys=True).encode()
+            ).hexdigest()[:20], "asof_time_utc": asof.isoformat(), "observation": row}
+            for row in observations if _normalize_symbol(row.get("symbol")) in related
+        ]
         if plan["unresolved_source_refs"]:
             record_execution_issue("market_discovery_source_reference", ValueError("A nominated source reference was not acquired"))
 
@@ -491,7 +501,8 @@ def research_source_events(
                 }
             )
         with event_research_context({"work_id": "event:" + event_id,
-                "evidence_ids": plan["source_ids"], "reason": plan["rationale"],
+                "evidence_ids": [*plan["source_ids"], *[row["evidence_id"] for row in plan["observation_refs"]]],
+                "observations": plan["observation_refs"], "reason": plan["rationale"],
                 "asof_time_utc": asof.isoformat()}):
             result = run_aql_zopedia_structured_agent(
                 query=query,
