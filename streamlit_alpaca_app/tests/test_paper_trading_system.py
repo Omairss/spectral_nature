@@ -381,6 +381,10 @@ def test_autopilot_permission_is_bound_to_the_connected_account(owned_db):
         expected_revision=saved["revision"],
     )
     assert trading_portfolio.policy(context)["mode"] == "autonomous"
+    with pytest.raises(PermissionError, match="exact confirmation"):
+        alpaca_paper._execution_policy(
+            context, {"intent": "close", "proposal_source": "owner"}, automatic=True
+        )
     with psycopg.connect(dsn) as conn:
         conn.execute(
             f"UPDATE {schema}.brokerage_connections SET server_info_json=%s::jsonb WHERE id=%s::uuid",
@@ -467,3 +471,178 @@ def test_cancellation_request_is_not_reported_as_a_fill_or_repeated(
     assert second["order"]["status"] == "canceled"
     assert len(deletes) == 1
     assert store.paper_state(context, environment="qa")["orders"] == []
+
+
+def test_reduction_keeps_the_original_call_allocation_through_reconciliation(
+    owned_db, monkeypatch
+):
+    import numpy as np
+    import pandas as pd
+
+    context, link, schema, dsn, foreign = owned_db
+    candidate = {
+        "candidate_id": "original",
+        "ticker": "A",
+        "stance": "long",
+        "intent": "entry",
+    }
+    trading_portfolio.retain(context, [candidate])
+    call_id = trading_portfolio.identity(context, "original")
+    store.decide_paper_call(
+        context, environment="qa", identity=call_id, decision="submitted"
+    )
+    store.save_paper_performance(
+        context,
+        environment="qa",
+        call_id=call_id,
+        performance={
+            "status": "open",
+            "quantity": "10",
+            "as_of": "2026-10-28T15:00:00Z",
+        },
+    )
+    entry = {
+        "id": str(uuid.uuid4()),
+        "client_order_id": "original-entry",
+        "symbol": "A",
+        "qty": "10",
+        "filled_qty": "10",
+        "side": "buy",
+        "type": "market",
+        "time_in_force": "day",
+        "status": "filled",
+    }
+    entry_ticket = store.create_order_ticket(
+        connection_id=link["id"],
+        user_id=context.user_id,
+        provider="alpaca_paper",
+        environment="qa",
+        review_tool_name="review",
+        execution_tool_name="submit",
+        arguments_hash="b" * 64,
+        ref_id=str(uuid.uuid4()),
+        request_summary={},
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=2),
+    )
+    store.retain_paper_order(
+        context,
+        environment="qa",
+        connection_id=link["id"],
+        call_id=call_id,
+        action_id=call_id,
+        ticket_id=entry_ticket["id"],
+        order=entry,
+    )
+    state = {"quantity": "10", "receipt": None}
+    posted = []
+
+    class Broker:
+        _normalize_symbol = staticmethod(lambda symbol: symbol)
+
+        def paper_request(self, method, path, **kw):
+            if path == "/v2/account":
+                return {"id": "account", "equity": "100100", "cash": "99000"}
+            if path == "/v2/clock":
+                return {"is_open": True}
+            if path == "/v2/positions":
+                return [
+                    {
+                        "symbol": "A",
+                        "qty": state["quantity"],
+                        "qty_available": state["quantity"],
+                        "current_price": "110",
+                        "market_value": str(float(state["quantity"]) * 110),
+                        "asset_class": "us_equity",
+                    }
+                ]
+            if path == "/v2/assets/A":
+                return {"class": "us_equity", "fractionable": True, "tradable": True}
+            if path == "/v2/orders" and method == "GET":
+                return []
+            if path == "/v2/orders" and method == "POST":
+                posted.append(kw["body"])
+                state["quantity"] = "7"
+                state["receipt"] = {
+                    **kw["body"],
+                    "id": str(uuid.uuid4()),
+                    "status": "filled",
+                    "filled_qty": "3",
+                    "filled_avg_price": "110",
+                    "filled_at": "2026-10-29T15:00:00Z",
+                }
+                return state["receipt"]
+            raise AssertionError((method, path))
+
+        validate_order_receipt = staticmethod(
+            alpaca_paper.AlpacaAPI.validate_order_receipt
+        )
+
+    monkeypatch.setattr(alpaca_paper, "api_for_connection", lambda _: Broker())
+    monkeypatch.setattr(
+        alpaca_paper,
+        "_risk_returns",
+        lambda *args: pd.DataFrame(
+            {"A": np.tile([-0.01, 0.01], 150)},
+            index=pd.bdate_range("2025-01-01", periods=300),
+        ),
+    )
+    review = alpaca_paper.review_order(
+        context, intent="reduce", call_id=call_id, quantity="3"
+    )
+    assert review["order"]["qty"] == "3"
+    assert (
+        alpaca_paper.confirm_order(
+            context,
+            ticket_id=review["ticket_id"],
+            arguments_hash=review["arguments_hash"],
+        )["order"]["filled_qty"]
+        == "3"
+    )
+    assert len(posted) == 1
+    receipt = state["receipt"]
+    activities = [
+        {
+            "id": "entry-fill",
+            "activity_type": "FILL",
+            "order_id": entry["id"],
+            "symbol": "A",
+            "side": "buy",
+            "qty": "10",
+            "price": "100",
+            "transaction_time": "2026-10-28T15:00:00Z",
+        },
+        {
+            "id": "exit-fill",
+            "activity_type": "FILL",
+            "order_id": receipt["id"],
+            "symbol": "A",
+            "side": "sell",
+            "qty": "3",
+            "price": "110",
+            "transaction_time": "2026-10-29T15:00:00Z",
+        },
+    ]
+    trading_portfolio.reconcile(
+        context,
+        link,
+        {
+            "positions": Broker().paper_request("GET", "/v2/positions"),
+            "details": {
+                "orders": [entry, receipt],
+                "new_activities": activities,
+                "activities_complete": True,
+                "coverage": {"positions": "2026-10-29T15:01:00Z"},
+            },
+        },
+    )
+    result = store.paper_call(context, environment="qa", identity=call_id)[
+        "performance"
+    ]
+    assert result["quantity"] == "7"
+    assert result["average_entry"] == 100
+    assert result["realized_pl"] == 30
+    assert result["unrealized_pl"] == 70
+    assert result["pl"] == 100
+    assert len(result["fills"]) == 2
+    summary = store.paper_state(context, environment="qa")["calls"]
+    assert all("fills" not in row["performance"] for row in summary)

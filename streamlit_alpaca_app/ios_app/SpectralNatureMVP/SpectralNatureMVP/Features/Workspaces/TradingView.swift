@@ -140,7 +140,17 @@ struct TradingView: View {
       ForEach(paper.rows("holdings").map { TradingRow(record: $0, key: "symbol") }) { item in
         TradingSurface {
           HStack { Text("\(item.id) · \(item.record.text("qty")) shares").font(.subheadline.weight(.semibold)); Spacer(); Text(Format.money(item.record.number("market_value"))).font(.subheadline).monospacedDigit() }
-          HStack { Text("Unrealized \(Format.money(item.record.number("unrealized_pl")))").font(.caption).foregroundStyle(Theme.tone(item.record.number("unrealized_pl"))); Spacer(); Button("Review close") { presentation = .order(TradingRow(record: ["ticker": .string(item.id), "symbol": .string(item.id), "intent": .string("close")], key: "symbol")) }.font(.caption) }
+          Text("Unrealized \(Format.money(item.record.number("unrealized_pl")))").font(.caption).foregroundStyle(Theme.tone(item.record.number("unrealized_pl")))
+          let linked = calls.filter { $0.text("ticker") == item.id && $0.text("status") == "open" }
+          if linked.isEmpty {
+            Button("Review close") { presentation = .order(TradingRow(record: ["ticker": .string(item.id), "symbol": .string(item.id), "intent": .string("close")], key: "symbol")) }.font(.caption)
+          } else {
+            DisclosureGroup("Manage calls") {
+              ForEach(linked.map { TradingRow(record: $0, key: "call_id") }) { call in
+                Button { presentation = .call(call) } label: { TradingCallRow(call: call.record) }.buttonStyle(.plain)
+              }
+            }.font(.subheadline).tint(Theme.secondaryText)
+          }
         }
       }
       if paper.rows("holdings").isEmpty { Text("No open positions").font(.subheadline).foregroundStyle(Theme.secondaryText) }
@@ -148,9 +158,10 @@ struct TradingView: View {
   }
   private var performance: some View {
     VStack(alignment: .leading, spacing: 20) {
-      Text("Agent track record").font(.headline)
+      Text("Agent track record · all time").font(.headline)
       let stats = workspace.object("track_record")
-      TradingSurface { Metrics(items: [("Filled calls", stats.text("executed_calls")), ("Closed calls", stats.text("closed_calls")), ("Realized P/L", Format.money(stats.number("realized_pl"))), ("Unrealized P/L", Format.money(stats.number("unrealized_pl")))]) }
+      TradingSurface { Metrics(items: [("Filled calls", stats.text("executed_calls")), ("Closed calls", stats.text("closed_calls")), ("Realized P/L", Format.money(stats.number("realized_pl"))), ("Unrealized P/L", Format.money(stats.number("unrealized_pl"))), ("Win rate · closed calls", Format.percent(stats.number("win_rate_pct"))), ("Profit factor · closed calls", Format.number(stats.number("profit_factor"), digits: 2))])
+      if (stats.number("calls_needing_reconciliation") ?? 0) > 0 { Text("\(stats.text("calls_needing_reconciliation")) calls need reconciliation.").font(.caption).foregroundStyle(Theme.coral) } }
       ForEach(calls.map { TradingRow(record: $0, key: "call_id") }) { item in
         Button { presentation = .call(item) } label: { TradingCallRow(call: item.record) }.buttonStyle(.plain)
       }
@@ -298,6 +309,10 @@ private struct PaperCallDetailView: View {
           ResourceStatus(resource: resource) { Task { await load() } }
           TradingIdentity(symbol: candidate.text("ticker"), stance: candidate.text("stance"), font: .title2.weight(.semibold))
           TradingSurface { Metrics(items: [("Call P/L", Format.money(performance.number("pl"))), ("Return on filled capital", Format.percent(performance.number("return_pct"))), ("Realized", Format.money(performance.number("realized_pl"))), ("Unrealized", Format.money(performance.number("unrealized_pl")))]) }
+          if performance.number("entry_capital") != nil {
+            TradingSurface { Metrics(items: [("Average entry", Format.price(performance.number("average_entry"))), ("Filled capital", Format.money(performance.number("entry_capital"))), ("Remaining shares", performance.text("quantity")), ("Current mark", Format.price(performance.number("mark_price")))]) }
+            Text("Fills and linked fees").font(.caption2).foregroundStyle(Theme.secondaryText)
+          }
           if !path.isEmpty {
             Chart {
               ForEach(path.map { TradingRow(record: $0, key: "date") }) { item in
@@ -552,6 +567,7 @@ private struct PaperPortfolioView: View {
   let refresh: () -> Void
   private var summary: Record { portfolio.object("summary") }
   private var available: Bool { ["available", "partial"].contains(portfolio.text("status")) }
+  private var dataPeriod: String { portfolio.text("period").isEmpty ? period : portfolio.text("period") }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       HStack {
@@ -564,11 +580,11 @@ private struct PaperPortfolioView: View {
         HStack(spacing: 6) {
           Text(Format.money(portfolio.number("profit_loss")))
           Text("(\(Format.percent(portfolio.number("return_pct"))))")
-          Text(period == "ALL" ? "all time" : period).foregroundStyle(Theme.secondaryText)
+          Text(dataPeriod == "ALL" ? "all time" : dataPeriod).foregroundStyle(Theme.secondaryText)
         }.font(.subheadline).monospacedDigit().foregroundStyle(Theme.tone(portfolio.number("profit_loss")))
-        PaperEquityHistory(points: portfolio.rows("path"), window: $period)
+        PaperEquityHistory(points: portfolio.rows("path"), window: $period, dataPeriod: dataPeriod)
         TradingSurface {
-          Metrics(items: [("Cash", Format.money(summary.number("cash"))), ("Buying power", Format.money(summary.number("buying_power"))), ("\(period) drawdown", Format.percent(portfolio.number("max_drawdown_pct"))), ("\(period) Sharpe", Format.number(portfolio.object("performance").number("sharpe_ratio"), digits: 2))])
+          Metrics(items: [("Cash", Format.money(summary.number("cash"))), ("Open P/L", Format.money(summary.number("unrealized_pl"))), ("\(dataPeriod) drawdown", Format.percent(portfolio.number("max_drawdown_pct"))), ("\(dataPeriod) Sharpe", Format.number(portfolio.object("performance").number("sharpe_ratio"), digits: 2))])
         }
         if portfolio.text("status") == "partial" { Label("Refresh incomplete", systemImage: "clock").font(.caption).foregroundStyle(Theme.coral) }
         if let date = Format.date(portfolio.text("as_of")) { Text("Updated \(date.formatted(date: .abbreviated, time: .shortened)) · cashflow adjusted").font(.caption2).foregroundStyle(Theme.secondaryText) }
@@ -580,6 +596,7 @@ private struct PaperPortfolioView: View {
 private struct PaperEquityHistory: View {
   let points: [Record]
   @Binding var window: String
+  let dataPeriod: String
   @State private var selectedDate: Date?
   private var filtered: [Record] {
     points
@@ -602,7 +619,7 @@ private struct PaperEquityHistory: View {
           if let date = Format.date(row.text("date")) { Text(Format.historyDate(date, years: false)).foregroundStyle(Theme.secondaryText) }
         } else { Text("Account equity").foregroundStyle(Theme.secondaryText) }
         Spacer()
-        Text(window).foregroundStyle(Theme.secondaryText)
+        Text(dataPeriod).foregroundStyle(Theme.secondaryText)
       }.font(.caption).monospacedDigit()
       Chart {
         ForEach(filtered.map { TradingRow(record: $0, key: "date") }) { item in
@@ -625,7 +642,7 @@ private struct PaperEquityHistory: View {
         .chartXAxis { AxisMarks(values: .automatic(desiredCount: 3)) { value in
           AxisValueLabel { if let date = value.as(Date.self) { Text(Format.historyDate(date, years: false)).font(.caption2).foregroundStyle(Theme.secondaryText) } }
         } }.frame(height: 170).environment(\.timeZone, TimeZone(secondsFromGMT: 0)!)
-        .accessibilityLabel("Alpaca account equity in US dollars, \(window) history")
+        .accessibilityLabel("Alpaca account equity in US dollars, \(dataPeriod) history")
       HStack(spacing: 8) {
         ForEach(["1D", "1W", "1M", "3M", "1Y", "ALL"], id: \.self) { value in
           Button { window = value; selectedDate = nil } label: {

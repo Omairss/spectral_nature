@@ -1,0 +1,124 @@
+{
+  "status": "owner_accepted_scoped_worker_release_operational_qualification_pending",
+  "review_base_revision": "a1eefb18490e84b3c637b8e42a4f4954362fc3de",
+  "files": {
+    ".env.example": "Adds independent event-mode/margin controls. Blank mode preserves the fixed target. No credential or schedule changes. Shared news controls NEWS_MARKET_ARTICLE_LIMIT(default50) and NEWS_LOOKBACK_DAYS(default2) belong to the source producer, not Home. NEWS_TICKER_ARTICLE_LIMIT(default50) preserves selected-company intake independently.",
+    "pipeline/jobs/attention_home_build.py": "Removed the rejected direct Alpaca/config imports, broad-feed request, Home intake/status datasets and Home-specific acquisition controls. Reads the exact shared news_articles frame. Preserves early full-model completion protection and complete acquired-source/market-research handoff to final editing. Existing shared research and ticker backfill remain; no new provider path or schedule. Qualification candidate-omission finding was withdrawn after discovering a different source projection and source-reader binding in the replay. The unqualified Home identity-catalog edit was reverted. Production Home identity checks and query remain unchanged.",
+    "pipeline/jobs/main.py": "Preserves original root/as-of/deadline/policy across retry. Adds frozen event controls, current interpreted change context, bounded reserved-capacity publication metadata, same-execution native restoration, issue propagation and final financial receipts. EDGAR historical transaction remains unidentifiable; reproduced source path is repaired. Coverage correction now belongs here: existing run_news acquires a market-wide snapshot with original as-of/window and configurable source limit, persists canonical news datasets before downstream research, and keeps company selection independently bounded. Missing provider credentials are an explicit acquisition failure rather than successful skipped ingestion. Preserves original selected-company acquisition alongside broad reports, with a deduplicated canonical union. Partial scope failures retain successful data and record existing receipt degradation; total acquisition failure raises before publishing. Company/news research limits do not expand.",
+    "services/aql/business_model_stack.py": "Reuses completed company research before optional expensive funding. Expired freshness checks invoke existing semantic assessment using current/original dates; only completed negative-refresh assessment advances checked_at. Policy changes/uncertainty still refresh. Event-selected current subjects receive priority, each uncompleted news report remains current rather than rolled forward.",
+    "services/aql/events.py": "The existing source nominator can use bounded shared discovery independently of feed/mover availability. It receives dated economic context, retains broad research even with no focused nomination and materializes tool captures even when nomination fails. URL/source references are adapted without mutating the retained model payload; unresolved refs remain visible leads. Same-run retry identity excludes its own newly completed history. Focused research keeps existing shared source, model and budget contracts. Fresh qualification exposed the inherited90-second model-step default inside the600-second nomination stage. The caller now explicitly passes its existing stage allowance to model steps. Both event phases receive source text once with identity/provenance, retaining original provider captures. Focused investigations now retain the same dated economic_observations already given to nomination; no event/topic selection rule or new data source.",
+    "services/aql_zopedia_gateway.py": "Applies common substantive-analysis/synthesis guidance to shared nonliteral research and formatting calls. Mechanical literal outputs and existing schema/transport/authorization remain intact. New narrative behavior requires complete-output personal acceptance.",
+    "services/llm_context.py": "Replace shared explanation guidance with a concise statement of source sufficiency, business mechanisms, dated standing conditions, facts/expectations/inferences and useful numerical selection. Applied across research, writing and review. No topic/ticker rules, phrase grader, numerical quota or public text rewrite code.",
+    "services/llm_execution.py": "One atomic run/wallet ledger admits audited event shortfalls within base*(1+margin); retries cannot reset it and refunded margin cannot fund unselected work. Required core remains protected with visible soft variance. Canonical billing model is distinct from wire alias; tokenized embeddings and character-priced audio use correct units. Recovered issues flow across copied worker contexts. Cache identity uses frozen base/ceiling rather than incremental working-cap changes. Latest owner instruction separates current account liquidity from original-run cost uncertainty: ended or expired-local-request holds cease reducing current credit only after a successful subsequent provider balance read. Unknown cost records remain; live and probe-overlapping requests remain held. The original deadline spans contention/refresh/admission, concurrent credit mutation is atomic, late receipts debit once and repeated receipts do not redate settlement. Published pricing and model routes are unchanged.",
+    "services/llm_prices.json": "Retains existing DeepSeek prices. Adds verified westus Standard Azure small-embedding and published ElevenLabs v2 character rates. Estimates remain distinct from invoices; unpriced requests do not become zero.",
+    "services/page_browsing.py": "Recognizes PDF magic/MIME before decoding and unsupported binary is never narrative. Retains original response bytes, shared extraction provenance and explicit failed/partial acquisition. Text NUL normalization retains originals. HTML handling and complete source_text remain available.",
+    "services/pipeline_store.py": "Keeps existing immutable native version/CAS rules; adds immutable discoverable per-execution receipts before pointer advance and same-owner restore. Newer legitimate generations remain newer. Optional task filter on existing artifact listing preserves old callers and isolates completed event history from empty nominations. No shared DB-lifecycle or API/broker execution contracts changed.",
+    "services/saa/storage.py": "Existing lexical recovery remains available after semantic failure, but records an operational issue after respecting cancellation. Schema/public search result shape is preserved.",
+    "services/saa/zopedia.py": "Uploaded PDF calls the same extraction contract as HTTP; magic/MIME/extension detection retains prior supported behavior. Retained API images already parse PDF with pypdf; their earlier accepted UI, Trading and research behavior is preserved.",
+    "services/web_research.py": "Shared pypdf extraction retains full extracted page text, explicit failed-page metadata and normalized text with original bytes retained by acquisition owner. Existing HTML trafilatura/LLM source extraction remains unchanged.",
+    "services/zopedia_agent.py": "Shared planner chooses decisive source acquisition against explanation depth. Tagged next/decision action variants remove unused required fields while preserving useful working drafts, strict-provider schema compatibility, source permissions, registry argument validation, original clocks and retained paid artifacts. First flat conditional schema was replaced before commit after official provider-schema review; fresh tagged execution remains required. Planner user instructions now match the tagged next protocol; final actions do not request dummy tool arguments. Fresh tagged planning and evidence-step model responses completed. Independent source-first review still failed the full public quality bar.",
+    "services/zopedia_learning.py": "Saved frozen reviews run before new critiques and do not repurchase a completed critic after engine revision. Preserves original diagnosis/eval and permission policy. Excludes unchanged terminal episodes, retains pending fairness and reports actual critique/review deferrals within original case/job windows.",
+    "services/alpaca_api.py": "An omitted/None news symbol filter explicitly fetches market-wide news through existing paginated acquisition, including full content. Explicit empty selection preserves prior no-query behavior. Existing selected-symbol callers retain normalization, newest-first order and bounded result limits. Provider page size remains50, while total result limits above50 use the existing paginator instead of silently clamping. Defaults and explicit-symbol callers retain their existing bounds.",
+    "services/aql/pipeline.py": "Passes full dated FRED/yield observations into shared broad discovery and retains its typed market-research dataset in both empty-candidate and ordinary output paths. Acquired documents continue through existing annotation/chunking. Candidate research, source-event bundles and canonical final editor remain intact.",
+    "config/release_contracts.json": "Adds shared provider-credit admission/settlement definitions for worker, API and broker roles. New ledger semantics must not be released only to scheduled jobs while interactive clients sharing the account retain permanent-hold behavior. The held source record cannot authorize those roles until their prior accepted behavior is reviewed and reconciled.",
+    "services/agent_tools.py": "Execute explicit search query/queries; an omitted query now browses rather than inserting the entire research request. Tool description assigns dates to the shared researcher. No new retrieval path or data source. Live tool description makes explicit focus searches and the shared acquisition deadline visible.",
+    "services/zopedia_research.py": "Remove duplicate LLM planning inside retained search. Preserve the existing semantic/lexical searches, broad dated reporting, unrestricted background recall, ticker hints, provenance and source reader. Only caller is the shared tool adapter, updated together. Live acquisition no longer treats three broad rows as semantic coverage of explicit focus_symbols; bounded selected-company searches share the same deadline. All acquired deduplicated recent sources are retained in candidate_sources, while the preview keeps max_results. Existing focus cap (4), symbol config, freshness behavior and provider timeouts remain unchanged. No source-certification gate or alternative retrieval system.",
+    "config/inference_policy.json": "Version2026-10-28.2 removes only the now-unused retrieval-plan route. Existing company economy routes, full-model core roles and best-effort configuration are preserved."
+  },
+  "mechanical_verification": {
+    "passed": 198,
+    "isolated_postgresql": true,
+    "inference_started": false,
+    "log": "private contracts-20261029T025246Z.log"
+  },
+  "shared_consumer_definition_changes": [
+    {
+      "contract": "database_lifecycle",
+      "definition": "services/auth_store.py:open_auth_store_connection",
+      "changed": false
+    },
+    {
+      "contract": "database_lifecycle",
+      "definition": "services/pipeline_store.py:open_database_connection",
+      "changed": false
+    },
+    {
+      "contract": "database_lifecycle",
+      "definition": "services/pipeline_store.py:latest_dataset_metadata",
+      "changed": false
+    },
+    {
+      "contract": "pipeline_publication",
+      "definition": "pipeline/jobs/main.py:_db_connection",
+      "changed": false
+    },
+    {
+      "contract": "pipeline_publication",
+      "definition": "pipeline/jobs/main.py:_call_with_timeout",
+      "changed": false
+    },
+    {
+      "contract": "pipeline_publication",
+      "definition": "pipeline/jobs/main.py:_upload_manifest",
+      "changed": true
+    },
+    {
+      "contract": "pipeline_publication",
+      "definition": "pipeline/jobs/main.py:_persist_dataset",
+      "changed": true
+    },
+    {
+      "contract": "pipeline_publication",
+      "definition": "services/pipeline_store.py:publish_dataset_manifest",
+      "changed": true
+    },
+    {
+      "contract": "provider_credit_admission",
+      "definition": "services/llm_execution.py:reserve_provider_budget",
+      "changed": true
+    },
+    {
+      "contract": "provider_credit_admission",
+      "definition": "services/llm_execution.py:settle_provider_budget",
+      "changed": true
+    },
+    {
+      "contract": "provider_credit_admission",
+      "definition": "services/llm_execution.py:settle_research_cost",
+      "changed": false
+    }
+  ],
+  "full_consumer_inventory": "consumers.before.json",
+  "consumer_preservation": "Initial baseline covered36 consumers. Earlier worker-only candidate scope is superseded by the global provider-credit fix: all33 Python consumers (29 workers,2 APIs,2 broker jobs) require the shared new admission/settlement contract. Reconcile each API/broker accepted source behavior before a new build; three frontend images remain retained. No consumer has been mutated.",
+  "remaining_acceptance": [
+    "Exact-image DEV operational qualification",
+    "Authorized production promotion and complete readback",
+    "Scheduled observation"
+  ],
+  "qualitative_verification": {
+    "status": "corrected_shared_source_under_fresh_verification",
+    "baseline": "Current production and earlier candidate remain rejected. New code is not accepted by this checkpoint.",
+    "review": "quality-review.json",
+    "deployment_authorized_by_this_record": false,
+    "continuation_acquisition_contract": {
+      "status": "passed_execution_contract_only",
+      "source_revision": "4ddd4075a255096347d90e656473648e3991035d",
+      "explicit_focus_searches_preserved": 2,
+      "broad_rows": 6,
+      "preview_rows": 6,
+      "retained_source_rows": 18,
+      "live_qualitative_coverage_accepted": false
+    },
+    "continuation": "See quality-review.json continuation: complete public output rejected. Acquired-source preservation passed its component replay; this does not establish overall allocation or feed quality.",
+    "context_format_experiment": "32526a2c is retained on experiment/shared-context-tables-20261028 and reverted from this source by5fa36e82. Lossless representation review passes; no fresh qualitative output exists because admission stopped before inference. Not accepted release behavior."
+  },
+  "previous_review_status": "source_reviewed_qualitative_rejected_release_held",
+  "promotion_scope": "29 workers change images; 2 API, 2 broker and 3 frontend images retained. No old application is copied into new images. Full live definitions retained privately using ARM2025-07-01.",
+  "owner_acceptance": "owner-acceptance.json",
+  "selected_review_base_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+  "development_follow_up": [
+    "Coherent shared research/publication design",
+    "Future-core account funding and cross-consumer integration",
+    "Fresh representative quality evaluation by owner"
+  ]
+}

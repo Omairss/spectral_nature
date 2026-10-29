@@ -1,0 +1,371 @@
+{
+  "status": "owner_accepted_incremental_feed_promotion_in_progress",
+  "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
+  "requirements": {
+    "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
+    "event_margin_fraction": 0.5,
+    "event_margin_configurable": true,
+    "quiet_runs": "Spend according to useful current research, without a minimum-spend requirement.",
+    "heavy_runs": "Permit justified additional research within the configured marginal allowance; preserve paid obligations and original deadline across retries.",
+    "transparency": "Failures and degraded sources remain visible in operational receipts; do not disguise incomplete work as success.",
+    "freshness": "Publish current completed work; do not present past events or unfinished prior investigations as new.",
+    "model_quality": "Determine actual model use and inspect complete feed output before attributing regression to cheaper models.",
+    "coverage": "The existing twice-daily news producer owns the shared market-wide news snapshot. Home consumes news_articles; current follow-up acquisition stays inside the existing shared AQL/Zopedia research flow. No Home-specific provider feed, shadow intake datasets or added schedule.",
+    "writing": "Explain relevant developments and their implications in plain language. Use numbers only when magnitude, comparison or a threshold changes the interpretation.",
+    "provider_admission": "Old missing usage receipts must not indefinitely block unrelated current briefings. Separate original-run cost uncertainty from current provider credit admission; keep genuine active reservations and unresolved costs visible."
+  },
+  "items": [
+    {
+      "id": "production_baseline",
+      "task": "Capture current full application results, per-stage actual model routes/costs and complete published feed; identify failure and quality causes.",
+      "status": "complete",
+      "evidence_or_remaining": "Read complete current/prior public Home output and full company research; inspected scheduled SQL outcomes, provider models and budget ledgers. Core Home writer/review remained Pro; semantic retrieval was rejected before transport. See baseline.json."
+    },
+    {
+      "id": "document_and_checkpoint",
+      "task": "Fix binary document acquisition at source, preserve raw content and correct durable checkpoint behavior for valid supported inputs.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Shared PDF extraction detects magic/MIME before text decoding, retains original bytes and explicitly records failed/partial extraction. Actual generated PDF and corrupt-PDF contracts pass. DEV publication remains pending."
+    },
+    {
+      "id": "embedding_admission",
+      "task": "Fix Azure embedding price/input contract and make degraded semantic retrieval observable.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Canonical Azure model pricing verified against actual westus Standard deployment and Azure retail API. Token arrays count tokens; semantic degradation is visible. Added the separately observed ElevenLabs character-price contract."
+    },
+    {
+      "id": "publication_state",
+      "task": "Establish the EDGAR checkpoint cause, preserve native publication and make retry restoration reliable with actionable diagnostics.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Reproduced short publication-state mutation self-starving behind background SQL admission. Reserved metadata capacity and immutable execution publication restoration pass. Historical EDGAR warning lacked the stack/SQLSTATE, so its exact earlier blocking transaction cannot be asserted."
+    },
+    {
+      "id": "learning_progress",
+      "task": "Correct actual deferred counts and ensure retained critiques/reviews make fair progress within the existing whole-job boundary.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Saved frozen reviews run before new critiques and avoid re-purchasing completed critics across engine revisions. Actual deferrals and unchanged terminal episodes are tracked. Whole scheduled backlog progress remains observation."
+    },
+    {
+      "id": "event_allocation",
+      "task": "Implement evidence-led event-dependent allocation with configurable 50% marginal allowance, shared atomic reservations and no retry reset or runaway spending.",
+      "status": "implemented_qualification_pending",
+      "evidence_or_remaining": "Atomic shared event funding and original budget/deadline are implemented and mechanically verified. Corrected nomination and three focused investigations completed in an isolated retained-source replay. One investigation was refused by the cumulative study cap. This does not qualify production event selection, quiet/heavy-day allocation quality or full scheduled spending. These qualitative checks remain open; do not reopen completed task-based routing. The fresh continuation nomination remains too concentrated on the prevailing theme; no qualitative allocation acceptance is claimed.",
+      "proposed_design_reference": "quality_fix_design"
+    },
+    {
+      "id": "feed_quality",
+      "task": "Personally compare complete current feed and retained paired model outputs, correct source or routing causes, and preserve substantive full-model core work.",
+      "status": "owner_accepted_incremental_improvement_remaining_design_in_dev",
+      "evidence_or_remaining": "Complete live-acquisition and independent-review continuation remains rejected after personal review of all displayed stories. Writer/reviewer are Pro/high. Acquired operating explanations are lost, Microsoft ranks outside the displayed feed, inflation remains thin and public process commentary survives. Source execution defects are corrected; broader allocation and synthesis quality remain open. See quality-review.json continuation.",
+      "proposed_design_reference": "quality_fix_design"
+    },
+    {
+      "id": "shared_news_ownership",
+      "task": "Remove Home-local provider acquisition and repair coverage in the existing shared producer without adding jobs or schedules.",
+      "status": "implemented_verified_locally",
+      "evidence_or_remaining": "Home now loads the exact shared news_articles frame. Only the existing news producer fetches the broad Alpaca snapshot and publishes the canonical shared datasets. Company research selection remains separately bounded. Missing credentials fail acquisition explicitly. No new retrieval service, orchestration or datasets. Retains selected-company acquisition as well as broad coverage; successful scopes publish with a visible degraded outcome, while total acquisition failure publishes nothing."
+    },
+    {
+      "id": "provider_credit_reconciliation",
+      "task": "Resolve account-level admission starvation without erasing unknown costs, and protect future core completion at the shared account boundary.",
+      "status": "liquidity_repair_verified_locally_account_core_funding_pending",
+      "evidence_or_remaining": "Fresh authoritative provider balance now governs new account admission. Ended or expired local requests retain unknown costs in the original run and account records without permanent cross-run credit holds after a subsequent balance observation. Live requests, overlapping probe outcomes, failed probes, real empty credit, concurrent admissions and idempotent late receipts are covered on isolated PostgreSQL. Explicit future completion reservation in shared account credit across independent producers remains unfinished; existing run-level core protection is preserved.",
+      "proposed_design_reference": "quality_fix_design"
+    },
+    {
+      "id": "verification_and_release",
+      "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
+      "status": "preparing_owner_authorized_scoped_worker_release",
+      "evidence_or_remaining": "198 operational contracts pass locally; full output inspection rejects the current feed and candidate. Source correction is checkpointed for review, not acceptance. No image built or deployed. Source-depth and final-editor failures must be corrected and requalified; shared-account future completion funding and API/broker source reconciliation remain open."
+    },
+    {
+      "id": "scheduled_observation",
+      "task": "Check application-level scheduled outcomes, not only process exit; report actual cost allocation, unfinished work and quality findings.",
+      "status": "pending_new_release",
+      "evidence_or_remaining": "Capture application receipt, actual margin decisions/cost obligations, recovered acquisition outcomes and learning progress after promotion; Azure exit status alone is insufficient."
+    }
+  ],
+  "spending_policy": "Owner explicitly approved \u201cApprove DeepSeek verification up to $10\u201d for fresh feed verification on Pacific October28. This is a new scoped exception; the earlier $15 study remains closed at11.257873USD committed bound. One strict10USD cap covers both cases, retries and unknown outcomes. Full configured models are retained; storage is isolated and production is read-only.",
+  "latest_local_contracts": {
+    "passed": 198,
+    "log": "private contracts-20261029T025246Z.log",
+    "scope": "Financial/ownership/publication/document/cache contracts plus current provider credit versus unresolved costs, crash deadlines, failed balance probes, actual zero credit, concurrent admission, overlapping balance observations and idempotent late settlement. No generated prose was graded. Shared news ownership, preserved selected-company coverage, canonical deduplication, separate research selection, provider pagination, partial acquisition degradation and total acquisition failure are covered.",
+    "live_source_check": "Read-only historical-asof queries at both actual news-producer slots returned shared broad snapshots; no inference or publication. Latest-page coverage is bounded, so selected-company intake remains alongside it and current follow-up stays in shared research."
+  },
+  "release_state": {
+    "candidate_build_started": false,
+    "development_deployed": false,
+    "production_deployed": false,
+    "production_remains_previous_accepted_image": true,
+    "required_next_step": "Exact-image DEV qualification and owner-authorized scoped worker promotion; then continue proposed coherent change in DEV."
+  },
+  "instruction_audit": {
+    "scope": "This cost/reliability rollout and its qualification records. Confirmed actions and inaccurate completion statements; not a claim that every later-discovered defect proves an earlier instruction was ignored.",
+    "confirmed": [
+      {
+        "instruction": "Activate today after the owner explicitly corrected tomorrow.",
+        "failure": "The earlier rollout retained the October28 activation gate after the October27 request.",
+        "correction": "Activation corrected in the earlier deployed combined release.",
+        "evidence": "documents/mistakes.md: Production completion and timing corrections \u2014 October27"
+      },
+      {
+        "instruction": "Retry a failed attempt using the earlier configuration; later remove fallback.",
+        "failure": "Initial whole-run fallback persisted baseline settings into later scheduled runs, disabling cheaper routing and reuse.",
+        "correction": "Whole-run fallback and sticky state subsequently removed in the deployed follow-up.",
+        "evidence": "documents/mistakes.md: Whole-run baseline fallback removed at the owner instruction \u2014 October27"
+      },
+      {
+        "instruction": "Current best-effort reporting instead of next-run deferral.",
+        "failure": "Initial budget implementation deferred unfunded news and could resume it with the earlier as-of date; later unresolved account holds also prevented a fresh after-close briefing.",
+        "correction": "Current-output/economy completion is in the prior release. Permanent account-hold repair is local, not deployed; full shared-account future core funding remains unfinished.",
+        "evidence": "documents/mistakes.md: Deferral and cap semantics were too rigid; coverage-diagnosis.json:after_close_failure"
+      },
+      {
+        "instruction": "Qualify changes without unintended shared product writes.",
+        "failure": "A qualification replay inherited safe_auto memory writes and created7 shared knowledge pages plus1 proposal despite persist_findings=False.",
+        "correction": "All7 page writes were audited and rolled back; proposal rejected. Explicit write_policy=none applied. Private native rollback receipt checked in this audit.",
+        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes \u2014 October27"
+      },
+      {
+        "instruction": "Verify actual full-model writing and review before claiming preserved quality behavior.",
+        "failure": "An earlier acceptance said Home retained Pro writing/review, but actual12-item replay showed review not_run because plain-text composition lacked a response schema.",
+        "correction": "Shared review condition corrected; later complete-output acceptance is recorded separately. New coverage changes still need fresh output acceptance.",
+        "evidence": "documents/mistakes.md: Follow-up acceptance exposed unreviewed composition and qualification writes \u2014 October27"
+      },
+      {
+        "instruction": "Keep completed and unfinished work accurately tracked.",
+        "failure": "Already-delivered task-based model routing was described again as unfinished allocation work.",
+        "correction": "Routing completion is preserved separately from genuinely unfinished allocation/qualification work.",
+        "evidence": "documents/mistakes.md: Completed routing was folded into an unfinished allocation description \u2014 October27"
+      },
+      {
+        "instruction": "Prioritize recurring monthly cost options, including schedule frequency and cheaper models.",
+        "failure": "Moved into a24-hour company reuse implementation before presenting the requested recurring-cost alternatives.",
+        "correction": "Scheduling/model options and implementation were addressed later; original priority was not followed.",
+        "evidence": "documents/mistakes.md: Cost optimization scope \u2014 October27"
+      }
+    ],
+    "additional_known_violation": "Rejected Home-local news acquisition, removed in e541ecc0; no candidate image built or deployed.",
+    "remaining_requirements": "See existing task items for shared-account future core funding, qualitative output acceptance, consumer integration and release verification. Operational tests are not NLP quality acceptance."
+  },
+  "feed_qualification": {
+    "authorization": "Approve DeepSeek verification up to $10",
+    "cap_usd": 10,
+    "private_operation": "feed-quality-20261028",
+    "cases": [
+      "pre-close",
+      "after-close"
+    ],
+    "quality_method": "Personal reading of every returned public field, full retained research and primary timing references. No phrase grader.",
+    "scope": "Frozen-source model and source-handoff qualification, not proof of live acquisition or a full scheduled production run.",
+    "production_latest_rechecked": "attention_home_snapshots_1d__20261028T185037Z__7e7084f7__afaf130b240d472f8b1c27e46df9ecf5",
+    "production_quality_verdict": "rejected",
+    "candidate_quality_verdict": "rejected",
+    "status": "closed",
+    "corrected_candidate_cases_completed": [
+      "after-close"
+    ],
+    "fresh_pre_close_candidate_accepted": false,
+    "actual_public_story_count": 7,
+    "spending": {
+      "owner_authorization": "Approve DeepSeek verification up to $10",
+      "cap_usd": 10,
+      "paid_attempts": 26,
+      "usage_receipts": 26,
+      "unknown_or_pending_attempts": 0,
+      "published_price_estimate_min_usd": 3.7176887,
+      "conservative_estimated_total_usd": 7.435391,
+      "invoice_reconciled": false,
+      "explanation": "Every response has usage. Conservative total uses the published high rate bound and rounds each request up to one microUSD; it is an estimate, not an invoice. All initial mistaken replays and retries are included. Remaining cap cannot cover another full-capability maximum, so no further paid requests were started."
+    },
+    "review": "quality-review.json"
+  },
+  "quality_continuation": {
+    "authorization": {
+      "status": "approved",
+      "authorization": "Authorized for another $10 if needed",
+      "maximum_total_usd": 10,
+      "pacific_day": "2026-10-28",
+      "approved_for": "Continue shared feed-quality corrections and fresh full-capability DeepSeek verification, including bounded existing acquisition; isolated storage and no production writes.",
+      "prior_studies_closed_bound_usd": 18.693264,
+      "cumulative_authorized_bound_usd": 28.693264,
+      "recorded_at_utc": "2026-10-29T03:39:44.108287+00:00"
+    },
+    "sequence": [
+      "Inspect actual source/tool/planning behavior before changing architecture.",
+      "Correct demonstrated shared-source or research/synthesis causes with minimal coherent changes.",
+      "Personally review complete public output and representative cases.",
+      "Close spending and cleanup; qualify release only if requested behavior is met."
+    ],
+    "completed": [
+      "Previous complete-output rejection and retained evidence.",
+      "Current production acquisition price limits confirmed present; no missing-price defect asserted.",
+      "Fresh next/decision-tagged model transport completed. Final editor and reviewer used one paid call each without unused-field regeneration.",
+      "Original query/focus live acquisition preserved all17 captures including a Microsoft earnings-call source, with1000-row production universe fixture.",
+      "Three complete public outputs and independent nomination personally reviewed; quality still rejected.",
+      "Spending closed with no pending attempts and the unresolved charge retained in full."
+    ],
+    "current": "Complete final public output personally reviewed and rejected. Original-request acquisition contract verified. Shared table-format experiment is outside the selected source and remains unqualified after pre-inference account-headroom refusal. No build or deployment.",
+    "source_design": {
+      "ownership": "Existing shared researcher chooses queries, dates and follow-ups; existing retained/web readers execute them. Home consumes shared outputs. No new retrieval engine, dataset or schedule.",
+      "changes": [
+        "One tagged action payload per shared control step, with only the active fields. Useful partial drafts remain possible. Nested union schemas retain strict-provider compatibility; registry and argument permissions remain enforced.",
+        "Remove redundant retained-search query planner and its model route; preserve broad dated reporting, unrestricted semantic/context recall and source reading.",
+        "Do not substitute the full original research record as an omitted search query.",
+        "Use shared source-sufficiency and explanatory-depth guidance across planning, synthesis and review; no topic/ticker rules or prose rewriting code.",
+        "Honor the shared researcher's explicit bounded company focus even when a broad search returns enough rows; retain all bounded acquired captures rather than discarding later focus sources behind the preview limit."
+      ],
+      "consequences": [
+        "Do not require new acquisition when rich current evidence already answers the question. Quiet runs can still stop early.",
+        "The shared researcher must supply reporting dates when relevant; dates are no longer silently reinterpreted by a second planner.",
+        "Incomplete research retains useful findings; no new factual-certification publication gate.",
+        "Existing full-model core funding, original deadlines, transport retries and write policies remain in force."
+      ],
+      "verification": [
+        "Real retained paid action replay confirms no regeneration for unused fields.",
+        "Actual explicit queries pass unchanged without the entire research request or extra inference.",
+        "Legacy agent/tool tests fail identically on the committed baseline and candidate; their obsolete prose/retired-helper expectations are not quality acceptance.",
+        "Fresh full public output must be personally read before acceptance.",
+        "Bounded acquisition contract: six broad rows no longer cancel two focus searches; all18 captures survive while preview remains6. This is not live semantic coverage acceptance.",
+        "Complete independent-review public output was read and rejected. Mechanical contract improvements are not quality acceptance."
+      ]
+    },
+    "status": "closed_candidate_rejected",
+    "completed_at_utc": "2026-10-29T05:23:17.287764+00:00",
+    "spending": {
+      "authorization": "Authorized for another $10 if needed",
+      "cap_usd": 10,
+      "status": "closed",
+      "attempts": 79,
+      "known_receipts": 78,
+      "unknown_attempts": 1,
+      "pending_attempts": 0,
+      "known_conservative_estimate_usd": 6.054477,
+      "unknown_retained_maximum_usd": 1.643643,
+      "total_committed_bound_usd": 7.69812,
+      "cumulative_bound_for_prior_closed_comparisons_and_this_continuation_usd": 26.391384,
+      "invoice_reconciled": false,
+      "model_attempts": {
+        "deepseek-v4-pro": 53,
+        "acquisition": 25,
+        "deepseek-flash": 1
+      },
+      "explanation": "All attempts and acquisitions are included. One connection failure has no receipt and retains its full original maximum. Known amounts are published-rate conservative estimates, not invoice totals. The compact-format comparison and offline input capture sent no inference request. Current shared provider headroom, not the study cap, prevented the compact-format comparison."
+    }
+  },
+  "quality_fix_design": {
+    "status": "proposed_not_implemented_or_qualified",
+    "recorded_at_utc": "2026-10-29T05:49:10.354169+00:00",
+    "owner_request": "Come up with a 500 IQ fix",
+    "central_change": "Carry one versioned, substantive shared research result into an explicitly selected publication. Make evidence addressable, let the model choose the exact visible feed, and review that same feed before materialization.",
+    "confirmed_mechanisms": [
+      {
+        "finding": "Final writing and review receive391449 and400742input tokens respectively in the retained complete comparison.",
+        "evidence": "quality-review.json:continuation.context_measurement",
+        "limit": "Large context is measured; its causal contribution to quality failure is not experimentally isolated."
+      },
+      {
+        "finding": "The public editor rewrites every candidate, including seven prose fields per published item, with full source intake and numerical market coverage.",
+        "source": "pipeline/jobs/attention_home_build.py:_HOME_SURFACE_QUALITY_SCHEMA,_home_surface_quality_items,_review_home_public_surface"
+      },
+      {
+        "finding": "Configured display limits are absent from that editor task. After semantic review and priority sorting, _cap_home_public_sections slices each section. Microsoft existed in the reviewed output but fell outside the displayed top events.",
+        "source": "pipeline/jobs/attention_home_build.py:_review_home_public_surface,_apply_home_surface_quality_items,_cap_home_public_sections,build_attention_home_output_frames"
+      },
+      {
+        "finding": "The shared engine already has named supplied-source readers, research findings/open questions, readable originals, semantic review and budget/deadline state.",
+        "source": "data_access/query_service.py:with_supplied_evidence,list_supplied_evidence,read_supplied_evidence;services/zopedia_agent.py:research_state,_run_evidence_model_step"
+      },
+      {
+        "finding": "Event investigation capacity currently grows a configured event count by the marginal fraction. This alone does not establish useful variable research depth across the owner's10-to1000-plus-dollar range.",
+        "source": "services/llm_execution.py:event_investigation_capacity;services/aql/events.py:research_source_events",
+        "limit": "Do not describe already delivered task-based model routing or atomic marginal funding as unfinished."
+      }
+    ],
+    "contract_changes": [
+      {
+        "order": 1,
+        "owner": "Existing shared AQL/Zopedia context and research artifacts",
+        "change": "Bind original documents, dated observations and completed investigations to existing named supplied-source records. Start from the current agenda and a navigable source/data index; carry the complete useful research findings. Load original passages and numerical data through existing readers when the model needs them. Stop automatically treating the entire numerical universe and every earlier draft as mandatory writing context.",
+        "preservation": "All originals, values, dates and indirect leads remain readable. No fixed context-size cutoff, relevance whitelist, compulsory hierarchy, added source summaries or source-count sufficiency rule. Declared findings are distinct from private model reasoning."
+      },
+      {
+        "order": 2,
+        "owner": "Existing source-event discovery and investigation",
+        "change": "Select consequential unresolved questions before committing to an overarching market narrative. Carry explanatory findings, competing interpretations, affected businesses and unresolved questions forward with their sources and original dates. Treat initial themes and prior analysis as revisable. Use the existing completed research artifact as the work product rather than requiring the research stage to write Home-shaped copy that later stages repeatedly replace.",
+        "preservation": "Private entities, uncertain relationships, quiet-day context, numerical signals and retained knowledge remain valid discovery inputs. No compulsory macro/company checklist, exact-issuer citation gate or fixed template for every investigation."
+      },
+      {
+        "order": 3,
+        "owner": "Existing shared public composition and review",
+        "change": "Supply actual configured section limits before composition. The model explicitly selects and orders the visible stories, their grouping and the market overview; write only that intended publication. Carry substantive findings into the public explanation, using quantities when they change meaning. Give the existing reviewer the exact intended visible publication, the wider agenda/findings and readable originals, so it can identify missing coverage and lost meaning as well as wrong facts.",
+        "materialization": "Materialize the selected identities and order unchanged. Replace post-review semantic cropping with structural identity/cardinality validation. Preserve existing client DTOs, charts, drilldowns and underlying research bundles. Validate selection before prose expansion so late excess-card errors cannot silently discard reviewed content.",
+        "review_repair": "Use the existing shared agent/read/research-request path for consequential missing information within the original allowance and clock. Keep completed current work if optional follow-up fails. Reviewer verdicts or incomplete provenance do not become new publication admission gates."
+      },
+      {
+        "order": 4,
+        "owner": "Existing run/account accounting and research loop",
+        "change": "Reserve full-model core interpretation/composition/review against both the logical-run allowance and shared provider credit before discretionary parallel work. Transfer a core obligation into its request reservation atomically, settle actual receipts and retain unresolved bounds without double reservation. Let the model spend remaining research capacity on questions that could materially change the assessment; quotes and deadlines govern admission.",
+        "adaptive_effort": "A quiet run may stop after current interpretation and reuse of dated completed work. A heavy run can justify additional investigations or depth within the configured marginal allowance, initially50%. Larger base budgets permit more useful investigation, not a spending quota. Remove the fixed event-count/depth assumptions as the definition of research effort; retain configurable operational concurrency and request ceilings.",
+        "preservation": "Keep completed task routing, economical current reporting for no configured budget, original run identity/clock, existing completion reserve, bounded retry and no whole-run baseline fallback. Old unknown costs remain recorded separately from authoritative current available credit and genuine active obligations. Actual provider unavailability remains an explicit operational failure."
+      }
+    ],
+    "complexity_constraints": [
+      "Use the current news producer, AQL/Zopedia engine, retained source store/readers and artifact/publication contracts. Keep news schedules and provider ownership unchanged.",
+      "Adapt existing research_state/finished artifacts and source readers; introduce no second research store, new retrieval system, side agent, shadow feed or additional mandatory critic layer.",
+      "Replace redundant draft reconstruction, all-candidate public rewrites and post-review cropping. Do not add phrase filters, ticker exceptions, numerical quotas or code-generated explanations.",
+      "Keep task-based model routing and the already delivered worker/schedule/fallback changes intact. Research findings remain fallible, source-linked analysis rather than certified truth."
+    ],
+    "failure_and_consequence_review": [
+      {
+        "risk": "A compact finding can itself omit the decisive source detail.",
+        "response": "Retain originals and source linkage, keep unfinished questions visible internally, and let analyst/reviewer reopen sources. No compulsory summary chain or assertion that a shorter input proves quality."
+      },
+      {
+        "risk": "A shared research error could spread across consumers or persist in cache.",
+        "response": "Version the existing research artifact and its inputs; preserve correction history and evidence dates. A substantive correction updates the shared result used by consumers. Run-artifact updates do not grant wiki or user-data write permission."
+      },
+      {
+        "risk": "A dominant early theme or a large already-paid investigation crowds out another important development.",
+        "response": "Question selection precedes the integrated narrative; publication assesses the whole current agenda independently of cost already spent. Explicit selection can cover a development in the overview or a grouped story without requiring one card for every source."
+      },
+      {
+        "risk": "Named-source navigation adds reads or the model chooses poor sources.",
+        "response": "Keep useful existing findings and full relevant passages in working context; readers provide access to additional originals. Model-call count and latency must be measured in the complete comparison. Reuse the existing loop instead of adding orchestration."
+      },
+      {
+        "risk": "More parallel research consumes closing funds or prevents timely publication.",
+        "response": "Protect core credit first, admit bounded concurrent work against one ledger, and stop discretionary admissions with enough time for the existing completion/persistence reserve. Retries retain the original clock. Preserve finished current results and operationally report failed work."
+      },
+      {
+        "risk": "Budget flexibility becomes hidden overspending or unnecessary work.",
+        "response": "Record why each extra question is useful, its admitted obligation, actual/unknown charge and remaining allowance. The50%margin is configurable capacity, not an automatic increase or minimum spend."
+      },
+      {
+        "risk": "A failed core model call is disguised as a fresh report.",
+        "response": "Never re-date an old narrative. Use existing bounded retry and current-run completed artifacts; keep a real inference/publication failure explicit if no valid current result exists."
+      }
+    ],
+    "implementation_order": [
+      "Change the shared supplied-context handoff so named originals and complete substantive findings survive into composition; review source/event/API consumers together.",
+      "Change the existing public composition contract to an explicit capacity-aware selection and exact visible artifact; remove all-candidate prose regeneration and later cropping from the new publication path.",
+      "Carry research meaning and source access into the existing reviewer; exercise actual visible selection, omissions and corrections.",
+      "Finish the already tracked shared-account future-core obligation implementation and expose allowance/time/open questions to the existing adaptive loop.",
+      "Personally compare complete paired outputs and actual displayed projections on heavy, quiet, noisy, conflicting-source, stale-background and partial-failure cases. Inspect source acquisition, research findings, final prose, coverage, actual cost and latency together.",
+      "Only after local qualitative acceptance: reconcile the complete consumer source inventory, qualify exact DEV images, then use the existing conditional production authorization."
+    ],
+    "acceptance": {
+      "quality": "Complete visible feed explains the consequential business and economic developments, retains important distinctions and useful indirect hypotheses, uses original event dates, selects quantities judiciously and keeps process commentary internal. No required wording or ticker list.",
+      "generalization": "Owner examples remain diagnostic cases; include different companies, event types and quiet/heavy conditions. Personally inspect source-to-finding-to-publication handoffs. Semantic review or passing software checks alone is not acceptance.",
+      "reliability": "Partial acquisition/review trouble preserves independent completed findings. Deadline/retry/settlement failures do not reset allowance, erase useful paid work, publish an old story as new or hide an actual provider outage.",
+      "cost": "Measure complete attempt-inclusive usage, cache behavior, latency, current credit and unknown bounds. No cost-reduction or quality guarantee before the full comparison."
+    },
+    "this_turn": {
+      "runtime_changes": false,
+      "paid_inference": false,
+      "deployment": false,
+      "purpose": "Source-grounded design only. Existing rejected-candidate status and unfinished operational/release work remain accurately tracked."
+    }
+  },
+  "owner_acceptance": "owner-acceptance.json"
+}

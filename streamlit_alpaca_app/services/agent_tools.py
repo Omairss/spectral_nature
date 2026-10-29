@@ -343,6 +343,7 @@ def _research_tools() -> list[dict[str, Any]]:
             "name": "research.live_event_evidence",
             "description": (
                 "Fetch fresh web evidence for a current query, using event-level search and symbol-level search when relevant. "
+                "Pass focus_symbols for company searches alongside the query; the shared acquisition deadline bounds the work. "
                 "Returns recent search/article rows with headlines, snippets, sources, timestamps, and URLs. "
                 "Use research.open_page on the highest-value URL when article-body support is needed for a strong claim."
             ),
@@ -363,7 +364,7 @@ def _research_tools() -> list[dict[str, Any]]:
             "description": (
                 "Search all retained sources and knowledge by meaning and words. Supply varied queries for different explanations, "
                 "entities or concepts. Results distinguish original sources, knowledge and generated analysis with dependencies. "
-                "The tool interprets time context and adds broad reporting from the relevant period alongside unrestricted context searches. "
+                "Supply ISO start_date/end_date when a reporting period matters; the tool adds broad reporting from that period alongside unrestricted context searches. "
                 "Useful current sources may already be retained. Interpret the catalog by meaning and read useful sources in full with research.read_evidence or zopedia.read_page."
             ),
             "inputSchema": {
@@ -371,7 +372,7 @@ def _research_tools() -> list[dict[str, Any]]:
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "The information need. Defaults to the current user question; an empty string browses sources without a word query.",
+                        "description": "The information need. Empty or omitted browses sources without a word query; queries supplies independent search formulations.",
                     },
                     "queries": {
                         "type": "array",
@@ -1105,7 +1106,7 @@ def _invoke_research_tool(
         datasets = ("saa_evidence_chunks", "saa_documents")
     elif tool_name == "research.search_evidence":
         payload = zopedia_research.search_evidence(
-            query=str(args.get("query", (request_context or {}).get("original_query", ""))),
+            query=str(args.get("query") or ""),
             tickers=args.get("tickers"),
             queries=args.get("queries"),
             start_date=args.get("start_date"),
@@ -1113,7 +1114,6 @@ def _invoke_research_tool(
             strict_tickers=bool(args.get("strict_tickers")),
             asof_time_utc=(request_context or {}).get("asof_time_utc"),
             timezone=(request_context or {}).get("timezone", "UTC"),
-            original_query=(request_context or {}).get("original_query", ""),
             max_results=int(args.get("max_results") or 10),
         )
         datasets = ("saa_evidence_chunks", "saa_documents")

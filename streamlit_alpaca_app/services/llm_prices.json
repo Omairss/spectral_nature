@@ -1,5 +1,5 @@
 {
-  "version": "published-prices-verified-2026-10-27",
+  "version": "published-prices-verified-2026-10-28",
   "models": {
     "deepseek:deepseek-flash": {
       "source": "https://api-docs.deepseek.com/quick_start/pricing/",
@@ -47,6 +47,21 @@
         "cached_input": 0.02,
         "output": 0
       }
+    },
+    "azure_openai:text-embedding-3-small": {
+      "source": "https://prices.azure.com/api/retail/prices",
+      "context_window_tokens": 8191,
+      "offpeak": {
+        "input": 0.022,
+        "cached_input": 0.022,
+        "output": 0
+      },
+      "conditions": "Azure regional Standard USD per million input tokens. Wire deployment name is not pricing identity. Exact deployed SKU/region is verified in release evidence."
+    },
+    "elevenlabs:eleven_multilingual_v2": {
+      "source": "https://elevenlabs.io/pricing/api",
+      "usd_per_1000_characters": 0.08,
+      "conditions": "Published v2 Multilingual character-price estimate, not invoice reconciliation."
     }
   }
 }

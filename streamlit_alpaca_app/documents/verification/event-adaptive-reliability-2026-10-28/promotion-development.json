@@ -1,0 +1,219 @@
+{
+  "status": "accepted",
+  "source_revision": "c92245b62852d0f6d38465a07dd6f254a670866e",
+  "source_inventory_sha256": "131e728aa8b37ca29f9232f8aa48669dbc1d0fe39dfa4e6236b4bc8322652ae5",
+  "runtime_inventory_sha256": "53ad5b59102d039645d37923d3331b46bdc340f67ea8c169e25f074411ad7228",
+  "images": {
+    "worker": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95"
+  },
+  "execution": "macro-fred-daily-dev-6rk3yu1",
+  "execution_status": "Succeeded",
+  "probes": [
+    {
+      "probe": "package",
+      "files": 189,
+      "runtime_inventory_sha256": "53ad5b59102d039645d37923d3331b46bdc340f67ea8c169e25f074411ad7228",
+      "source_revision": "c92245b62852d0f6d38465a07dd6f254a670866e"
+    },
+    {
+      "probe": "event_margin",
+      "concurrent_workers": 16,
+      "extra_admitted": 5,
+      "base_usd": 10,
+      "ceiling_usd": 15,
+      "retry_cannot_reset": true,
+      "unselected_cannot_consume_margin": true
+    },
+    {
+      "probe": "azure_embedding_alias",
+      "input_tokens": 5,
+      "quoted_usd": 1.1e-07,
+      "wire_deployment": "zopedia-embedding",
+      "pricing_model": "text-embedding-3-small",
+      "transport": "simulated",
+      "accounting": "real Azure SQL"
+    },
+    {
+      "probe": "pdf_and_publication",
+      "original_bytes_retained": true,
+      "paragraphs_preserved": true,
+      "publication_under_background_load": true,
+      "restored_native_versions": {
+        "qualification_pdf_source": "event-adaptive-dev-c92245b6__qualification_pdf_source__20261029T072720Z__event-ma__68e0f4316a9b470a8fb361d4b3b341ee"
+      }
+    },
+    {
+      "probe": "protected_core",
+      "concurrent_workers": 8,
+      "full_model_calls": 16,
+      "paid_transport": "simulated",
+      "real_sql_accounting": true
+    },
+    {
+      "probe": "late_paid_response",
+      "adopted_without_repurchase": true
+    },
+    {
+      "probe": "zero_budget_current_report",
+      "model": "deepseek-flash"
+    },
+    {
+      "probe": "ownership_under_background_load",
+      "held_seconds": 15,
+      "lease_seconds": 12,
+      "renewal_survived": true
+    },
+    {
+      "probe": "learning_input",
+      "fresh_connection_exact_read": true
+    },
+    {
+      "probe": "intentional_replica_failure",
+      "run_id": "22972798-2f4c-465f-91b1-ef072023a582"
+    },
+    {
+      "probe": "package",
+      "files": 189,
+      "runtime_inventory_sha256": "53ad5b59102d039645d37923d3331b46bdc340f67ea8c169e25f074411ad7228",
+      "source_revision": "c92245b62852d0f6d38465a07dd6f254a670866e"
+    },
+    {
+      "probe": "native_retry",
+      "original_run_id": "22972798-2f4c-465f-91b1-ef072023a582",
+      "same_profile": "balanced",
+      "budget_usd": "10",
+      "published_versions": {
+        "qualification_current_report": "event-adaptive-dev-c92245b6__qualification_current_report__20261029T072746Z__22972798__52ab8288ff2d475997880ca77d7a011a"
+      },
+      "elapsed_seconds": 53.08,
+      "status": "passed"
+    },
+    {
+      "probe": "deadline_completed_subset",
+      "clock_seconds": 30,
+      "published_versions": {
+        "qualification_deadline_report": "event-adaptive-dev-c92245b6__qualification_deadline_report__20261029T072840Z__43beee98__8acc1a31e9fe45b9a2920b3de24f9097"
+      },
+      "application_status": "Warning",
+      "controller_returned": true
+    }
+  ],
+  "development_targets": [
+    {
+      "name": "attention-home-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "cleanup-trial-observer-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "equities-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "sn-research-run-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "system-recovery-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "technical-history-next-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "provisioning_state": "Succeeded"
+    },
+    {
+      "name": "zopedia-maintenance-dev",
+      "kind": "jobs",
+      "role": "worker",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+      "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "paid_inference_calls": 0,
+  "real_services": [
+    "Managed PostgreSQL",
+    "Azure Blob immutable publication",
+    "Azure native replica retry"
+  ],
+  "qualitative_acceptance": "owner-acceptance.json",
+  "production_templates_changed_by_this_verification": false
+}

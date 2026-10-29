@@ -14,7 +14,7 @@ from .zopedia_runtime import zopedia_surface_from_client
 from .llm_execution import (model_call_context, best_effort_required,
                             finish_research_economically, ResearchBudgetExceeded,
                             protect_core_research, funded_core_research, complete_core_research, _CALL)
-from .llm_context import RESEARCH_TIMELINE_GUIDANCE
+from .llm_context import RESEARCH_TIMELINE_GUIDANCE, RESEARCH_ANALYSIS_GUIDANCE
 
 
 _ALLOWED_CALL_TYPES = {
@@ -208,6 +208,7 @@ def generate_json_via_aql_zopedia_gateway(
     request_system = system_prompt
     if not literal_output and clean_call_type in {"research_grade", "formatter_over_aql"}:
         request_system += "\n\nEvidence timing: " + RESEARCH_TIMELINE_GUIDANCE
+        request_system += "\n\nResearch explanation: " + RESEARCH_ANALYSIS_GUIDANCE
     effective_system = request_system if literal_output else apply_narrative_style(request_system)
     prompt_hash = _hash_text(f"{effective_system}\n\n{user_prompt}")
     schema_hash = _hash_json(schema)

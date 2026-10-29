@@ -1,0 +1,326 @@
+{
+  "status": "accepted",
+  "review_base_revision": "c981c7f5a664e91fe6ceb3e4ceb1e7e318c28d2d",
+  "selected_source_revision": "251d037a6163d8d4da4f4897eaa6cee700d06aba",
+  "consumers": [
+    {
+      "name": "attention-home-next-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "96b33f66f554dd22766f584165f74ead1f26941b7c63517f843f161ca38131e6",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "attention-ticker-next-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "6c6cba278b77ec32fb2db2253d91236f5068e8c067890e669744598e5f41c884",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "cleanup-trial-observer-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "a2c020dace093967fddc70cf28d1dfa7d823f94df764256a85e99cce486b3b09",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "daily-datapoints-next-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "5480e0fbb87a4601075aeed8a39c041468e0c37b05d9a6010898d4ac25ece14b",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "dataset-refresh-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "ae04c930cef1a32853ce53f28d9873e421c6c2baf0df93d1e51563b59365ae09",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "equities-next-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "802953a8578b5f3fab4d1dcaaac407a4c7cf7595dc224c9c488487cad6e3f1b5",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "macro-fred-daily-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "88c6784f0a5928f007cb42b01e956b5f08fdca8b7d2992bb401f31ce181c1c97",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "sn-research-run-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "c1cfaea723d6ff75cc70f59a467175a44a7acd8c26429acd609ecac75a3eb2ba",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "system-recovery-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "27158c75a991b18deac1db5f536c71c080eeca1d3adce719d4a31268a8e85329",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "technical-history-next-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "e81c320c466a1d1a8bcec09e09890479331c0112f24b4967d7650eb3dee1f7ca",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "trading-agent-build-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "87fb347a50acc46f3b0017a72c2137755bc23fcfab8d5ed2f152f585851b10ad",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "zopedia-maintenance-dev",
+      "role": "worker",
+      "environment": "development",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "536246dc26a530f0de6617850b324a8d39b7baf5f2cee726895e57b73da5e1b1",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "attention-home-build",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "b585ac573f93aaf4ae211fdce648ced3b895ebe27656993a14a23f1c9357be4c",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "commodities-regime",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "f6f93f647d79bf28176e1ca545c4cd7b98b4a9076adf52dcd38923bac9c1840d",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "company-baseline-prefetch",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "566bd1734a85967d83eebde265e6d6d062043520167c86efd70c6d5afdab57d5",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "entity-taxonomy-refresh",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "9a335952e2e18cab2091059b072c43240882f497c30e2484f22d0548245eadda",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "equities-intraday-preload",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "09cb5e65fec5d8ec5745d7819885bbb1204d50220bc570b63d5352560a326662",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "evidence-index-dev",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "531c0beccc508db03e6ab6fc91e761fc57020b363df6e99ea18c6ccc23486f3e",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "fundamentals-quarterly-refresh",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "502e55aa9290811cab3f07b919a0ae2dfacb21880441263a6dec9844a5edf083",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "macro-fred-daily",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "3a84c8cd653cfaf4cf7ac22c20fe7f84f4f72d671c1d496860ede5b1bd12ff95",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "news-ingest-and-features",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "6fae0bea21fe3952d91164646cde40c115e6ed304314aaebd9cc847dcaae4372",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "options-liquid-universe",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "5c4b357aa7f06ff074faf23d587d1eabf1febebf8ae27390265890494d8575f1",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "sn-research-run",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "f22f42655e55c343edf10c3ae3fffbf93d99bb02075073095c6898ee01013c3a",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "system-health",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "467558aad68339a8421d8fbb208b8dabdb5205caec499a78bdfd29ade62be12a",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "system-recovery",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "e6ce656fd89a09684ee62a3f793f2a38feae39ae165c5def8f9458cefe37494e",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "trading-agent-build",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "e3835b23e35436676f447b17d8a05da4329da4124318c9df486f11e502dc0645",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "universe-builder",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "cb9c86606da18de137563da7403f6c6553fcfed0fe7ff13e75753e7011f8beed",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "zopedia-learning",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "fab966688263776cc208a6d0de8341d6f0bde52cb332c52dcba9383f515df9d0",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "zopedia-maintenance",
+      "role": "worker",
+      "environment": "production",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:47b33292ce9c1816811b2297beff67d84de42147690f062030872a250eb81702",
+      "delivery": "release",
+      "configuration_sha256": "2f7ccd4ea69b0738855afb15a81bd33a21cf51e4e34403822828391d92afa6e6",
+      "behavior_review": "Previous worker source verified at c981c7f5. Existing two news slots, eight company workers, full-model core, original clock/retry identity, paid-output adoption, SQL/Blob publication, research queues, Trading, charts, observer and source namespace remain. This release changes current source coverage/research/editor handoff and repaired source/publication/learning contracts as detailed in source-review.json. Image-only rollout; separately reviewed event controls are not schedule changes."
+    },
+    {
+      "name": "robinhood-main-sync-dev",
+      "role": "broker",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:74323f4e40c6110bafec36aa88d386207ab35da9ef03379bf9d2145b5477957a",
+      "delivery": "retained",
+      "configuration_sha256": "5ecf86d27bb611c3e2845173897a20731ff921d51a33f677674b21828b0507c3",
+      "behavior_review": "Retain exact image and configuration. Production API keeps the separately accepted iPhone daily performance metrics, all 53 operations, authorization and current credit repair. DEV API keeps its separate accepted Alpaca/maintenance/native repair behavior. Broker keeps its accepted ingestion, ownership, pacing and schedule; frontend images retain their independent features and cache behavior. Required database lifecycle and broker executable contracts are unchanged and checked against their complete packaged Git source proofs."
+    },
+    {
+      "name": "robinhood-main-sync-prod",
+      "role": "broker",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-broker@sha256:c3d2e42a3f86d69333a1812792f13250623f3269bc0c3f70c37ccb4d1c2b8c0e",
+      "delivery": "retained",
+      "configuration_sha256": "aefd1b63e3ec471c500f9a6b557d72baa217619304658b2f3513d2ad787b74b7",
+      "behavior_review": "Retain exact image and configuration. Production API keeps the separately accepted iPhone daily performance metrics, all 53 operations, authorization and current credit repair. DEV API keeps its separate accepted Alpaca/maintenance/native repair behavior. Broker keeps its accepted ingestion, ownership, pacing and schedule; frontend images retain their independent features and cache behavior. Required database lifecycle and broker executable contracts are unchanged and checked against their complete packaged Git source proofs."
+    },
+    {
+      "name": "sn-api-next",
+      "role": "api-next",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78",
+      "delivery": "retained",
+      "configuration_sha256": "aad38b8a83efe046cca5dcfc41619272eaab7137de0a0cad7e355e9312e5f732",
+      "behavior_review": "Retain exact image and configuration. Production API keeps the separately accepted iPhone daily performance metrics, all 53 operations, authorization and current credit repair. DEV API keeps its separate accepted Alpaca/maintenance/native repair behavior. Broker keeps its accepted ingestion, ownership, pacing and schedule; frontend images retain their independent features and cache behavior. Required database lifecycle and broker executable contracts are unchanged and checked against their complete packaged Git source proofs."
+    },
+    {
+      "name": "sn-api-next-dev",
+      "role": "api-next",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
+      "delivery": "retained",
+      "configuration_sha256": "4f844c44dd4d8bd017a1f63e907f792f55a358df71649e6e1336775899a0a8d6",
+      "behavior_review": "Retain exact image and configuration. Production API keeps the separately accepted iPhone daily performance metrics, all 53 operations, authorization and current credit repair. DEV API keeps its separate accepted Alpaca/maintenance/native repair behavior. Broker keeps its accepted ingestion, ownership, pacing and schedule; frontend images retain their independent features and cache behavior. Required database lifecycle and broker executable contracts are unchanged and checked against their complete packaged Git source proofs."
+    },
+    {
+      "name": "sn-next-ui",
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+      "delivery": "retained",
+      "configuration_sha256": "b549561f416dfe787638bab0519db25313e2dcd8df6540db1310b5a06febd3d6",
+      "behavior_review": "Retain exact image and configuration. Production API keeps the separately accepted iPhone daily performance metrics, all 53 operations, authorization and current credit repair. DEV API keeps its separate accepted Alpaca/maintenance/native repair behavior. Broker keeps its accepted ingestion, ownership, pacing and schedule; frontend images retain their independent features and cache behavior. Required database lifecycle and broker executable contracts are unchanged and checked against their complete packaged Git source proofs."
+    },
+    {
+      "name": "sn-next-ui-dev",
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:abf387e66cf99526a31b865fd8f2afc6c3554a81ccd550ce82602c13c97af391",
+      "delivery": "retained",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+      "behavior_review": "Retain exact image and configuration. Production API keeps the separately accepted iPhone daily performance metrics, all 53 operations, authorization and current credit repair. DEV API keeps its separate accepted Alpaca/maintenance/native repair behavior. Broker keeps its accepted ingestion, ownership, pacing and schedule; frontend images retain their independent features and cache behavior. Required database lifecycle and broker executable contracts are unchanged and checked against their complete packaged Git source proofs."
+    },
+    {
+      "name": "sn-streamlit-ui",
+      "role": "web",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+      "delivery": "retained",
+      "configuration_sha256": "5363d2fc08b03d33c88a0b0acde165863f3739033f8af38f9214fa59a17e47f9",
+      "behavior_review": "Retain exact image and configuration. Production API keeps the separately accepted iPhone daily performance metrics, all 53 operations, authorization and current credit repair. DEV API keeps its separate accepted Alpaca/maintenance/native repair behavior. Broker keeps its accepted ingestion, ownership, pacing and schedule; frontend images retain their independent features and cache behavior. Required database lifecycle and broker executable contracts are unchanged and checked against their complete packaged Git source proofs."
+    }
+  ],
+  "scope": "29 workers change images; 2 API, 2 broker and 3 frontend images retained. No old application is copied into new images. Full live definitions retained privately using ARM2025-07-01.",
+  "shared_credit": "reserve_provider_budget, settle_provider_budget and settle_research_cost are identical by AST between selected source, current workers c981c7f5 and production API0d012421. This feed release does not introduce new account-reservation semantics relative to production. The proposed blanket33-consumer credit contract is kept with the unfinished DEV redesign, not imposed as part of this worker-only incremental promotion. Existing released database/publication/broker contracts remain enforced without changes."
+}

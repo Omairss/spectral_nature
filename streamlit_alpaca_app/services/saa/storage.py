@@ -2227,6 +2227,8 @@ def search_retained_evidence_chunks(
                     # An expired caller is cancellation, not degraded search.
                     # Do not start more SQL or log it as a provider outage.
                     remaining_request_timeout(0)
+                    from ..llm_execution import record_execution_issue
+                    record_execution_issue("semantic_retrieval", exc)
                     import logging
 
                     logging.getLogger(__name__).exception(

@@ -1,0 +1,343 @@
+{
+  "status": "owner_accepted_incremental_improvement_with_remaining_research_work",
+  "method": "Personal reading of the complete production summary and all ten public cards, every returned candidate public-text field, final five-event/two-unresolved Home projection, retained research and primary timing references. Actual full Pro/high writer/reviewer routes checked. No phrase grader or numerical prose threshold.",
+  "production": {
+    "asof_utc": "2026-10-28T18:50:37.585543Z",
+    "latest_version": "attention_home_snapshots_1d__20261028T185037Z__7e7084f7__afaf130b240d472f8b1c27e46df9ecf5",
+    "verdict": "reject",
+    "findings": [
+      "The summary recites returns, breadth and ticker movements rather than explaining the current agenda.",
+      "Useful company research in the ten public cards is largely absent from the overall synthesis.",
+      "The limitation says no final Fed decision was available, although the official statement was released18:00UTC before the18:35 observation.",
+      "The Vertiv story turns a plausible demand link into an established explanation of investor behavior across peers. Brinker traffic and Lennox margin/guidance differences are useful business explanations."
+    ]
+  },
+  "first_replays": {
+    "pre_close": {
+      "verdict": "withdrawn_as_release_evidence_nonrepresentative_input",
+      "public_items_supplied": 10,
+      "candidate_decisions_returned": 0,
+      "publication": "rejected by existing identity contract",
+      "findings": [
+        "The model read the frozen source corpus but omitted all ten supplied company decisions. It produced a different briefing instead of completing the actual artifact.",
+        "The reviewer corrected some event dates but missed that the company input had been ignored.",
+        "The provided pre-close primary captures do not establish the final FOMC decision. This frozen replay does not qualify live discovery reliability."
+      ]
+    },
+    "after_close": {
+      "verdict": "withdrawn_as_release_evidence_nonrepresentative_input",
+      "complete_output_read": true,
+      "improvements": [
+        "Microsoft, Alphabet, the Fed, financing and relevant scheduled earnings appear in the same briefing.",
+        "Final review dated the October9 Lumentum statement in its headline and removed an unrelated citation.",
+        "The AI co-movement story distinguishes observation from an unconfirmed causal explanation."
+      ],
+      "remaining": [
+        "The summary still includes avoidable breadth counts and jargon; several cards repeat measurements instead of selecting useful magnitudes.",
+        "Microsoft/Alphabet interpretation lacks business depth because the supplied corpus is mostly headline results, without full primary disclosures.",
+        "Some strong headline assertions rest on one report without matching attribution in the headline.",
+        "The source nominator failed on its inherited90-second model-step limit inside the600-second stage; final writing recovered from raw sources but investigation remained degraded."
+      ]
+    }
+  },
+  "model_attribution": "Failures reproduce on full deepseek-v4-pro/high. This does not prove all cheaper routes harmless; a cheaper main writer is not the demonstrated cause.",
+  "qualification_scope": "Earlier rejected frozen after-close study plus the separately authorized live-acquisition continuation documented below. No complete fresh representative feed has achieved acceptance.",
+  "primary_references": [
+    {
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm",
+      "finding": "Statement released14:00EDT,18:00UTC; rates held with two hike dissents."
+    },
+    {
+      "url": "https://www.microsoft.com/en-us/investor/earnings/fy-2027-q1/press-release-webcast",
+      "finding": "Primary release contains Azure growth, remaining obligations and segment information beyond feed headlines."
+    },
+    {
+      "url": "https://www.bea.gov/news/schedule",
+      "finding": "GDP and personal income/outlays scheduled for October29, not already-released results."
+    }
+  ],
+  "authorization": {
+    "provider_exception": "Approve DeepSeek verification up to $10",
+    "total_cap_usd": 10,
+    "production_writes": false
+  },
+  "first_output_sha256": {
+    "after-close-candidate.json": "3466d2d8ae8be880072c1ab7f9fb6681636362915c3e86e8e2241adc6bba3f9e",
+    "pre-close-stage-2-output.json": "bc6da97c71f6f49f4c431ce6ec735685f6ef28815f26b182024b93ce63ee05c8"
+  },
+  "candidate_accepted": true,
+  "candidate_deployed": false,
+  "qualification_correction": {
+    "error": "Initial replay passed raw provider payload copies and an extra supplied source corpus to the final Home editor. Actual production projects semantic source fields and does not bind that extra corpus to the final writer.",
+    "withdrawn": "Initial replay publication failure is withdrawn as evidence of a production defect. Its prose observations are retained as experimental output only.",
+    "correction": "Current replay applies the exact Home source/market-research projections, default final-editor service binding, and unchanged publication identity checks. It reuses completed paid research instead of buying it again.",
+    "unqualified_home_code_change": "The added candidate identity catalog was reverted before committing or deploying it.",
+    "confirmed_source_issue": "The real source nominator inherited90-second model steps inside its600-second stage. Explicit budget propagation plus a single full-text model projection is retained."
+  },
+  "completed_at_utc": "2026-10-29T03:33:00.535142+00:00",
+  "representative_after_close": {
+    "verdict": "reject_for_release",
+    "complete_public_output_read": true,
+    "asof_utc": "2026-10-28T20:50:48.575685+00:00",
+    "input_contract": "Actual Home semantic source and market-research projections; final no-tool editor uses the production default service, without the frozen lookup corpus attached. Existing identity checks pass. Completed canonical source-event output is reused without another purchase.",
+    "source_research": {
+      "status": "partial",
+      "nominations": 4,
+      "completed_focused_investigations": 3,
+      "failed_focused_investigations": 1,
+      "failure": "The isolated study cap guard refused an additional full-capability Amazon request. This is a qualification spending limit, not evidence of a new production defect.",
+      "completed_topics": [
+        "Fed",
+        "Oracle",
+        "Alphabet"
+      ]
+    },
+    "public_projection": {
+      "file": "after-close-representative-public-view.json",
+      "top_events": 5,
+      "must_read_movers": 0,
+      "unresolved_moves": 2,
+      "review_pool_published_before_display_cap": 22,
+      "browser_visual_review": false,
+      "explanation": "Applied the real _cap_home_public_sections and build_attention_home_narrative_beats with captured job display settings and network denied. Lower-ranked duplicate or weak cohort drafts were read but are not claimed to appear in the public seven-story projection."
+    },
+    "improvements": [
+      "The summary now leads with the post-close earnings split, Fed decision and Oracle financing outlook rather than price/breadth statistics.",
+      "Microsoft and Alphabet earnings and the current FOMC outcome reach the same final briefing through the existing research handoff.",
+      "The Fed investigation removes the nomination draft's implied promise of further tightening; the final story says no December commitment.",
+      "The Lumentum headline dates the October9 statement rather than presenting it as a new disclosure."
+    ],
+    "remaining_issues": [
+      {
+        "issue": "Insufficient earnings depth",
+        "evidence": "The Microsoft card repeats EPS/revenue beats and asks readers to watch Azure, spending and free cash flow. Its retained source is just the earnings headline. Alphabet research explicitly lacks segment results and the explanation of its EPS shortfall.",
+        "meaning": "This retained-source case does not deliver a substantive current earnings briefing. Microsoft's primary release contains material Azure, remaining-obligation and segment information. Frozen source replay cannot establish whether enabled live follow-up would acquire it.",
+        "source": "https://www.microsoft.com/en-us/investor/earnings/fy-2027-q1/press-release-webcast"
+      },
+      {
+        "issue": "Missing inflation context",
+        "evidence": "The completed public summary/cards do not explain current inflation or the next PCE release, while ending with a long list of upcoming company reports.",
+        "meaning": "The current-agenda requirement remains unsatisfied in this output. BEA lists GDP and personal income/outlays for October29; those are upcoming, not released results.",
+        "source": "https://www.bea.gov/news/schedule"
+      },
+      {
+        "issue": "Headlines and synthesis overstate the underlying support",
+        "evidence": "Oracle's summary says its plan lifted AI-infrastructure names although focused research states that those moves do not establish causality. The Meta headline states the offering as a direct fact while the retained evidence is a single third-party report.",
+        "meaning": "Ideas and uncertain connections are useful; the final formulation needs to preserve their actual evidential status. Neither the Meta figure nor the reported deal is declared false by this review."
+      },
+      {
+        "issue": "Public text includes internal acquisition/research language",
+        "evidence": "F5: \u201cno supplied company event yet\u201d; Lumentum: \u201cThe retained draft cites\u201d and \u201cnot in the supplied source intake.\u201d",
+        "meaning": "These are public explanations of internal evidence handling rather than useful investor reporting. The final editor has not consistently kept operational limitations in its internal fields."
+      },
+      {
+        "issue": "Review missed consequential omissions",
+        "evidence": "The full-model reviewer revised Visa's original release date but reported no evidence gaps or research requests. Earnings depth, inflation coverage and headline/body tension remain.",
+        "meaning": "A completed review or returned revise verdict is not qualitative acceptance."
+      }
+    ],
+    "not_claimed": [
+      "No complete scheduled workload or live discovery reliability was qualified.",
+      "No quiet/heavy-day cost-quality comparison was completed.",
+      "No corrected fresh pre-close candidate was accepted; the earlier replay was withdrawn. Current production pre-close output was personally reviewed and rejected.",
+      "Lower-ranked duplicate cohort drafts are not counted as visible feed duplication after the actual display cap."
+    ]
+  },
+  "source_corrections_verified": [
+    {
+      "change": "Explicitly pass the existing600-second nomination allowance to model steps, retaining the original whole-stage/run clock.",
+      "evidence": "The original real caller inherited90-second steps and rejected a completed paid response; the corrected nominator completed."
+    },
+    {
+      "change": "Send full source text once with identity/provenance to nomination and focused research; preserve original captures in returned documents.",
+      "evidence": "Both corrected stages completed. Raw JSON representation is smaller; no percentage token/cost reduction is claimed because shared context serialization already factors exact repeated values."
+    }
+  ],
+  "spending": {
+    "owner_authorization": "Approve DeepSeek verification up to $10",
+    "cap_usd": 10,
+    "paid_attempts": 26,
+    "usage_receipts": 26,
+    "unknown_or_pending_attempts": 0,
+    "published_price_estimate_min_usd": 3.7176887,
+    "conservative_estimated_total_usd": 7.435391,
+    "invoice_reconciled": false,
+    "explanation": "Every response has usage. Conservative total uses the published high rate bound and rounds each request up to one microUSD; it is an estimate, not an invoice. All initial mistaken replays and retries are included. Remaining cap cannot cover another full-capability maximum, so no further paid requests were started."
+  },
+  "evidence_sha256": {
+    "source-manifest.json": "3f6e761e9684685795518ddc31deae10af832a7e755244658e4cf878c6183d77",
+    "pre-close-inputs.json": "35b38909c41dfafcc4cbe8fea79c2177ceea1bb16b1f18b47b655e9b7ac97863",
+    "after-close-inputs.json": "925ba6e33a25dcc5c6ccc047a916da3011e305e1e4cb35eff9bf6b452347fa91",
+    "after-close-contract-fix-research.json": "eae85fce8ba028da1088ec22f55f7c7cc8792916858b60e2c6e806ae4b173a00",
+    "after-close-representative-stage-1-inputs.json": "2a6f098e48bea0582ab7bb0c1e3d3ebc1bc1ab54de4fa78bf5bb5a226bbf97eb",
+    "after-close-representative-stage-1-output.json": "16413208fa28197b43141a092d496e8fee083df3bb71d338caf8ac37e65179b6",
+    "after-close-representative-candidate.json": "ee215495efdcc0728a9f06267a84c4eb8fabc17e136c5fcee7cb76628f355c9f",
+    "after-close-representative-public-view.json": "347936de5450dbe2e9adb934b91b7720e34c0db9ffb9e473c8e8a9ab296111d7",
+    "strict-study-ledger.json": "fae5c697724a7ff672865aa0931bdce7ff809b8361af132c20293149f0e8733f",
+    "verify_feed.py": "4085a009073ed856ea7fee75c2fe78e742e9606dc7c5cf05bb639f4706c57867",
+    "run_local.py": "6be96c408695788c5b670763ddd0c3b3220a6f79446076cf2fac1fab597ffc8d"
+  },
+  "follow_up": [
+    "Improve substantive source completion and investigation prioritization inside the existing shared AQL/Zopedia research flow; do not add a Home retrieval bypass.",
+    "Have shared final synthesis/review preserve useful uncertainty, cover the current agenda and keep acquisition commentary out of public fields.",
+    "Qualify complete fresh inputs and representative public outputs before release, including current pre-close and quiet/heavy cases."
+  ],
+  "continuation": {
+    "status": "completed_candidate_rejected",
+    "completed_at_utc": "2026-10-29T05:23:17.287764+00:00",
+    "authorization": {
+      "statement": "Authorized for another $10 if needed",
+      "maximum_total_usd": 10,
+      "production_writes": false
+    },
+    "method": "Personally read the complete live-acquisition baseline, the revised shared-research feed, and the independent-review feed through the actual capped public projection. Read the complete nomination result and decisive underlying acquired article. Component acquisition replay uses the shared researcher's actual original query/focus arguments and production universe metadata, not hand-inserted financial facts. All output comparisons retain Pro/high core writing/review. One baseline hidden retained-search planner used Flash; that duplicated planner and its route are removed.",
+    "source_checkpoints": [
+      "27a8b4a6",
+      "6ef82b48",
+      "4ddd4075"
+    ],
+    "cases": [
+      {
+        "name": "after-close-live",
+        "accepted": false,
+        "findings": [
+          "Private retained-store binding initially lacked its schema; this is a fixture error, not a production schema diagnosis.",
+          "Actual response was regenerated for an unused draft field; queries-only input injected the full structured research task into search.",
+          "Complete public feed remained shallow, numerical and overconfident."
+        ]
+      },
+      {
+        "name": "current-shared-fix",
+        "accepted": false,
+        "findings": [
+          "Acquired the complete Alphabet CNBC article, but public synthesis lost Search weakness and the investment-loss explanation.",
+          "Two focused investigations exceeded their available stage time. Captures survived. Provider requests were serialized by the private study, so these times do not establish production capacity or its cancellation trigger.",
+          "Full public projection still had excessive numbers, weak Microsoft/inflation depth, causal overstatement and acquisition commentary."
+        ]
+      },
+      {
+        "name": "current-independent",
+        "component": "nomination",
+        "accepted": false,
+        "findings": [
+          "Fresh next-tagged planning executed without unused draft fields.",
+          "Six investigations remained concentrated on AI financing; Microsoft's operating disclosure received no focused investigation.",
+          "One connection failed without a receipt; retry is included and the unknown maximum remains reserved."
+        ]
+      },
+      {
+        "name": "current-independent-final",
+        "accepted": false,
+        "displayed_stories_read": 5,
+        "findings": [
+          "Summary still begins with numerical breadth and forces most events into an AI-funding explanation.",
+          "Alphabet again omits the acquired Search miss and equity-investment loss while repeating numerous measurements; its causal explanation is stronger than the evidence warrants.",
+          "Microsoft exists below the display cutoff but loses to higher-ranked stories; its cloud operating explanation is still missing.",
+          "The Fed story reports the hold but does not meaningfully explain inflation or the approaching data agenda.",
+          "Public Meta/FTC fields still contain acquisition/process commentary.",
+          "Review corrected Meta's original date and added AEP internally, but failed to correct the larger framing and omission problems."
+        ]
+      },
+      {
+        "name": "current-acquisition-fix",
+        "component": "original_shared_tool_request",
+        "execution_contract_accepted": true,
+        "whole_feed_accepted": false,
+        "production_universe_rows": 1000,
+        "preserved_sources": 17,
+        "focus_symbols": [
+          "GOOGL",
+          "GOOG",
+          "MSFT"
+        ],
+        "findings": [
+          "The actual researcher-selected earnings query now executes its bounded selected-company searches despite broad results.",
+          "A Microsoft earnings-call source is retained with the other captures. Preview remains bounded; no pending focus warning.",
+          "This is component evidence, not automatic investigation-ranking or complete scheduled-feed acceptance."
+        ]
+      }
+    ],
+    "context_measurement": {
+      "writer_prompt_tokens": 391449,
+      "review_prompt_tokens": 400742,
+      "initial_evidence_bytes_by_section": {
+        "home_surface_items": 413698,
+        "full_source_intake": 483393,
+        "market_coverage": 546806,
+        "market_wide_research": 2031
+      },
+      "interpretation": "Large repeated numerical context is a measured issue; its causal contribution to qualitative failure remains unproven.",
+      "experiment": {
+        "revision": "32526a2c",
+        "branch": "experiment/shared-context-tables-20261028",
+        "selected_release_source": false,
+        "reverted_by": "5fa36e82",
+        "mechanical_result": "All actual input values and completed-record prefixes preserved; serialized evidence reduced from1036924 to656711 bytes.",
+        "live_result": "No inference sent: conservative shared current-credit admission refused the fresh comparison. Offline capture confirmed the format reached the actual outgoing request. No quality or token-charge saving claimed."
+      }
+    },
+    "spending": {
+      "authorization": "Authorized for another $10 if needed",
+      "cap_usd": 10,
+      "status": "closed",
+      "attempts": 79,
+      "known_receipts": 78,
+      "unknown_attempts": 1,
+      "pending_attempts": 0,
+      "known_conservative_estimate_usd": 6.054477,
+      "unknown_retained_maximum_usd": 1.643643,
+      "total_committed_bound_usd": 7.69812,
+      "cumulative_bound_for_prior_closed_comparisons_and_this_continuation_usd": 26.391384,
+      "invoice_reconciled": false,
+      "model_attempts": {
+        "deepseek-v4-pro": 53,
+        "acquisition": 25,
+        "deepseek-flash": 1
+      },
+      "explanation": "All attempts and acquisitions are included. One connection failure has no receipt and retains its full original maximum. Known amounts are published-rate conservative estimates, not invoice totals. The compact-format comparison and offline input capture sent no inference request. Current shared provider headroom, not the study cap, prevented the compact-format comparison."
+    },
+    "evidence_sha256": {
+      "after-close-live-public-view.json": "952874ac0e67646e510322e0e211ae7d956a7e7635dc14f58600d3f737375cb0",
+      "current-shared-fix-public-view.json": "4907db7133ff7bcea75bcee26063340827735d63ea9f7954cf9f6c123c6ffce3",
+      "current-independent-nomination.json": "916fe7a56df082c432de028c3d9cdf213f8afb75440922d21d53a70b6b19c3db",
+      "current-independent-final-public-view.json": "86cc5b13ebc4c6809289521a3ecabfb921588fb4ec5d17e59181209a597de775",
+      "current-independent-final-stage-1-inputs.json": "90a448c8c28f3efff586066a41223f5d49b0302ea042a537ddf3e90437eb1d12",
+      "current-acquisition-fix-acquisition.json": "48ffbb233412fb8414988376d5186a6a5cb28c6c0a76784d5cec811ddb1f4ee5",
+      "control-contract-review.json": "b7b8ed6e7a173ea1cc95cb1f4580ea61c7994f5d57546afb5259a98ed235e13b",
+      "acquisition-contract-review.json": "c2fdb5a193212c0d2ed1642b0446b53b976a9c2113543d00a4227985c8b07b4f",
+      "context-representation-review.json": "f5d4f41139ea141a71a8cee240024d74e17b2205b0fefe02d22f3b3b92f1beea",
+      "strict-study-ledger.json": "47b5165a44653b28b61606da771b585ab70f8c78b2e427636b1fa1f41bcc1655",
+      "current-compact-final-failure.json": "a714433a3d4751407b52ce115b19912994f98665bf635eaa501299f984e5ae01",
+      "current-context-wire-request.json": "635ba4ab5fe51a9beb0e63d13804f4ce40fe32571f641a0212f57431d72fbf19",
+      "fresh-control-response-review.json": "d94187416d75922fd34e4afb408900d99e2c42e3f0dc5ac31b2766a9b34d06a5"
+    },
+    "candidate_accepted": false,
+    "candidate_deployed": false,
+    "remaining": [
+      "Shared investigation allocation must cover consequential operating disclosures without narrowing everything to an initial theme.",
+      "Complete synthesis and review must preserve acquired operating explanations, choose quantities selectively, explain inflation/agenda context and keep acquisition commentary internal.",
+      "Automatic ranking must put the most useful current developments into the actual displayed feed.",
+      "Qualify fresh representative complete outputs after source correction, including pre-close, quiet and heavy event cases.",
+      "Existing shared-account future-core funding, all-consumer source integration, exact-image DEV and authorized promotion remain open as separately tracked tasks."
+    ],
+    "cleanup": {
+      "status": "verified",
+      "private_record_sha256": "02077dc05bf0b994cb85a5e63de410f807ebabfd56edbac37ff5c7900aa0347c",
+      "all_private_databases_stopped": true,
+      "baseline_checkout_removed_after_verified_archive": true,
+      "retention_days": 30
+    }
+  },
+  "owner_acceptance": {
+    "status": "accepted_by_owner_for_incremental_production_promotion",
+    "date_pacific": "2026-10-29",
+    "owner_instruction": "After is MUCH better. Promote to prod. Then continue the rest of the work",
+    "comparison": "Unedited saved production overview and latest complete current-independent-final public feed; later after-close inputs differ. Owner personally accepted the candidate improvement after seeing both complete overview passages and having every public story available.",
+    "candidate_public_output_sha256": "86cc5b13ebc4c6809289521a3ecabfb921588fb4ec5d17e59181209a597de775",
+    "source_revision": "251d037a6163d8d4da4f4897eaa6cee700d06aba",
+    "source_review": "source-review.json",
+    "known_remaining_work": "Independent review findings remain recorded in quality-review.json. This incremental acceptance does not declare the feed flawless, qualify a quiet/heavy paired study, implement the proposed coherent redesign, or complete shared-account future-core funding. Continue those changes in DEV for owner evaluation.",
+    "production_runtime": "Selected accepted Git source only. Context-table experiment remains reverted. Current production API/iPhone metrics and all DEV-only features are retained in their existing images.",
+    "required_before_promotion": "Mandatory committed source checks; exact immutable image verified in DEV with real Azure SQL/Blob and no paid inference; full consumer/configuration preflight and post-promotion readback."
+  }
+}

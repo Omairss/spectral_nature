@@ -184,6 +184,7 @@ def attribute_fills(
             "quantity": Decimal(0),
             "cost": Decimal(0),
             "entry_capital": Decimal(0),
+            "entry_quantity": Decimal(0),
             "realized": Decimal(0),
             "fills": [],
             "fees": Decimal(0),
@@ -242,6 +243,7 @@ def attribute_fills(
                 current["cost"] += qty * price
                 current["quantity"] += qty
                 current["entry_capital"] += qty * price
+                current["entry_quantity"] += qty
             else:
                 if qty > current["quantity"] or current["quantity"] <= 0:
                     raise ValueError("An exit exceeds this call’s allocated shares.")
@@ -341,7 +343,13 @@ def attribute_fills(
         fills = current["fills"]
         result[key] = {
             "quantity": str(qty),
-            "average_entry": float(current["cost"] / qty) if qty else None,
+            "average_entry": (
+                float(capital / current["entry_quantity"])
+                if current["entry_quantity"]
+                else None
+            ),
+            "mark_price": price if qty and valid else None,
+            "pnl_basis": "fills_and_linked_fees",
             "entry_capital": float(capital),
             "realized_pl": float(current["realized"] + current["fees"]),
             "unrealized_pl": float(open_pl) if open_pl is not None else None,
@@ -367,3 +375,41 @@ def attribute_fills(
             ),
         }
     return result
+
+
+def call_track_record(calls: list[dict], orders: list[dict]) -> dict:
+    """All-time filled-call population; unresolved allocations withhold totals."""
+    filled_ids = {
+        o["call_id"]
+        for o in orders
+        if (number((o.get("data") or {}).get("filled_qty")) or 0) > 0
+    }
+    executed = [
+        c for c in calls if (c.get("fill_count") or 0) > 0 or c["call_id"] in filled_ids
+    ]
+    closed = [c for c in executed if c.get("status") == "closed"]
+    unresolved = [c for c in executed if c.get("status") == "needs_reconciliation"]
+    gains = sum(max(0, c.get("pl") or 0) for c in closed)
+    losses = sum(abs(min(0, c.get("pl") or 0)) for c in closed)
+    opened = [c["opened_at"] for c in executed if c.get("opened_at")]
+    return {
+        "executed_calls": len(executed),
+        "closed_calls": len(closed),
+        "profitable_calls": sum((c.get("pl") or 0) > 0 for c in closed),
+        "win_rate_pct": (
+            sum((c.get("pl") or 0) > 0 for c in closed) / len(closed) * 100
+            if closed
+            else None
+        ),
+        "profit_factor": gains / losses if losses else None,
+        "realized_pl": (
+            sum(c.get("realized_pl") or 0 for c in executed) if not unresolved else None
+        ),
+        "unrealized_pl": (
+            sum(c.get("unrealized_pl") or 0 for c in executed)
+            if not unresolved
+            else None
+        ),
+        "calls_needing_reconciliation": len(unresolved),
+        "since": min(opened) if opened else None,
+    }

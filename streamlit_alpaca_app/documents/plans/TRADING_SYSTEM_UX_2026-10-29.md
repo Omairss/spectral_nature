@@ -1,8 +1,9 @@
 # Trading as a managed paper portfolio — October 29, 2026
 
-Status: UX design and interactive local preview. This is not an application release,
-new execution permission or an enabled autonomous trader. The installed client
-remains build 16; production source and account configuration are unchanged.
+Status: implemented in the shared backend, Next.js and SwiftUI on
+`fix/trading-system-20261029`. Local accounting, database and populated UI checks
+are complete. DEV packaging/delivery is in progress; production and phone
+installation remain unchanged. See the [implementation source review](../verification/trading-system-2026-10-29/SOURCE_REVIEW.md).
 
 ## Product decision
 

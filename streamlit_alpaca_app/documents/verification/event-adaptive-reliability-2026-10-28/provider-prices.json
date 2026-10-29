@@ -1,0 +1,23 @@
+{
+  "azure_embedding": {
+    "account": "spectral-nature-oai",
+    "resource_group": "spectral-nature-2",
+    "location": "westus",
+    "deployment": "zopedia-embedding",
+    "underlying_model": "text-embedding-3-small",
+    "model_version": "1",
+    "sku": "Standard",
+    "capacity": 350,
+    "usd_per_million_input_tokens": 0.022,
+    "quote_unit_conversion": "0.000022 USD/1000 input tokens =0.022 USD/million",
+    "authority": "https://prices.azure.com/api/retail/prices",
+    "private_response": "azure-embedding-retail-prices.json"
+  },
+  "speech": {
+    "provider": "elevenlabs",
+    "model": "eleven_multilingual_v2",
+    "usd_per_1000_characters": 0.08,
+    "authority": "https://elevenlabs.io/pricing/api"
+  },
+  "billing_measurement": "Published model/region token or character estimates; provider invoice totals and unknown transport outcomes are distinct."
+}

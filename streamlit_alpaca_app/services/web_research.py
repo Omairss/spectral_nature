@@ -25,13 +25,48 @@ class WebResearchError(RuntimeError):
     pass
 
 
-def extract_source_document(content: bytes | str, *, url: str, llm_client: Any = None) -> dict[str, Any]:
+def extract_pdf_document(content: bytes) -> dict[str, Any]:
+    """Extract PDF text as text; the acquisition owner retains the original bytes."""
+    from io import BytesIO
+    import pypdf
+
+    result = {"body_text": "", "source_title": "", "source_author": "",
+              "extractor": f"pypdf/{pypdf.__version__}", "extraction_status": "empty",
+              "page_count": 0, "failed_pages": [], "null_characters_replaced": 0}
+    try:
+        reader = pypdf.PdfReader(BytesIO(content))
+        metadata = reader.metadata or {}
+        result.update(source_title=str(metadata.get("/Title") or ""),
+                      source_author=str(metadata.get("/Author") or ""), page_count=len(reader.pages))
+        parts = []
+        for index, page in enumerate(reader.pages):
+            try:
+                parts.append(page.extract_text() or "")
+            except Exception as exc:
+                result["failed_pages"].append({"page": index + 1, "error_type": type(exc).__name__})
+        text = "\n\n".join(parts)
+        result["null_characters_replaced"] = text.count("\x00")
+        result["body_text"] = text.replace("\x00", "\ufffd")
+        result["source_title"] = result["source_title"].replace("\x00", "\ufffd")
+        result["source_author"] = result["source_author"].replace("\x00", "\ufffd")
+        if text.strip():
+            result["extraction_status"] = "partial" if result["failed_pages"] else "complete"
+    except Exception as exc:
+        result.update(extraction_status="failed", error_type=type(exc).__name__)
+    return result
+
+
+def extract_source_document(content: bytes | str, *, url: str, llm_client: Any = None,
+                            content_type: str = "") -> dict[str, Any]:
     """Extract article text without navigation or current recommendation cards.
 
     Original responses must be retained by the caller. An empty extraction is
     explicit rather than silently promoting a page's navigation into evidence.
     Metadata describes this source version, not an archived historical version.
     """
+    if isinstance(content, bytes) and (content.lstrip().startswith(b"%PDF-") or
+                                      content_type.split(";", 1)[0].strip().lower() == "application/pdf"):
+        return extract_pdf_document(content)
     import trafilatura
     document = trafilatura.bare_extraction(content, url=url, include_comments=False,
         include_tables=True, favor_precision=True, with_metadata=True)

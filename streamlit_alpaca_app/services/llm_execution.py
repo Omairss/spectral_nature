@@ -33,6 +33,33 @@ _OWNERSHIP: ContextVar[tuple] = ContextVar("execution_ownership", default=())
 _PUBLICATION_FENCE: ContextVar[int] = ContextVar("execution_publication_fence", default=0)
 
 
+@contextmanager
+def execution_issue_context():
+    """Share bounded operational outcomes across this producer's workers."""
+    sink = {"lock": threading.Lock(), "items": {}}
+    with model_call_context(execution_issues=sink):
+        yield sink
+
+
+def record_execution_issue(component: str, error: BaseException) -> None:
+    sink = _CALL.get().get("execution_issues")
+    if sink is None:
+        return
+    identity = (component, type(error).__name__, getattr(error, "sqlstate", None))
+    with sink["lock"]:
+        row = sink["items"].setdefault(identity, {"component": component, "error_type": type(error).__name__,
+            "sqlstate": getattr(error, "sqlstate", None), "count": 0})
+        row["count"] += 1
+
+
+def execution_issues() -> list[dict[str, Any]]:
+    sink = _CALL.get().get("execution_issues")
+    if sink is None:
+        return []
+    with sink["lock"]:
+        return [dict(row) for row in sink["items"].values()]
+
+
 def execution_publication_fence() -> int:
     return _PUBLICATION_FENCE.get()
 
@@ -218,12 +245,67 @@ def _run_budget_state(state: dict[str, Any]) -> dict[str, Any]:
     fraction = Decimal(os.getenv("RESEARCH_RUN_SOFT_OVERRUN_FRACTION", "0.1"))
     if not fraction.is_finite() or fraction < 0:
         raise ValueError("Completion overrun fraction must be finite and nonnegative")
-    return {"cap_microusd": cap, "attempts": {}, "currency": "USD",
-            "soft_overrun_fraction": str(fraction)}
+    initial = {"cap_microusd": cap, "attempts": {}, "currency": "USD",
+               "soft_overrun_fraction": str(fraction)}
+    if os.getenv("RESEARCH_BUDGET_MODE") == "event":
+        margin = Decimal(os.getenv("RESEARCH_EVENT_MARGIN_FRACTION", "0.5"))
+        if not margin.is_finite() or margin < 0:
+            raise ValueError("Event margin must be finite and nonnegative")
+        initial.update(base_microusd=cap, event_margin_fraction=str(margin),
+                       event_ceiling_microusd=cap + int(cap * margin), event_extensions=[])
+    return initial
 
 
-def _run_remaining(state: dict[str, Any]) -> int:
-    return state["cap_microusd"] - sum(
+@contextmanager
+def event_research_context(work: dict[str, Any] | None):
+    """Bind an existing model-selected investigation to its marginal funding.
+
+    This is not an agent tool for changing an allowance. Producers supply a
+    current nomination or completed change assessment and its evidence IDs.
+    Repetition and raw headline counts cannot create financial authorization.
+    """
+    if work and not all(work.get(key) for key in ("work_id", "evidence_ids", "reason")):
+        error = ValueError("Marginal research requires a selected investigation, evidence and reason")
+        record_execution_issue("event_budget_validation", error)
+        log.warning("Marginal research was not authorized: missing investigation, evidence or reason")
+        work = None
+    with model_call_context(event_work=work):
+        yield
+
+
+def _extend_event_allowance(state: dict[str, Any], required: int) -> bool:
+    work = _CALL.get().get("event_work")
+    if required <= 0:
+        return True
+    ceiling = state.get("event_ceiling_microusd", state["cap_microusd"])
+    if not work or state.get("invalid_quote") or required > ceiling - state["cap_microusd"]:
+        return False
+    state["cap_microusd"] += required
+    state["event_extensions"].append({**work, "additional_microusd": required,
+                                      "working_allowance_microusd": state["cap_microusd"],
+                                      "admitted_at_utc": datetime.now(timezone.utc).isoformat()})
+    return True
+
+
+def event_investigation_capacity(base_limit: int) -> int:
+    """Offer research capacity, not a minimum count or a required spend."""
+    key = _run_budget_key()
+    if key is None or base_limit <= 0:
+        return base_limit
+    from .pipeline_store import read_execution_state
+    from .database import database_workload
+    with database_workload("interactive"):
+        state = _run_budget_state(read_execution_state(*key, strict=True) or {})
+    if not state.get("base_microusd"):
+        return base_limit
+    return int((Decimal(base_limit) * (1 + Decimal(state["event_margin_fraction"]))).to_integral_value(rounding=ROUND_CEILING))
+
+
+def _run_remaining(state: dict[str, Any], *, for_admission: bool = False) -> int:
+    cap = state["cap_microusd"]
+    if for_admission and not _CALL.get().get("event_work"):
+        cap = min(cap, state.get("base_microusd", cap))
+    return cap - sum(
         value["charged_microusd"] if value["status"] == "settled" else value["maximum_microusd"]
         for value in state["attempts"].values()) - sum(
             value["remaining_microusd"] for value in state.get("core_obligations", {}).values())
@@ -263,9 +345,14 @@ def protect_core_research(*, config: Any, work: dict[str, Any], stages: int | di
         fraction = Decimal(state.get("soft_overrun_fraction", "0.1"))
         if not fraction.is_finite() or fraction < 0:
             raise ValueError("Completion overrun fraction must be finite and nonnegative")
-        if not required and new_quote > _run_remaining(state) + int(state["cap_microusd"] * fraction):
-            admitted = False
-            return state
+        if not required:
+            # The completion buffer is not another discretionary expansion on
+            # top of the event margin. Every marginal admission shares one cap.
+            buffer = 0 if "event_ceiling_microusd" in state else int(state["cap_microusd"] * fraction)
+            shortfall = new_quote - _run_remaining(state, for_admission=True) - buffer
+            if shortfall > 0 and not _extend_event_allowance(state, shortfall):
+                admitted = False
+                return state
         for identity, quote in new_work.items():
             obligations[identity] = {"remaining_microusd": quote, "quoted_microusd": quote,
                 "provider": config.provider, "model": config.model, "status": "protected"}
@@ -325,7 +412,9 @@ def best_effort_required() -> bool:
     from .database import database_workload
     with database_workload("interactive"):
         state = _run_budget_state(pipeline_store.read_execution_state(*key, strict=True) or {})
-    remaining = _run_remaining(state)
+    remaining = _run_remaining(state, for_admission=True)
+    if _CALL.get().get("event_work") and not state.get("invalid_quote"):
+        remaining += max(0, state.get("event_ceiling_microusd", state["cap_microusd"]) - state["cap_microusd"])
     return (bool(state.get("invalid_quote")) or remaining <= 0 or
             remaining < state.get("best_effort", {}).get("resume_headroom_microusd", 0))
 
@@ -379,6 +468,9 @@ def amend_research_budget(*, root_run_id: str, cap_usd: Any, approved_by: str,
             raise ValueError("The amended allowance cannot discard incurred or reserved obligations.")
         amendments[amendment_id] = {**record, "previous_cap_microusd": state["cap_microusd"], "approved_at": time.time()}
         state["cap_microusd"] = cap
+        if "base_microusd" in state:
+            state["base_microusd"] = cap
+            state["event_ceiling_microusd"] = cap + int(cap * Decimal(state["event_margin_fraction"]))
         return state
     with database_workload("interactive"):
         return pipeline_store.mutate_execution_state("research_run_budget", root_run_id, amend)
@@ -398,7 +490,15 @@ def research_spending_context() -> dict[str, Any]:
         state = _run_budget_state(pipeline_store.read_execution_state(*key, strict=True) or {})
     attempts = state["attempts"].values()
     return {"root_run_id": key[1], "cap_usd": state["cap_microusd"] / 1e6,
-            "available_usd": max(0, _run_remaining(state)) / 1e6,
+            "base_budget_usd": state.get("base_microusd", state["cap_microusd"]) / 1e6,
+            "event_ceiling_usd": state.get("event_ceiling_microusd", state["cap_microusd"]) / 1e6,
+            "event_margin_fraction": float(state.get("event_margin_fraction", 0)),
+            "event_extensions": state.get("event_extensions", []),
+            "event_available_usd": max(0, _run_remaining(state) +
+                state.get("event_ceiling_microusd", state["cap_microusd"]) - state["cap_microusd"]) / 1e6,
+            "event_settled_usd": sum(v["charged_microusd"] for v in attempts
+                if v["status"] == "settled" and v.get("event_work")) / 1e6,
+            "available_usd": max(0, _run_remaining(state, for_admission=True)) / 1e6,
             "settled_usd": sum(v["charged_microusd"] for v in attempts if v["status"] == "settled") / 1e6,
             "reserved_usd": sum(v["maximum_microusd"] for v in attempts if v["status"] != "settled") / 1e6,
             "protected_core_usd": sum(v["remaining_microusd"] for v in state.get("core_obligations", {}).values()) / 1e6,
@@ -435,18 +535,19 @@ def reserve_research_cost(*, attempt_id: str, maximum_usd: Any, category: str,
                 raise ValueError("Core inference requires its declared completion funding.")
             if state.get("invalid_quote") and not (economy_completion or core_completion):
                 raise ResearchBudgetExceeded("Run admission is paused because a request exceeded its quoted maximum.")
-            if not (economy_completion or core_completion) and (
-                    amount > _run_remaining(state) or
-                    _run_remaining(state) < state.get("best_effort", {}).get("resume_headroom_microusd", 0)):
-                error = ResearchBudgetExceeded("Stop optional spending and complete this run with the cheapest suitable model.")
-                error.required_microusd = amount
-                raise error
+            if not (economy_completion or core_completion):
+                needed = max(amount, state.get("best_effort", {}).get("resume_headroom_microusd", 0)) - _run_remaining(state, for_admission=True)
+                if needed > 0 and not _extend_event_allowance(state, needed):
+                    error = ResearchBudgetExceeded("Stop optional spending and complete this run with the cheapest suitable model.")
+                    error.required_microusd = amount
+                    raise error
             funded = min(amount, obligation["remaining_microusd"]) if obligation else 0
             if obligation:
                 obligation["remaining_microusd"] -= funded
             state["attempts"][attempt_id] = {"status": "pending", "maximum_microusd": amount,
                                              "category": category, "started_at": time.time(),
                                              "best_effort": economy_completion,
+                                             "event_work": _CALL.get().get("event_work"),
                                              "core_work_id": core_work_id if core_completion else None,
                                              "completion_funding_microusd": funded}
             states[run_key] = state
@@ -618,6 +719,14 @@ def _price_snapshot() -> dict[str, Any]:
     return json.loads(path.read_text())
 
 
+def _pricing_model(config: Any, payload: dict[str, Any]) -> str:
+    # Azure's wire model can be an arbitrary deployment name. Billing follows
+    # the configured underlying model, not that resource alias.
+    if "input" in payload and "messages" not in payload:
+        return str(getattr(config, "embedding_model", "") or payload.get("model") or config.model)
+    return str(payload.get("model") or payload.get("model_id") or config.model)
+
+
 def estimated_charge(*, provider: str, model: str, usage: dict[str, Any] | None,
                      started_at: datetime) -> dict[str, Any]:
     """Versioned estimate, not an invoice; unknown usage/model is never zero."""
@@ -628,6 +737,13 @@ def estimated_charge(*, provider: str, model: str, usage: dict[str, Any] | None,
         price = snapshot["models"].get(provider + ":" + model)
         if price is None:
             return {"status": "price_unavailable"}
+        if "usd_per_1000_characters" in price:
+            characters = usage.get("input_characters")
+            if characters is None:
+                return {"status": "usage_unavailable"}
+            amount = characters * price["usd_per_1000_characters"] / 1000
+            return {"status": "estimated", "price_version": snapshot["version"], "source": price["source"],
+                    "usd_min": amount, "usd_max": amount, "rate_band": "published_character_price"}
         input_tokens = usage.get("prompt_tokens", usage.get("input_tokens"))
         if input_tokens is None:
             return {"status": "usage_unavailable"}
@@ -825,9 +941,22 @@ def reserve_provider_budget(config: Any, payload: dict[str, Any], *, attempt_id:
 
 def _request_maximum_charge(config: Any, payload: dict[str, Any]) -> Decimal:
     from .llm import LLMProviderUnavailable
-    price = _price_snapshot()["models"].get(config.provider + ":" + str(payload.get("model") or config.model))
+    price = _price_snapshot()["models"].get(config.provider + ":" + _pricing_model(config, payload))
     if price is None:
         raise LLMProviderUnavailable("Budget admission requires a published price for the configured model.")
+    if "usd_per_1000_characters" in price:
+        return Decimal(len(str(payload.get("text") or ""))) * Decimal(str(price["usd_per_1000_characters"])) / 1000
+    if "input" in payload and "messages" not in payload:
+        import tiktoken
+        inputs = payload["input"]
+        if isinstance(inputs, str):
+            inputs = [inputs]
+        if inputs and all(type(value) is int for value in inputs):
+            inputs = [inputs]
+        encoding = tiktoken.get_encoding("cl100k_base")
+        input_tokens = sum(len(encoding.encode_ordinary(value)) if isinstance(value, str) else len(value)
+                           for value in inputs)
+        return Decimal(input_tokens) * Decimal(str(price["offpeak"]["input"])) / 1_000_000
     context = request_context_budget(config, payload)
     if context:
         input_tokens, output_tokens = context["estimated_input_tokens"], context["reserved_output_tokens"]
@@ -1014,6 +1143,9 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
         return response
     except BaseException as exc:
         error_type = type(exc).__name__
+        from .llm import LLMProviderUnavailable
+        if isinstance(exc, LLMProviderUnavailable):
+            record_execution_issue("provider_admission:" + config.provider, exc)
         raise
     finally:
         data: dict[str, Any] = {}
@@ -1024,6 +1156,9 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                     data = parsed
             except ValueError:
                 pass
+        usage = data.get("usage")
+        if operation == "audio" and response is not None and 200 <= response.status_code < 300:
+            usage = {"input_characters": len(str(payload.get("text") or ""))}
         event = {
             "attempt_id": attempt_id,
             "model_call_id": context.get("model_call_id"),
@@ -1037,7 +1172,7 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
             "status": "success" if response is not None and 200 <= response.status_code < 300 else "failure" if transport_attempted else "not_sent",
             "http_status": response.status_code if response is not None else None,
             "started_at_utc": started, "duration_ms": (time.monotonic() - t0) * 1000,
-            "usage": normalize_provider_usage(data.get("usage")),
+            "usage": normalize_provider_usage(usage),
             "metadata": {
                 "transport_attempted": transport_attempted,
                 "budget_reservation": reservation_identity,
@@ -1056,9 +1191,9 @@ def provider_post(client: Any = None, *, config: Any = None, session: Any = None
                 "literal_output": bool(context.get("literal_output")),
                 "max_output_tokens": payload.get("max_tokens") or payload.get("max_output_tokens"),
                 "input_characters": len(str(payload.get("text") or "")) if operation == "audio" else None,
+                "pricing_model": _pricing_model(config, payload),
                 "estimated_charge": estimated_charge(provider=config.provider,
-                    model=data.get("model") or (payload.get("model") if operation == "embedding" else ""),
-                    usage=normalize_provider_usage(data.get("usage")), started_at=started),
+                    model=_pricing_model(config, payload), usage=normalize_provider_usage(usage), started_at=started),
             },
         }
         from .work_scope import work_expired
@@ -1104,7 +1239,8 @@ def research_artifact_key(*, access_scope: str, subject: str, query: str,
     state = _read_state(*budget_key) if budget_key else None
     contract = {"engine_revision": research_engine_revision(), "query": query, "schema": schema, "provider": config.provider,
                 "inference_policy": {key: routing.get(key) for key in ("models", "routes", "best_effort_model", "core_tasks")},
-                "research_target_microusd": (state or {}).get("cap_microusd", _microusd(os.getenv("RESEARCH_RUN_BUDGET_USD") or "0")) if budget_key else None,
+                "research_target_microusd": (state or {}).get("base_microusd", (state or {}).get("cap_microusd", _microusd(os.getenv("RESEARCH_RUN_BUDGET_USD") or "0"))) if budget_key else None,
+                "event_ceiling_microusd": (state or {}).get("event_ceiling_microusd") if budget_key else None,
                 "economical_completion": best_effort_required() and not funded_core_research(),
                 "endpoint": config.base_url, "model": config.model,
                 "thinking": config.thinking_mode, "effort": execution_effort(config.reasoning_effort),

@@ -1,0 +1,10 @@
+[
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-worker@sha256:fabd6f4699ed9b3daf571a5c365669d353a8f301a48a518a58192ecb5190db95",
+    "role": "worker",
+    "source_revision": "c92245b62852d0f6d38465a07dd6f254a670866e",
+    "runtime_inventory_sha256": "53ad5b59102d039645d37923d3331b46bdc340f67ea8c169e25f074411ad7228",
+    "all_packaged_files_checked": true,
+    "evidence": "documents/verification/event-adaptive-reliability-2026-10-28/promotion-development.json"
+  }
+]

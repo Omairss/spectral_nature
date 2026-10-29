@@ -287,7 +287,9 @@ def project(snapshot: dict[str, Any], *, period: str = "1M") -> dict[str, Any]:
         (
             point
             for point in reversed(points)
-            if intraday and point["date"] < intraday[0]["date"]
+            if intraday
+            and pd.to_datetime(point["date"], utc=True)
+            < pd.to_datetime(intraday[0]["date"], utc=True)
         ),
         None,
     )
@@ -320,6 +322,11 @@ def project(snapshot: dict[str, Any], *, period: str = "1M") -> dict[str, Any]:
         ):
             if field in position:
                 position[field] = _number(position[field])
+    summary["unrealized_pl"] = (
+        sum(position.get("unrealized_pl") or 0 for position in positions)
+        if all(position.get("unrealized_pl") is not None for position in positions)
+        else None
+    )
     orders = [_select(row, ORDER_FIELDS) for row in details.get("orders") or []]
     for order in orders:
         if "filled_avg_price" in order:
@@ -459,7 +466,8 @@ def refresh(context: UserContext) -> dict[str, Any]:
         "intraday": (
             "/v2/account/portfolio/history",
             {
-                "period": "1D",
+                "period": "1W",
+                "end": now.isoformat(),
                 "timeframe": "5Min",
                 "cashflow_types": "ALL",
                 "intraday_reporting": "market_hours",
@@ -489,7 +497,15 @@ def refresh(context: UserContext) -> dict[str, Any]:
     intraday = old_details.get("intraday") or []
     if "intraday" in fetched:
         try:
-            intraday = equity_history(fetched["intraday"])
+            received = equity_history(fetched["intraday"])
+            dates = [
+                pd.to_datetime(point["date"], utc=True)
+                .tz_convert("America/New_York")
+                .date()
+                for point in received
+            ]
+            latest = max(dates) if dates else None
+            intraday = [point for point, date in zip(received, dates) if date == latest]
         except ValueError:
             errors["intraday"] = "InvalidHistory"
             coverage["intraday"] = (old_details.get("coverage") or {}).get("intraday")
@@ -765,6 +781,7 @@ def _order_inputs(
             json.dumps(
                 [
                     context.user_id,
+                    context.portfolio_id,
                     environment_name(),
                     account["id"],
                     candidate["candidate_id"],
@@ -860,6 +877,12 @@ def _management_inputs(
             raise PaperAccountError(
                 "The broker position changed. Refresh and reconcile the call first."
             )
+    asset = api.paper_request("GET", "/v2/assets/" + symbol)
+    quantum = (
+        Decimal("0.000001")
+        if actual > 0 and asset.get("fractionable")
+        else Decimal("1")
+    )
     quantity = Decimal(str(candidate.get("quantity") or allocated))
     if (
         quantity <= 0
@@ -869,6 +892,14 @@ def _management_inputs(
         raise ValueError(
             "The quantity must fit this call’s available shares, with at most six decimal places."
         )
+    if quantity % quantum:
+        raise ValueError(
+            "This position requires whole shares."
+            if quantum == 1
+            else "Use at most six decimal places."
+        )
+    if candidate.get("intent") == "reduce" and quantity >= allocated:
+        raise ValueError("Choose close to exit the entire call.")
     price = _number(position.get("current_price"))
     equity = _number(account.get("equity"))
     if not price or not equity or equity <= 0:
@@ -913,6 +944,7 @@ def _management_inputs(
             json.dumps(
                 [
                     context.user_id,
+                    context.portfolio_id,
                     environment_name(),
                     account["id"],
                     candidate["candidate_id"],
@@ -959,6 +991,11 @@ def _execution_policy(
     if automatic and saved["mode"] != "autonomous":
         raise PermissionError("Paper autopilot is not enabled.")
     intent = candidate.get("intent") or "entry"
+    source = candidate.get("proposal_source", "agent" if intent == "entry" else "owner")
+    if automatic and source != "agent":
+        raise PermissionError(
+            "Owner-requested changes require their exact confirmation."
+        )
     if intent == "entry":
         if saved["entries_paused"]:
             raise PaperAccountError("New entries are paused.")
@@ -1006,6 +1043,16 @@ def review_order(
             position = next((p for p in positions if p.get("symbol") == symbol), None)
             if not position:
                 raise ValueError("This position is unavailable.")
+            owned = store.paper_state(context, environment=environment_name())["calls"]
+            if any(
+                c["intent"] == "entry"
+                and c["candidate"].get("ticker") == symbol
+                and (c.get("performance") or {}).get("status") == "open"
+                for c in owned
+            ):
+                raise ValueError(
+                    "Choose a linked call to close so its fills remain attributed."
+                )
             candidate = {
                 "ticker": symbol,
                 "stance": "long" if Decimal(str(position["qty"])) > 0 else "short",
@@ -1030,6 +1077,7 @@ def review_order(
             **candidate,
             "candidate_id": "action-" + str(uuid.uuid4()),
             "intent": intent,
+            "proposal_source": "owner",
         }
         if quantity is not None:
             candidate["quantity"] = quantity
@@ -1317,6 +1365,21 @@ def confirm_order(
                         and exc.status_code is not None
                         and 400 <= exc.status_code < 500
                     )
+                    if intent != "cancel":
+                        store.retain_paper_order(
+                            context,
+                            environment=environment_name(),
+                            connection_id=link["id"],
+                            call_id=call_id,
+                            action_id=action_id,
+                            ticket_id=ticket_id,
+                            order={
+                                **order,
+                                "status": (
+                                    "rejected" if definite else "submission_unknown"
+                                ),
+                            },
+                        )
                     store.finish_order_ticket(
                         ticket_id=ticket_id,
                         status="failed" if definite else "unknown",

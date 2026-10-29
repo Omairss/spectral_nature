@@ -28,7 +28,10 @@ RUN_ZOPEDIA_AGENT_LOOP_ALLOWED = {
     "services/zopedia_agent.py",
 }
 
-GENERATE_JSON_ALLOWED_EXACT = {"services/aql_zopedia_gateway.py"}
+GENERATE_JSON_ALLOWED_EXACT = {
+    "services/aql_zopedia_gateway.py",
+    "services/llm.py",  # Provider-owned mechanical JSON repair, no feature research.
+}
 GENERATE_JSON_ALLOWED_PREFIXES: tuple[str, ...] = ()
 
 

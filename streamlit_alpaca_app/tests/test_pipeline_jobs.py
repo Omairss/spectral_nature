@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 import json
 import time
@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from pipeline.jobs.attention_home_build import (
     AttentionHomeBuildError,
@@ -1319,6 +1320,8 @@ def test_run_attention_home_persists_core_outputs_before_optional_page_summaries
 
     persisted: list[str] = []
     build_kwargs: dict[str, object] = {}
+    shared_news = pd.DataFrame([{"headline": "Shared market-wide report", "url": "https://example.invalid/current",
+                                 "published_at": pd.Timestamp("2026-06-24T19:59:00Z")}])
 
     def _load_frame(dataset_name: str) -> pd.DataFrame:
         if dataset_name == "daily_movers":
@@ -1331,18 +1334,21 @@ def test_run_attention_home_persists_core_outputs_before_optional_page_summaries
             return pd.DataFrame([{"symbol": "AAPL", "security_name": "Apple Inc."}])
         if dataset_name == "momentum_profiles":
             return pd.DataFrame([{"symbol": "AAPL", "return_1m_pct": 3.0}])
+        if dataset_name == "news_articles":
+            return shared_news
         return pd.DataFrame()
 
     def _build_core(**kwargs):
+        assert protected == ["home:public_surface"]
         build_kwargs.update(kwargs)
         return {
-            "attention_home_1d": pd.DataFrame([{"top_events_json": "[]"}]),
+            "attention_home_snapshots_1d": pd.DataFrame([{"top_events_json": "[]"}]),
             "attention_ticker_background_snapshots": pd.DataFrame([{"symbol": "AAPL"}]),
         }
 
     def _build_page(**kwargs):
         del kwargs
-        assert "attention_home_1d" in persisted
+        assert "attention_home_snapshots_1d" in persisted
         assert "attention_ticker_background_snapshots" in persisted
         return pd.DataFrame([{"surface": "Market Explorer", "status": "ok"}])
 
@@ -1350,7 +1356,11 @@ def test_run_attention_home_persists_core_outputs_before_optional_page_summaries
         del frame, ctx, conn
         persisted.append(dataset_name)
 
-    monkeypatch.setattr(attention_home_build_module, "load_aql_zopedia_llm_client", lambda surface: object())
+    protected = []
+    monkeypatch.setattr(attention_home_build_module, "protect_core_research",
+                        lambda **kwargs: protected.extend(kwargs["work"]) or True)
+    monkeypatch.setattr(attention_home_build_module, "load_aql_zopedia_llm_client",
+                        lambda surface: SimpleNamespace(config=object()))
     monkeypatch.setattr(
         attention_home_build_module,
         "_validate_mandatory_datasets",
@@ -1368,9 +1378,33 @@ def test_run_attention_home_persists_core_outputs_before_optional_page_summaries
     )
 
     assert build_kwargs["include_page_agentic"] is False
-    assert persisted[:2] == ["attention_home_1d", "attention_ticker_background_snapshots"]
+    assert persisted[:2] == ["attention_home_snapshots_1d", "attention_ticker_background_snapshots"]
+    assert build_kwargs["news_frame"] is shared_news
     assert persisted[-1] == "page_agentic_summaries"
     assert "page_agentic_summaries" in result
+
+
+def test_home_editor_receives_complete_discovery_and_its_protected_completion(monkeypatch):
+    from pipeline.jobs import attention_home_build as home
+    from services.llm_execution import _CALL
+    captured = []
+    completed = []
+    source = {"document_id": "agent_source::disclosure", "source_id": "current-disclosure",
+              "raw_text": "Complete acquired disclosure", "source_trace": "Primary capture"}
+    research = [{"status": "completed", "market_context_text": "Complete current research"}]
+    def run(**kwargs):
+        captured.append(kwargs)
+        assert _CALL.get()["core_work_id"] == "home:public_surface"
+        return {"status": "completed", "payload": {"issues": [], "items": [], "new_events": [],
+            "market_summary": {"summary_text": "Supplied output", "confidence": "high", "limitations": []}}}
+    monkeypatch.setattr(home, "run_aql_zopedia_structured_agent", run)
+    monkeypatch.setattr(home, "complete_core_research", completed.append)
+    home._review_home_public_surface({}, {}, enrichment_rows=[], asof_time_utc="2026-10-28T18:35:00Z",
+                                     timeout_seconds=30, source_documents=[source], market_research=research)
+    evidence = captured[0]["initial_evidence"][0]
+    assert evidence["full_source_intake"] == [source]
+    assert evidence["market_wide_research"] == research
+    assert completed == ["home:public_surface"]
 
 
 def test_db_mark_job_start_uses_matching_parameter_count():
@@ -1818,16 +1852,44 @@ def test_build_treasury_yield_snapshots_uses_service_payload(monkeypatch):
     assert facts_out.equals(facts)
 
 
-def test_run_news_persists_attention_context(monkeypatch):
+def test_run_news_missing_credentials_fails_before_publication(monkeypatch):
+    from services.alpaca_api import AlpacaAPIError
+    import pytest
+
+    monkeypatch.setattr("pipeline.jobs.main._alpaca_config", lambda: None)
+    with pytest.raises(AlpacaAPIError, match="shared news acquisition did not run"):
+        run_news(SimpleNamespace(), None)
+
+
+@pytest.mark.parametrize("failed_scope", [None, "market", "companies", "all"])
+def test_run_news_persists_attention_context(monkeypatch, failed_scope):
+    from services.alpaca_api import AlpacaAPIError
+
+    news_calls = []
     class FakeAPI:
-        def get_news(self, symbols, limit=50):
+        def get_news(self, symbols, start, end, limit=50):
+            assert end == ctx.asof
+            news_calls.append(symbols)
+            scope = "market" if symbols is None else "companies"
+            if failed_scope in {scope, "all"}:
+                raise AlpacaAPIError("Provider acquisition failed")
+            if symbols is not None:
+                assert symbols == ["AAPL"] and start is None and limit == 50
+                return pd.DataFrame({
+                    "headline": ["Apple files current report", "Earlier company report"],
+                    "published_at": [pd.Timestamp("2026-03-20T12:00:00Z")] * 2,
+                    "source": ["ExampleWire"] * 2,
+                    "url": ["https://example.com/aapl", "https://example.com/earlier"],
+                    "symbols": [["AAPL"], ["AAPL"]],
+                })
+            assert start == ctx.asof - timedelta(days=2) and limit == 75
             return pd.DataFrame(
                 {
-                    "headline": ["Apple files current report"],
-                    "published_at": [pd.Timestamp("2026-03-20T12:00:00Z")],
-                    "source": ["ExampleWire"],
-                    "url": ["https://example.com/aapl"],
-                    "symbols": [["AAPL"]],
+                    "headline": ["Apple files current report", "Another company reports", "Economy report"],
+                    "published_at": [pd.Timestamp("2026-03-20T12:00:00Z")] * 3,
+                    "source": ["ExampleWire"] * 3,
+                    "url": ["https://example.com/aapl", "https://example.com/other", "https://example.com/economy"],
+                    "symbols": [["AAPL"], ["OTHER"], []],
                 }
             )
 
@@ -1865,6 +1927,10 @@ def test_run_news_persists_attention_context(monkeypatch):
 
     monkeypatch.setattr("pipeline.jobs.main._alpaca_config", lambda: object())
     monkeypatch.setattr("pipeline.jobs.main.AlpacaAPI", lambda cfg: FakeAPI())
+    monkeypatch.setenv("NEWS_MARKET_ARTICLE_LIMIT", "75")
+    monkeypatch.setenv("NEWS_TICKER_ARTICLE_LIMIT", "50")
+    monkeypatch.setenv("NEWS_LOOKBACK_DAYS", "2")
+    monkeypatch.setattr("pipeline.jobs.main._symbols_from_env", lambda: [])
     monkeypatch.setattr("pipeline.jobs.main._symbols_from_latest_universe", lambda limit: [])
     monkeypatch.setattr(
         "pipeline.jobs.main._load_latest_attention_seed",
@@ -1873,15 +1939,26 @@ def test_run_news_persists_attention_context(monkeypatch):
     monkeypatch.setattr("pipeline.jobs.main._load_latest_materialized_frame", lambda dataset_name: pd.DataFrame())
     monkeypatch.setattr("pipeline.jobs.main.EdgarClient", lambda: FakeEdgarClient())
     monkeypatch.setattr("pipeline.jobs.main.load_aql_zopedia_llm_client", lambda **kwargs: None)
+    monkeypatch.setattr("pipeline.jobs.main._load_search_clients", lambda: (None, None))
     monkeypatch.setattr(
         "pipeline.jobs.main._persist_dataset",
         lambda dataset_name, frame, ctx, conn: persisted.append((dataset_name, len(frame))),
     )
 
+    if failed_scope == "all":
+        with pytest.raises(AlpacaAPIError):
+            run_news(ctx, None)
+        assert persisted == []
+        assert set(ctx.degraded_components) == {"news_acquisition:market", "news_acquisition:companies"}
+        return
     run_news(ctx, None)
 
-    assert ("news_articles", 1) in persisted
-    assert ("news_symbol_map", 1) in persisted
+    assert news_calls == [None, ["AAPL"]]
+    if failed_scope:
+        assert "news_acquisition:" + failed_scope in ctx.degraded_components
+    news_count = {None: 4, "market": 2, "companies": 3}[failed_scope]
+    assert ("news_articles", news_count) in persisted
+    assert ("news_symbol_map", news_count) in persisted
     assert ("edgar_filings", 1) in persisted
     assert ("edgar_evidence", 0) in persisted
     assert ("attention_context_llm", 0) in persisted
@@ -1890,7 +1967,7 @@ def test_run_news_persists_attention_context(monkeypatch):
     assert ("zopedia_business_model_search_requests", 0) in persisted
     assert ("zopedia_business_model_search_results", 0) in persisted
     assert ("zopedia_ticker_business_model_stacks", 1) in persisted
-    assert ("zopedia_news_business_resolutions", 1) in persisted
+    assert ("zopedia_news_business_resolutions", 1 if failed_scope == "companies" else 2) in persisted
     assert ("zopedia_company_business_memory_pages", 0) in persisted
 
 

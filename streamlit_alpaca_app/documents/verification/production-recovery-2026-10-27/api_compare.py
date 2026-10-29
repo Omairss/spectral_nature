@@ -24,6 +24,8 @@ sys.path.insert(0, str(APP))
 ROOT = Path.home() / "Library/Application Support/SpectralNature/operations/production-recovery-2026-10-27"
 OUT = ROOT / "api-qualification-20261028"
 approval = json.loads((OUT / "authorization.json").read_text())
+if approval.get("status") == "completed":
+    raise SystemExit("This approved comparison batch is complete. A new study needs its own provider/spending authorization.")
 if approval.get("authorization") != "Approve this API comparison up to $15" or approval.get("maximum_total_usd") != 15:
     raise SystemExit("This comparison requires the owner's explicit $15 exception.")
 study_lock = (OUT / "study.lock").open("a")

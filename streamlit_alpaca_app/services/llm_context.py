@@ -35,6 +35,27 @@ RESEARCH_TIMELINE_GUIDANCE = (
 )
 
 
+RESEARCH_ANALYSIS_GUIDANCE = (
+    "Explain what the consequential developments change for the reader, using the specific observations, business "
+    "mechanisms, constraints and competing interpretations in the research. Headline results and price moves are "
+    "starting observations, not an explanation of underlying performance. Preserve the findings that resolve that "
+    "question; do not replace them with a generic industry description or a checklist of future research. "
+    "Connect relevant standing economic and business conditions to new developments, keeping their original dates. "
+    "Assess the current information agenda and useful upcoming developments independently of large price moves. "
+    "Do not invent an upcoming result or force unrelated events into one theme. "
+    "Keep reported facts, management expectations and your own inferences distinct throughout titles, summaries "
+    "and explanations. Preserve worthwhile indirect connections at their actual strength; co-movement alone does "
+    "not establish a cause. Lead with meaning in plain language. Use a number when its magnitude, comparison or "
+    "threshold changes the interpretation; qualitative direction is often enough. When several measurements make "
+    "the same point, explain that point and keep the decisive comparison. Supporting figures remain in the source records. "
+    "Do not reproduce a data table in prose. "
+    "Review whether the complete answer delivers the requested depth and retains the important findings, not only "
+    "whether individual facts match sources. Correct the public answer itself. Keep source inventories, missing-capture "
+    "commentary, editing instructions and execution diagnostics in internal fields. Match the requested format and "
+    "length without a fixed number of facts, sources or paragraphs."
+)
+
+
 def render_research_prompt(*, evidence: Any, request: Any, instructions: str) -> str:
     """Stable complete evidence precedes the changing task and question.
 

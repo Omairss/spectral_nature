@@ -646,17 +646,52 @@ def _browse_with_http(
         raise PageBrowsingError(f"HTTP page browse failed status={response.status_code}.")
 
     content_type = _clean(response.headers.get("Content-Type"))
-    raw_text = response.text
+    content = response.content
+    media_type = content_type.split(";", 1)[0].strip().lower()
+    pdf = content.lstrip().startswith(b"%PDF-") or media_type == "application/pdf"
+    binary = pdf or (media_type and not (media_type.startswith("text/") or
+                    media_type in {"application/json", "application/xml", "application/xhtml+xml"} or
+                    media_type.endswith(("+json", "+xml"))))
+    raw_text = "" if binary else response.text
     title = ""
     description = ""
-    source_metadata = {}
+    source_metadata = {"content_type": content_type}
     text = _clean(raw_text)
-    if "html" in content_type.lower() or "<html" in raw_text.lower():
-        parsed = _parse_html_document(raw_text)
+    if binary or "\x00" in raw_text:
+        from .pipeline_store import ImmutableBlobArchive, dataset_namespace, pipeline_store_configured
+        if pipeline_store_configured():
+            try:
+                archive = ImmutableBlobArchive(namespace=dataset_namespace(), root="source-responses")
+                source_metadata["raw_response"] = archive.put(content, suffix="pdf" if pdf else "bin",
+                    content_type=content_type or "application/octet-stream")
+            except WorkCancelled:
+                raise
+            except Exception as exc:
+                from .llm_execution import record_execution_issue
+                record_execution_issue("source_response_retention", exc)
+                source_metadata["raw_response_retention"] = {"status": "failed", "error_type": type(exc).__name__}
+        else:
+            source_metadata["raw_response_retention"] = "storage_unconfigured"
+        if pdf:
+            from .web_research import extract_pdf_document
+            extracted = extract_pdf_document(content)
+            text = extracted.pop("body_text")
+            title = extracted.get("source_title") or ""
+            source_metadata.update(extracted)
+            if extracted["extraction_status"] in {"failed", "partial", "empty"}:
+                from .llm_execution import record_execution_issue
+                record_execution_issue("pdf_extraction", PageBrowsingError(extracted["extraction_status"]))
+        elif binary:
+            source_metadata["extraction_status"] = "unsupported_binary"
+        else:
+            source_metadata.update(null_characters_replaced=raw_text.count("\x00"), extraction_status="text_normalized")
+            text = _clean(raw_text.replace("\x00", "\ufffd"))
+    if not binary and ("html" in content_type.lower() or "<html" in raw_text.lower()):
+        parsed = _parse_html_document(raw_text.replace("\x00", "\ufffd"))
         title = parsed["title"]
         description = parsed["description"]
         text = parsed["text"] or text
-        source_metadata = parsed["source_metadata"]
+        source_metadata.update(parsed["source_metadata"])
 
     source_text = text
     text = _trim(text, limit=max_text_chars)

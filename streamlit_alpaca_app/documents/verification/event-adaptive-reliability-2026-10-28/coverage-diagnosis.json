@@ -1,0 +1,188 @@
+{
+  "status": "shared_producer_repair_implemented_quality_verification_rejected",
+  "owner_example": {
+    "market_observation_utc": "2026-10-28T18:35:00Z",
+    "publication_run_id": "7e7084f7-2fc4-47de-8d0c-e75a4798a924",
+    "publication_asof_utc": "2026-10-28T18:50:37.585543Z",
+    "defect": "The overall summary recited sector averages, breadth counts and ticker percentages while omitting the substantive current agenda."
+  },
+  "confirmed_causes": [
+    {
+      "cause": "Coverage began with a ticker-filtered news snapshot from the twice-daily news producer.",
+      "effect": "Broad reports without a selected company could be absent from the common snapshot. Intervening Home updates read the last news publication; their existing shared research tools supply current follow-up."
+    },
+    {
+      "cause": "Source-event nomination had no research tools and returned immediately without feed documents.",
+      "effect": "Nomination could not independently acquire missing agenda sources. Focused investigations already had tools, so it is incorrect to describe the whole prior research engine as unable to retrieve beyond the feed or movers."
+    },
+    {
+      "cause": "The final Home editor standalone source intake kept only the event-news prefix, and received no broad research synthesis.",
+      "effect": "Selected bundles could carry some acquired sources, but unselected and failed-investigation captures did not have a complete independent route to the editor. Numeric market coverage occupied the overall synthesis."
+    },
+    {
+      "cause": "Final Home completion was not declared at the producer boundary before optional research.",
+      "effect": "Its protected run funding began too late. The candidate now declares it before optional work, distinct from shared-provider liquidity."
+    },
+    {
+      "cause": "After-close research and final writing were refused by shared provider-credit admission.",
+      "effect": "Fresh Microsoft and Alphabet headlines were present, but no new public Home report was produced. The earlier report remained the latest publication."
+    },
+    {
+      "cause": "The source nominator inherited90-second model steps inside its600-second stage budget.",
+      "effect": "A paid completed response arrived after the shorter step clock and was rejected. Explicit propagation of the existing stage allowance is corrected and the new nomination completed; the whole-run clock is not extended."
+    }
+  ],
+  "timing_evidence": [
+    {
+      "subject": "Fed statement",
+      "publication_utc": "2026-10-28T18:00:00Z",
+      "relevance": "Available before the quoted market observation; old yield observations cannot substitute for current policy reporting.",
+      "source": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"
+    },
+    {
+      "subject": "Microsoft earnings",
+      "relevance": "Scheduled after the quoted pre-close snapshot. Its result headlines appear in the retained after-close intake. Earlier briefing should treat the release as upcoming.",
+      "source": "https://news.microsoft.com/source/2026/10/07/microsoft-announces-quarterly-earnings-release-date-69/"
+    },
+    {
+      "subject": "Inflation",
+      "relevance": "Preserve original observation/release dates; distinguish current inflation interpretation from the upcoming PCE release.",
+      "sources": [
+        "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "https://www.bea.gov/news/schedule"
+      ]
+    }
+  ],
+  "after_close_failure": {
+    "run_id": "624a2de2-83b6-4b72-a704-b6d19a7a2b26",
+    "started_utc": "2026-10-28T20:50:50Z",
+    "finished_utc": "2026-10-28T20:56:50Z",
+    "application_status": "Failed",
+    "source_event_attempts": 4,
+    "source_event_completed": 0,
+    "final_editor_attempts_not_sent": 2,
+    "error_type": "LLMProviderUnavailable",
+    "reason": "Shared provider credit held against unresolved transport liabilities; independent of event-margin allocation."
+  },
+  "credit_investigation": {
+    "unknown_transport_attempts": 30,
+    "failure_types": {
+      "ConnectionError": 29,
+      "ReadTimeout": 1
+    },
+    "known_usage_receipts": 0,
+    "billing_console": "Read-only console confirms aggregate usage and available balance; export action exposed no request-level settlement evidence.",
+    "unresolved": "Individual lost-request usage is still unknown. That uncertainty is retained for reconciliation rather than requiring indefinite suspension of unrelated current reporting. Explicit future core completion funding across independent producers at shared-account level remains open.",
+    "enclosing_model_outcomes": {
+      "matched_model_calls": 17,
+      "failed_with_expired_request_deadline": 15,
+      "eventually_succeeded_after_an_unknown_transport_attempt": 2,
+      "implication": "The enclosing failures confirm request deadlines; they do not establish zero billing for the lost transport attempts. Successful retries also cannot settle earlier attempts without their own usage."
+    },
+    "admission_repair": {
+      "status": "verified_locally_not_deployed",
+      "owner_instruction": "This is not the behaviour we want",
+      "new_admission_basis": "Successful current provider balance plus live concurrent reservations.",
+      "unknown_costs": "Retained at full uncertain bound in the original run and preserved account record; no zero usage or invented exact settlement.",
+      "closure_rule": "A later authoritative balance observation can remove an ended/local-deadline-expired request from current liquidity withholding. Failed probes do not.",
+      "late_charge_risk": "The current balance does not prove all old unknown charges are already posted. Those possible charges stay explicit and later receipts/balance changes are honored.",
+      "real_insufficient_credit": "Still refused; a successful balance read is not authorization to spend unavailable provider funds."
+    }
+  },
+  "candidate_behavior": [
+    "Acquire a market-wide bounded snapshot in the existing twice-daily news producer; publish the existing shared news datasets and let Home consume them.",
+    "Use the existing shared nominator for bounded independent discovery, dated economic context and a retained substantive market synthesis.",
+    "Retain acquired tool captures even if nomination fails; preserve unresolved references as fallible leads.",
+    "Deliver all acquired captures and market research to the final full-model editor.",
+    "Reserve final Home synthesis/review in the run ledger before optional discovery.",
+    "Use shared plain-language guidance: numbers belong where magnitude, comparison or a threshold changes the explanation."
+  ],
+  "validation": {
+    "operational_contracts_passed": 198,
+    "complete_new_model_output_review": "Completed personal review: corrected after-close candidate rejected; current production rejected.",
+    "inference_started": true,
+    "candidate_image_built": false,
+    "development_deployed": false,
+    "production_deployed": false,
+    "fresh_api_exception_cap_usd": 10,
+    "verification_closed": true,
+    "spending": {
+      "owner_authorization": "Approve DeepSeek verification up to $10",
+      "cap_usd": 10,
+      "paid_attempts": 26,
+      "usage_receipts": 26,
+      "unknown_or_pending_attempts": 0,
+      "published_price_estimate_min_usd": 3.7176887,
+      "conservative_estimated_total_usd": 7.435391,
+      "invoice_reconciled": false,
+      "explanation": "Every response has usage. Conservative total uses the published high rate bound and rounds each request up to one microUSD; it is an estimate, not an invoice. All initial mistaken replays and retries are included. Remaining cap cannot cover another full-capability maximum, so no further paid requests were started."
+    }
+  },
+  "qualitative_cases_required": [
+    "Pre-close current agenda: distinguish released policy reporting and upcoming earnings/inflation releases.",
+    "After-close current disclosures: inspect the full earnings and market-wide source handoff, not only ticker mover statistics.",
+    "Quiet repeated inputs: preserve current meaning while avoiding duplicate deep investigations.",
+    "Complete full-model public output: assess usefulness, chronology, missing substantive developments and numerical selectivity personally."
+  ],
+  "private_evidence": "operations/event-adaptive-reliability-2026-10-28/feed-coverage-example; full records remain outside Git.",
+  "no_topic_specific_runtime_rules": true,
+  "live_news_contract_check": {
+    "inference_started": false,
+    "provider": "Existing Alpaca news API",
+    "cases": [
+      {
+        "case": "pre-close",
+        "asof_utc": "2026-10-28T18:35:00Z",
+        "rows": 50,
+        "full_content_present": 25,
+        "private_input_sha256": "c8cff77f70bfc5a259ee2b06580877da08dc0a248ba23c4d1abef4ceec466c23"
+      },
+      {
+        "case": "post-close",
+        "asof_utc": "2026-10-28T20:50:48Z",
+        "rows": 50,
+        "full_content_present": 6,
+        "private_input_sha256": "a3e33b9de962803a006173a1c68b8f966230c78806399efc7036d3b0060a3cc3"
+      }
+    ],
+    "finding": "Unfiltered pre-close acquisition includes current Fed press-conference reporting absent from the old filtered intake. The later broad page is dominated by newer reports and does not preserve the full earlier agenda on its own; dated retained intake and independent shared discovery are both needed."
+  },
+  "rejected_candidate": {
+    "commit": "3b454943",
+    "defect": "Direct market-wide Alpaca acquisition inside Home created a consumer-local bypass and shadow intake/status datasets, contrary to producer ownership and the owner instruction.",
+    "deployed": false,
+    "correction": "Removed Home direct provider acquisition and its datasets/config. Broadened the existing news producer instead. Shared AQL research and complete final-source handoff remain in the established engine."
+  },
+  "scheduling": {
+    "news_cron_utc": "5 14,20 * * 1-5",
+    "home_cron_utc": "50 14,16,18,20 * * 1-5",
+    "dependency": "Existing independent schedules; Home reads latest published datasets, with no news-completion trigger. No schedule change is included."
+  },
+  "shared_producer_source_check": {
+    "inference_started": false,
+    "cases": [
+      {
+        "case": "morning-producer",
+        "asof_utc": "2026-10-28T14:05:00+00:00",
+        "rows": 50,
+        "sha256": "3c6cd2c1e2e9d6aaab5ad9929e18a12315669f2a1a2b91433261b154f55c5fcb",
+        "full_content_present": 44
+      },
+      {
+        "case": "afternoon-producer",
+        "asof_utc": "2026-10-28T20:05:00+00:00",
+        "rows": 50,
+        "sha256": "bd3f0da4da9cf94e6847889a0c7a0e4e8673032efc33963fcb5f7e85c628f787",
+        "full_content_present": 4
+      }
+    ],
+    "finding": "Actual producer-time queries retain the broad source response. The morning latest50 spans only minutes of a high-volume feed; the afternoon page contains Fed reporting and current Microsoft/Alphabet earnings headlines. A bounded broad page alone is not exhaustive and must not replace selected-company intake. The producer retains both scopes; current follow-up remains in the existing shared engine.",
+    "quality_acceptance": "Source acquisition evidence only; no new generated output has been accepted."
+  },
+  "quality_review": "quality-review.json",
+  "continuation": {
+    "status": "source_execution_corrected_qualitative_rejected",
+    "evidence": "quality-review.json continuation",
+    "finding": "Broad result counts cancelled explicitly selected subject searches; preview truncation discarded later captures. Existing shared acquisition now executes bounded explicit focus and retains all captures. Live original-request replay retained17 sources including Microsoft. Allocation/ranking and final explanation still fail complete-output review."
+  }
+}

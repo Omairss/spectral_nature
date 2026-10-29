@@ -77,6 +77,7 @@ export type PaperCall = {
   unrealized_pl?: number;
   return_pct?: number;
   average_entry?: number;
+  mark_price?: number;
   entry_capital?: number;
   opened_at?: string;
   closed_at?: string;
@@ -104,7 +105,16 @@ export type Workspace = {
   working_orders: Array<Record<string, string | number>>;
   next_cursor?: string;
   policy: TradingPolicy;
-  track_record: Record<string, number>;
+  track_record: {
+    executed_calls: number;
+    closed_calls: number;
+    realized_pl: number | null;
+    unrealized_pl: number | null;
+    win_rate_pct: number | null;
+    profit_factor: number | null;
+    calls_needing_reconciliation: number;
+    since: string | null;
+  };
   capabilities: Record<string, boolean>;
 };
 export type OrderAction = {
@@ -175,6 +185,7 @@ export function PortfolioTimeline({
   refreshing: boolean;
   onRefresh: () => void;
 }) {
+  const displayedPeriod=portfolio?.period||period;
   const summary = portfolio?.summary || {};
   const path = portfolio?.path || [];
   const available = ["available", "partial"].includes(portfolio?.status || "");
@@ -201,12 +212,16 @@ export function PortfolioTimeline({
         <>
           <div className={styles.equity}>{money(summary.equity)}</div>
           <div className={styles.change}>
-            <strong className={(portfolio?.profit_loss ?? 0) < 0 ? styles.negative : undefined}>
+            <strong
+              className={
+                (portfolio?.profit_loss ?? 0) < 0 ? styles.negative : undefined
+              }
+            >
               {money(portfolio?.profit_loss)}{" "}
               <span>({pct(portfolio?.return_pct)})</span>
             </strong>
             <span>
-              {period === "ALL" ? "All time" : period} · cashflow adjusted
+              {displayedPeriod === "ALL" ? "All time" : displayedPeriod} · cashflow adjusted
             </span>
           </div>
           {path.length ? (
@@ -263,13 +278,13 @@ export function PortfolioTimeline({
           <MetricStrip
             items={[
               { label: "Cash", value: money(summary.cash) },
-              { label: "Buying power", value: money(summary.buying_power) },
+              { label: "Open P/L", value: money(summary.unrealized_pl) },
               {
-                label: `${period} drawdown`,
+                label: `${displayedPeriod} drawdown`,
                 value: pct(portfolio?.max_drawdown_pct),
               },
               {
-                label: `${period} Sharpe`,
+                label: `${displayedPeriod} Sharpe`,
                 value: portfolio?.performance?.sharpe_ratio?.toFixed(2) ?? "—",
               },
             ]}
@@ -531,6 +546,30 @@ export function PaperCallDetail({
             }}
             rowCount={detail.path.length}
           />
+        ) : null}
+        {performance.entry_capital ? (
+          <MetricStrip
+            items={[
+              {
+                label: "Average entry",
+                value: money(performance.average_entry),
+              },
+              {
+                label: "Filled capital",
+                value: money(performance.entry_capital),
+              },
+              { label: "Remaining shares", value: performance.quantity ?? "—" },
+              { label: "Current mark", value: money(performance.mark_price) },
+            ]}
+          />
+        ) : null}
+        {performance.entry_capital ? (
+          <p className={styles.meta}>
+            Fills and linked fees ·{" "}
+            {performance.status === "closed"
+              ? `Closed ${timestamp(performance.closed_at)}`
+              : `As of ${timestamp(performance.as_of)}`}
+          </p>
         ) : null}
         <div className={styles.body}>
           <p>{String(candidate.hypothesis || candidate.setup || "")}</p>

@@ -103,6 +103,43 @@ class RecordingAlpacaAPI(AlpacaAPI):
         return {"timestamp": [], "equity": [], "profit_loss": [], "profit_loss_pct": []}
 
 
+def test_alpaca_market_wide_news_omits_symbol_filter_and_keeps_empty_selection_no_query():
+    api = RecordingAlpacaAPI()
+    assert api.get_news([]).empty
+    assert api.last_request is None
+    assert api.get_news(None, end=datetime(2026, 10, 28, 18, 35, tzinfo=timezone.utc), limit=50).empty
+    request = api.last_request
+    assert request["path"] == "/v1beta1/news"
+    assert "symbols" not in request["params"]
+    assert request["params"]["include_content"] == "true"
+    assert request["params"]["sort"] == "desc"
+    assert request["params"]["end"] == "2026-10-28T18:35:00+00:00"
+
+
+def test_alpaca_news_paginates_to_caller_limit():
+    class PagedAPI(RecordingAlpacaAPI):
+        def __init__(self):
+            super().__init__()
+            self.requests = []
+
+        def _request(self, method, base_url, path, params=None, timeout=25):
+            self.requests.append(dict(params))
+            offset = 50 if params.get("page_token") else 0
+            return {"news": [
+                {"id": index, "headline": f"Report {index}", "symbols": [],
+                 "created_at": "2026-10-28T18:00:00Z"}
+                for index in range(offset, offset + 50)
+            ], "next_page_token": "second" if offset == 0 else "third"}
+
+    api = PagedAPI()
+    frame = api.get_news(None, limit=75)
+    assert len(frame) == 75
+    assert set(frame["id"]) == set(range(75))
+    assert len(api.requests) == 2
+    assert all(request["limit"] == 50 and "symbols" not in request for request in api.requests)
+    assert api.requests[1]["page_token"] == "second"
+
+
 class RecordingBarsAPI(AlpacaAPI):
     def __init__(self):
         super().__init__(

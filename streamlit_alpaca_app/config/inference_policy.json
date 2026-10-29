@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-28.1",
+  "version": "2026-10-28.2",
   "profiles": {
     "baseline": {
       "models": {},
@@ -30,11 +30,6 @@
         {
           "surface": "pipeline.ticker_business_model_stack.research_followup",
           "purpose": "agent.research_step",
-          "role": "economy"
-        },
-        {
-          "surface": "research.search_evidence",
-          "purpose": "retrieval.plan.direct",
           "role": "economy"
         }
       ],

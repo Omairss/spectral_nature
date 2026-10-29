@@ -1286,12 +1286,13 @@ def paper_state(
         with _paper_connection() as conn, conn.cursor() as cur:
             cur.execute(
                 f"""SELECT id,candidate_id,parent_call_id,intent,proposed_at,valid_until,decision,decided_at,
-                performance_json AS performance,
+                (performance_json - 'fills') || jsonb_build_object('fill_count',jsonb_array_length(COALESCE(performance_json->'fills','[]'::jsonb))) AS performance,
                 jsonb_build_object('candidate_id',candidate_id,'ticker',candidate_json->'ticker',
                     'stance',candidate_json->'stance','hypothesis',candidate_json->'hypothesis',
                     'setup',candidate_json->'setup','horizon_label',candidate_json->'horizon_label',
                     'horizon_key',candidate_json->'horizon_key','reason',candidate_json->'reason',
                     'quantity_fraction',candidate_json->'quantity_fraction','quantity',candidate_json->'quantity',
+                    'proposal_source',candidate_json->'proposal_source',
                     'reference_price',candidate_json#>'{{forecast,reference_price}}') AS candidate
                 FROM {schema}.paper_trading_calls WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
                 AND environment=%s ORDER BY proposed_at DESC,id""",
@@ -1349,6 +1350,20 @@ def paper_state(
             "policy": {},
             "activities": [],
         }
+
+
+def paper_policy(context: Any, *, environment: str) -> dict:
+    schema = auth_store.auth_store_schema_name()
+    try:
+        with _paper_connection() as conn, conn.cursor() as cur:
+            cur.execute(
+                f"SELECT mode,entries_paused,risk_json AS risk_policy,revision,account_binding,updated_at FROM {schema}.paper_trading_policy WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s",
+                _paper_scope(context, environment),
+            )
+            rows = _paper_rows(cur)
+        return rows[0] if rows else {}
+    except UndefinedTable:
+        return {}
 
 
 def paper_call(
@@ -1563,18 +1578,31 @@ def retain_paper_order(
 def save_paper_performance(
     context: Any, *, environment: str, call_id: str, performance: dict
 ) -> None:
+    save_paper_performances(
+        context, environment=environment, performances={call_id: performance}
+    )
+
+
+def save_paper_performances(
+    context: Any, *, environment: str, performances: dict[str, dict]
+) -> None:
+    if not performances:
+        return
     schema = auth_store.auth_store_schema_name()
     with _paper_connection() as conn, conn.cursor() as cur:
-        cur.execute(
+        cur.executemany(
             f"""UPDATE {schema}.paper_trading_calls SET performance_json=%s::jsonb
             WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND id=%s
             AND (performance_json->>'as_of' IS NULL OR (performance_json->>'as_of')::timestamptz<=%s::timestamptz)""",
-            (
-                json.dumps(performance, default=str),
-                *_paper_scope(context, environment),
-                call_id,
-                performance.get("as_of"),
-            ),
+            [
+                (
+                    json.dumps(result, default=str),
+                    *_paper_scope(context, environment),
+                    call_id,
+                    result.get("as_of"),
+                )
+                for call_id, result in performances.items()
+            ],
         )
 
 

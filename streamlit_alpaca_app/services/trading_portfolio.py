@@ -10,7 +10,7 @@ import hashlib
 import json
 from typing import Any
 
-from compute.paper_portfolio import attribute_fills, number
+from compute.paper_portfolio import attribute_fills, number, call_track_record
 from compute.paper_sizing import RiskPolicy
 from services import brokerage_mcp_store as store
 from services.json_utils import to_jsonable
@@ -74,11 +74,15 @@ def account_binding(link: dict) -> str:
     ).hexdigest()
 
 
-def policy(context: Any) -> dict:
+def policy(context: Any, *, saved_policy: dict | None = None) -> dict:
     from services.alpaca_paper import _admin, environment_name, connection
 
     _admin(context)
-    saved = store.paper_state(context, environment=environment_name())["policy"]
+    saved = (
+        saved_policy
+        if saved_policy is not None
+        else store.paper_policy(context, environment=environment_name())
+    )
     result = {
         "mode": "approval",
         "entries_paused": False,
@@ -230,6 +234,15 @@ def build(context: Any, view: dict, *, before: tuple[str, str] | None = None) ->
                 "status": "expired" if end and end < now else "pending",
             }
         )
+    unresolved_actions = {
+        o["action_id"]
+        for o in saved["orders"]
+        if o["data"].get("status") in {"pending_submit", "submission_unknown"}
+    }
+    proposals = [
+        {**p, "status": "reconciling"} if p["call_id"] in unresolved_actions else p
+        for p in proposals
+    ]
     proposals.sort(
         key=lambda c: (c.get("status") == "pending", str(c.get("proposed_at") or "")),
         reverse=True,
@@ -256,8 +269,6 @@ def build(context: Any, view: dict, *, before: tuple[str, str] | None = None) ->
         for r in calls
         if r["intent"] == "entry"
     ]
-    executed = [r for r in performance_calls if r.get("status") in {"open", "closed"}]
-    closed = [r for r in executed if r["status"] == "closed"]
     return to_jsonable(
         {
             "status": saved["status"],
@@ -268,14 +279,8 @@ def build(context: Any, view: dict, *, before: tuple[str, str] | None = None) ->
             ],
             "activity": events,
             "next_cursor": next_cursor,
-            "policy": policy(context),
-            "track_record": {
-                "executed_calls": len(executed),
-                "closed_calls": len(closed),
-                "profitable_calls": sum((r.get("pl") or 0) > 0 for r in closed),
-                "realized_pl": sum(r.get("realized_pl") or 0 for r in executed),
-                "unrealized_pl": sum(r.get("unrealized_pl") or 0 for r in executed),
-            },
+            "policy": policy(context, saved_policy=saved["policy"]),
+            "track_record": call_track_record(performance_calls, saved["orders"]),
             "capabilities": {
                 "paper_account": True,
                 "order_review": True,
@@ -368,8 +373,10 @@ def reconcile(context: Any, link: dict, snapshot: dict) -> None:
     with store._paper_connection() as conn, conn.cursor() as cur:
         cur.execute(
             f"""SELECT id,created_at,request_summary_json AS payload,result_summary_json AS result
-            FROM {schema}.brokerage_order_tickets WHERE user_id=%s::uuid AND connection_id=%s::uuid
-            AND environment=%s AND provider='alpaca_paper' AND status IN ('executed','executing','unknown')""",
+            FROM {schema}.brokerage_order_tickets t WHERE user_id=%s::uuid AND connection_id=%s::uuid
+            AND environment=%s AND provider='alpaca_paper' AND (status IN ('executing','unknown') OR
+            (status='executed' AND COALESCE(request_summary_json->>'intent','entry')<>'cancel' AND NOT EXISTS
+                (SELECT 1 FROM {schema}.paper_trading_orders o WHERE o.ticket_id=t.id)))""",
             (context.user_id, link["id"], env),
         )
         tickets = store._paper_rows(cur)
@@ -468,6 +475,15 @@ def reconcile(context: Any, link: dict, snapshot: dict) -> None:
         )
         if not mapping:
             continue
+        current_call = next(
+            (c for c in state["calls"] if c["id"] == mapping["action_id"]), {}
+        )
+        selected_item = {k: item[k] for k in ORDER_FIELDS if k in item}
+        if (
+            mapping["data"] == selected_item
+            and current_call.get("decision") != "pending"
+        ):
+            continue
         # Keep the original ticket identity when refreshing mutable broker state.
         with store._paper_connection() as conn, conn.cursor() as cur:
             cur.execute(
@@ -546,6 +562,8 @@ def reconcile(context: Any, link: dict, snapshot: dict) -> None:
         as_of=as_of,
     )
     marks = []
+    updates = {}
+    previous = {c["id"]: c.get("performance") or {} for c in state["calls"]}
     for call_id, result in valued.items():
         if not details.get("activities_complete") and result["fills"]:
             result.update(
@@ -554,9 +572,14 @@ def reconcile(context: Any, link: dict, snapshot: dict) -> None:
                 return_pct=None,
                 unrealized_pl=None,
             )
-        store.save_paper_performance(
-            context, environment=env, call_id=call_id, performance=result
-        )
+        summary = {k: v for k, v in result.items() if k not in {"as_of", "fills"}}
+        summary["fill_count"] = len(result["fills"])
+        old_summary = {
+            k: v for k, v in previous.get(call_id, {}).items() if k != "as_of"
+        }
+        if result["status"] == "closed" and summary == old_summary:
+            continue
+        updates[call_id] = result
         if result.get("pl") is None or not result["fills"]:
             continue
         observed = result.get("closed_at") or as_of
@@ -583,6 +606,7 @@ def reconcile(context: Any, link: dict, snapshot: dict) -> None:
                 "payload": {"date": first, "pl": 0, "return_pct": 0},
             }
         )
+    store.save_paper_performances(context, environment=env, performances=updates)
     store.retain_paper_events(context, environment=env, events=marks)
 
 
@@ -632,6 +656,7 @@ def run_portfolios(*, run_id: str, llm_client: Any) -> None:
             **{**owner, "share_fraction": float(owner["share_fraction"])}
         )
         try:
+            retain(context, [])
             alpaca_paper.refresh(context)
             view = build_trading_agent_view(context)
             workspace = view["workspace"]
@@ -644,6 +669,7 @@ def run_portfolios(*, run_id: str, llm_client: Any) -> None:
                 ]
                 evidence = {
                     "account": view["paper_portfolio"],
+                    "recent_activity": workspace["activity"],
                     "open_calls": [
                         {
                             "call_id": c["id"],
@@ -722,6 +748,18 @@ def run_portfolios(*, run_id: str, llm_client: Any) -> None:
                         Decimal("0.000001"), rounding=ROUND_DOWN
                     )
                     if quantity <= 0:
+                        store.paper_event(
+                            context,
+                            environment=env,
+                            identity="quantity:" + run_id + ":" + call["call_id"],
+                            kind="action_needs_review",
+                            call_id=call["call_id"],
+                            occurred_at=datetime.now(timezone.utc),
+                            payload={
+                                "ticker": call["ticker"],
+                                "reason": "The proposed reduction is below the share increment.",
+                            },
+                        )
                         continue
                     proposal = {
                         **original,
@@ -730,6 +768,7 @@ def run_portfolios(*, run_id: str, llm_client: Any) -> None:
                             (run_id + call["call_id"]).encode()
                         ).hexdigest()[:40],
                         "intent": action,
+                        "proposal_source": "agent",
                         "parent_call_id": call["call_id"],
                         "quantity": str(quantity),
                         "quantity_fraction": float(fraction),
@@ -742,6 +781,18 @@ def run_portfolios(*, run_id: str, llm_client: Any) -> None:
                 latest = build_trading_agent_view(context)["workspace"]
                 enabled = _date(saved.get("updated_at"))
                 for proposal in latest["proposals"]:
+                    if (
+                        proposal.get(
+                            "proposal_source",
+                            (
+                                "agent"
+                                if proposal.get("intent", "entry") == "entry"
+                                else "owner"
+                            ),
+                        )
+                        != "agent"
+                    ):
+                        continue
                     proposed = _date(proposal.get("proposed_at"))
                     if (
                         proposal["status"] != "pending"
@@ -781,12 +832,18 @@ def run_portfolios(*, run_id: str, llm_client: Any) -> None:
                             payload={"ticker": proposal["ticker"], "reason": str(exc)},
                         )
         except Exception as exc:
-            store.paper_event(
-                context,
-                environment=env,
-                identity="monitor:" + run_id + ":" + context.portfolio_id,
-                kind="monitor_unavailable",
-                occurred_at=datetime.now(timezone.utc),
-                payload={},
-            )
+            from services.llm_execution import record_execution_issue
+
+            record_execution_issue("paper_portfolio", exc)
+            try:
+                store.paper_event(
+                    context,
+                    environment=env,
+                    identity="monitor:" + run_id + ":" + context.portfolio_id,
+                    kind="monitor_unavailable",
+                    occurred_at=datetime.now(timezone.utc),
+                    payload={},
+                )
+            except Exception as persistence_error:
+                record_execution_issue("paper_portfolio.persistence", persistence_error)
             print(f"[warn] paper portfolio monitor failed: {type(exc).__name__}")

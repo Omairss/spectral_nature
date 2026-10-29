@@ -184,6 +184,7 @@ def news_execution(durable_store, monkeypatch):
     monkeypatch.setattr(jobs, "write_execution_state", pipeline_store.write_execution_state)
     monkeypatch.setattr(jobs, "execution_ownership", ownership)
     monkeypatch.setattr(pipeline_store, "retain_job_execution_receipt", receipts.append)
+    monkeypatch.setattr(pipeline_store, "restore_execution_publications", lambda **kwargs: {})
     return SimpleNamespace(jobs=jobs, clock=clock, receipts=receipts, state=durable_store)
 
 
@@ -323,6 +324,7 @@ def test_platform_retry_waits_for_a_dead_replicas_producer_lease(durable_store, 
     monkeypatch.setattr(jobs, "execution_ownership", ownership)
     monkeypatch.setattr(jobs, "run_news", lambda ctx, conn: resumed.append(ctx))
     monkeypatch.setattr(pipeline_store, "retain_job_execution_receipt", lambda *args: None)
+    monkeypatch.setattr(pipeline_store, "restore_execution_publications", lambda **kwargs: {})
     jobs.main()
     assert waited == [315]
     assert len(resumed) == 1 and resumed[0].run_id == "original-replica"
@@ -366,7 +368,9 @@ def test_company_refresh_reuses_across_runs_but_reacts_to_evidence_and_deadline(
     kwargs = dict(symbol="EXAMPLE", llm_client=model(), run_id="first",
                   asof_time_utc="2026-10-26T14:00:00+00:00")
     original = work(**kwargs)
-    reused = work(**{**kwargs, "run_id": "second", "asof_time_utc": "2026-10-26T16:00:00+00:00"})
+    with monkeypatch.context() as cached:
+        cached.setattr(execution, "protect_core_research", lambda **kw: pytest.fail("Cached work reserved new expensive completion"))
+        reused = work(**{**kwargs, "run_id": "second", "asof_time_utc": "2026-10-26T16:00:00+00:00"})
     assert reused.run_id == original.run_id and reused.asof_time_utc == original.asof_time_utc
     assert reused.business_story_markdown == original.business_story_markdown and len(calls) == 1
     news = pd.DataFrame([dict(symbols=["EXAMPLE"], headline="New evidence", published_at="2026-10-26T16:00Z")])
@@ -488,3 +492,26 @@ def test_wallet_reserves_concurrent_requests_and_reconciles_without_generation(d
     refreshed = durable_store[("provider_budget", execution._account_key(config))]
     assert "two" not in refreshed["reservations"] and "one" in refreshed["reservations"]
     assert len(probes) == 2
+
+
+def test_expired_company_check_assesses_freshness_without_redating_or_rebuying_completed_research(durable_store, monkeypatch):
+    calls=[];assessments=[]
+    @company._checkpoint_company_research
+    def work(**kwargs):
+        calls.append(kwargs)
+        return result_for(kwargs)
+    kwargs=dict(symbol='EXAMPLE',llm_client=model(),run_id='original',asof_time_utc='2026-10-26T14:00:00+00:00')
+    original=work(**kwargs)
+    state=next(value for (ns,key),value in durable_store.items() if ns.endswith(':company_workflow'))
+    state['started_at']-=86401
+    def assess(**kwargs):
+        assessments.append(kwargs)
+        return {'status':'completed','payload':{'refresh_required':False,'reason':'Reuse decision supplied by the model','changed_claims':[]}}
+    monkeypatch.setattr(company,'_assess_company_refresh',assess)
+    with monkeypatch.context() as cached:
+        cached.setattr(execution,'protect_core_research',lambda **kw:pytest.fail('Reuse bought a new full investigation'))
+        reused=work(**{**kwargs,'run_id':'current','asof_time_utc':'2026-10-28T14:00:00+00:00'})
+    assert len(calls)==1 and len(assessments)==1 and assessments[0]['freshness_check_due'] is True
+    assert assessments[0]['current_asof']=='2026-10-28T14:00:00+00:00'
+    assert reused.asof_time_utc==original.asof_time_utc and reused.run_id==original.run_id
+    assert state['checked_at']>state['started_at']+86400

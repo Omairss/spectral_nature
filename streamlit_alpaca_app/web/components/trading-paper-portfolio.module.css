@@ -365,4 +365,6 @@
   }
 }
 
-.change .negative { color: #ee9292; }
+.change .negative {
+  color: #ee9292;
+}

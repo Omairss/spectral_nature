@@ -10,6 +10,7 @@ import {
   ProposalCard,
   riskLabels,
   money,
+  pct,
   type OrderAction,
   type PaperCall,
   type PaperPortfolio,
@@ -43,10 +44,12 @@ export default function TradingAgentPage() {
   const [research, setResearch] = useState<TrackedPaperCall | null>(null);
   const refreshingRef = useRef(false),
     loadId = useRef(0);
+  const periodRef=useRef("1M");
   const load = useCallback(async () => {
     const id = ++loadId.current;
+    const requestedPeriod=periodRef.current;
     try {
-      const response = await fetch(`/api/trading-agent?period=${period}`, {
+      const response = await fetch(`/api/trading-agent?period=${requestedPeriod}`, {
         cache: "no-store",
       });
       if (!response.ok)
@@ -54,15 +57,15 @@ export default function TradingAgentPage() {
           await responseError(response, "Trading could not be loaded."),
         );
       const next = await response.json();
-      if (id === loadId.current) {
+      if (id === loadId.current && requestedPeriod===periodRef.current) {
         setView(next);
         setError("");
       }
     } catch (e) {
-      if (id === loadId.current)
+      if (id === loadId.current && requestedPeriod===periodRef.current)
         setError(e instanceof Error ? e.message : "Trading unavailable.");
     }
-  }, [period]);
+  }, []);
   const refresh = useCallback(async () => {
     if (refreshingRef.current) return;
     refreshingRef.current = true;
@@ -86,7 +89,7 @@ export default function TradingAgentPage() {
     if (!session?.authenticated) return;
     const timer = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timer);
-  }, [session?.authenticated, load]);
+  }, [session?.authenticated, load,period]);
   const linked =
     view?.paper_portfolio &&
     !["unlinked", "unavailable"].includes(view.paper_portfolio.status);
@@ -233,7 +236,7 @@ export default function TradingAgentPage() {
       <PortfolioTimeline
         portfolio={view?.paper_portfolio}
         period={period}
-        onPeriod={setPeriod}
+        onPeriod={value=>{periodRef.current=value;setPeriod(value);}}
         refreshing={refreshing}
         onRefresh={() => void refresh()}
       />
@@ -378,18 +381,34 @@ export default function TradingAgentPage() {
                       {money(p.unrealized_pl)}
                     </p>
                   </div>
-                  <button
-                    className="quiet-button"
-                    onClick={() =>
-                      setReview({
-                        ticker: String(p.symbol),
-                        symbol: String(p.symbol),
-                        intent: "close",
-                      })
-                    }
-                  >
-                    Review close
-                  </button>
+                  {executed.some(
+                    (c) => c.ticker === String(p.symbol) && c.status === "open",
+                  ) ? (
+                    <details>
+                      <summary>Manage calls</summary>
+                      <CallRows
+                        calls={executed.filter(
+                          (c) =>
+                            c.ticker === String(p.symbol) &&
+                            c.status === "open",
+                        )}
+                        onSelect={setDetail}
+                      />
+                    </details>
+                  ) : (
+                    <button
+                      className="quiet-button"
+                      onClick={() =>
+                        setReview({
+                          ticker: String(p.symbol),
+                          symbol: String(p.symbol),
+                          intent: "close",
+                        })
+                      }
+                    >
+                      Review close
+                    </button>
+                  )}
                 </div>
               ))
             ) : (
@@ -402,7 +421,7 @@ export default function TradingAgentPage() {
         <>
           <section className="workbook-panel">
             <header className="panel-header">
-              <h2>Agent track record</h2>
+              <h2>Agent track record · all time</h2>
             </header>
             <MetricStrip
               items={[
@@ -422,8 +441,23 @@ export default function TradingAgentPage() {
                   label: "Unrealized P/L",
                   value: money(workspace?.track_record.unrealized_pl),
                 },
+                {
+                  label: "Win rate · closed calls",
+                  value: pct(workspace?.track_record.win_rate_pct),
+                },
+                {
+                  label: "Profit factor · closed calls",
+                  value:
+                    workspace?.track_record.profit_factor?.toFixed(2) ?? "—",
+                },
               ]}
             />
+            {workspace?.track_record.calls_needing_reconciliation ? (
+              <p className={styles.body}>
+                {workspace.track_record.calls_needing_reconciliation} calls need
+                reconciliation.
+              </p>
+            ) : null}
             {executed.length ? (
               <CallRows calls={executed} onSelect={setDetail} />
             ) : (
