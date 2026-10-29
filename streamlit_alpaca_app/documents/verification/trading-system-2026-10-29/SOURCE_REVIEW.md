@@ -21,6 +21,9 @@ Production core-work credit, economical continuation, browser process-group canc
 
 ## Local verification before packaging
 
-96 targeted checks pass: account snapshots, paper sizing/order boundaries, new fill accounting and database ownership/CAS/retry behavior, numerical sandbox, inference transport, tool schemas, and news adapters. PostgreSQL runs only in a disposable local UTF8 database on port 55439. All Swift sources pass iOS Simulator SDK type checking. Web TypeScript and focused ESLint pass. Python module compilation and Git whitespace checks pass.
+98 targeted checks pass: account snapshots, paper sizing/order boundaries, new fill accounting and database ownership/CAS/retry behavior, numerical sandbox, inference transport, tool schemas, and news adapters. PostgreSQL runs only in a disposable local UTF8 database on port 55439. All Swift sources pass iOS Simulator SDK type checking. Web TypeScript and focused ESLint pass. Python module compilation and Git whitespace checks pass.
 
 This source review authorizes local packaging for actual visual/runtime inspection. Packaged-image verification, populated/empty visual review and DEV deployment receipts are separate records; they must pass before DEV delivery is called complete. No new LLM thesis-quality or portfolio-return claim is made by software checks.
+
+
+Populated web and signed Simulator screens were personally inspected through the actual product components against a loopback-only display fixture. The account timeline, approval review, call P/L chart and position controls render correctly; screenshots are adjacent. This fixture has no broker credentials and refuses confirmation. Live DEV account and deployed package checks remain separate. Final native navigation uses a single sheet state, and autopilot consent is bound to the exact connected paper account.

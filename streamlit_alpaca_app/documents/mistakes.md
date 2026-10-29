@@ -1305,3 +1305,5 @@ The first iPhone metric integration attempted a broad merge between DEV maintena
 ### October 29 · Trading implementation
 
 Implementation requests must produce product changes. A design-only preview did not fulfill the Trading request. During source reconciliation, a greedy conflict-marker regex briefly truncated local files; restored original merge conflicts from Git and resolved with bounded marker matching before any build. Review full functions after mechanical resolution.
+
+Use absolute application paths for scripted edits in a worktree. Several local commands ran from the repository root or web subdirectory and failed before changing their intended files; the misplaced owned verification file was moved into documents/ and empty directories removed. The complete live-consumer preflight also caught a production API entry omitted by a mechanical acceptance-record merge; restore its exact prior package proof and preserve its live image.

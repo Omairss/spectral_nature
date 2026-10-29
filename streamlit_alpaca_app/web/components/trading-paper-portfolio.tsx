@@ -201,7 +201,7 @@ export function PortfolioTimeline({
         <>
           <div className={styles.equity}>{money(summary.equity)}</div>
           <div className={styles.change}>
-            <strong>
+            <strong className={(portfolio?.profit_loss ?? 0) < 0 ? styles.negative : undefined}>
               {money(portfolio?.profit_loss)}{" "}
               <span>({pct(portfolio?.return_pct)})</span>
             </strong>

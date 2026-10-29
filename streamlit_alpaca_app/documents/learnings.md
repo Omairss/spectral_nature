@@ -1377,3 +1377,5 @@ A DEV-only feature branch need not be merged wholesale to deliver a shared fix. 
 ### October 29 · Trading implementation
 
 Trading has two distinct accounting authorities: broker equity/fills for the paper portfolio and explicit order-to-call allocations for agent performance. Historical research approvals are observations, not filled positions. Keep unresolved proposals durable beyond a research batch, and revalidate every exact order under the account lock.
+
+A single sheet state owns native Trading order/call/settings navigation; sheet replacement handles call-to-order transitions without timing-based dismissal delays. One-day paper performance starts at the preceding daily close so the intraday chart includes overnight P/L.

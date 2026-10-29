@@ -1,6 +1,17 @@
 import Charts
 import SwiftUI
 
+private enum TradingPresentation: Identifiable {
+  case order(TradingRow), call(TradingRow), settings
+  var id: String {
+    switch self {
+    case .order(let row): "order:" + row.id
+    case .call(let row): "call:" + row.id
+    case .settings: "settings"
+    }
+  }
+}
+
 struct TradingView: View {
   @EnvironmentObject private var session: AppSession
   @Environment(\.scenePhase) private var scenePhase
@@ -12,9 +23,7 @@ struct TradingView: View {
   @State private var busy = false
   @State private var error = ""
   @State private var notice = ""
-  @State private var selectedAction: TradingRow?
-  @State private var selectedCall: TradingRow?
-  @State private var settings = false
+  @State private var presentation: TradingPresentation?
   @State private var earlierEvents: [Record] = []
   @State private var cursor = ""
   private var paper: Record { resource.value?["paper_portfolio"].dictionaryValue ?? [:] }
@@ -42,7 +51,7 @@ struct TradingView: View {
         }
       }.padding(.horizontal, 20).padding(.vertical, 20)
     }.navigationTitle("Trading").navigationBarTitleDisplayMode(.inline).workbench()
-      .toolbar { ToolbarItem(placement: .topBarTrailing) { Button { settings = true } label: { Image(systemName: "slider.horizontal.3") }.accessibilityLabel("Trading settings").disabled(policy.isEmpty) } }
+      .toolbar { ToolbarItem(placement: .topBarTrailing) { Button { presentation = .settings } label: { Image(systemName: "slider.horizontal.3") }.accessibilityLabel("Trading settings").disabled(policy.isEmpty) } }
       .researchContext("Paper Trading; period=\(period)")
       .refreshable { await refresh() }
       .task(id: period) { await load() }
@@ -53,24 +62,21 @@ struct TradingView: View {
           do { try await Task.sleep(for: .seconds(60)) } catch { return }
         }
       }
-      .sheet(item: $selectedAction) { action in
-        PaperOrderReviewView(candidate: action.record, initialPolicy: policy.object("risk_policy")) { receipt in
-          notice = action.record.text("intent") == "cancel" ? "Cancellation requested" : "Paper order submitted: \(receipt.text("side")) \(receipt.text("qty")) \(receipt.text("symbol"))"
-          selectedAction = nil
-          await refresh()
-        }
-      }
-      .sheet(item: $selectedCall) { item in
-        PaperCallDetailView(call: item.record) { action in
-          selectedCall = nil
-          Task { @MainActor in
-            await Task.yield()
-            selectedAction = TradingRow(record: action, key: "call_id")
+      .sheet(item: $presentation) { selection in
+        switch selection {
+        case .order(let action):
+          PaperOrderReviewView(candidate: action.record, initialPolicy: policy.object("risk_policy")) { receipt in
+            notice = action.record.text("intent") == "cancel" ? "Cancellation requested" : "Paper order submitted: \(receipt.text("side")) \(receipt.text("qty")) \(receipt.text("symbol"))"
+            presentation = nil
+            await refresh()
           }
+        case .call(let item):
+          PaperCallDetailView(call: item.record) { action in
+            presentation = .order(TradingRow(record: action, key: "call_id"))
+          }
+        case .settings:
+          TradingPolicyView(policy: policy) { next in await savePolicy(next); return error }
         }
-      }
-      .sheet(isPresented: $settings) {
-        TradingPolicyView(policy: policy) { next in await savePolicy(next); return error }
       }
   }
   private var controls: some View {
@@ -89,7 +95,7 @@ struct TradingView: View {
   }
   @ViewBuilder private var activity: some View {
     ForEach(pending.map { TradingRow(record: $0, key: "candidate_id") }) { item in
-      TradingProposalCard(call: item.record, busy: busy, approve: { selectedAction = item }, deny: { Task { await deny(item.record) } }, detail: { selectedCall = TradingRow(record: item.record, key: "call_id") })
+      TradingProposalCard(call: item.record, busy: busy, approve: { presentation = .order(item) }, deny: { Task { await deny(item.record) } }, detail: { presentation = .call(TradingRow(record: item.record, key: "call_id")) })
     }
     if !workspace.rows("working_orders").isEmpty {
       TradingSurface {
@@ -102,7 +108,7 @@ struct TradingView: View {
               Text(item.record.text("status").replacingOccurrences(of: "_", with: " ")).font(.caption2).foregroundStyle(Theme.secondaryText)
             }
             Spacer()
-            Button("Cancel") { selectedAction = TradingRow(record: ["ticker": .string(item.record.text("symbol")), "intent": .string("cancel"), "order_id": .string(item.record.text("id"))], key: "order_id") }.font(.caption).disabled(item.record.text("id").isEmpty)
+            Button("Cancel") { presentation = .order(TradingRow(record: ["ticker": .string(item.record.text("symbol")), "intent": .string("cancel"), "order_id": .string(item.record.text("id"))], key: "order_id")) }.font(.caption).disabled(item.record.text("id").isEmpty)
           }
         }
       }
@@ -118,7 +124,7 @@ struct TradingView: View {
     if !expired.isEmpty {
       DisclosureGroup("Expired calls · \(expired.count)") {
         ForEach(expired.map { TradingRow(record: $0, key: "call_id") }) { item in
-          Button { selectedCall = item } label: { TradingCallRow(call: item.record) }.buttonStyle(.plain)
+          Button { presentation = .call(item) } label: { TradingCallRow(call: item.record) }.buttonStyle(.plain)
         }
       }.font(.caption).tint(Theme.secondaryText)
     }
@@ -127,14 +133,14 @@ struct TradingView: View {
     VStack(alignment: .leading, spacing: 20) {
       Text("Open calls").font(.headline)
       ForEach(calls.filter { $0.text("status") == "open" }.map { TradingRow(record: $0, key: "call_id") }) { item in
-        Button { selectedCall = item } label: { TradingCallRow(call: item.record) }.buttonStyle(.plain)
+        Button { presentation = .call(item) } label: { TradingCallRow(call: item.record) }.buttonStyle(.plain)
       }
       if !calls.contains(where: { $0.text("status") == "open" }) { Text("No open calls").font(.subheadline).foregroundStyle(Theme.secondaryText) }
       Text("Account positions").font(.headline)
       ForEach(paper.rows("holdings").map { TradingRow(record: $0, key: "symbol") }) { item in
         TradingSurface {
           HStack { Text("\(item.id) · \(item.record.text("qty")) shares").font(.subheadline.weight(.semibold)); Spacer(); Text(Format.money(item.record.number("market_value"))).font(.subheadline).monospacedDigit() }
-          HStack { Text("Unrealized \(Format.money(item.record.number("unrealized_pl")))").font(.caption).foregroundStyle(Theme.tone(item.record.number("unrealized_pl"))); Spacer(); Button("Review close") { selectedAction = TradingRow(record: ["ticker": .string(item.id), "symbol": .string(item.id), "intent": .string("close")], key: "symbol") }.font(.caption) }
+          HStack { Text("Unrealized \(Format.money(item.record.number("unrealized_pl")))").font(.caption).foregroundStyle(Theme.tone(item.record.number("unrealized_pl"))); Spacer(); Button("Review close") { presentation = .order(TradingRow(record: ["ticker": .string(item.id), "symbol": .string(item.id), "intent": .string("close")], key: "symbol")) }.font(.caption) }
         }
       }
       if paper.rows("holdings").isEmpty { Text("No open positions").font(.subheadline).foregroundStyle(Theme.secondaryText) }
@@ -146,7 +152,7 @@ struct TradingView: View {
       let stats = workspace.object("track_record")
       TradingSurface { Metrics(items: [("Filled calls", stats.text("executed_calls")), ("Closed calls", stats.text("closed_calls")), ("Realized P/L", Format.money(stats.number("realized_pl"))), ("Unrealized P/L", Format.money(stats.number("unrealized_pl")))]) }
       ForEach(calls.map { TradingRow(record: $0, key: "call_id") }) { item in
-        Button { selectedCall = item } label: { TradingCallRow(call: item.record) }.buttonStyle(.plain)
+        Button { presentation = .call(item) } label: { TradingCallRow(call: item.record) }.buttonStyle(.plain)
       }
       if calls.isEmpty { Text("No filled calls yet").font(.subheadline).foregroundStyle(Theme.secondaryText) }
       if let history = resource.value?["tracked_calls"].records, !history.isEmpty {
@@ -159,7 +165,7 @@ struct TradingView: View {
     }
   }
   private func openCall(_ id: String) {
-    if let call = (workspace.rows("calls") + workspace.rows("proposals")).first(where: { $0.text("call_id") == id }) { selectedCall = TradingRow(record: call, key: "call_id") }
+    if let call = (workspace.rows("calls") + workspace.rows("proposals")).first(where: { $0.text("call_id") == id }) { presentation = .call(TradingRow(record: call, key: "call_id")) }
   }
   private func load() async {
     await resource.load { try await session.api.get("/api/trading-agent", query: ["period": period]) }
@@ -658,7 +664,7 @@ private struct PaperOrderReviewView: View {
               if intent == "cancel" {
                 Text("\(order.text("filled_qty")) shares already filled · \(order.text("status"))").font(.caption).foregroundStyle(Theme.secondaryText)
               } else {
-                Metrics(items: [("Estimated amount", Format.money(risk.number("suggested_notional"))), ("Volatility before", Format.percent(risk.number("portfolio_volatility_before_pct"))), ("Volatility after", Format.percent(risk.number("portfolio_volatility_after_pct"))), ("Daily observations", risk.text("observations"))])
+                Metrics(items: [("Estimated amount", Format.money(risk.number("suggested_notional"))), ("Volatility before", Format.percent(risk.number("portfolio_volatility_before_pct"))), ("Volatility after", Format.percent(risk.number("portfolio_volatility_after_pct")))] + (risk.number("observations") == nil ? [] : [("Daily observations", risk.text("observations"))]))
               }
               if !risk.text("risk_error").isEmpty { Text(risk.text("risk_error")).font(.caption).foregroundStyle(Theme.coral) }
               if let expires = Format.date(review.text("expires_at")) { Text("Review expires \(expires.formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(Theme.secondaryText) }

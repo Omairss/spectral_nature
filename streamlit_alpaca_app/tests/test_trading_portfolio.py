@@ -139,6 +139,7 @@ def test_refresh_failure_keeps_last_good_component_and_timestamp(monkeypatch):
     monkeypatch.setattr(trading_portfolio,'retain',lambda *a,**kw:None)
     monkeypatch.setattr(trading_portfolio,'reconcile',lambda *a:None)
     monkeypatch.setattr(alpaca_paper.store,'retain_paper_events',lambda *a,**kw:None)
+    monkeypatch.setattr(alpaca_paper.store,'paper_state',lambda *a,**kw:{'orders':[]})
     result = alpaca_paper.refresh(context)
     assert result["status"] == "partial"
     assert result["holdings"][0]["symbol"] == "OLD"

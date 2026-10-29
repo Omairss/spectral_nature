@@ -615,6 +615,10 @@ def trading_agent_view(
     response.headers["Cache-Control"] = "private, no-store"
     try:
         return build_trading_agent_view(_require_user_context(principal),period=period,cursor=cursor)
+    except PermissionError as exc:
+        raise _error(str(exc), status.HTTP_403_FORBIDDEN)
+    except ValueError as exc:
+        raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
     except Exception:
         raise _error("Trading Agent data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -634,6 +638,8 @@ def trading_agent_decision(
         )
     except ValueError as exc:
         raise _error(str(exc), status.HTTP_400_BAD_REQUEST)
+    except PermissionError as exc:
+        raise _error(str(exc), status.HTTP_403_FORBIDDEN)
     except RuntimeError as exc:
         raise _error(str(exc), status.HTTP_503_SERVICE_UNAVAILABLE)
 

@@ -240,8 +240,9 @@ def _ensure_schema(conn: Any) -> None:
             portfolio_id UUID NOT NULL REFERENCES {schema}.portfolios(id),
             environment TEXT NOT NULL, mode TEXT NOT NULL DEFAULT 'approval',
             entries_paused BOOLEAN NOT NULL DEFAULT FALSE, risk_json JSONB NOT NULL DEFAULT '{{}}',
-            revision BIGINT NOT NULL DEFAULT 1, updated_at TIMESTAMPTZ NOT NULL,
+            revision BIGINT NOT NULL DEFAULT 1, account_binding TEXT NULL, updated_at TIMESTAMPTZ NOT NULL,
             PRIMARY KEY(user_id,portfolio_id,environment))""",
+        f"ALTER TABLE {schema}.paper_trading_policy ADD COLUMN IF NOT EXISTS account_binding TEXT NULL",
         f"""CREATE TABLE IF NOT EXISTS {schema}.paper_trading_orders (
             connection_id UUID NOT NULL REFERENCES {schema}.brokerage_connections(id),
             user_id UUID NOT NULL REFERENCES {schema}.users(id),
@@ -1253,7 +1254,7 @@ def _paper_connection(*, initialize: bool = False):
     def opened():
         conn = auth_store.open_auth_store_connection()
         if conn is None:
-            raise RuntimeError('The paper trading database is unavailable.')
+            raise RuntimeError("The paper trading database is unavailable.")
         try:
             with conn:
                 if initialize:
@@ -1261,20 +1262,30 @@ def _paper_connection(*, initialize: bool = False):
                 yield conn
         finally:
             conn.close()
+
     return opened()
 
 
 def _paper_rows(cursor: Any) -> list[dict[str, Any]]:
-    return [json.loads(json.dumps(_row_dict(cursor, row), default=str)) for row in cursor.fetchall()]
+    return [
+        json.loads(json.dumps(_row_dict(cursor, row), default=str))
+        for row in cursor.fetchall()
+    ]
 
 
-def paper_state(context: Any, *, environment: str, include_activities: bool = False,
-                before: tuple[str, str] | None = None) -> dict[str, Any]:
+def paper_state(
+    context: Any,
+    *,
+    environment: str,
+    include_activities: bool = False,
+    before: tuple[str, str] | None = None,
+) -> dict[str, Any]:
     schema = auth_store.auth_store_schema_name()
     scope = _paper_scope(context, environment)
     try:
         with _paper_connection() as conn, conn.cursor() as cur:
-            cur.execute(f'''SELECT id,candidate_id,parent_call_id,intent,proposed_at,valid_until,decision,decided_at,
+            cur.execute(
+                f"""SELECT id,candidate_id,parent_call_id,intent,proposed_at,valid_until,decision,decided_at,
                 performance_json AS performance,
                 jsonb_build_object('candidate_id',candidate_id,'ticker',candidate_json->'ticker',
                     'stance',candidate_json->'stance','hypothesis',candidate_json->'hypothesis',
@@ -1283,154 +1294,299 @@ def paper_state(context: Any, *, environment: str, include_activities: bool = Fa
                     'quantity_fraction',candidate_json->'quantity_fraction','quantity',candidate_json->'quantity',
                     'reference_price',candidate_json#>'{{forecast,reference_price}}') AS candidate
                 FROM {schema}.paper_trading_calls WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
-                AND environment=%s ORDER BY proposed_at DESC,id''', scope)
+                AND environment=%s ORDER BY proposed_at DESC,id""",
+                scope,
+            )
             calls = _paper_rows(cur)
-            cur.execute(f'''SELECT mode,entries_paused,risk_json AS risk_policy,revision,updated_at
-                FROM {schema}.paper_trading_policy WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s''', scope)
+            cur.execute(
+                f"""SELECT mode,entries_paused,risk_json AS risk_policy,revision,account_binding,updated_at
+                FROM {schema}.paper_trading_policy WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s""",
+                scope,
+            )
             policies = _paper_rows(cur)
-            cur.execute(f'''SELECT client_order_id,broker_order_id,call_id,action_id,order_json AS data,updated_at
+            cur.execute(
+                f"""SELECT client_order_id,broker_order_id,call_id,action_id,order_json AS data,updated_at
                 FROM {schema}.paper_trading_orders WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
-                AND environment=%s ORDER BY updated_at DESC''', scope)
+                AND environment=%s ORDER BY updated_at DESC""",
+                scope,
+            )
             orders = _paper_rows(cur)
-            cursor_clause = 'AND (occurred_at,id)<(%s::timestamptz,%s)' if before else ''
-            cur.execute(f'''SELECT id,kind,call_id,occurred_at,payload_json AS payload
+            cursor_clause = (
+                "AND (occurred_at,id)<(%s::timestamptz,%s)" if before else ""
+            )
+            cur.execute(
+                f"""SELECT id,kind,call_id,occurred_at,payload_json AS payload
                 FROM {schema}.paper_trading_events WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
                 AND environment=%s AND kind NOT IN ('call_mark','broker_activity','broker_revision') {cursor_clause}
-                ORDER BY occurred_at DESC,id DESC LIMIT 51''', (*scope, *(before or ())))
+                ORDER BY occurred_at DESC,id DESC LIMIT 51""",
+                (*scope, *(before or ())),
+            )
             events = _paper_rows(cur)
             activities = []
             if include_activities:
-                cur.execute(f'''SELECT payload_json AS activity FROM {schema}.paper_trading_events
+                cur.execute(
+                    f"""SELECT payload_json AS activity FROM {schema}.paper_trading_events
                     WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s
-                    AND kind='broker_activity' ORDER BY occurred_at,id''', scope)
-                activities = [row['activity'] for row in _paper_rows(cur)]
-        return {'status': 'available', 'calls': calls, 'orders': orders, 'events': events[:50],
-                'has_earlier_activity': len(events) > 50, 'policy': policies[0] if policies else {},
-                'activities': activities}
+                    AND kind='broker_activity' ORDER BY occurred_at,id""",
+                    scope,
+                )
+                activities = [row["activity"] for row in _paper_rows(cur)]
+        return {
+            "status": "available",
+            "calls": calls,
+            "orders": orders,
+            "events": events[:50],
+            "has_earlier_activity": len(events) > 50,
+            "policy": policies[0] if policies else {},
+            "activities": activities,
+        }
     except UndefinedTable:
-        return {'status': 'pending', 'calls': [], 'orders': [], 'events': [], 'policy': {}, 'activities': []}
+        return {
+            "status": "pending",
+            "calls": [],
+            "orders": [],
+            "events": [],
+            "policy": {},
+            "activities": [],
+        }
 
 
-def paper_call(context: Any, *, environment: str, identity: str) -> dict[str, Any] | None:
+def paper_call(
+    context: Any, *, environment: str, identity: str
+) -> dict[str, Any] | None:
     schema = auth_store.auth_store_schema_name()
     try:
         with _paper_connection() as conn, conn.cursor() as cur:
-            cur.execute(f'''SELECT *,candidate_json AS candidate,performance_json AS performance
+            cur.execute(
+                f"""SELECT *,candidate_json AS candidate,performance_json AS performance
                 FROM {schema}.paper_trading_calls WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
-                AND environment=%s AND (id=%s OR candidate_id=%s)''', (*_paper_scope(context, environment), identity, identity))
+                AND environment=%s AND (id=%s OR candidate_id=%s)""",
+                (*_paper_scope(context, environment), identity, identity),
+            )
             rows = _paper_rows(cur)
         return rows[0] if rows else None
     except UndefinedTable:
         return None
 
 
-def retain_paper_calls(context: Any, *, environment: str, calls: list[dict[str, Any]]) -> None:
+def retain_paper_calls(
+    context: Any, *, environment: str, calls: list[dict[str, Any]]
+) -> None:
     schema = auth_store.auth_store_schema_name()
     with _paper_connection(initialize=True) as conn, conn.cursor() as cur:
-        cur.execute(f'''INSERT INTO {schema}.paper_trading_policy(user_id,portfolio_id,environment,updated_at)
-            VALUES(%s::uuid,%s::uuid,%s,%s) ON CONFLICT DO NOTHING''', (*_paper_scope(context, environment), _now_utc()))
+        cur.execute(
+            f"""INSERT INTO {schema}.paper_trading_policy(user_id,portfolio_id,environment,updated_at)
+            VALUES(%s::uuid,%s::uuid,%s,%s) ON CONFLICT DO NOTHING""",
+            (*_paper_scope(context, environment), _now_utc()),
+        )
         for call in calls:
-            parent = call.get('parent_call_id')
+            parent = call.get("parent_call_id")
             if parent:
-                cur.execute(f'''SELECT id FROM {schema}.paper_trading_calls WHERE id=%s
-                    AND user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s''',
-                    (parent, *_paper_scope(context, environment)))
+                cur.execute(
+                    f"""SELECT id FROM {schema}.paper_trading_calls WHERE id=%s
+                    AND user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s""",
+                    (parent, *_paper_scope(context, environment)),
+                )
                 if cur.fetchone() is None:
-                    raise ValueError('The original paper call is unavailable.')
-            cur.execute(f'''INSERT INTO {schema}.paper_trading_calls
+                    raise ValueError("The original paper call is unavailable.")
+            cur.execute(
+                f"""INSERT INTO {schema}.paper_trading_calls
                 (id,user_id,portfolio_id,environment,candidate_id,parent_call_id,intent,candidate_json,
                  proposed_at,valid_until,decision)
                 VALUES(%s,%s::uuid,%s::uuid,%s,%s,%s,%s,%s::jsonb,%s,%s,%s)
-                ON CONFLICT(user_id,portfolio_id,environment,candidate_id) DO NOTHING''',
-                (call['id'], *_paper_scope(context, environment), call['candidate']['candidate_id'], parent,
-                 call['intent'], json.dumps(call['candidate'], default=str), call['proposed_at'],
-                 call.get('valid_until'), call.get('decision', 'pending')))
+                ON CONFLICT(user_id,portfolio_id,environment,candidate_id) DO NOTHING""",
+                (
+                    call["id"],
+                    *_paper_scope(context, environment),
+                    call["candidate"]["candidate_id"],
+                    parent,
+                    call["intent"],
+                    json.dumps(call["candidate"], default=str),
+                    call["proposed_at"],
+                    call.get("valid_until"),
+                    call.get("decision", "pending"),
+                ),
+            )
 
 
-def paper_event(context: Any, *, environment: str, identity: str, kind: str,
-                occurred_at: Any, payload: dict[str, Any], call_id: str | None = None,
-                connection_id: str | None = None) -> None:
+def paper_event(
+    context: Any,
+    *,
+    environment: str,
+    identity: str,
+    kind: str,
+    occurred_at: Any,
+    payload: dict[str, Any],
+    call_id: str | None = None,
+    connection_id: str | None = None,
+) -> None:
     schema = auth_store.auth_store_schema_name()
     with _paper_connection() as conn, conn.cursor() as cur:
-        cur.execute(f'''INSERT INTO {schema}.paper_trading_events
+        cur.execute(
+            f"""INSERT INTO {schema}.paper_trading_events
             (id,user_id,portfolio_id,environment,connection_id,call_id,kind,occurred_at,payload_json)
             VALUES(%s,%s::uuid,%s::uuid,%s,%s::uuid,%s,%s,%s,%s::jsonb)
             ON CONFLICT(id) DO UPDATE SET occurred_at=EXCLUDED.occurred_at,payload_json=EXCLUDED.payload_json
-            WHERE paper_trading_events.kind='call_mark' AND paper_trading_events.occurred_at<=EXCLUDED.occurred_at''',
-            (identity, *_paper_scope(context, environment), connection_id, call_id, kind, occurred_at, json.dumps(payload, default=str)))
+            WHERE paper_trading_events.kind='call_mark' AND paper_trading_events.occurred_at<=EXCLUDED.occurred_at""",
+            (
+                identity,
+                *_paper_scope(context, environment),
+                connection_id,
+                call_id,
+                kind,
+                occurred_at,
+                json.dumps(payload, default=str),
+            ),
+        )
 
 
-def decide_paper_call(context: Any, *, environment: str, identity: str, decision: str) -> None:
-    if decision not in {'denied', 'submitted', 'superseded'}:
-        raise ValueError('Invalid paper call decision.')
+def decide_paper_call(
+    context: Any, *, environment: str, identity: str, decision: str
+) -> None:
+    if decision not in {"denied", "submitted", "superseded"}:
+        raise ValueError("Invalid paper call decision.")
     schema = auth_store.auth_store_schema_name()
     with _paper_connection() as conn, conn.cursor() as cur:
-        cur.execute(f'''UPDATE {schema}.paper_trading_calls SET decision=%s,decided_at=%s
+        cur.execute(
+            f"""UPDATE {schema}.paper_trading_calls SET decision=%s,decided_at=%s
             WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND id=%s
-            AND decision IN ('pending',%s) RETURNING id''',
-            (decision, _now_utc(), *_paper_scope(context, environment), identity, decision))
+            AND decision IN ('pending',%s) RETURNING id""",
+            (
+                decision,
+                _now_utc(),
+                *_paper_scope(context, environment),
+                identity,
+                decision,
+            ),
+        )
         if cur.fetchone() is None:
-            raise ValueError('This call was already decided or is unavailable.')
+            raise ValueError("This call was already decided or is unavailable.")
 
 
-def update_paper_policy(context: Any, *, environment: str, expected_revision: int,
-                        mode: str, entries_paused: bool, risk_policy: dict) -> dict:
+def update_paper_policy(
+    context: Any,
+    *,
+    environment: str,
+    expected_revision: int,
+    mode: str,
+    entries_paused: bool,
+    risk_policy: dict,
+    account_binding: str | None = None,
+) -> dict:
     schema = auth_store.auth_store_schema_name()
     now = _now_utc()
     with _paper_connection(initialize=True) as conn, conn.cursor() as cur:
-        cur.execute('SELECT pg_advisory_xact_lock(hashtext(%s))',
-                    (json.dumps(['paper_policy', *_paper_scope(context, environment)]),))
-        cur.execute(f'''SELECT revision FROM {schema}.paper_trading_policy WHERE
-            user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s FOR UPDATE''', _paper_scope(context, environment))
+        cur.execute(
+            "SELECT pg_advisory_xact_lock(hashtext(%s))",
+            (json.dumps(["paper_policy", *_paper_scope(context, environment)]),),
+        )
+        cur.execute(
+            f"""SELECT revision FROM {schema}.paper_trading_policy WHERE
+            user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s FOR UPDATE""",
+            _paper_scope(context, environment),
+        )
         previous = cur.fetchone()
         if int(previous[0] if previous else 0) != expected_revision:
-            raise ValueError('Trading settings changed. Reload them before saving.')
+            raise ValueError("Trading settings changed. Reload them before saving.")
         revision = expected_revision + 1
-        cur.execute(f'''INSERT INTO {schema}.paper_trading_policy
-            (user_id,portfolio_id,environment,mode,entries_paused,risk_json,revision,updated_at)
-            VALUES(%s::uuid,%s::uuid,%s,%s,%s,%s::jsonb,%s,%s)
+        cur.execute(
+            f"""INSERT INTO {schema}.paper_trading_policy
+            (user_id,portfolio_id,environment,mode,entries_paused,risk_json,revision,account_binding,updated_at)
+            VALUES(%s::uuid,%s::uuid,%s,%s,%s,%s::jsonb,%s,%s,%s)
             ON CONFLICT(user_id,portfolio_id,environment) DO UPDATE SET mode=EXCLUDED.mode,
                 entries_paused=EXCLUDED.entries_paused,risk_json=EXCLUDED.risk_json,
-                revision=EXCLUDED.revision,updated_at=EXCLUDED.updated_at''',
-            (*_paper_scope(context, environment), mode, entries_paused, json.dumps(risk_policy), revision, now))
-        payload = {'mode': mode, 'entries_paused': entries_paused, 'risk_policy': risk_policy, 'revision': revision}
-        cur.execute(f'''INSERT INTO {schema}.paper_trading_events
+                revision=EXCLUDED.revision,account_binding=EXCLUDED.account_binding,updated_at=EXCLUDED.updated_at""",
+            (
+                *_paper_scope(context, environment),
+                mode,
+                entries_paused,
+                json.dumps(risk_policy),
+                revision,
+                account_binding,
+                now,
+            ),
+        )
+        payload = {
+            "mode": mode,
+            "entries_paused": entries_paused,
+            "risk_policy": risk_policy,
+            "revision": revision,
+        }
+        cur.execute(
+            f"""INSERT INTO {schema}.paper_trading_events
             (id,user_id,portfolio_id,environment,kind,occurred_at,payload_json)
-            VALUES(%s,%s::uuid,%s::uuid,%s,'policy_changed',%s,%s::jsonb)''',
-            (str(uuid.uuid4()), *_paper_scope(context, environment), now, json.dumps(payload)))
-    return {**payload, 'updated_at': now.isoformat()}
+            VALUES(%s,%s::uuid,%s::uuid,%s,'policy_changed',%s,%s::jsonb)""",
+            (
+                str(uuid.uuid4()),
+                *_paper_scope(context, environment),
+                now,
+                json.dumps(payload),
+            ),
+        )
+    return {**payload, "updated_at": now.isoformat()}
 
 
-def retain_paper_order(context: Any, *, environment: str, connection_id: str, call_id: str,
-                       action_id: str, ticket_id: str, order: dict) -> None:
+def retain_paper_order(
+    context: Any,
+    *,
+    environment: str,
+    connection_id: str,
+    call_id: str,
+    action_id: str,
+    ticket_id: str,
+    order: dict,
+) -> None:
     schema = auth_store.auth_store_schema_name()
     with _paper_connection() as conn, conn.cursor() as cur:
-        cur.execute(f'''INSERT INTO {schema}.paper_trading_orders
+        cur.execute(
+            f"""INSERT INTO {schema}.paper_trading_orders
             (connection_id,user_id,portfolio_id,environment,client_order_id,broker_order_id,call_id,action_id,ticket_id,order_json,updated_at)
             VALUES(%s::uuid,%s::uuid,%s::uuid,%s,%s,%s,%s,%s,%s::uuid,%s::jsonb,%s)
             ON CONFLICT(connection_id,client_order_id) DO UPDATE SET
                 broker_order_id=COALESCE(EXCLUDED.broker_order_id,paper_trading_orders.broker_order_id),
                 order_json=EXCLUDED.order_json,updated_at=EXCLUDED.updated_at
-            WHERE paper_trading_orders.call_id=EXCLUDED.call_id AND paper_trading_orders.action_id=EXCLUDED.action_id''',
-            (connection_id, *_paper_scope(context, environment), order['client_order_id'], order.get('id'),
-             call_id, action_id, ticket_id, json.dumps(order, default=str), _now_utc()))
+            WHERE paper_trading_orders.call_id=EXCLUDED.call_id AND paper_trading_orders.action_id=EXCLUDED.action_id""",
+            (
+                connection_id,
+                *_paper_scope(context, environment),
+                order["client_order_id"],
+                order.get("id"),
+                call_id,
+                action_id,
+                ticket_id,
+                json.dumps(order, default=str),
+                _now_utc(),
+            ),
+        )
 
 
-def save_paper_performance(context: Any, *, environment: str, call_id: str, performance: dict) -> None:
+def save_paper_performance(
+    context: Any, *, environment: str, call_id: str, performance: dict
+) -> None:
     schema = auth_store.auth_store_schema_name()
     with _paper_connection() as conn, conn.cursor() as cur:
-        cur.execute(f'''UPDATE {schema}.paper_trading_calls SET performance_json=%s::jsonb
+        cur.execute(
+            f"""UPDATE {schema}.paper_trading_calls SET performance_json=%s::jsonb
             WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND id=%s
-            AND (performance_json->>'as_of' IS NULL OR (performance_json->>'as_of')::timestamptz<=%s::timestamptz)''',
-            (json.dumps(performance, default=str), *_paper_scope(context, environment), call_id,performance.get("as_of")))
+            AND (performance_json->>'as_of' IS NULL OR (performance_json->>'as_of')::timestamptz<=%s::timestamptz)""",
+            (
+                json.dumps(performance, default=str),
+                *_paper_scope(context, environment),
+                call_id,
+                performance.get("as_of"),
+            ),
+        )
 
 
 def paper_call_history(context: Any, *, environment: str, call_id: str) -> list[dict]:
     schema = auth_store.auth_store_schema_name()
     with _paper_connection() as conn, conn.cursor() as cur:
-        cur.execute(f'''SELECT id,kind,occurred_at,payload_json AS payload FROM {schema}.paper_trading_events
+        cur.execute(
+            f"""SELECT id,kind,occurred_at,payload_json AS payload FROM {schema}.paper_trading_events
             WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND call_id=%s
-            ORDER BY occurred_at,id''', (*_paper_scope(context, environment), call_id))
+            ORDER BY occurred_at,id""",
+            (*_paper_scope(context, environment), call_id),
+        )
         return _paper_rows(cur)
 
 
@@ -1438,7 +1594,8 @@ def paper_contexts(*, environment: str) -> list[dict]:
     """Scheduled work uses existing connection/snapshot ownership and active admin membership."""
     schema = auth_store.auth_store_schema_name()
     with _paper_connection() as conn, conn.cursor() as cur:
-        cur.execute(f'''SELECT DISTINCT u.id AS user_id,u.email,u.first_name,u.last_name,u.display_name,u.role,
+        cur.execute(
+            f"""SELECT DISTINCT u.id AS user_id,u.email,u.first_name,u.last_name,u.display_name,u.role,
             p.id AS portfolio_id,p.slug AS portfolio_slug,p.name AS portfolio_name,
             m.role AS membership_role,m.share_fraction,m.can_view_full_portfolio
             FROM {schema}.brokerage_connections c JOIN {schema}.users u ON u.id=c.user_id
@@ -1447,47 +1604,82 @@ def paper_contexts(*, environment: str) -> list[dict]:
             JOIN {schema}.portfolio_memberships m ON m.user_id=u.id AND m.portfolio_id=p.id
             WHERE c.provider='alpaca_paper' AND c.environment=%s AND c.status='connected'
             AND u.status='active' AND p.status='active' AND m.role='admin'
-            AND m.effective_from<=%s AND (m.effective_to IS NULL OR m.effective_to>%s)''',
-            (environment, _now_utc(), _now_utc()))
+            AND m.effective_from<=%s AND (m.effective_to IS NULL OR m.effective_to>%s)""",
+            (environment, _now_utc(), _now_utc()),
+        )
         return _paper_rows(cur)
 
 
 def retain_paper_events(context: Any, *, environment: str, events: list[dict]) -> None:
     """Batch broker facts in one transaction; corrections retain the prior version."""
     import hashlib
+
     schema = auth_store.auth_store_schema_name()
     with _paper_connection() as conn, conn.cursor() as cur:
         for event in events:
-            payload = json.dumps(event['payload'], sort_keys=True, default=str)
-            if event['kind'] == 'broker_activity':
-                cur.execute(f'''SELECT payload_json FROM {schema}.paper_trading_events WHERE id=%s
-                    AND user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s FOR UPDATE''',
-                    (event['id'], *_paper_scope(context, environment)))
+            payload = json.dumps(event["payload"], sort_keys=True, default=str)
+            if event["kind"] == "broker_activity":
+                cur.execute(
+                    f"""SELECT payload_json FROM {schema}.paper_trading_events WHERE id=%s
+                    AND user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s FOR UPDATE""",
+                    (event["id"], *_paper_scope(context, environment)),
+                )
                 previous = cur.fetchone()
-                if previous and previous[0] != event['payload']:
-                    revision = event['id'] + ':revision:' + hashlib.sha256(json.dumps(previous[0], sort_keys=True, default=str).encode()).hexdigest()
-                    cur.execute(f'''INSERT INTO {schema}.paper_trading_events
+                if previous and previous[0] != event["payload"]:
+                    revision = (
+                        event["id"]
+                        + ":revision:"
+                        + hashlib.sha256(
+                            json.dumps(
+                                previous[0], sort_keys=True, default=str
+                            ).encode()
+                        ).hexdigest()
+                    )
+                    cur.execute(
+                        f"""INSERT INTO {schema}.paper_trading_events
                         (id,user_id,portfolio_id,environment,connection_id,call_id,kind,occurred_at,payload_json)
                         VALUES(%s,%s::uuid,%s::uuid,%s,%s::uuid,%s,'broker_revision',%s,%s::jsonb)
-                        ON CONFLICT DO NOTHING''',
-                        (revision, *_paper_scope(context, environment), event.get('connection_id'), event.get('call_id'), _now_utc(), json.dumps(previous[0], default=str)))
-            cur.execute(f'''INSERT INTO {schema}.paper_trading_events
+                        ON CONFLICT DO NOTHING""",
+                        (
+                            revision,
+                            *_paper_scope(context, environment),
+                            event.get("connection_id"),
+                            event.get("call_id"),
+                            _now_utc(),
+                            json.dumps(previous[0], default=str),
+                        ),
+                    )
+            cur.execute(
+                f"""INSERT INTO {schema}.paper_trading_events
                 (id,user_id,portfolio_id,environment,connection_id,call_id,kind,occurred_at,payload_json)
                 VALUES(%s,%s::uuid,%s::uuid,%s,%s::uuid,%s,%s,%s,%s::jsonb)
                 ON CONFLICT(id) DO UPDATE SET occurred_at=EXCLUDED.occurred_at,payload_json=EXCLUDED.payload_json,
                     call_id=COALESCE(EXCLUDED.call_id,paper_trading_events.call_id)
                 WHERE paper_trading_events.kind='broker_activity' OR
-                    (paper_trading_events.kind='call_mark' AND paper_trading_events.occurred_at<=EXCLUDED.occurred_at)''',
-                (event['id'], *_paper_scope(context, environment), event.get('connection_id'), event.get('call_id'),
-                 event['kind'], event['occurred_at'], payload))
+                    (paper_trading_events.kind='call_mark' AND paper_trading_events.occurred_at<=EXCLUDED.occurred_at)""",
+                (
+                    event["id"],
+                    *_paper_scope(context, environment),
+                    event.get("connection_id"),
+                    event.get("call_id"),
+                    event["kind"],
+                    event["occurred_at"],
+                    payload,
+                ),
+            )
 
 
 def paper_control_lock(account_id: str):
     """Policy/denial changes serialize with the broker submission boundary."""
     from contextlib import contextmanager
+
     @contextmanager
     def locked():
-        with _paper_connection() as conn,conn.cursor() as cur:
-            cur.execute('SELECT pg_advisory_xact_lock(hashtext(%s))',('alpaca_paper:'+account_id,))
+        with _paper_connection() as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT pg_advisory_xact_lock(hashtext(%s))",
+                ("alpaca_paper:" + account_id,),
+            )
             yield
+
     return locked()

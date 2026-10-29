@@ -1,0 +1,12 @@
+[
+  {
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:8de7511eee522b45bfb9d1c105684bb6f5cf6e0b06166080172b43104c996d78",
+    "role": "api-next",
+    "source_revision": "0d012421b3159e3c5b01c6862d762a0eddb4dddb",
+    "source_inventory_sha256": "cbb88c641ff65c8e0784aec3064041500def567ca3401733d68abbe4aacb8e2e",
+    "runtime_inventory_sha256": "58a3ad9a87ff9c0c3821a4442a634030de00e4ac6b5dc853567c5c45f610ee04",
+    "all_packaged_files_checked": true,
+    "packaged_files": 189,
+    "evidence": "documents/verification/iphone-feedback-2026-10-28/API_DEV.json"
+  }
+]
