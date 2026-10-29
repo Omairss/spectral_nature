@@ -87,14 +87,15 @@
   ],
   "spending_policy": "Owner explicitly approved \u201cApprove DeepSeek verification up to $10\u201d for fresh feed verification on Pacific October28. This is a new scoped exception; the earlier $15 study remains closed at11.257873USD committed bound. One strict10USD cap covers both cases, retries and unknown outcomes. Full configured models are retained; storage is isolated and production is read-only.",
   "latest_local_contracts": {
-    "passed": 205,
-    "log": "private contracts-20261029T093838Z.log",
+    "passed": 207,
+    "log": "private contracts-20261029T094554Z.log",
     "scope": "Financial/ownership/publication/document/cache contracts plus current provider credit versus unresolved costs, crash deadlines, failed balance probes, actual zero credit, concurrent admission, overlapping balance observations and idempotent late settlement. No generated prose was graded. Shared news ownership, preserved selected-company coverage, canonical deduplication, separate research selection, provider pagination, partial acquisition degradation and total acquisition failure are covered.",
     "live_source_check": "Read-only historical-asof queries at both actual news-producer slots returned shared broad snapshots; no inference or publication. Latest-page coverage is bounded, so selected-company intake remains alongside it and current follow-up stays in shared research.",
     "additional_preservation_checks": {
       "passed": 52,
       "skipped": 1,
-      "scope": "Typed numerical execution, paper portfolio, broker snapshots, operational health and native gateway boundary. No paid transport or prose grading."
+      "scope": "Typed numerical execution, paper portfolio, broker snapshots, operational health and native gateway boundary. No paid transport or prose grading.",
+      "deadline_contract": "Completed articles survive an unfinished same-company batch at its original deadline."
     }
   },
   "release_state": {
@@ -411,6 +412,12 @@
     "production_authorized": false,
     "local_complete_output_review": "prior compositor case failed depth; fresh complete-path qualification pending",
     "integrated_accepted_development_source": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
-    "source_acceptance": "in_progress_not_buildable"
+    "source_acceptance": "in_progress_not_buildable",
+    "remaining": [
+      "Fresh complete research-to-feed qualitative comparison after scoped research-spending authorization",
+      "Personally inspect complete outputs and actual displayed selections against the sources",
+      "Prepare committed source acceptance and exact DEV image proofs while preserving all active consumers",
+      "Deploy accepted changes to DEV and present the complete result for owner evaluation; no production promotion of this design yet"
+    ]
   }
 }

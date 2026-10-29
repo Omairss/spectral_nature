@@ -881,6 +881,34 @@ def test_native_response_transport_keeps_its_generation_price_and_usage_units(st
             "prompt_cache_hit_tokens": 50}, started_at=started)
 
 
+def test_native_json_repair_keeps_full_artifact_capacity_and_meters_the_actual_transport(store, monkeypatch):
+    from services.llm import LLMConfig, DeepSeekChatJSONClient
+    monkeypatch.setenv('LLM_CONTEXT_WINDOW_TOKENS','1048576')
+    calls = []
+    def post(**kwargs):
+        calls.append(kwargs)
+        response=requests.Response(); response.status_code=200
+        if kwargs['url'].endswith('/responses'):
+            body={'model':'deepseek-v4-pro','status':'completed',
+                'output':[{'type':'function_call','name':'emit_structured_result','status':'completed','arguments':'{"value":1}'}],
+                'usage':{'input_tokens':100,'output_tokens':20,'input_tokens_details':{'cached_tokens':50}}}
+        else:
+            body={'model':'deepseek-v4-pro','choices':[{'message':{'content':'{broken'},'finish_reason':'stop'}],
+                'usage':{'prompt_tokens':100,'completion_tokens':20}}
+        response._content=json.dumps(body).encode(); return response
+    config=LLMConfig(provider='deepseek',api_key='fake',model='deepseek-v4-pro',
+        base_url='https://example.invalid',api_style='chat_native_repair',thinking_mode='enabled',reasoning_effort='high')
+    client=DeepSeekChatJSONClient(config,session=SimpleNamespace(post=post))
+    result=client.generate_json(system_prompt='Serialize the artifact',user_prompt='Current result',schema_name='artifact',
+        schema={'type':'object','properties':{'value':{'type':'integer'}},'required':['value']})
+    assert result['value']==1 and len(calls)==2
+    native=calls[1]['json']
+    assert native['max_output_tokens']==65536 and native['reasoning']=={'effort':'none'}
+    assert result.response_metadata['json_repair']['usage']['prompt_tokens']==100
+    state=pipeline_store.read_execution_state(*execution._run_budget_key(),strict=True)
+    assert len(state['attempts'])==2 and all(v['status']=='settled' for v in state['attempts'].values())
+
+
 def test_ended_execution_releases_only_future_priority_and_retry_keeps_original_funding(core_wallet):
     config, account, quote = core_wallet
     run = execution._run_budget_key()

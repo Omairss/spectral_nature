@@ -73,13 +73,30 @@
   "qualification": "Pending merged operational checks and fresh full research-to-feed qualitative review. Previous compositor-only output was not accepted.",
   "checks": {
     "shared_operational": {
-      "passed": 205,
-      "log": "private contracts-20261029T093838Z.log"
+      "passed": 207,
+      "log": "private contracts-20261029T094554Z.log"
     },
     "preserved_features": {
       "passed": 52,
       "skipped": 1
     },
     "prose_acceptance": false
+  },
+  "native_transport_contract": {
+    "max_output_tokens": 65536,
+    "purpose": "Explicit full-artifact repair output bound, shared by transport, context preflight and financial quotation; existing global output reserve may increase it. Generation remains the configured full-model chat path.",
+    "documentation": "https://api-docs.deepseek.com/api/create-response/",
+    "reviewed_at_utc": "2026-10-29T09:48:23.271565+00:00"
+  },
+  "archive": {
+    "private_manifest": "retired-release-sources/20261029T094555Z/manifest.json",
+    "retention_days": 30,
+    "purpose": "Stopped isolated qualification databases, content-verified evidence only."
+  },
+  "production_recheck": {
+    "at_utc": "2026-10-29T09:48:23.271678+00:00",
+    "worker_jobs_on_owner_approved_digest": 29,
+    "retained_broker_jobs": 2,
+    "paid_inference": false
   }
 }

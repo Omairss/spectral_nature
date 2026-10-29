@@ -1114,7 +1114,7 @@ def _request_maximum_charge(config: Any, payload: dict[str, Any], operation: str
         # without a known default must declare their maximum output explicitly.
         input_tokens = (len(tiktoken.get_encoding("cl100k_base").encode_ordinary(
             json.dumps(payload, ensure_ascii=False, default=str))) * 5 + 3) // 4
-        output_tokens = payload.get("max_completion_tokens", payload.get("max_tokens"))
+        output_tokens = payload.get("max_completion_tokens") or payload.get("max_output_tokens") or payload.get("max_tokens")
         if output_tokens is None and Decimal(str(price["offpeak"]["output"])) != 0:
             raise LLMProviderUnavailable("A capped run requires an explicit maximum output for this model.")
         output_tokens = int(output_tokens or 0)
