@@ -36,20 +36,23 @@
     "retained_research_bundles": 88,
     "company_research_rows": 12,
     "method": "Same completed-run source corpus and numerical observation dates. Fresh shared composition/review only, isolated local state, no production writes and no new acquisition. Compare all actual public fields; no curated excerpt or topic/number quota.",
-    "input_sha256": "fe71dabaa2ad95fe0193c7c155a3d0b564480157ec3abbbe91c8c138a4588322"
+    "input_sha256": "fe71dabaa2ad95fe0193c7c155a3d0b564480157ec3abbbe91c8c138a4588322",
+    "status": "running",
+    "candidate_runtime_revision": "d03450ab",
+    "started_at_utc": "2026-10-29T18:23:22.214032+00:00"
   },
   "continuation_spending": {
-    "current_cap_usd": 15,
+    "current_cap_usd": 18,
     "known_usage_price_estimate_usd": 11.205177,
     "unknown_maxima_usd": 3.287286,
     "committed_bound_usd": 14.492463,
-    "remaining_bound_usd": 0.507537,
-    "requested_additional_usd": 3,
-    "requested_total_cap_usd": 18,
-    "approval_status": "pending",
+    "remaining_bound_usd": 3.507537,
+    "approval_status": "approved",
     "old_attempts_or_unknowns_reset": false,
     "full_model_or_context_reduced": false,
-    "quotation": "New future attempts quote the published maximum rate over their full bounded slot/request window; previous maxima remain untouched."
+    "quotation": "New future attempts quote the published maximum rate over their full bounded slot/request window; previous maxima remain untouched.",
+    "owner_instruction": "Approve up to $3 more",
+    "additional_authorized_usd": 3
   },
   "local_release_hold": "No coherent-design image build or deployment before personally accepted complete output. Existing approved production recovery remains live."
 }

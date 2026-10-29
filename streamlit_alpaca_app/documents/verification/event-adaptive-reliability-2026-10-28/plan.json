@@ -49,7 +49,7 @@
       "id": "event_allocation",
       "task": "Implement evidence-led event-dependent allocation with configurable 50% marginal allowance, shared atomic reservations and no retry reset or runaway spending.",
       "status": "deployed_incremental_new_account_priority_ready_for_dev_qualification",
-      "evidence_or_remaining": "Configurable event-mode50% capacity is live on approved news/Home jobs. Separate new shared-account future-core priority is implemented and has207 shared operational checks; DEV qualification remains.",
+      "evidence_or_remaining": "Configurable event-mode50%capacity is live on approved news/Home jobs. Separate new shared-account future-core priority and observed-evidence funding adapter are implemented with208shared operational checks. DEV qualification remains.",
       "proposed_design_reference": "quality_fix_design"
     },
     {
@@ -69,7 +69,7 @@
       "id": "provider_credit_reconciliation",
       "task": "Resolve account-level admission starvation without erasing unknown costs, and protect future core completion at the shared account boundary.",
       "status": "liquidity_repair_live_future_core_implemented_pending_dev_release",
-      "evidence_or_remaining": "Current balance versus historical uncertainty repair is live. Today stale feed was actual credit depletion, with no active unknown liquidity holds. Owner refilled and native scheduled recovery is composing its feed. New future-core account priority is implemented, integrated and mechanically verified; final DEV package qualification remains.",
+      "evidence_or_remaining": "Current balance versus historical uncertainty repair is live. Today stale feed was genuine credit depletion. Owner refilled; scheduled recovery completed in58m22s with current public Home and all5supplementary summaries verified. New future-core account priority is implemented and operationally verified; exact DEV qualification/release remains.",
       "proposed_design_reference": "quality_fix_design"
     },
     {
@@ -85,10 +85,10 @@
       "evidence_or_remaining": "Recovery ran58m22s. Current public feed and all5supplementary summaries are published. Application Warning records2semantic deadlines and a source-free nomination funding reference defect; the latter is implemented/verified in new DEV source. Actual known successful DeepSeek usage estimate6.0494USD; unknown/audio charges separately retained."
     }
   ],
-  "spending_policy": "Owner-scoped DeepSeek continuation cap is15USD after explicit additional5USD approval. All earlier continuation attempts and unknown cost maxima remain inside that same cap; older closed studies are separate. Current isolated comparison has no production/memory writes. Research-provider rule otherwise remains Lambda only.",
+  "spending_policy": "Owner-scoped DeepSeek continuation cap18USD after explicit additional5USD and3USD approvals. All earlier158attempts and unknown cost maxima remain inside that same cap. One same-evidence recovered-run comparison uses full Pro and isolated storage with no production/memory writes. Research-provider rule otherwise remains Lambda only.",
   "latest_local_contracts": {
-    "passed": 207,
-    "log": "private contracts-20261029T094554Z.log",
+    "passed": 208,
+    "log": "private contracts-20261029T180354Z.log",
     "scope": "Financial/ownership/publication/document/cache contracts plus current provider credit versus unresolved costs, crash deadlines, failed balance probes, actual zero credit, concurrent admission, overlapping balance observations and idempotent late settlement. No generated prose was graded. Shared news ownership, preserved selected-company coverage, canonical deduplication, separate research selection, provider pagination, partial acquisition degradation and total acquisition failure are covered.",
     "live_source_check": "Read-only historical-asof queries at both actual news-producer slots returned shared broad snapshots; no inference or publication. Latest-page coverage is bounded, so selected-company intake remains alongside it and current follow-up stays in shared research.",
     "additional_preservation_checks": {
@@ -266,7 +266,7 @@
     }
   },
   "quality_fix_design": {
-    "status": "implementation_in_progress_not_qualified",
+    "status": "source_implemented_operationally_verified_complete_output_review_pending",
     "recorded_at_utc": "2026-10-29T05:49:10.354169+00:00",
     "owner_request": "Come up with a 500 IQ fix",
     "central_change": "Carry one versioned, substantive shared research result into an explicitly selected publication. Make evidence addressable, let the model choose the exact visible feed, and review that same feed before materialization.",
