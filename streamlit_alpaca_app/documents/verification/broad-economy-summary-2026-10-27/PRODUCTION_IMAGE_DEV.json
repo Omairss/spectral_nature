@@ -1,0 +1,22 @@
+{
+  "status": "accepted",
+  "environment": "isolated_development_linux_container",
+  "recorded_at_utc": "2026-10-28T06:09:51.517641+00:00",
+  "source_revision": "b58c76568874fcddc84ea4b764ebcaf3ba4a5c1b",
+  "source_inventory_sha256": "f29b8d5a12752a21235df0a4f163521db1bedeba484556c93cee653a9f313496",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229"
+  },
+  "evidence": "documents/verification/broad-economy-summary-2026-10-27/production-packaged-images.json",
+  "runtime": "Node v22.23.3",
+  "http_checks": [
+    "Broad Economy200",
+    "saved summary200",
+    "existing FRED200",
+    "wrong CSRF403",
+    "unknown dataset404"
+  ],
+  "shared_development_deployment_preserved": true,
+  "production_data_or_inference": 0,
+  "review": "Exact production-baseline package, all compiled files and existing gateway/security behavior verified. The feature component, page and gateway match the live DEV-accepted repair; production Trading, Home, Research, auth and other code remain unchanged."
+}

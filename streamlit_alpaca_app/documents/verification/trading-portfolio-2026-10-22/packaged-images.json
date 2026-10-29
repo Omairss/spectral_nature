@@ -1,0 +1,30 @@
+[
+  {
+    "role": "web",
+    "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
+    "source_inventory_sha256": "51639de46c627ff9ef4db30876693d1b030e33537c8d40d604d2fd8f4ecb5544",
+    "runtime_inventory_sha256": "a249abce99dd1f5bd4957588c2be368f46ea0d825e1ba4ae42a56e3608b0ed66",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "input_files": 92,
+    "compiled_files": 1713,
+    "symlinks": 0,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:65cf2fa0f1003e955571fd073f43bd60de88f1e350af9e5fe2c0ff1d7ae9b0bf",
+    "verification_run": "cj1b7",
+    "evidence": "documents/verification/trading-portfolio-2026-10-22/packaged-images.json"
+  },
+  {
+    "role": "api-next",
+    "source_revision": "c452f799c5ace73ff3e82cb4e45779eccaa51c18",
+    "source_inventory_sha256": "51639de46c627ff9ef4db30876693d1b030e33537c8d40d604d2fd8f4ecb5544",
+    "runtime_inventory_sha256": "42dbf8f0185e3a5ac0e7deb1fa288e42d592c3d33402e0678e4456684d9aa64a",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "runtime_files": 191,
+    "changed_modules_and_api_imported": true,
+    "external_attempts": 0,
+    "image": "snpipelineacr03130136.azurecr.io/accepted-api-next@sha256:aee739666d96047079fae4d0d80395b7964a23d7f7550362b33d7d2239c82558",
+    "verification_run": "cj1b8",
+    "evidence": "documents/verification/trading-portfolio-2026-10-22/packaged-images.json"
+  }
+]

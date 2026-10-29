@@ -1300,3 +1300,8 @@ The cheapest complete KNSA replay added a drug-royalty history that appears in n
 ### Reconcile production lineage before merging a different DEV API — October 28
 
 The first iPhone metric integration attempted a broad merge between DEV maintenance/Alpaca and current worker source, creating shared-service conflicts unrelated to the phone request. It was aborted without deployment. Selecting production’s own accepted source and reviewing the two metric files resolved the release while preserving DEV. Public probes of the intentionally internal API returned ingress404; production health must be checked through its internal route or authenticated gateway. During final inventory comparison, an initial script assumed raw resources where the saved baseline wrapped each under resource; the corrected complete36-consumer comparison passed before the release record was written.
+
+
+### October 29 · Trading implementation
+
+Implementation requests must produce product changes. A design-only preview did not fulfill the Trading request. During source reconciliation, a greedy conflict-marker regex briefly truncated local files; restored original merge conflicts from Git and resolved with bounded marker matching before any build. Review full functions after mechanical resolution.

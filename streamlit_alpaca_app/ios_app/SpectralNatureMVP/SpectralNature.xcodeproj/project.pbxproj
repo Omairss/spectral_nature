@@ -11,6 +11,7 @@
 		0A423BAFE712C6D344EE0891 /* ResearchActivityStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71D0427C86B96517B6388DE9 /* ResearchActivityStore.swift */; };
 		15456EE7A6E7E006DFC3FF53 /* ResearchCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF7D34189E42D97B73E779B1 /* ResearchCharts.swift */; };
 		1803C6A58D901B49281DB097 /* AttentionCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 781A3A7ADD07C0EEDF20AF51 /* AttentionCharts.swift */; };
+		1DA5C61F489DD662B0772000 /* HomePublicationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DE59D7B1A5FB4A2F73D5B05 /* HomePublicationStore.swift */; };
 		2057566DB4B05C6090593AAA /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F459B557FCEBDC9603D31F67 /* MarkdownView.swift */; };
 		2F1690BA8878D03056A92037 /* AdminView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4856459186FF12F76245C4A /* AdminView.swift */; };
 		31EEFDD7E5E4358EA79DFB2D /* MarketReturnAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C83D7CE72E408E54DA63740 /* MarketReturnAnalysis.swift */; };
@@ -45,6 +46,7 @@
 /* Begin PBXFileReference section */
 		0706E7FB5DE0D9D9947AF009 /* ResearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResearchView.swift; sourceTree = "<group>"; };
 		0750DE6F878E62D82A05D29C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0DE59D7B1A5FB4A2F73D5B05 /* HomePublicationStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePublicationStore.swift; sourceTree = "<group>"; };
 		129353F0664061BE74DAADE8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		1A0121BA7F532AFCD98703B2 /* MacroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroView.swift; sourceTree = "<group>"; };
 		2299F976495EC6946E075085 /* OptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsView.swift; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 		93E1B52D5805E6CE992CFA7A /* Home */ = {
 			isa = PBXGroup;
 			children = (
+				0DE59D7B1A5FB4A2F73D5B05 /* HomePublicationStore.swift */,
 				62E1CA4AAAFE061A8384D888 /* HomeView.swift */,
 			);
 			path = Home;
@@ -327,6 +330,7 @@
 				1803C6A58D901B49281DB097 /* AttentionCharts.swift in Sources */,
 				5ED4498A14E725763F70DBE8 /* AttentionGraphView.swift in Sources */,
 				7C6570AC7B239797D90F232C /* FeatureRequestsView.swift in Sources */,
+				1DA5C61F489DD662B0772000 /* HomePublicationStore.swift in Sources */,
 				FB83CF08CB8EE14457FBCDE0 /* HomeView.swift in Sources */,
 				EE7172B0CBF0E46655A0ABB2 /* InvestigatorView.swift in Sources */,
 				7C376E70B6A9368469D2177C /* JSONValue.swift in Sources */,
@@ -409,7 +413,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 16;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -473,7 +477,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 16;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;

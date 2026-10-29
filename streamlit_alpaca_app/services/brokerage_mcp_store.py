@@ -213,14 +213,53 @@ def _ensure_schema(conn: Any) -> None:
             source_updated_at TIMESTAMPTZ NOT NULL,
             created_at TIMESTAMPTZ NOT NULL,
             updated_at TIMESTAMPTZ NOT NULL,
-            UNIQUE (portfolio_id, environment)
+            UNIQUE (portfolio_id, connection_id, environment)
         )
         """,
         f"ALTER TABLE {schema}.brokerage_portfolio_snapshots ADD COLUMN IF NOT EXISTS details_json JSONB NOT NULL DEFAULT '{{}}'::jsonb",
+        f"ALTER TABLE {schema}.brokerage_portfolio_snapshots DROP CONSTRAINT IF EXISTS brokerage_portfolio_snapshots_portfolio_id_environment_key",
+        f"CREATE UNIQUE INDEX IF NOT EXISTS idx_{schema}_brokerage_snapshots_identity ON {schema}.brokerage_portfolio_snapshots (portfolio_id, connection_id, environment)",
         f"""
         CREATE INDEX IF NOT EXISTS idx_{schema}_brokerage_portfolio_snapshots_connection
         ON {schema}.brokerage_portfolio_snapshots (connection_id, updated_at DESC)
         """,
+        f"""CREATE TABLE IF NOT EXISTS {schema}.paper_trading_calls (
+            id TEXT PRIMARY KEY, user_id UUID NOT NULL REFERENCES {schema}.users(id),
+            portfolio_id UUID NOT NULL REFERENCES {schema}.portfolios(id),
+            environment TEXT NOT NULL, candidate_id TEXT NOT NULL,
+            parent_call_id TEXT NULL REFERENCES {schema}.paper_trading_calls(id),
+            intent TEXT NOT NULL, candidate_json JSONB NOT NULL,
+            proposed_at TIMESTAMPTZ NOT NULL, valid_until TIMESTAMPTZ NULL,
+            decision TEXT NOT NULL DEFAULT 'pending', decided_at TIMESTAMPTZ NULL,
+            performance_json JSONB NOT NULL DEFAULT '{{}}',
+            UNIQUE(user_id,portfolio_id,environment,candidate_id))""",
+        f"""CREATE INDEX IF NOT EXISTS idx_{schema}_paper_calls_owner
+            ON {schema}.paper_trading_calls(user_id,portfolio_id,environment,proposed_at DESC,id)""",
+        f"""CREATE TABLE IF NOT EXISTS {schema}.paper_trading_policy (
+            user_id UUID NOT NULL REFERENCES {schema}.users(id),
+            portfolio_id UUID NOT NULL REFERENCES {schema}.portfolios(id),
+            environment TEXT NOT NULL, mode TEXT NOT NULL DEFAULT 'approval',
+            entries_paused BOOLEAN NOT NULL DEFAULT FALSE, risk_json JSONB NOT NULL DEFAULT '{{}}',
+            revision BIGINT NOT NULL DEFAULT 1, updated_at TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY(user_id,portfolio_id,environment))""",
+        f"""CREATE TABLE IF NOT EXISTS {schema}.paper_trading_orders (
+            connection_id UUID NOT NULL REFERENCES {schema}.brokerage_connections(id),
+            user_id UUID NOT NULL REFERENCES {schema}.users(id),
+            portfolio_id UUID NOT NULL REFERENCES {schema}.portfolios(id), environment TEXT NOT NULL,
+            client_order_id TEXT NOT NULL, broker_order_id TEXT NULL,
+            call_id TEXT NOT NULL REFERENCES {schema}.paper_trading_calls(id),
+            action_id TEXT NOT NULL REFERENCES {schema}.paper_trading_calls(id),
+            ticket_id UUID NOT NULL REFERENCES {schema}.brokerage_order_tickets(id),
+            order_json JSONB NOT NULL, updated_at TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY(connection_id,client_order_id))""",
+        f"""CREATE TABLE IF NOT EXISTS {schema}.paper_trading_events (
+            id TEXT PRIMARY KEY, user_id UUID NOT NULL REFERENCES {schema}.users(id),
+            portfolio_id UUID NOT NULL REFERENCES {schema}.portfolios(id),
+            environment TEXT NOT NULL, connection_id UUID NULL REFERENCES {schema}.brokerage_connections(id),
+            call_id TEXT NULL REFERENCES {schema}.paper_trading_calls(id),
+            kind TEXT NOT NULL, occurred_at TIMESTAMPTZ NOT NULL, payload_json JSONB NOT NULL)""",
+        f"""CREATE INDEX IF NOT EXISTS idx_{schema}_paper_events_owner
+            ON {schema}.paper_trading_events(user_id,portfolio_id,environment,occurred_at DESC,id DESC)""",
     ]
     with conn.cursor() as cursor:
         for statement in statements:
@@ -633,6 +672,43 @@ def save_portfolio_snapshot(
     with conn:
         _ensure_schema(conn)
         with conn.cursor() as cursor:
+            # Serialize only the short persistence transaction. Provider IO
+            # stays outside the connection pool; separate refreshes may finish
+            # out of order or succeed for different components.
+            cursor.execute("SELECT pg_advisory_xact_lock(hashtext(%s))",
+                           (json.dumps(["brokerage_snapshot", portfolio_id, connection_id, environment]),))
+            cursor.execute(f'''SELECT account_summary_json, positions_json, timeseries_json,
+                details_json, source_updated_at FROM {schema}.brokerage_portfolio_snapshots
+                WHERE portfolio_id=%s::uuid AND connection_id=%s::uuid AND environment=%s
+                FOR UPDATE''', (portfolio_id, connection_id, environment))
+            previous = _row_dict(cursor, cursor.fetchone())
+            if previous and (details or {}).get('coverage'):
+                details = dict(details)
+                old_details = _json_value(previous.get('details_json'), {})
+                coverage = dict(details.get('coverage') or {})
+                old_coverage = old_details.get('coverage') or {}
+                for component in ('account', 'positions', 'history', 'orders','activities','intraday'):
+                    old_stamp, new_stamp = old_coverage.get(component), coverage.get(component)
+                    if old_stamp and (not new_stamp or datetime.fromisoformat(old_stamp) > datetime.fromisoformat(new_stamp)):
+                        coverage[component] = old_stamp
+                        if component == 'account':
+                            account_summary = _json_value(previous['account_summary_json'], {})
+                        elif component == 'positions':
+                            positions = _json_value(previous['positions_json'], [])
+                        elif component == 'history':
+                            timeseries = _json_value(previous['timeseries_json'], [])
+                        elif component == 'intraday':
+                            details['intraday']=old_details.get('intraday') or []
+                        elif component == 'activities':
+                            details['activities_sync']=old_details.get('activities_sync') or {}
+                            details['activities_complete']=old_details.get('activities_complete',False)
+                            details['new_activities']=old_details.get('new_activities') or []
+                        else:
+                            details['orders'] = old_details.get('orders') or []
+                details['coverage'] = coverage
+                if previous['source_updated_at'] > source_updated_at:
+                    source_updated_at = previous['source_updated_at']
+                    details['errors'] = old_details.get('errors') or {}
             cursor.execute(
                 f"""
                     INSERT INTO {schema}.brokerage_portfolio_snapshots (
@@ -644,7 +720,7 @@ def save_portfolio_snapshot(
                         %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb,
                         %s, %s, %s
                     )
-                    ON CONFLICT (portfolio_id, environment) DO UPDATE SET
+                    ON CONFLICT (portfolio_id, connection_id, environment) DO UPDATE SET
                         connection_id = EXCLUDED.connection_id,
                         provider = EXCLUDED.provider,
                         account_summary_json = EXCLUDED.account_summary_json,
@@ -653,6 +729,7 @@ def save_portfolio_snapshot(
                         details_json = EXCLUDED.details_json,
                         source_updated_at = EXCLUDED.source_updated_at,
                         updated_at = EXCLUDED.updated_at
+                    WHERE brokerage_portfolio_snapshots.source_updated_at <= EXCLUDED.source_updated_at
                     RETURNING id, portfolio_id, connection_id, provider, environment,
                               account_summary_json, positions_json, timeseries_json, details_json,
                               source_updated_at, created_at, updated_at
@@ -665,10 +742,20 @@ def save_portfolio_snapshot(
                 ),
             )
             row = _row_dict(cursor, cursor.fetchone())
+            if not row:
+                cursor.execute(f'''SELECT id, portfolio_id, connection_id, provider, environment,
+                    account_summary_json, positions_json, timeseries_json, details_json,
+                    source_updated_at, created_at, updated_at
+                    FROM {schema}.brokerage_portfolio_snapshots
+                    WHERE portfolio_id=%s::uuid AND connection_id=%s::uuid AND environment=%s''',
+                    (portfolio_id, connection_id, environment))
+                row = _row_dict(cursor, cursor.fetchone())
+            if not row:
+                raise RuntimeError('The brokerage snapshot could not be retained.')
     return _payload(row) or {}
 
 
-def get_portfolio_snapshot(*, portfolio_id: str, environment: str) -> dict[str, Any] | None:
+def get_portfolio_snapshot(*, portfolio_id: str, connection_id: str, user_id: str, environment: str) -> dict[str, Any] | None:
     conn = auth_store.open_auth_store_connection()
     if conn is None:
         return None
@@ -678,14 +765,17 @@ def get_portfolio_snapshot(*, portfolio_id: str, environment: str) -> dict[str, 
             with conn.cursor() as cursor:
                 cursor.execute(
                     f"""
-                    SELECT id, portfolio_id, connection_id, provider, environment,
-                           account_summary_json, positions_json, timeseries_json, details_json,
-                           source_updated_at, created_at, updated_at
-                    FROM {schema}.brokerage_portfolio_snapshots
-                    WHERE portfolio_id = %s::uuid AND environment = %s
+                    SELECT s.id, s.portfolio_id, s.connection_id, s.provider, s.environment,
+                           s.account_summary_json, s.positions_json, s.timeseries_json, s.details_json,
+                           s.source_updated_at, s.created_at, s.updated_at
+                    FROM {schema}.brokerage_portfolio_snapshots s
+                    JOIN {schema}.brokerage_connections c ON c.id = s.connection_id
+                    WHERE s.portfolio_id = %s::uuid AND s.connection_id = %s::uuid
+                      AND c.user_id = %s::uuid AND c.environment = %s AND s.environment = c.environment
+                      AND s.provider = c.provider AND c.status = 'connected'
                     LIMIT 1
                     """,
-                    (portfolio_id, environment),
+                    (portfolio_id, connection_id, user_id, environment),
                 )
                 row = _row_dict(cursor, cursor.fetchone())
         return _payload(row)
@@ -1040,6 +1130,21 @@ def consume_order_ticket(
     return _payload(row)
 
 
+def get_order_ticket(*, ticket_id: str, user_id: str, provider: str, environment: str) -> dict[str, Any] | None:
+    conn = auth_store.open_auth_store_connection()
+    if conn is None:
+        raise RuntimeError('Application database is unavailable.')
+    schema = auth_store.auth_store_schema_name()
+    with conn:
+        with conn.cursor() as cursor:
+            cursor.execute(f'''SELECT id, connection_id, user_id, provider, environment,
+                arguments_hash, request_summary_json, result_summary_json, status, expires_at
+                FROM {schema}.brokerage_order_tickets
+                WHERE id=%s::uuid AND user_id=%s::uuid AND provider=%s AND environment=%s''',
+                (ticket_id, user_id, provider, environment))
+            return _payload(_row_dict(cursor, cursor.fetchone()))
+
+
 def cancel_order_ticket(
     *,
     ticket_id: str,
@@ -1094,7 +1199,7 @@ def finish_order_ticket(
                         result_summary_json = %s::jsonb,
                         error = NULLIF(%s, ''),
                         completed_at = %s
-                    WHERE id = %s::uuid AND status = %s
+                    WHERE id = %s::uuid AND (status = %s OR (status = 'unknown' AND %s = 'executed'))
                     """,
                 (
                     status,
@@ -1103,6 +1208,7 @@ def finish_order_ticket(
                     now,
                     ticket_id,
                     "executing",
+                    status,
                 ),
             )
 
@@ -1132,3 +1238,256 @@ __all__ = [
     "update_connection_catalog",
     "upsert_client_registration",
 ]
+
+
+# Paper Trading shares the existing brokerage database and ownership boundary.
+# These are durable call/order records, not a second source of account balances.
+def _paper_scope(context: Any, environment: str) -> tuple[str, str, str]:
+    return context.user_id, context.portfolio_id, environment
+
+
+def _paper_connection(*, initialize: bool = False):
+    from contextlib import contextmanager
+
+    @contextmanager
+    def opened():
+        conn = auth_store.open_auth_store_connection()
+        if conn is None:
+            raise RuntimeError('The paper trading database is unavailable.')
+        try:
+            with conn:
+                if initialize:
+                    _ensure_schema(conn)
+                yield conn
+        finally:
+            conn.close()
+    return opened()
+
+
+def _paper_rows(cursor: Any) -> list[dict[str, Any]]:
+    return [json.loads(json.dumps(_row_dict(cursor, row), default=str)) for row in cursor.fetchall()]
+
+
+def paper_state(context: Any, *, environment: str, include_activities: bool = False,
+                before: tuple[str, str] | None = None) -> dict[str, Any]:
+    schema = auth_store.auth_store_schema_name()
+    scope = _paper_scope(context, environment)
+    try:
+        with _paper_connection() as conn, conn.cursor() as cur:
+            cur.execute(f'''SELECT id,candidate_id,parent_call_id,intent,proposed_at,valid_until,decision,decided_at,
+                performance_json AS performance,
+                jsonb_build_object('candidate_id',candidate_id,'ticker',candidate_json->'ticker',
+                    'stance',candidate_json->'stance','hypothesis',candidate_json->'hypothesis',
+                    'setup',candidate_json->'setup','horizon_label',candidate_json->'horizon_label',
+                    'horizon_key',candidate_json->'horizon_key','reason',candidate_json->'reason',
+                    'quantity_fraction',candidate_json->'quantity_fraction','quantity',candidate_json->'quantity',
+                    'reference_price',candidate_json#>'{{forecast,reference_price}}') AS candidate
+                FROM {schema}.paper_trading_calls WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
+                AND environment=%s ORDER BY proposed_at DESC,id''', scope)
+            calls = _paper_rows(cur)
+            cur.execute(f'''SELECT mode,entries_paused,risk_json AS risk_policy,revision,updated_at
+                FROM {schema}.paper_trading_policy WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s''', scope)
+            policies = _paper_rows(cur)
+            cur.execute(f'''SELECT client_order_id,broker_order_id,call_id,action_id,order_json AS data,updated_at
+                FROM {schema}.paper_trading_orders WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
+                AND environment=%s ORDER BY updated_at DESC''', scope)
+            orders = _paper_rows(cur)
+            cursor_clause = 'AND (occurred_at,id)<(%s::timestamptz,%s)' if before else ''
+            cur.execute(f'''SELECT id,kind,call_id,occurred_at,payload_json AS payload
+                FROM {schema}.paper_trading_events WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
+                AND environment=%s AND kind NOT IN ('call_mark','broker_activity','broker_revision') {cursor_clause}
+                ORDER BY occurred_at DESC,id DESC LIMIT 51''', (*scope, *(before or ())))
+            events = _paper_rows(cur)
+            activities = []
+            if include_activities:
+                cur.execute(f'''SELECT payload_json AS activity FROM {schema}.paper_trading_events
+                    WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s
+                    AND kind='broker_activity' ORDER BY occurred_at,id''', scope)
+                activities = [row['activity'] for row in _paper_rows(cur)]
+        return {'status': 'available', 'calls': calls, 'orders': orders, 'events': events[:50],
+                'has_earlier_activity': len(events) > 50, 'policy': policies[0] if policies else {},
+                'activities': activities}
+    except UndefinedTable:
+        return {'status': 'pending', 'calls': [], 'orders': [], 'events': [], 'policy': {}, 'activities': []}
+
+
+def paper_call(context: Any, *, environment: str, identity: str) -> dict[str, Any] | None:
+    schema = auth_store.auth_store_schema_name()
+    try:
+        with _paper_connection() as conn, conn.cursor() as cur:
+            cur.execute(f'''SELECT *,candidate_json AS candidate,performance_json AS performance
+                FROM {schema}.paper_trading_calls WHERE user_id=%s::uuid AND portfolio_id=%s::uuid
+                AND environment=%s AND (id=%s OR candidate_id=%s)''', (*_paper_scope(context, environment), identity, identity))
+            rows = _paper_rows(cur)
+        return rows[0] if rows else None
+    except UndefinedTable:
+        return None
+
+
+def retain_paper_calls(context: Any, *, environment: str, calls: list[dict[str, Any]]) -> None:
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection(initialize=True) as conn, conn.cursor() as cur:
+        cur.execute(f'''INSERT INTO {schema}.paper_trading_policy(user_id,portfolio_id,environment,updated_at)
+            VALUES(%s::uuid,%s::uuid,%s,%s) ON CONFLICT DO NOTHING''', (*_paper_scope(context, environment), _now_utc()))
+        for call in calls:
+            parent = call.get('parent_call_id')
+            if parent:
+                cur.execute(f'''SELECT id FROM {schema}.paper_trading_calls WHERE id=%s
+                    AND user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s''',
+                    (parent, *_paper_scope(context, environment)))
+                if cur.fetchone() is None:
+                    raise ValueError('The original paper call is unavailable.')
+            cur.execute(f'''INSERT INTO {schema}.paper_trading_calls
+                (id,user_id,portfolio_id,environment,candidate_id,parent_call_id,intent,candidate_json,
+                 proposed_at,valid_until,decision)
+                VALUES(%s,%s::uuid,%s::uuid,%s,%s,%s,%s,%s::jsonb,%s,%s,%s)
+                ON CONFLICT(user_id,portfolio_id,environment,candidate_id) DO NOTHING''',
+                (call['id'], *_paper_scope(context, environment), call['candidate']['candidate_id'], parent,
+                 call['intent'], json.dumps(call['candidate'], default=str), call['proposed_at'],
+                 call.get('valid_until'), call.get('decision', 'pending')))
+
+
+def paper_event(context: Any, *, environment: str, identity: str, kind: str,
+                occurred_at: Any, payload: dict[str, Any], call_id: str | None = None,
+                connection_id: str | None = None) -> None:
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection() as conn, conn.cursor() as cur:
+        cur.execute(f'''INSERT INTO {schema}.paper_trading_events
+            (id,user_id,portfolio_id,environment,connection_id,call_id,kind,occurred_at,payload_json)
+            VALUES(%s,%s::uuid,%s::uuid,%s,%s::uuid,%s,%s,%s,%s::jsonb)
+            ON CONFLICT(id) DO UPDATE SET occurred_at=EXCLUDED.occurred_at,payload_json=EXCLUDED.payload_json
+            WHERE paper_trading_events.kind='call_mark' AND paper_trading_events.occurred_at<=EXCLUDED.occurred_at''',
+            (identity, *_paper_scope(context, environment), connection_id, call_id, kind, occurred_at, json.dumps(payload, default=str)))
+
+
+def decide_paper_call(context: Any, *, environment: str, identity: str, decision: str) -> None:
+    if decision not in {'denied', 'submitted', 'superseded'}:
+        raise ValueError('Invalid paper call decision.')
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection() as conn, conn.cursor() as cur:
+        cur.execute(f'''UPDATE {schema}.paper_trading_calls SET decision=%s,decided_at=%s
+            WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND id=%s
+            AND decision IN ('pending',%s) RETURNING id''',
+            (decision, _now_utc(), *_paper_scope(context, environment), identity, decision))
+        if cur.fetchone() is None:
+            raise ValueError('This call was already decided or is unavailable.')
+
+
+def update_paper_policy(context: Any, *, environment: str, expected_revision: int,
+                        mode: str, entries_paused: bool, risk_policy: dict) -> dict:
+    schema = auth_store.auth_store_schema_name()
+    now = _now_utc()
+    with _paper_connection(initialize=True) as conn, conn.cursor() as cur:
+        cur.execute('SELECT pg_advisory_xact_lock(hashtext(%s))',
+                    (json.dumps(['paper_policy', *_paper_scope(context, environment)]),))
+        cur.execute(f'''SELECT revision FROM {schema}.paper_trading_policy WHERE
+            user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s FOR UPDATE''', _paper_scope(context, environment))
+        previous = cur.fetchone()
+        if int(previous[0] if previous else 0) != expected_revision:
+            raise ValueError('Trading settings changed. Reload them before saving.')
+        revision = expected_revision + 1
+        cur.execute(f'''INSERT INTO {schema}.paper_trading_policy
+            (user_id,portfolio_id,environment,mode,entries_paused,risk_json,revision,updated_at)
+            VALUES(%s::uuid,%s::uuid,%s,%s,%s,%s::jsonb,%s,%s)
+            ON CONFLICT(user_id,portfolio_id,environment) DO UPDATE SET mode=EXCLUDED.mode,
+                entries_paused=EXCLUDED.entries_paused,risk_json=EXCLUDED.risk_json,
+                revision=EXCLUDED.revision,updated_at=EXCLUDED.updated_at''',
+            (*_paper_scope(context, environment), mode, entries_paused, json.dumps(risk_policy), revision, now))
+        payload = {'mode': mode, 'entries_paused': entries_paused, 'risk_policy': risk_policy, 'revision': revision}
+        cur.execute(f'''INSERT INTO {schema}.paper_trading_events
+            (id,user_id,portfolio_id,environment,kind,occurred_at,payload_json)
+            VALUES(%s,%s::uuid,%s::uuid,%s,'policy_changed',%s,%s::jsonb)''',
+            (str(uuid.uuid4()), *_paper_scope(context, environment), now, json.dumps(payload)))
+    return {**payload, 'updated_at': now.isoformat()}
+
+
+def retain_paper_order(context: Any, *, environment: str, connection_id: str, call_id: str,
+                       action_id: str, ticket_id: str, order: dict) -> None:
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection() as conn, conn.cursor() as cur:
+        cur.execute(f'''INSERT INTO {schema}.paper_trading_orders
+            (connection_id,user_id,portfolio_id,environment,client_order_id,broker_order_id,call_id,action_id,ticket_id,order_json,updated_at)
+            VALUES(%s::uuid,%s::uuid,%s::uuid,%s,%s,%s,%s,%s,%s::uuid,%s::jsonb,%s)
+            ON CONFLICT(connection_id,client_order_id) DO UPDATE SET
+                broker_order_id=COALESCE(EXCLUDED.broker_order_id,paper_trading_orders.broker_order_id),
+                order_json=EXCLUDED.order_json,updated_at=EXCLUDED.updated_at
+            WHERE paper_trading_orders.call_id=EXCLUDED.call_id AND paper_trading_orders.action_id=EXCLUDED.action_id''',
+            (connection_id, *_paper_scope(context, environment), order['client_order_id'], order.get('id'),
+             call_id, action_id, ticket_id, json.dumps(order, default=str), _now_utc()))
+
+
+def save_paper_performance(context: Any, *, environment: str, call_id: str, performance: dict) -> None:
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection() as conn, conn.cursor() as cur:
+        cur.execute(f'''UPDATE {schema}.paper_trading_calls SET performance_json=%s::jsonb
+            WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND id=%s
+            AND (performance_json->>'as_of' IS NULL OR (performance_json->>'as_of')::timestamptz<=%s::timestamptz)''',
+            (json.dumps(performance, default=str), *_paper_scope(context, environment), call_id,performance.get("as_of")))
+
+
+def paper_call_history(context: Any, *, environment: str, call_id: str) -> list[dict]:
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection() as conn, conn.cursor() as cur:
+        cur.execute(f'''SELECT id,kind,occurred_at,payload_json AS payload FROM {schema}.paper_trading_events
+            WHERE user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s AND call_id=%s
+            ORDER BY occurred_at,id''', (*_paper_scope(context, environment), call_id))
+        return _paper_rows(cur)
+
+
+def paper_contexts(*, environment: str) -> list[dict]:
+    """Scheduled work uses existing connection/snapshot ownership and active admin membership."""
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection() as conn, conn.cursor() as cur:
+        cur.execute(f'''SELECT DISTINCT u.id AS user_id,u.email,u.first_name,u.last_name,u.display_name,u.role,
+            p.id AS portfolio_id,p.slug AS portfolio_slug,p.name AS portfolio_name,
+            m.role AS membership_role,m.share_fraction,m.can_view_full_portfolio
+            FROM {schema}.brokerage_connections c JOIN {schema}.users u ON u.id=c.user_id
+            JOIN {schema}.brokerage_portfolio_snapshots s ON s.connection_id=c.id AND s.environment=c.environment
+            JOIN {schema}.portfolios p ON p.id=s.portfolio_id
+            JOIN {schema}.portfolio_memberships m ON m.user_id=u.id AND m.portfolio_id=p.id
+            WHERE c.provider='alpaca_paper' AND c.environment=%s AND c.status='connected'
+            AND u.status='active' AND p.status='active' AND m.role='admin'
+            AND m.effective_from<=%s AND (m.effective_to IS NULL OR m.effective_to>%s)''',
+            (environment, _now_utc(), _now_utc()))
+        return _paper_rows(cur)
+
+
+def retain_paper_events(context: Any, *, environment: str, events: list[dict]) -> None:
+    """Batch broker facts in one transaction; corrections retain the prior version."""
+    import hashlib
+    schema = auth_store.auth_store_schema_name()
+    with _paper_connection() as conn, conn.cursor() as cur:
+        for event in events:
+            payload = json.dumps(event['payload'], sort_keys=True, default=str)
+            if event['kind'] == 'broker_activity':
+                cur.execute(f'''SELECT payload_json FROM {schema}.paper_trading_events WHERE id=%s
+                    AND user_id=%s::uuid AND portfolio_id=%s::uuid AND environment=%s FOR UPDATE''',
+                    (event['id'], *_paper_scope(context, environment)))
+                previous = cur.fetchone()
+                if previous and previous[0] != event['payload']:
+                    revision = event['id'] + ':revision:' + hashlib.sha256(json.dumps(previous[0], sort_keys=True, default=str).encode()).hexdigest()
+                    cur.execute(f'''INSERT INTO {schema}.paper_trading_events
+                        (id,user_id,portfolio_id,environment,connection_id,call_id,kind,occurred_at,payload_json)
+                        VALUES(%s,%s::uuid,%s::uuid,%s,%s::uuid,%s,'broker_revision',%s,%s::jsonb)
+                        ON CONFLICT DO NOTHING''',
+                        (revision, *_paper_scope(context, environment), event.get('connection_id'), event.get('call_id'), _now_utc(), json.dumps(previous[0], default=str)))
+            cur.execute(f'''INSERT INTO {schema}.paper_trading_events
+                (id,user_id,portfolio_id,environment,connection_id,call_id,kind,occurred_at,payload_json)
+                VALUES(%s,%s::uuid,%s::uuid,%s,%s::uuid,%s,%s,%s,%s::jsonb)
+                ON CONFLICT(id) DO UPDATE SET occurred_at=EXCLUDED.occurred_at,payload_json=EXCLUDED.payload_json,
+                    call_id=COALESCE(EXCLUDED.call_id,paper_trading_events.call_id)
+                WHERE paper_trading_events.kind='broker_activity' OR
+                    (paper_trading_events.kind='call_mark' AND paper_trading_events.occurred_at<=EXCLUDED.occurred_at)''',
+                (event['id'], *_paper_scope(context, environment), event.get('connection_id'), event.get('call_id'),
+                 event['kind'], event['occurred_at'], payload))
+
+
+def paper_control_lock(account_id: str):
+    """Policy/denial changes serialize with the broker submission boundary."""
+    from contextlib import contextmanager
+    @contextmanager
+    def locked():
+        with _paper_connection() as conn,conn.cursor() as cur:
+            cur.execute('SELECT pg_advisory_xact_lock(hashtext(%s))',('alpaca_paper:'+account_id,))
+            yield
+    return locked()

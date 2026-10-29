@@ -15,6 +15,7 @@ from services.pipeline_store import (
 )
 from services.trading_agent import TRADING_AGENT_NARRATIVE_CONTRACT_VERSION, TRADING_AGENT_LEGACY_NARRATIVE_CONTRACTS, normalize_trading_agent_candidate
 from services.trading_call_tracking import tracking_view
+from services import alpaca_paper
 
 
 def _text(value: object, limit: int = 4000) -> str:
@@ -116,14 +117,19 @@ def _actions_by_candidate(actions: pd.DataFrame) -> dict[str, dict[str, Any]]:
     return result
 
 
-def build_trading_agent_view(context: UserContext | None = None) -> dict[str, Any]:
+def _build_report_view(context: UserContext | None = None, *, period: str = "1M") -> dict[str, Any]:
     tracking: dict[str, Any] = {"status": "available", "calls": [], "as_of": ""}
     if context is not None:
         try:
             tracking = tracking_view(owner_id=context.user_id)
         except Exception:
             tracking = {"status": "unavailable", "calls": [], "as_of": ""}
-    tracking_fields = {"tracking_status": tracking["status"], "tracked_calls": tracking["calls"], "tracking_as_of": tracking["as_of"]}
+    try:
+        paper = alpaca_paper.view(context,period=period) if context else {"status": "unlinked"}
+    except Exception:
+        paper = {"status": "unavailable", "provider": alpaca_paper.PROVIDER}
+    tracking_fields = {"tracking_status": tracking["status"], "tracked_calls": tracking["calls"], "tracking_as_of": tracking["as_of"],
+                       "paper_portfolio": paper}
     runs, candidates, actions, metadata = _latest_output()
     if runs.empty or candidates.empty:
         return {"status": "unavailable", "as_of": "", "horizons": [], "decisions": [], **tracking_fields}
@@ -193,39 +199,17 @@ def build_trading_agent_view(context: UserContext | None = None) -> dict[str, An
     }
 
 
-def record_trading_agent_decision(
-    *,
-    candidate_id: str,
-    action: str,
-    context: UserContext,
-) -> dict[str, Any]:
-    normalized_action = str(action or "").strip().lower()
-    if normalized_action not in {"approve", "reject"}:
-        raise ValueError("Decision must be approve or reject.")
-    target = str(candidate_id or "").strip()
-    view = build_trading_agent_view(context)
-    candidate = next(
-        (
-            item
-            for horizon in view.get("horizons", [])
-            for item in horizon.get("candidates", [])
-            if str(item.get("candidate_id") or "") == target
-        ),
-        None,
-    )
-    if candidate is None:
-        if normalized_action == "approve" and any(str(item.get("candidate_id") or "") == target for item in view.get("tracked_calls", [])):
-            return {"status": "recorded", "candidate_id": target, "action": normalized_action, "message": "Candidate approved."}
-        raise ValueError("Trading Agent candidate is no longer current.")
-    ok, message = record_trading_agent_action(
-        candidate=candidate,
-        action=normalized_action,
-        requested_by=context.user_id,
-        requested_email=context.email,
-    )
-    if not ok:
-        raise RuntimeError(message)
-    return {"status": "recorded", "candidate_id": target, "action": normalized_action, "message": message}
+def build_trading_agent_view(context: UserContext | None = None, *, period: str = "1M", cursor: str = "") -> dict[str, Any]:
+    from services import trading_portfolio
+    result=_build_report_view(context,period=period)
+    if context:
+        result['workspace']=trading_portfolio.build(context,result,before=trading_portfolio.decode_cursor(cursor) if cursor else None)
+    return result
+
+
+def record_trading_agent_decision(*,candidate_id: str,action: str,context: UserContext) -> dict[str, Any]:
+    from services.trading_portfolio import decision
+    return decision(context,candidate_id,action)
 
 
 __all__ = ["build_trading_agent_view", "record_trading_agent_decision"]

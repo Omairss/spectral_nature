@@ -35,7 +35,6 @@ struct FeatureRequestsView: View {
   @StateObject private var resource = Resource<FeatureRequestList>()
   @State private var scope = "mine"
   @State private var showingNew = false
-  @State private var draftTitle = ""
   @State private var draftBody = ""
   @State private var draftID = UUID().uuidString
 
@@ -80,8 +79,7 @@ struct FeatureRequestsView: View {
       .refreshable { await load() }
       .sheet(isPresented: $showingNew) {
         NavigationStack {
-          NewFeatureRequestView(title: $draftTitle, bodyText: $draftBody, requestID: draftID) {
-            draftTitle = ""
+          NewFeatureRequestView(bodyText: $draftBody, requestID: draftID) {
             draftBody = ""
             draftID = UUID().uuidString
             showingNew = false
@@ -101,7 +99,6 @@ struct FeatureRequestsView: View {
 private struct NewFeatureRequestView: View {
   @EnvironmentObject private var session: AppSession
   @Environment(\.dismiss) private var dismiss
-  @Binding var title: String
   @Binding var bodyText: String
   let requestID: String
   let onCreated: () -> Void
@@ -110,21 +107,17 @@ private struct NewFeatureRequestView: View {
 
   var body: some View {
     Form {
-      Section { TextField("Title", text: $title, axis: .vertical).lineLimit(1...3).accessibilityLabel("Request title").accessibilityIdentifier("request.title") }
-      Section("Details") { TextEditor(text: $bodyText).frame(minHeight: 180).accessibilityLabel("Request details").accessibilityIdentifier("request.details") }
-      if title.count > 200 { Text("Titles have a 200 character limit.").foregroundStyle(Theme.coral) }
-      if bodyText.count > 8000 { Text("Details have an 8,000 character limit.").foregroundStyle(Theme.coral) }
+      Section { TextEditor(text: $bodyText).frame(minHeight: 240).accessibilityLabel("Feedback").accessibilityIdentifier("request.message") }
+      if bodyText.unicodeScalars.count > 8000 { Text("Messages have an 8,000 character limit.").foregroundStyle(Theme.coral) }
       if !error.isEmpty { Text(error).foregroundStyle(Theme.coral).font(.callout) }
     }.disabled(sending).scrollContentBackground(.hidden).workbench()
-      .navigationTitle("New request").navigationBarTitleDisplayMode(.inline)
+      .navigationTitle("Feedback").navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(sending) }
         ToolbarItem(placement: .confirmationAction) {
           Button { Task { await submit() } } label: {
             if sending { ProgressView() } else { Text("Send") }
-          }.disabled(sending || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            || title.count > 200 || bodyText.count > 8000)
+          }.disabled(sending || bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || bodyText.unicodeScalars.count > 8000)
         }
       }.interactiveDismissDisabled(sending)
   }
@@ -134,9 +127,10 @@ private struct NewFeatureRequestView: View {
     defer { sending = false }
     let info = Bundle.main.infoDictionary ?? [:]
     let version = "\(info["CFBundleShortVersionString"] as? String ?? "") (\(info["CFBundleVersion"] as? String ?? ""))"
+    let message = bodyText.trimmingCharacters(in: .whitespacesAndNewlines)
     do {
       let _: FeatureRequestThread = try await session.api.post("/api/feature-requests", body: [
-        "id": .string(requestID), "title": .string(title), "body": .string(bodyText),
+        "id": .string(requestID), "title": .string(String(String.UnicodeScalarView(message.unicodeScalars.prefix(200)))), "body": .string(message),
         "client": .string("ios"), "app_version": .string(version),
       ])
       onCreated()
@@ -159,7 +153,7 @@ struct FeatureRequestThreadView: View {
         LazyVStack(alignment: .leading, spacing: 18) {
           ResourceStatus(resource: resource) { Task { await load() } }
           if let thread = resource.value {
-            Text(thread.title).font(.title2.weight(.semibold))
+            if !(thread.messages.first?.body.hasPrefix(thread.title) ?? false) { Text(thread.title).font(.title2.weight(.semibold)) }
             ForEach(thread.messages) { item in
               VStack(alignment: .leading, spacing: 9) {
                 HStack {
@@ -188,7 +182,7 @@ struct FeatureRequestThreadView: View {
     .safeAreaInset(edge: .bottom) {
       VStack(alignment: .leading, spacing: 8) {
         if !sendError.isEmpty { Text(sendError).font(.caption).foregroundStyle(Theme.coral) }
-        if message.count > 8000 { Text("Messages have an 8,000 character limit.").font(.caption).foregroundStyle(Theme.coral) }
+        if message.unicodeScalars.count > 8000 { Text("Messages have an 8,000 character limit.").font(.caption).foregroundStyle(Theme.coral) }
         HStack(alignment: .bottom, spacing: 12) {
           TextField("Add a message", text: $message, axis: .vertical).lineLimit(1...5)
             .padding(10).background(Theme.background, in: RoundedRectangle(cornerRadius: 9))
@@ -197,7 +191,7 @@ struct FeatureRequestThreadView: View {
             if sending { ProgressView() }
             else { Image(systemName: "arrow.up.circle.fill").font(.title) }
           }.accessibilityLabel("Send message")
-            .disabled(sending || resource.value == nil || message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || message.count > 8000)
+            .disabled(sending || resource.value == nil || message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || message.unicodeScalars.count > 8000)
         }
       }.padding(12).background(Theme.panel)
     }

@@ -110,6 +110,7 @@ def _run_browser_process(
     method: str, url: str, *, timeout_seconds: int, max_text_chars: int, warning: str = ""
 ) -> dict[str, Any]:
     """Own the driver and its descendants, including a crashed driver's cleanup."""
+    check_work()
     request = {"method": method, "url": url, "timeout_seconds": timeout_seconds,
                "max_text_chars": max_text_chars, "warning": warning}
     worker_timeout = remaining_work_seconds(max(timeout_seconds, _env_int(
@@ -133,6 +134,7 @@ def _run_browser_process(
                 process.communicate(json.dumps(request), timeout=worker_timeout)
             except subprocess.TimeoutExpired as exc:
                 raise PageBrowsingError(f"{method} browser exceeded its {worker_timeout}s worker deadline") from exc
+            check_work()
             if not result_path.exists():
                 raise PageBrowsingError(f"{method} browser worker exited with code {process.returncode}")
             result = json.loads(result_path.read_text())
@@ -317,6 +319,8 @@ _SEEKING_ALPHA_PREVIEW_GATE_MARKERS: tuple[str, ...] = (
 def page_quality_issue(payload: dict[str, Any] | None, *, min_text_chars: int = 500) -> str:
     if not isinstance(payload, dict):
         return "empty_payload"
+    if int(payload.get("http_status") or 0) >= 400:
+        return f"blocked:http_status_{payload['http_status']}"
     text = _clean(payload.get("text"))
     title = _clean(payload.get("title"))
     excerpt = _clean(payload.get("excerpt"))
@@ -395,7 +399,8 @@ async def _browse_with_playwright(
             try:
                 page = await browser.new_page(user_agent=DEFAULT_BROWSER_USER_AGENT)
                 page.set_default_timeout(timeout_ms)
-                await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+                response = await page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+                http_status = response.status if response is not None else None
                 try:
                     await page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 2500))
                 except Exception:
@@ -403,6 +408,7 @@ async def _browse_with_playwright(
                 title = _clean(await page.title())
                 final_url = _clean(page.url)
                 source_metadata = _parse_html_document(await page.content())["source_metadata"]
+                source_metadata["http_status"] = http_status
                 description = ""
                 try:
                     description = _clean(await page.evaluate(
@@ -430,6 +436,7 @@ async def _browse_with_playwright(
         "text": text,
         "source_text": source_text,
         "source_metadata": source_metadata,
+        "http_status": http_status,
         "retrieved_at": datetime.now(timezone.utc).isoformat(),
         "mode": "playwright",
         "warning": "",

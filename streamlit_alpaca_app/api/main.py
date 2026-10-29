@@ -27,6 +27,7 @@ from services.agents.research_runs import (
 from services.admin_view import build_admin_view, build_llm_settings_view, update_llm_settings
 from services.home_view import build_public_home_audio, build_public_home_view
 from api.feature_requests import create_feature_request_router
+from api.paper_trading import create_paper_trading_router
 from services.market_view import build_market_lenses_view
 from services.portfolio_view import build_portfolio_view, build_portfolio_opportunity_view
 from services.stock_view import build_stock_investigator_view
@@ -606,12 +607,14 @@ def portfolio_opportunities(
 @app.get("/v1/trading-agent")
 def trading_agent_view(
     response: Response,
+    period: str = Query(default="1M", pattern=r"^(1D|1W|1M|3M|1Y|ALL)$"),
+    cursor: str = Query(default="", max_length=1024),
     principal: api_auth.AuthPrincipal = Depends(_require_principal),
 ) -> dict[str, Any]:
     _require_admin_user(principal)
     response.headers["Cache-Control"] = "private, no-store"
     try:
-        return build_trading_agent_view(_require_user_context(principal))
+        return build_trading_agent_view(_require_user_context(principal),period=period,cursor=cursor)
     except Exception:
         raise _error("Trading Agent data is unavailable.", status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -1406,3 +1409,4 @@ def get_research_export(
 
 
 app.include_router(create_feature_request_router(_require_principal))
+app.include_router(create_paper_trading_router(_require_principal))

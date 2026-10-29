@@ -1,157 +1,610 @@
 "use client";
-
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { DataPlot } from "@/components/visualizations/data-plot";
-import { DataTable, MetricStrip, WorkbookTabs } from "@/components/workbook";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ActivityRows,
+  ApprovedCallDetail,
+  CallRows,
+  PaperCallDetail,
+  PaperOrderReview,
+  PortfolioTimeline,
+  ProposalCard,
+  riskLabels,
+  money,
+  type OrderAction,
+  type PaperCall,
+  type PaperPortfolio,
+  type RiskPolicy,
+  type TrackedPaperCall,
+  type TradingPolicy,
+  type Workspace,
+} from "@/components/trading-paper-portfolio";
+import { MetricStrip, WorkbookTabs } from "@/components/workbook";
 import { responseError, secureMutation } from "@/lib/client/api";
 import { useAuthenticatedSession } from "@/lib/client/session";
+import styles from "@/components/trading-paper-portfolio.module.css";
 
-type Candidate = Record<string, unknown> & {
-  candidate_id: string; ticker: string; stance: string; direction: string; research_status: string;
-  setup: string; hypothesis: string; invalidation: string; suggested_horizon: string; confidence: string;
-  evidence: string[]; tail_risks: string[]; evidence_limits: string[]; market: Record<string, unknown>;
-  decision: Record<string, unknown>; forecast?: Forecast;
+type TradingView = {
+  paper_portfolio: PaperPortfolio;
+  workspace: Workspace;
+  tracked_calls: TrackedPaperCall[];
 };
-type Horizon = { key: string; label: string; selected_horizon_col: string; status: string; regime_read: string; portfolio_posture: string; data_gaps: string[]; candidates: Candidate[] };
-type Forecast = { reference_price?: number; reference_snapshot_as_of: string; pricing_assessment: string; assumptions: string[]; opposing_case: string };
-type TrackedCall = {tracking_id: string; ticker: string; stance: string; horizon_label: string; approved_at_utc: string; as_of?: string; status: string; return_pct?: number; benchmark_return_pct?: number; excess_return_pct?: number; max_drawdown_pct?: number; entry_date?: string; last_price_date?: string; target_date?: string; hypothesis?: string; path?: Array<{date: string; return_pct: number; benchmark_return_pct: number | null}>};
-type TradingView = { status: string; as_of: string; run_id: string; horizons: Horizon[]; decisions: Array<Record<string, unknown>>; tracked_calls?: TrackedCall[]; tracking_status?: string };
-function number(value: unknown) { if (value === null || value === undefined || value === "") return null; const parsed = Number(value); return Number.isFinite(parsed) ? parsed : null; }
-function pct(value: unknown) { const parsed = number(value); return parsed === null ? "—" : `${parsed > 0 ? "+" : ""}${parsed.toFixed(1)}%`; }
-
 export default function TradingAgentPage() {
   const { session, sessionError } = useAuthenticatedSession("/trading-agent");
-  const [view, setView] = useState<TradingView | null>(null);
-  const [activeHorizon, setActiveHorizon] = useState("");
-  const [section, setSection] = useState("calls");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
+  const [view, setView] = useState<TradingView | null>(null),
+    [error, setError] = useState(""),
+    [notice, setNotice] = useState("");
+  const [period, setPeriod] = useState("1M"),
+    [section, setSection] = useState("activity"),
+    [busy, setBusy] = useState(false),
+    [refreshing, setRefreshing] = useState(false);
+  const [review, setReview] = useState<OrderAction | null>(null),
+    [detail, setDetail] = useState<PaperCall | null>(null),
+    [settings, setSettings] = useState(false);
+  const [research, setResearch] = useState<TrackedPaperCall | null>(null);
+  const refreshingRef = useRef(false),
+    loadId = useRef(0);
   const load = useCallback(async () => {
-    await Promise.resolve();
-    setLoading(true); setError("");
+    const id = ++loadId.current;
     try {
-      const response = await fetch("/api/trading-agent", { cache: "no-store", credentials: "same-origin" });
-      if (!response.ok) throw new Error(await responseError(response, response.status === 403 ? "Admin access is required." : "Trading Agent data could not be loaded."));
-      const next = (await response.json()) as TradingView;
-      setView(next);
-      setActiveHorizon((current) => next.horizons.some((item) => item.key === current) ? current : next.horizons[0]?.key || "");
-    } catch (reason) { setView(null); setError(reason instanceof Error ? reason.message : "Trading Agent data could not be loaded."); }
-    finally { setLoading(false); }
-  }, []);
-
+      const response = await fetch(`/api/trading-agent?period=${period}`, {
+        cache: "no-store",
+      });
+      if (!response.ok)
+        throw new Error(
+          await responseError(response, "Trading could not be loaded."),
+        );
+      const next = await response.json();
+      if (id === loadId.current) {
+        setView(next);
+        setError("");
+      }
+    } catch (e) {
+      if (id === loadId.current)
+        setError(e instanceof Error ? e.message : "Trading unavailable.");
+    }
+  }, [period]);
+  const refresh = useCallback(async () => {
+    if (refreshingRef.current) return;
+    refreshingRef.current = true;
+    setRefreshing(true);
+    try {
+      const r = await secureMutation("/api/trading-agent/paper/refresh", {
+        method: "POST",
+        body: "{}",
+      });
+      if (!r.ok)
+        throw new Error(await responseError(r, "Account refresh failed."));
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Refresh failed.");
+    } finally {
+      setRefreshing(false);
+      refreshingRef.current = false;
+    }
+  }, [load]);
   useEffect(() => {
     if (!session?.authenticated) return;
-    const timer = window.setTimeout(() => { void load(); }, 0);
+    const timer = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(timer);
-  }, [load, session]);
-  const horizon = view?.horizons.find((item) => item.key === activeHorizon);
-  const groups = useMemo(() => ({
-    long: horizon?.candidates.filter((item) => item.stance === "long") || [],
-    short: horizon?.candidates.filter((item) => item.stance === "short") || [],
-    watch: horizon?.candidates.filter((item) => !["long", "short"].includes(item.stance)) || [],
-  }), [horizon]);
-
-  async function decide(candidate: Candidate, action: "approve" | "reject") {
-    setLoading(true); setError("");
+  }, [session?.authenticated, load]);
+  const linked =
+    view?.paper_portfolio &&
+    !["unlinked", "unavailable"].includes(view.paper_portfolio.status);
+  useEffect(() => {
+    if (!session?.authenticated || !linked) return;
+    const tick = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    const timer = window.setTimeout(tick, 0),
+      interval = window.setInterval(tick, 60_000);
+    window.addEventListener("focus", tick);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", tick);
+    };
+  }, [linked, refresh, session?.authenticated]);
+  async function deny(call: PaperCall) {
+    setBusy(true);
     try {
-      const response = await secureMutation("/api/trading-agent/decisions", { method: "POST", body: JSON.stringify({ candidate_id: candidate.candidate_id, action }) });
-      if (!response.ok) throw new Error(await responseError(response, "Decision could not be recorded."));
+      const r = await secureMutation("/api/trading-agent/decisions", {
+        method: "POST",
+        body: JSON.stringify({
+          candidate_id: call.candidate_id,
+          action: "reject",
+        }),
+      });
+      if (!r.ok) throw new Error(await responseError(r, "Decision failed."));
       await load();
-      if (action === "approve") setSection("performance");
-    } catch (reason) { setError(reason instanceof Error ? reason.message : "Decision could not be recorded."); setLoading(false); }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Decision failed.");
+    } finally {
+      setBusy(false);
+    }
   }
-
-
-  if (!session?.authenticated) return <div className="page-shell"><p className="loading-label">Checking session…</p></div>;
+  async function updatePolicy(next: TradingPolicy) {
+    setBusy(true);
+    try {
+      const r = await secureMutation("/api/trading-agent/paper/policy", {
+        method: "POST",
+        body: JSON.stringify({
+          mode: next.mode,
+          entries_paused: next.entries_paused,
+          risk_policy: next.risk_policy,
+          expected_revision: next.revision,
+        }),
+      });
+      if (!r.ok)
+        throw new Error(
+          await responseError(r, "Trading settings could not be saved."),
+        );
+      setSettings(false);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Settings unavailable.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  function openCall(id: string) {
+    const c =
+      view?.workspace.calls.find((c) => c.call_id === id) ||
+      view?.workspace.proposals.find((c) => c.call_id === id);
+    if (c) setDetail(c);
+  }
+  async function earlier() {
+    if (!view?.workspace.next_cursor) return;
+    setBusy(true);
+    try {
+      const r = await fetch(
+        `/api/trading-agent?period=${period}&cursor=${encodeURIComponent(view.workspace.next_cursor)}`,
+        { cache: "no-store" },
+      );
+      if (!r.ok)
+        throw new Error(await responseError(r, "Activity unavailable."));
+      const next = (await r.json()) as TradingView;
+      setView((current) =>
+        current
+          ? {
+              ...current,
+              workspace: {
+                ...current.workspace,
+                activity: [
+                  ...current.workspace.activity,
+                  ...next.workspace.activity.filter(
+                    (e) =>
+                      !current.workspace.activity.some(
+                        (old) => old.id === e.id,
+                      ),
+                  ),
+                ],
+                next_cursor: next.workspace.next_cursor,
+              },
+            }
+          : current,
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Activity unavailable.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  if (!session?.authenticated)
+    return (
+      <div className="page-shell">
+        <p>Checking session…</p>
+      </div>
+    );
+  const workspace = view?.workspace,
+    policy = workspace?.policy;
+  const pending =
+    workspace?.proposals.filter((c) => c.status === "pending") || [];
+  const executed =
+    workspace?.calls.filter((c) => c.status && c.status !== "not_filled") || [];
   return (
-    <div className="page-shell workbook-page">
-      <header className="artifact-header"><div><p className="breadcrumb">Agent <span>/</span> Market decisions</p><h1>Trading Agent</h1></div>{view?.as_of ? <time dateTime={view.as_of}>{new Date(view.as_of).toLocaleString()}</time> : null}</header>
-      {sessionError || error ? <p className="subtle-error" role="alert">{sessionError || error}</p> : null}
-      {loading && !view ? <p className="loading-label">Loading Trading Agent…</p> : null}
-      <WorkbookTabs active={section} items={[{key: "calls", label: "Calls"}, {key: "performance", label: "Paper performance"}]} label="Trading view" onChange={setSection} />
-      {section === "performance" ? <ApprovedCallPerformance calls={view?.tracked_calls || []} unavailable={view?.tracking_status === "unavailable"} /> : view?.status === "available" && horizon ? <>
-        <WorkbookTabs active={activeHorizon} items={view.horizons.map((item) => ({ key: item.key, label: item.label }))} label="Trading horizons" onChange={setActiveHorizon} />
-        <section className="agent-backdrop"><p className="section-label">Market backdrop</p><h2>{horizon.regime_read}</h2>{horizon.portfolio_posture ? <p>{horizon.portfolio_posture}</p> : null}</section>
-        <MetricStrip items={[{ label: "Long", value: groups.long.length }, { label: "Short", value: groups.short.length }, { label: "Watch", value: groups.watch.length }, { label: "Decisions", value: view.decisions.length }]} />
-        {groups.long.length ? <section className="candidate-section"><header className="panel-header"><div><p className="section-label">Long</p><h2>Long calls</h2></div><span>{groups.long.length}</span></header><div className="candidate-grid">{groups.long.map((candidate) => <CandidateCard candidate={candidate} horizon={horizon} loading={loading} onDecide={decide} key={candidate.candidate_id} />)}</div></section> : null}
-        {groups.short.length ? <section className="candidate-section"><header className="panel-header"><div><p className="section-label">Short</p><h2>Short calls</h2></div><span>{groups.short.length}</span></header><div className="candidate-grid">{groups.short.map((candidate) => <CandidateCard candidate={candidate} horizon={horizon} loading={loading} onDecide={decide} key={candidate.candidate_id} />)}</div></section> : null}
-        {groups.watch.length ? <section className="candidate-section"><header className="panel-header"><div><p className="section-label">Watch</p><h2>Research queue</h2></div><span>{groups.watch.length}</span></header><div className="candidate-grid">{groups.watch.map((candidate) => <CandidateCard candidate={candidate} horizon={horizon} loading={loading} onDecide={decide} key={candidate.candidate_id} />)}</div></section> : null}
-        {view.decisions.length ? <details className="workbook-panel decisions-panel"><summary>Decisions</summary><DataTable columns={[{ key: "created_at_utc", label: "Time" }, { key: "ticker", label: "Ticker" }, { key: "horizon_key", label: "Horizon" }, { key: "action", label: "Decision" }, { key: "requested_email", label: "Reviewed by" }]} rowKey={(row, index) => String(row.action_id || index)} rows={view.decisions} /></details> : null}
-      </> : view && !loading ? <section className="empty-state"><strong>Trading Agent unavailable</strong></section> : null}
-    </div>
+    <main className={`page-shell ${styles.workspace}`}>
+      <header className={styles.line}>
+        <h1>Trading</h1>
+        {policy ? (
+          <div className={styles.actions}>
+            <span className={styles.mode}>
+              {policy.entries_paused
+                ? "Entries paused"
+                : policy.mode === "autonomous"
+                  ? "Paper autopilot"
+                  : "Approve each order"}
+            </span>
+            <button
+              className="quiet-button"
+              onClick={() => setSettings(true)}
+              aria-label="Trading settings"
+            >
+              Settings
+            </button>
+          </div>
+        ) : null}
+      </header>
+      {sessionError || error ? (
+        <p className="subtle-error" role="alert">
+          {sessionError || error}
+        </p>
+      ) : null}
+      {notice ? <p role="status">{notice}</p> : null}
+      <PortfolioTimeline
+        portfolio={view?.paper_portfolio}
+        period={period}
+        onPeriod={setPeriod}
+        refreshing={refreshing}
+        onRefresh={() => void refresh()}
+      />
+      {policy ? (
+        <div className={styles.line}>
+          <span className={styles.meta}>
+            {pending.length} awaiting approval ·{" "}
+            {executed.filter((c) => c.status === "open").length} open calls
+          </span>
+          <button
+            className="quiet-button"
+            disabled={busy}
+            onClick={() =>
+              void updatePolicy({
+                ...policy,
+                entries_paused: !policy.entries_paused,
+              })
+            }
+          >
+            {policy.entries_paused ? "Resume entries" : "Pause entries"}
+          </button>
+        </div>
+      ) : null}
+      <WorkbookTabs
+        active={section}
+        onChange={setSection}
+        label="Trading"
+        items={[
+          { key: "activity", label: "Activity" },
+          { key: "positions", label: "Positions" },
+          { key: "performance", label: "Performance" },
+        ]}
+      />
+      {section === "activity" ? (
+        <>
+          {pending.map((c) => (
+            <ProposalCard
+              key={c.candidate_id}
+              call={c}
+              busy={busy}
+              onApprove={() =>
+                setReview({
+                  ticker: c.ticker,
+                  candidate_id: c.candidate_id,
+                  intent: c.intent,
+                })
+              }
+              onDeny={() => void deny(c)}
+              onDetail={() => setDetail(c)}
+            />
+          ))}
+          {workspace?.working_orders.length ? (
+            <section className="workbook-panel">
+              <header className="panel-header">
+                <h2>Working orders</h2>
+              </header>
+              {workspace.working_orders.map((o) => (
+                <div className={styles.order} key={String(o.client_order_id)}>
+                  <div>
+                    <strong>{String(o.symbol)}</strong>
+                    <p>
+                      {String(o.side)} {String(o.qty)} ·{" "}
+                      {String(o.filled_qty || "0")} filled ·{" "}
+                      {String(o.status).replaceAll("_", " ")}
+                    </p>
+                  </div>
+                  <button
+                    className="quiet-button"
+                    disabled={!o.id}
+                    onClick={() =>
+                      setReview({
+                        ticker: String(o.symbol),
+                        intent: "cancel",
+                        order_id: String(o.id),
+                      })
+                    }
+                  >
+                    Review cancellation
+                  </button>
+                </div>
+              ))}
+            </section>
+          ) : null}
+          {workspace?.activity.length ? (
+            <ActivityRows events={workspace.activity} onSelect={openCall} />
+          ) : !pending.length ? (
+            <section className={styles.empty}>
+              <h2>No trading activity yet</h2>
+              <p>New calls and position reviews appear here.</p>
+            </section>
+          ) : null}
+          {workspace?.next_cursor ? (
+            <button
+              className="quiet-button"
+              disabled={busy}
+              onClick={() => void earlier()}
+            >
+              Earlier activity
+            </button>
+          ) : null}
+          {workspace?.proposals.some((c) => c.status === "expired") ? (
+            <details className="workbook-panel">
+              <summary>Expired calls</summary>
+              <CallRows
+                calls={workspace.proposals.filter(
+                  (c) => c.status === "expired",
+                )}
+                onSelect={setDetail}
+              />
+            </details>
+          ) : null}
+        </>
+      ) : null}
+      {section === "positions" ? (
+        <>
+          <section className="workbook-panel">
+            <header className="panel-header">
+              <h2>Open calls</h2>
+            </header>
+            {executed.some((c) => c.status === "open") ? (
+              <CallRows
+                calls={executed.filter((c) => c.status === "open")}
+                onSelect={setDetail}
+              />
+            ) : (
+              <p className={styles.body}>No open calls.</p>
+            )}
+          </section>
+          <section className="workbook-panel">
+            <header className="panel-header">
+              <h2>Account positions</h2>
+            </header>
+            {view?.paper_portfolio.holdings?.length ? (
+              view.paper_portfolio.holdings.map((p) => (
+                <div className={styles.order} key={String(p.symbol)}>
+                  <div>
+                    <strong>
+                      {String(p.symbol)} · {String(p.qty)} shares
+                    </strong>
+                    <p>
+                      {money(p.market_value)} · Unrealized{" "}
+                      {money(p.unrealized_pl)}
+                    </p>
+                  </div>
+                  <button
+                    className="quiet-button"
+                    onClick={() =>
+                      setReview({
+                        ticker: String(p.symbol),
+                        symbol: String(p.symbol),
+                        intent: "close",
+                      })
+                    }
+                  >
+                    Review close
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className={styles.body}>No open positions.</p>
+            )}
+          </section>
+        </>
+      ) : null}
+      {section === "performance" ? (
+        <>
+          <section className="workbook-panel">
+            <header className="panel-header">
+              <h2>Agent track record</h2>
+            </header>
+            <MetricStrip
+              items={[
+                {
+                  label: "Filled calls",
+                  value: workspace?.track_record.executed_calls ?? 0,
+                },
+                {
+                  label: "Closed calls",
+                  value: workspace?.track_record.closed_calls ?? 0,
+                },
+                {
+                  label: "Realized P/L",
+                  value: money(workspace?.track_record.realized_pl),
+                },
+                {
+                  label: "Unrealized P/L",
+                  value: money(workspace?.track_record.unrealized_pl),
+                },
+              ]}
+            />
+            {executed.length ? (
+              <CallRows calls={executed} onSelect={setDetail} />
+            ) : (
+              <p className={styles.body}>No filled calls yet.</p>
+            )}
+          </section>
+          {view?.tracked_calls?.length ? (
+            <details className="workbook-panel">
+              <summary>
+                Research observations · {view.tracked_calls.length}
+              </summary>
+              <p className={styles.meta}>
+                Price performance from research approvals.
+              </p>
+              <div className={styles.calls}>
+                {view.tracked_calls.map((c) => (
+                  <button key={c.tracking_id} onClick={() => setResearch(c)}>
+                    <span>
+                      {c.ticker} · {c.horizon_label}
+                    </span>
+                    <span>View research →</span>
+                  </button>
+                ))}
+              </div>
+            </details>
+          ) : null}
+          {research ? (
+            <section>
+              <button
+                className="quiet-button"
+                onClick={() => setResearch(null)}
+              >
+                Close research
+              </button>
+              <ApprovedCallDetail call={research} />
+            </section>
+          ) : null}
+        </>
+      ) : null}
+      {detail ? (
+        <PaperCallDetail
+          key={detail.call_id}
+          call={detail}
+          onClose={() => setDetail(null)}
+          onAction={(action) => {
+            setDetail(null);
+            setReview(action);
+          }}
+        />
+      ) : null}
+      {review ? (
+        <PaperOrderReview
+          key={JSON.stringify(review)}
+          candidate={review}
+          initialPolicy={policy?.risk_policy}
+          onClose={() => setReview(null)}
+          onSubmitted={async (o) => {
+            setReview(null);
+            setNotice(
+              review.intent === "cancel"
+                ? "Cancellation requested."
+                : `Paper order submitted: ${o.side} ${o.qty} ${o.symbol}`,
+            );
+            await refresh();
+          }}
+        />
+      ) : null}
+      {settings && policy ? (
+        <PolicySettings
+          policy={policy}
+          busy={busy}
+          onClose={() => setSettings(false)}
+          onSave={(next) => void updatePolicy(next)}
+        />
+      ) : null}
+    </main>
   );
 }
-
-function CandidateCard({ candidate, horizon, loading, onDecide }: { candidate: Candidate; horizon?: Horizon; loading: boolean; onDecide: (candidate: Candidate, action: "approve" | "reject") => Promise<void> }) {
-    const router = useRouter();
-    const [expanded, setExpanded] = useState(false);
-    const market = candidate.market || {};
-    const decision = String(candidate.decision?.action || "");
-    return (
-      <article className={`candidate-card stance-${candidate.stance}`}><details open={expanded} onToggle={(event) => setExpanded(event.currentTarget.open)}><summary>
-        <header><div><span className="candidate-symbol">{candidate.ticker}</span><span className="status-badge">{candidate.confidence}</span></div><div><strong>{candidate.direction}</strong><small>{candidate.suggested_horizon}</small></div></header>
-        <p>{candidate.setup}</p></summary>
-        {expanded ? <>
-        <div className="candidate-market"><span>{String(market.company_name || "")}</span><span>1D {pct(market.daily_change_pct)}</span><span>{String(market.selected_horizon_label || horizon?.label || "Return")} {pct(market[horizon?.selected_horizon_col || ""])}</span><span>{String(market.direction || "")}</span></div>
-        {Array.isArray(market.sparkline_3m) && market.sparkline_3m.length ? <div className="candidate-spark"><DataPlot data={[{ type: "scatter", mode: "lines", x: market.sparkline_3m.map((_, index) => index), y: market.sparkline_3m, line: { color: "#52d6c7", width: 1.8 }, hoverinfo: "skip" }]} id={`candidate-${candidate.candidate_id}`} layout={{ margin: { l: 8, r: 8, t: 8, b: 8 }, xaxis: { visible: false }, yaxis: { visible: false } }} rowCount={market.sparkline_3m.length} title="" /></div> : null}
-        <p>{candidate.hypothesis}</p>
-        {candidate.forecast ? <div className="candidate-list">
-          {candidate.forecast.reference_price ? <small>Reference ${candidate.forecast.reference_price.toFixed(2)} · snapshot {candidate.forecast.reference_snapshot_as_of.slice(0, 10)}</small> : null}
-          <strong>At this price</strong><p>{candidate.forecast.pricing_assessment}</p>
-          {candidate.forecast.assumptions.length ? <><strong>Assumptions</strong><ul>{candidate.forecast.assumptions.map((item) => <li key={item}>{item}</li>)}</ul></> : null}
-          <strong>Opposing case</strong><p>{candidate.forecast.opposing_case}</p>
-        </div> : null}
-        {candidate.evidence.length ? <div className="candidate-list"><strong>Evidence</strong><ul>{candidate.evidence.map((item) => <li key={item}>{item}</li>)}</ul></div> : null}
-        <div className="candidate-columns">
-          <div><strong>Invalidation</strong><p>{candidate.invalidation}</p></div>
-          {candidate.tail_risks.length ? <div><strong>Risks</strong><ul>{candidate.tail_risks.map((item) => <li key={item}>{item}</li>)}</ul></div> : null}
-          {candidate.evidence_limits.length ? <div><strong>Research next</strong><ul>{candidate.evidence_limits.map((item) => <li key={item}>{item}</li>)}</ul></div> : null}
-        </div>
-        <footer>
-          <button className="quiet-button" onClick={() => router.push(`/stock-investigator?ticker=${encodeURIComponent(candidate.ticker)}`)} type="button">Open {candidate.ticker}</button>
-          {decision ? <span className="decision-state">{["place_requested", "approved"].includes(decision) ? "Approved" : decision === "rejected" ? "Rejected" : decision}</span> : <div className="decision-actions"><button className="quiet-button" disabled={loading} onClick={() => void onDecide(candidate, "reject")} type="button">Reject</button><button className="primary-button" disabled={loading || !["long", "short"].includes(candidate.stance)} onClick={() => void onDecide(candidate, "approve")} type="button">Approve and track</button></div>}
-        </footer>
-      </> : null}</details></article>
-    );
-  }
-
-
-function ApprovedCallPerformance({calls, unavailable}: {calls: TrackedCall[]; unavailable: boolean}) {
-  const [selected, setSelected] = useState("");
-  const [detail, setDetail] = useState<TrackedCall | null>(null);
-  const [error, setError] = useState("");
-  const chosen = calls.find((item) => item.tracking_id === selected) || calls[0];
-  const identity = chosen?.tracking_id || "";
+function PolicySettings({
+  policy,
+  busy,
+  onSave,
+  onClose,
+}: {
+  policy: TradingPolicy;
+  busy: boolean;
+  onSave: (p: TradingPolicy) => void;
+  onClose: () => void;
+}) {
+  const [next, setNext] = useState(policy);
+  const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    const controller = new AbortController();
-    if (!identity) return () => controller.abort();
-    void fetch(`/api/trading-agent/approved-calls/${encodeURIComponent(identity)}`, {cache: "no-store", signal: controller.signal}).then(async (response) => {
-      if (!response.ok) throw new Error(await responseError(response, "Call tracking is unavailable."));
-      const value = await response.json() as TrackedCall;
-      if (!controller.signal.aborted) {setDetail(value); setError("");}
-    }).catch((reason: unknown) => {if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Call tracking is unavailable.");});
-    return () => controller.abort();
-  }, [identity, chosen?.as_of]);
-  if (unavailable) return <p className="subtle-error" role="alert">Call tracking is unavailable.</p>;
-  if (!chosen) return <section className="workbook-panel"><p>Approve a call to track its performance.</p></section>;
-  const current = detail?.tracking_id === identity ? detail : chosen;
-  const path = current.path || [];
-  const benchmark = current.stance === "short" ? "SPY short" : "SPY long";
-  return <section className="workbook-panel">
-    <MetricStrip items={[{label: "Tracked calls", value: calls.length}, {label: "Open", value: calls.filter((item) => item.status === "open").length}, {label: "Completed", value: calls.filter((item) => item.status === "matured").length}]} />
-    <label>Approved call <select value={identity} onChange={(event) => setSelected(event.target.value)}>{calls.map((item) => <option key={item.tracking_id} value={item.tracking_id}>{item.ticker} · {item.stance} · {item.horizon_label} · {new Date(item.approved_at_utc).toLocaleDateString()}</option>)}</select></label>
-    {error ? <p className="subtle-error" role="alert">{error}</p> : null}
-    <MetricStrip items={[{label: "Return", value: pct(current.return_pct)}, {label: `Vs ${benchmark}`, value: pct(current.excess_return_pct)}, {label: "Drawdown", value: pct(current.max_drawdown_pct)}]} />
-    {current.status === "pending_entry" ? <p>Entry at the next trading day’s close.</p> : null}
-    {current.status === "price_unavailable" ? <p>Price data is unavailable.</p> : null}
-    {path.length ? <DataPlot id={`tracked-${identity}`} title={`${current.ticker} · paper return`} data={[
-      {type: "scatter", mode: path.length === 1 ? "markers" : "lines", name: "Call", x: path.map((point) => point.date), y: path.map((point) => point.return_pct), line: {color: "#52d6c7"}},
-      {type: "scatter", mode: "lines", name: benchmark, x: path.map((point) => point.date), y: path.map((point) => point.benchmark_return_pct), connectgaps: false, line: {color: "#b89cff", dash: "dot"}},
-    ]} layout={{xaxis: {type: "date"}, yaxis: {title: {text: "Return (%)"}, zeroline: true}, showlegend: true}} rowCount={path.length} /> : null}
-    {current.entry_date ? <p>Entry {current.entry_date} · Target {current.target_date} · Prices through {current.last_price_date}</p> : null}
-    {current.hypothesis ? <p>{current.hypothesis}</p> : null}
-    <DataTable columns={[{key: "ticker", label: "Symbol"}, {key: "stance", label: "Call"}, {key: "horizon_label", label: "Horizon"}, {key: "return_pct", label: "Return (%)"}, {key: "status", label: "Status"}]} rows={calls as unknown as Record<string, unknown>[]} rowKey={(row) => String(row.tracking_id)} />
-  </section>;
+    const element = dialog.current;
+    element?.showModal();
+    return () => element?.close();
+  }, []);
+  return (
+    <dialog
+      ref={dialog}
+      className={styles.overlay}
+      onCancel={(e) => {
+        e.preventDefault();
+        if (!busy) onClose();
+      }}
+    >
+      <section className={`workbook-panel ${styles.review}`}>
+        <header className="panel-header">
+          <h2>Trading settings</h2>
+          <button className="quiet-button" disabled={busy} onClick={onClose}>
+            Close
+          </button>
+        </header>
+        <div className={styles.body}>
+          <label className={styles.setting}>
+            Execution
+            <select
+              value={next.mode}
+              onChange={(e) =>
+                setNext({
+                  ...next,
+                  mode: e.target.value as TradingPolicy["mode"],
+                })
+              }
+            >
+              <option value="approval">Approve each order</option>
+              <option value="autonomous">Paper autopilot</option>
+            </select>
+          </label>
+          {next.mode === "autonomous" ? (
+            <p>
+              The agent can place new paper entries and position changes within
+              these limits on each Trading run. Existing proposals still need
+              your approval.
+            </p>
+          ) : null}
+          <label className={styles.setting}>
+            <input
+              type="checkbox"
+              checked={next.entries_paused}
+              onChange={(e) =>
+                setNext({ ...next, entries_paused: e.target.checked })
+              }
+            />
+            Pause new entries
+          </label>
+          <div className={styles.riskInputs}>
+            {Object.entries(riskLabels).map(([key, label]) => (
+              <label key={key}>
+                {label}
+                <input
+                  type="number"
+                  min="0.1"
+                  max="100"
+                  step="0.1"
+                  value={next.risk_policy[key as keyof RiskPolicy]}
+                  onChange={(e) =>
+                    setNext({
+                      ...next,
+                      risk_policy: {
+                        ...next.risk_policy,
+                        [key]: Number(e.target.value),
+                      },
+                    })
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+        <button
+          className="primary-button"
+          disabled={busy}
+          onClick={() => onSave(next)}
+        >
+          {busy
+            ? "Saving…"
+            : next.mode === "autonomous" && policy.mode !== "autonomous"
+              ? "Enable paper autopilot"
+              : "Save settings"}
+        </button>
+      </section>
+    </dialog>
+  );
 }

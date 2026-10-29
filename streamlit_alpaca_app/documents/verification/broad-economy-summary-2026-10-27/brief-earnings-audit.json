@@ -1,0 +1,40 @@
+{
+  "as_of_home_run": "7625ab19-d009-4313-8269-541166982cc0",
+  "home_as_of_utc": "2026-10-27T20:50:38.202493+00:00",
+  "broad_economy": {
+    "producer": "macro-fred-daily",
+    "latest_checked_run": "ecd1455b-a611-4c62-8865-1abd2f08ac93",
+    "summary_status": "ok",
+    "daily_brief_raw_inputs": [
+      "fred_summary",
+      "yield_curve_facts_1d",
+      "FRED structural signals",
+      "macro anchor moves"
+    ],
+    "release_promotion": "Fresh configured releases can be promoted into top events based on importance/surprise; borderline cases use AQL assessment.",
+    "latest_detected": 0,
+    "latest_qualifying": 0,
+    "latest_promoted": 0,
+    "successive_summary_comparison": false,
+    "summary_to_brief_event_contract": false,
+    "remaining_work": "Let the shared AQL event research compare current/prior dated macro observations and retained outlooks with previously published developments, assess substantive change and nominate a sourced macro event when useful. Avoid text-difference or fixed phrase/indicator rules."
+  },
+  "earnings": {
+    "separate_from_price_movers": true,
+    "source_event_nominations": 4,
+    "source_event_completed": 4,
+    "standalone_earnings_event": "Seagate beats Q1 FY2027 and guides Q2 above consensus, raises dividend, but stock drops 8.63% after hours",
+    "other_earnings_stories": [
+      "Celestica",
+      "Herc Holdings",
+      "Boeing",
+      "Lincoln Electric"
+    ],
+    "dedicated_earnings_calendar": false,
+    "standardized_earnings_card_contract": false,
+    "coverage": "News-led nominations and mover research, not exhaustive reporting-date coverage.",
+    "open_quality_observation": "The Celestica earnings top event has event_type bitcoin despite its earnings text; no label repair is part of this summary display release."
+  },
+  "changes": "Display restoration only; audited Brief/earnings behavior is unchanged.",
+  "retained_reader_limit": "Existing saved-summary resolver inspects the last eight shared dataset publications. This release does not redesign summary storage; prolonged producer failure can age a surface out of that history."
+}

@@ -2,6 +2,10 @@
 
 Native SwiftUI client for the modern Spectral Nature workbench. Requires iOS 17 or later and Xcode 16 or later. The historical `SpectralNatureMVP` directory is retained; the application and shared scheme are named `SpectralNature`.
 
+Build **15** was installed in place over Wi-Fi and launched on Omair’s iPhone on October 28. It adds the retained Broad Economy outlook and improves native Markets rendering and treemap inspection. [Installation receipt](../../documents/verification/iphone-markets-2026-10-28/installation.json). Build14 remains on Zohair’s and Fay’s phones, which were unavailable during this update; its Home, Trading and Research behavior is preserved.
+
+Candidate build **16** is verified in Simulator with dated paper-call plots, ROI/Sharpe and a single-message feedback composer. It has not been installed on phones. Shared API metrics remain local pending source reconciliation; the separate chat-credit fix has its own DEV record. [Feedback review](../../documents/verification/iphone-feedback-2026-10-28/LOCAL.json).
+
 ## Run
 
 Open `SpectralNature.xcodeproj`, select the `SpectralNature` scheme and an iPhone simulator, and press Run. The project is included; XcodeGen is only needed when changing `project.yml`.
@@ -19,7 +23,7 @@ TestFlight distribution additionally needs your Apple Developer membership and A
 ## Native surfaces
 
 - Brief: full report, retained audio, replay date, attention stories, a combined preceding-week/latest-session price chart, compact bank/insurance fundamentals and fiscal-quarter histories, and attention network. Longer price/financial analysis remains in Investigator.
-- Markets: business/broad/commodity modes, server lenses/horizons, full-universe return comparisons with percent axes and daily-change color legends, point identity/search/inspection, named return leaders/laggards, volume treemap, optional 3D/heatmap comparisons, ranking, and company navigation.
+- Markets: business/broad/commodity modes, server lenses/horizons, full-universe return comparisons with percent axes and daily-change color legends, point identity/search/inspection, named return leaders/laggards, volume treemap with searchable inspection, optional 3D/heatmap comparisons, ranking, and company navigation.
 - Research: durable conversations, ordered progress journal, cancellation, follow-up, result metadata, citations, knowledge folders/search/connected pages, retained sources, source upload, and administrative maintenance inspection.
 - Portfolio: all holdings, asset exposure, position treemap and P/L contributions, value and indexed benchmarks, drawdown, monthly return matrix, risk/correlation/factors, performance statistics, indexed list comparisons, risk/return/breadth analysis, and return/risk/momentum contributor Sankeys.
 - Explore: macro overlays/readings/searchable series catalog, company financials/technicals, complete option chains/candidate scenarios and native IV/return surfaces, Trading Agent candidates/decisions, and role-gated admin workspaces.
@@ -54,17 +58,11 @@ Keep normal simulator signing enabled: Keychain needs Xcode's simulated applicat
 
 ## Installation and validation
 
-Version 1.0.0 build 9 was installed in place over Wi-Fi and launched on the owner's
-iPhone on October 22. It includes the Paper performance route repair and automatic
-live Brief refresh, using the production gateway. Device app/version and running
-process readbacks confirm installation and launch. It also passed populated native
-checks through the normal authenticated DEV gateway.
-See the [deployment receipt](../../documents/verification/client-refresh-2026-10-22/production.json).
+Version 1.0.0 build 16 is installed in place on Omair’s iPhone, with an independent installed-version readback. It adds visible dated paper-call histories, ROI/Sharpe/drawdown and a single text-and-Send feedback composer. The shared metrics and chat-credit repair are live in production. After the owner unlocked the phone, launch succeeded and an independent running-process readback matched the installed app. Zohair’s and Fay’s paired phones were directly queried and are unavailable; their last verified build remains 14. See the [release and installation evidence](../../documents/verification/iphone-feedback-2026-10-28/PRODUCTION.json).
 
-The Personal Team profile expires October 29, 2026 at 9:52 a.m. Pacific. The same
-bundle identifier and development team preserve application data and Keychain
-storage. Build 8's preceding signing renewal is retained in the
-[renewal receipt](../../documents/verification/native-renewal-2026-10-22/release.json).
+The Personal Team profile includes all three paired phones and expires October 30, 2026 at 10:50 p.m. Pacific. The same bundle identifier and development team preserve application data and Keychain storage. The preceding [build15 acceptance and installation](../../documents/verification/iphone-markets-2026-10-28/LOCAL.md) remains recorded.
+
+Previous receipts retain the [October23 three-phone build14 installation](../../documents/verification/iphone-install-2026-10-23/installation.json), [build9 refresh delivery](../../documents/verification/client-refresh-2026-10-22/production.json) and [preceding signing renewal](../../documents/verification/native-renewal-2026-10-22/release.json).
 
 Free Personal Team profiles expire seven days after issuance, independently of
 backend updates. To renew, connect over USB or the existing paired Wi-Fi connection and unlock the phone, build the accepted Git
@@ -91,3 +89,7 @@ Earlier chart and compact-device evidence remains in the
 The free Personal Team cannot enable remote push. Research checks resume when the
 app returns to the foreground; locked or closed delivery requires Developer Program
 enrollment and APNs setup. TestFlight/App Store distribution remains unconfigured.
+
+## Brief retention fix
+
+Signed Simulator build 12 retains the public Brief across process restart and session-view recreation, restores the gateway-scoped last publication before network revalidation, and preserves it during failed refreshes. Native HTTP, replay, audio deferral and actual DEV rendering are verified. The native Trading redesign remains included. Its changes are now installed on both phones in integrated build 14. See [local acceptance](../../documents/verification/home-resume-2026-10-22/LOCAL.md).

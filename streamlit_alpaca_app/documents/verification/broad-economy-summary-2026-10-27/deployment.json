@@ -1,0 +1,20 @@
+{
+  "environment": "development",
+  "source_inventory_sha256": "3743e648be5f3179e824a212c64b64129de0962efb921ef2cbcc11a6419f084a",
+  "images": {
+    "web": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:abf387e66cf99526a31b865fd8f2afc6c3554a81ccd550ce82602c13c97af391"
+  },
+  "targets": [
+    {
+      "name": "sn-next-ui-dev",
+      "kind": "containerApps",
+      "role": "web",
+      "previous_image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:62bec42f71d10760da95e6e588c579cd84d57a80951fb9a888792b097491f34c",
+      "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:abf387e66cf99526a31b865fd8f2afc6c3554a81ccd550ce82602c13c97af391",
+      "configuration_sha256": "d91025621fbfbf4f65bda743fbc3c1baa45f5f039c490df9a5fd1923c17b759d",
+      "provisioning_state": "Succeeded"
+    }
+  ],
+  "recorded_at": "2026-10-28T05:46:17.993495+00:00",
+  "job_executions_started": 0
+}

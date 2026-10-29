@@ -1,0 +1,43 @@
+{
+  "status": "accepted",
+  "fixture": "Read-only local API with actual retained October27 production public summary and FRED data. No production records changed; no data copied to DEV.",
+  "desktop": {
+    "headline": true,
+    "paragraphs": 4,
+    "source_links": 10,
+    "watch_items": 5,
+    "existing_workbook": true,
+    "console_errors_or_warnings": []
+  },
+  "mobile_web": {
+    "viewport_width": 390,
+    "document_width": 390,
+    "summary_width": 351.2,
+    "overflow": false
+  },
+  "native": {
+    "device": "iPhone16 Simulator iOS18.3",
+    "compilation": "passed",
+    "headline": true,
+    "date": true,
+    "linked_narrative": true,
+    "watch_items": true,
+    "foreground_refresh": "implemented",
+    "failure_recovery": "retained prior summary through failed five-minute refresh; normal Retry recovered",
+    "final_compilation": "passed",
+    "final_source_inspection": "complete headline, all narrative paragraphs and watch items verified"
+  },
+  "refresh": {
+    "interval_seconds": 300,
+    "visible_only": true,
+    "retains_existing_summary_on_failure": true
+  },
+  "external_inference_calls": 0,
+  "cloud_changes": false,
+  "web_failure_recovery": "foreground refresh503 retains full existing narrative; Retry recovers",
+  "screenshots": [
+    "web-desktop.png",
+    "web-mobile.png",
+    "native.png"
+  ]
+}

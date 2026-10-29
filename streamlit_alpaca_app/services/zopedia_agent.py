@@ -135,8 +135,9 @@ _STEP_SCHEMA: dict[str, Any] = {
         "reasoning": {"type": "string"},
         "tool_name": {"type": "string"},
         "tool_arguments": {
-            "type": "string",
-            "description": "A JSON-encoded object matching the chosen tool input schema. Use {} for no arguments.",
+            "type": "object",
+            "additionalProperties": True,
+            "description": "Arguments matching the chosen tool input schema, with their original types. Use an empty object for no arguments.",
         },
         "answer_markdown": {"type": "string"},
         "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
@@ -256,6 +257,18 @@ _AGENT_JUDGE_SYSTEM_PROMPT = register_narrative_prompt(
         "the underlying idea in familiar words. A useful draft can still need revision for clarity and relevance. "
         "Return corrected answer_points as a short outline of the main ideas the reader needs. Carry every material "
         "correction into those points; the final writer uses them. Fix malformed Markdown tables before accepting or revising the answer."
+        "\n\nRespect the artifact's purpose. A complete rewrite of retained knowledge has a fidelity objective that"
+        " differs from a short answer. Compare the actual replacement text and stored fields against the complete"
+        " originals. Preserve distinct useful observations, including quantities, units, periods, dates and times,"
+        " conditions, counterevidence and uncertain leads. Repetition can be removed; unique useful information"
+        " cannot disappear silently. Treat content accounting as claims to verify, not proof of preservation. Trace"
+        " every claimed retained observation to where it actually survives in the replacement. If an observation"
+        " claimed as retained is absent, correct the replacement or explicitly account for its removal and judge"
+        " whether that removal is justified. A correct original figure must not become unknown merely because it is"
+        " buried inside repetitive material. Do not apply story-length cuts to a complete memory article. Later"
+        " readers must be able to use that article without depending on hidden task context. Use available original"
+        " readers before claiming an original is missing. Do not invent facts or settle conflicting observations"
+        " just to make the rewrite consistent."
     ),
 )
 
@@ -975,6 +988,7 @@ def _summarize_tool_result(result: dict[str, Any]) -> dict[str, Any]:
             payload.get("candidate_sources") or [] if isinstance(payload, dict) else []
         ),
         "source_documents": source_documents,
+        "read_versions": dict(payload.get("read_versions") or {}) if isinstance(payload, dict) else {},
         "result_type": result_type,
         "provenance": provenance,
         "preview": preview,
@@ -1145,7 +1159,8 @@ def _run_evidence_model_step(
         "properties": {
             "action": {"type": "string", "enum": ["answer", "read", "select_context"]},
             "tool_name": {"type": "string"},
-            "tool_arguments": {"type": "string", "description": "JSON object for the evidence tool; {} otherwise."},
+            "tool_arguments": {"type": "object", "additionalProperties": True,
+                               "description": "Arguments for the evidence tool, with their original types; an empty object otherwise."},
             "keep_tool_call_ids": {"type": ["array", "null"], "items": {"type": "string"},
                                    "description": "Results to keep in working context; null keeps the current selection. All originals remain readable."},
             "answer": {"anyOf": [schema, {"type": "null"}]},
@@ -1609,7 +1624,7 @@ _PLANNER_SYSTEM_PROMPT = register_narrative_prompt(
         "writing style. Use short paragraphs and useful source links. Explain practical meaning and cause and effect in familiar "
         "words. Keep tool IDs, research bookkeeping, confidence labels and execution failures out of the answer. "
         "Tools are optional. Answer directly for explanations, transformations and reasoning over supplied input when external "
-        "information would not improve the requested answer. Encode tool_arguments as one JSON object inside a string; "
+        "information would not improve the requested answer. Provide tool_arguments as a JSON object, not an encoded string; "
         "its values must match the chosen tool's input schema. answer_markdown is a concise working draft for the final writer; "
         "do not write a full report during planning. Use exactly an available tool name. Return the required JSON schema."
     ),
@@ -1925,8 +1940,8 @@ def _planner_user_prompt(
         "Return exactly one next action. "
         "If you still need data, set action='tool_call' and choose one tool. "
         "If you can answer now, set action='final'. "
-        "When action='tool_call', tool_arguments is a JSON-encoded object with the required fields and typed values "
-        "from that tool's input_schema. Use the string '{}' when the tool takes no arguments or action='final'."
+        "When action='tool_call', tool_arguments is an object with the required fields and typed values "
+        "from that tool's input_schema. Use an empty object when the tool takes no arguments or action='final'."
     )
 
 
@@ -2057,6 +2072,7 @@ def _judge_user_prompt(
     conversation_history: list[dict[str, Any]] | None = None,
     prefetched_context: str = "",
     structured_response: bool = False,
+    artifact_preview: dict[str, Any] | None = None,
 ) -> str:
     history_block = _compact_conversation_history(conversation_history)
     evidence_block = ""
@@ -2072,6 +2088,10 @@ def _judge_user_prompt(
         f"User question:\n{query}\n\n"
         "Draft answer:\n"
         f"{draft_answer}\n\n"
+        + ("Application-assembled publication preview (execution errors here require correcting the artifact):\n"
+           + json.dumps(artifact_preview, ensure_ascii=False, default=str) + "\n\n"
+           if artifact_preview is not None else "")
+        +
         "Review the draft for useful discovery, relevance and explanatory depth. "
         "When the original user question contains typed Context JSON, source_acquisition_rows, supplied source text, or inline datasets, treat that supplied context as part of the evidence even if no tool calls were made. "
         "Use verdict='accept' when the draft is useful, coherent and expresses facts and hypotheses appropriately. "
@@ -2127,6 +2147,7 @@ def _run_answer_judge(
     context_state: dict[str, Any] | None = None,
     supplied_evidence_allowed: bool = True,
     model_timeout_seconds: float | None = None,
+    artifact_preview: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Review a draft answer against evidence without blocking the whole run."""
     if int(get_config_param(_P_ANSWER_JUDGE_ENABLED)) == 0:
@@ -2156,6 +2177,9 @@ def _run_answer_judge(
             "answer_markdown": {"type": "string", "description": "Complete final answer for the reader; no editorial instructions."},
         }
         review_schema["required"] = [*_JUDGE_SCHEMA["required"], "answer_markdown"]
+    preview = None
+    if artifact_preview is not None:
+        preview = artifact_preview(json.loads(draft_answer))
 
     def _runner() -> None:
         try:
@@ -2189,6 +2213,7 @@ def _run_answer_judge(
                     conversation_history=conversation_history,
                     prefetched_context=prefetched_context,
                     structured_response=bool(response_schema),
+                    artifact_preview=preview,
                 ),
                 schema_name="zopedia_agent_judge",
                 schema=review_schema,
@@ -2975,6 +3000,7 @@ def _run_zopedia_agent_loop(
     resume_state: dict[str, Any] | None = None,
     answer_review_owner: str = "agent",
     checkpoint_callback: ProgressCallback | None = None,
+    artifact_preview: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     from .agents.research_session import NullResearchSessionStore, create_research_session
 
@@ -3074,6 +3100,7 @@ def _run_zopedia_agent_loop(
                     request_context=effective_context,
                     resume_state=resume_state,
                     answer_review_owner=answer_review_owner,
+                    artifact_preview=artifact_preview,
                 )
             if not inherited_core and result.get("answer_markdown"):
                 complete_core_research(core_id)
@@ -3113,6 +3140,7 @@ def _execute_zopedia_agent_loop(
     request_context: dict[str, Any] | None = None,
     resume_state: dict[str, Any] | None = None,
     answer_review_owner: str = "agent",
+    artifact_preview: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     budget = run_budget or ResearchBudget.start(None, llm_step_timeout_seconds or 60)
     normalized_query = str(query or "").strip()
@@ -3216,6 +3244,14 @@ def _execute_zopedia_agent_loop(
             original_query=normalized_query,
             resolved_query=agent_query,
         )
+    evidence = [dict(item) for item in initial_evidence or [] if isinstance(item, dict)]
+    if evidence and isinstance(resolved_service, QueryService):
+        resolved_service = resolved_service.with_supplied_evidence({
+            **resolved_service.supplied_evidence,
+            **{str(item["source_id"]): {"title": item.get("title") or item["source_id"],
+                                     "content": item}
+               for item in evidence if item.get("source_id")},
+        })
     full_tool_registry = build_tool_registry(resolved_service)
     allowed_tool_catalog = _tool_catalog_for_write_policy(full_tool_registry.catalog(), resolved_write_policy)
     allowed_source_access = request_context.get("allowed_source_access")
@@ -3305,8 +3341,7 @@ def _execute_zopedia_agent_loop(
     ]
     if resumed.get("continued_request"):
         tool_calls = [{**call, "carried_forward": True} for call in tool_calls]
-    if initial_evidence:
-        evidence = [dict(item) for item in initial_evidence if isinstance(item, dict)]
+    if evidence:
         evidence_text = json.dumps(evidence, ensure_ascii=False, default=str)
         tool_calls.append(
             {
@@ -3322,6 +3357,13 @@ def _execute_zopedia_agent_loop(
                     "llm_context_text": _truncate(evidence_text, limit=4000),
                     "evidence_context_text": evidence_text,
                     "result_type": "supplied_context",
+                    "source_documents": [
+                        {**item, "chunk_text": item.get("source_text") or item.get("chunk_text") or item.get("text"),
+                         "source_kind": item.get("source_kind") or "supplied_evidence",
+                         "raw_text_origin": item.get("raw_text_origin") or "supplied_capture"}
+                        for item in evidence
+                        if isinstance(item.get("source_text") or item.get("chunk_text") or item.get("text"), str)
+                    ],
                     "evidence_refs": [
                         ref
                         for item in evidence
@@ -4004,6 +4046,7 @@ def _execute_zopedia_agent_loop(
             model_timeout_seconds=llm_step_timeout_seconds,
             progress_callback=progress_callback,
             response_schema=response_schema,
+            artifact_preview=artifact_preview,
             service=resolved_service,
             context_state=context_state,
             supplied_evidence_allowed=allowed_source_access is None or "supplied" in allowed_source_access,

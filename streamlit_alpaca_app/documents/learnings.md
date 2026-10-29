@@ -1372,3 +1372,8 @@ A dated body can coexist with a misleading present-tense title. General timing g
 ### Release shared fixes on the intended environment’s source — October 28
 
 A DEV-only feature branch need not be merged wholesale to deliver a shared fix. Review the production API contract against its existing worker source, carry only the accepted change and qualify the exact image in a manual DEV execution when replacing DEV’s different API would lose accepted work. Then verify real signed-in production gateway output and all consumer configurations. Native installation, installed-version readback and physical launch are separate facts; retain a locked-device launch as pending rather than inferring success from signing or installation. After unlock, verify the launched PID and executable against an independent running-process readback and the installation receipt.
+
+
+### October 29 · Trading implementation
+
+Trading has two distinct accounting authorities: broker equity/fills for the paper portfolio and explicit order-to-call allocations for agent performance. Historical research approvals are observations, not filled positions. Keep unresolved proposals durable beyond a research batch, and revalidate every exact order under the account lock.

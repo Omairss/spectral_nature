@@ -79,7 +79,6 @@ struct TreemapChart: View {
   private var valid: [Tile] {
     tiles.filter { $0.weight.isFinite && $0.weight > 0 }.sorted { $0.weight > $1.weight }
   }
-  private var extent: Double { max(valid.compactMap(\.color).map(abs).max() ?? 1, 0.000001) }
   private struct Cell {
     let tile: Tile
     let rect: CGRect
@@ -111,56 +110,95 @@ struct TreemapChart: View {
     return layout(Array(values.prefix(split)), in: first)
       + layout(Array(values.dropFirst(split)), in: second)
   }
+  @State private var inspecting = false
+  @State private var search = ""
+
   var body: some View {
+    // Every tile shares one ordering and color scale. Drawing the complete
+    // map as one surface avoids building a view/button for every instrument.
+    let valid = self.valid
+    let extent = max(valid.compactMap(\.color).map(abs).max() ?? 1, 0.000001)
+    let selected = valid.first { $0.id == selection }
     VStack(alignment: .leading, spacing: 10) {
       GeometryReader { geometry in
-        ZStack(alignment: .topLeading) {
-          ForEach(layout(valid, in: CGRect(origin: .zero, size: geometry.size)), id: \.tile.id) {
-            cell in
-            Button {
-              selection = cell.tile.id
-            } label: {
-              VStack(spacing: 3) {
-                if cell.rect.width > 35 && cell.rect.height > 25 {
-                  Text(cell.tile.label).font(.caption.weight(.semibold)).lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                }
-                if cell.rect.width > 55 && cell.rect.height > 48 {
-                  Text(Format.percent(cell.tile.color)).font(.system(size: 9)).lineLimit(1)
-                }
-              }.frame(width: max(0, cell.rect.width - 2), height: max(0, cell.rect.height - 2))
-                .background(
-                  Theme.tone(cell.tile.color).opacity(
-                    0.15 + 0.65 * abs(cell.tile.color ?? 0) / extent)
-                )
-                .overlay(
-                  Rectangle().stroke(selection == cell.tile.id ? Color.white : .clear, lineWidth: 1)
-                )
-            }.buttonStyle(.plain).position(x: cell.rect.midX, y: cell.rect.midY)
-              .accessibilityLabel(
-                "\(cell.tile.label), \(weightLabel) \(Format.number(cell.tile.weight)), \(colorLabel) \(Format.percent(cell.tile.color))"
-              )
+        Canvas { context, size in
+          for cell in layout(valid, in: CGRect(origin: .zero, size: size)) {
+            let rect = cell.rect.insetBy(dx: 1, dy: 1)
+            guard rect.width > 0, rect.height > 0 else { continue }
+            context.fill(Path(rect), with: .color(
+              Theme.tone(cell.tile.color).opacity(0.15 + 0.65 * abs(cell.tile.color ?? 0) / extent)))
+            if selection == cell.tile.id {
+              context.stroke(Path(rect), with: .color(.white), lineWidth: 1)
+            }
+            if cell.rect.width > 35 && cell.rect.height > 25 {
+              let showChange = cell.rect.width > 55 && cell.rect.height > 48
+              let labelRect = CGRect(x: rect.minX + 3, y: rect.midY - (showChange ? 17 : 8),
+                width: max(0, rect.width - 6), height: 18)
+              context.draw(Text(cell.tile.label).font(.caption.weight(.semibold))
+                .foregroundColor(Theme.text), in: labelRect)
+              if showChange {
+                context.draw(Text(Format.percent(cell.tile.color)).font(.system(size: 9))
+                  .foregroundColor(Theme.text),
+                  in: CGRect(x: rect.minX + 3, y: rect.midY + 3, width: max(0, rect.width - 6), height: 14))
+              }
+            }
           }
         }
-      }.frame(height: 270)
-      Picker("Inspect", selection: $selection) {
-        Text("Select position").tag(Int?.none)
-        ForEach(valid) {
-          Text(
-            !$0.context.isEmpty
-              ? $0.context : $0.group.isEmpty ? $0.label : "\($0.group) · \($0.label)"
-          ).tag(Optional($0.id))
+        .contentShape(Rectangle())
+        .onTapGesture { point in
+          selection = layout(valid, in: CGRect(origin: .zero, size: geometry.size))
+            .first { $0.rect.contains(point) }?.tile.id
         }
-      }
-      if let tile = valid.first(where: { $0.id == selection }) {
+        .accessibilityLabel("\(valid.count) positions")
+        .accessibilityValue("Area: \(weightLabel). Color: \(colorLabel).")
+        .accessibilityAction(named: Text("Inspect positions")) { inspecting = true }
+      }.frame(height: 270)
+      Button { inspecting = true } label: {
+        HStack {
+          Text(selected?.label ?? "Inspect a position")
+          Spacer()
+          Image(systemName: "magnifyingglass")
+        }.font(.subheadline)
+      }.buttonStyle(.bordered)
+      if let tile = selected {
         if !tile.context.isEmpty { Text(tile.context).font(.caption).textSelection(.enabled) }
         Metrics(items: [
           (weightLabel, money ? Format.money(tile.weight) : Format.number(tile.weight)),
           (colorLabel, Format.percent(tile.color)),
         ])
       }
-      Text("Area: \(weightLabel) · Color: \(colorLabel)").font(.caption2).foregroundStyle(
-        .secondary)
+      Text("Area: \(weightLabel) · Color: \(colorLabel)").font(.caption2).foregroundStyle(.secondary)
+    }
+    .sheet(isPresented: $inspecting) {
+      NavigationStack {
+        List {
+          ForEach(valid.filter {
+            search.isEmpty || $0.label.localizedCaseInsensitiveContains(search)
+              || $0.group.localizedCaseInsensitiveContains(search)
+              || $0.context.localizedCaseInsensitiveContains(search)
+          }) { tile in
+            Button {
+              selection = tile.id
+              inspecting = false
+            } label: {
+              VStack(alignment: .leading, spacing: 5) {
+                Text(tile.label).font(.subheadline.weight(.semibold))
+                if !tile.context.isEmpty {
+                  Text(tile.context).font(.caption).foregroundStyle(.secondary)
+                } else if !tile.group.isEmpty {
+                  Text(tile.group).font(.caption).foregroundStyle(.secondary)
+                }
+                Text("\(weightLabel): \(money ? Format.money(tile.weight) : Format.number(tile.weight)) · \(colorLabel): \(Format.percent(tile.color))")
+                  .font(.caption2).foregroundStyle(.secondary)
+              }
+            }.buttonStyle(.plain)
+          }
+        }
+        .searchable(text: $search, prompt: "Name or symbol")
+        .navigationTitle("Positions").navigationBarTitleDisplayMode(.inline)
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Close") { inspecting = false } } }
+        .scrollContentBackground(.hidden).workbench()
+      }.preferredColorScheme(.dark)
     }
   }
 }

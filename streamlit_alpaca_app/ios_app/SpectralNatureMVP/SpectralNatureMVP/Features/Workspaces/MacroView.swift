@@ -19,7 +19,9 @@ private struct MacroWorkbook {
 
 struct MacroView: View {
   @EnvironmentObject private var session: AppSession
+  @Environment(\.scenePhase) private var scenePhase
   @StateObject private var resource = Resource<MacroWorkbook>()
+  @StateObject private var outlook = Resource<Record>()
   @State private var category = ""
   @State private var years = 10
   @State private var overlay = "combined"
@@ -35,6 +37,27 @@ struct MacroView: View {
   var body: some View {
     ScrollView {
       LazyVStack(alignment: .leading, spacing: 20) {
+        Panel("Economic outlook") {
+          if let summary = outlook.value, summary.text("status") == "ok" {
+            if !summary.text("headline").isEmpty {
+              Text(summary.text("headline")).font(.headline)
+            }
+            if let date = Format.date(summary["materialized"]?["generated_at_utc"].string ?? "") {
+              Text(date.formatted(date: .abbreviated, time: .shortened))
+                .font(.caption).foregroundStyle(.secondary)
+            }
+            MarkdownView(text: summary.text("summary_markdown"))
+            let items = summary["watch_items"]?.array.map(\.string).filter { !$0.isEmpty } ?? []
+            if !items.isEmpty {
+              Text("Watch next").font(.subheadline.weight(.semibold))
+              MarkdownView(text: items.map { "- \($0)" }.joined(separator: "\n"))
+            }
+          }
+          ResourceStatus(resource: outlook) { Task { await loadOutlook() } }
+          if outlook.value == nil && !outlook.loading && outlook.error.isEmpty {
+            ProgressView().accessibilityLabel("Loading economic outlook")
+          }
+        }
         HStack {
           Picker("Category", selection: Binding(get: { selectedCategory }, set: { category = $0 }))
           {
@@ -136,7 +159,19 @@ struct MacroView: View {
       .researchContext(
         "Broad Economy; category=\(selectedCategory); lookback=\(years) years; series=\(selected)"
       )
-      .task(id: years) { await load() }.refreshable { await load() }
+      .task(id: years) { await load() }
+      .task(id: scenePhase) {
+        guard scenePhase == .active else { return }
+        repeat {
+          await loadOutlook()
+          do { try await Task.sleep(for: .seconds(300)) } catch { return }
+        } while !Task.isCancelled
+      }
+      .refreshable {
+        async let workbook: () = load()
+        async let summary: () = loadOutlook()
+        _ = await (workbook, summary)
+      }
       .sheet(isPresented: $inspecting) {
         NavigationStack {
           ScrollView {
@@ -191,6 +226,17 @@ struct MacroView: View {
       let payload: JSONValue = try await session.api.dataset(
         "fred_dashboard", params: ["years": .number(Double(years))])
       return MacroWorkbook(payload)
+    }
+  }
+  private func loadOutlook() async {
+    await outlook.load {
+      let payload: JSONValue = try await session.api.dataset(
+        "page_agentic_summary", params: ["surface": .string("Broad Economy")])
+      guard let summary = payload.dictionaryValue, summary.text("status") == "ok",
+        !summary.text("headline").isEmpty || !summary.text("summary_markdown").isEmpty else {
+        throw APIError.server(503, "Economic outlook unavailable.")
+      }
+      return summary
     }
   }
   private func matrix(_ rows: [Record], _ correlations: [Record]) -> [[Double?]] {

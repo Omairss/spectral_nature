@@ -84,7 +84,7 @@ def test_transport_records_retry_and_repair_with_causal_root(store):
     events = [event for event in store[1] if event["status"] != "started"]
     assert len(calls) == len(events) == 3
     assert [event["operation"] for event in events] == ["chat", "chat", "json_repair"]
-    assert events[0]["usage"] is None
+    assert events[0]["usage"] == {}
     assert events[1]["usage"]["prompt_tokens"] == 10
     assert {event["root_run_id"] for event in events} == {"root-job"}
     assert {event["parent_run_id"] for event in events} == {"child-agent"}

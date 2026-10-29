@@ -36,7 +36,7 @@ def test_build_tool_catalog_uses_typed_param_schemas():
     assert price_tool["inputSchema"]["properties"]["ticker"]["type"] == "string"
     assert open_page_tool["inputSchema"]["properties"]["require_main_content"]["type"] == "boolean"
     assert open_page_tool["inputSchema"]["properties"]["min_text_chars"]["type"] == "integer"
-    assert analysis_tool["inputSchema"]["required"] == ["objective", "code"]
+    assert analysis_tool["inputSchema"]["required"] == ["code"]
     assert tools_by_name["analysis.read_raw_output"]["inputSchema"]["required"] == ["analysis_run_id"]
 
 

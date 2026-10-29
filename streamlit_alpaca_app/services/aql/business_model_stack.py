@@ -31,6 +31,7 @@ from ..page_browsing import browse_page, page_quality_issue
 from ._shared import _source_authority_bucket, _trim
 from .news_business_resolution import (
     BUSINESS_MEMORY_SLOTS,
+    BUSINESS_MEMORY_ARTICLE_SCHEMA,
     _add_slot,
     _asof_iso,
     _coerce_text,
@@ -380,10 +381,11 @@ TICKER_BUSINESS_MODEL_STACK_SCHEMA: dict[str, Any] = {
     "properties": {
         "resolved_company_name": {"type": "string"},
         "business_story_markdown": {"type": "string", "minLength": 1},
+        "memory_article": BUSINESS_MEMORY_ARTICLE_SCHEMA,
         "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
         "slot_gaps": {"type": "array", "items": {"type": "string"}},
     },
-    "required": ["resolved_company_name", "business_story_markdown", "confidence", "slot_gaps"],
+    "required": ["resolved_company_name", "business_story_markdown", "memory_article", "confidence", "slot_gaps"],
 }
 
 BUSINESS_MODEL_RESEARCH_QUERY_PLAN_SCHEMA: dict[str, Any] = {
@@ -1414,7 +1416,7 @@ def _business_research_plan_query(
                 "summary": _coerce_text(page.get("summary")),
                 "metadata": _json_dict(page.get("metadata") or page.get("metadata_json")),
             }
-            for page in zopedia_pages[:6]
+            for page in zopedia_pages
         ],
         "existing_slot_facts": initial_slot_facts,
         "max_queries": max_queries,
@@ -1736,7 +1738,7 @@ def _business_research_dossier_query(
                 "body_markdown": _coerce_text(page.get("body_markdown")),
                 "metadata": _json_dict(page.get("metadata") or page.get("metadata_json")),
             }
-            for page in zopedia_pages[:6]
+            for page in zopedia_pages
         ],
         "initial_slot_facts": initial_slot_facts,
         "source_acquisition_rows": _compact_research_rows_for_dossier(combined_research_rows, limit=80),
@@ -1751,7 +1753,7 @@ def _business_research_dossier_query(
         "Use the supplied source_acquisition_rows, local fundamentals, filings, news, and Zopedia pages as evidence inputs. "
         "Source acquisition groups all captures of a document under one evidence_ref. The application preserves the complete source catalog and capture metadata automatically. Do not reproduce source_inventory, titles, URLs or capture metadata. Return sparse source_annotations only where source-specific interpretation adds information; put substantive analysis in slot_findings. Every supplied capture retains its complete text, dates and query context. Repeated captures are not independent corroboration. "
         "A weak snippet, blocked article, or unopened but clearly relevant source is still evidence of a lead; do not collapse it into 'no evidence'. "
-        "For each relevant business question, organize findings, useful hypotheses and indirect connections, with evidence and remaining questions. Keep uncertainty in the finding rather than erasing a useful connection. This dossier owns resolution; there is no later per-question interpretation pass. "
+        "For each relevant business question, organize findings, useful hypotheses and indirect connections, with evidence and remaining questions. Keep uncertainty in the finding rather than erasing a useful connection. This dossier owns resolution; there is no later per-question interpretation pass. Each resolved question's complete findings replace its previous materialized findings: reconcile older and newer assertions, retain useful dated history and distinct information, and remove repetition. Do not rely on the application appending an older summary. "
         "If evidence is weak, say what it weakly supports and what must still be opened or verified. "
         "Describe which entities or relationships a useful source concerns in evidence_scope when it helps interpretation. Source annotations are optional; include details that improve understanding rather than repeating a metadata inventory for every document. Preserve useful additional research fields and topics. "
         "Use Seeking Alpha and similar investor-commentary sources to identify the strongest bull/bear questions and verification targets; do not treat opinion as authoritative proof unless the opened text cites direct company evidence. "
@@ -1958,10 +1960,10 @@ def _business_stack_query(
                 "page_type": _coerce_text(page.get("page_type")),
                 "title": _coerce_text(page.get("title")),
                 "summary": _coerce_text(page.get("summary")),
-                "body_markdown": _coerce_text(page.get("body_markdown"))[:1800],
+                "body_markdown": _coerce_text(page.get("body_markdown")),
                 "metadata": _json_dict(page.get("metadata") or page.get("metadata_json")),
             }
-            for page in zopedia_pages[:6]
+            for page in zopedia_pages
         ],
         "research_dossier": research_dossier,
         "business_research_evidence": business_research_evidence,
@@ -1991,6 +1993,7 @@ def _business_stack_query(
         "Anchor recency to the actual observations; distinguish company figures from estimates and inferred mechanisms. "
         "Use available sources and reasonable inference to recover the company's display name; a bare ticker is "
         "a valid starting point. Return resolved_company_name, business_story_markdown, confidence and slot_gaps. "
+        "Also return memory_article, the complete durable company article with its existing canonical page_id (or empty for a new article), summary and full body. Reconcile current research with the complete existing article, retaining useful knowledge from unrelated sections, distinct metrics, dates, conditions, counterevidence and research leads. This is a complete publication, not a reconstruction from only changed finding groups and not the shorter business story. Preserve unresolved disagreement rather than inventing a resolution. "
         "Focus the narrative on consequential facts and connections; keep the exhaustive inventory in the dossier. Aim for a concise analysis of roughly 500 to 800 words, expanding only when useful complexity requires it. Do not add a ritual conclusion or repeat the opening. Do not create numeric forecasts from loosely related summary metrics: projections need supplied computed analysis or an explicit empirical model. Express uncertainty through precise claims and specific open questions, not blanket disclaimers. Confidence is an editorial assessment, not a calibrated probability. "
         "Do not expose internal research fields, status inventories, workflow or review commentary in the narrative."
     )
@@ -2065,6 +2068,8 @@ def _build_stack_memory_page(
     slot_facts: dict[str, list[dict[str, Any]]],
     source_urls: list[str],
     asof_time_utc: str,
+    memory_article: dict[str, Any] | None = None,
+    existing_pages: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     from .news_business_resolution import _build_company_memory_page
 
@@ -2076,7 +2081,11 @@ def _build_stack_memory_page(
         source_urls=source_urls,
         asof_time_utc=asof_time_utc,
         cold_start=True,
+        memory_article=memory_article,
+        existing_pages=existing_pages,
     )
+    if not page:
+        return {}
     metadata = _json_dict(page.get("metadata"))
     metadata.update(
         {
@@ -2634,7 +2643,7 @@ def build_ticker_business_model_stack(
     )
     synthesis_warnings.extend(slot_warnings)
     slot_overlay_available = bool(slot_overlay)
-    initial_slot_facts = _merge_slot_facts(seed_slot_facts, slot_overlay)
+    initial_slot_facts = _merge_slot_facts(seed_slot_facts, slot_overlay, replace_resolved=True)
     initial_slot_facts = _prioritize_zopedia_verdict_facts(initial_slot_facts)
     gaps = _slot_gaps(initial_slot_facts)
     _emit_business_progress(
@@ -2745,13 +2754,20 @@ def build_ticker_business_model_stack(
             if _coerce_text(row.get("url")) and not _coerce_text(row.get("error_text"))
         )
     )
-    if slot_facts and durable_memory_ready:
+    memory_article = (synthesis_payload or {}).get("memory_article")
+    complete_memory_article = not business_memory_pages or (
+        isinstance(memory_article, dict) and bool(_coerce_text(memory_article.get("body_markdown"))) and
+        memory_article.get("page_id") in {page.get("page_id") for page in business_memory_pages}
+    )
+    if slot_facts and durable_memory_ready and complete_memory_article:
         company_page = _build_stack_memory_page(
             symbol=normalized_symbol,
             company_name=company_name,
             slot_facts=slot_facts,
             source_urls=source_urls,
             asof_time_utc=asof_iso,
+            memory_article=memory_article,
+            existing_pages=business_memory_pages,
         )
         prepared_frame, _ = prepare_zopedia_pages([company_page], now=pd.to_datetime(asof_iso, utc=True, errors="coerce").to_pydatetime())
         proposed_pages = prepared_frame.to_dict("records") if not prepared_frame.empty else []
@@ -2773,6 +2789,8 @@ def build_ticker_business_model_stack(
         proposal_rows = []
         if zopedia_verdict_available and not durable_memory_ready and "durable_memory_not_written_low_confidence_or_missing_business_model" not in synthesis_warnings:
             synthesis_warnings.append("durable_memory_not_written_low_confidence_or_missing_business_model")
+        if durable_memory_ready and not complete_memory_article:
+            synthesis_warnings.append("complete_memory_article_unavailable")
     zopedia_page_ids = [_coerce_text(page.get("page_id")) for page in zopedia_pages if _coerce_text(page.get("page_id"))]
     source_page_ids = [_coerce_text(page.get("page_id")) for page in business_memory_pages if _coerce_text(page.get("page_id"))]
     if business_memory_page_id:

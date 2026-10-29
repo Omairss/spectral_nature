@@ -21,20 +21,20 @@ struct DatasetResponse<T: Decodable>: Decodable {
   let messages: [String]
 }
 
-struct TrendPoint: Decodable, Identifiable {
+struct TrendPoint: Codable, Identifiable {
   let date: String
   let value: Double
   let period: String?
   var id: String { date }
 }
 
-struct HomeSnapshot: Decodable {
-  struct Summary: Decodable {
+struct HomeSnapshot: Codable {
+  struct Summary: Codable {
     let headline: String
     let markdown: String
     let audioAvailable: Bool
   }
-  struct Beat: Decodable, Identifiable {
+  struct Beat: Codable, Identifiable {
     let id: String
     let kind: String
     let title: String
@@ -43,7 +43,7 @@ struct HomeSnapshot: Decodable {
     let symbols: [String]
     let tickers: [TickerSnapshot]
   }
-  struct Datapoint: Decodable, Identifiable {
+  struct Datapoint: Codable, Identifiable {
     let id: String
     let title: String
     let significance: String
@@ -66,8 +66,8 @@ struct HomeSnapshot: Decodable {
   let graph: JSONValue?
 }
 
-struct TickerSnapshot: Decodable, Identifiable {
-  struct IntradayHistory: Decodable {
+struct TickerSnapshot: Codable, Identifiable {
+  struct IntradayHistory: Codable {
     let status: String
     let points: [TrendPoint]
     let interval: String

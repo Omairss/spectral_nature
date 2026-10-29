@@ -1,0 +1,29 @@
+[
+  {
+    "status": "accepted",
+    "role": "web",
+    "image": "snpipelineacr03130136.azurecr.io/accepted-web@sha256:59980cfd39a321f0ab882de929d82d02cf857cf0dae169e7485c2b8ecd17f229",
+    "source_revision": "b58c76568874fcddc84ea4b764ebcaf3ba4a5c1b",
+    "source_inventory_sha256": "f29b8d5a12752a21235df0a4f163521db1bedeba484556c93cee653a9f313496",
+    "runtime_inventory_sha256": "821621b4d4b90c09bfb0e481d0e14cf2402ec4860ae2e1844feff35074c0737a",
+    "complete_git_inventory_matches": true,
+    "all_packaged_files_checked": true,
+    "input_files": 90,
+    "compiled_files": 1704,
+    "symlinks": 0,
+    "node": "v22.23.3",
+    "http_checks": [
+      "Broad Economy200",
+      "saved summary200",
+      "existing FRED200",
+      "wrong CSRF403",
+      "unknown dataset404"
+    ],
+    "external_inference_calls": 0,
+    "build_run": "cj1c7",
+    "verification_run": "cj1c8",
+    "preserved_production_inputs": 8,
+    "shared_development_deployment_preserved": true,
+    "evidence": "documents/verification/broad-economy-summary-2026-10-27/production-packaged-images.json"
+  }
+]
