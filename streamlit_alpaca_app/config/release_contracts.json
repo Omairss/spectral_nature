@@ -10,6 +10,13 @@
       }
     },
     {
+      "name": "provider_credit_admission",
+      "roles": ["worker", "api-next", "broker"],
+      "definitions": {
+        "services/llm_execution.py": ["reserve_provider_budget", "settle_provider_budget", "settle_research_cost"]
+      }
+    },
+    {
       "name": "pipeline_publication",
       "roles": ["worker"],
       "definitions": {

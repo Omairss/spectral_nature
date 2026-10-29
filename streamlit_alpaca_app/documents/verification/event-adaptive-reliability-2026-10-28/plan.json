@@ -1,5 +1,5 @@
 {
-  "status": "local_source_fixed_qualification_and_credit_reconciliation_pending",
+  "status": "liquidity_admission_repaired_locally_qualitative_acceptance_pending",
   "owner_goal": "Reliable current reporting with predictable event-adaptive costs. The previous 90% reduction target is retired.",
   "requirements": {
     "configured_base_budget": "Retain user-defined per-logical-run budgets and protected full-model interpretation, synthesis and review.",
@@ -11,7 +11,8 @@
     "freshness": "Publish current completed work; do not present past events or unfinished prior investigations as new.",
     "model_quality": "Determine actual model use and inspect complete feed output before attributing regression to cheaper models.",
     "coverage": "Each Home briefing independently surveys the current market agenda, beyond ticker movers and twice-daily filtered news. Dated upcoming developments and completed disclosures remain distinct.",
-    "writing": "Explain relevant developments and their implications in plain language. Use numbers only when magnitude, comparison or a threshold changes the interpretation."
+    "writing": "Explain relevant developments and their implications in plain language. Use numbers only when magnitude, comparison or a threshold changes the interpretation.",
+    "provider_admission": "Old missing usage receipts must not indefinitely block unrelated current briefings. Separate original-run cost uncertainty from current provider credit admission; keep genuine active reservations and unresolved costs visible."
   },
   "items": [
     {
@@ -59,14 +60,14 @@
     {
       "id": "provider_credit_reconciliation",
       "task": "Resolve account-level admission starvation without erasing unknown costs, and protect future core completion at the shared account boundary.",
-      "status": "unresolved",
-      "evidence_or_remaining": "The after-close Home execution acquired current earnings headlines, but all focused investigations and final publication were denied provider credit admission. The provider reports available credit while the shared ledger holds nearly all against transport attempts without usage receipts. Billing UI offers aggregate usage, not evidence that settles each lost response. Run-budget protection is distinct from account liquidity. Do not free unknown charges by age or fabricate zero usage. Enclosing model telemetry confirms fifteen request-deadline failures and two eventual successes across the matched calls; none settles the earlier lost attempt usage."
+      "status": "liquidity_repair_verified_locally_account_core_funding_pending",
+      "evidence_or_remaining": "Fresh authoritative provider balance now governs new account admission. Ended or expired local requests retain unknown costs in the original run and account records without permanent cross-run credit holds after a subsequent balance observation. Live requests, overlapping probe outcomes, failed probes, real empty credit, concurrent admissions and idempotent late receipts are covered on isolated PostgreSQL. Explicit future completion reservation in shared account credit across independent producers remains unfinished; existing run-level core protection is preserved."
     },
     {
       "id": "verification_and_release",
       "task": "Verify operational contracts, qualitative behavior and exact-image DEV; reconcile all consumers and deploy the accepted release under existing owner authorization.",
       "status": "in_progress",
-      "evidence_or_remaining": "185 operational contracts pass locally with isolated PostgreSQL and no inference. No candidate image built. Current coverage changes require complete-output personal review, committed acceptance and exact-image DEV. Shared account liquidity is independently blocked by unresolved transport liabilities."
+      "evidence_or_remaining": "192 operational contracts pass locally with isolated PostgreSQL and no inference, including the new account-liquidity behavior. No candidate image built. Current coverage changes still require complete-output personal review, committed acceptance and exact-image DEV; no prod promotion is claimed. The global account guard affects all Python roles: the new release contract requires workers, APIs and brokers to share admission/settlement behavior. Reconcile prior API/broker accepted source before packaging; retain the three frontend images."
     },
     {
       "id": "scheduled_observation",
@@ -77,9 +78,9 @@
   ],
   "spending_policy": "No new paid offline API study is authorized by this task. Earlier $15 comparison is closed. Production reads and personally reviewing retained output do not start inference. Any new qualification must obey current AGENTS.md or obtain a new explicit exception.",
   "latest_local_contracts": {
-    "passed": 185,
-    "log": "private contracts-20261029T004107Z.log",
-    "scope": "Finance, ownership, persistence, cache state, document boundaries, broad-news request semantics, discovery capture retention, complete editor handoff and early Home completion funding. No generated prose was graded.",
+    "passed": 192,
+    "log": "private contracts-20261029T011914Z.log",
+    "scope": "Financial/ownership/publication/document/cache contracts plus current provider credit versus unresolved costs, crash deadlines, failed balance probes, actual zero credit, concurrent admission, overlapping balance observations and idempotent late settlement. No generated prose was graded.",
     "live_source_check": "Two historical-asof unfiltered Alpaca queries returned actual full-content news, including pre-close Fed reporting. No inference or production publication was started."
   },
   "release_state": {
@@ -87,6 +88,6 @@
     "development_deployed": false,
     "production_deployed": false,
     "production_remains_previous_accepted_image": true,
-    "required_next_step": "Resolve shared provider-credit accounting and qualify fresh complete model outputs using an explicitly approved provider allocation. The prepared older comparison is held for new pre/post-close inputs and shared-account admission; it must not bypass production credit reservations."
+    "required_next_step": "Complete shared-account future core-funding design and freshly approved complete-output qualitative verification, then exact-image DEV and owner-authorized production promotion. Cost reconciliation remains visible but no longer requires resolving every old request before a later briefing can run. The prepared study remains held; it must honor shared account admission. Reconcile API/broker source preservation and qualify all Python roles required by the new shared account contract."
   }
 }

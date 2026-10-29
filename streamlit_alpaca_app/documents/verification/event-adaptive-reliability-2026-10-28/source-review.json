@@ -1,5 +1,5 @@
 {
-  "status": "source_review_complete_qualitative_acceptance_pending",
+  "status": "runtime_source_reviewed_qualitative_and_consumer_integration_pending",
   "review_base_revision": "a1eefb18490e84b3c637b8e42a4f4954362fc3de",
   "files": {
     ".env.example": "Adds independent event-mode/margin controls. Blank mode preserves the fixed target. No credential or schedule changes.",
@@ -9,7 +9,7 @@
     "services/aql/events.py": "The existing source nominator can use bounded shared discovery independently of feed/mover availability. It receives dated economic context, retains broad research even with no focused nomination and materializes tool captures even when nomination fails. URL/source references are adapted without mutating the retained model payload; unresolved refs remain visible leads. Same-run retry identity excludes its own newly completed history. Focused research keeps existing shared source, model and budget contracts.",
     "services/aql_zopedia_gateway.py": "Applies common substantive-analysis/synthesis guidance to shared nonliteral research and formatting calls. Mechanical literal outputs and existing schema/transport/authorization remain intact. New narrative behavior requires complete-output personal acceptance.",
     "services/llm_context.py": "Shared narrative guidance preserves substantive mechanisms and current developments, using quantities only when they improve interpretation. Upcoming information is handled as upcoming rather than invented results. No fixed numeric quota, phrase grader or named-company exception.",
-    "services/llm_execution.py": "One atomic run/wallet ledger admits audited event shortfalls within base*(1+margin); retries cannot reset it and refunded margin cannot fund unselected work. Required core remains protected with visible soft variance. Canonical billing model is distinct from wire alias; tokenized embeddings and character-priced audio use correct units. Recovered issues flow across copied worker contexts. Cache identity uses frozen base/ceiling rather than incremental working-cap changes.",
+    "services/llm_execution.py": "One atomic run/wallet ledger admits audited event shortfalls within base*(1+margin); retries cannot reset it and refunded margin cannot fund unselected work. Required core remains protected with visible soft variance. Canonical billing model is distinct from wire alias; tokenized embeddings and character-priced audio use correct units. Recovered issues flow across copied worker contexts. Cache identity uses frozen base/ceiling rather than incremental working-cap changes. Latest owner instruction separates current account liquidity from original-run cost uncertainty: ended or expired-local-request holds cease reducing current credit only after a successful subsequent provider balance read. Unknown cost records remain; live and probe-overlapping requests remain held. The original deadline spans contention/refresh/admission, concurrent credit mutation is atomic, late receipts debit once and repeated receipts do not redate settlement. Published pricing and model routes are unchanged.",
     "services/llm_prices.json": "Retains existing DeepSeek prices. Adds verified westus Standard Azure small-embedding and published ElevenLabs v2 character rates. Estimates remain distinct from invoices; unpriced requests do not become zero.",
     "services/page_browsing.py": "Recognizes PDF magic/MIME before decoding and unsupported binary is never narrative. Retains original response bytes, shared extraction provenance and explicit failed/partial acquisition. Text NUL normalization retains originals. HTML handling and complete source_text remain available.",
     "services/pipeline_store.py": "Keeps existing immutable native version/CAS rules; adds immutable discoverable per-execution receipts before pointer advance and same-owner restore. Newer legitimate generations remain newer. Optional task filter on existing artifact listing preserves old callers and isolates completed event history from empty nominations. No shared DB-lifecycle or API/broker execution contracts changed.",
@@ -19,13 +19,14 @@
     "services/zopedia_agent.py": "Independent selected event investigations must fund optional full-model completion before expansion. Unfunded work produces current economical completion. Inherited funded company/current core work retains existing full-model semantics.",
     "services/zopedia_learning.py": "Saved frozen reviews run before new critiques and do not repurchase a completed critic after engine revision. Preserves original diagnosis/eval and permission policy. Excludes unchanged terminal episodes, retains pending fairness and reports actual critique/review deferrals within original case/job windows.",
     "services/alpaca_api.py": "An omitted/None news symbol filter explicitly fetches market-wide news through existing paginated acquisition, including full content. Explicit empty selection preserves prior no-query behavior. Existing selected-symbol callers retain normalization, newest-first order and bounded result limits.",
-    "services/aql/pipeline.py": "Passes full dated FRED/yield observations into shared broad discovery and retains its typed market-research dataset in both empty-candidate and ordinary output paths. Acquired documents continue through existing annotation/chunking. Candidate research, source-event bundles and canonical final editor remain intact."
+    "services/aql/pipeline.py": "Passes full dated FRED/yield observations into shared broad discovery and retains its typed market-research dataset in both empty-candidate and ordinary output paths. Acquired documents continue through existing annotation/chunking. Candidate research, source-event bundles and canonical final editor remain intact.",
+    "config/release_contracts.json": "Adds shared provider-credit admission/settlement definitions for worker, API and broker roles. New ledger semantics must not be released only to scheduled jobs while interactive clients sharing the account retain permanent-hold behavior. The held source record cannot authorize those roles until their prior accepted behavior is reviewed and reconciled."
   },
   "mechanical_verification": {
-    "passed": 185,
+    "passed": 192,
     "isolated_postgresql": true,
     "inference_started": false,
-    "log": "private contracts-20261029T004107Z.log"
+    "log": "private contracts-20261029T011914Z.log"
   },
   "shared_consumer_definition_changes": [
     {
@@ -67,12 +68,28 @@
       "contract": "pipeline_publication",
       "definition": "services/pipeline_store.py:publish_dataset_manifest",
       "changed": true
+    },
+    {
+      "contract": "provider_credit_admission",
+      "definition": "services/llm_execution.py:reserve_provider_budget",
+      "changed": true
+    },
+    {
+      "contract": "provider_credit_admission",
+      "definition": "services/llm_execution.py:settle_provider_budget",
+      "changed": true
+    },
+    {
+      "contract": "provider_credit_admission",
+      "definition": "services/llm_execution.py:settle_research_cost",
+      "changed": false
     }
   ],
   "full_consumer_inventory": "consumers.before.json",
-  "consumer_preservation": "All36 current images and effective configurations match the preceding accepted readback. All29 workers are required for the changed publication contract. Seven distinct API/broker/frontend images retain their packaged-source evidence and accepted behavior. New release will not replace those images.",
+  "consumer_preservation": "Initial baseline covered36 consumers. Earlier worker-only candidate scope is superseded by the global provider-credit fix: all33 Python consumers (29 workers,2 APIs,2 broker jobs) require the shared new admission/settlement contract. Reconcile each API/broker accepted source behavior before a new build; three frontend images remain retained. No consumer has been mutated.",
   "remaining_acceptance": [
-    "Authoritative provider-credit reconciliation; preserve unknown liabilities and protect shared-account core liquidity",
+    "Preserve unresolved billing independently of current admission; finish explicit future-core account funding",
+    "Reconcile prior accepted API/broker source and include all33 Python consumers under the shared provider-credit release contract",
     "Fresh complete-output personal comparison under a newly authorized provider allocation",
     "Committed accepted source inventory",
     "Exact-image DEV operational qualification",

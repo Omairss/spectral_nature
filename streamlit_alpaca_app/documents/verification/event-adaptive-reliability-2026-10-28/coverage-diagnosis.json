@@ -68,12 +68,21 @@
     },
     "known_usage_receipts": 0,
     "billing_console": "Read-only console confirms aggregate usage and available balance; export action exposed no request-level settlement evidence.",
-    "unresolved": "The current provider balance cannot assign actual cost or prove the terminal state of each lost response. No unknown hold was cleared or marked zero. Future account-level core protection and authoritative reconciliation remain open.",
+    "unresolved": "Individual lost-request usage is still unknown. That uncertainty is retained for reconciliation rather than requiring indefinite suspension of unrelated current reporting. Explicit future core completion funding across independent producers at shared-account level remains open.",
     "enclosing_model_outcomes": {
       "matched_model_calls": 17,
       "failed_with_expired_request_deadline": 15,
       "eventually_succeeded_after_an_unknown_transport_attempt": 2,
       "implication": "The enclosing failures confirm request deadlines; they do not establish zero billing for the lost transport attempts. Successful retries also cannot settle earlier attempts without their own usage."
+    },
+    "admission_repair": {
+      "status": "verified_locally_not_deployed",
+      "owner_instruction": "This is not the behaviour we want",
+      "new_admission_basis": "Successful current provider balance plus live concurrent reservations.",
+      "unknown_costs": "Retained at full uncertain bound in the original run and preserved account record; no zero usage or invented exact settlement.",
+      "closure_rule": "A later authoritative balance observation can remove an ended/local-deadline-expired request from current liquidity withholding. Failed probes do not.",
+      "late_charge_risk": "The current balance does not prove all old unknown charges are already posted. Those possible charges stay explicit and later receipts/balance changes are honored.",
+      "real_insufficient_credit": "Still refused; a successful balance read is not authorization to spend unavailable provider funds."
     }
   },
   "candidate_behavior": [
@@ -85,7 +94,7 @@
     "Use shared plain-language guidance: numbers belong where magnitude, comparison or a threshold changes the explanation."
   ],
   "validation": {
-    "operational_contracts_passed": 185,
+    "operational_contracts_passed": 192,
     "complete_new_model_output_review": "pending",
     "inference_started": false,
     "candidate_image_built": false,
