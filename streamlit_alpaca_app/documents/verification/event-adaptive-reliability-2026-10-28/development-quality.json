@@ -98,6 +98,31 @@
     "production_stories": 6,
     "candidate_stories": 11,
     "content": "Actual complete output with no prose editing; detailed fields are expandable. Candidate is held.",
+    "production_changed": false,
+    "standalone": true,
+    "view": "Matched side-by-side by default; working isolated version controls",
+    "browser_verified": true,
+    "all_original_prose_unchanged": true
+  },
+  "preview_repair": {
+    "status": "standalone_comparison_fixed",
+    "recorded_at_utc": "2026-10-29T18:51:54.585568+00:00",
+    "artifact": "output/visualizations/coherent-feed-review-20261029.html",
+    "artifact_sha256": "6c0dbba4ae71125ceb3557544fb80ac9e9313df5c20979c514bae3d9ff9ab9e9",
+    "cause": "Missing standalone tab click handlers left Production hidden outside chat.",
+    "shared_stories": 5,
+    "added_stories": 6,
+    "omitted_stories": 1,
+    "matching": "Exact primary retained source identity",
+    "all_original_prose_preserved": true,
+    "chrome_qualification": {
+      "production_candidate_and_side_by_side_controls": true,
+      "expand_collapse_controls": true,
+      "all6production_and11candidate_story_fields_preserved": true,
+      "mobile_no_horizontal_overflow": true,
+      "page_errors": 0
+    },
+    "inference_calls": 0,
     "production_changed": false
   }
 }

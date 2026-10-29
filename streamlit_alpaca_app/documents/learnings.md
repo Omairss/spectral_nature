@@ -1463,3 +1463,7 @@ A model may select an unexplained current market observation before an article e
 ### Selection shares the evidence reader identity — October29
 
 A research source should have the same identity when read, selected and published. Redundant section/index/bundle identifiers require the model to translate storage details and exclude useful research that was not already public. Resolve the exact named source on the application side; preserve original bundle metadata and all supporting originals. Let the existing shared reader load source bodies as needed while substantive findings remain in working context.
+
+### Verify comparisons in the owner’s actual viewing context — October29
+
+A chat fragment is not a standalone HTML document. If the owner opens the file from the IDE, include its styles and interaction handlers and inspect that exact document in a browser. Show matched before/after stories together; separate genuinely added or omitted coverage from rewritten wording. Preserve the generated prose verbatim rather than making the preview look better than its source.
