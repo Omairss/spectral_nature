@@ -2,8 +2,6 @@
 
 Native SwiftUI client for the modern Spectral Nature workbench. Requires iOS 17 or later and Xcode 16 or later. The historical `SpectralNatureMVP` directory is retained; the application and shared scheme are named `SpectralNature`.
 
-Build **15** was installed in place over Wi-Fi and launched on Omair’s iPhone on October 28. It adds the retained Broad Economy outlook and improves native Markets rendering and treemap inspection. [Installation receipt](../../documents/verification/iphone-markets-2026-10-28/installation.json). Build14 remains on Zohair’s and Fay’s phones, which were unavailable during this update; its Home, Trading and Research behavior is preserved.
-
 Candidate build **17** implements the portfolio-first Trading workspace, approval feed, fill-based call performance and position controls. Build 16’s Home, Markets, charts, feedback and session behavior are preserved. Trading verification and DEV delivery are recorded in [the October 29 source review](../../documents/verification/trading-system-2026-10-29/SOURCE_REVIEW.md).
 
 ## Run
