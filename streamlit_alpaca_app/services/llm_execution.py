@@ -199,17 +199,6 @@ def mark_research_work_incomplete() -> None:
         status["failed"] = True
 
 
-def normalize_provider_usage(usage: dict[str, Any] | None) -> dict[str, Any]:
-    """Retain native accounting fields and expose common token-count names."""
-    result = dict(usage or {})
-    for common, native in (("prompt_tokens", "input_tokens"), ("completion_tokens", "output_tokens"),
-                           ("prompt_tokens_details", "input_tokens_details"),
-                           ("completion_tokens_details", "output_tokens_details")):
-        if common not in result and native in result:
-            result[common] = result[native]
-    return result
-
-
 class LLMContextWindowExceeded(RuntimeError):
     """Capacity feedback for the agent; retrying an unchanged request cannot help."""
 

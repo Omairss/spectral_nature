@@ -561,7 +561,7 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
         "market_summary": {
             "type": "object", "additionalProperties": False,
             "properties": {
-                "summary_text": {"type": "string"},
+                "summary_text": {"type": "string", "description": "Explain the consequential developments and their implications in connected prose. This is the reader's orientation, not a list of stories or measurements."},
                 "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
                 "limitations": {"type": "array", "items": {"type": "string"}},
             }, "required": ["summary_text", "confidence", "limitations"],
@@ -571,7 +571,13 @@ _HOME_SURFACE_QUALITY_SCHEMA: dict[str, Any] = {
             "properties": {
                 "story_id": {"type": "string"},
                 "time_basis": _STORY_TIME_BASIS_SCHEMA,
-                **{key: {"type": "string"} for key in _HOME_PUBLIC_TEXT_FIELDS},
+                "event_title": {"type": "string", "description": "The substantive development, with chronology and strength of explanation intact."},
+                "surface_summary_text": {"type": "string", "description": "The development's essential meaning for an investor, without duplicating the headline or detailed account."},
+                "what_happened_text": {"type": "string", "description": "Explain what changed in the business, policy or market. Describe reported beats, misses and guidance changes in words; retain an exact quantity only when it explains the scale or a consequential distinction. Do not transcribe actual-versus-estimate pairs or financial statement line items into prose."},
+                "why_happened_text": {"type": "string", "description": "Explain the supported mechanism and worthwhile competing interpretations. Distinguish inference from reported explanation; develop the reasoning rather than repeat the observations."},
+                "affected_assets_summary_text": {"type": "string", "description": "Explain useful related exposures or counterexamples, without turning simultaneous price moves into causes. Empty is appropriate when there is no useful additional connection."},
+                "business_context_text": {"type": "string", "description": "Add the standing business or economic context needed to understand this change. Do not repeat facts already explained in this story. Empty is appropriate when no additional context is needed."},
+                "watch_next_text": {"type": "string", "description": "Identify the unresolved question or next development that could change the interpretation, rather than a generic list of disclosures to collect."},
                 "cause_status": {"type": "string", "enum": ["supported", "partial", "unresolved"]},
             },
             "required": [
